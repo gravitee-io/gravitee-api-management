@@ -27,10 +27,8 @@ import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Subscription;
 
 /**
  * @author GraviteeSource Team
@@ -40,8 +38,13 @@ import org.reactivestreams.Subscription;
 public class MockEndpointConnector implements EndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-
+    private static final String ENDPOINT_ID = "mock";
     protected final MockEndpointConnectorConfiguration configuration;
+
+    @Override
+    public String id() {
+        return ENDPOINT_ID;
+    }
 
     @Override
     public Set<ConnectorMode> supportedModes() {

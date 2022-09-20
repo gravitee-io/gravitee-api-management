@@ -11,13 +11,28 @@
     "selectors" : [
       {
         "type": "HTTP",
-        "methods": [ "GET", "POST" ],
+        "methods": [
+          "GET",
+          "POST"
+        ],
         "path": "/",
         "pathOperator": "STARTS_WITH"
       },
       {
         "type": "CONDITION",
         "condition": "my-condition"
+      },
+      {
+        "type": "CHANNEL",
+        "operations": [
+          "SUBSCRIBE",
+          "PUBLISH"
+        ],
+        "channel": "/",
+        "channelOperator": "STARTS_WITH",
+        "entrypoints": [
+          "entrypoint"
+        ]
       }
     ],
     "tags": [ "tag-1", "tag-2" ],

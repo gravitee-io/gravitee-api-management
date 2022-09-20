@@ -15,14 +15,19 @@
  */
 package io.gravitee.definition.model.v4.flow.selector;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.ConnectorMode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -41,21 +46,38 @@ public class ChannelSelector extends Selector {
 
     @JsonProperty(required = true)
     @NotEmpty
-    private String channel;
+    private String channel = "/";
 
     @JsonProperty(required = true)
     @NotNull
     private Operator channelOperator = Operator.STARTS_WITH;
 
-    @JsonProperty
     private Set<String> entrypoints;
 
     public ChannelSelector() {
         super(SelectorType.CHANNEL);
     }
 
+    @RequiredArgsConstructor
+    @Getter
+    @Schema(name = "ChannelSelectorOperationV4")
     public enum Operation {
-        SUB,
-        PUB,
+        SUBSCRIBE(ConnectorMode.SUBSCRIBE.getLabel(), ConnectorMode.SUBSCRIBE),
+        PUBLISH(ConnectorMode.PUBLISH.getLabel(), ConnectorMode.PUBLISH);
+
+        private static final Map<ConnectorMode, Operation> MAP = Map.of(SUBSCRIBE.connectorMode, SUBSCRIBE, PUBLISH.connectorMode, PUBLISH);
+
+        @JsonValue
+        private final String label;
+
+        @JsonIgnore
+        private final ConnectorMode connectorMode;
+
+        public static Operation fromConnectorMode(final ConnectorMode connectorMode) {
+            if (connectorMode != null) {
+                return MAP.get(connectorMode);
+            }
+            return null;
+        }
     }
 }

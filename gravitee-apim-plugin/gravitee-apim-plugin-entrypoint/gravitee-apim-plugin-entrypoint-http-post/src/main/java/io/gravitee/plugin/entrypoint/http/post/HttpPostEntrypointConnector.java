@@ -43,6 +43,12 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
+    private static final String ENTRYPOINT_ID = "http-post";
+
+    @Override
+    public String id() {
+        return ENTRYPOINT_ID;
+    }
 
     @Override
     public Set<ConnectorMode> supportedModes() {

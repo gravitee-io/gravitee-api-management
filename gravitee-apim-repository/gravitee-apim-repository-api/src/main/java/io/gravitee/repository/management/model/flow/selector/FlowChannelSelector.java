@@ -59,7 +59,7 @@ public class FlowChannelSelector extends FlowSelector {
     }
 
     public enum Operation {
-        SUB,
-        PUB,
+        SUBSCRIBE,
+        PUBLISH,
     }
 }

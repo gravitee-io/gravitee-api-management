@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.exception;
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.util.Map;
 import java.util.Set;
@@ -26,14 +27,16 @@ import java.util.Set;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowSelectorsDuplicatedException extends AbstractManagementException {
+public class FlowSelectorsInvalidException extends AbstractManagementException {
 
     private final String name;
-    private final Set<String> duplicatedSelectors;
+    private final ApiType apiType;
+    private final Set<String> invalidSelectors;
 
-    public FlowSelectorsDuplicatedException(final String name, final Set<String> duplicatedSelectors) {
+    public FlowSelectorsInvalidException(final String name, final ApiType apiType, final Set<String> invalidSelectors) {
         this.name = name;
-        this.duplicatedSelectors = duplicatedSelectors;
+        this.apiType = apiType;
+        this.invalidSelectors = invalidSelectors;
     }
 
     @Override
@@ -43,16 +46,24 @@ public class FlowSelectorsDuplicatedException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "The flow [" + name + "] contains duplicated selectors type " + duplicatedSelectors + ".";
+        return (
+            "The flow [" +
+            name +
+            "] contains selectors " +
+            invalidSelectors +
+            " that couldn't apply to api type [" +
+            apiType.getLabel() +
+            "]."
+        );
     }
 
     @Override
     public String getTechnicalCode() {
-        return "flow.selectors.type.duplicated";
+        return "flow.selectors.type.invalid";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("flow.selectors.type.duplicated", duplicatedSelectors.toString());
+        return singletonMap("flow.selectors.type.invalid", invalidSelectors.toString());
     }
 }

@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
+import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
@@ -64,7 +65,7 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, flow.getRequest().size());
         assertEquals(3, flow.getResponse().size());
 
-        assertEquals(2, flow.getSelectors().size());
+        assertEquals(3, flow.getSelectors().size());
         flow
             .getSelectors()
             .forEach(
@@ -77,6 +78,16 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                     } else if (flowSelector instanceof FlowConditionSelector) {
                         FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
                         assertEquals("my-condition", conditionSelector.getCondition());
+                    } else if (flowSelector instanceof FlowChannelSelector) {
+                        FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
+                        assertEquals("/", channelSelector.getChannel());
+                        assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
+                        assertTrue(
+                            channelSelector
+                                .getOperations()
+                                .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
+                        );
+                        assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
                     }
                 }
             );

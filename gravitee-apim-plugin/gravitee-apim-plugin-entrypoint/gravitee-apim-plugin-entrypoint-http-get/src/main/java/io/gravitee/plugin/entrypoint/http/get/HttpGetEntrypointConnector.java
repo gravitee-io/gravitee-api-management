@@ -56,10 +56,14 @@ public class HttpGetEntrypointConnector implements EntrypointAsyncConnector {
     static final String ATTR_INTERNAL_RESPONSE_CONTENT_TYPE = "response.content-type";
     static final String CURSOR_QUERY_PARAM = "cursor";
     static final String LIMIT_QUERY_PARAM = "limit";
-
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
-
+    private static final String ENTRYPOINT_ID = "http-get";
     protected final HttpGetEntrypointConnectorConfiguration configuration;
+
+    @Override
+    public String id() {
+        return ENTRYPOINT_ID;
+    }
 
     @Override
     public ListenerType supportedListenerType() {

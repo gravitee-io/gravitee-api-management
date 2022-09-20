@@ -80,6 +80,11 @@ class WebSocketEntrypointConnectorTest {
     }
 
     @Test
+    void shouldIdReturnWebsocket() {
+        assertThat(cut.id()).isEqualTo("websocket");
+    }
+
+    @Test
     void shouldSupportAsyncApi() {
         assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
     }
@@ -91,7 +96,7 @@ class WebSocketEntrypointConnectorTest {
 
     @Test
     void shouldSupportPublishAndSubscribeModes() {
-        assertThat(cut.supportedModes()).isEqualTo(Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE));
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     }
 
     @Test

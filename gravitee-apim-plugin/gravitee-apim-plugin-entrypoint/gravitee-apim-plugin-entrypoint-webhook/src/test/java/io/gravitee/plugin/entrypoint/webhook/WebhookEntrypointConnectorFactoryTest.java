@@ -46,7 +46,7 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportSubscribeMode() {
-        assertThat(webhookEntrypointConnectorFactory.supportedModes()).contains(ConnectorMode.PUBLISH);
+        assertThat(webhookEntrypointConnectorFactory.supportedModes()).contains(ConnectorMode.SUBSCRIBE);
     }
 
     @ParameterizedTest

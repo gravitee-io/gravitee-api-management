@@ -42,6 +42,9 @@ import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.jupiter.v4.flow.selection.ChannelSelectorConditionFilter;
+import io.gravitee.gateway.jupiter.v4.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.gateway.jupiter.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -151,7 +154,10 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public FlowResolverFactory v4FlowResolverFactory() {
-        return new FlowResolverFactory(new CompositeConditionFilter<>());
+        return new FlowResolverFactory(
+            new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+            new CompositeConditionFilter<>(new ChannelSelectorConditionFilter(), new ConditionSelectorConditionFilter())
+        );
     }
 
     @Bean

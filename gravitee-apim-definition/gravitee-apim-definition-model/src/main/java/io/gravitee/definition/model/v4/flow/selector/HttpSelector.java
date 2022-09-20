@@ -40,7 +40,7 @@ public class HttpSelector extends Selector {
 
     @JsonProperty(required = true)
     @NotEmpty
-    private String path;
+    private String path = "/";
 
     @JsonProperty(required = true)
     @NotNull

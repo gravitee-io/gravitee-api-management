@@ -15,19 +15,28 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsEntrypointInvalidException;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsInvalidException;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,21 +44,22 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@AllArgsConstructor
 public class FlowValidationServiceImpl extends TransactionalService implements FlowValidationService {
 
     private final PolicyService policyService;
-
-    public FlowValidationServiceImpl(final PolicyService policyService) {
-        this.policyService = policyService;
-    }
+    private final EntrypointConnectorPluginService entrypointConnectorPluginService;
 
     @Override
-    public List<Flow> validateAndSanitize(List<Flow> flows) {
+    public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
         if (flows != null) {
             flows.forEach(
                 flow -> {
                     // Check duplicated selectors
                     checkDuplicatedSelectors(flow);
+
+                    // Check selectors according to api type
+                    checkSelectorsForType(apiType, flow);
 
                     // Validate policy
                     checkPolicyConfiguration(flow);
@@ -57,6 +67,62 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
             );
         }
         return flows;
+    }
+
+    private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
+        if (flow.getSelectors() != null) {
+            if (ApiType.SYNC == apiType) {
+                Set<String> invalidSelectors = flow
+                    .getSelectors()
+                    .stream()
+                    .filter(selector -> !(selector.getType() == SelectorType.HTTP || selector.getType() == SelectorType.CONDITION))
+                    .map(selector -> selector.getType().getLabel())
+                    .collect(Collectors.toSet());
+                if (!invalidSelectors.isEmpty()) {
+                    throw new FlowSelectorsInvalidException(flow.getName(), apiType, invalidSelectors);
+                }
+            } else if (ApiType.ASYNC == apiType) {
+                Set<String> invalidSelectors = flow
+                    .getSelectors()
+                    .stream()
+                    .filter(selector -> !(selector.getType() == SelectorType.CHANNEL || selector.getType() == SelectorType.CONDITION))
+                    .map(selector -> selector.getType().getLabel())
+                    .collect(Collectors.toSet());
+                if (!invalidSelectors.isEmpty()) {
+                    throw new FlowSelectorsInvalidException(flow.getName(), apiType, invalidSelectors);
+                }
+
+                checkChannelAsyncEntrypoint(flow);
+            }
+        }
+    }
+
+    private void checkChannelAsyncEntrypoint(final Flow flow) {
+        Optional<ChannelSelector> channelSelectorOpt = flow
+            .getSelectors()
+            .stream()
+            .filter(selector -> selector.getType() == SelectorType.CHANNEL)
+            .map(ChannelSelector.class::cast)
+            .findFirst();
+        if (channelSelectorOpt.isPresent()) {
+            ChannelSelector channelSelector = channelSelectorOpt.get();
+            if (channelSelector.getEntrypoints() != null) {
+                Set<String> asyncEntrypoints = entrypointConnectorPluginService
+                    .findBySupportedApi(ApiType.ASYNC)
+                    .stream()
+                    .map(PlatformPluginEntity::getId)
+                    .collect(Collectors.toSet());
+
+                Set<String> invalidEntrypoints = channelSelector
+                    .getEntrypoints()
+                    .stream()
+                    .filter(entrypointId -> !asyncEntrypoints.contains(entrypointId))
+                    .collect(Collectors.toSet());
+                if (!invalidEntrypoints.isEmpty()) {
+                    throw new FlowSelectorsEntrypointInvalidException(flow.getName(), invalidEntrypoints);
+                }
+            }
+        }
     }
 
     private void checkPolicyConfiguration(final Flow flow) {

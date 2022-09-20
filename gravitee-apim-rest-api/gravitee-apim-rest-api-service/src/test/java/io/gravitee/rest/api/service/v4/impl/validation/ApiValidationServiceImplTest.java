@@ -35,7 +35,6 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
@@ -103,7 +102,7 @@ public class ApiValidationServiceImplTest {
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
         verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitize(null);
-        verify(flowValidationService, times(1)).validateAndSanitize(null);
+        verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
     }
 
     @Test(expected = InvalidDataException.class)

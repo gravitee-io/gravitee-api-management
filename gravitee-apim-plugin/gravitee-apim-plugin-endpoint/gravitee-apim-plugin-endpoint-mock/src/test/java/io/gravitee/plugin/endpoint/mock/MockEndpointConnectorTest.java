@@ -15,10 +15,14 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -51,8 +55,8 @@ import org.slf4j.Logger;
 @ExtendWith(MockitoExtension.class)
 class MockEndpointConnectorTest {
 
-    private static final String MESSAGE_TO_LOG = "message to log";
     protected static final String MESSAGE_CONTENT = "test mock endpoint";
+    private static final String MESSAGE_TO_LOG = "message to log";
     private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
 
     @Mock
@@ -76,8 +80,23 @@ class MockEndpointConnectorTest {
         configuration.setMessageContent(MESSAGE_CONTENT);
         mockEndpointConnector = new MockEndpointConnector(configuration);
 
-        when(ctx.request()).thenReturn(request);
-        when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.request()).thenReturn(request);
+        lenient().when(ctx.response()).thenReturn(response);
+    }
+
+    @Test
+    void shouldIdReturnMock() {
+        assertThat(mockEndpointConnector.id()).isEqualTo("mock");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(mockEndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
+    void shouldSupportPublishAndSubscribeModes() {
+        assertThat(mockEndpointConnector.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     }
 
     @Test

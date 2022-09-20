@@ -132,13 +132,15 @@ public class FlowMapper {
             FlowChannelSelector repositoryFlowChannelSelector = new FlowChannelSelector();
             repositoryFlowChannelSelector.setChannel(definitionChannelSelector.getChannel());
             repositoryFlowChannelSelector.setChannelOperator(FlowOperator.valueOf(definitionChannelSelector.getChannelOperator().name()));
-            repositoryFlowChannelSelector.setOperations(
-                definitionChannelSelector
-                    .getOperations()
-                    .stream()
-                    .map(operation -> FlowChannelSelector.Operation.valueOf(operation.name()))
-                    .collect(Collectors.toSet())
-            );
+            if (definitionChannelSelector.getOperations() != null) {
+                repositoryFlowChannelSelector.setOperations(
+                    definitionChannelSelector
+                        .getOperations()
+                        .stream()
+                        .map(operation -> FlowChannelSelector.Operation.valueOf(operation.name()))
+                        .collect(Collectors.toSet())
+                );
+            }
             repositoryFlowChannelSelector.setEntrypoints(definitionChannelSelector.getEntrypoints());
             return repositoryFlowChannelSelector;
         } else if (definitionSelector instanceof ConditionSelector) {
@@ -163,13 +165,15 @@ public class FlowMapper {
             ChannelSelector definitionChannelSelector = new ChannelSelector();
             definitionChannelSelector.setChannel(repositoryFlowChannelSelector.getChannel());
             definitionChannelSelector.setChannelOperator(Operator.valueOf(repositoryFlowChannelSelector.getChannelOperator().name()));
-            definitionChannelSelector.setOperations(
-                repositoryFlowChannelSelector
-                    .getOperations()
-                    .stream()
-                    .map(operation -> ChannelSelector.Operation.valueOf(operation.name()))
-                    .collect(Collectors.toSet())
-            );
+            if (repositoryFlowChannelSelector.getOperations() != null) {
+                definitionChannelSelector.setOperations(
+                    repositoryFlowChannelSelector
+                        .getOperations()
+                        .stream()
+                        .map(operation -> ChannelSelector.Operation.valueOf(operation.name()))
+                        .collect(Collectors.toSet())
+                );
+            }
             definitionChannelSelector.setEntrypoints(repositoryFlowChannelSelector.getEntrypoints());
             return definitionChannelSelector;
         } else if (repositoryFlowSelector instanceof FlowConditionSelector) {

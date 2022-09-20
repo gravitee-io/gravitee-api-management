@@ -86,8 +86,4 @@
         <class-a>io.gravitee.repository.management.model.flow.selector.FlowChannelSelector</class-a>
         <class-b>io.gravitee.repository.management.model.flow.selector.FlowChannelSelector</class-b>
     </mapping>
-    <mapping bean-factory="io.gravitee.repository.mongodb.management.mapper.factory.CustomFlowSelectorFactory">
-        <class-a>io.gravitee.repository.management.model.flow.selector.FlowChannelSelector</class-a>
-        <class-b>io.gravitee.repository.management.model.flow.selector.FlowChannelSelector</class-b>
-    </mapping>
 </mappings>

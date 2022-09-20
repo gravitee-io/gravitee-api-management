@@ -26,14 +26,14 @@ import java.util.Set;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowSelectorsDuplicatedException extends AbstractManagementException {
+public class FlowSelectorsEntrypointInvalidException extends AbstractManagementException {
 
     private final String name;
-    private final Set<String> duplicatedSelectors;
+    private final Set<String> invalidEntrypoints;
 
-    public FlowSelectorsDuplicatedException(final String name, final Set<String> duplicatedSelectors) {
+    public FlowSelectorsEntrypointInvalidException(final String name, final Set<String> invalidEntrypoints) {
         this.name = name;
-        this.duplicatedSelectors = duplicatedSelectors;
+        this.invalidEntrypoints = invalidEntrypoints;
     }
 
     @Override
@@ -43,16 +43,16 @@ public class FlowSelectorsDuplicatedException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "The flow [" + name + "] contains duplicated selectors type " + duplicatedSelectors + ".";
+        return "The flow [" + name + "] contains channel selector with invalid entrypoints " + invalidEntrypoints + ".";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "flow.selectors.type.duplicated";
+        return "flow.selectors.entrypoints.invalid";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("flow.selectors.type.duplicated", duplicatedSelectors.toString());
+        return singletonMap("flow.selectors.entrypoints.invalid", invalidEntrypoints.toString());
     }
 }

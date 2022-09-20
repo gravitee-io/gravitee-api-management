@@ -45,9 +45,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
-    public static final int RETRY_MIN_VALUE = 1000;
-    public static final int RETRY_MAX_VALUE = 30000;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    private static final String ENTRYPOINT_ID = "sse";
+    private static final int RETRY_MIN_VALUE = 1000;
+    private static final int RETRY_MAX_VALUE = 30000;
     private final Random random;
     private SseEntrypointConnectorConfiguration configuration;
 
@@ -59,6 +60,11 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
         }
         // Random doesn't require to be secured here and is only used for random retry time
         this.random = new Random();
+    }
+
+    @Override
+    public String id() {
+        return ENTRYPOINT_ID;
     }
 
     @Override

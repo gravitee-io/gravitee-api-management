@@ -19,8 +19,6 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -32,13 +30,7 @@ import java.util.regex.Pattern;
  */
 public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
 
-    private static final char OPTIONAL_TRAILING_SEPARATOR = '?';
-    private static final String PATH_SEPARATOR = "/";
-    private static final String PATH_PARAM_PREFIX = ":";
-    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
-    private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
-
-    private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
+    private final PathPatterns pathPatterns = new PathPatterns();
 
     @Override
     public boolean evaluate(ExecutionContext context, Flow flow) {
@@ -46,30 +38,8 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
     }
 
     protected boolean evaluate(String pathInfo, Flow flow) {
-        Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
+        Pattern pattern = pathPatterns.getOrCreate(flow.getPath());
 
         return (flow.getOperator() == Operator.EQUALS) ? pattern.matcher(pathInfo).matches() : pattern.matcher(pathInfo).lookingAt();
-    }
-
-    private Pattern transform(String path) {
-        String[] branches = SEPARATOR_SPLITTER.split(path);
-        StringBuilder buffer = new StringBuilder(PATH_SEPARATOR);
-
-        for (final String branch : branches) {
-            if (!branch.isEmpty()) {
-                if (branch.startsWith(PATH_PARAM_PREFIX)) {
-                    buffer.append(PATH_PARAM_REGEX);
-                } else {
-                    buffer.append(branch);
-                }
-
-                buffer.append(PATH_SEPARATOR);
-            }
-        }
-
-        // Last path separator is not required to match
-        buffer.append(OPTIONAL_TRAILING_SEPARATOR);
-
-        return Pattern.compile(buffer.toString());
     }
 }

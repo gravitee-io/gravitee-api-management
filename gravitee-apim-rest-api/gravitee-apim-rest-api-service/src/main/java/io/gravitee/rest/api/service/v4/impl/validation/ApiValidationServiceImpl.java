@@ -94,7 +94,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean endpoints
         newApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(newApiEntity.getEndpointGroups()));
         // Validate and clean flow
-        newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getFlows()));
+        newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
     }
 
     @Override
@@ -131,7 +131,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean endpoints
         updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
         // Validate and clean flow
-        updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getFlows()));
+        updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getFlows()));
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
     }

@@ -31,7 +31,9 @@ public class CustomFlowSelectorFactory implements BeanFactory {
         if (source instanceof FlowHttpSelector) {
             FlowHttpSelector sourceFlowHttpSelector = (FlowHttpSelector) source;
             FlowHttpSelector flowHttpSelector = new FlowHttpSelector();
-            flowHttpSelector.setMethods(new HashSet<>(sourceFlowHttpSelector.getMethods()));
+            if (sourceFlowHttpSelector.getMethods() != null) {
+                flowHttpSelector.setMethods(new HashSet<>(sourceFlowHttpSelector.getMethods()));
+            }
             flowHttpSelector.setPathOperator(sourceFlowHttpSelector.getPathOperator());
             flowHttpSelector.setPath(sourceFlowHttpSelector.getPath());
             return flowHttpSelector;
@@ -45,8 +47,12 @@ public class CustomFlowSelectorFactory implements BeanFactory {
             FlowChannelSelector flowChannelSelector = new FlowChannelSelector();
             flowChannelSelector.setChannel(sourceFlowChannelSelector.getChannel());
             flowChannelSelector.setChannelOperator(sourceFlowChannelSelector.getChannelOperator());
-            flowChannelSelector.setOperations(new HashSet<>(sourceFlowChannelSelector.getOperations()));
-            flowChannelSelector.setEntrypoints(new HashSet<>(sourceFlowChannelSelector.getEntrypoints()));
+            if (sourceFlowChannelSelector.getOperations() != null) {
+                flowChannelSelector.setOperations(new HashSet<>(sourceFlowChannelSelector.getOperations()));
+            }
+            if (sourceFlowChannelSelector.getEntrypoints() != null) {
+                flowChannelSelector.setEntrypoints(new HashSet<>(sourceFlowChannelSelector.getEntrypoints()));
+            }
             return flowChannelSelector;
         }
         return source;

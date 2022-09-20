@@ -37,6 +37,11 @@ public class FakeEndpointConnector implements EndpointConnector {
     private FakeEndpointConnectorConfiguration configuration;
 
     @Override
+    public String id() {
+        return "fake";
+    }
+
+    @Override
     public ApiType supportedApi() {
         return ApiType.SYNC;
     }

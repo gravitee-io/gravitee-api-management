@@ -41,11 +41,16 @@ public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
     static final int WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR = 1011;
     static final String WEBSOCKET_STATUS_INTERNAL_SERVER_ERROR_MSG = "Internal server error";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-
+    private static final String ENTRYPOINT_ID = "websocket";
     protected final WebSocketEntrypointConnectorConfiguration configuration;
 
     public WebSocketEntrypointConnector(final WebSocketEntrypointConnectorConfiguration configuration) {
         this.configuration = configuration;
+    }
+
+    @Override
+    public String id() {
+        return ENTRYPOINT_ID;
     }
 
     @Override

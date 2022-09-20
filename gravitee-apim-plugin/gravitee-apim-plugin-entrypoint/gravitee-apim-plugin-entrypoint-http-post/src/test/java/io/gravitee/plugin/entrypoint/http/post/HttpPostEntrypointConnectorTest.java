@@ -21,6 +21,9 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.reactivex.Completable;
@@ -49,6 +52,26 @@ class HttpPostEntrypointConnectorTest {
     @BeforeEach
     void beforeEach() {
         httpPostEntrypointConnector = new HttpPostEntrypointConnector();
+    }
+
+    @Test
+    void shouldIdReturnHttpPost() {
+        assertThat(httpPostEntrypointConnector.id()).isEqualTo("http-post");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(httpPostEntrypointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
+    void shouldSupportHttpListener() {
+        assertThat(httpPostEntrypointConnector.supportedListenerType()).isEqualTo(ListenerType.HTTP);
+    }
+
+    @Test
+    void shouldSupportPublishModeOnly() {
+        assertThat(httpPostEntrypointConnector.supportedModes()).containsOnly(ConnectorMode.PUBLISH);
     }
 
     @Test

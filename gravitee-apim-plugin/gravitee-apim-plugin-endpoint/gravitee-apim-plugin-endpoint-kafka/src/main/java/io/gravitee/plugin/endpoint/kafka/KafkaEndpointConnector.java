@@ -59,11 +59,16 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_TOPICS = KAFKA_CONTEXT_ATTRIBUTE + "topics";
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
-
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+    private static final String ENDPOINT_ID = "kafka";
     private static final String ID_SEPARATOR = "-";
 
     protected final KafkaEndpointConnectorConfiguration configuration;
+
+    @Override
+    public String id() {
+        return ENDPOINT_ID;
+    }
 
     @Override
     public Set<ConnectorMode> supportedModes() {

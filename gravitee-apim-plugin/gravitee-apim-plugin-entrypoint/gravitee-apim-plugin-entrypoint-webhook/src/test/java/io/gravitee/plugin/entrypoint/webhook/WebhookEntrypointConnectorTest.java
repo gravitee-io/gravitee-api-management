@@ -15,19 +15,29 @@
  */
 package io.gravitee.plugin.entrypoint.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT;
 import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.INTERNAL_ATTR_WEBHOOK_REQUEST_URI;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -62,6 +72,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class WebhookEntrypointConnectorTest {
 
     protected static final String SUBSCRIPTION_CONFIGURATION = "subscription configuration";
+    private final Vertx vertx = Vertx.vertx();
 
     @Mock
     private ExecutionContext ctx;
@@ -87,8 +98,6 @@ class WebhookEntrypointConnectorTest {
     @Captor
     private ArgumentCaptor<HttpClient> httpClientCaptor;
 
-    private final Vertx vertx = Vertx.vertx();
-
     private WebhookEntrypointConnector cut;
 
     @BeforeEach
@@ -113,15 +122,28 @@ class WebhookEntrypointConnectorTest {
     }
 
     @Test
-    void shouldMCheckConnector() {
-        assertThat(cut.supportedApi()).isEqualTo(WebhookEntrypointConnector.SUPPORTED_API);
+    void shouldIdReturnWebhook() {
+        assertThat(cut.id()).isEqualTo("webhook");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
+    void shouldSupportSubscriptionListener() {
         assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.SUBSCRIPTION);
-        assertThat(cut.supportedModes()).isEqualTo(WebhookEntrypointConnector.SUPPORTED_MODES);
+    }
+
+    @Test
+    void shouldSupportSubscribeModeOnly() {
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
     }
 
     @Test
     void shouldMatchesCriteriaReturnValidCount() {
-        assertThat(cut.matchCriteriaCount()).isEqualTo(0);
+        assertThat(cut.matchCriteriaCount()).isZero();
     }
 
     @Test
