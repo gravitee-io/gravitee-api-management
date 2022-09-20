@@ -108,7 +108,8 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.ajsStateParams.responseTemplateId);
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.origin === 'kubernetes';
+          this.isReadOnly =
+            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definition_context?.origin === 'kubernetes';
 
           this.responseTemplatesForm = new FormGroup({
             key: new FormControl(

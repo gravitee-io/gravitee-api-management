@@ -245,7 +245,9 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     it('should disable field when origin is kubernetes', async () => {
       const api = fakeApi({
         id: API_ID,
-        origin: 'kubernetes',
+        definition_context: {
+          origin: 'kubernetes',
+        },
         response_templates: {
           DEFAULT: {
             '*/*': {
@@ -256,9 +258,6 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         },
       });
       expectApiGetRequest(api);
-
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toBe(false);
 
       const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
       expect(await keyInput.isDisabled()).toEqual(true);

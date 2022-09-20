@@ -66,7 +66,8 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
           this.domainRestrictions = environment.domainRestrictions ?? [];
 
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) || api.origin === 'kubernetes';
+            !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
+            api.definition_context?.origin === 'kubernetes';
         }),
       )
       .subscribe();

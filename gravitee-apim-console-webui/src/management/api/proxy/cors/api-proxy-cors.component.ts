@@ -59,7 +59,8 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
             enabled: false,
           };
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.origin === 'kubernetes';
+          const isReadOnly =
+            !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new FormGroup({

@@ -104,6 +104,7 @@
   </mat-card>
 
   <gio-save-bar
+    *ngIf="!isReadOnly"
     [creationMode]="mode === 'new'"
     [form]="responseTemplatesForm"
     [formInitialValues]="initialResponseTemplatesFormValue"
