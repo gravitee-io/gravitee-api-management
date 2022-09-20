@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -70,6 +71,26 @@ class SseEntrypointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.end()).thenReturn(Completable.complete());
         cut = new SseEntrypointConnector(null);
+    }
+
+    @Test
+    void shouldIdReturnSse() {
+        assertThat(cut.id()).isEqualTo("sse");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
+    void shouldSupportHttpListener() {
+        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
+    }
+
+    @Test
+    void shouldSupportSubscribeModeOnly() {
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
     }
 
     @Test
@@ -265,15 +286,5 @@ class SseEntrypointConnectorTest {
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
-    }
-
-    @Test
-    void shouldSupportHttpListener() {
-        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
-    }
-
-    @Test
-    void shouldSupportSubscribeModeOnly() {
-        assertThat(cut.supportedModes()).containsExactly(ConnectorMode.SUBSCRIBE);
     }
 }

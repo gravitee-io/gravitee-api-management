@@ -21,16 +21,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsEntrypointInvalidException;
+import io.gravitee.rest.api.service.v4.exception.FlowSelectorsInvalidException;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,19 +54,22 @@ public class FlowValidationServiceImplTest {
     @Mock
     private PolicyService policyService;
 
+    @Mock
+    private EntrypointConnectorPluginService entrypointConnectorPluginService;
+
     private FlowValidationService flowValidationService;
 
     @Before
     public void setUp() throws Exception {
         lenient().when(policyService.validatePolicyConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
-        flowValidationService = new FlowValidationServiceImpl(policyService);
+        flowValidationService = new FlowValidationServiceImpl(policyService, entrypointConnectorPluginService);
     }
 
     @Test
     public void shouldReturnValidatedFlowsWithoutSelectorsNorSteps() {
         Flow flow = new Flow();
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(List.of(flow));
+        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
         Flow ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
@@ -73,7 +83,7 @@ public class FlowValidationServiceImplTest {
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         flow.setSelectors(List.of(httpSelector));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(List.of(flow));
+        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
         Flow ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
@@ -88,7 +98,7 @@ public class FlowValidationServiceImplTest {
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(List.of(flow));
+        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
         Flow ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
@@ -108,7 +118,7 @@ public class FlowValidationServiceImplTest {
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(List.of(flow));
+        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
         Flow ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
@@ -122,7 +132,7 @@ public class FlowValidationServiceImplTest {
         flow.setSelectors(List.of(httpSelector, httpSelector));
 
         assertThatExceptionOfType(FlowSelectorsDuplicatedException.class)
-            .isThrownBy(() -> flowValidationService.validateAndSanitize(List.of(flow)));
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow)));
     }
 
     @Test
@@ -135,14 +145,47 @@ public class FlowValidationServiceImplTest {
         flow.setRequest(List.of(step));
         lenient().when(policyService.validatePolicyConfiguration(any(), any())).thenThrow(InvalidDataException.class);
 
-        assertThatExceptionOfType(InvalidDataException.class).isThrownBy(() -> flowValidationService.validateAndSanitize(List.of(flow)));
+        assertThatExceptionOfType(InvalidDataException.class)
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow)));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWithInvalidSelectorsAndSyncApi() {
+        Flow flow = new Flow();
+        ChannelSelector channelSelector = new ChannelSelector();
+        flow.setSelectors(List.of(channelSelector));
+
+        assertThatExceptionOfType(FlowSelectorsInvalidException.class)
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.SYNC, List.of(flow)));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWithInvalidSelectorsAndAsyncApi() {
+        Flow flow = new Flow();
+        HttpSelector httpSelector = new HttpSelector();
+        flow.setSelectors(List.of(httpSelector));
+
+        assertThatExceptionOfType(FlowSelectorsInvalidException.class)
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.ASYNC, List.of(flow)));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWithInvalidEntrypoints() {
+        Flow flow = new Flow();
+        ChannelSelector channelSelector = new ChannelSelector();
+        channelSelector.setEntrypoints(Set.of("entrypoint"));
+        flow.setSelectors(List.of(channelSelector));
+        when(entrypointConnectorPluginService.findBySupportedApi(ApiType.ASYNC)).thenReturn(Set.of());
+
+        assertThatExceptionOfType(FlowSelectorsEntrypointInvalidException.class)
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.ASYNC, List.of(flow)));
     }
 
     @Test
     public void shouldIgnoreEmptyList() {
         List<Flow> emptyFlows = List.of();
-        List<Flow> ValidatedFlowss = flowValidationService.validateAndSanitize(emptyFlows);
-        assertThat(ValidatedFlowss).isEmpty();
-        assertThat(ValidatedFlowss).isEqualTo(emptyFlows);
+        List<Flow> validatedFlows = flowValidationService.validateAndSanitize(ApiType.SYNC, emptyFlows);
+        assertThat(validatedFlows).isEmpty();
+        assertThat(validatedFlows).isEqualTo(emptyFlows);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
 
@@ -23,5 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface FlowValidationService {
-    List<Flow> validateAndSanitize(List<Flow> flows);
+    List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows);
 }

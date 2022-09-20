@@ -72,7 +72,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         FLOW_SELECTORS = getTableNameFor("flow_selectors");
         FLOW_SELECTOR_HTTP_METHODS = getTableNameFor("flow_selector_http_methods");
         FLOW_SELECTOR_CHANNEL_OPERATIONS = getTableNameFor("flow_selector_channel_operations");
-        FLOW_SELECTOR_CHANNEL_ENTRYPOINTS = getTableNameFor("flow_selector_entrypoints");
+        FLOW_SELECTOR_CHANNEL_ENTRYPOINTS = getTableNameFor("flow_selector_channel_entrypoints");
         FLOW_TAGS = getTableNameFor("flow_tags");
         FLOW_CONSUMERS = getTableNameFor("flow_consumers");
         this.stepsOrm =

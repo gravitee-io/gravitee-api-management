@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.flow.selector;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.ConditionSupplier;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
@@ -32,7 +33,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "ConditionSelectorV4")
-public class ConditionSelector extends Selector {
+public class ConditionSelector extends Selector implements ConditionSupplier {
 
     @JsonProperty(required = true)
     @NotEmpty

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
@@ -29,17 +30,28 @@ import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowResolverFactory {
 
-    private final ConditionFilter<Flow> flowFilter;
+    private final ConditionFilter<Flow> syncApiFlowFilter;
+    private final ConditionFilter<Flow> asyncApiFlowFilter;
 
-    public FlowResolverFactory(ConditionFilter<Flow> flowFilter) {
-        this.flowFilter = flowFilter;
+    public FlowResolverFactory(final ConditionFilter<Flow> syncApiFilter, final ConditionFilter<Flow> asyncApiFilter) {
+        this.syncApiFlowFilter = syncApiFilter;
+        this.asyncApiFlowFilter = asyncApiFilter;
     }
 
     public FlowResolver forApi(Api api) {
-        return new ApiFlowResolver(api.getDefinition(), flowFilter);
+        return new ApiFlowResolver(api.getDefinition(), getConditionFilter(api));
     }
 
     public FlowResolver forApiPlan(Api api) {
-        return new ApiPlanFlowResolver(api.getDefinition(), flowFilter);
+        return new ApiPlanFlowResolver(api.getDefinition(), getConditionFilter(api));
+    }
+
+    private ConditionFilter<Flow> getConditionFilter(final Api api) {
+        if (ApiType.SYNC == api.getDefinition().getType()) {
+            return syncApiFlowFilter;
+        } else if (ApiType.ASYNC == api.getDefinition().getType()) {
+            return asyncApiFlowFilter;
+        }
+        throw new IllegalArgumentException("Api type unsupported");
     }
 }

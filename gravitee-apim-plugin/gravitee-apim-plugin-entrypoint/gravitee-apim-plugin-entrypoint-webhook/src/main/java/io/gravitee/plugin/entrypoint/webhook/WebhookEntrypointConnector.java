@@ -26,7 +26,6 @@ import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
-import io.reactivex.Maybe;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.reactivex.core.Vertx;
@@ -43,14 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
 
-    static final ApiType SUPPORTED_API = ApiType.ASYNC;
-    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
-
-    private static final String TYPE = "webhook";
-    private static final char URI_QUERY_DELIMITER_CHAR = '?';
     protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
     protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
-
+    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    private static final String ENTRYPOINT_ID = "webhook";
+    private static final char URI_QUERY_DELIMITER_CHAR = '?';
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
     public WebhookEntrypointConnector(final WebhookEntrypointConnectorConfiguration configuration) {
@@ -58,8 +54,8 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     @Override
-    public ApiType supportedApi() {
-        return SUPPORTED_API;
+    public String id() {
+        return ENTRYPOINT_ID;
     }
 
     @Override
@@ -80,7 +76,7 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
-        return TYPE.equalsIgnoreCase(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE));
+        return ENTRYPOINT_ID.equalsIgnoreCase(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE));
     }
 
     @Override

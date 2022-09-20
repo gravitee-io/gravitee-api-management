@@ -30,6 +30,8 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -88,8 +90,23 @@ class HttpGetEntrypointConnectorTest {
     }
 
     @Test
+    void shouldIdReturnHttpGet() {
+        assertThat(httpGetEntrypointConnector.id()).isEqualTo("http-get");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(httpGetEntrypointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
     void shouldSupportHttpListener() {
         assertThat(httpGetEntrypointConnector.supportedListenerType()).isEqualTo(ListenerType.HTTP);
+    }
+
+    @Test
+    void shouldSupportSubscribeModeOnly() {
+        assertThat(httpGetEntrypointConnector.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
     }
 
     @Test

@@ -20,7 +20,6 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -38,6 +37,11 @@ public class FakeEntrypointConnector implements EntrypointConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
 
     private FakeEntrypointConnectorConfiguration configuration;
+
+    @Override
+    public String id() {
+        return "fake";
+    }
 
     @Override
     public ApiType supportedApi() {

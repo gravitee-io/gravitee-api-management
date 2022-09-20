@@ -35,11 +35,6 @@ public class WebhookEntrypointConnectorFactory implements EntrypointAsyncConnect
     private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Override
-    public ApiType supportedApi() {
-        return WebhookEntrypointConnector.SUPPORTED_API;
-    }
-
-    @Override
     public Set<ConnectorMode> supportedModes() {
         return WebhookEntrypointConnector.SUPPORTED_MODES;
     }

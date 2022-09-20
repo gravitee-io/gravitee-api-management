@@ -23,7 +23,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
@@ -122,8 +124,18 @@ class KafkaEndpointConnectorTest {
     }
 
     @Test
-    void shouldSupportSubscribePublishMode() {
-        assertThat(kafkaEndpointConnector.supportedModes()).contains(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH);
+    void shouldIdReturnKafka() {
+        assertThat(kafkaEndpointConnector.id()).isEqualTo("kafka");
+    }
+
+    @Test
+    void shouldSupportAsyncApi() {
+        assertThat(kafkaEndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+    }
+
+    @Test
+    void shouldSupportPublishAndSubscribeModes() {
+        assertThat(kafkaEndpointConnector.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     }
 
     @Test

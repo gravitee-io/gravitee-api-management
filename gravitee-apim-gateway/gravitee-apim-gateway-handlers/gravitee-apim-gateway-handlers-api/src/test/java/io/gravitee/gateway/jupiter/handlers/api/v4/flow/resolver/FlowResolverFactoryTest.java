@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
@@ -39,21 +40,25 @@ class FlowResolverFactoryTest {
     protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
 
     @Mock
-    private ConditionFilter<Flow> filter;
+    private ConditionFilter<Flow> syncFilter;
+
+    @Mock
+    private ConditionFilter<Flow> asyncFilter;
 
     private FlowResolverFactory cut;
+    private Api api;
 
     @BeforeEach
     void init() {
-        cut = new FlowResolverFactory(filter);
+        cut = new FlowResolverFactory(syncFilter, asyncFilter);
+        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
+        definition.setType(ApiType.SYNC);
+        api = new Api(definition);
+        definition.setFlowMode(FlowMode.DEFAULT);
     }
 
     @Test
     void shouldCreateApiFlowResolver() {
-        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        final Api api = new Api(definition);
-        definition.setFlowMode(FlowMode.DEFAULT);
-
         final FlowResolver flowResolver = cut.forApi(api);
 
         assertNotNull(flowResolver);
@@ -62,10 +67,6 @@ class FlowResolverFactoryTest {
 
     @Test
     void shouldCreateApiPlanFlowResolver() {
-        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        final Api api = new Api(definition);
-        definition.setFlowMode(FlowMode.DEFAULT);
-
         final FlowResolver flowResolver = cut.forApiPlan(api);
 
         assertNotNull(flowResolver);
