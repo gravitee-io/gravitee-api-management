@@ -19,6 +19,7 @@ import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -116,6 +117,7 @@ public class ApiListItem {
     @Schema(description = "true if HealthCheck is enabled globally or on one endpoint")
     private boolean hasHealthCheckEnabled;
 
-    @Schema(description = "The origin of the api (management, kubernetes, ...).")
-    private String origin = ORIGIN_MANAGEMENT;
+    @JsonProperty(value = "definition_context")
+    @Schema(description = "the context where the api definition was created from")
+    private DefinitionContext definitionContext;
 }

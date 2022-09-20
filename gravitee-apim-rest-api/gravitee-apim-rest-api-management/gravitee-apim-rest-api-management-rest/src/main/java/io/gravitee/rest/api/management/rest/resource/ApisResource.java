@@ -577,7 +577,7 @@ public class ApisResource extends AbstractResource {
         }
 
         if (api.getDefinitionContext() != null && !api.getDefinitionContext().getOrigin().isEmpty()) {
-            apiItem.setOrigin(api.getDefinitionContext().getOrigin());
+            apiItem.setDefinitionContext(api.getDefinitionContext());
         }
 
         return apiItem;
