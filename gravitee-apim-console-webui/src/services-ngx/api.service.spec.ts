@@ -83,7 +83,7 @@ describe('ApiService', () => {
       });
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}` });
-      expect(req.request.body).toEqual(omit(apiToUpdate, 'origin'));
+      expect(req.request.body).toEqual(omit(apiToUpdate, 'definition_context'));
       req.flush({});
     });
   });
