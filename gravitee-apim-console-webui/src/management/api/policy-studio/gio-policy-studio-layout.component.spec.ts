@@ -98,7 +98,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
             flows: api.flows,
             execution_mode: undefined,
           }),
-          'origin',
+          'definition_context',
         ),
       );
     });
