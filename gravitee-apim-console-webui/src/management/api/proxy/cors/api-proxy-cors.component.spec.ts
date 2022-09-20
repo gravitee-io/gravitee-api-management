@@ -236,7 +236,7 @@ describe('ApiProxyEntrypointsComponent', () => {
           enabled: true,
         },
       },
-      origin: 'kubernetes',
+      definition_context: { origin: 'kubernetes' },
     });
     expectApiGetRequest(api);
 
