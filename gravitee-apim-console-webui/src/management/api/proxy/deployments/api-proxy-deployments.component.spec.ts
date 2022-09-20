@@ -110,7 +110,7 @@ describe('ApiProxyDeploymentsComponent', () => {
     const api = fakeApi({
       id: API_ID,
       tags: ['tag2'],
-      origin: 'kubernetes',
+      definition_context: { origin: 'kubernetes' },
     });
     expectApiGetRequest(api);
     expectTagGetRequest([fakeTag({ id: 'tag1', name: 'tag1' })]);

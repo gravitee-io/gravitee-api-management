@@ -208,7 +208,9 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
 
     const api = fakeApi({
       id: API_ID,
-      origin: 'kubernetes',
+      definition_context: {
+        origin: 'kubernetes',
+      },
       response_templates: {
         DEFAULT: {
           'application/json': {

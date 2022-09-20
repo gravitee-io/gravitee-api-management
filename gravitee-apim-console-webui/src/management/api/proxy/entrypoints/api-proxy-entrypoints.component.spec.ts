@@ -105,7 +105,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should disable field when origin is kubernetes', async () => {
-      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] }, origin: 'kubernetes' });
+      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] }, definition_context: { origin: 'kubernetes' } });
       expectApiGetRequest(api);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
