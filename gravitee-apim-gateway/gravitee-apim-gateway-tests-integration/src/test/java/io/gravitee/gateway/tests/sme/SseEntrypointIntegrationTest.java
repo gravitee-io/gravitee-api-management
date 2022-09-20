@@ -59,6 +59,7 @@ class SseEntrypointIntegrationTest extends AbstractGatewayTest {
                 }
             )
             .flatMapPublisher(HttpClientResponse::toFlowable)
+            .filter(buffer -> !buffer.toString().equals(":\n\n")) // ignore heartbeat
             .test();
 
         // We expect 3 chunks, 1 retry message, 2 messages

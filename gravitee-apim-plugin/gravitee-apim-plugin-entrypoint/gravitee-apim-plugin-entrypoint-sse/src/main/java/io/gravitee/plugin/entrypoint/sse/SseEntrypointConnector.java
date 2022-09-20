@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -104,11 +105,17 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
     }
 
     private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
-        final Buffer retryBuffer = Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format());
+        final Flowable<Buffer> retryFlowable = Flowable.just(
+            Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format())
+        );
+        final Flowable<Buffer> heartBeatFlowable = Flowable
+            .interval(configuration.getHeartbeatIntervalInMs(), TimeUnit.MILLISECONDS)
+            .map(aLong -> Buffer.buffer(":\n\n"));
 
-        return Flowable
-            .just(retryBuffer)
-            .concatWith(ctx.response().messages().concatMapMaybe(message -> Maybe.just(messageToBuffer(message))))
+        return retryFlowable
+            .concatWith(
+                heartBeatFlowable.ambWith(ctx.response().messages().concatMapMaybe(message -> Maybe.just(messageToBuffer(message))))
+            )
             .onErrorReturn(this::errorToBuffer);
     }
 

@@ -28,6 +28,11 @@ import lombok.Setter;
 public class SseEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
 
     /**
+     * Define the interval in which heartbeat are sent to client.
+     */
+    private int heartbeatIntervalInMs = 5_000;
+
+    /**
      * Allow sending messages metadata to client as SSE comments.
      */
     private boolean metadataAsComment = false;
