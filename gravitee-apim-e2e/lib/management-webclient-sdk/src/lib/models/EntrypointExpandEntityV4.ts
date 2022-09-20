@@ -20,6 +20,12 @@ import { exists, mapValues } from '../runtime';
 export interface EntrypointExpandEntityV4 {
     /**
      * 
+     * @type {Array<string>}
+     * @memberof EntrypointExpandEntityV4
+     */
+    availableFeatures?: Array<EntrypointExpandEntityV4AvailableFeaturesEnum>;
+    /**
+     * 
      * @type {string}
      * @memberof EntrypointExpandEntityV4
      */
@@ -78,6 +84,15 @@ export interface EntrypointExpandEntityV4 {
 /**
  * @export
  */
+export const EntrypointExpandEntityV4AvailableFeaturesEnum = {
+    LIMIT: 'LIMIT',
+    RESUME: 'RESUME'
+} as const;
+export type EntrypointExpandEntityV4AvailableFeaturesEnum = typeof EntrypointExpandEntityV4AvailableFeaturesEnum[keyof typeof EntrypointExpandEntityV4AvailableFeaturesEnum];
+
+/**
+ * @export
+ */
 export const EntrypointExpandEntityV4SupportedApiTypeEnum = {
     SYNC: 'SYNC',
     ASYNC: 'ASYNC'
@@ -114,6 +129,7 @@ export function EntrypointExpandEntityV4FromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
+        'availableFeatures': !exists(json, 'availableFeatures') ? undefined : json['availableFeatures'],
         'category': !exists(json, 'category') ? undefined : json['category'],
         'description': !exists(json, 'description') ? undefined : json['description'],
         'icon': !exists(json, 'icon') ? undefined : json['icon'],
@@ -135,6 +151,7 @@ export function EntrypointExpandEntityV4ToJSON(value?: EntrypointExpandEntityV4 
     }
     return {
         
+        'availableFeatures': value.availableFeatures,
         'category': value.category,
         'description': value.description,
         'icon': value.icon,
