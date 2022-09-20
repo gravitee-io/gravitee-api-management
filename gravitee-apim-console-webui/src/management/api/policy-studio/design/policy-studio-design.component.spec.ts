@@ -91,7 +91,7 @@ describe('PolicyStudioDesignComponent', () => {
 
   it('should disable field when origin is kubernetes', async () => {
     const api = fakeApi({
-      origin: 'kubernetes',
+      definition_context: { origin: 'kubernetes' },
     });
     policyStudioService.emitApiDefinition(toApiDefinition(api));
     expect(component.isReadonly).toEqual(true);
