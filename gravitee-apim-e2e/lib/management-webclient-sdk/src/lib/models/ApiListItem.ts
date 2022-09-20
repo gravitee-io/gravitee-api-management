@@ -18,6 +18,12 @@ import {
     ApiLifecycleStateFromJSONTyped,
     ApiLifecycleStateToJSON,
 } from './ApiLifecycleState';
+import type { DefinitionContext } from './DefinitionContext';
+import {
+    DefinitionContextFromJSON,
+    DefinitionContextFromJSONTyped,
+    DefinitionContextToJSON,
+} from './DefinitionContext';
 import type { PrimaryOwnerEntity } from './PrimaryOwnerEntity';
 import {
     PrimaryOwnerEntityFromJSON,
@@ -68,6 +74,12 @@ export interface ApiListItem {
      */
     created_at?: Date;
     /**
+     * 
+     * @type {DefinitionContext}
+     * @memberof ApiListItem
+     */
+    definition_context?: DefinitionContext;
+    /**
      * Api's version. It's a simple string only used in the portal.
      * @type {string}
      * @memberof ApiListItem
@@ -109,12 +121,6 @@ export interface ApiListItem {
      * @memberof ApiListItem
      */
     numberOfRatings?: number;
-    /**
-     * The origin of the api (management, kubernetes, ...).
-     * @type {string}
-     * @memberof ApiListItem
-     */
-    origin?: string;
     /**
      * 
      * @type {PrimaryOwnerEntity}
@@ -219,6 +225,7 @@ export function ApiListItemFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'categories': !exists(json, 'categories') ? undefined : json['categories'],
         'context_path': !exists(json, 'context_path') ? undefined : json['context_path'],
         'created_at': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
+        'definition_context': !exists(json, 'definition_context') ? undefined : DefinitionContextFromJSON(json['definition_context']),
         'description': !exists(json, 'description') ? undefined : json['description'],
         'healthcheck_enabled': !exists(json, 'healthcheck_enabled') ? undefined : json['healthcheck_enabled'],
         'id': !exists(json, 'id') ? undefined : json['id'],
@@ -226,7 +233,6 @@ export function ApiListItemFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'lifecycle_state': !exists(json, 'lifecycle_state') ? undefined : ApiLifecycleStateFromJSON(json['lifecycle_state']),
         'name': !exists(json, 'name') ? undefined : json['name'],
         'numberOfRatings': !exists(json, 'numberOfRatings') ? undefined : json['numberOfRatings'],
-        'origin': !exists(json, 'origin') ? undefined : json['origin'],
         'owner': !exists(json, 'owner') ? undefined : PrimaryOwnerEntityFromJSON(json['owner']),
         'picture_url': !exists(json, 'picture_url') ? undefined : json['picture_url'],
         'rate': !exists(json, 'rate') ? undefined : json['rate'],
@@ -253,6 +259,7 @@ export function ApiListItemToJSON(value?: ApiListItem | null): any {
         'categories': value.categories,
         'context_path': value.context_path,
         'created_at': value.created_at === undefined ? undefined : (value.created_at.toISOString()),
+        'definition_context': DefinitionContextToJSON(value.definition_context),
         'description': value.description,
         'healthcheck_enabled': value.healthcheck_enabled,
         'id': value.id,
@@ -260,7 +267,6 @@ export function ApiListItemToJSON(value?: ApiListItem | null): any {
         'lifecycle_state': ApiLifecycleStateToJSON(value.lifecycle_state),
         'name': value.name,
         'numberOfRatings': value.numberOfRatings,
-        'origin': value.origin,
         'owner': PrimaryOwnerEntityToJSON(value.owner),
         'picture_url': value.picture_url,
         'rate': value.rate,
