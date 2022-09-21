@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { IHttpPromise } from 'angular';
 
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
@@ -49,6 +50,9 @@ class ApplicationSubscribeController {
 
   async $onInit() {
     const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
+
+    this.apis = (await this.ApiService.list(null, true, null, null, null, Object.keys(subscriptionsByAPI))).data;
+
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
       this.subscribedAPIs.push(
         _.merge(_.find(this.apis, { id: api }), {
@@ -61,6 +65,10 @@ class ApplicationSubscribeController {
     });
 
     this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
+  }
+
+  searchApiByName(searchText): IHttpPromise<any> {
+    return this.ApiService.searchApis(searchText, 1, 'name').then((response) => response.data.data);
   }
 
   onSelectAPI(api) {
