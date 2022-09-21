@@ -1,14 +1,9 @@
 # Security Policy
 ## Supported Versions
-Current supported versions for Gravitee API Management:
-| Version | Supported          |
-| ------- | ------------------ |
-| LTS:    |                    |
-| 3.10.x  | :white_check_mark: |
-| 3.5.x   | :white_check_mark: |
-|         |                    |
-| < 3.10  | :x:                |
-| < 3.5   | :x:                |
+Current supported versions for Gravitee APIm are available in our Documentation page available at:
+https://docs.gravitee.io/apim/3.x/apim_changelog.html
+
+
 
 ## Reporting a Vulnerability
 
@@ -20,23 +15,25 @@ Please do the following:
 
 E-mail your findings to bug@graviteesource.com using the subject "Submission". Encrypt your findings using our public PGP key:
 
-pub [expires: 2022-08-13]
-
-217EE460F1CB8CB9
+pub  [expires: 2023-09-21]
+      
+      6F6182786DFC40A0
+      
 Key Server - hkp://keyserver.ubuntu.com
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
-mDMEYRZskBYJKwYBBAHaRw8BAQdAefFHLxXKjLSvG2icIB0pNQ8Znf9k0/g1xw9R
-5/AfM/m0REdyYXZpdGVlIFNlY3VyaXR5IChVc2UgZm9yIGJ1ZyBzdWJtaXNzaW9u
-cykgPGJ1Z0BncmF2aXRlZXNvdXJjZS5jb20+iJoEExYKAEIWIQSYvle+yToFsYmD
-SCghfuRg8cuMuQUCYRZskAIbAwUJAeEzgAULCQgHAgMiAgEGFQoJCAsCBBYCAwEC
-HgcCF4AACgkQIX7kYPHLjLklQwEA1ZuHS4a1/dsoqSrP2sy5BbZcGR9O9FLgYh9q
-FW7Jr78BALlxqIMMIad/ktEf3iTT248MAMeRBFnYkP5BWLg6ojYMuDgEYRZskBIK
-KwYBBAGXVQEFAQEHQDGFbBMJiJW9eRTkEtNqFlEZzbtLQIhjiItKecHvID8TAwEI
-B4h+BBgWCgAmFiEEmL5Xvsk6BbGJg0goIX7kYPHLjLkFAmEWbJACGwwFCQHhM4AA
-CgkQIX7kYPHLjLkMWQD/X6/CnUEHC6P+aHRyPE4yUdkcIhmoNt3a/69XdqdQcPAA
-/0Au/S2TdVW6AdbBrkQgkO2lymTOTTv7CaCY5+roj44F
-=SlW5
+
+mDMEYytDPxYJKwYBBAHaRw8BAQdAuMjEAo59OYw7NBpgB9S+3h5cJGVXZq2pVhcN
+UodZU9y0OEdyYXZpdGVlIFNlY3VyaXR5IC0gUmVwb3J0IEJ1Z3MgPGJ1Z0BncmF2
+aXRlZXNvdXJjZS5jb20+iJkEExYKAEEWIQQXKlEpzyfzBcN9xfdvYYJ4bfxAoAUC
+YytDPwIbAwUJAeEzgAULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRBvYYJ4
+bfxAoE8mAP96pIliyqk0I491wi0TaHPI2TBhf4DDucXmt16dHp9iowD/bjR0O0Pd
+t4reuwqmAO353tNy73LdtxIUqceDItdwAA24OARjK0M/EgorBgEEAZdVAQUBAQdA
+0IySbwtUEdeGskjCnEBDPeRaAyIiJ8e5XfD6AAvPWBADAQgHiH4EGBYKACYWIQQX
+KlEpzyfzBcN9xfdvYYJ4bfxAoAUCYytDPwIbDAUJAeEzgAAKCRBvYYJ4bfxAoOuq
+AP4qZDB9VlDqOndQv5Qfx9DiXaaioyrdY+S/MnBrFOBFngD+Mlayw9U+wq9X5njS
+Etv5YSJy9K7tJPdIn4+p+3gPCQ4=
+=+c9+
 -----END PGP PUBLIC KEY BLOCK-----
 
 DO:
