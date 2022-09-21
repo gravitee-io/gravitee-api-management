@@ -143,7 +143,7 @@ function updateForOnlyOneOrgEnv() {
         const env = environments.findOne();
         const org = organizations.findOne();
 
-        audits.updateMany({}, { $set: { organizationId: env._id, environmentId: org._id } });
+        audits.updateMany({}, { $set: { organizationId: org._id, environmentId: env._id } });
         return true;
     }
     return false;
