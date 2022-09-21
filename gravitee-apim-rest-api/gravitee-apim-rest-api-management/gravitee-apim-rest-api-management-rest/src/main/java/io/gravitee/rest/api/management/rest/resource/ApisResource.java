@@ -116,8 +116,8 @@ public class ApisResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam) {
-        return getApis(apisParam, null).getData();
+    public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
+        return getApis(apisParam, ids, null).getData();
     }
 
     @GET
@@ -134,9 +134,16 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItemPagedResult.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public ApiListItemPagedResult getApis(@BeanParam final ApisParam apisParam, @Valid @BeanParam Pageable pageable) {
+    public ApiListItemPagedResult getApis(
+        @BeanParam final ApisParam apisParam,
+        @QueryParam("ids") final List<String> ids,
+        @Valid @BeanParam Pageable pageable
+    ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiQuery apiQuery = new ApiQuery();
+        if (ids != null && !ids.isEmpty()) {
+            apiQuery.setIds(ids);
+        }
         if (apisParam.getGroup() != null) {
             apiQuery.setGroups(singletonList(apisParam.getGroup()));
         }
