@@ -513,6 +513,7 @@ jobs:
                   root: ./
                   paths:
                       - ./gravitee-*/*/target/*
+                      - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
                       - ./rest-api-docker-context
                       - ./gateway-docker-context
 
@@ -734,6 +735,30 @@ jobs:
                       docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
                       docker logout graviteeio.azurecr.io
             - notify-on-failure
+
+    e2e-generate-sdk:
+      executor:
+        name: openjdk
+        with_node: true
+        class: small
+      steps:
+        - checkout
+        - webui-install:
+            apim-ui-project: gravitee-apim-e2e
+        - attach_workspace:
+            at: .
+        - run:
+            name: Generate e2e tests SDK
+            command: |
+              npm run update:sdk:management
+              npm run update:sdk:portal
+            working_directory: gravitee-apim-e2e
+        - persist_to_workspace:
+            root: .
+            paths:
+              - gravitee-apim-e2e/lib/management-webclient-sdk
+              - gravitee-apim-e2e/lib/portal-webclient-sdk
+        - notify-on-failure
 
     e2e-lint-build:
         executor:
@@ -1992,12 +2017,16 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-            # To be modified when testing strategy will be defined
+            - e2e-generate-sdk:
+                name: Generate e2e tests SDK
+                context: cicd-orchestrator
+                requires:
+                  - build
             - e2e-lint-build:
                   name: Lint & Build APIM e2e
                   context: cicd-orchestrator
                   requires:
-                      - setup
+                      - Generate e2e tests SDK
             - e2e-test:
                   context: cicd-orchestrator
                   name: Test APIM E2E - << matrix.execution_mode >> - << matrix.database >>
@@ -2044,7 +2073,7 @@ workflows:
                   name: Lint & Build APIM perf
                   context: cicd-orchestrator
                   requires:
-                      - setup
+                      - Generate e2e tests SDK
 
     build_rpm_&_docker_images:
         when:

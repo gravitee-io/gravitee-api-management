@@ -18,17 +18,24 @@ import {$, fs} from 'zx';
 
 await $`mkdir -p .tmp`;
 await $`sed s/'"uniqueItems":true'/'"uniqueItems":false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.json > .tmp/console-openapi.json`;
+
+// magic sed to properly handle ListenerV4's inheritance
 await $`
 export var1='"allOf":\\[{"$ref":"#/components/schemas/ListenerV4"},{"type":"object","properties":{'
 export var2='"allOf":\\[{"type":"object","properties":{"type":{"type":"string"},"entrypoints":{"type":"array","items":{"$ref":"#/components/schemas/EntrypointV4"}},'
 sed -i.bak s@$var1@$var2@g .tmp/console-openapi.json`;
-
 await $`
 export var1='"allOf":\\[{"$ref":"#/components/schemas/ListenerV4"}\\]'
 export var2='"allOf":\\[{"type":"object","properties":{"type":{"type":"string"},"entrypoints":{"type":"array","items":{"$ref":"#/components/schemas/EntrypointV4"}}}}\\]'
 sed -i.bak s@$var1@$var2@g .tmp/console-openapi.json`;
 
-await $`npx @openapitools/openapi-generator-cli@2.5.1 generate \\
+// magic sed to properly handle multipart/form-data endpoints
+await $`
+export var1='{"multipart/form-data":{'
+export var2='{"*/*":{'
+sed -i.bak s@$var1@$var2@g .tmp/console-openapi.json`;
+
+await $`npx @openapitools/openapi-generator-cli@2.5.2 generate \\
           -i .tmp/console-openapi.json \\
           -g typescript-fetch \\
           -o lib/management-webclient-sdk/src/lib/ \\
