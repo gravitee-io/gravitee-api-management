@@ -20,6 +20,7 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 
 import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { Constants } from '../../../entities/Constants';
 import { InstallationService } from '../../../services-ngx/installation.service';
 import { Installation } from '../../../entities/installation/installation';
@@ -46,6 +47,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly cockpitService: CockpitService,
     private readonly installationService: InstallationService,
     private readonly permissionService: GioPermissionService,
   ) {}
@@ -78,10 +80,16 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   }
 
   private getCockpitLink(installation?: Installation): string {
+    let cockpitURL;
+    let cockpitInstallationStatus;
     if (installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED') {
-      return installation.cockpitURL;
+      cockpitURL = installation.cockpitURL;
+      cockpitInstallationStatus = 'ACCEPTED';
     } else {
-      return 'https://www.gravitee.io/platform/api-designer?utm_source=apim';
+      cockpitURL = 'https://cockpit.gravitee.io';
+      cockpitInstallationStatus = undefined;
     }
+
+    return this.cockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_DESIGNER, cockpitInstallationStatus);
   }
 }

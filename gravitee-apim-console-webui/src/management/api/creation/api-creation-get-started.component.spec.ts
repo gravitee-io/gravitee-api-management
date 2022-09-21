@@ -70,7 +70,7 @@ describe('ApiCreationGetStartedComponent', () => {
       initConfigureTestingModule(currentUser);
     });
 
-    it('should use the cockpit link', async () => {
+    it('should use the cockpit link if installation registered', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
         fakeInstallation({
           cockpitURL: 'https://cockpit.gravitee.io',
@@ -79,17 +79,21 @@ describe('ApiCreationGetStartedComponent', () => {
           },
         }),
       );
-      expect(component.cockpitLink).toEqual('https://cockpit.gravitee.io');
+      expect(component.cockpitLink).toEqual(
+        'https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=registered',
+      );
     });
 
-    it('should use the gravitee.io link', async () => {
+    it('should always use the cockpit.gravitee.io link even if installation not registered', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
         fakeInstallation({
           cockpitURL: 'https://cockpit.gravitee.io',
           additionalInformation: {},
         }),
       );
-      expect(component.cockpitLink).toEqual('https://www.gravitee.io/platform/api-designer?utm_source=apim');
+      expect(component.cockpitLink).toEqual(
+        'https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered',
+      );
     });
 
     it('should go to api creation wizard', async () => {
@@ -112,10 +116,12 @@ describe('ApiCreationGetStartedComponent', () => {
       initConfigureTestingModule(currentUser);
     });
 
-    it('should use the gravitee.io link', async () => {
+    it('should always use the cockpit.gravitee.io link even if no right to access the installation', async () => {
       httpTestingController.expectNone(`${CONSTANTS_TESTING.org.baseURL}/installation`);
 
-      expect(component.cockpitLink).toEqual('https://www.gravitee.io/platform/api-designer?utm_source=apim');
+      expect(component.cockpitLink).toEqual(
+        'https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered',
+      );
     });
   });
 
