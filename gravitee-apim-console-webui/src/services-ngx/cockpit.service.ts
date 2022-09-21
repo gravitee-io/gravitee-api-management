@@ -17,6 +17,7 @@
 import { Injectable } from '@angular/core';
 
 export enum UtmCampaign {
+  API_DESIGNER = 'api_designer',
   API_PROMOTION = 'api_promotion',
   DISCOVER_COCKPIT = 'discover_cockpit',
 }
@@ -40,7 +41,7 @@ export class CockpitService {
     enhancedCockpitUrl += `&utm_campaign=${utmCampaign}`;
 
     // if DISCOVER_COCKPIT, add cockpit installation status
-    if (utmCampaign === UtmCampaign.DISCOVER_COCKPIT) {
+    if (utmCampaign === UtmCampaign.DISCOVER_COCKPIT || utmCampaign === UtmCampaign.API_DESIGNER) {
       const utmTerm = this.computeCockpitStatusForQueryParam(cockpitInstallationStatus);
       enhancedCockpitUrl += `&utm_term=${utmTerm}`;
     }

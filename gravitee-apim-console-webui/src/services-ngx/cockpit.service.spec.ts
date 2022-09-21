@@ -37,6 +37,24 @@ describe('CockpitService', () => {
     done();
   });
 
+  it('should configure URL with API_DESIGNER campaign and ACCEPTED installation status', (done) => {
+    const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER, 'ACCEPTED');
+    expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=registered`);
+    done();
+  });
+
+  it('should configure URL with API_DESIGNER campaign and no installation status', (done) => {
+    const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER);
+    expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered`);
+    done();
+  });
+
+  it('should configure URL with API_DESIGNER campaign and not ACCEPTED installation status', (done) => {
+    const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER, 'unknown_status');
+    expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered`);
+    done();
+  });
+
   it('should configure URL with DiscoverCockpit campaign and PENDING installation status', (done) => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'PENDING');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=pending`);
