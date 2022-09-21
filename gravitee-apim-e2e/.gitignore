@@ -2,3 +2,5 @@ jacoco.exec
 jacoco/reports/
 docker/common/tmp
 classes
+lib/management-webclient-sdk
+lib/portal-webclient-sdk
