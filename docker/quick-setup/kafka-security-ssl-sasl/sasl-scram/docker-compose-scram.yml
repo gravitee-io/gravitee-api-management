@@ -1,0 +1,220 @@
+#
+# Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+version: '3.5'
+services:
+  zookeeper-add-kafka-users:
+    image: confluentinc/cp-kafka:latest
+    container_name: "zookeeper-add-kafka-users"
+    depends_on:
+      - zookeeper-1
+    command: "bash -c 'echo Waiting for Zookeeper to be ready... && \
+                          cub zk-ready zookeeper-1:22181 120 && \
+                          kafka-configs --zookeeper zookeeper-1:22181 --alter --add-config 'SCRAM-SHA-256=[iterations=4096,password=password]' --entity-type users --entity-name metricsreporter && \
+                          kafka-configs --zookeeper zookeeper-1:22181 --alter --add-config 'SCRAM-SHA-256=[iterations=4096,password=password]' --entity-type users --entity-name kafkaclient && \
+                          kafka-configs --zookeeper zookeeper-1:22181 --alter --add-config 'SCRAM-SHA-256=[iterations=4096,password=password]' --entity-type users --entity-name kafkabroker '"
+    environment:
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/zookeeper_client_jaas.conf
+    networks:
+      - kafka-cluster-network
+    volumes:
+      - ${KAFKA_SASL_SCRAM_SECRETS_DIR}/zookeeper_client_jaas.conf:/etc/kafka/secrets/zookeeper_client_jaas.conf
+
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper-1
+    container_name: zookeeper-1
+    ports:
+      - "22181:22181"
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 22181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: "DEBUG"
+      ZOOKEEPER_SERVERS: zookeeper-1:22888:23888
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/zookeeper_server_jaas.conf
+        -Dquorum.auth.enableSasl=true
+        -Dquorum.auth.learnerRequireSasl=true
+        -Dquorum.auth.serverRequireSasl=true
+        -Dquorum.cnxn.threads.size=20
+        -Dzookeeper.authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+        -Dzookeeper.authProvider.2=org.apache.zookeeper.server.auth.DigestAuthenticationProvider
+        -DjaasLoginRenew=3600000
+        -DrequireClientAuthScheme=sasl
+        -Dquorum.auth.learner.loginContext=QuorumLearner
+        -Dquorum.auth.server.loginContext=QuorumServer
+    networks:
+      - kafka-cluster-network
+    volumes:
+      - ${KAFKA_SASL_SCRAM_SECRETS_DIR}/zookeeper_server_jaas.conf:/etc/kafka/secrets/zookeeper_server_jaas.conf
+
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka-broker-1
+    container_name: kafka-broker-1
+    ports:
+      - "19093:19093"
+      - "19094:19094"
+    depends_on:
+      - zookeeper-1
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:22181,zookeeper-1:32181,zookeeper-1:42181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:19093,SASL_SSL://kafka-broker-1:19094
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.broker-1.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: broker-1_keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: broker-1_sslkey_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.broker-1.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: broker-1_truststore_creds
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.broker-1.truststore.jks
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_PASSWORD: confluent
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.broker-1.keystore.jks
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_PASSWORD: confluent
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_SSL_CLIENT_AUTH: requested
+      KAFKA_MIN_INSYNC_REPLICAS: ${KAFKA_MIN_INSYNC_REPLICAS}
+      KAFKA_SASL_ENABLED_MECHANISMS: SCRAM-SHA-256
+      KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_SSL
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: SCRAM-SHA-256
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_SSL
+      CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: SCRAM-SHA-256
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: ${CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS}
+      KAFKA_OFFSETS_RETENTION_MINUTES: 172800
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=INFO,kafka.controller=INFO"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: "INFO"
+      KAFKA_SUPER_USERS: ${KAFKA_SUPER_USERS}
+      KAFKA_ZOOKEEPER_SASL_ENABLED: "true"
+      KAFKA_ZOOKEEPER_SET_ACL: "true"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.auth.SimpleAclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      KAFKA_OPTS: -Dzookeeper.sasl.client=true
+        -Dzookeeper.sasl.clientconfig=Client
+        -Djava.security.auth.login.config=/etc/kafka/secrets/conf/kafka_server_jaas.conf
+    volumes:
+      - ${KAFKA_SSL_SECRETS_DIR}/broker-1:/etc/kafka/secrets
+      - ${KAFKA_SASL_SCRAM_SECRETS_DIR}:/etc/kafka/secrets/conf
+    networks:
+      - kafka-cluster-network
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: kafdrop
+    ports:
+      - '9000:9000'
+    environment:
+      - KAFKA_BROKERCONNECT=kafka-broker-1:19093
+    depends_on:
+      - kafka-broker-1
+    networks:
+      - kafka-cluster-network
+
+  mongodb:
+    image: mongo:${MONGODB_VERSION:-5}
+    container_name: gio_apim_mongodb
+    restart: always
+    volumes:
+      - data-mongo:/data/db
+      - ./.logs/apim-mongodb:/var/log/mongodb
+    networks:
+      - kafka-cluster-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
+    container_name: gio_apim_elasticsearch
+    restart: always
+    volumes:
+      - data-elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile: 65536
+    networks:
+      - kafka-cluster-network
+
+  gateway:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:kafka-secured
+    container_name: gio_apim_https_gateway
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb
+      - elasticsearch
+    volumes:
+      - ./.logs/apim-gateway-internal:/opt/graviteeio-gateway/logs
+      - ./.certificates:/opt/graviteeio-gateway/certificates
+      - ../secrets:/opt/graviteeio-gateway/secrets
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_http_secured=true
+      - gravitee_http_ssl_clientAuth=request
+      - gravitee_http_ssl_keystore_type=pkcs12
+      - gravitee_http_ssl_keystore_path=/opt/graviteeio-gateway/certificates/server.p12
+      - gravitee_http_ssl_keystore_password=server-secret
+      - gravitee_http_ssl_truststore_type=pkcs12
+      - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/ca.p12
+      - gravitee_http_ssl_truststore_password=ca-secret
+      - gravitee_api_jupiterMode_enabled=true
+    networks:
+      - kafka-cluster-network
+
+  management_api:
+    image: graviteeio.azurecr.io/apim-management-api:master-latest
+    container_name: gio_apim_management_api
+    restart: always
+    ports:
+      - "8083:8083"
+    links:
+      - mongodb
+      - elasticsearch
+    depends_on:
+      - mongodb
+      - elasticsearch
+    volumes:
+      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_api_jupiterMode_enabled=true
+    networks:
+      - kafka-cluster-network
+
+networks:
+  kafka-cluster-network:
+    driver: bridge
+    name: kafka-cluster-network
+
+volumes:
+  data-elasticsearch:
+  data-mongo:

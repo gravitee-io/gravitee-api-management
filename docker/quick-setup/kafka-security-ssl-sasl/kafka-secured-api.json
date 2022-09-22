@@ -1,0 +1,53 @@
+{
+  "name": "apiv4",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "async",
+  "description": "apiv4",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-kafka-secured"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "sse"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "kafka-broker-1:19094",
+            "topics" : "my-topic",
+            "securityProtocol": "SASL_SSL",
+            "saslMechanism": "SCRAM-SHA-256",
+            "saslJaasConfig": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"kafkaclient\" password=\"password\";",
+            "sslTruststoreLocationConfig": "/opt/graviteeio-gateway/secrets/consumer/kafka.consumer.truststore.jks",
+            "sslTruststorePasswordConfig": "confluent",
+            "sslKeystoreLocationConfig": "/opt/graviteeio-gateway/secrets/consumer/kafka.consumer.keystore.jks",
+            "sslKeystorePasswordConfig": "confluent",
+            "consumer" : {
+              "autoOffsetReset": "earliest"
+            },
+            "producer": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

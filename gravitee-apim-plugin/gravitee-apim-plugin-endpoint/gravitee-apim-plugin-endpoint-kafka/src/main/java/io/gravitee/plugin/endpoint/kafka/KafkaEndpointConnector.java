@@ -41,12 +41,16 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.utils.Utils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -80,6 +84,8 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
             return Completable.defer(
                 () -> {
                     Map<String, String> config = new HashMap<>();
+                    Map<String, String> securityProtocolConfig = getSecurityProtocolConfig();
+                    config.putAll(securityProtocolConfig);
                     config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
                     // Set kafka producer properties
                     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -110,6 +116,21 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         }
     }
 
+    private Map<String, String> getSecurityProtocolConfig() {
+        Map<String, String> config = new HashMap<>();
+        if (configuration.getSecurityProtocol() != null && !configuration.getSecurityProtocol().isEmpty()) {
+            config.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, configuration.getSecurityProtocol());
+            config.put(SaslConfigs.SASL_MECHANISM, configuration.getSaslMechanism());
+            config.put(SaslConfigs.SASL_JAAS_CONFIG, configuration.getSaslJaasConfig());
+            config.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, configuration.getSslTruststoreLocationConfig());
+            config.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, configuration.getSslTruststorePasswordConfig());
+            config.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, configuration.getSslKeystoreLocationConfig());
+            config.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, configuration.getSslKeystorePasswordConfig());
+            config.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        }
+        return config;
+    }
+
     private KafkaProducerRecord<String, byte[]> createKafkaRecord(
         final MessageExecutionContext ctx,
         final Message message,
@@ -132,6 +153,8 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
                             Flowable.defer(
                                 () -> {
                                     Map<String, Object> config = new HashMap<>();
+                                    Map<String, String> securityProtocolConfig = getSecurityProtocolConfig();
+                                    config.putAll(securityProtocolConfig);
                                     config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
                                     KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
                                     config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
@@ -265,10 +288,10 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
      */
     private <T> T createKafka(final Supplier<T> function) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
+        ClassLoader kafkaClassLoader = Utils.getKafkaClassLoader();
         try {
             // Required to load classes from the kafka classloader
-            Thread.currentThread().setContextClassLoader(null);
+            Thread.currentThread().setContextClassLoader(kafkaClassLoader);
             return function.get();
         } finally {
             Thread.currentThread().setContextClassLoader(classLoader);

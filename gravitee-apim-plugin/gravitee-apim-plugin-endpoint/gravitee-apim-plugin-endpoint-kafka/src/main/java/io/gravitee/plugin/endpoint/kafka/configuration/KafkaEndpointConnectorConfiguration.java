@@ -37,6 +37,13 @@ public class KafkaEndpointConnectorConfiguration implements EndpointConnectorCon
     private Consumer consumer = new Consumer();
     private Producer producer = new Producer();
     private String topics;
+    private String securityProtocol;
+    private String saslMechanism;
+    private String saslJaasConfig;
+    private String sslTruststoreLocationConfig;
+    private String sslTruststorePasswordConfig;
+    private String sslKeystoreLocationConfig;
+    private String sslKeystorePasswordConfig;
 
     @NoArgsConstructor
     @AllArgsConstructor

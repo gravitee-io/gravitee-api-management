@@ -60,11 +60,12 @@ public class KafkaEndpointConnectorFactoryTest {
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(
-            "{\"bootstrapServers\":\"localhost:8082\",\"topics\":\"topic\", \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
+            "{\"bootstrapServers\":\"localhost:8082\",\"securityProtocol\":\"SASL_SSL\",\"topics\":\"topic\", \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isEqualTo("localhost:8082");
+        assertThat(connector.configuration.getSecurityProtocol()).isEqualTo("SASL_SSL");
         assertThat(connector.configuration.getTopics()).isEqualTo("topic");
         assertThat(connector.configuration.getConsumer()).isNotNull();
         assertThat(connector.configuration.getConsumer().isEnabled()).isTrue();

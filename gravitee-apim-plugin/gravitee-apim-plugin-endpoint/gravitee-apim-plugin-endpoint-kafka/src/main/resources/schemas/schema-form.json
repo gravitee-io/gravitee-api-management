@@ -13,6 +13,41 @@
       "title": "topics",
       "description": "A list of topics to use to consumer records. This list should be in the form topic1,topic2,..."
     },
+    "securityProtocol": {
+      "type": "string",
+      "title": "security.protocol",
+      "description": ""
+    },
+    "saslMechanism": {
+      "type": "string",
+      "title": "sasl.mechanism",
+      "description": ""
+    },
+    "saslJaasConfig": {
+      "type": "string",
+      "title": "sasl.jaas.config",
+      "description": ""
+    },
+    "sslTruststoreLocationConfig": {
+      "type": "string",
+      "title": "ssl.truststore.location.config",
+      "description": ""
+    },
+    "sslTruststorePasswordConfig": {
+      "type": "string",
+      "title": "ssl.truststore.password.config",
+      "description": ""
+    },
+    "sslKeystoreLocationConfig": {
+      "type": "string",
+      "title": "ssl.keystore.location.config",
+      "description": ""
+    },
+    "sslKeystorePasswordConfig": {
+      "type": "string",
+      "title": "ssl.keystore.password.config",
+      "description": ""
+    },
     "consumer": {
       "type": "object",
       "title": "Consumer configuration",
@@ -36,18 +71,18 @@
           ]
         }
       }
-    }
-  },
-  "producer": {
-    "type": "object",
-    "title": "Producer configuration",
-    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:KafkaEndpointConnectorConfiguration:Producer",
-    "properties": {
-      "enabled": {
-        "title": "enabled",
-        "description": "Allow to enable or disable the producer capability.",
-        "type": "boolean",
-        "default": "true"
+    },
+    "producer": {
+      "type": "object",
+      "title": "Producer configuration",
+      "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:KafkaEndpointConnectorConfiguration:Producer",
+      "properties": {
+        "enabled": {
+          "title": "enabled",
+          "description": "Allow to enable or disable the producer capability.",
+          "type": "boolean",
+          "default": "true"
+        }
       }
     }
   },
