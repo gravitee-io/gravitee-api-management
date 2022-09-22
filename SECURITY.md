@@ -1,8 +1,8 @@
 # Security Policy
+
 ## Supported Versions
 Current supported versions for Gravitee APIm are available in our Documentation page available at:
-https://docs.gravitee.io/apim/3.x/apim_changelog.html
-
+](https://docs.gravitee.io/ee/ee_version.html#supported_product_versions_and_eol_dates)
 
 
 ## Reporting a Vulnerability
