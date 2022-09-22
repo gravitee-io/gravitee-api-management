@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.services.healthcheck.http;
 
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.VertxExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(VertxUnitRunner.class)
+@ExtendWith(VertxExtension.class)
 public class ManagedEndpointRuleHandlerTest extends AbstractManagedEndpointRuleHandlerTest {
 
     @Override

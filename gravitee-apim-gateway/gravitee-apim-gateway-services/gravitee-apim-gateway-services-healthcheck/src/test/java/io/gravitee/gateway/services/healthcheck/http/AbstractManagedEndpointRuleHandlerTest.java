@@ -17,10 +17,11 @@ package io.gravitee.gateway.services.healthcheck.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
@@ -34,13 +35,12 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
+import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
@@ -50,18 +50,17 @@ import org.springframework.core.env.Environment;
  */
 public abstract class AbstractManagedEndpointRuleHandlerTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
-
     private Environment environment;
-    private Vertx vertx;
 
     @Mock
     private TemplateEngine templateEngine;
 
-    @Before
-    public void before() {
-        vertx = Vertx.vertx();
+    @RegisterExtension
+    static WireMockExtension wm = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+    @BeforeEach
+    void setup() {
+        wm.resetAll();
         environment = mock(Environment.class);
         when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(useOpenSsl());
     }
@@ -69,9 +68,9 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     protected abstract Boolean useOpenSsl();
 
     @Test
-    public void shouldNotValidate_invalidEndpoint(TestContext context) throws Exception {
+    void shouldNotValidate_invalidEndpoint(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/")).willReturn(notFound()));
+        wm.stubFor(get(urlEqualTo("/")).willReturn(notFound()));
 
         EndpointRule rule = createEndpointRule();
 
@@ -86,17 +85,13 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
-        Async async = context.async();
 
         // Verify
         runner.setStatusHandler(
-            new Handler<EndpointStatus>() {
-                @Override
-                public void handle(EndpointStatus status) {
-                    Assert.assertFalse(status.isSuccess());
-                    verify(getRequestedFor(urlEqualTo("/")));
-                    async.complete();
-                }
+            (Handler<EndpointStatus>) status -> {
+                assertFalse(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/")));
+                context.completeNow();
             }
         );
 
@@ -104,13 +99,14 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         runner.handle(null);
 
         // Wait until completion
-        async.awaitSuccess();
+        assertTrue(context.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(context.completed());
     }
 
     @Test
-    public void shouldValidate(TestContext context) throws Exception {
+    void shouldValidate(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
+        wm.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
         // Prepare
         EndpointRule rule = createEndpointRule();
@@ -126,17 +122,12 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
-        Async async = context.async();
-
         // Verify
         runner.setStatusHandler(
-            new Handler<EndpointStatus>() {
-                @Override
-                public void handle(EndpointStatus status) {
-                    Assert.assertTrue(status.isSuccess());
-                    verify(getRequestedFor(urlEqualTo("/")));
-                    async.complete();
-                }
+            (Handler<EndpointStatus>) status -> {
+                assertTrue(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/")));
+                context.completeNow();
             }
         );
 
@@ -144,13 +135,14 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         runner.handle(null);
 
         // Wait until completion
-        async.awaitSuccess();
+        assertTrue(context.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(context.completed());
     }
 
     @Test
-    public void shouldNotValidate_invalidResponseBody(TestContext context) throws Exception {
+    void shouldNotValidate_invalidResponseBody(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"yellow\"}")));
+        wm.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"yellow\"}")));
 
         // Prepare
         EndpointRule rule = createEndpointRule();
@@ -166,23 +158,18 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
-        Async async = context.async();
-
         // Verify
         runner.setStatusHandler(
-            new Handler<EndpointStatus>() {
-                @Override
-                public void handle(EndpointStatus status) {
-                    Assert.assertFalse(status.isSuccess());
-                    verify(getRequestedFor(urlEqualTo("/")));
+            (Handler<EndpointStatus>) status -> {
+                assertFalse(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/")));
 
-                    // When health-check is false, we store both request and response
-                    Step result = status.getSteps().get(0);
-                    Assert.assertEquals(HttpMethod.GET, result.getRequest().getMethod());
-                    Assert.assertNotNull(result.getResponse().getBody());
+                // When health-check is false, we store both request and response
+                Step result = status.getSteps().get(0);
+                assertEquals(HttpMethod.GET, result.getRequest().getMethod());
+                assertNotNull(result.getResponse().getBody());
 
-                    async.complete();
-                }
+                context.completeNow();
             }
         );
 
@@ -190,13 +177,14 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         runner.handle(null);
 
         // Wait until completion
-        async.awaitSuccess();
+        assertTrue(context.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(context.completed());
     }
 
     @Test
-    public void shouldValidateFromRoot(TestContext context) throws Exception {
+    void shouldValidateFromRoot(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/")).willReturn(ok()));
+        wm.stubFor(get(urlEqualTo("/")).willReturn(ok()));
 
         // Prepare
         EndpointRule rule = createEndpointRule("/additional-but-unused-path-for-hc");
@@ -213,18 +201,13 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
-        Async async = context.async();
-
         // Verify
         runner.setStatusHandler(
-            new Handler<EndpointStatus>() {
-                @Override
-                public void handle(EndpointStatus status) {
-                    verify(getRequestedFor(urlEqualTo("/")));
-                    verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
-                    Assert.assertTrue(status.isSuccess());
-                    async.complete();
-                }
+            (Handler<EndpointStatus>) status -> {
+                wm.verify(getRequestedFor(urlEqualTo("/")));
+                wm.verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
+                assertTrue(status.isSuccess());
+                context.completeNow();
             }
         );
 
@@ -232,14 +215,12 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         runner.handle(null);
 
         // Wait until completion
-        async.awaitSuccess();
+        assertTrue(context.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(context.completed());
     }
 
     private Endpoint createEndpoint(String targetPath) {
-        HttpEndpoint aDefault = new HttpEndpoint(
-            "default",
-            "http://localhost:" + wireMockRule.port() + (targetPath != null ? targetPath : "")
-        );
+        HttpEndpoint aDefault = new HttpEndpoint("default", "http://localhost:" + wm.getPort() + (targetPath != null ? targetPath : ""));
         aDefault.setHttpClientOptions(new HttpClientOptions());
         return aDefault;
     }
@@ -254,7 +235,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         api.setId("an-api");
         when(rule.endpoint()).thenReturn(createEndpoint(targetPath));
         when(rule.api()).thenReturn(api);
-        when(rule.schedule()).thenReturn("*/5 * * * * *");
+        when(rule.schedule()).thenReturn("0 */10 * ? * *");
         return rule;
     }
 }
