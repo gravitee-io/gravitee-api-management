@@ -1,0 +1,25 @@
+{
+  "name": "gravitee-apim-ci-config",
+  "version": "0.0.1",
+  "description": "APIM CircleCI config generator",
+  "main": "src/index.mjs",
+  "type": "module",
+  "scripts": {
+    "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
+    "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
+    "pregenerate": "npm install",
+    "generate": "zx src/index.mjs",
+    "validate": "circleci config validate ../dynamic-config.yml",
+    "prevalidate": "npm run generate",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@circleci/circleci-config-sdk": "^0.10.0",
+    "zx": "^7.0.8"
+  },
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  }
+}
