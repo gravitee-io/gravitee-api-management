@@ -24,7 +24,6 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
