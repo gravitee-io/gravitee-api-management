@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -35,6 +37,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,15 +77,20 @@ class MockEndpointConnectorTest {
     @Mock
     private Response response;
 
+    @Mock
+    private EntrypointConnector entrypointConnector;
+
     @BeforeEach
     public void setup() {
         configuration.setMessageInterval(100L);
         configuration.setMessageContent(MESSAGE_CONTENT);
         mockEndpointConnector = new MockEndpointConnector(configuration);
-        when(request.onMessage(any())).thenReturn(Completable.complete());
+        lenient().when(request.onMessage(any())).thenReturn(Completable.complete());
 
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
     }
 
     @Test

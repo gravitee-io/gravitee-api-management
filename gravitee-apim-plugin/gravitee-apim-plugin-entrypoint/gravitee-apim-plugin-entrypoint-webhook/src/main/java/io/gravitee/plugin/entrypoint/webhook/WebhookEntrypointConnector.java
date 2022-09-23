@@ -16,7 +16,6 @@
 package io.gravitee.plugin.entrypoint.webhook;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
@@ -40,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
+public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
     protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";

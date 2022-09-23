@@ -45,7 +45,6 @@ import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointCon
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
-import java.time.Instant;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -227,14 +226,13 @@ class HttpGetEntrypointConnectorTest {
             .thenReturn(MediaType.APPLICATION_JSON);
         when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(30_000L);
+            .thenReturn(5_000L);
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
         when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockRequest.timestamp()).thenReturn(Instant.now().toEpochMilli());
         when(mockExecutionContext.request()).thenReturn(mockRequest);
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
@@ -270,7 +268,7 @@ class HttpGetEntrypointConnectorTest {
                         ? message
                             .toString()
                             .equals(
-                                "{\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"metadata\":{\"myKey\":\"myValue1\"}}"
+                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"myKey\":\"myValue1\"}}"
                             )
                         : message.toString().equals("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}")
             )
@@ -281,7 +279,7 @@ class HttpGetEntrypointConnectorTest {
                         ? message
                             .toString()
                             .equals(
-                                ",{\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"id\":\"2\",\"content\":\"2\",\"metadata\":{\"myKey\":\"myValue2\"}}"
+                                ",{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"myKey\":\"myValue2\"}}"
                             )
                         : message.toString().equals(",{\"id\":\"2\",\"content\":\"2\"}")
             )
@@ -302,14 +300,13 @@ class HttpGetEntrypointConnectorTest {
             .thenReturn(MediaType.APPLICATION_XML);
         when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(30_000L);
+            .thenReturn(5_000L);
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
         when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockRequest.timestamp()).thenReturn(Instant.now().toEpochMilli());
         when(mockExecutionContext.request()).thenReturn(mockRequest);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
@@ -345,7 +342,7 @@ class HttpGetEntrypointConnectorTest {
                         ? message
                             .toString()
                             .equals(
-                                "<item><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><id>1</id><content><![CDATA[<foo>1</foo>]]></content><metadata><myKey>myValue1</myKey></metadata></item>"
+                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><myKey>myValue1</myKey></metadata></item>"
                             )
                         : message.toString().equals("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>")
             )
@@ -356,7 +353,7 @@ class HttpGetEntrypointConnectorTest {
                         ? message
                             .toString()
                             .equals(
-                                "<item><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><id>2</id><content><![CDATA[2]]></content><metadata><myKey>myValue2</myKey></metadata></item>"
+                                "<item><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><myKey>myValue2</myKey></metadata></item>"
                             )
                         : message.toString().equals("<item><id>2</id><content><![CDATA[2]]></content></item>")
             )
@@ -379,14 +376,13 @@ class HttpGetEntrypointConnectorTest {
             .thenReturn(MediaType.TEXT_PLAIN);
         when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(30_000L);
+            .thenReturn(5_000L);
         when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
         when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockRequest.timestamp()).thenReturn(Instant.now().toEpochMilli());
         when(mockExecutionContext.request()).thenReturn(mockRequest);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
@@ -417,27 +413,280 @@ class HttpGetEntrypointConnectorTest {
             .await()
             .assertComplete()
             .assertValueCount(4)
-            .assertValueAt(0, message -> message.toString().equals("items="))
+            .assertValueAt(0, message -> message.toString().equals("items\n"))
             .assertValueAt(
                 1,
                 message ->
                     withHeadersAndMetadata
-                        ? message.toString().equals("({X-My-Header-1=[headerValue1]}, id=1, content=1, {myKey=myValue1})")
-                        : message.toString().equals("(id=1, content=1)")
+                        ? message
+                            .toString()
+                            .equals(
+                                "item\n" +
+                                "id: 1\n" +
+                                "content: 1\n" +
+                                "headers: {X-My-Header-1=[headerValue1]}\n" +
+                                "metadata: {myKey=myValue1}\n"
+                            )
+                        : message.toString().equals("item\n" + "id: 1\n" + "content: 1\n")
             )
             .assertValueAt(
                 2,
                 message ->
                     withHeadersAndMetadata
-                        ? message.toString().equals(", ({X-My-Header-2=[headerValue2]}, id=2, content=2, {myKey=myValue2})")
-                        : message.toString().equals(", (id=2, content=2)")
+                        ? message
+                            .toString()
+                            .equals(
+                                "\nitem\n" +
+                                "id: 2\n" +
+                                "content: 2\n" +
+                                "headers: {X-My-Header-2=[headerValue2]}\n" +
+                                "metadata: {myKey=myValue2}\n"
+                            )
+                        : message.toString().equals("\nitem\n" + "id: 2\n" + "content: 2\n")
             )
-            .assertValueAt(3, message -> message.toString().equals("\npagination=(cursor=0, nextCursor=2, limit=2)"));
+            .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
 
         verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void shouldReturnJsonArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
+        throws InterruptedException {
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+            .thenReturn(MediaType.APPLICATION_JSON);
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+            .thenReturn(5_000L);
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+
+        LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
+        queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
+        when(mockRequest.parameters()).thenReturn(queryParams);
+        when(mockExecutionContext.request()).thenReturn(mockRequest);
+
+        final HttpHeaders httpHeaders = HttpHeaders.create();
+        when(mockResponse.headers()).thenReturn(httpHeaders);
+        Flowable<Message> messages = Flowable.just(
+            createMessage("1", MediaType.APPLICATION_JSON),
+            createMessage("2", null, true),
+            createMessage("Non returned messaged due to count limit", null)
+        );
+        when(mockResponse.messages()).thenReturn(messages);
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+
+        when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
+        when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
+
+        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+
+        assertThat(httpHeaders).isNotNull();
+        assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+        verify(mockResponse).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+
+        chunkObs
+            .await()
+            .assertComplete()
+            .assertValueCount(7)
+            .assertValueAt(0, message -> message.toString().equals("{\"items\":["))
+            .assertValueAt(
+                1,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"myKey\":\"myValue1\"}}"
+                            )
+                        : message.toString().equals("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}")
+            )
+            .assertValueAt(2, message -> message.toString().equals("]"))
+            .assertValueAt(3, message -> message.toString().equals(",\"error\":"))
+            .assertValueAt(
+                4,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"myKey\":\"myValue2\"}}"
+                            )
+                        : message.toString().equals("{\"id\":\"2\",\"content\":\"2\"}")
+            )
+            .assertValueAt(
+                5,
+                message -> message.toString().equals(",\"pagination\":{\"cursor\":\"0\",\"nextCursor\":\"2\",\"limit\":\"2\"}")
+            )
+            .assertValueAt(6, message -> message.toString().equals("}"));
+
+        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void shouldReturnXmlArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
+        throws InterruptedException {
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+            .thenReturn(MediaType.APPLICATION_XML);
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+            .thenReturn(5_000L);
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+
+        LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
+        queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
+        when(mockRequest.parameters()).thenReturn(queryParams);
+        when(mockExecutionContext.request()).thenReturn(mockRequest);
+
+        final HttpHeaders responseHttpHeaders = HttpHeaders.create();
+        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        Flowable<Message> messages = Flowable.just(
+            createMessage("1", MediaType.APPLICATION_XML),
+            createMessage("2", null, true),
+            createMessage("Non returned messaged due to count limit", null)
+        );
+        when(mockResponse.messages()).thenReturn(messages);
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+
+        when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
+        when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
+
+        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+
+        assertThat(responseHttpHeaders).isNotNull();
+        assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_XML);
+        verify(mockResponse).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+
+        chunkObs
+            .await()
+            .assertComplete()
+            .assertValueCount(6)
+            .assertValueAt(0, message -> message.toString().equals("<response><items>"))
+            .assertValueAt(
+                1,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><myKey>myValue1</myKey></metadata></item>"
+                            )
+                        : message.toString().equals("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>")
+            )
+            .assertValueAt(2, message -> message.toString().equals("</items>"))
+            .assertValueAt(
+                3,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "<error><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><myKey>myValue2</myKey></metadata></error>"
+                            )
+                        : message.toString().equals("<error><id>2</id><content><![CDATA[2]]></content></error>")
+            )
+            .assertValueAt(
+                4,
+                message ->
+                    message.toString().equals("<pagination><cursor>0</cursor><nextCursor>2</nextCursor><limit>2</limit></pagination>")
+            )
+            .assertValueAt(5, message -> message.toString().equals("</response>"));
+
+        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void shouldReturnTextPlainArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
+        throws InterruptedException {
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+            .thenReturn(MediaType.TEXT_PLAIN);
+        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+            .thenReturn(5_000L);
+        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+
+        LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
+        queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
+        when(mockRequest.parameters()).thenReturn(queryParams);
+        when(mockExecutionContext.request()).thenReturn(mockRequest);
+
+        final HttpHeaders responseHttpHeaders = HttpHeaders.create();
+        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        Flowable<Message> messages = Flowable.just(
+            createMessage("1", null),
+            createMessage("2", null, true),
+            createMessage("Non returned messaged due to count limit", null)
+        );
+        when(mockResponse.messages()).thenReturn(messages);
+        when(mockExecutionContext.response()).thenReturn(mockResponse);
+
+        when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
+        when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
+
+        when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
+        when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
+
+        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+
+        assertThat(responseHttpHeaders).isNotNull();
+        assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
+        verify(mockResponse).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+
+        chunkObs
+            .await()
+            .assertComplete()
+            .assertValueCount(4)
+            .assertValueAt(0, message -> message.toString().equals("items\n"))
+            .assertValueAt(
+                1,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "item\n" +
+                                "id: 1\n" +
+                                "content: 1\n" +
+                                "headers: {X-My-Header-1=[headerValue1]}\n" +
+                                "metadata: {myKey=myValue1}\n"
+                            )
+                        : message.toString().equals("item\n" + "id: 1\n" + "content: 1\n")
+            )
+            .assertValueAt(
+                2,
+                message ->
+                    withHeadersAndMetadata
+                        ? message
+                            .toString()
+                            .equals(
+                                "\nerror\n" +
+                                "id: 2\n" +
+                                "content: 2\n" +
+                                "headers: {X-My-Header-2=[headerValue2]}\n" +
+                                "metadata: {myKey=myValue2}\n"
+                            )
+                        : message.toString().equals("\nerror\nid: 2\ncontent: 2\n")
+            )
+            .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
+
+        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+    }
+
     private Message createMessage(String messageContent, String contentType) {
+        return createMessage(messageContent, contentType, false);
+    }
+
+    private Message createMessage(String messageContent, String contentType, final boolean onError) {
         String content = messageContent;
         if (MediaType.APPLICATION_JSON.equals(contentType)) {
             content = "{\"foo\": \"" + messageContent + "\"}";
@@ -447,6 +696,7 @@ class HttpGetEntrypointConnectorTest {
 
         return DefaultMessage
             .builder()
+            .error(onError)
             .id(messageContent)
             .headers(HttpHeaders.create().set("X-My-Header-" + messageContent, "headerValue" + messageContent))
             .content(Buffer.buffer(content))

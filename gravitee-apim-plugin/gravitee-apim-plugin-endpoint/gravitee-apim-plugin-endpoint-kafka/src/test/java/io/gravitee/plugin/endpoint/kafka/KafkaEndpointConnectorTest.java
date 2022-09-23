@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -25,7 +26,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ListenerType;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
@@ -111,6 +112,9 @@ class KafkaEndpointConnectorTest {
     @Mock
     private Request request;
 
+    @Mock
+    private EntrypointConnector entrypointConnector;
+
     @BeforeEach
     public void beforeEach() throws ExecutionException, InterruptedException, TimeoutException {
         topicId = UUID.randomUUID().toString();
@@ -120,6 +124,8 @@ class KafkaEndpointConnectorTest {
         lenient().when(ctx.getComponent(any(Class.class))).thenReturn(vertx.getDelegate());
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.request()).thenReturn(request);
+        lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
 
         AdminClient adminClient = AdminClient.create(
             ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())

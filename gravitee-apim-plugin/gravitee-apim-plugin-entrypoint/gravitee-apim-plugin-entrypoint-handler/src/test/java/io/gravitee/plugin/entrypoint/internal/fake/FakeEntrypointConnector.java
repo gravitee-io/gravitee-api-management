@@ -31,7 +31,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class FakeEntrypointConnector implements EntrypointAsyncConnector {
+public class FakeEntrypointConnector extends EntrypointAsyncConnector {
 
     static final ApiType SUPPORTED_API = ApiType.ASYNC;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);

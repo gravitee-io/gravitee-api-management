@@ -56,6 +56,6 @@ class HttpGetEntrypointConnectorFactoryTest {
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessagesLimitCount()).isEqualTo(500);
-        assertThat(connector.configuration.getMessagesLimitDurationMs()).isEqualTo(30_000);
+        assertThat(connector.configuration.getMessagesLimitDurationMs()).isEqualTo(5_000);
     }
 }

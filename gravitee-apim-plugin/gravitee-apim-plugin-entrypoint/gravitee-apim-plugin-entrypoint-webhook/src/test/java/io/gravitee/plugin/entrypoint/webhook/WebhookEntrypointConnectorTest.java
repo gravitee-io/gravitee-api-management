@@ -71,8 +71,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @WireMockTest
 class WebhookEntrypointConnectorTest {
 
-    private final Vertx vertx = Vertx.vertx();
-
     protected static final String SUBSCRIPTION_CONFIGURATION = "subscription configuration";
     private final Vertx vertx = Vertx.vertx();
 

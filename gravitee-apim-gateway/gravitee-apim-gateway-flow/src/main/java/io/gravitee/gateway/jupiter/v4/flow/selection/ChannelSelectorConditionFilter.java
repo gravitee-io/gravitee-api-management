@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.v4.flow.selection;
 
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -70,6 +70,7 @@ public class ChannelSelectorConditionFilter implements ConditionFilter<Flow> {
 
     private boolean isEntrypointMatches(final GenericExecutionContext ctx, final ChannelSelector channelSelector) {
         EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+
         if (entrypointConnector != null) {
             return (
                 isEntrypointIdMatches(channelSelector, entrypointConnector) &&
