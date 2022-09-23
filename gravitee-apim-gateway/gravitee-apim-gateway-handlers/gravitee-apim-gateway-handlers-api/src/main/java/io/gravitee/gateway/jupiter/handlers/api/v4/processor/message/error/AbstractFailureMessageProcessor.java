@@ -17,9 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -31,15 +29,14 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.jupiter.core.processor.MessageProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.error.ExecutionFailureAsJson;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.ExecutionFailureMessage;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.ExecutionFailureMessageHelper;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import io.reactivex.processors.UnicastProcessor;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,26 +56,46 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return ctx
-            .request()
-            .onMessages(
-                upstream ->
-                    upstream.onErrorResumeNext(
-                        throwable -> {
-                            return ctx
-                                .response()
-                                .onMessages(responseMessageUpstream -> toMessageFlowable(ctx, throwable).ambWith(responseMessageUpstream))
-                                .andThen(Flowable.empty());
-                        }
+        return Completable.defer(
+            () -> {
+                UnicastProcessor<Message> errorEmitter = UnicastProcessor.create();
+                return ctx
+                    .request()
+                    .onMessages(
+                        upstream ->
+                            upstream.onErrorResumeNext(
+                                throwable -> {
+                                    return toMessageFlowable(ctx, throwable)
+                                        .doOnNext(
+                                            message -> {
+                                                errorEmitter.onNext(message);
+                                                errorEmitter.onComplete();
+                                            }
+                                        )
+                                        .ignoreElements()
+                                        .andThen(Flowable.empty());
+                                }
+                            )
                     )
-            )
-            .andThen(ctx.response().onMessages(upstream -> catchError(ctx, upstream)));
-    }
-
-    private Flowable<Message> catchError(final MutableExecutionContext ctx, final Flowable<Message> upstream) {
-        return upstream.onErrorResumeNext(
-            throwable -> {
-                return toMessageFlowable(ctx, throwable);
+                    .andThen(
+                        ctx
+                            .response()
+                            .onMessages(
+                                upstream ->
+                                    errorEmitter
+                                        .materialize()
+                                        .mergeWith(
+                                            upstream
+                                                .onErrorResumeNext(
+                                                    throwable -> {
+                                                        return toMessageFlowable(ctx, throwable);
+                                                    }
+                                                )
+                                                .materialize()
+                                        )
+                                        .dematerialize(bufferNotification -> bufferNotification)
+                            )
+                    );
             }
         );
     }

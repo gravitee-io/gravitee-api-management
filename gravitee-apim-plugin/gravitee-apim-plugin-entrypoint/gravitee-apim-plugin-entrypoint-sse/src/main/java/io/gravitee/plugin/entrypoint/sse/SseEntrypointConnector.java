@@ -24,8 +24,8 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class SseEntrypointConnector implements EntrypointAsyncConnector {
+public class SseEntrypointConnector extends EntrypointAsyncConnector {
 
     public static final String HEADER_LAST_EVENT_ID = "Last-Event-ID";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
@@ -128,7 +128,12 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
             .map(aLong -> Buffer.buffer(":\n\n"));
 
         return retryFlowable
-            .concatWith(heartBeatFlowable.ambWith(ctx.response().messages().map(this::messageToBuffer)))
+            .concatWith(
+                heartBeatFlowable
+                    .materialize()
+                    .mergeWith(ctx.response().messages().map(this::messageToBuffer).materialize())
+                    .dematerialize(bufferNotification -> bufferNotification)
+            )
             .onErrorReturn(this::errorToBuffer);
     }
 

@@ -16,6 +16,9 @@
 package io.gravitee.plugin.entrypoint.http.post;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
@@ -24,7 +27,9 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
+public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
     private static final String ENTRYPOINT_ID = "http-post";
@@ -98,6 +103,60 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
         // Start consuming incoming messages
-        return Completable.defer(() -> ctx.request().messages().ignoreElements());
+        return Completable.defer(
+            () ->
+                Completable.mergeArray(
+                    ctx.request().messages().ignoreElements(),
+                    Completable.fromRunnable(() -> ctx.response().chunks(processResponseMessages(ctx)))
+                )
+        );
+    }
+
+    private Flowable<Buffer> processResponseMessages(final ExecutionContext ctx) {
+        return ctx
+            .response()
+            .messages()
+            .filter(Message::error)
+            .map(
+                message -> {
+                    Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                    ctx.response().status(statusCode);
+                    HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
+                    if (httpResponseStatus != null) {
+                        ctx.response().reason(httpResponseStatus.reasonPhrase());
+                    }
+                    Buffer content = message.content();
+                    if (content != null) {
+                        if (message.headers() != null) {
+                            if (message.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
+                                ctx
+                                    .response()
+                                    .headers()
+                                    .set(HttpHeaderNames.CONTENT_TYPE, message.headers().get(HttpHeaderNames.CONTENT_TYPE));
+                            }
+                            if (
+                                (!ctx.response().headers().contains(HttpHeaderNames.TRANSFER_ENCODING)) &&
+                                message.headers().contains(HttpHeaderNames.CONTENT_LENGTH)
+                            ) {
+                                ctx
+                                    .response()
+                                    .headers()
+                                    .set(HttpHeaderNames.CONTENT_LENGTH, message.headers().get(HttpHeaderNames.CONTENT_LENGTH));
+                            }
+                        }
+                        return content;
+                    }
+                    return Buffer.buffer();
+                }
+            )
+            .switchIfEmpty(
+                Flowable.defer(
+                    () -> {
+                        ctx.response().status(HttpResponseStatus.ACCEPTED.code());
+                        ctx.response().reason(HttpResponseStatus.ACCEPTED.reasonPhrase());
+                        return Flowable.empty();
+                    }
+                )
+            );
     }
 }

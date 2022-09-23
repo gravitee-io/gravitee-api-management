@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
+public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     static final int WEBSOCKET_STATUS_SERVER_ERROR = 1011;
     static final String WEBSOCKET_STATUS_SERVER_ERROR_MSG = "Server error";
@@ -73,13 +73,14 @@ public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.defer(() ->
-            ctx
-                .request()
-                .webSocket()
-                .upgrade()
-                .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
-                .ignoreElement()
+        return Completable.defer(
+            () ->
+                ctx
+                    .request()
+                    .webSocket()
+                    .upgrade()
+                    .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
+                    .ignoreElement()
         );
     }
 
@@ -104,13 +105,15 @@ public class WebSocketEntrypointConnector implements EntrypointAsyncConnector {
             return ctx
                 .response()
                 .messages()
-                .flatMapCompletable(message -> {
-                    if (!message.error()) {
-                        return ctx.request().webSocket().write(message.content());
-                    } else {
-                        return ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+                .flatMapCompletable(
+                    message -> {
+                        if (!message.error()) {
+                            return ctx.request().webSocket().write(message.content());
+                        } else {
+                            return ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+                        }
                     }
-                });
+                );
         } else {
             return Completable.complete();
         }

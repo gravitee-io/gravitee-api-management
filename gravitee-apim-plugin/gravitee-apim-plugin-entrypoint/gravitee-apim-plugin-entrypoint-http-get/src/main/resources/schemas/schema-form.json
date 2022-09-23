@@ -11,8 +11,8 @@
     "messagesLimitDurationMs": {
       "type": "number",
       "title": "Limit messages duration (in ms)",
-      "description": "Maximum duration in milliseconds to wait to retrieve messages. Default is 30000.",
-      "default": 30000
+      "description": "Maximum duration in milliseconds to wait to retrieve messages. Default is 5000.",
+      "default": 5000
     },
     "headersInPayload": {
       "type": "boolean",

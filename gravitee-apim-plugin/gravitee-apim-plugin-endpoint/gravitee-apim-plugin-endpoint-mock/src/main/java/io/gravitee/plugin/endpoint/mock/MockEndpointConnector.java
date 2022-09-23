@@ -26,13 +26,12 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @AllArgsConstructor
 @Slf4j
-public class MockEndpointConnector implements EndpointAsyncConnector {
+public class MockEndpointConnector extends EndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     private static final String ENDPOINT_ID = "mock";
@@ -57,8 +56,8 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
     }
 
     @Override
-    public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(
+    protected Completable subscribe(final ExecutionContext ctx) {
+        return Completable.fromRunnable(
             () -> {
                 final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
                 final Long messagesLimitDurationMs = ctx.getInternalAttribute(
@@ -76,15 +75,22 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
                     : messagesLimitCount != null ? messagesLimitCount : configurationLimitCount;
 
                 ctx.response().messages(generateMessageFlow(limitCount, messagesLimitDurationMs, messagesResumeLastId));
-                return ctx
+            }
+        );
+    }
+
+    @Override
+    protected Completable publish(final ExecutionContext ctx) {
+        return Completable.defer(
+            () ->
+                ctx
                     .request()
                     .onMessage(
                         message -> {
                             log.info("Received message: {}", message.content().toString());
                             return Maybe.empty();
                         }
-                    );
-            }
+                    )
         );
     }
 

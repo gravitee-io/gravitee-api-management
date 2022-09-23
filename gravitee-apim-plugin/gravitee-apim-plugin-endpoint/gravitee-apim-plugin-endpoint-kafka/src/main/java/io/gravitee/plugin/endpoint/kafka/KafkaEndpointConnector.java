@@ -15,9 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.kafka;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -52,7 +55,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
-public class KafkaEndpointConnector implements EndpointAsyncConnector {
+public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
     static final String KAFKA_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "kafka.";
     static final String CONTEXT_ATTRIBUTE_KAFKA_TOPICS = KAFKA_CONTEXT_ATTRIBUTE + "topics";
@@ -63,7 +66,6 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     private static final String ID_SEPARATOR = "-";
 
     protected final KafkaEndpointConnectorConfiguration configuration;
-    private final Map<Integer, KafkaProducer<String, byte[]>> kafkaProducers = new HashMap<>();
 
     @Override
     public String id() {
@@ -76,11 +78,7 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     }
 
     @Override
-    public Completable connect(final ExecutionContext ctx) {
-        return prepareProducer(ctx).andThen(prepareConsumer(ctx));
-    }
-
-    private Completable prepareProducer(final MessageExecutionContext ctx) {
+    protected Completable publish(final ExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
             return Completable.defer(
                 () -> {
@@ -139,7 +137,8 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
         return producerRecord;
     }
 
-    private Completable prepareConsumer(final MessageExecutionContext ctx) {
+    @Override
+    protected Completable subscribe(final ExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 if (configuration.getConsumer().isEnabled()) {
