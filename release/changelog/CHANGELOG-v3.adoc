@@ -5,6 +5,22 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/600?closed=1[APIM - 3.18.10 (2022-09-23)]
+
+=== Bug fixes
+
+*_Gateway_*
+
+- Dedicated implementation for hybrid deployment standalone mode https://github.com/gravitee-io/issues/issues/8482[#8482]
+
+*_Management_*
+
+- Server unreachable when trying to subscribe to APIs https://github.com/gravitee-io/issues/issues/8496[#8496]
+- Status codes in the dashboard are not sorted in order https://github.com/gravitee-io/issues/issues/8497[#8497]
+
+ 
+ 
+
 == https://github.com/gravitee-io/issues/milestone/598?closed=1[APIM - 3.18.9 (2022-09-16)]
 
 === Bug fixes
