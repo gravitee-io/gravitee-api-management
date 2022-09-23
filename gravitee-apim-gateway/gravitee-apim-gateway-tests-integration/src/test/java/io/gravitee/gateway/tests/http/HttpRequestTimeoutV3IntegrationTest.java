@@ -21,8 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.tests.fakes.policies.AddHeaderPolicy;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.core.http.HttpClientResponse;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -44,7 +43,7 @@ public class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutInteg
 
     // IN V3 mode, if an exception is thrown during api flows, then platform response flow is not executed.
     @Override
-    protected void assertPlatformHeaders(HttpResponse<Buffer> response) {
+    protected void assertPlatformHeaders(HttpClientResponse response) {
         assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
     }
 }

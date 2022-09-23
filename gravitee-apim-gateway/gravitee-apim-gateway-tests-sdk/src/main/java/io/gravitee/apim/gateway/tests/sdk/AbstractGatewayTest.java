@@ -32,13 +32,10 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
-import io.reactiverse.junit5.web.WebClientOptionsInject;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Date;
@@ -125,13 +122,6 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         return applicationContext.getBean(requiredType);
     }
 
-    /**
-     * Default configuration of a WebClient to be able to call the gateway
-     * To use a custom Webclient for a test class, just redeclare this with the same name and the appropriate options.
-     */
-    @WebClientOptionsInject
-    public WebClientOptions options = new WebClientOptions().setDefaultHost("localhost").setDefaultPort(gatewayPort());
-
     protected AbstractGatewayTest() {}
 
     @BeforeAll
@@ -144,15 +134,13 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * when implementing the test cases, the developer will need a {@link io.vertx.ext.web.client.WebClient}, which is automatically resolved as a parameter if Vertx has already been resolved.
      * Injecting it in the BeforeEach at abstract class level allows to automatically inject it to ease the life of the developer.
      *
-     * Same occurs for WebClient
-     *
      * Ensure the testContext is completed before starting a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
      * Update endpoints for each apis deployed for the whole test class, see {@link AbstractGatewayTest#updateEndpointsOnDeployedApisForClassIfNeeded()}
      * @param vertx this parameter is only used to let the VertxExtension initialize it. It will allow to use WebClient directly.
      * @param testContext
      */
     @BeforeEach
-    public void setUp(Vertx vertx, VertxTestContext testContext, WebClient webClient) throws Exception {
+    public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
         resetAllMocks();
         prepareWireMock();
         updateEndpointsOnDeployedApisForClassIfNeeded();

@@ -14,11 +14,7 @@ package testcases;/**
  * limitations under the License.
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -30,10 +26,8 @@ import io.gravitee.apim.gateway.tests.sdk.policy.fakes.OnRequestPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.rxjava3.observers.TestObserver;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
-import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,25 +45,30 @@ public class SuccessTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test policy")
-    void testConditional(WebClient webClient) throws InterruptedException {
+    void testConditional(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test/my_team").rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+        httpClient
+            .rxRequest(HttpMethod.GET, "/test/my_team")
+            .flatMap(request -> request.rxSend())
+            .flatMapPublisher(
                 response -> {
-                    final String content = response.bodyAsString();
-
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                    assertThat(content).isEqualTo("OnResponseContent2Policy");
-
+                    return response.toFlowable();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
                     return true;
                 }
-            );
-        obs.assertNoErrors();
+            )
+            .assertNoErrors();
+
         wiremock.verify(
             getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))

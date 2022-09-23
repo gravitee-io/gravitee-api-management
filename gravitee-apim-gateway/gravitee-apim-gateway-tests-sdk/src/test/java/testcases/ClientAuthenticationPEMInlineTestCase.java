@@ -15,10 +15,7 @@
  */
 package testcases;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -28,15 +25,10 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.utils.ResourceUtils;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
-import io.reactivex.rxjava3.observers.TestObserver;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
-import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.http.HttpClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 /**
  *
@@ -73,14 +65,15 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test the different endpoints thanks to round robin and have the correct status depending on their configuration")
-    void simple_request_client_auth(WebClient client) throws Exception {
+    void simple_request_client_auth(HttpClient httpClient) throws Exception {
         wiremock.stubFor(get(ENDPOINT).willReturn(ok()));
 
         // First call is calling an HTTPS endpoint without ssl configuration => 502
-        TestObserver<HttpResponse<Buffer>> obs = client.get(API_ENTRYPOINT).rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
@@ -90,10 +83,11 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .assertNoErrors();
 
         // Second call is calling an endpoint where trustAll = false, without keystore => 502
-        obs = client.get(API_ENTRYPOINT).rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
@@ -103,10 +97,11 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .assertNoErrors();
 
         // Third call is calling an endpoint where trustAll = true, with keystore => 200
-        obs = client.get(API_ENTRYPOINT).rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
@@ -116,10 +111,11 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .assertNoErrors();
 
         // Fourth call is calling an endpoint where trustAll = false, with truststore and keystore => 200
-        obs = client.get(API_ENTRYPOINT).rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);

@@ -14,11 +14,7 @@ package testcases;/**
  * limitations under the License.
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -29,10 +25,8 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Header1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Header2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.rxjava3.observers.TestObserver;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
-import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,50 +44,52 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test organization flow")
-    void shouldTestOrganizationFlow(WebClient webClient) throws InterruptedException {
+    void shouldTestOrganizationFlow(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test").rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header1");
-
                     return true;
                 }
             )
             .assertNoErrors();
+
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header1")));
     }
 
     @Test
     @DeployOrganization("/organizations/organization-add-header-2.json")
     @DisplayName("Should test organization flow at test level using annotation")
-    void shouldTestOrganizationFlowAtTestLevel(WebClient webClient) throws InterruptedException {
+    void shouldTestOrganizationFlowAtTestLevel(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test").rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
-
                     return true;
                 }
             )
             .assertNoErrors();
+
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }
 
     @Test
     @DisplayName("Should test organization flow at test level using updateAndDeployOrganizationMethod")
-    void shouldTestOrganizationFlowAtTestLevelWithMethodCall(WebClient webClient) throws InterruptedException {
+    void shouldTestOrganizationFlowAtTestLevelWithMethodCall(HttpClient httpClient) throws InterruptedException {
         super.updateAndDeployOrganization(
             organization -> {
                 organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
@@ -103,19 +99,20 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         wiremock.stubFor(get("/team").willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test").rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
+        httpClient
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> request.rxSend())
+            .test()
+            .await()
             .assertValue(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
-
                     return true;
                 }
             )
             .assertNoErrors();
+
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }
 
