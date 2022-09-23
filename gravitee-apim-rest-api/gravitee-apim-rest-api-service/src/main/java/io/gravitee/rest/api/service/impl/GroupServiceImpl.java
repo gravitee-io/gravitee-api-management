@@ -1005,13 +1005,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner) {
         try {
-            Optional<Group> group = groupRepository.findById(groupId);
-            if (!group.isPresent()) {
-                throw new GroupNotFoundException(groupId);
-            }
-            final Group foundGroup = group.get();
-            foundGroup.setApiPrimaryOwner(newApiPrimaryOwner);
-            groupRepository.update(foundGroup);
+            Group group = groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
+            group.setApiPrimaryOwner(newApiPrimaryOwner);
+            groupRepository.update(group);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find or update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
