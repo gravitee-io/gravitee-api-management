@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.reactor.processor.responsetime;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

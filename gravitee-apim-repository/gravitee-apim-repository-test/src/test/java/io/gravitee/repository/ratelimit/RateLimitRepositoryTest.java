@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.functions.Predicate;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.functions.Predicate;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -72,12 +72,12 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldIncrementAndGet_byOne() {
+    public void shouldIncrementAndGet_byOne() throws InterruptedException {
         final RateLimit rateLimit = RATE_LIMITS.get("rl-1");
         final TestObserver<RateLimit> observer = incrementAndObserve(rateLimit, 1L);
         final long expectedCounter = 1L;
 
-        observer.awaitTerminalEvent(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         observer
             .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
@@ -88,12 +88,12 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldIncrementAndGet_fromSuppliedCounterByTwo() {
+    public void shouldIncrementAndGet_fromSuppliedCounterByTwo() throws InterruptedException {
         final RateLimit rateLimit = RATE_LIMITS.get("rl-2");
         final TestObserver<RateLimit> observer = incrementAndObserve(rateLimit, 2L);
         final long expectedCounter = 42L;
 
-        observer.awaitTerminalEvent(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         observer
             .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
@@ -104,12 +104,12 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldIncrementAndGet_withUnknownKey() {
+    public void shouldIncrementAndGet_withUnknownKey() throws InterruptedException {
         final RateLimit rateLimit = of("rl-3", 0, 100000, 5000, "rl-3-subscription");
         final TestObserver<RateLimit> observer = incrementAndObserve(rateLimit, 10L);
         final long expectedCounter = 10L;
 
-        observer.awaitTerminalEvent(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         observer
             .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))

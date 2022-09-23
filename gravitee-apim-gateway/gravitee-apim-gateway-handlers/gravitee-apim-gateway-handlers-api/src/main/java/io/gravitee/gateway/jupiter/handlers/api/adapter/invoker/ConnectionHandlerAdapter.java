@@ -24,8 +24,8 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.CompletableEmitter;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * The {@link ConnectionHandlerAdapter} allows to manage the response chunks coming from the upstream.

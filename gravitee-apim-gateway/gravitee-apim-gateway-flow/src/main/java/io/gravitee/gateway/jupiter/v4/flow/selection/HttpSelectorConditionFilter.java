@@ -23,7 +23,7 @@ import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.flow.condition.evaluation.PathPatterns;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 import java.util.regex.Pattern;
 

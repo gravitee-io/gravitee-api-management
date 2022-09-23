@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import org.springframework.util.StringUtils;

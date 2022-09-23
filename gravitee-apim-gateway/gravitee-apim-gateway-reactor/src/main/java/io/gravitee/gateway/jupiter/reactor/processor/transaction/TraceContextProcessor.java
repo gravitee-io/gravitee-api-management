@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.reactor.processor.transaction.TraceparentHelper;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * A {@link Request} processor used to set check the traceparent header as described

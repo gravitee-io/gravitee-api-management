@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.reactor.processor.transaction;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * A {@link Request} processor used to set the transaction ID of the request.

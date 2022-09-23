@@ -38,7 +38,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
-import io.vertx.reactivex.core.Vertx;
+import io.vertx.rxjava3.core.Vertx;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +121,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                     : httpClientRequest.rxSend(debugApiRequest.getBody())
                         )
                         .doOnSuccess(httpClientResponse -> logger.debug("Response status: {}", httpClientResponse.statusCode()))
-                        .flatMap(io.vertx.reactivex.core.http.HttpClientResponse::rxBody)
+                        .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
                         .subscribe(
                             body -> {
                                 logger.info("Debugging successful, removing the handler.");

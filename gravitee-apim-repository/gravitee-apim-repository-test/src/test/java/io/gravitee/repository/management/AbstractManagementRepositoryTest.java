@@ -272,7 +272,11 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
         } else if (object instanceof Installation) {
             installationRepository.create((Installation) object);
         } else if (object instanceof Monitoring) {
-            nodeMonitoringRepository.create((Monitoring) object).test().awaitTerminalEvent(15, TimeUnit.SECONDS);
+            try {
+                nodeMonitoringRepository.create((Monitoring) object).test().await(15, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } else if (object instanceof Flow) {
             flowRepository.create((Flow) object);
         } else if (object instanceof Promotion) {

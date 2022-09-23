@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.log.Log;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

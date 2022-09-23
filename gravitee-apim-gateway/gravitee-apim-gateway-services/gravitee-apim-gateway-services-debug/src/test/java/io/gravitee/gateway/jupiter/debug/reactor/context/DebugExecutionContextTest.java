@@ -30,7 +30,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyResponseStep;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStep;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

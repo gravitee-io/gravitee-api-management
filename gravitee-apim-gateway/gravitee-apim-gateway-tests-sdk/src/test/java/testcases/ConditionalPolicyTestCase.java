@@ -30,10 +30,10 @@ import io.gravitee.apim.gateway.tests.sdk.policy.fakes.OnRequestPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.observers.TestObserver;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +57,7 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test policy if condition is met")
-    void testConditional(WebClient webClient) {
+    void testConditional(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-ok").rxSend().test();
@@ -85,12 +85,12 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should not execute policy if condition is not met")
-    void testConditionalNotMet(WebClient webClient) {
+    void testConditionalNotMet(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-no").rxSend().test();
 
-        obs.awaitTerminalEvent(10000, TimeUnit.MILLISECONDS);
+        obs.await(10000, TimeUnit.MILLISECONDS);
         obs.assertComplete();
         obs.assertValue(
             response -> {
@@ -112,12 +112,12 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
     @Test
     @DeployApi("/nonExisting.json")
     @DisplayName("Should not execute policy if condition is not met")
-    void shouldFailBecauseOfNonExistingApi(WebClient webClient) {
+    void shouldFailBecauseOfNonExistingApi(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-no").rxSend().test();
 
-        obs.awaitTerminalEvent(10000, TimeUnit.MILLISECONDS);
+        obs.await(10000, TimeUnit.MILLISECONDS);
         obs.assertComplete();
         obs.assertValue(
             response -> {

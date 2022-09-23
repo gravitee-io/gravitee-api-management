@@ -228,7 +228,7 @@ public class DebugConfiguration {
 
     @Bean
     public DebugReactorEventListener debugReactorEventListener(
-        final io.vertx.reactivex.core.Vertx vertx,
+        final io.vertx.rxjava3.core.Vertx vertx,
         final EventManager eventManager,
         final EventRepository eventRepository,
         final ObjectMapper objectMapper,

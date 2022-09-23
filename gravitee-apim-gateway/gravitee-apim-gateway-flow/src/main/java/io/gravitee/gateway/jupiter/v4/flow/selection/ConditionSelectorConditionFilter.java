@@ -22,7 +22,7 @@ import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 
 /**
@@ -43,7 +43,7 @@ public class ConditionSelectorConditionFilter implements ConditionFilter<Flow> {
                 Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.CONDITION);
                 if (selectorOptional.isPresent()) {
                     ConditionSelector conditionSelector = (ConditionSelector) selectorOptional.get();
-                    return elConditionFilter.filter(ctx, conditionSelector).onErrorResumeNext(Maybe.empty()).map(filter -> flow);
+                    return elConditionFilter.filter(ctx, conditionSelector).onErrorResumeWith(Maybe.empty()).map(filter -> flow);
                 }
                 return Maybe.just(flow);
             }

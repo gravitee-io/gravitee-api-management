@@ -16,8 +16,8 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
 import java.util.function.Function;
 
 /**

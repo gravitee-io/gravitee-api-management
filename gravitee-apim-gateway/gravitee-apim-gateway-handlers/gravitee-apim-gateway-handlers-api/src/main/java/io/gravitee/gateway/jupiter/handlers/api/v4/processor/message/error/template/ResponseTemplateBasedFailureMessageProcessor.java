@@ -30,7 +30,7 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.EvaluableExecutionFailure;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.AbstractFailureMessageProcessor;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

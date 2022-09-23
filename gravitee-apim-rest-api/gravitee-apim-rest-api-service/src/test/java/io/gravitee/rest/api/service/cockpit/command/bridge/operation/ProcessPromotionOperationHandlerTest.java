@@ -35,7 +35,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +78,7 @@ public class ProcessPromotionOperationHandlerTest {
     }
 
     @Test
-    public void shouldHandlePromotionRequest() throws JsonProcessingException {
+    public void shouldHandlePromotionRequest() throws JsonProcessingException, InterruptedException {
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.PROMOTE_API.name());
         command.setId(COMMAND_ID);
@@ -103,7 +103,7 @@ public class ProcessPromotionOperationHandlerTest {
 
         Assertions.assertThat(argument.getValue().getStatus()).isEqualTo(PromotionEntityStatus.ACCEPTED);
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply -> {
                 BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
@@ -119,7 +119,7 @@ public class ProcessPromotionOperationHandlerTest {
     }
 
     @Test
-    public void shouldHandlePromotionRequestIfCannotReadPromotionEntity() throws JsonProcessingException {
+    public void shouldHandlePromotionRequestIfCannotReadPromotionEntity() throws JsonProcessingException, InterruptedException {
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.PROMOTE_API.name());
         command.setId(COMMAND_ID);
@@ -137,7 +137,7 @@ public class ProcessPromotionOperationHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         // Then
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply ->
                 reply.getCommandId().equals(command.getId()) &&
@@ -147,7 +147,7 @@ public class ProcessPromotionOperationHandlerTest {
     }
 
     @Test
-    public void shouldHandlePromotionRequestIfCannotWritePayload() throws JsonProcessingException {
+    public void shouldHandlePromotionRequestIfCannotWritePayload() throws JsonProcessingException, InterruptedException {
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.PROMOTE_API.name());
         command.setId(COMMAND_ID);
@@ -170,7 +170,7 @@ public class ProcessPromotionOperationHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         // Then
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply ->
                 reply.getCommandId().equals(command.getId()) &&

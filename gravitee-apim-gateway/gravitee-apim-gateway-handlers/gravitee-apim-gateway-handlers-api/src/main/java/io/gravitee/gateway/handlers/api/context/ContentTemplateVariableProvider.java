@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.api.context;
 
 import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
 import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
-import static io.reactivex.Single.defer;
+import static io.reactivex.rxjava3.core.Single.defer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

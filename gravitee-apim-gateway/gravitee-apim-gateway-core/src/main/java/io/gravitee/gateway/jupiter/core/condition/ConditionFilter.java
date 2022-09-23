@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.core.condition;
 
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

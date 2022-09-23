@@ -27,8 +27,8 @@ import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
-import io.reactivex.Completable;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
@@ -166,7 +166,12 @@ class PolicyChainTest {
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-        cut.execute(ctx).test().assertErrorMessage(MOCK_ERROR_MESSAGE).assertFailure(RuntimeException.class);
+        cut
+            .execute(ctx)
+            .test()
+            .assertError(RuntimeException.class)
+            .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()))
+            .assertFailure(RuntimeException.class);
 
         verify(policy1).onRequest(ctx);
     }

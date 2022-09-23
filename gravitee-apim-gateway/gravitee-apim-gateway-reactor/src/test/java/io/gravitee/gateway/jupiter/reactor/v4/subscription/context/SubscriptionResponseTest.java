@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

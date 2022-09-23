@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

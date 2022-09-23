@@ -26,7 +26,7 @@ import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -39,7 +39,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,7 +86,7 @@ public class HelloCommandProducerTest {
     }
 
     @Test
-    public void produce() {
+    public void produce() throws InterruptedException {
         final InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
         installationEntity.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
@@ -100,7 +100,7 @@ public class HelloCommandProducerTest {
         command.setPayload(payload);
         final TestObserver<HelloCommand> obs = cut.prepare(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             helloCommand -> {
                 assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));

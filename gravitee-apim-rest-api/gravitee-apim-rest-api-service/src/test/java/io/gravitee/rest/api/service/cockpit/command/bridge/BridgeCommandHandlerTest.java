@@ -24,8 +24,8 @@ import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperationHandler;
-import io.reactivex.Single;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
@@ -53,13 +53,13 @@ public class BridgeCommandHandlerTest {
     }
 
     @Test
-    public void shouldNotHandleUnknownOperation() {
+    public void shouldNotHandleUnknownOperation() throws InterruptedException {
         BridgeCommand command = new BridgeCommand();
         command.setOperation("UNKWOWN_OPERATION");
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply ->
                 reply.getCommandId().equals(command.getId()) &&
@@ -69,7 +69,7 @@ public class BridgeCommandHandlerTest {
     }
 
     @Test
-    public void shouldHandleListEnvironmentsOperation() {
+    public void shouldHandleListEnvironmentsOperation() throws InterruptedException {
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.LIST_ENVIRONMENT.name());
         command.setId("command-id");
@@ -81,7 +81,7 @@ public class BridgeCommandHandlerTest {
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply ->
                 reply.getCommandId().equals(command.getId()) &&

@@ -17,7 +17,7 @@ package io.gravitee.repository.mongodb.ratelimit;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -34,7 +34,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
-import reactor.adapter.rxjava.RxJava2Adapter;
+import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
 /**
@@ -73,7 +73,7 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
         final Date now = new Date();
         RateLimit rateLimit = supplier.get();
-        return RxJava2Adapter.monoToSingle(
+        return RxJava3Adapter.monoToSingle(
             Mono
                 .just(rateLimit)
                 .flatMap(

@@ -18,7 +18,12 @@ package io.gravitee.repository.elasticsearch.spring;
 import static java.lang.String.format;
 
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.client.http.*;
+import io.gravitee.elasticsearch.client.http.ClientSslConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClient;
+import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClientJksSslConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClientPemSslConfiguration;
+import io.gravitee.elasticsearch.client.http.HttpClientPfxSslConfiguration;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.index.ILMIndexNameGenerator;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
@@ -31,10 +36,10 @@ import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguratio
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
 import io.gravitee.repository.elasticsearch.log.spring.LogConfiguration;
 import io.gravitee.repository.elasticsearch.monitoring.spring.MonitoringConfiguration;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.vertx.reactivex.core.Vertx;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.core.Vertx;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

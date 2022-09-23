@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.analytics.query;
 
-import static io.reactivex.Single.just;
+import static io.reactivex.rxjava3.core.Single.just;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 

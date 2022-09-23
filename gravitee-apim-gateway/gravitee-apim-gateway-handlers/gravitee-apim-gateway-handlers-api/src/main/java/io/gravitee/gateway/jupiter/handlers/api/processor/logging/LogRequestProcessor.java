@@ -26,7 +26,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.request.LogClientRequest;
 import io.gravitee.reporter.api.log.Log;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * Processor in charge of initializing the {@link Log} entity during the request phase if logging condition is evaluated to true.

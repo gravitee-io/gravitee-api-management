@@ -30,11 +30,11 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.schedulers.TestScheduler;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -204,7 +204,7 @@ class MockEndpointConnectorTest {
 
     @Test
     @DisplayName("Should generate messages flow from lastId")
-    void shouldGenerateMessagesFlowFromLastId() {
+    void shouldGenerateMessagesFlowFromLastId() throws InterruptedException {
         configuration.setMessageCount(2);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
@@ -217,7 +217,7 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         TestSubscriber<Message> messages = messagesCaptor.getValue().test();
-        messages.awaitTerminalEvent();
+        messages.await();
         messages.assertValueCount(2);
         messages.assertValueAt(0, message -> message.id().equals("2"));
         messages.assertValueAt(1, message -> message.id().equals("3"));

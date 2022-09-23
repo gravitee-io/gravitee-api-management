@@ -15,18 +15,18 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx.ws;
 
-import static io.vertx.reactivex.core.http.WebSocketFrame.*;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpClosedException;
-import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.http.ServerWebSocket;
-import io.vertx.reactivex.core.http.WebSocketFrame;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.ServerWebSocket;
+import io.vertx.rxjava3.core.http.WebSocketFrame;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -75,7 +75,7 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public Completable write(Buffer buffer) {
         if (isValid()) {
-            return webSocket.rxWrite(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+            return webSocket.rxWrite(io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
         }
 
         return Completable.complete();
@@ -160,18 +160,18 @@ public class VertxWebSocket implements WebSocket {
         return upgraded && !webSocket.isClosed();
     }
 
-    private io.vertx.reactivex.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
+    private io.vertx.rxjava3.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         switch (frame.type()) {
             case BINARY:
-                return binaryFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
+                return binaryFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
             case TEXT:
                 return textFrame(frame.data().toString(), frame.isFinal());
             case CONTINUATION:
-                return continuationFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()), frame.isFinal());
+                return continuationFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()), frame.isFinal());
             case PING:
-                return pingFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()));
+                return pingFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()));
             case PONG:
-                return pongFrame(io.vertx.reactivex.core.buffer.Buffer.buffer(frame.data().toString()));
+                return pongFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().toString()));
             default:
                 return null;
         }

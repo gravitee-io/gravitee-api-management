@@ -19,7 +19,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.function.Supplier;

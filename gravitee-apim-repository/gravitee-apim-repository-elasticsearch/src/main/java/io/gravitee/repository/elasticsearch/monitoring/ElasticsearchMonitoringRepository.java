@@ -26,7 +26,7 @@ import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguratio
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;

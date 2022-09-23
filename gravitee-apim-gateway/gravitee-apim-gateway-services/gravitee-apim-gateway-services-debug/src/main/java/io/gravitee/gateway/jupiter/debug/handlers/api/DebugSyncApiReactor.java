@@ -33,7 +33,7 @@ import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 
 /**

@@ -17,15 +17,15 @@ package io.gravitee.gateway.jupiter.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.reactivex.Completable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.http.HttpServer;
-import io.vertx.reactivex.core.AbstractVerticle;
-import io.vertx.reactivex.core.RxHelper;
-import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.RxHelper;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.HttpServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,7 +41,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(HttpProtocolVerticle.class);
 
-    private final io.vertx.reactivex.core.http.HttpServer rxHttpServer;
+    private final io.vertx.rxjava3.core.http.HttpServer rxHttpServer;
     private final HttpRequestDispatcher requestDispatcher;
     private Disposable requestDisposable;
 
@@ -49,7 +49,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         @Qualifier("gatewayHttpServer") HttpServer httpServer,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        this.rxHttpServer = io.vertx.reactivex.core.http.HttpServer.newInstance(httpServer);
+        this.rxHttpServer = io.vertx.rxjava3.core.http.HttpServer.newInstance(httpServer);
         this.requestDispatcher = requestDispatcher;
     }
 

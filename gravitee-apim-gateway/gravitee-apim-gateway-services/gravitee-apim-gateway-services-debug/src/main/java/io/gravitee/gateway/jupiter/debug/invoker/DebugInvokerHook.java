@@ -21,8 +21,8 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.debug.hook.AbstractDebugHook;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
-import io.reactivex.Completable;
-import io.reactivex.annotations.Nullable;
+import io.reactivex.rxjava3.annotations.Nullable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class ListEnvironmentOperationHandlerTest {
     }
 
     @Test
-    public void shouldListEnvironments() throws JsonProcessingException {
+    public void shouldListEnvironments() throws JsonProcessingException, InterruptedException {
         // Given
         EnvironmentEntity envA = new EnvironmentEntity();
         envA.setId("my-env-A");
@@ -114,7 +114,7 @@ public class ListEnvironmentOperationHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         // Then
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply -> {
                 if (
@@ -151,7 +151,7 @@ public class ListEnvironmentOperationHandlerTest {
     }
 
     @Test
-    public void shouldNotListEnvironments() {
+    public void shouldNotListEnvironments() throws InterruptedException {
         // Given
         when(environmentService.findByOrganization(ORGANIZATION_ID)).thenThrow(new TechnicalManagementException());
 
@@ -162,7 +162,7 @@ public class ListEnvironmentOperationHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         // Then
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(
             reply ->
                 reply.getCommandId().equals(command.getId()) &&

@@ -22,7 +22,7 @@ import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.http.vertx.MessageFlow;
-import io.reactivex.*;
+import io.reactivex.rxjava3.core.*;
 import java.util.function.Function;
 
 /**

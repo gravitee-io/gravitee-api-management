@@ -34,21 +34,25 @@ public class WebsocketRejectTest extends AbstractWebsocketGatewayTest {
     public void websocket_rejected_request(VertxTestContext testContext) throws Throwable {
         httpServer
             .webSocketHandler(webSocket -> webSocket.reject(UNAUTHORIZED_401))
-            .listen(
-                websocketPort,
-                ar ->
-                    httpClient.webSocket(
-                        "/test",
-                        event -> {
-                            testContext.verify(() -> assertThat(event.failed()).isTrue());
-                            testContext.verify(() -> assertThat(event.cause().getClass()).isEqualTo(UpgradeRejectedException.class));
-                            testContext.verify(
-                                () -> assertThat(((UpgradeRejectedException) event.cause()).getStatus()).isEqualTo(UNAUTHORIZED_401)
-                            );
-                            testContext.completeNow();
-                        }
-                    )
-            );
+            .listen(websocketPort)
+            .map(
+                httpServer ->
+                    httpClient
+                        .webSocket("/test")
+                        .subscribe(
+                            webSocket -> {
+                                testContext.failNow("Websocket connection should not succeed");
+                            },
+                            error -> {
+                                testContext.verify(() -> assertThat(error.getClass()).isEqualTo(UpgradeRejectedException.class));
+                                testContext.verify(
+                                    () -> assertThat(((UpgradeRejectedException) error).getStatus()).isEqualTo(UNAUTHORIZED_401)
+                                );
+                                testContext.completeNow();
+                            }
+                        )
+            )
+            .subscribe();
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
         if (testContext.failed()) {

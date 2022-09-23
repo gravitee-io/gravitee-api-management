@@ -18,9 +18,9 @@ package io.gravitee.gateway.jupiter.policy.adapter.context;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.el.TemplateContext;
-import io.reactivex.Completable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

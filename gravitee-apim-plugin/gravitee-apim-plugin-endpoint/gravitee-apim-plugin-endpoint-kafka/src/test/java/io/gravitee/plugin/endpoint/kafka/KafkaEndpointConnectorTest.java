@@ -35,13 +35,13 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.reactivex.core.Vertx;
+import io.vertx.rxjava3.core.Vertx;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -157,19 +157,19 @@ class KafkaEndpointConnectorTest {
     }
 
     @Test
-    void shouldPublishRequestMessages() {
+    void shouldPublishRequestMessages() throws InterruptedException {
         configuration.getConsumer().setEnabled(false);
         when(request.onMessages(any())).thenReturn(Completable.complete());
 
         TestObserver<Void> testObserver = kafkaEndpointConnector.connect(ctx).test();
-        testObserver.awaitTerminalEvent(10, TimeUnit.SECONDS);
+        testObserver.await(10, TimeUnit.SECONDS);
         testObserver.assertComplete();
         verify(request).onMessages(messagesTransformerCaptor.capture());
         TestSubscriber<Message> messageTestSubscriber = Flowable
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
             .compose(messagesTransformerCaptor.getValue())
             .test();
-        messageTestSubscriber.awaitTerminalEvent();
+        messageTestSubscriber.await();
         messageTestSubscriber.assertComplete();
 
         Map<String, Object> config = new HashMap<>();
@@ -189,12 +189,12 @@ class KafkaEndpointConnectorTest {
     }
 
     @Test
-    void shouldConsumeKafkaMessagesWithDefaultQos() {
+    void shouldConsumeKafkaMessagesWithDefaultQos() throws InterruptedException {
         configuration.getProducer().setEnabled(false);
         configuration.getConsumer().setAutoOffsetReset("earliest");
 
         TestObserver<Void> testObserver = kafkaEndpointConnector.connect(ctx).test();
-        testObserver.awaitTerminalEvent(10, TimeUnit.SECONDS);
+        testObserver.await(10, TimeUnit.SECONDS);
         testObserver.assertComplete();
 
         verify(response).messages(messagesCaptor.capture());
@@ -212,7 +212,7 @@ class KafkaEndpointConnectorTest {
         ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topicId, "key", Buffer.buffer("message").getBytes());
         kafkaSender.send(Flux.just(SenderRecord.create(producerRecord, null))).blockFirst();
 
-        testSubscriber.awaitTerminalEvent(10, TimeUnit.SECONDS);
+        testSubscriber.await(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
         testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
     }

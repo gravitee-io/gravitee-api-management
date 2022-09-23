@@ -20,8 +20,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.reactivex.Maybe;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -88,7 +88,8 @@ class CompositeConditionFilterTest {
 
         final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_EXCEPTION.equals(t.getMessage()));
     }
 
     @Test

@@ -22,7 +22,7 @@ import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.Objects;
 import java.util.stream.Collectors;
 

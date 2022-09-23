@@ -31,14 +31,13 @@ import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategyFactory;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -47,7 +46,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import reactor.adapter.rxjava.RxJava2Adapter;
+import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
@@ -105,7 +104,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                         .request()
                         .onMessages(
                             upstream ->
-                                RxJava2Adapter
+                                RxJava3Adapter
                                     .fluxToFlowable(
                                         kafkaSender.send(
                                             upstream.flatMap(
@@ -182,7 +181,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                         .<String, byte[]>create(config)
                                         .subscription(getTopics(ctx));
 
-                                    return RxJava2Adapter.fluxToFlowable(
+                                    return RxJava3Adapter.fluxToFlowable(
                                         qosStrategy
                                             .receive(ctx, configuration, receiverOptions)
                                             .map(

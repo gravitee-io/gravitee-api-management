@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.core.processor;
 
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

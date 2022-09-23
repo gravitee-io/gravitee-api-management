@@ -28,7 +28,7 @@ import io.gravitee.repository.analytics.query.response.Response;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchQueryCommand;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;

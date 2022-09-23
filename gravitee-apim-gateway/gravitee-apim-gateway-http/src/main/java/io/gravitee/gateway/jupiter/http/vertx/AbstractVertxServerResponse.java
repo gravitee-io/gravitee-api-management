@@ -20,7 +20,7 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.vertx.rxjava3.core.http.HttpServerResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

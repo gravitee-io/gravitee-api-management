@@ -33,7 +33,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.Optional;
 import org.slf4j.Logger;

@@ -35,9 +35,10 @@ import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Observable;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -99,7 +100,7 @@ public class ApiReactorHandlerTest {
         handler.doHandle(executionContext, ctx -> {});
 
         TestObserver<Boolean> stopObserver = stopAndObserve(handler);
-        assertFalse(stopObserver.awaitTerminalEvent(1, TimeUnit.SECONDS));
+        assertFalse(stopObserver.await(1, TimeUnit.SECONDS));
 
         verify(policyManager, never()).stop();
         verify(resourceLifecycleManager, never()).stop();
@@ -113,7 +114,7 @@ public class ApiReactorHandlerTest {
         ApiReactorHandler handler = createHandler(pendingRequestsTimeout);
 
         TestObserver<Boolean> stopObserver = stopAndObserve(handler);
-        assertTrue(stopObserver.awaitTerminalEvent(1, TimeUnit.SECONDS));
+        assertTrue(stopObserver.await(1, TimeUnit.SECONDS));
 
         verify(policyManager, times(1)).stop();
         verify(resourceLifecycleManager, times(1)).stop();
@@ -140,7 +141,7 @@ public class ApiReactorHandlerTest {
         verify(requestProcessorChainFactory, times(1)).create();
 
         TestObserver<Boolean> stopObserver = stopAndObserve(handler);
-        assertTrue(stopObserver.awaitTerminalEvent(1, TimeUnit.SECONDS));
+        assertTrue(stopObserver.await(1, TimeUnit.SECONDS));
 
         verify(policyManager, times(1)).stop();
         verify(resourceLifecycleManager, times(1)).stop();

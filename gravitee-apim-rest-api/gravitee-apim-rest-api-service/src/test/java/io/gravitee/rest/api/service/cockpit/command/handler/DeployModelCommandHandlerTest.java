@@ -39,7 +39,7 @@ import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -96,7 +96,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void creates_an_API_DOCUMENTED() {
+    public void creates_an_API_DOCUMENTED() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -147,7 +147,7 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(4));
@@ -155,7 +155,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void creates_an_API_MOCKED_mode() {
+    public void creates_an_API_MOCKED_mode() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -205,12 +205,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void creates_an_API_PUBLISHED_mode() {
+    public void creates_an_API_PUBLISHED_mode() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -260,12 +260,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void updates_an_API_DOCUMENTED() {
+    public void updates_an_API_DOCUMENTED() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -320,12 +320,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void updates_an_API_MOCKED_mode() {
+    public void updates_an_API_MOCKED_mode() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -380,12 +380,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void updates_an_API_PUBLISHED_mode() {
+    public void updates_an_API_PUBLISHED_mode() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -440,12 +440,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handle_null_mode() {
+    public void handle_null_mode() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -495,12 +495,12 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handleWithException() {
+    public void handleWithException() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -544,13 +544,13 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
-    public void fails_to_create_due_to_permission_issues() {
+    public void fails_to_create_due_to_permission_issues() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -574,7 +574,7 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(
             reply -> {
@@ -588,7 +588,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void fails_to_update_due_to_permission_issues() {
+    public void fails_to_update_due_to_permission_issues() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -624,7 +624,7 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(
             reply -> {
@@ -638,7 +638,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void clean_gravitee_context_on_success() {
+    public void clean_gravitee_context_on_success() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -687,7 +687,7 @@ public class DeployModelCommandHandlerTest {
             );
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
 
         mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(5));
@@ -695,7 +695,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void clean_gravitee_context_on_error() {
+    public void clean_gravitee_context_on_error() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -726,7 +726,7 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
 
         mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(3));
@@ -734,7 +734,7 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void fails_to_create_due_to_context_path_already_used() {
+    public void fails_to_create_due_to_context_path_already_used() throws InterruptedException {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
@@ -778,7 +778,7 @@ public class DeployModelCommandHandlerTest {
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(
             reply -> {

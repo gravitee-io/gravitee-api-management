@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

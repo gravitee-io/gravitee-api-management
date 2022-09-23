@@ -21,7 +21,7 @@ import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.el.spel.function.xml.DocumentBuilderFactoryUtils;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

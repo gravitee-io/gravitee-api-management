@@ -21,7 +21,7 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncCon
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;

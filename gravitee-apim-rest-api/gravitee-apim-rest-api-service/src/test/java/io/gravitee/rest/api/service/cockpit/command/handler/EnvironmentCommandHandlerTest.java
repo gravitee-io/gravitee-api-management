@@ -27,7 +27,7 @@ import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
@@ -59,7 +59,7 @@ public class EnvironmentCommandHandlerTest {
     }
 
     @Test
-    public void handle() {
+    public void handle() throws InterruptedException {
         EnvironmentPayload environmentPayload = new EnvironmentPayload();
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
@@ -89,12 +89,12 @@ public class EnvironmentCommandHandlerTest {
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handleWithException() {
+    public void handleWithException() throws InterruptedException {
         EnvironmentPayload environmentPayload = new EnvironmentPayload();
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
@@ -110,7 +110,7 @@ public class EnvironmentCommandHandlerTest {
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }

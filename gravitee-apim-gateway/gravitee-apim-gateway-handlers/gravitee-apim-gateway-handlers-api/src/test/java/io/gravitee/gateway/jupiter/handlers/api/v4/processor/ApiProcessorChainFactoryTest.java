@@ -37,7 +37,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProce
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -25,8 +25,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
-import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.net.SocketAddress;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -60,7 +60,7 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
         this.metrics.setRemoteAddress(remoteAddress());
         this.metrics.setHost(nativeRequest.host());
         this.metrics.setUri(uri());
-        this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT));
+        this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT));
     }
 
     public HttpServerRequest getNativeRequest() {

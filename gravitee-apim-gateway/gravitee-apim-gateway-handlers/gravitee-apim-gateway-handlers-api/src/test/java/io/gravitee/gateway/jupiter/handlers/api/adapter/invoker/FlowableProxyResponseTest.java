@@ -25,8 +25,8 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.api.context.HttpResponse;
-import io.reactivex.schedulers.TestScheduler;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -200,7 +200,7 @@ class FlowableProxyResponseTest {
         obs.cancel();
         obs.assertNotComplete();
         obs.assertNoErrors();
-        assertTrue(obs.isDisposed());
+        assertTrue(obs.isCancelled());
 
         // Chunk produced before the cancellation must still have been received.
         obs.assertValueCount(1);
