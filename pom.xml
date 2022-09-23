@@ -75,7 +75,7 @@
         <gravitee-kubernetes-mapper.version>0.4.0</gravitee-kubernetes-mapper.version>
         <!-- Other dependencies version -->
         <asm.version>9.2</asm.version>
-        <batik-transcoder.version>1.14</batik-transcoder.version>
+        <batik-transcoder.version>1.15</batik-transcoder.version>
         <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
         <classgraph.version>4.8.138</classgraph.version>
         <commons-io.version>2.11.0</commons-io.version>
