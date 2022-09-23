@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Collection;
 import java.util.Optional;
@@ -35,6 +36,10 @@ public class ApisHandler extends AbstractHandler {
     @Autowired
     private ApiRepository apiRepository;
 
+    public ApisHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void search(RoutingContext ctx) {
         final boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
         final boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
@@ -47,36 +52,34 @@ public class ApisHandler extends AbstractHandler {
             builder.excludePicture();
         }
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiRepository.search(null, builder.build()));
-                    } catch (Exception te) {
-                        LOGGER.error("Unable to search for APIs", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiRepository.search(null, builder.build()));
+                } catch (Exception te) {
+                    LOGGER.error("Unable to search for APIs", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     public void findById(RoutingContext ctx) {
         final String sApi = ctx.request().getParam("apiId");
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiRepository.findById(sApi));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to find an API", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiRepository.findById(sApi));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to find an API", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result)
+        );
     }
 }

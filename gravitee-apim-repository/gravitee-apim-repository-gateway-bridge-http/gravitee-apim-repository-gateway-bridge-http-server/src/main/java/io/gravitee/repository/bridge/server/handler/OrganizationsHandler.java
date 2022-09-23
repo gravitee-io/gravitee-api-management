@@ -19,6 +19,7 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Collection;
 import java.util.Optional;
@@ -35,56 +36,57 @@ public class OrganizationsHandler extends AbstractHandler {
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    public OrganizationsHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void findByHrids(RoutingContext ctx) {
         final String hridsParam = ctx.request().getParam("hrids");
         final Set<String> hrids = readListParam(hridsParam);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<Set<Organization>>>) promise -> {
-                    try {
-                        promise.complete(organizationRepository.findByHrids(hrids));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for organizations", ex);
-                        promise.fail(ex);
-                    }
-                },
-                event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<Set<Organization>>>) promise -> {
+                try {
+                    promise.complete(organizationRepository.findByHrids(hrids));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for organizations", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
     }
 
     public void findAll(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<Collection<Organization>>>) promise -> {
-                    try {
-                        promise.complete(organizationRepository.findAll());
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for organizations", ex);
-                        promise.fail(ex);
-                    }
-                },
-                event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<Collection<Organization>>>) promise -> {
+                try {
+                    promise.complete(organizationRepository.findAll());
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for organizations", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
     }
 
     public void findById(RoutingContext ctx) {
         final String idParam = ctx.request().getParam("organizationId");
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<Optional<Organization>>>) promise -> {
-                    try {
-                        promise.complete(organizationRepository.findById(idParam));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to find organization by id {}", idParam, ex);
-                        promise.fail(ex);
-                    }
-                },
-                event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<Optional<Organization>>>) promise -> {
+                try {
+                    promise.complete(organizationRepository.findById(idParam));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to find organization by id {}", idParam, ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
     }
 }
