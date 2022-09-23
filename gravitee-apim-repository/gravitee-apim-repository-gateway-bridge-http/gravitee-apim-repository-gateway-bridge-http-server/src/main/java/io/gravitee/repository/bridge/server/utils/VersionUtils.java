@@ -24,7 +24,11 @@ import java.util.regex.Pattern;
  */
 public class VersionUtils {
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)(-SNAPSHOT)?");
+    private VersionUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(-.*)?");
 
     public static Version parse(String input) {
         Matcher matcher = VERSION_PATTERN.matcher(input);
