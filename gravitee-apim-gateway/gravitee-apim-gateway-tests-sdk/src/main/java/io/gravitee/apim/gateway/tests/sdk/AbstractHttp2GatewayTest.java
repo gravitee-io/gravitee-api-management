@@ -16,8 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.reactiverse.junit5.web.WebClientOptionsInject;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.core.http.HttpClientOptions;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -25,13 +24,10 @@ import io.vertx.ext.web.client.WebClientOptions;
  */
 public abstract class AbstractHttp2GatewayTest extends AbstractGatewayTest {
 
-    @WebClientOptionsInject
-    public WebClientOptions options = new WebClientOptions()
-        .setDefaultHost("localhost")
-        .setDefaultPort(gatewayPort())
-        .setSsl(true)
-        .setVerifyHost(false)
-        .setTrustAll(true);
+    @Override
+    protected void configureHttpClient(HttpClientOptions options) {
+        options.setDefaultHost("localhost").setDefaultPort(gatewayPort()).setSsl(true).setVerifyHost(false).setTrustAll(true);
+    }
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {

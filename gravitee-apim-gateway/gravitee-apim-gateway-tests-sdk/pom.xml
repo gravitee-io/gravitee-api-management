@@ -256,6 +256,12 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5-rx-java3</artifactId>
+            <version>4.3.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc</artifactId>
         </dependency>
 
@@ -415,13 +421,6 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>1.42.1</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.reactiverse</groupId>
-            <artifactId>reactiverse-junit5-rx-java2-web-client</artifactId>
-            <version>${reactiverse-junit5-rx-java2-web-client.version}</version>
             <scope>compile</scope>
         </dependency>
 

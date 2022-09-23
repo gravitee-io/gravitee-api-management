@@ -14,11 +14,7 @@ package testcases;/**
  * limitations under the License.
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -30,12 +26,9 @@ import io.gravitee.apim.gateway.tests.sdk.policy.fakes.OnRequestPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.rxjava3.observers.TestObserver;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
-import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -57,25 +50,30 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test policy if condition is met")
-    void testConditional(WebClient webClient) throws InterruptedException {
+    void testConditional(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-ok").rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+        httpClient
+            .rxRequest(HttpMethod.GET, ENDPOINT)
+            .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-ok").rxSend())
+            .flatMapPublisher(
                 response -> {
-                    final String content = response.bodyAsString();
-
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                    assertThat(content).isEqualTo("OnResponseContent2Policy");
-
+                    return response.toFlowable();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
                     return true;
                 }
-            );
-        obs.assertNoErrors();
+            )
+            .assertNoErrors();
+
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT))
                 .withHeader(X_GRAVITEE_POLICY, equalTo("request-header1"))
@@ -85,25 +83,25 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should not execute policy if condition is not met")
-    void testConditionalNotMet(WebClient webClient) throws InterruptedException {
+    void testConditionalNotMet(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-no").rxSend().test();
+        httpClient
+            .rxRequest(HttpMethod.GET, ENDPOINT)
+            .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-no").rxSend())
+            .flatMapPublisher(
+                response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                    return response.toFlowable();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertNoValues()
+            .assertNoErrors();
 
-        obs.await(10000, TimeUnit.MILLISECONDS);
-        obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
-
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                assertThat(content).isNull();
-
-                return true;
-            }
-        );
-        obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT)).withoutHeader(X_GRAVITEE_POLICY).withHeader(ON_REQUEST_POLICY, equalTo(INVOKED))
         );
@@ -112,25 +110,30 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
     @Test
     @DeployApi("/nonExisting.json")
     @DisplayName("Should not execute policy if condition is not met")
-    void shouldFailBecauseOfNonExistingApi(WebClient webClient) throws InterruptedException {
+    void shouldFailBecauseOfNonExistingApi(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get(API_ENTRYPOINT).willReturn(ok()));
 
-        final TestObserver<HttpResponse<Buffer>> obs = webClient.get(ENDPOINT).putHeader(CONDITION_HEADER, "condition-no").rxSend().test();
+        httpClient
+            .rxRequest(HttpMethod.GET, ENDPOINT)
+            .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-no").rxSend())
+            .flatMapPublisher(
+                response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                    return response.toFlowable();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    assertThat(body).isNull();
+                    return true;
+                }
+            )
+            .assertNoErrors();
 
-        obs.await(10000, TimeUnit.MILLISECONDS);
-        obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
-
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                assertThat(content).isNull();
-
-                return true;
-            }
-        );
-        obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT)).withoutHeader(X_GRAVITEE_POLICY).withHeader(ON_REQUEST_POLICY, equalTo(INVOKED))
         );
