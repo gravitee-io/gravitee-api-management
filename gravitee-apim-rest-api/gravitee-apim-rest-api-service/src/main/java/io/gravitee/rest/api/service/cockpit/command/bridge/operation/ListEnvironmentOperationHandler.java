@@ -26,7 +26,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

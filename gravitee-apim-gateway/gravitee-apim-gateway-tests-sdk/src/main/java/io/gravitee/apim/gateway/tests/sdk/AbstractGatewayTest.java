@@ -33,12 +33,12 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactiverse.junit5.web.WebClientOptionsInject;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Date;
@@ -104,13 +104,13 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     protected void configureHttpClient(HttpClientOptions options) {}
 
     /**
-     * Proxy for {@link TestObserver#awaitTerminalEvent(long, TimeUnit)} with a default of 30 seconds.
+     * Proxy for {@link TestObserver#await(long, TimeUnit)} with a default of 30 seconds.
      * It awaits 30 seconds or until this TestObserver/TestSubscriber receives an onError or onComplete events, whichever happens first.
      * @param obs is the observer to await
      * @return the observer after wait
      */
-    protected <T> TestObserver<T> awaitTerminalEvent(TestObserver<T> obs) {
-        obs.awaitTerminalEvent(30, TimeUnit.SECONDS);
+    protected <T> TestObserver<T> awaitTerminalEvent(TestObserver<T> obs) throws InterruptedException {
+        obs.await(30, TimeUnit.SECONDS);
         return obs;
     }
 

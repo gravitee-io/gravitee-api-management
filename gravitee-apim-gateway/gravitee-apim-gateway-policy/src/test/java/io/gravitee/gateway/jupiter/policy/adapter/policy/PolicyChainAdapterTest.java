@@ -24,8 +24,8 @@ import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.policy.api.PolicyResult;
-import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 import org.junit.jupiter.api.Test;
 
 /**

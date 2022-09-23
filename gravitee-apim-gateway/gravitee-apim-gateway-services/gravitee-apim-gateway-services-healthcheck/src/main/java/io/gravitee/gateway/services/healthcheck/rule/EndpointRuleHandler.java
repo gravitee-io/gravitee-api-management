@@ -145,7 +145,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             .setPort(port)
             .setHost(request.getHost())
             .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
-            .putHeader(io.vertx.reactivex.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
+            .putHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
             .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
         if (step.getRequest().getHeaders() != null) {

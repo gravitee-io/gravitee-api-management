@@ -28,7 +28,7 @@ import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

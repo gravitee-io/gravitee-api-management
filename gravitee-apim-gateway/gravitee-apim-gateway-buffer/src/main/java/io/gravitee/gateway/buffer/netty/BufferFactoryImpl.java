@@ -36,7 +36,7 @@ public class BufferFactoryImpl implements BufferFactory {
     }
 
     @Override
-    public Buffer buffer(io.vertx.reactivex.core.buffer.Buffer vertxBuffer) {
+    public Buffer buffer(io.vertx.rxjava3.core.buffer.Buffer vertxBuffer) {
         return new BufferImpl(vertxBuffer.getByteBuf());
     }
 

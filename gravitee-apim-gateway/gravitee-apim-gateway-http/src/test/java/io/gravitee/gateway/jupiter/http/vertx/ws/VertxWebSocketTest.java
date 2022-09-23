@@ -21,27 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.subscribers.TestSubscriber;
-import io.vertx.core.AsyncResult;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.WebSocketFrameType;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.http.ServerWebSocket;
-import io.vertx.reactivex.core.http.WebSocketFrame;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.ServerWebSocket;
+import io.vertx.rxjava3.core.http.WebSocketFrame;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -65,14 +62,10 @@ class VertxWebSocketTest {
     @Mock
     private WebSocketFrame webSocketFrame;
 
-    @Captor
-    private ArgumentCaptor<Handler<AsyncResult<ServerWebSocket>>> handlerCaptor;
-
     private VertxWebSocket cut;
 
     @BeforeEach
-    void init() throws Exception {
-        lenient().doNothing().when(httpServerRequest).toWebSocket(handlerCaptor.capture());
+    void init() {
         cut = new VertxWebSocket(httpServerRequest);
     }
 
@@ -92,7 +85,8 @@ class VertxWebSocketTest {
 
         final TestObserver<WebSocket> obs = cut.upgrade().test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_EXCEPTION.equals(t.getMessage()));
         assertFalse(cut.upgraded());
     }
 
@@ -331,7 +325,8 @@ class VertxWebSocketTest {
         obs.assertValueAt(0, buffer -> buffer.toString().equals(buffer1.toString()));
         obs.assertValueAt(1, buffer -> buffer.toString().equals(buffer2.toString()));
         obs.assertValueAt(2, buffer -> buffer.toString().equals(buffer3.toString()));
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_EXCEPTION.equals(t.getMessage()));
     }
 
     @Test

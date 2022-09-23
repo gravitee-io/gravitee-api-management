@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.*;
+import io.reactivex.rxjava3.core.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import org.reactivestreams.Subscription;
@@ -92,7 +92,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                         .rxSend(
                             chunks()
                                 .doOnSubscribe(subscriptionRef::set)
-                                .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                                .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                                 .doOnNext(
                                     buffer ->
                                         serverRequest

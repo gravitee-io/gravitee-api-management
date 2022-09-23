@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

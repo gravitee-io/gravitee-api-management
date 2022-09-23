@@ -32,9 +32,9 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.ExecutionFailureAsJson;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,30 +63,25 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndIgnoreErrorMessageWithInterruptionExecution() {
+    void shouldCatchAndIgnoreErrorMessageWithInterruptionExecution() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockRequest).onMessages(requestMessagesCaptor.capture());
 
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
-        Flowable
-            .just(new DefaultMessage("1"))
-            .flatMap(defaultMessage -> ctx.interruptMessages())
-            .compose(requestMessages)
-            .test()
-            .awaitTerminalEvent();
+        Flowable.just(new DefaultMessage("1")).flatMap(defaultMessage -> ctx.interruptMessages()).compose(requestMessages).test().await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.<Message>empty().compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber.assertValueCount(0);
     }
 
     @Test
-    void shouldCatchAndSendErrorMessageWithExecutionFailure() {
+    void shouldCatchAndSendErrorMessageWithExecutionFailure() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -103,13 +98,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -127,7 +122,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendErrorMessageWithoutExecutionFailure() {
+    void shouldCatchAndSendErrorMessageWithoutExecutionFailure() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -139,13 +134,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             .flatMap(defaultMessage -> Flowable.<Message>error(new RuntimeException("error")))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -163,7 +158,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptHeaderJson() throws JsonProcessingException {
+    void shouldCatchAndSendJsonErrorMessageWithAcceptHeaderJson() throws JsonProcessingException, InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.APPLICATION_JSON));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -179,13 +174,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             .flatMap(defaultMessage -> ctx.interruptMessagesWith(executionFailure))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -204,7 +199,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptWildcard() throws JsonProcessingException {
+    void shouldCatchAndSendJsonErrorMessageWithAcceptWildcard() throws JsonProcessingException, InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -220,13 +215,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             .flatMap(defaultMessage -> ctx.interruptMessagesWith(executionFailure))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -245,7 +240,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptJsonAndContentTypeJson() {
+    void shouldCatchAndSendJsonErrorMessageWithAcceptJsonAndContentTypeJson() throws InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.APPLICATION_JSON));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -262,13 +257,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             .flatMap(defaultMessage -> ctx.interruptMessagesWith(executionFailure))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -287,7 +282,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCompleteWithTxtErrorAndNoAcceptHeader() {
+    void shouldCompleteWithTxtErrorAndNoAcceptHeader() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -301,13 +296,13 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
             .flatMap(defaultMessage -> ctx.interruptMessagesWith(executionFailure))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(

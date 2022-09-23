@@ -20,7 +20,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.response.LogClientResponse;
 import io.gravitee.reporter.api.log.Log;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * Processor allowing to manage response logging.

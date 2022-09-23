@@ -24,9 +24,9 @@ import io.gravitee.gateway.api.ws.WebSocketFrame;
  */
 class VertxWebSocketFrame implements WebSocketFrame {
 
-    private final io.vertx.reactivex.core.http.WebSocketFrame frame;
+    private final io.vertx.rxjava3.core.http.WebSocketFrame frame;
 
-    VertxWebSocketFrame(io.vertx.reactivex.core.http.WebSocketFrame frame) {
+    VertxWebSocketFrame(io.vertx.rxjava3.core.http.WebSocketFrame frame) {
         this.frame = frame;
     }
 

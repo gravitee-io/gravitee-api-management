@@ -30,9 +30,8 @@ import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +62,7 @@ public class UserCommandHandlerTest {
     }
 
     @Test
-    public void handleCreation() {
+    public void handleCreation() throws InterruptedException {
         UserPayload userPayload = new UserPayload();
         UserCommand command = new UserCommand(userPayload);
 
@@ -106,12 +105,12 @@ public class UserCommandHandlerTest {
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handleUpdate() {
+    public void handleUpdate() throws InterruptedException {
         UserPayload userPayload = new UserPayload();
         UserCommand command = new UserCommand(userPayload);
 
@@ -165,12 +164,12 @@ public class UserCommandHandlerTest {
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handleWithCreateException() {
+    public void handleWithCreateException() throws InterruptedException {
         UserPayload userPayload = new UserPayload();
         UserCommand command = new UserCommand(userPayload);
 
@@ -183,12 +182,12 @@ public class UserCommandHandlerTest {
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
-    public void handleWithUpdateException() {
+    public void handleWithUpdateException() throws InterruptedException {
         UserPayload userPayload = new UserPayload();
         UserCommand command = new UserCommand(userPayload);
 
@@ -201,7 +200,7 @@ public class UserCommandHandlerTest {
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }

@@ -22,7 +22,7 @@ import io.gravitee.cockpit.api.command.installation.InstallationCommand;
 import io.gravitee.cockpit.api.command.installation.InstallationPayload;
 import io.gravitee.cockpit.api.command.installation.InstallationReply;
 import io.gravitee.rest.api.service.InstallationService;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

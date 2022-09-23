@@ -23,23 +23,22 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -26,8 +26,8 @@ import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
 import io.gravitee.gateway.jupiter.handlers.api.logging.request.LogProxyRequest;
 import io.gravitee.gateway.jupiter.handlers.api.logging.response.LogProxyResponse;
 import io.gravitee.reporter.api.log.Log;
-import io.reactivex.Completable;
-import io.reactivex.annotations.Nullable;
+import io.reactivex.rxjava3.annotations.Nullable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

@@ -21,7 +21,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ProcessFailureAdapter;
 import io.gravitee.policy.api.PolicyResult;
-import io.reactivex.CompletableEmitter;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

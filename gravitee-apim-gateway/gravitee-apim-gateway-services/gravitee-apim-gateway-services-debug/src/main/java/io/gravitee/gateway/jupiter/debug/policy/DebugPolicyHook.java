@@ -21,7 +21,7 @@ import io.gravitee.gateway.jupiter.api.hook.PolicyHook;
 import io.gravitee.gateway.jupiter.api.hook.SecurityPlanHook;
 import io.gravitee.gateway.jupiter.debug.hook.AbstractDebugHook;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

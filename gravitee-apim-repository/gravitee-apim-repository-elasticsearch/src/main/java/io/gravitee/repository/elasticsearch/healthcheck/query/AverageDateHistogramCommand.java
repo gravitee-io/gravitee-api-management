@@ -28,7 +28,7 @@ import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.DateHistogramQuery;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

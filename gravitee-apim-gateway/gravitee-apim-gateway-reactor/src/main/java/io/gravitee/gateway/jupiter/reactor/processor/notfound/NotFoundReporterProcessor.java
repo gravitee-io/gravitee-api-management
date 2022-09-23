@@ -22,7 +22,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.policy.adapter.context;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * {@link TemplateEngine} adapter that uses a {@link TemplateContextAdapter} allowing to restore jupiter's variables that may have been overridden during policy or invoker execution.

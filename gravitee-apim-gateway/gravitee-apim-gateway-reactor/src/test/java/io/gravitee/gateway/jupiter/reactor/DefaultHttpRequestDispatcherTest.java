@@ -39,15 +39,15 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.reactivex.core.MultiMap;
-import io.vertx.reactivex.core.http.HttpServerRequest;
-import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -215,7 +215,8 @@ class DefaultHttpRequestDispatcherTest {
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
-        obs.assertErrorMessage(MOCK_ERROR_MESSAGE);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
     }
 
     @Test
@@ -338,7 +339,8 @@ class DefaultHttpRequestDispatcherTest {
 
         final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
 
-        obs.assertErrorMessage(MOCK_ERROR_MESSAGE);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
     }
 
     @Test

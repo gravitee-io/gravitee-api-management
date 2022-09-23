@@ -15,9 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.core.processor;
 
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

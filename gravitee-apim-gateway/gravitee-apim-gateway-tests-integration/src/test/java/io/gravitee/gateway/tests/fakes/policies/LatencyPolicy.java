@@ -24,7 +24,7 @@ import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Vertx;
 import java.util.concurrent.TimeUnit;
 

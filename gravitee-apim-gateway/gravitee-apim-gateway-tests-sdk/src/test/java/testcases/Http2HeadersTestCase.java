@@ -25,10 +25,10 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractHttp2GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.reactivex.observers.TestObserver;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
     public static final String ENDPOINT = "/team/my_team";
 
     @Test
-    void should_conserve_multi_values(WebClient webClient) {
+    void should_conserve_multi_values(WebClient webClient) throws InterruptedException {
         String cookie1 = "JSESSIONID=ABSCDEDASDSSDSSE.oai007; path=/; Secure; HttpOnly";
         String cookie2 = "JSESSIONID=BASCDEDASDSSDSSE.oai008; path=/another; Secure; HttpOnly";
 
@@ -74,7 +74,7 @@ public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
     }
 
     @Test
-    void should_conserve_custom_header(WebClient webClient) {
+    void should_conserve_custom_header(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get(ENDPOINT).willReturn(ok().withHeader("custom", "foobar")));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test/my_team").rxSend().test();

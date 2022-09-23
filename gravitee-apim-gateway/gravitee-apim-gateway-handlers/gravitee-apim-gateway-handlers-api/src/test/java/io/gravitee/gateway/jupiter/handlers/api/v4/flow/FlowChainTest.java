@@ -25,9 +25,9 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.policy.PolicyChain;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
 import io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -196,7 +196,8 @@ class FlowChainTest {
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
-        obs.assertErrorMessage(MOCK_ERROR_MESSAGE);
+        obs.assertError(RuntimeException.class);
+        obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
 
         // Make sure policy chain has not been created for flow2.
         verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, ExecutionPhase.REQUEST);

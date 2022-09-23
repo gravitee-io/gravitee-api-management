@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.core.condition;
 import io.gravitee.definition.model.MessageConditionSupplier;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

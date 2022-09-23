@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.FlowableTransformer;
+import io.reactivex.rxjava3.core.FlowableTransformer;
 import java.util.function.Function;
 
 /**

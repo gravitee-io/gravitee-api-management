@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.jupiter.policy.adapter.context.RequestAdapter;
-import io.reactivex.CompletableEmitter;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 
 /**
  * This {@link ReadWriteStreamAdapter} is a {@link SimpleReadWriteStream} implementation that can be used when calling {@link io.gravitee.gateway.api.Invoker#invoke(ExecutionContext, ReadStream, Handler)}.
@@ -58,7 +58,7 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
                     .doOnNext(bodyHandler::handle)
                     .doOnComplete(() -> endHandler.handle(null))
                     .doOnError(nextEmitter::tryOnError)
-                    .onErrorResumeNext(e -> {})
+                    .onErrorResumeWith(e -> {})
                     .subscribe();
             }
         );

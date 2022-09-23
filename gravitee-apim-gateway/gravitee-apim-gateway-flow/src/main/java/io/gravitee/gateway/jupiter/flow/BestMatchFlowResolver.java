@@ -17,8 +17,8 @@ package io.gravitee.gateway.jupiter.flow;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * This flow resolver resolves only the {@link Flow} which best matches according to the incoming request.

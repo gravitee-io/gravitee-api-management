@@ -30,10 +30,10 @@ import io.gravitee.apim.gateway.tests.sdk.policy.fakes.OnRequestPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Stream2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.observers.TestObserver;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ public class SuccessTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test policy")
-    void testConditional(WebClient webClient) {
+    void testConditional(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test/my_team").rxSend().test();

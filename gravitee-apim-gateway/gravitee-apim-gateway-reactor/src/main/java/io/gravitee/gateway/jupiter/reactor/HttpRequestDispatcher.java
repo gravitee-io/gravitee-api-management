@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.reactor;
 
-import io.reactivex.Completable;
-import io.vertx.reactivex.core.http.HttpServerRequest;
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 
 /**
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.

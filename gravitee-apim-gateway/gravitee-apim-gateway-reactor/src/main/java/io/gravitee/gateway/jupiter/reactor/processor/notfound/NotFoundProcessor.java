@@ -21,7 +21,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;

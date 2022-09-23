@@ -57,12 +57,12 @@ import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
-import io.reactivex.CompletableObserver;
-import io.reactivex.Observable;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.TestScheduler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableObserver;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -336,7 +336,7 @@ class SyncApiReactorTest {
         TestObserver<Long> testObserver = stopUntil.test();
 
         testScheduler.advanceTimeBy(300L, TimeUnit.MILLISECONDS);
-        assertThat(testObserver.valueCount()).isEqualTo(3);
+        testObserver.assertValueCount(3);
 
         verify(resourceLifecycleManager, times(0)).stop();
         verify(policyManager, times(0)).stop();
@@ -369,7 +369,6 @@ class SyncApiReactorTest {
 
         TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
-        handleRequestObserver.assertSubscribed();
         InOrder orderedChain = inOrder(
             spyRequestPlatformFlowChain,
             spySecurityChain,
@@ -415,7 +414,6 @@ class SyncApiReactorTest {
 
         TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
-        handleRequestObserver.assertSubscribed();
         InOrder orderedChain = inOrder(
             spyRequestPlatformFlowChain,
             spySecurityChain,
@@ -469,7 +467,6 @@ class SyncApiReactorTest {
 
         TestObserver<Void> handleRequestObserver = cut.handle(ctx).test();
 
-        handleRequestObserver.assertSubscribed();
         verify(endpointInvoker).invoke(any(), any(), handlerArgumentCaptor.capture());
         assertThat(handlerArgumentCaptor.getValue()).isNotNull().isInstanceOf(ConnectionHandlerAdapter.class);
     }
@@ -537,8 +534,6 @@ class SyncApiReactorTest {
             spyResponsePlatformFlowChain
         );
 
-        handleRequestObserver.assertSubscribed();
-
         orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
@@ -585,8 +580,6 @@ class SyncApiReactorTest {
             spyResponseApiErrorProcessorChain,
             spyResponsePlatformFlowChain
         );
-
-        handleRequestObserver.assertSubscribed();
 
         orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
@@ -636,8 +629,6 @@ class SyncApiReactorTest {
             spyResponsePlatformFlowChain
         );
 
-        handleRequestObserver.assertSubscribed();
-
         orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
@@ -686,8 +677,6 @@ class SyncApiReactorTest {
             spyTimeout
         );
 
-        handleRequestObserver.assertSubscribed();
-
         orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyRequestApiPreProcessorChain).subscribe(any(CompletableObserver.class));
@@ -729,8 +718,6 @@ class SyncApiReactorTest {
             spyResponseApiErrorProcessorChain,
             spyResponsePlatformFlowChain
         );
-
-        handleRequestObserver.assertSubscribed();
 
         orderedChain.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         spyInterruptSecurityChain.test().assertError(InterruptionFailureException.class);

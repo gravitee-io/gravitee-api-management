@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

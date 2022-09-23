@@ -22,7 +22,7 @@ import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * Policy that add "{@link AddHeaderPolicy#HEADER_NAME}" on:

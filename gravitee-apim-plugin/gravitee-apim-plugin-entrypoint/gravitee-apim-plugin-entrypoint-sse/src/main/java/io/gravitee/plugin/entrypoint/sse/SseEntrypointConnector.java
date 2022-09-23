@@ -33,9 +33,9 @@ import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -148,7 +148,7 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
             .messages()
             .compose(applyStopHook())
             .map(this::messageToBuffer)
-            .startWith(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
+            .startWithItem(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
             .timestamp()
             .map(
                 timed -> {

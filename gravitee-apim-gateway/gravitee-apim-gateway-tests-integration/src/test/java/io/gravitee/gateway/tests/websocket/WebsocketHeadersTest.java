@@ -23,7 +23,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.reactivex.core.http.WebSocket;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -49,16 +48,13 @@ public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
                     event.writeTextMessage("PING");
                 }
             )
-            .listen(
-                websocketPort,
-                ar ->
-                    httpClient.webSocket(
-                        options,
-                        event -> {
-                            if (event.failed()) {
-                                testContext.failNow(event.cause());
-                            } else {
-                                final WebSocket webSocket = event.result();
+            .listen(websocketPort)
+            .map(
+                httpServer ->
+                    httpClient
+                        .webSocket(options)
+                        .subscribe(
+                            webSocket -> {
                                 webSocket.exceptionHandler(testContext::failNow);
                                 webSocket.frameHandler(
                                     frame -> {
@@ -67,10 +63,11 @@ public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
                                         testContext.completeNow();
                                     }
                                 );
-                            }
-                        }
-                    )
-            );
+                            },
+                            testContext::failNow
+                        )
+            )
+            .subscribe();
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
         if (testContext.failed()) {

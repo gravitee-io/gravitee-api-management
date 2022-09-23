@@ -27,7 +27,7 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
@@ -59,7 +59,7 @@ public class OrganizationCommandHandlerTest {
     }
 
     @Test
-    public void handle() {
+    public void handle() throws InterruptedException {
         OrganizationPayload organizationPayload = new OrganizationPayload();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
@@ -87,12 +87,12 @@ public class OrganizationCommandHandlerTest {
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handleWithException() {
+    public void handleWithException() throws InterruptedException {
         OrganizationPayload organizationPayload = new OrganizationPayload();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
@@ -111,7 +111,7 @@ public class OrganizationCommandHandlerTest {
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }

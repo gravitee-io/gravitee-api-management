@@ -29,10 +29,10 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Header1Policy;
 import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Header2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.observers.TestObserver;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test organization flow")
-    void shouldTestOrganizationFlow(WebClient webClient) {
+    void shouldTestOrganizationFlow(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test").rxSend().test();
@@ -72,7 +72,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
     @Test
     @DeployOrganization("/organizations/organization-add-header-2.json")
     @DisplayName("Should test organization flow at test level using annotation")
-    void shouldTestOrganizationFlowAtTestLevel(WebClient webClient) {
+    void shouldTestOrganizationFlowAtTestLevel(WebClient webClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         final TestObserver<HttpResponse<Buffer>> obs = webClient.get("/test").rxSend().test();
@@ -93,7 +93,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should test organization flow at test level using updateAndDeployOrganizationMethod")
-    void shouldTestOrganizationFlowAtTestLevelWithMethodCall(WebClient webClient) {
+    void shouldTestOrganizationFlowAtTestLevelWithMethodCall(WebClient webClient) throws InterruptedException {
         super.updateAndDeployOrganization(
             organization -> {
                 organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");

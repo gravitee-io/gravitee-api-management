@@ -28,8 +28,8 @@ import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
-import io.reactivex.Maybe;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -50,7 +50,7 @@ class PolicyAdapterTest {
 
         final TestObserver<Void> obs = cut.onMessageRequest(ctx).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for message execution");
+        obs.assertError(t -> "Cannot adapt v3 policy for message execution".equals(t.getMessage()));
     }
 
     @Test
@@ -62,7 +62,7 @@ class PolicyAdapterTest {
 
         final TestObserver<Void> obs = cut.onMessageResponse(ctx).test();
 
-        obs.assertErrorMessage("Cannot adapt v3 policy for message execution");
+        obs.assertError(t -> "Cannot adapt v3 policy for message execution".equals(t.getMessage()));
     }
 
     @Test

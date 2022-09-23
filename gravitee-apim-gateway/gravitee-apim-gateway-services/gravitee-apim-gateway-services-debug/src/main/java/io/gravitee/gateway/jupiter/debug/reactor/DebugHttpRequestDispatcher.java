@@ -32,7 +32,7 @@ import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFacto
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.vertx.core.Vertx;
-import io.vertx.reactivex.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

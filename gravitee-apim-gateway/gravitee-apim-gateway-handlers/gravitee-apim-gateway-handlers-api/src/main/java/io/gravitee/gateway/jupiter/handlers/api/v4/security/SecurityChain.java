@@ -20,7 +20,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;

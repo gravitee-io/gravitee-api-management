@@ -30,7 +30,7 @@ import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 
 /**

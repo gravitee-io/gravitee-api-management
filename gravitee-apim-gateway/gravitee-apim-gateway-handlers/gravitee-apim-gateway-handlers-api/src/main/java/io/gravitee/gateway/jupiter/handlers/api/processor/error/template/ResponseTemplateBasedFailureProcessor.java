@@ -24,8 +24,8 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
-import io.reactivex.Completable;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
 

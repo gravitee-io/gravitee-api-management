@@ -16,8 +16,8 @@
 package io.gravitee.gateway.jupiter.debug.vertx;
 
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.reactivex.Completable;
-import io.vertx.reactivex.core.http.HttpServerRequest;
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

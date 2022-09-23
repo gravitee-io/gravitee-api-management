@@ -30,7 +30,7 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

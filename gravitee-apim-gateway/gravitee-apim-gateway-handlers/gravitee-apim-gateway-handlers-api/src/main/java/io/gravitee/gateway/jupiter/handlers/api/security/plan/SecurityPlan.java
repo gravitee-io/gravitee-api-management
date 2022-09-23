@@ -30,9 +30,9 @@ import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
-import io.reactivex.Completable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -92,8 +92,7 @@ public class SecurityPlan {
                             }
                         )
             )
-            .defaultIfEmpty(false)
-            .toSingle();
+            .defaultIfEmpty(false);
     }
 
     /**

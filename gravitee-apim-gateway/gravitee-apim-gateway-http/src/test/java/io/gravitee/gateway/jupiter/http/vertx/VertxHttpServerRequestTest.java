@@ -22,16 +22,16 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.Maybe;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.reactivex.core.http.HttpHeaders;
-import io.vertx.reactivex.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.http.HttpHeaders;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,11 +64,11 @@ class VertxHttpServerRequestTest {
     @BeforeEach
     void init() {
         subscriptionCount = new AtomicInteger(0);
-        Flowable<io.vertx.reactivex.core.buffer.Buffer> chunks = Flowable
+        Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
             .just(
-                io.vertx.reactivex.core.buffer.Buffer.buffer("chunk1"),
-                io.vertx.reactivex.core.buffer.Buffer.buffer("chunk2"),
-                io.vertx.reactivex.core.buffer.Buffer.buffer("chunk3")
+                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk1"),
+                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk2"),
+                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk3")
             )
             .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
@@ -222,7 +222,7 @@ class VertxHttpServerRequestTest {
             .andThen(Flowable.defer(() -> cut.chunks()))
             .test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
         assertEquals(1, subscriptionCount.get());
     }
 
@@ -235,7 +235,7 @@ class VertxHttpServerRequestTest {
             .andThen(Flowable.defer(() -> cut.chunks()))
             .test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
         assertEquals(1, subscriptionCount.get());
     }
 
@@ -245,7 +245,7 @@ class VertxHttpServerRequestTest {
 
         final TestObserver<Buffer> obs = cut.body().test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
         assertEquals(1, subscriptionCount.get());
     }
 
@@ -255,7 +255,7 @@ class VertxHttpServerRequestTest {
 
         final TestSubscriber<Buffer> obs = cut.chunks().test();
 
-        obs.assertErrorMessage(MOCK_EXCEPTION);
+        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
         assertEquals(1, subscriptionCount.get());
     }
 
@@ -471,8 +471,8 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithEmpty() {
-        final Flowable<io.vertx.reactivex.core.buffer.Buffer> chunks = Flowable
-            .<io.vertx.reactivex.core.buffer.Buffer>empty()
+        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
+            .<io.vertx.rxjava3.core.buffer.Buffer>empty()
             .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
@@ -481,8 +481,8 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithError() {
-        final Flowable<io.vertx.reactivex.core.buffer.Buffer> chunks = Flowable
-            .<io.vertx.reactivex.core.buffer.Buffer>error(new RuntimeException(MOCK_EXCEPTION))
+        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
+            .<io.vertx.rxjava3.core.buffer.Buffer>error(new RuntimeException(MOCK_EXCEPTION))
             .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);

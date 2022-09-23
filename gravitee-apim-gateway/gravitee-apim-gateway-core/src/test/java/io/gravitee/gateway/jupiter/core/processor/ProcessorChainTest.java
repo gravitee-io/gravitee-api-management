@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -32,7 +32,7 @@
 
     <properties>
         <elasticsearch.version>5.6.16</elasticsearch.version>
-        <gravitee-common-elasticsearch.version>3.12.1</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>4.0.0-bumpRxJava-SNAPSHOT</gravitee-common-elasticsearch.version>
         <lucene.version>6.6.1</lucene.version>
     </properties>
 
@@ -102,7 +102,7 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-rx-java2</artifactId>
+            <artifactId>vertx-rx-java3</artifactId>
             <scope>provided</scope>
         </dependency>
 

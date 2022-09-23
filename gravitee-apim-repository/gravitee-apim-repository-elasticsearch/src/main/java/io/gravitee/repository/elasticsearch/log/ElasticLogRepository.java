@@ -35,7 +35,7 @@ import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.time.Instant;
 import java.util.*;
 import org.slf4j.Logger;

@@ -40,13 +40,13 @@ import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.schedulers.TestScheduler;
-import io.reactivex.subscribers.TestSubscriber;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.http.HttpClient;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,7 +99,7 @@ class WebhookEntrypointConnectorTest {
         lenient().when(ctx.request()).thenReturn(mockMessageRequest);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.end()).thenReturn(Completable.complete());
-        lenient().when(ctx.getComponent(io.vertx.reactivex.core.Vertx.class)).thenReturn(vertx);
+        lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
         lenient().when(ctx.getComponent(ConnectorFactoryHelper.class)).thenReturn(connectorFactoryHelper);
         lenient()
@@ -181,7 +181,7 @@ class WebhookEntrypointConnectorTest {
     }
 
     @Test
-    void shouldNotCallWebHookWhenNoMessage(WireMockRuntimeInfo wmRuntimeInfo) {
+    void shouldNotCallWebHookWhenNoMessage(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
         stubFor(post("/callback").willReturn(ok()));
 
         when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
@@ -196,19 +196,19 @@ class WebhookEntrypointConnectorTest {
         when(ctx.response()).thenReturn(response);
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.awaitTerminalEvent(10, TimeUnit.SECONDS);
+        obs.await(10, TimeUnit.SECONDS);
 
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
 
-        chunksObs.awaitTerminalEvent();
+        chunksObs.await();
 
         wmRuntimeInfo.getWireMock().verifyThat(0, postRequestedFor(urlPathEqualTo("/callback")));
     }
 
     @Test
-    void shouldCallWebhookWhenMessages(WireMockRuntimeInfo wmRuntimeInfo) {
+    void shouldCallWebhookWhenMessages(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
         stubFor(post("/callback").willReturn(ok()));
 
         when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
@@ -241,13 +241,13 @@ class WebhookEntrypointConnectorTest {
         when(ctx.response()).thenReturn(response);
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.awaitTerminalEvent(10, TimeUnit.SECONDS);
+        obs.await(10, TimeUnit.SECONDS);
 
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
 
-        chunksObs.awaitTerminalEvent();
+        chunksObs.await();
 
         wmRuntimeInfo.getWireMock().verifyThat(4, postRequestedFor(urlPathEqualTo("/callback")));
     }
@@ -296,7 +296,7 @@ class WebhookEntrypointConnectorTest {
         cut.preStop();
 
         // Note: this is subject to change when subscription lifecycle will be fully handled.
-        chunksObs.assertErrorMessage(STOPPING_MESSAGE);
+        chunksObs.assertError(throwable -> STOPPING_MESSAGE.equals(throwable.getMessage()));
         wmRuntimeInfo.getWireMock().verifyThat(lessThanOrExactly(2), postRequestedFor(urlPathEqualTo("/callback")));
     }
 
@@ -315,6 +315,6 @@ class WebhookEntrypointConnectorTest {
 
         final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
 
-        chunksObs.assertErrorMessage(MOCK_ERROR);
+        chunksObs.assertError(throwable -> MOCK_ERROR.equals(throwable.getMessage()));
     }
 }

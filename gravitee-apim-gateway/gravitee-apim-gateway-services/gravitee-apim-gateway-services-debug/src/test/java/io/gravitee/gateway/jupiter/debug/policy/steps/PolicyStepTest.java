@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.debug.policy.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.io.Serializable;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

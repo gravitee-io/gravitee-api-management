@@ -24,7 +24,7 @@ import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

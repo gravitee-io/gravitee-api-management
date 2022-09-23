@@ -26,7 +26,7 @@ import io.gravitee.cockpit.api.command.installation.InstallationReply;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.HashMap;
 import junit.framework.TestCase;
 import org.junit.Before;
@@ -62,7 +62,7 @@ public class InstallationCommandHandlerTest extends TestCase {
     }
 
     @Test
-    public void handle() {
+    public void handle() throws InterruptedException {
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
@@ -76,7 +76,7 @@ public class InstallationCommandHandlerTest extends TestCase {
 
         TestObserver<InstallationReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         final HashMap<String, String> expectedAdditionalInfos = new HashMap<>();
@@ -86,7 +86,7 @@ public class InstallationCommandHandlerTest extends TestCase {
     }
 
     @Test
-    public void handleWithException() {
+    public void handleWithException() throws InterruptedException {
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
@@ -101,7 +101,7 @@ public class InstallationCommandHandlerTest extends TestCase {
 
         TestObserver<InstallationReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }

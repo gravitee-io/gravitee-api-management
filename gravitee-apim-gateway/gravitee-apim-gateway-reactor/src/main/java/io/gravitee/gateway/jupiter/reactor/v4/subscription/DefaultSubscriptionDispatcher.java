@@ -26,7 +26,7 @@ import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;

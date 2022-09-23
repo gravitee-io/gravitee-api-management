@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 

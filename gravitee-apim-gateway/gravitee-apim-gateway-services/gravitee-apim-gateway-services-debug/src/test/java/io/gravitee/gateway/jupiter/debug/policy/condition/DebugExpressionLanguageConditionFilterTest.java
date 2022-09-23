@@ -25,7 +25,7 @@ import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.jupiter.policy.ConditionalPolicy;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

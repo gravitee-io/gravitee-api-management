@@ -16,8 +16,8 @@
 package io.gravitee.repository.management;
 
 import io.gravitee.node.api.Monitoring;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldFindByNodeIdAndType() {
+    public void shouldFindByNodeIdAndType() throws InterruptedException {
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS).test();
 
         awaitTerminalEvent(testObserver);
@@ -49,7 +49,7 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldFindByUnknownNodeId() {
+    public void shouldFindByUnknownNodeId() throws InterruptedException {
         final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("unknown", Monitoring.NODE_INFOS).test();
 
         awaitTerminalEvent(testObserver);
@@ -59,19 +59,19 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldFindByTypeAndTimeFrame() {
+    public void shouldFindByTypeAndTimeFrame() throws InterruptedException {
         final TestSubscriber<Monitoring> testObserver = nodeMonitoringRepository
             .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
             .test();
 
-        testObserver.awaitTerminalEvent(15, TimeUnit.SECONDS);
+        testObserver.await(15, TimeUnit.SECONDS);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
         testObserver.assertValueCount(1);
     }
 
     @Test
-    public void shouldCreate() {
+    public void shouldCreate() throws InterruptedException {
         final Monitoring monitoring = new Monitoring();
         monitoring.setId("1");
         monitoring.setCreatedAt(new Date(1464739200000L));
@@ -90,7 +90,7 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldUpdate() {
+    public void shouldUpdate() throws InterruptedException {
         final Monitoring monitoring = new Monitoring();
         monitoring.setId("nodeMonitoring1");
         monitoring.setCreatedAt(new Date(1000000000000L));
@@ -109,7 +109,7 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldNotUpdateUnknownMonitoring() {
+    public void shouldNotUpdateUnknownMonitoring() throws InterruptedException {
         final Monitoring monitoring = new Monitoring();
         monitoring.setId("unknown");
 
@@ -120,7 +120,7 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
         testObserver.assertError(IllegalStateException.class);
     }
 
-    private void awaitTerminalEvent(TestObserver<Monitoring> testObserver) {
-        testObserver.awaitTerminalEvent(15, TimeUnit.SECONDS);
+    private void awaitTerminalEvent(TestObserver<Monitoring> testObserver) throws InterruptedException {
+        testObserver.await(15, TimeUnit.SECONDS);
     }
 }

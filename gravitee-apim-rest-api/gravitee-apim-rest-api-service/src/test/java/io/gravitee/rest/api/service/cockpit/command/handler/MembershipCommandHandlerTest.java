@@ -35,7 +35,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.reactivex.observers.TestObserver;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Before;
@@ -74,7 +74,7 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleWithAdminRole() {
+    public void handleWithAdminRole() throws InterruptedException {
         MembershipPayload membershipPayload = new MembershipPayload();
         membershipPayload.setUserId("user#1");
         membershipPayload.setOrganizationId("orga#1");
@@ -97,7 +97,7 @@ public class MembershipCommandHandlerTest {
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
@@ -133,7 +133,7 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleWithRole() {
+    public void handleWithRole() throws InterruptedException {
         MembershipPayload membershipPayload = new MembershipPayload();
         membershipPayload.setUserId("user#1");
         membershipPayload.setOrganizationId("orga#1");
@@ -156,7 +156,7 @@ public class MembershipCommandHandlerTest {
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
@@ -192,7 +192,7 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleWithUserRole() {
+    public void handleWithUserRole() throws InterruptedException {
         MembershipPayload membershipPayload = new MembershipPayload();
         membershipPayload.setUserId("user#1");
         membershipPayload.setOrganizationId("orga#1");
@@ -215,7 +215,7 @@ public class MembershipCommandHandlerTest {
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
@@ -251,7 +251,7 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleWithUnknownRole() {
+    public void handleWithUnknownRole() throws InterruptedException {
         MembershipPayload membershipPayload = new MembershipPayload();
         membershipPayload.setUserId("user#1");
         membershipPayload.setOrganizationId("orga#1");
@@ -271,7 +271,7 @@ public class MembershipCommandHandlerTest {
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
@@ -279,7 +279,7 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleWithUnknownUser() {
+    public void handleWithUnknownUser() throws InterruptedException {
         MembershipPayload membershipPayload = new MembershipPayload();
         membershipPayload.setUserId("user#1");
         membershipPayload.setOrganizationId("orga#1");
@@ -294,7 +294,7 @@ public class MembershipCommandHandlerTest {
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
-        obs.awaitTerminalEvent();
+        obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
 

@@ -21,8 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.core.http.WebSocket;
+import io.vertx.rxjava3.core.buffer.Buffer;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
@@ -47,22 +46,20 @@ public class WebsocketPingFrameTest extends AbstractWebsocketGatewayTest {
                     );
                 }
             )
-            .listen(
-                websocketPort,
-                ar ->
-                    httpClient.webSocket(
-                        "/test",
-                        event -> {
-                            if (event.failed()) {
-                                testContext.failNow(event.cause());
-                            } else {
-                                final WebSocket webSocket = event.result();
+            .listen(websocketPort)
+            .map(
+                httpServer ->
+                    httpClient
+                        .webSocket("/test")
+                        .subscribe(
+                            webSocket -> {
                                 webSocket.exceptionHandler(testContext::failNow);
                                 webSocket.writePing(Buffer.buffer("PING"));
-                            }
-                        }
-                    )
-            );
+                            },
+                            testContext::failNow
+                        )
+            )
+            .subscribe();
 
         testContext.awaitCompletion(10, TimeUnit.SECONDS);
         if (testContext.failed()) {

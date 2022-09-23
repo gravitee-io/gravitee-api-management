@@ -19,7 +19,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

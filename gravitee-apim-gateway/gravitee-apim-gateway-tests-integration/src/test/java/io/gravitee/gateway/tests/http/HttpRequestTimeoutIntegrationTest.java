@@ -37,10 +37,10 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.tests.fakes.policies.AddHeaderPolicy;
 import io.gravitee.gateway.tests.fakes.policies.LatencyPolicy;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.reactivex.observers.TestObserver;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     @DisplayName(
         "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when backend answers slower than the timeout and without Accept header"
     )
-    void shouldGet504TextPlainWhenTimeoutFromBackend(WebClient client) {
+    void shouldGet504TextPlainWhenTimeoutFromBackend(WebClient client) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 250)));
 
         final TestObserver<HttpResponse<Buffer>> obs = client.get("/test").rxSend().test();
@@ -108,7 +108,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     @DisplayName(
         "Should receive 504 - GATEWAY_TIMEOUT and a json response when backend answers slower than the timeout and with Accept header"
     )
-    void shouldGet504WhenTimeoutFromBackend(String acceptHeader, WebClient client) {
+    void shouldGet504WhenTimeoutFromBackend(String acceptHeader, WebClient client) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 10)));
 
         final TestObserver<HttpResponse<Buffer>> obs = client
@@ -139,7 +139,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     @DisplayName(
         "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when policy executes slower than the timeout and without Accept header"
     )
-    void shouldGet504TextPlainWhenTimeoutFromPolicy(WebClient client) {
+    void shouldGet504TextPlainWhenTimeoutFromPolicy(WebClient client) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         final TestObserver<HttpResponse<Buffer>> obs = client.get("/test-latency").rxSend().test();
@@ -167,7 +167,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     @DisplayName(
         "Should receive 504 - GATEWAY_TIMEOUT and a json response when policy executes slower than the timeout and with Accept header"
     )
-    void shouldGet504WhenTimeoutFromPolicy(String acceptHeader, WebClient client) {
+    void shouldGet504WhenTimeoutFromPolicy(String acceptHeader, WebClient client) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         final TestObserver<HttpResponse<Buffer>> obs = client
@@ -195,7 +195,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     @DisplayName(
         "Should receive 504 - GATEWAY_TIMEOUT when policy on platform response executes slower than the timeout and interrupt chain"
     )
-    void shouldGet504WhenTimeoutFromPlatformResponse(WebClient client) {
+    void shouldGet504WhenTimeoutFromPlatformResponse(WebClient client) throws InterruptedException {
         addLatencyOnPlatformResponse();
 
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));

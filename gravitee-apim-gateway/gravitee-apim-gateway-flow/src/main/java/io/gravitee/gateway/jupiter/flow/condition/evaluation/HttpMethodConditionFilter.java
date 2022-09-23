@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.flow.condition.evaluation;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the method of the request is matching the

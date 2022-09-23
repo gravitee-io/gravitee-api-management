@@ -22,8 +22,8 @@ import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
-import io.reactivex.Completable;
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -145,7 +145,7 @@ public class PolicyAdapter implements Policy {
                             .doOnSuccess(stream::write)
                             .doFinally(stream::end)
                             .doOnError(emitter::tryOnError)
-                            .onErrorResumeNext(s -> {})
+                            .onErrorResumeWith(s -> {})
                             .subscribe();
                     }
                 } catch (Throwable t) {

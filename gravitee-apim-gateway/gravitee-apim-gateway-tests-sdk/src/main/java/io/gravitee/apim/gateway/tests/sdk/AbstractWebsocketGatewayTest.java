@@ -19,9 +19,9 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.http.HttpClient;
-import io.vertx.reactivex.core.http.HttpServer;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 

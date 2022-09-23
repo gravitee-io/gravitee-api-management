@@ -28,9 +28,9 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.AbstractV4ProcessorTest;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +53,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultWithNoProcessorFailureKey() {
+    void shouldFallbackToDefaultWithNoProcessorFailureKey() throws InterruptedException {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -75,13 +75,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             .flatMap(defaultMessage -> ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)))
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -98,7 +98,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultWithProcessorFailureKey() {
+    void shouldFallbackToDefaultWithProcessorFailureKey() throws InterruptedException {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -121,13 +121,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -145,7 +145,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultWithProcessorFailureKeyAndFallbackToDefault() {
+    void shouldFallbackToDefaultWithProcessorFailureKeyAndFallbackToDefault() throws InterruptedException {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -169,13 +169,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -193,7 +193,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeader() {
+    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeader() throws InterruptedException {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -217,13 +217,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -240,7 +240,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeaderAndWildcard() {
+    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeaderAndWildcard() throws InterruptedException {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -271,13 +271,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -294,7 +294,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeader() {
+    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeader() throws InterruptedException {
         ResponseTemplate jsonTemplate = new ResponseTemplate();
         jsonTemplate.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -318,13 +318,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(
@@ -341,7 +341,7 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
     }
 
     @Test
-    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeaderAndNextMediaType() {
+    void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndAcceptHeaderAndNextMediaType() throws InterruptedException {
         ResponseTemplate jsonTemplate = new ResponseTemplate();
         jsonTemplate.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
 
@@ -366,13 +366,13 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
             )
             .compose(requestMessages)
             .test()
-            .awaitTerminalEvent();
+            .await();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
-        testSubscriber.awaitTerminalEvent();
+        testSubscriber.await();
         testSubscriber
             .assertValueCount(1)
             .assertValueAt(

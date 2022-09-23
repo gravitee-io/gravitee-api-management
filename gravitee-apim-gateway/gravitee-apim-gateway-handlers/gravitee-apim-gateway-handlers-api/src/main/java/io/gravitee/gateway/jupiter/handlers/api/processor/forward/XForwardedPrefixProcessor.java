@@ -18,7 +18,7 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.forward;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

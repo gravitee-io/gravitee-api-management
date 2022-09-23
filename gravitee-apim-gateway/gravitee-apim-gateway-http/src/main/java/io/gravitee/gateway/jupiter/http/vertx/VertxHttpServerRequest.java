@@ -21,8 +21,8 @@ import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
-import io.reactivex.*;
-import io.vertx.reactivex.core.http.HttpServerRequest;
+import io.reactivex.rxjava3.core.*;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.function.Function;
 
 /**
@@ -54,8 +54,8 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
     @Override
     public boolean isWebSocket() {
         if (isWebSocket == null) {
-            String connectionHeader = nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.CONNECTION);
-            String upgradeHeader = nativeRequest.getHeader(io.vertx.reactivex.core.http.HttpHeaders.UPGRADE);
+            String connectionHeader = nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.CONNECTION);
+            String upgradeHeader = nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.UPGRADE);
             final io.vertx.core.http.HttpVersion httpVersion = nativeRequest.version();
             isWebSocket =
                 (httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_0 || httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_1) &&

@@ -19,7 +19,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
