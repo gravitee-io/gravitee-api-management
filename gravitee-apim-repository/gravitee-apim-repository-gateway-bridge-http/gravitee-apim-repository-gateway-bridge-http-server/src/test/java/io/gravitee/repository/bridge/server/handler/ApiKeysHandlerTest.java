@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -52,6 +53,8 @@ import org.mockito.MockitoAnnotations;
 @RunWith(VertxUnitRunner.class)
 public class ApiKeysHandlerTest {
 
+    private final WorkerExecutor executor = Vertx.vertx().createSharedWorkerExecutor("apiKeysHandlerTestWorker");
+
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
@@ -59,7 +62,7 @@ public class ApiKeysHandlerTest {
     private ApiKeyRepository apiKeyRepository;
 
     @InjectMocks
-    private final ApiKeysHandler apiKeysHandler = new ApiKeysHandler();
+    private final ApiKeysHandler apiKeysHandler = new ApiKeysHandler(executor);
 
     private WebClient client;
     private Vertx vertx;
@@ -93,6 +96,7 @@ public class ApiKeysHandlerTest {
     @After
     public void tearDown(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
+        executor.close();
     }
 
     @Test

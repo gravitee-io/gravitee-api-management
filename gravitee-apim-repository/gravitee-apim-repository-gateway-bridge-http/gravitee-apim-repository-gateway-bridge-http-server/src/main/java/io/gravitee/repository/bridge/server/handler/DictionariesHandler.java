@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,10 @@ public class DictionariesHandler extends AbstractHandler {
     @Autowired
     private DictionaryRepository dictionaryRepository;
 
+    public DictionariesHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void find(RoutingContext ctx) {
         final String environementsIdsParam = ctx.request().getParam("environmentsIds");
         if (StringUtils.isEmpty(environementsIdsParam)) {
@@ -47,34 +52,32 @@ public class DictionariesHandler extends AbstractHandler {
     private void findAllByEnvironment(RoutingContext ctx, String environementsIdsParam) {
         final Set<String> environments = readListParam(environementsIdsParam);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<Set<Dictionary>>>) promise -> {
-                    try {
-                        promise.complete(dictionaryRepository.findAllByEnvironments(environments));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for dictionaries", ex);
-                        promise.fail(ex);
-                    }
-                },
-                event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<Set<Dictionary>>>) promise -> {
+                try {
+                    promise.complete(dictionaryRepository.findAllByEnvironments(environments));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for dictionaries", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
     }
 
     private void findAll(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(dictionaryRepository.findAll());
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to get dictionaries", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Set<Dictionary>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(dictionaryRepository.findAll());
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to get dictionaries", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Set<Dictionary>>>) result -> handleResponse(ctx, result)
+        );
     }
 }

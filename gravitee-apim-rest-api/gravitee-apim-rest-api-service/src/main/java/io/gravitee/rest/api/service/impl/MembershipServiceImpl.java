@@ -616,41 +616,41 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String sourceId
     ) {
         try {
-            final Optional<RoleEntity> optApiPORole = roleService.findByScopeAndName(
-                RoleScope.API,
-                PRIMARY_OWNER.name(),
-                executionContext.getOrganizationId()
-            );
+            RoleEntity apiPORole = roleService
+                .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 memberId,
                 convert(memberType),
                 convert(referenceType),
                 referenceId
             );
-            if (!memberships.isEmpty()) {
-                for (io.gravitee.repository.management.model.Membership membership : memberships) {
-                    if (sourceId == null || membership.getSource().equals(sourceId)) {
-                        LOGGER.debug("Delete membership {}", membership.getId());
-                        membershipRepository.delete(membership.getId());
-                        createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
-                    }
 
-                    if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
-                        UserEntity userEntity = findUserFromMembershipMember(
-                            executionContext,
-                            new MembershipMember(memberId, null, memberType)
-                        );
-                        applicationAlertService.deleteMemberFromApplication(executionContext, referenceId, userEntity.getEmail());
-                    }
+            if (MembershipReferenceType.API.equals(referenceType)) {
+                assertNoPrimaryOwnerRemoval(apiPORole, memberships);
+            }
 
-                    //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
-                    if (
-                        optApiPORole.isPresent() &&
-                        membership.getReferenceType() == io.gravitee.repository.management.model.MembershipReferenceType.GROUP &&
-                        membership.getRoleId().equals(optApiPORole.get().getId())
-                    ) {
-                        groupService.updateApiPrimaryOwner(membership.getReferenceId(), null);
-                    }
+            for (io.gravitee.repository.management.model.Membership membership : memberships) {
+                if (sourceId == null || membership.getSource().equals(sourceId)) {
+                    LOGGER.debug("Delete membership {}", membership.getId());
+                    membershipRepository.delete(membership.getId());
+                    createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
+                }
+
+                if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
+                    UserEntity userEntity = findUserFromMembershipMember(
+                        executionContext,
+                        new MembershipMember(memberId, null, memberType)
+                    );
+                    applicationAlertService.deleteMemberFromApplication(executionContext, referenceId, userEntity.getEmail());
+                }
+
+                //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
+                if (
+                    membership.getReferenceType() == io.gravitee.repository.management.model.MembershipReferenceType.GROUP &&
+                    membership.getRoleId().equals(apiPORole.getId())
+                ) {
+                    groupService.updateApiPrimaryOwner(membership.getReferenceId(), null);
                 }
             }
         } catch (TechnicalException ex) {
@@ -674,6 +674,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 ex
             );
         }
+    }
+
+    private void assertNoPrimaryOwnerRemoval(RoleEntity apiPORole, Set<io.gravitee.repository.management.model.Membership> memberships) {
+        memberships
+            .stream()
+            .filter(membership -> membership.getRoleId().equals(apiPORole.getId()))
+            .findFirst()
+            .ifPresent(
+                membership -> {
+                    throw new ApiPrimaryOwnerRemovalException();
+                }
+            );
     }
 
     @Override
@@ -1602,14 +1614,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
 
         MembershipEntity primaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
-        // Set the new primary owner
-        MemberEntity newPrimaryOwnerMember =
-            this.addRoleToMemberOnReference(
-                    executionContext,
-                    new MembershipReference(membershipReferenceType, itemId),
-                    new MembershipMember(member.getMemberId(), member.getReference(), member.getMemberType()),
-                    new MembershipRole(roleScope, PRIMARY_OWNER.name())
-                );
+
+        this.addRoleToMemberOnReference(
+                executionContext,
+                new MembershipReference(membershipReferenceType, itemId),
+                new MembershipMember(member.getMemberId(), member.getReference(), member.getMemberType()),
+                new MembershipRole(roleScope, PRIMARY_OWNER.name())
+            );
 
         //If the new PO is a group and the reference is an API, add the group as a member of the API
         if (membershipReferenceType == MembershipReferenceType.API && member.getMemberType() == MembershipMemberType.GROUP) {

@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,21 +34,24 @@ public class ApiPlansHandler extends AbstractHandler {
     @Autowired
     private PlanRepository planRepository;
 
+    public ApiPlansHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void handle(RoutingContext ctx) {
         final String sApi = ctx.request().getParam("apiId");
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(planRepository.findByApi(sApi));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to get plans for an API", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Set<Plan>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(planRepository.findByApi(sApi));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to get plans for an API", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Set<Plan>>>) result -> handleResponse(ctx, result)
+        );
     }
 }
