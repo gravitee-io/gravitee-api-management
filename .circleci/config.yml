@@ -1541,8 +1541,6 @@ jobs:
             database:
                 type: string
         steps:
-            - setup_remote_docker:
-                  version: 20.10.14
             - checkout
             - attach_workspace:
                   at: .
@@ -1586,8 +1584,6 @@ jobs:
             name: ubuntu
             class: medium
         steps:
-            - setup_remote_docker:
-                  version: 20.10.14
             - checkout
             - attach_workspace:
                   at: .
@@ -1962,7 +1958,6 @@ workflows:
                               - /.*-run-e2e.*/
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
-                              - ci-remove-e2e-report-step
             - e2e-cypress:
                   context: cicd-orchestrator
                   name: Run Cypress UI tests
@@ -1976,8 +1971,6 @@ workflows:
                               - master
                               - /.*-run-e2e.*/
                               - /^\d+\.\d+\.x$/
-                              - ci-remove-e2e-report-step
-
             - perf-lint-build:
                   name: Lint & Build APIM perf
                   context: cicd-orchestrator
