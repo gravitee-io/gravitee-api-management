@@ -24,6 +24,7 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
@@ -45,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
+    public static final String HEADER_LAST_EVENT_ID = "Last-Event-ID";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     private static final String ENTRYPOINT_ID = "sse";
     private static final int RETRY_MIN_VALUE = 1000;
@@ -91,7 +93,14 @@ public class SseEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.complete();
+        return Completable.fromRunnable(
+            () -> {
+                String lastEventId = ctx.request().headers().get(HEADER_LAST_EVENT_ID);
+                if (lastEventId != null && !lastEventId.isEmpty()) {
+                    ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, lastEventId);
+                }
+            }
+        );
     }
 
     @Override
