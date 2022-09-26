@@ -16,7 +16,11 @@
 package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -26,6 +30,7 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
@@ -67,6 +72,7 @@ class SseEntrypointConnectorTest {
 
     @BeforeEach
     void beforeEach() {
+        lenient().when(request.headers()).thenReturn(HttpHeaders.create());
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.end()).thenReturn(Completable.complete());
@@ -139,7 +145,23 @@ class SseEntrypointConnectorTest {
     @Test
     void shouldCompleteWithoutDoingAnything() {
         cut.handleRequest(ctx).test().assertComplete();
-        verifyNoInteractions(ctx);
+    }
+
+    @Test
+    void shouldUpdateContextWithLastEventIdHeader() {
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.set("Last-Event-ID", "1");
+        when(request.headers()).thenReturn(httpHeaders);
+        cut.handleRequest(ctx).test().assertComplete();
+
+        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, "1");
+    }
+
+    @Test
+    void shouldNotUpdateContextWithLastEventIdHeader() {
+        cut.handleRequest(ctx).test().assertComplete();
+
+        verify(ctx, never()).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, "1");
     }
 
     @Test
