@@ -235,17 +235,23 @@ await within(async () => {
   await $`rm -rf graviteeio-full-${releasingVersion}`;
 });
 
-console.log(chalk.blue(`Step 8: Packaging - Plugins / All Repositories`));
-const repositoriesPluginDir = `./dist/plugins/repositories`;
-await $`rm -rf ${repositoriesPluginDir} && mkdir -p ${repositoriesPluginDir}`;
+console.log(chalk.blue(`Step 8: Packaging - Plugins / Repositories`));
+const packagePlugins = async (pluginsDir, pluginsGroupId) => {
+  await $`rm -rf ${pluginsDir} && mkdir -p ${pluginsDir}`;
 
-await Promise.all(
-  allDependencies
-    .filter((d) => d.groupId.startsWith('io.gravitee.apim.repository'))
-    .map(async ({ fileName, artifactId }) => {
-      await $`mkdir -p  ${repositoriesPluginDir}/${artifactId} && cp ${fileName} ${repositoriesPluginDir}/${artifactId}/`;
-      await createFileSum(`${repositoriesPluginDir}/${artifactId}/${fileName}`);
-    }),
-);
+  await Promise.all(
+    allDependencies
+      .filter((d) => d.groupId.startsWith(pluginsGroupId))
+      .map(async ({ fileName, artifactId }) => {
+        await $`mkdir -p  ${pluginsDir}/${artifactId} && cp ${fileName} ${pluginsDir}/${artifactId}/`;
+        await createFileSum(`${pluginsDir}/${artifactId}/${fileName}`);
+      }),
+  );
+};
+
+// Repositories
+await packagePlugins('./dist/plugins/repositories', 'io.gravitee.apim.repository');
+await packagePlugins('./dist/plugins/endpoints', 'io.gravitee.apim.plugin.endpoint');
+await packagePlugins('./dist/plugins/entrypoints', 'io.gravitee.apim.plugin.entrypoint');
 
 console.log(chalk.magenta(`📦 The package is ready!`));
