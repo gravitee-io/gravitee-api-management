@@ -125,6 +125,11 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     unknown[]
   > = { apisTableDS: [], applicationsTableDS: [], environmentsTableDS: [], groupsTableDS: [], tokensTableDS: [] };
 
+  private tablesUnpaginatedLength: Record<
+    'environmentsTableDS' | 'groupsTableDS' | 'apisTableDS' | 'applicationsTableDS' | 'tokensTableDS',
+    number
+  > = { apisTableDS: 0, applicationsTableDS: 0, environmentsTableDS: 0, groupsTableDS: 0, tokensTableDS: 0 };
+
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
@@ -158,6 +163,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         this.environmentsTableDS = environments.map((e) => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
         this.initialTableDS['environmentsTableDS'] = this.environmentsTableDS;
+        this.tablesUnpaginatedLength['environmentsTableDS'] = this.environmentsTableDS.length;
 
         this.initEnvironmentsRolesForm(environments);
 
@@ -166,6 +172,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           name: g.name,
         }));
         this.initialTableDS['groupsTableDS'] = this.groupsTableDS;
+        this.tablesUnpaginatedLength['groupsTableDS'] = this.groupsTableDS.length;
         this.initGroupsRolesForm(groups);
       });
 
@@ -180,6 +187,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           visibility: apiMetadata.visibility,
         }));
         this.initialTableDS['apisTableDS'] = this.apisTableDS;
+        this.tablesUnpaginatedLength['apisTableDS'] = this.apisTableDS.length;
       });
 
     this.usersService
@@ -191,6 +199,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           name: applicationMetadata.name,
         }));
         this.initialTableDS['applicationsTableDS'] = this.applicationsTableDS;
+        this.tablesUnpaginatedLength['applicationsTableDS'] = this.applicationsTableDS.length;
       });
 
     this.usersTokenService
@@ -204,6 +213,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           name: token.name,
         }));
         this.initialTableDS['tokensTableDS'] = this.tokensTableDS;
+        this.tablesUnpaginatedLength['tokensTableDS'] = this.tokensTableDS.length;
       });
   }
 
@@ -366,10 +376,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       this.initialTableDS[tableDSPropertyKey] = this[tableDSPropertyKey];
       initialCollection = this[tableDSPropertyKey];
     }
-
-    this[tableDSPropertyKey] = gioTableFilterCollection(initialCollection, filters, {
-      searchTermIgnoreKeys: ['id'],
+    const filtered = gioTableFilterCollection(initialCollection, filters, {
+      searchTermIgnoreKeys: ['id', 'visibility'],
     });
+
+    this[tableDSPropertyKey] = filtered.filteredCollection;
+    this.tablesUnpaginatedLength[tableDSPropertyKey] = filtered.unpaginatedLength;
   }
 
   onSaveBarReset() {

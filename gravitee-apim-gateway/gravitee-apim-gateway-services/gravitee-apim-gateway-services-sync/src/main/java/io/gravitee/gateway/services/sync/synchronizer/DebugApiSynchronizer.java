@@ -22,6 +22,9 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
@@ -39,36 +42,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DebugApiSynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(DebugApiSynchronizer.class);
+    private final EventManager eventManager;
+    private final Node node;
+    private final boolean isDebugModeAvailable;
 
-    @Autowired
-    private EventManager eventManager;
+    public DebugApiSynchronizer(EventManager eventManager, PluginRegistry pluginRegistry, Configuration configuration, Node node) {
+        this.eventManager = eventManager;
+        this.node = node;
 
-    @Autowired
-    private Node node;
+        this.isDebugModeAvailable =
+            pluginRegistry.plugins().stream().map(Plugin::id).anyMatch("gateway-debug"::equalsIgnoreCase) &&
+            configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true);
+    }
 
     @Override
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
-        final long start = System.currentTimeMillis();
-        if (lastRefreshAt != -1) {
-            EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
-                .types(EventType.DEBUG_API)
-                .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
-                .from(lastRefreshAt == null ? 0 : lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-                .to(nextLastRefreshAt == null ? 0 : nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-                .environments(environments);
+        if (isDebugModeAvailable) {
+            final long start = System.currentTimeMillis();
+            if (lastRefreshAt != -1) {
+                EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
+                    .types(EventType.DEBUG_API)
+                    .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+                    .from(lastRefreshAt == null ? 0 : lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                    .to(nextLastRefreshAt == null ? 0 : nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                    .environments(environments);
 
-            List<String> events = eventRepository
-                .search(criteriaBuilder.build())
-                .stream()
-                .filter(event -> node.id().equals(event.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue())))
-                .map(
-                    event -> {
-                        eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(event));
-                        return event.getId();
-                    }
-                )
-                .collect(Collectors.toList());
-            logger.debug("{} debug apis synchronized in {}ms", events.size(), (System.currentTimeMillis() - start));
+                List<String> events = eventRepository
+                    .search(criteriaBuilder.build())
+                    .stream()
+                    .filter(event -> node.id().equals(event.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue())))
+                    .map(
+                        event -> {
+                            eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(event));
+                            return event.getId();
+                        }
+                    )
+                    .collect(Collectors.toList());
+                logger.debug("{} debug apis synchronized in {}ms", events.size(), (System.currentTimeMillis() - start));
+            }
         }
     }
 }

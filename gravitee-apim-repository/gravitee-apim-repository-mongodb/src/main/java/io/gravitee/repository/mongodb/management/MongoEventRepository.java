@@ -101,6 +101,18 @@ public class MongoEventRepository implements EventRepository {
     }
 
     @Override
+    public Event createOrPatch(Event event) throws TechnicalException {
+        if (event == null || event.getId() == null || event.getType() == null) {
+            throw new IllegalStateException("Event to create or update must have an id and a type");
+        }
+
+        if (internalEventRepo.existsById(event.getId())) {
+            return internalEventRepo.patch(event);
+        }
+        return create(event);
+    }
+
+    @Override
     public void delete(String id) throws TechnicalException {
         try {
             internalEventRepo.deleteById(id);

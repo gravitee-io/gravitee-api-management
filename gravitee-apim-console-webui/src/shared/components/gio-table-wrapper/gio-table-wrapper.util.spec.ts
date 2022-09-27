@@ -36,7 +36,10 @@ describe('gioTableFilterCollection', () => {
   it('should return all collection without filter', () => {
     const collectionFiltered = gioTableFilterCollection(ELEMENT_DATA, {});
 
-    expect(collectionFiltered).toEqual(ELEMENT_DATA);
+    expect(collectionFiltered).toEqual({
+      unpaginatedLength: ELEMENT_DATA.length,
+      filteredCollection: ELEMENT_DATA,
+    });
   });
 
   it('should filter by pagination', () => {
@@ -47,7 +50,7 @@ describe('gioTableFilterCollection', () => {
       },
     });
 
-    expect(collectionFilteredPage1).toEqual([ELEMENT_DATA[0], ELEMENT_DATA[1]]);
+    expect(collectionFilteredPage1).toEqual({ unpaginatedLength: 10, filteredCollection: [ELEMENT_DATA[0], ELEMENT_DATA[1]] });
 
     const collectionFilteredPage2 = gioTableFilterCollection(ELEMENT_DATA, {
       pagination: {
@@ -56,7 +59,7 @@ describe('gioTableFilterCollection', () => {
       },
     });
 
-    expect(collectionFilteredPage2).toEqual([ELEMENT_DATA[2], ELEMENT_DATA[3]]);
+    expect(collectionFilteredPage2).toEqual({ unpaginatedLength: 10, filteredCollection: [ELEMENT_DATA[2], ELEMENT_DATA[3]] });
   });
 
   it('should filter by searchTerm in any key', () => {
@@ -64,13 +67,13 @@ describe('gioTableFilterCollection', () => {
       searchTerm: 'Be',
     });
 
-    expect(collectionFiltered1).toEqual([ELEMENT_DATA[3]]);
+    expect(collectionFiltered1).toEqual({ unpaginatedLength: 1, filteredCollection: [ELEMENT_DATA[3]] });
 
     const collectionFiltered2 = gioTableFilterCollection(ELEMENT_DATA, {
       searchTerm: '.99',
     });
 
-    expect(collectionFiltered2).toEqual([ELEMENT_DATA[7], ELEMENT_DATA[8]]);
+    expect(collectionFiltered2).toEqual({ unpaginatedLength: 2, filteredCollection: [ELEMENT_DATA[7], ELEMENT_DATA[8]] });
   });
 
   it('should filter by searchTerm with searchTermIgnoreKeys', () => {
@@ -82,7 +85,7 @@ describe('gioTableFilterCollection', () => {
       { searchTermIgnoreKeys: ['weight'] },
     );
 
-    expect(collectionFiltered).toEqual([ELEMENT_DATA[3]]);
+    expect(collectionFiltered).toEqual({ unpaginatedLength: 1, filteredCollection: [ELEMENT_DATA[3]] });
   });
 
   it('should sort by name asc', () => {
@@ -93,7 +96,7 @@ describe('gioTableFilterCollection', () => {
       },
     });
 
-    expect(collectionSorted).toEqual(sortBy(ELEMENT_DATA, 'name'));
+    expect(collectionSorted.filteredCollection).toEqual(sortBy(ELEMENT_DATA, 'name'));
   });
 
   it('should sort by symbol desc', () => {
@@ -104,7 +107,7 @@ describe('gioTableFilterCollection', () => {
       },
     });
 
-    expect(collectionSorted).toEqual(sortBy(ELEMENT_DATA, 'symbol').reverse());
+    expect(collectionSorted.filteredCollection).toEqual(sortBy(ELEMENT_DATA, 'symbol').reverse());
   });
 
   describe('toSort', () => {

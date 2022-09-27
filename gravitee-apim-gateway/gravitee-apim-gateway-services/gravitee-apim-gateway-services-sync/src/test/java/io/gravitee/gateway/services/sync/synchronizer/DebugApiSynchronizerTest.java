@@ -24,6 +24,11 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.plugin.core.internal.PluginDependencyImpl;
+import io.gravitee.plugin.core.internal.PluginImpl;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
@@ -47,8 +52,7 @@ public class DebugApiSynchronizerTest extends TestCase {
 
     private static final String GATEWAY_ID = "gateway-id";
 
-    @InjectMocks
-    private DebugApiSynchronizer debugApiSynchronizer = new DebugApiSynchronizer();
+    private DebugApiSynchronizer debugApiSynchronizer;
 
     @Mock
     private EventRepository eventRepository;
@@ -59,10 +63,23 @@ public class DebugApiSynchronizerTest extends TestCase {
     @Mock
     private Node node;
 
+    @Mock
+    private PluginRegistry pluginRegistry;
+
+    @Mock
+    private Configuration configuration;
+
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
 
     @Before
     public void setup() {
+        Plugin debugPlugin = mock(Plugin.class);
+        when(debugPlugin.id()).thenReturn("gateway-debug");
+        when(pluginRegistry.plugins()).thenReturn((Collection) List.of(debugPlugin));
+        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
+
+        debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
+        debugApiSynchronizer.eventRepository = eventRepository;
         debugApiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
         when(node.id()).thenReturn(GATEWAY_ID);
     }
@@ -97,6 +114,28 @@ public class DebugApiSynchronizerTest extends TestCase {
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(eventManager, times(1)).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
+    }
+
+    @Test
+    public void shouldNotSyncIfDebugModeServiceIsDisabled() {
+        when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(false);
+        debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
+
+        debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+        verify(eventRepository, never()).search(any());
+        verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
+    }
+
+    @Test
+    public void shouldNotSyncIfDebugModePluginIsAbsent() {
+        when(pluginRegistry.plugins()).thenReturn((Collection) List.of());
+        debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
+
+        debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+        verify(eventRepository, never()).search(any());
+        verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
     }
 
     private Event mockEvent(final Api api, EventType eventType) {
