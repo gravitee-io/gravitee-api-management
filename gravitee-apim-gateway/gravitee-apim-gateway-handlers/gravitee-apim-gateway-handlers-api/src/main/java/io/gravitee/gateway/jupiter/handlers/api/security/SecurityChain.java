@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static io.reactivex.Completable.defer;
 
 import io.gravitee.definition.model.Api;
@@ -102,6 +103,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                         .any(Boolean::booleanValue)
                         .flatMapCompletable(
                             securityHandled -> {
+                                ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
                                 if (Boolean.FALSE.equals(securityHandled)) {
                                     return ctx.interruptWith(
                                         new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
