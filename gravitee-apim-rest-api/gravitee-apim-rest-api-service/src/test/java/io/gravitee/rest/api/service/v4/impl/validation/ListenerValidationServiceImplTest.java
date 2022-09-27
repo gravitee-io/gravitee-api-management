@@ -19,25 +19,34 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingTypeException;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -116,6 +125,7 @@ public class ListenerValidationServiceImplTest {
         entrypoint.setType("type");
         httpListener.setEntrypoints(List.of(entrypoint));
         List<Listener> listeners = List.of(httpListener);
+        when(entrypointService.findById("type")).thenReturn(mock(ConnectorPluginEntity.class));
         // When
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -135,7 +145,38 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowMissingPathExceptionWithDuplicatedType() {
+    public void shouldReturnValidatedListenersWithQosValidation() {
+        // Given
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        httpListener.setEntrypoints(List.of(entrypoint));
+        List<Listener> listeners = List.of(httpListener);
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.BALANCED));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        // When
+        List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            listeners
+        );
+        // Then
+        assertThat(validatedListeners).isNotNull();
+        assertThat(validatedListeners.size()).isEqualTo(1);
+        Listener actual = validatedListeners.get(0);
+        assertThat(actual).isInstanceOf(HttpListener.class);
+        HttpListener actualHttpListener = (HttpListener) actual;
+        assertThat(actualHttpListener.getPaths().size()).isEqualTo(1);
+        Path path = actualHttpListener.getPaths().get(0);
+        assertThat(path.getHost()).isNull();
+        assertThat(path.getPath()).isEqualTo("/path/");
+    }
+
+    @Test
+    public void shouldThrowMissingPathExceptionWithoutPath() {
         // Given
         HttpListener httpListener = new HttpListener();
         // When
@@ -146,25 +187,156 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowMissingEntrypointExceptionWithDuplicatedType() {
+    public void shouldThrowMissingEntrypointExceptionWithoutEntrypoints() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/path")));
         // When
-        assertThatExceptionOfType(HttpListenerEntrypointMissingException.class)
+        assertThatExceptionOfType(ListenerEntrypointMissingException.class)
             .isThrownBy(
                 () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
     @Test
-    public void shouldThrowMissingEntrypointTypeExceptionWithDuplicatedType() {
+    public void shouldThrowMissingEntrypointTypeExceptionWithNoType() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/path")));
         httpListener.setEntrypoints(List.of(new Entrypoint()));
         // When
-        assertThatExceptionOfType(HttpListenerEntrypointMissingTypeException.class)
+        assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
+            .isThrownBy(
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            );
+    }
+
+    @Test
+    public void shouldThrowDuplicatedEntrypointsExceptionWithDuplicated() {
+        // Given
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        httpListener.setEntrypoints(List.of(entrypoint, entrypoint));
+        // When
+        assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
+            .isThrownBy(
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            );
+    }
+
+    @Test
+    public void shouldReturnValidatedSubscriptionListeners() {
+        // Given
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+        List<Listener> listeners = List.of(subscriptionListener);
+
+        when(entrypointService.findById("type")).thenReturn(mock(ConnectorPluginEntity.class));
+        // When
+        List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            listeners
+        );
+        // Then
+        assertThat(validatedListeners).isNotNull();
+        assertThat(validatedListeners.size()).isEqualTo(1);
+        Listener actual = validatedListeners.get(0);
+        assertThat(actual).isInstanceOf(SubscriptionListener.class);
+    }
+
+    @Test
+    public void shouldThrowMissingEntrypointExceptionWithoutEntrypointsOnSubscriptionListener() {
+        // Given
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        // When
+        assertThatExceptionOfType(ListenerEntrypointMissingException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(subscriptionListener)
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowMissingEntrypointTypeExceptionWithNotTypeOnSubscriptionListener() {
+        // Given
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+
+        // When
+        assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(subscriptionListener)
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowDuplicatedEntrypointsExceptionWithDuplicatedOnSubscriptionListener() {
+        // Given
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        subscriptionListener.setEntrypoints(List.of(entrypoint, entrypoint));
+
+        // When
+        assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(subscriptionListener)
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowInvalidQosExceptionWithNAQos() {
+        // Given
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.NA);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        // When
+        assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
+            .isThrownBy(
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            );
+    }
+
+    @Test
+    public void shouldThrowUnsupportedQosExceptionWithWrongQos() {
+        // Given
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.AT_BEST);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        // When
+        assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)
             .isThrownBy(
                 () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );

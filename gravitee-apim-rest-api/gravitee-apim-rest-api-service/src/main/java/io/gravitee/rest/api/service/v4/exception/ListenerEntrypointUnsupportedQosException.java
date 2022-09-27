@@ -19,12 +19,18 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.util.Collections;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpListenerEntrypointMissingTypeException extends AbstractManagementException {
+
+@RequiredArgsConstructor
+public class ListenerEntrypointUnsupportedQosException extends AbstractManagementException {
+
+    private final String type;
+    private final String unsupportedQos;
 
     @Override
     public int getHttpStatusCode() {
@@ -33,7 +39,7 @@ public class HttpListenerEntrypointMissingTypeException extends AbstractManageme
 
     @Override
     public String getTechnicalCode() {
-        return "listeners.http.entrypoints.type.missing";
+        return "listeners.entrypoints.qos.unsupported";
     }
 
     @Override
@@ -43,6 +49,6 @@ public class HttpListenerEntrypointMissingTypeException extends AbstractManageme
 
     @Override
     public String getMessage() {
-        return "The entrypoint type cannot be null or empty.";
+        return "The entrypoint [" + type + "] doesn't support given qos [" + unsupportedQos + "].";
     }
 }

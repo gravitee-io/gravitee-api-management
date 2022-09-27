@@ -15,11 +15,17 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
 import io.reactivex.Completable;
 
@@ -30,6 +36,7 @@ import io.reactivex.Completable;
 public class EndpointInvoker implements Invoker {
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
+    public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
 
     private final DefaultEndpointConnectorResolver endpointResolver;
 
@@ -49,6 +56,19 @@ public class EndpointInvoker implements Invoker {
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(NO_ENDPOINT_FOUND_KEY).message("No endpoint available")
             );
+        }
+
+        if (endpointConnector.supportedApi() == ApiType.ASYNC) {
+            EndpointAsyncConnector endpointAsyncConnector = (EndpointAsyncConnector) endpointConnector;
+            EntrypointAsyncConnector entrypointAsyncConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+            Qos qos = entrypointAsyncConnector.qosOptions().getQos();
+            if (qos != Qos.NA && !endpointAsyncConnector.supportedQos().contains(qos)) {
+                return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                        .key(INCOMPATIBLE_QOS_KEY)
+                        .message("Incompatible Qos between entrypoint and endpoint")
+                );
+            }
         }
 
         return endpointConnector.connect(ctx);

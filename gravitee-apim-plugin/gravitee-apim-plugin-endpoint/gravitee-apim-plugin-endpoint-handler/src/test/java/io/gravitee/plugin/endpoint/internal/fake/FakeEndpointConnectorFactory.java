@@ -15,23 +15,26 @@
  */
 package io.gravitee.plugin.endpoint.internal.fake;
 
+import static io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector.SUPPORTED_QOS;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
-public class FakeEndpointConnectorFactory implements EndpointConnectorFactory<FakeEndpointConnector> {
-
-    @Override
-    public ApiType supportedApi() {
-        return FakeEndpointConnector.SUPPORTED_API;
-    }
+public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -39,7 +42,7 @@ public class FakeEndpointConnectorFactory implements EndpointConnectorFactory<Fa
     }
 
     @Override
-    public FakeEndpointConnector createConnector(final String configuration) {
+    public EndpointAsyncConnector createConnector(final String configuration) {
         FakeEndpointConnector.FakeEndpointConnectorBuilder builder = FakeEndpointConnector.builder();
         if (configuration != null) {
             try {
@@ -50,5 +53,10 @@ public class FakeEndpointConnectorFactory implements EndpointConnectorFactory<Fa
         }
 
         return builder.build();
+    }
+
+    @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
     }
 }

@@ -28,6 +28,8 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -61,8 +63,18 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     static final String CURSOR_QUERY_PARAM = "cursor";
     static final String LIMIT_QUERY_PARAM = "limit";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     private static final String ENTRYPOINT_ID = "http-get";
-    protected final HttpGetEntrypointConnectorConfiguration configuration;
+    private final QosOptions qosOptions;
+    protected HttpGetEntrypointConnectorConfiguration configuration;
+
+    public HttpGetEntrypointConnector(final Qos qos, final HttpGetEntrypointConnectorConfiguration configuration) {
+        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(true).manualAckSupported(false).build();
+        this.configuration = configuration;
+        if (this.configuration == null) {
+            this.configuration = new HttpGetEntrypointConnectorConfiguration();
+        }
+    }
 
     @Override
     public String id() {
@@ -80,6 +92,11 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
     public int matchCriteriaCount() {
         return 1;
     }
@@ -87,6 +104,11 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     @Override
     public boolean matches(final ExecutionContext ctx) {
         return (HttpMethod.GET == ctx.request().method());
+    }
+
+    @Override
+    public QosOptions qosOptions() {
+        return qosOptions;
     }
 
     @Override
@@ -125,7 +147,7 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
                 if (ctx.request().parameters().containsKey(CURSOR_QUERY_PARAM)) {
                     String cursor = ctx.request().parameters().getFirst(CURSOR_QUERY_PARAM);
                     if (cursor != null && !cursor.isEmpty()) {
-                        ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, cursor);
+                        ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID, cursor);
                     }
                 }
 
@@ -260,7 +282,9 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     private Buffer toJsonBuffer(Message message, boolean isFirstElement) {
         JsonObject jsonMessage = new JsonObject();
 
-        jsonMessage.put("id", message.id());
+        if (message.id() != null) {
+            jsonMessage.put("id", message.id());
+        }
         jsonMessage.put("content", message.content().toString());
 
         if (configuration.isHeadersInPayload()) {
@@ -283,7 +307,9 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
         messageBuilder.append(type);
         messageBuilder.append(">");
 
-        messageBuilder.append("<id>").append(message.id()).append("</id>");
+        if (message.id() != null) {
+            messageBuilder.append("<id>").append(message.id()).append("</id>");
+        }
         messageBuilder.append("<content><![CDATA[").append(message.content().toString()).append("]]></content>");
 
         if (configuration.isHeadersInPayload()) {
@@ -327,9 +353,11 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
         }
         messageBuilder.append(type);
         messageBuilder.append("\n");
-        messageBuilder.append("id: ");
-        messageBuilder.append(message.id());
-        messageBuilder.append("\n");
+        if (message.id() != null) {
+            messageBuilder.append("id: ");
+            messageBuilder.append(message.id());
+            messageBuilder.append("\n");
+        }
         messageBuilder.append("content: ");
         messageBuilder.append(message.content());
         messageBuilder.append("\n");
@@ -351,49 +379,38 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     private Flowable<Buffer> computePagination(ExecutionContext ctx, String contentType) {
         return Flowable.defer(
             () -> {
-                String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
-                String currentCursor = ctx.request().parameters().getFirst(CURSOR_QUERY_PARAM);
                 String nextCursor = ctx.getInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID);
+                if (nextCursor != null && !nextCursor.isEmpty()) {
+                    String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
 
-                if (contentType.equals(MediaType.APPLICATION_JSON)) {
-                    List<String> paginationString = new ArrayList<>();
-                    if (currentCursor != null && !currentCursor.isEmpty()) {
-                        paginationString.add("\"cursor\":\"" + currentCursor + "\"");
-                    }
-                    if (nextCursor != null && !nextCursor.isEmpty()) {
+                    if (contentType.equals(MediaType.APPLICATION_JSON)) {
+                        List<String> paginationString = new ArrayList<>();
                         paginationString.add("\"nextCursor\":\"" + nextCursor + "\"");
-                    }
-                    if (limit != null && !limit.isEmpty()) {
-                        paginationString.add("\"limit\":\"" + limit + "\"");
-                    }
-                    return Flowable.just(Buffer.buffer(",\"pagination\":{" + String.join(",", paginationString) + "}"));
-                } else if (contentType.equals(MediaType.APPLICATION_XML)) {
-                    StringBuilder paginationString = new StringBuilder("<pagination>");
-                    if (currentCursor != null && !currentCursor.isEmpty()) {
-                        paginationString.append("<cursor>").append(currentCursor).append("</cursor>");
-                    }
-                    if (nextCursor != null && !nextCursor.isEmpty()) {
+                        if (limit != null && !limit.isEmpty()) {
+                            paginationString.add("\"limit\":\"" + limit + "\"");
+                        }
+                        return Flowable.just(Buffer.buffer(",\"pagination\":{" + String.join(",", paginationString) + "}"));
+                    } else if (contentType.equals(MediaType.APPLICATION_XML)) {
+                        StringBuilder paginationString = new StringBuilder("<pagination>");
                         paginationString.append("<nextCursor>").append(nextCursor).append("</nextCursor>");
+                        if (limit != null && !limit.isEmpty()) {
+                            paginationString.append("<limit>").append(limit).append("</limit>");
+                        }
+                        paginationString.append("</pagination>");
+                        return Flowable.just(Buffer.buffer(paginationString.toString()));
+                    } else {
+                        StringBuilder paginationBuilder = new StringBuilder();
+                        paginationBuilder.append("\npagination");
+                        if (nextCursor != null && !nextCursor.isEmpty()) {
+                            paginationBuilder.append("\nnextCursor: ").append(nextCursor);
+                        }
+                        if (limit != null && !limit.isEmpty()) {
+                            paginationBuilder.append("\nlimit: ").append(limit);
+                        }
+                        return Flowable.just(Buffer.buffer(paginationBuilder.toString()));
                     }
-                    if (limit != null && !limit.isEmpty()) {
-                        paginationString.append("<limit>").append(limit).append("</limit>");
-                    }
-                    paginationString.append("</pagination>");
-                    return Flowable.just(Buffer.buffer(paginationString.toString()));
-                } else {
-                    StringBuilder paginationBuilder = new StringBuilder();
-                    paginationBuilder.append("\npagination");
-                    if (currentCursor != null && !currentCursor.isEmpty()) {
-                        paginationBuilder.append("\ncursor: ").append(currentCursor);
-                    }
-                    if (nextCursor != null && !nextCursor.isEmpty()) {
-                        paginationBuilder.append("\nnextCursor: ").append(nextCursor);
-                    }
-                    if (limit != null && !limit.isEmpty()) {
-                        paginationBuilder.append("\nlimit: ").append(limit);
-                    }
-                    return Flowable.just(Buffer.buffer(paginationBuilder.toString()));
                 }
+                return Flowable.empty();
             }
         );
     }

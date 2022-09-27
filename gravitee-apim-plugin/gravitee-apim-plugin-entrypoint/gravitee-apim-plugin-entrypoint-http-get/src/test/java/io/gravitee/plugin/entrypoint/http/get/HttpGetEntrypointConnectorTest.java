@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -38,6 +40,7 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
@@ -55,6 +58,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -73,7 +77,7 @@ class HttpGetEntrypointConnectorTest {
     @Mock
     private Response response;
 
-    @Mock
+    @Spy
     private HttpGetEntrypointConnectorConfiguration configuration = new HttpGetEntrypointConnectorConfiguration();
 
     @Captor
@@ -83,7 +87,7 @@ class HttpGetEntrypointConnectorTest {
 
     @BeforeEach
     void beforeEach() {
-        cut = new HttpGetEntrypointConnector(configuration);
+        cut = new HttpGetEntrypointConnector(Qos.NONE, configuration);
         lenient().when(configuration.isHeadersInPayload()).thenReturn(true);
         lenient().when(configuration.isMetadataInPayload()).thenReturn(true);
     }
@@ -106,6 +110,11 @@ class HttpGetEntrypointConnectorTest {
     @Test
     void shouldSupportSubscribeModeOnly() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
+    }
+
+    @Test
+    void shouldSupportQos() {
+        assertThat(cut.supportedQos()).containsOnly(Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     }
 
     @Test
@@ -182,7 +191,7 @@ class HttpGetEntrypointConnectorTest {
                 Math.min(messagesLimitCount, Integer.parseInt(limitQueryParam))
             );
         verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS, 1_000L);
-        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, "1234");
+        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID, "1234");
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
     }
 
@@ -190,10 +199,6 @@ class HttpGetEntrypointConnectorTest {
     void shouldCompleteAndEndWhenResponseMessagesComplete() {
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
-
-        LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        when(request.parameters()).thenReturn(queryParams);
-        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
         when(response.headers()).thenReturn(httpHeaders);
@@ -211,11 +216,10 @@ class HttpGetEntrypointConnectorTest {
 
         chunkObs
             .assertComplete()
-            .assertValueCount(4)
+            .assertValueCount(3)
             .assertValueAt(0, message -> message.toString().equals("{\"items\":["))
             .assertValueAt(1, message -> message.toString().equals("]"))
-            .assertValueAt(2, message -> message.toString().equals(",\"pagination\":{}"))
-            .assertValueAt(3, message -> message.toString().equals("}"));
+            .assertValueAt(2, message -> message.toString().equals("}"));
     }
 
     @ParameterizedTest
@@ -282,10 +286,7 @@ class HttpGetEntrypointConnectorTest {
                         : message.toString().equals(",{\"id\":\"2\",\"content\":\"2\"}")
             )
             .assertValueAt(3, message -> message.toString().equals("]"))
-            .assertValueAt(
-                4,
-                message -> message.toString().equals(",\"pagination\":{\"cursor\":\"0\",\"nextCursor\":\"2\",\"limit\":\"2\"}")
-            )
+            .assertValueAt(4, message -> message.toString().equals(",\"pagination\":{\"nextCursor\":\"2\",\"limit\":\"2\"}"))
             .assertValueAt(5, message -> message.toString().equals("}"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
@@ -355,11 +356,7 @@ class HttpGetEntrypointConnectorTest {
                         : message.toString().equals("<item><id>2</id><content><![CDATA[2]]></content></item>")
             )
             .assertValueAt(3, message -> message.toString().equals("</items>"))
-            .assertValueAt(
-                4,
-                message ->
-                    message.toString().equals("<pagination><cursor>0</cursor><nextCursor>2</nextCursor><limit>2</limit></pagination>")
-            )
+            .assertValueAt(4, message -> message.toString().equals("<pagination><nextCursor>2</nextCursor><limit>2</limit></pagination>"))
             .assertValueAt(5, message -> message.toString().equals("</response>"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
@@ -439,7 +436,7 @@ class HttpGetEntrypointConnectorTest {
                             )
                         : message.toString().equals("\nitem\n" + "id: 2\n" + "content: 2\n")
             )
-            .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
+            .assertValueAt(3, message -> message.toString().equals("\npagination\nnextCursor: 2\nlimit: 2"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
     }
@@ -510,10 +507,7 @@ class HttpGetEntrypointConnectorTest {
                             )
                         : message.toString().equals("{\"id\":\"2\",\"content\":\"2\"}")
             )
-            .assertValueAt(
-                5,
-                message -> message.toString().equals(",\"pagination\":{\"cursor\":\"0\",\"nextCursor\":\"2\",\"limit\":\"2\"}")
-            )
+            .assertValueAt(5, message -> message.toString().equals(",\"pagination\":{\"nextCursor\":\"2\",\"limit\":\"2\"}"))
             .assertValueAt(6, message -> message.toString().equals("}"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
@@ -584,11 +578,7 @@ class HttpGetEntrypointConnectorTest {
                             )
                         : message.toString().equals("<error><id>2</id><content><![CDATA[2]]></content></error>")
             )
-            .assertValueAt(
-                4,
-                message ->
-                    message.toString().equals("<pagination><cursor>0</cursor><nextCursor>2</nextCursor><limit>2</limit></pagination>")
-            )
+            .assertValueAt(4, message -> message.toString().equals("<pagination><nextCursor>2</nextCursor><limit>2</limit></pagination>"))
             .assertValueAt(5, message -> message.toString().equals("</response>"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
@@ -668,7 +658,7 @@ class HttpGetEntrypointConnectorTest {
                             )
                         : message.toString().equals("\nerror\nid: 2\ncontent: 2\n")
             )
-            .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
+            .assertValueAt(3, message -> message.toString().equals("\npagination\nnextCursor: 2\nlimit: 2"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
     }
@@ -678,8 +668,6 @@ class HttpGetEntrypointConnectorTest {
         final TestScheduler testScheduler = new TestScheduler();
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
-        when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
-        when(ctx.request()).thenReturn(request);
         when(response.headers()).thenReturn(HttpHeaders.create());
         when(response.messages())
             .thenReturn(

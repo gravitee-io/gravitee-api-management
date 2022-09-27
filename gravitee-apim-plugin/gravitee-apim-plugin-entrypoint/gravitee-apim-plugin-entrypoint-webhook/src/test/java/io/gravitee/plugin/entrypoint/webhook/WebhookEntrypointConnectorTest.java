@@ -38,6 +38,7 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -111,7 +112,7 @@ class WebhookEntrypointConnectorTest {
             .thenReturn(configuration);
         lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
 
-        cut = new WebhookEntrypointConnector(configuration);
+        cut = new WebhookEntrypointConnector(Qos.NONE, configuration);
     }
 
     @Test
@@ -132,6 +133,11 @@ class WebhookEntrypointConnectorTest {
     @Test
     void shouldSupportSubscribeModeOnly() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
+    }
+
+    @Test
+    void shouldSupportQos() {
+        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     }
 
     @Test

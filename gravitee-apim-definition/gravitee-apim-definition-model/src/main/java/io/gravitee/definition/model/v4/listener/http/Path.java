@@ -43,15 +43,12 @@ public class Path implements Serializable {
 
     public static final String DEFAULT_PATH = "/";
 
-    @JsonProperty("host")
     private String host;
 
-    @JsonProperty("path")
     @NotBlank
     private String path = DEFAULT_PATH;
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    @JsonProperty("overrideAccess")
     private boolean overrideAccess;
 
     public Path(final String path) {

@@ -15,13 +15,20 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
+import static io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector.SUPPORTED_API;
+import static io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector.SUPPORTED_MODES;
+import static io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector.SUPPORTED_QOS;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -31,20 +38,25 @@ import lombok.NoArgsConstructor;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-public class FakeEntrypointConnectorFactory implements EntrypointConnectorFactory<FakeEntrypointConnector> {
+public class FakeEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
 
     @Override
     public ApiType supportedApi() {
-        return ApiType.SYNC;
+        return SUPPORTED_API;
     }
 
     @Override
     public Set<ConnectorMode> supportedModes() {
-        return Set.of(ConnectorMode.REQUEST_RESPONSE);
+        return SUPPORTED_MODES;
     }
 
     @Override
-    public FakeEntrypointConnector createConnector(final String configuration) {
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
+    public FakeEntrypointConnector createConnector(final Qos qos, final String configuration) {
         FakeEntrypointConnector.FakeEntrypointConnectorBuilder builder = FakeEntrypointConnector.builder();
         if (configuration != null) {
             try {

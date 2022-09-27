@@ -15,15 +15,23 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
@@ -72,8 +80,10 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         case HTTP:
                             validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
                             break;
-                        case TCP:
                         case SUBSCRIPTION:
+                            validateAndSanitizeSubscriptionListener((SubscriptionListener) listener);
+                            break;
+                        case TCP:
                         default:
                             break;
                     }
@@ -103,31 +113,72 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         httpListener.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, httpListener.getPaths()));
         validatePathMappings(httpListener.getPathMappings());
         // Validate and clean entrypoints
-        validateEntrypointsConfiguration(httpListener.getEntrypoints());
+        validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints());
         // Validate and clean cors configuration
         httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
         // Validate and clean logging configuration
         httpListener.setLogging(loggingValidationService.validateAndSanitize(executionContext, httpListener.getLogging()));
     }
 
-    private void validateEntrypointsConfiguration(final List<Entrypoint> entrypoints) {
+    private void validateAndSanitizeSubscriptionListener(final SubscriptionListener subscriptionListener) {
+        // Validate and clean entrypoints
+        validateEntrypoints(subscriptionListener.getType(), subscriptionListener.getEntrypoints());
+    }
+
+    private void validateEntrypoints(final ListenerType type, final List<Entrypoint> entrypoints) {
         if (entrypoints == null || entrypoints.isEmpty()) {
-            throw new HttpListenerEntrypointMissingException();
+            throw new ListenerEntrypointMissingException(type);
         }
+        checkDuplicatedEntrypoints(type, entrypoints);
         entrypoints.forEach(
             entrypoint -> {
                 if (entrypoint.getType() == null) {
-                    throw new HttpListenerEntrypointMissingTypeException();
+                    throw new ListenerEntrypointMissingTypeException();
                 }
-                String entrypointConfiguration = null;
-                if (entrypoint.getConfiguration() != null) {
-                    entrypointConfiguration = entrypoint.getConfiguration();
-                }
-                entrypoint.setConfiguration(
-                    entrypointService.validateConnectorConfiguration(entrypoint.getType(), entrypointConfiguration)
-                );
+                checkEntrypointQos(entrypoint);
+                checkoutEntrypointConfiguration(entrypoint);
             }
         );
+    }
+
+    private void checkEntrypointQos(final Entrypoint entrypoint) {
+        ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
+        if (connectorPlugin.getSupportedApiType() == ApiType.ASYNC) {
+            if (entrypoint.getQos() == null || entrypoint.getQos() == Qos.NA) {
+                throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
+            }
+            if (connectorPlugin.getSupportedQos().contains(Qos.NA)) {
+                entrypoint.setQos(Qos.NA);
+            }
+            if (
+                connectorPlugin.getSupportedApiType() == ApiType.ASYNC &&
+                (connectorPlugin.getSupportedQos() == null || !connectorPlugin.getSupportedQos().contains(entrypoint.getQos()))
+            ) {
+                throw new ListenerEntrypointUnsupportedQosException(entrypoint.getType(), entrypoint.getQos().getLabel());
+            }
+        }
+    }
+
+    private void checkoutEntrypointConfiguration(final Entrypoint entrypoint) {
+        String entrypointConfiguration = null;
+        if (entrypoint.getConfiguration() != null) {
+            entrypointConfiguration = entrypoint.getConfiguration();
+        }
+        entrypoint.setConfiguration(entrypointService.validateConnectorConfiguration(entrypoint.getType(), entrypointConfiguration));
+    }
+
+    private void checkDuplicatedEntrypoints(final ListenerType type, final List<Entrypoint> entrypoints) {
+        if (entrypoints != null) {
+            Set<Entrypoint> seenEntrypoints = new HashSet<>();
+            Set<String> duplicatedEntrypoints = entrypoints
+                .stream()
+                .filter(e -> !seenEntrypoints.add(e))
+                .map(Entrypoint::getType)
+                .collect(Collectors.toSet());
+            if (!duplicatedEntrypoints.isEmpty()) {
+                throw new ListenerEntrypointDuplicatedException(type, duplicatedEntrypoints);
+            }
+        }
     }
 
     private void validatePathMappings(final Set<String> pathMappings) {

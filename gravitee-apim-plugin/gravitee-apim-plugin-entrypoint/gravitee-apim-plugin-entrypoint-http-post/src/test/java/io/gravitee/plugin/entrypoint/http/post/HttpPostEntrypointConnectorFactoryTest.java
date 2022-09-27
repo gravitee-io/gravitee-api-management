@@ -18,11 +18,9 @@ package io.gravitee.plugin.entrypoint.http.post;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
-import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnector;
-import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,19 +41,24 @@ class HttpPostEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportSubscribeMode() {
-        assertThat(httpPostEntrypointConnectorFactory.supportedModes()).contains(ConnectorMode.PUBLISH);
+        assertThat(httpPostEntrypointConnectorFactory.supportedModes()).containsOnly(ConnectorMode.PUBLISH);
+    }
+
+    @Test
+    void shouldSupportQos() {
+        assertThat(httpPostEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NA);
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  " })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
-        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(configuration);
+        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(null);
+        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(Qos.NONE, null);
         assertThat(connector).isNotNull();
     }
 }

@@ -15,10 +15,13 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.SUPPORTED_QOS;
+
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -40,9 +43,15 @@ public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConne
     }
 
     @Override
-    public WebSocketEntrypointConnector createConnector(final String configuration) {
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
+    public WebSocketEntrypointConnector createConnector(final Qos qos, final String configuration) {
         try {
             return new WebSocketEntrypointConnector(
+                qos,
                 connectorFactoryHelper.getConnectorConfiguration(WebSocketEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (Exception e) {

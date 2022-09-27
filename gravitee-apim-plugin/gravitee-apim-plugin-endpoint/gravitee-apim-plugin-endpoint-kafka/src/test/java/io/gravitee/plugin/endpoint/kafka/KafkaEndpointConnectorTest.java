@@ -26,28 +26,26 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumer;
-import io.gravitee.plugin.endpoint.kafka.vertx.client.consumer.KafkaConsumerRecord;
-import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducer;
-import io.gravitee.plugin.endpoint.kafka.vertx.client.producer.KafkaProducerRecord;
+import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.kafka.client.producer.RecordMetadata;
 import io.vertx.reactivex.core.Vertx;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -59,6 +57,8 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -77,14 +77,21 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.testcontainers.utility.DockerImageName;
+import reactor.core.publisher.Flux;
+import reactor.kafka.receiver.KafkaReceiver;
+import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.receiver.ReceiverPartition;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderOptions;
+import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
+import reactor.test.StepVerifier;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(VertxExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
 class KafkaEndpointConnectorTest {
 
@@ -92,7 +99,6 @@ class KafkaEndpointConnectorTest {
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
 
     private final KafkaEndpointConnectorConfiguration configuration = new KafkaEndpointConnectorConfiguration();
-    Vertx vertx = Vertx.vertx();
 
     @Captor
     ArgumentCaptor<Flowable<Message>> messagesCaptor;
@@ -113,19 +119,19 @@ class KafkaEndpointConnectorTest {
     private Request request;
 
     @Mock
-    private EntrypointConnector entrypointConnector;
+    private EntrypointAsyncConnector entrypointAsyncConnector;
 
     @BeforeEach
     public void beforeEach() throws ExecutionException, InterruptedException, TimeoutException {
         topicId = UUID.randomUUID().toString();
         configuration.setBootstrapServers(kafka.getBootstrapServers());
         configuration.setTopics(Set.of(topicId));
-        kafkaEndpointConnector = new KafkaEndpointConnector(configuration);
-        lenient().when(ctx.getComponent(any(Class.class))).thenReturn(vertx.getDelegate());
+        kafkaEndpointConnector = new KafkaEndpointConnector(configuration, new DefaultQosStrategyFactory());
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.request()).thenReturn(request);
-        lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
-        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        lenient().when(entrypointAsyncConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
+        lenient().when(entrypointAsyncConnector.qosOptions()).thenReturn(QosOptions.builder().build());
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
 
         AdminClient adminClient = AdminClient.create(
             ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
@@ -166,28 +172,24 @@ class KafkaEndpointConnectorTest {
         messageTestSubscriber.awaitTerminalEvent();
         messageTestSubscriber.assertComplete();
 
-        Map<String, String> config = new HashMap<>();
+        Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         config.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        KafkaConsumer<String, byte[]> kafkaConsumer = KafkaConsumer.create(vertx, config);
-        io.vertx.kafka.client.common.TopicPartition topicPartition = new io.vertx.kafka.client.common.TopicPartition(topicId, 0);
-        TestSubscriber<KafkaConsumerRecord<String, byte[]>> testSubscriber = kafkaConsumer
-            .assign(topicPartition)
-            .rxSeekToBeginning(topicPartition)
-            .andThen(kafkaConsumer.toFlowable())
-            .take(1)
-            .test();
-        testSubscriber.awaitTerminalEvent(10, TimeUnit.SECONDS);
-        testSubscriber.assertValueCount(1);
-        kafkaConsumer.close();
+        TopicPartition topicPartition = new TopicPartition(topicId, 0);
+        ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
+            .<String, byte[]>create(config)
+            .assignment(List.of(topicPartition))
+            .addAssignListener(receiverPartitions -> receiverPartitions.forEach(ReceiverPartition::seekToBeginning));
+
+        StepVerifier.create(KafkaReceiver.create(receiverOptions).receive().take(1)).expectNextCount(1).expectComplete().verify();
     }
 
     @Test
-    void shouldConsumeKafkaMessages() {
+    void shouldConsumeKafkaMessagesWithDefaultQos() {
         configuration.getProducer().setEnabled(false);
         configuration.getConsumer().setAutoOffsetReset("earliest");
 
@@ -200,22 +202,18 @@ class KafkaEndpointConnectorTest {
 
         TestSubscriber<Message> testSubscriber = messageFlowable.take(1).test();
 
-        Map<String, String> config = new HashMap<>();
+        Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        KafkaProducer<String, byte[]> producer = KafkaProducer.create(vertx, config);
-        RecordMetadata publishMetadata = producer
-            .rxSend(KafkaProducerRecord.create(topicId, "key", Buffer.buffer("message").getBytes()))
-            .blockingGet();
-        producer.close();
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+
+        SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
+        KafkaSender<String, byte[]> kafkaSender = KafkaSender.create(senderOptions);
+        ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topicId, "key", Buffer.buffer("message").getBytes());
+        kafkaSender.send(Flux.just(SenderRecord.create(producerRecord, null))).blockFirst();
 
         testSubscriber.awaitTerminalEvent(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
-        testSubscriber.assertValue(
-            message ->
-                message.content().toString().equals("message") &&
-                message.id().equals("key-" + publishMetadata.getPartition() + "-" + publishMetadata.getOffset())
-        );
+        testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
     }
 }
