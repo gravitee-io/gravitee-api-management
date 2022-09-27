@@ -35,7 +35,7 @@ import type {
   ApiRequest,
   ApiRequestItemSearchLogResponse,
   ApiStateEntity,
-  ApplicationEntity,
+  ApplicationListItem,
   AuditType,
   DebugApiEntity,
   DuplicateApiEntity,
@@ -140,8 +140,8 @@ import {
     ApiRequestItemSearchLogResponseToJSON,
     ApiStateEntityFromJSON,
     ApiStateEntityToJSON,
-    ApplicationEntityFromJSON,
-    ApplicationEntityToJSON,
+    ApplicationListItemFromJSON,
+    ApplicationListItemToJSON,
     AuditTypeFromJSON,
     AuditTypeToJSON,
     DebugApiEntityFromJSON,
@@ -850,6 +850,10 @@ export interface GetApiRatingSummaryByApiRequest {
 }
 
 export interface GetApiSubscribersRequest {
+    query?: string;
+    exclude?: Array<GetApiSubscribersExcludeEnum>;
+    size?: number;
+    page?: number;
     api: string;
     envId: string;
     orgId: string;
@@ -889,6 +893,7 @@ export interface GetApisRequest {
     tag?: string;
     portal?: boolean;
     crossId?: string;
+    ids?: Array<string>;
     envId: string;
     orgId: string;
 }
@@ -907,6 +912,7 @@ export interface GetApisPagedRequest {
     tag?: string;
     portal?: boolean;
     crossId?: string;
+    ids?: Array<string>;
     size?: number;
     page?: number;
     envId: string;
@@ -5082,7 +5088,7 @@ export class APIsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationListItem>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiSubscribers.');
         }
@@ -5097,6 +5103,22 @@ export class APIsApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.query !== undefined) {
+            queryParameters['query'] = requestParameters.query;
+        }
+
+        if (requestParameters.exclude) {
+            queryParameters['exclude'] = requestParameters.exclude;
+        }
+
+        if (requestParameters.size !== undefined) {
+            queryParameters['size'] = requestParameters.size;
+        }
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -5109,14 +5131,14 @@ export class APIsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationListItemFromJSON));
     }
 
     /**
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribers(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+    async getApiSubscribers(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationListItem>> {
         const response = await this.getApiSubscribersRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -5306,6 +5328,10 @@ export class APIsApi extends runtime.BaseAPI {
             queryParameters['crossId'] = requestParameters.crossId;
         }
 
+        if (requestParameters.ids) {
+            queryParameters['ids'] = requestParameters.ids;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -5395,6 +5421,10 @@ export class APIsApi extends runtime.BaseAPI {
 
         if (requestParameters.crossId !== undefined) {
             queryParameters['crossId'] = requestParameters.crossId;
+        }
+
+        if (requestParameters.ids) {
+            queryParameters['ids'] = requestParameters.ids;
         }
 
         if (requestParameters.size !== undefined) {
@@ -7679,6 +7709,14 @@ export class APIsApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const GetApiSubscribersExcludeEnum = {
+    PICTURE: 'PICTURE',
+    OWNER: 'OWNER'
+} as const;
+export type GetApiSubscribersExcludeEnum = typeof GetApiSubscribersExcludeEnum[keyof typeof GetApiSubscribersExcludeEnum];
 /**
  * @export
  */

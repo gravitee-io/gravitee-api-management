@@ -232,6 +232,8 @@ models/HttpDynamicPropertyProviderConfiguration.ts
 models/HttpDynamicPropertyProviderConfigurationAllOf.ts
 models/HttpHeader.ts
 models/HttpHeaders.ts
+models/HttpListenerV4.ts
+models/HttpListenerV4AllOf.ts
 models/HttpProxy.ts
 models/HttpRequest.ts
 models/HttpResponse.ts
@@ -257,11 +259,6 @@ models/JsonPatch.ts
 models/JupiterMode.ts
 models/KeyStore.ts
 models/LifecycleAction.ts
-models/HttpListenerV4.ts
-models/HttpListenerV4AllOf.ts
-models/SubscriptionListenerV4.ts
-models/SubscriptionListenerV4AllOf.ts
-models/TcpListenerV4.ts
 models/ListenerV4.ts
 models/LoadBalancer.ts
 models/LoadBalancerV4.ts
@@ -460,11 +457,13 @@ models/SubscribedApi.ts
 models/Subscription.ts
 models/SubscriptionEntity.ts
 models/SubscriptionEntityPageResult.ts
+models/SubscriptionListenerV4.ts
 models/SubscriptionStatus.ts
 models/TagEntity.ts
 models/TaskEntity.ts
 models/TaskEntityPagedResult.ts
 models/TaskType.ts
+models/TcpListenerV4.ts
 models/TenantEntity.ts
 models/Theme.ts
 models/ThemeComponentDefinition.ts

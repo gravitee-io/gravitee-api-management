@@ -360,6 +360,7 @@ export interface GetApplicationsRequest {
     group?: string;
     query?: string;
     status?: string;
+    ids?: Array<string>;
     exclude?: Array<GetApplicationsExcludeEnum>;
     envId: string;
     orgId: string;
@@ -369,6 +370,7 @@ export interface GetApplicationsPagedRequest {
     group?: string;
     query?: string;
     status?: string;
+    ids?: Array<string>;
     order?: string;
     size?: number;
     page?: number;
@@ -2147,6 +2149,10 @@ export class ApplicationsApi extends runtime.BaseAPI {
             queryParameters['status'] = requestParameters.status;
         }
 
+        if (requestParameters.ids) {
+            queryParameters['ids'] = requestParameters.ids;
+        }
+
         if (requestParameters.exclude) {
             queryParameters['exclude'] = requestParameters.exclude;
         }
@@ -2200,6 +2206,10 @@ export class ApplicationsApi extends runtime.BaseAPI {
 
         if (requestParameters.status !== undefined) {
             queryParameters['status'] = requestParameters.status;
+        }
+
+        if (requestParameters.ids) {
+            queryParameters['ids'] = requestParameters.ids;
         }
 
         if (requestParameters.order !== undefined) {

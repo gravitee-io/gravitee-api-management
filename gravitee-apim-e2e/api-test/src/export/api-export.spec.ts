@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
-import { forManagementAsAdminUser } from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { ApiEntity } from '@management-models/ApiEntity';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import {
+  ApiEntity,
+  ConsumerConsumerTypeEnum,
+  NewApiEntityFlowModeEnum,
+  PathOperatorOperatorEnum,
+} from '@gravitee/management-webclient-sdk/src/lib/models';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { noContent, succeed } from '@lib/jest-utils';
-import { NewApiEntityFlowModeEnum } from '@management-models/NewApiEntity';
-import { Flow } from '@management-models/Flow';
-import { ConsumerConsumerTypeEnum } from '@management-models/Consumer';
-import { PathOperatorOperatorEnum } from '@management-models/PathOperator';
+import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
+import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -71,7 +73,7 @@ describe('API - Exports', () => {
       enabled: true,
       methods: [],
       name: 'Flow',
-      path_operator: { operator: PathOperatorOperatorEnum.STARTSWITH, path: '' },
+      path_operator: { operator: PathOperatorOperatorEnum.STARTS_WITH, path: '' },
       post: [],
       pre: [],
     };
@@ -85,7 +87,7 @@ describe('API - Exports', () => {
         newApiEntity: ApisFaker.newApi({
           gravitee: '2.0.0',
           flows: [flow],
-          flow_mode: NewApiEntityFlowModeEnum.BESTMATCH,
+          flow_mode: NewApiEntityFlowModeEnum.BEST_MATCH,
         }),
       });
     });

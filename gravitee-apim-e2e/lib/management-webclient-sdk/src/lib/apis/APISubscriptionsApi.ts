@@ -15,7 +15,7 @@
 import * as runtime from '../runtime';
 import type {
   ApiKeyEntity,
-  ApplicationEntity,
+  ApplicationListItem,
   NewSubscriptionConfigurationEntity,
   ProcessSubscriptionEntity,
   Subscription,
@@ -27,8 +27,8 @@ import type {
 import {
     ApiKeyEntityFromJSON,
     ApiKeyEntityToJSON,
-    ApplicationEntityFromJSON,
-    ApplicationEntityToJSON,
+    ApplicationListItemFromJSON,
+    ApplicationListItemToJSON,
     NewSubscriptionConfigurationEntityFromJSON,
     NewSubscriptionConfigurationEntityToJSON,
     ProcessSubscriptionEntityFromJSON,
@@ -120,12 +120,20 @@ export interface GetApiKeysForApiSubscription1Request {
 }
 
 export interface GetApiSubscribersRequest {
+    query?: string;
+    exclude?: Array<GetApiSubscribersExcludeEnum>;
+    size?: number;
+    page?: number;
     api: string;
     envId: string;
     orgId: string;
 }
 
 export interface GetApiSubscribers1Request {
+    query?: string;
+    exclude?: Array<GetApiSubscribers1ExcludeEnum>;
+    size?: number;
+    page?: number;
     api: string;
     envId: string;
     orgId: string;
@@ -776,7 +784,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApiSubscribersRaw(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationListItem>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiSubscribers.');
         }
@@ -791,6 +799,22 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.query !== undefined) {
+            queryParameters['query'] = requestParameters.query;
+        }
+
+        if (requestParameters.exclude) {
+            queryParameters['exclude'] = requestParameters.exclude;
+        }
+
+        if (requestParameters.size !== undefined) {
+            queryParameters['size'] = requestParameters.size;
+        }
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -803,14 +827,14 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationListItemFromJSON));
     }
 
     /**
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribers(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+    async getApiSubscribers(requestParameters: GetApiSubscribersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationListItem>> {
         const response = await this.getApiSubscribersRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -819,7 +843,7 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribers1Raw(requestParameters: GetApiSubscribers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationEntity>>> {
+    async getApiSubscribers1Raw(requestParameters: GetApiSubscribers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ApplicationListItem>>> {
         if (requestParameters.api === null || requestParameters.api === undefined) {
             throw new runtime.RequiredError('api','Required parameter requestParameters.api was null or undefined when calling getApiSubscribers1.');
         }
@@ -834,6 +858,22 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.query !== undefined) {
+            queryParameters['query'] = requestParameters.query;
+        }
+
+        if (requestParameters.exclude) {
+            queryParameters['exclude'] = requestParameters.exclude;
+        }
+
+        if (requestParameters.size !== undefined) {
+            queryParameters['size'] = requestParameters.size;
+        }
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -846,14 +886,14 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationEntityFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApplicationListItemFromJSON));
     }
 
     /**
      * User must have the MANAGE_SUBSCRIPTIONS permission to use this service
      * List subscribers for the API
      */
-    async getApiSubscribers1(requestParameters: GetApiSubscribers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationEntity>> {
+    async getApiSubscribers1(requestParameters: GetApiSubscribers1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ApplicationListItem>> {
         const response = await this.getApiSubscribers1Raw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1956,6 +1996,22 @@ export class APISubscriptionsApi extends runtime.BaseAPI {
 
 }
 
+/**
+ * @export
+ */
+export const GetApiSubscribersExcludeEnum = {
+    PICTURE: 'PICTURE',
+    OWNER: 'OWNER'
+} as const;
+export type GetApiSubscribersExcludeEnum = typeof GetApiSubscribersExcludeEnum[keyof typeof GetApiSubscribersExcludeEnum];
+/**
+ * @export
+ */
+export const GetApiSubscribers1ExcludeEnum = {
+    PICTURE: 'PICTURE',
+    OWNER: 'OWNER'
+} as const;
+export type GetApiSubscribers1ExcludeEnum = typeof GetApiSubscribers1ExcludeEnum[keyof typeof GetApiSubscribers1ExcludeEnum];
 /**
  * @export
  */
