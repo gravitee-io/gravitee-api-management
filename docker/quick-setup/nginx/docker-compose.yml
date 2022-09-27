@@ -120,6 +120,7 @@ services:
       - management_api
     environment:
       - MGMT_API_URL=/management/organizations/DEFAULT/environments/DEFAULT/
+      - CONSOLE_BASE_HREF=/console/
     volumes:
       - ./.logs/apim-management-ui:/var/log/nginx
     networks:
