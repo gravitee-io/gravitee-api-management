@@ -47,6 +47,7 @@ public class KafkaEndpointConnectorConfiguration implements EndpointConnectorCon
     public static class Consumer {
 
         private boolean enabled = true;
+        private boolean encodeMessageId = true;
         private String autoOffsetReset = "latest";
     }
 

@@ -16,14 +16,17 @@
 package io.gravitee.plugin.endpoint.kafka;
 
 import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED_MODES;
+import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
+import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategyFactory;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -31,10 +34,15 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-@AllArgsConstructor
 public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
-    private ConnectorFactoryHelper connectorFactoryHelper;
+    private final ConnectorFactoryHelper connectorFactoryHelper;
+    private final QosStrategyFactory qosStrategyFactory;
+
+    public KafkaEndpointConnectorFactory(final ConnectorFactoryHelper connectorFactoryHelper) {
+        this.connectorFactoryHelper = connectorFactoryHelper;
+        this.qosStrategyFactory = new DefaultQosStrategyFactory();
+    }
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -42,10 +50,16 @@ public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFact
     }
 
     @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
     public KafkaEndpointConnector createConnector(final String configuration) {
         try {
             return new KafkaEndpointConnector(
-                connectorFactoryHelper.getConnectorConfiguration(KafkaEndpointConnectorConfiguration.class, configuration)
+                connectorFactoryHelper.getConnectorConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
+                qosStrategyFactory
             );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);

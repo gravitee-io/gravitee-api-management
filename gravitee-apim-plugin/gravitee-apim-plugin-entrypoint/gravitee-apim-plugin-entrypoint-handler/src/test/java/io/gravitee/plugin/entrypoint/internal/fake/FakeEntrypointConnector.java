@@ -20,6 +20,8 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -35,6 +37,7 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
 
     static final ApiType SUPPORTED_API = ApiType.ASYNC;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.values());
 
     private FakeEntrypointConnectorConfiguration configuration;
 
@@ -51,6 +54,11 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
     @Override
     public Set<ConnectorMode> supportedModes() {
         return SUPPORTED_MODES;
+    }
+
+    @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
     }
 
     @Override
@@ -71,5 +79,10 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
     @Override
     public Completable handleResponse(final ExecutionContext executionContext) {
         return Completable.complete();
+    }
+
+    @Override
+    public QosOptions qosOptions() {
+        return QosOptions.builder().build();
     }
 }

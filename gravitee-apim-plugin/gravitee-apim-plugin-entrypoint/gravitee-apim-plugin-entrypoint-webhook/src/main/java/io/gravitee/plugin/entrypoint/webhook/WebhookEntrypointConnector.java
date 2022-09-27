@@ -25,6 +25,8 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -50,12 +52,15 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
     protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     private static final String ENTRYPOINT_ID = "webhook";
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    private final QosOptions qosOptions;
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
-    public WebhookEntrypointConnector(final WebhookEntrypointConnectorConfiguration configuration) {
+    public WebhookEntrypointConnector(final Qos qos, final WebhookEntrypointConnectorConfiguration configuration) {
+        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(false).manualAckSupported(true).build();
         this.configuration = configuration;
     }
 
@@ -75,6 +80,11 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
     public int matchCriteriaCount() {
         return 0;
     }
@@ -83,6 +93,11 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     public boolean matches(final ExecutionContext ctx) {
         // The context should contain a "subscription_type" internal attribute with the "webhook" value
         return ENTRYPOINT_ID.equalsIgnoreCase(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE));
+    }
+
+    @Override
+    public QosOptions qosOptions() {
+        return qosOptions;
     }
 
     @Override
@@ -142,6 +157,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                     }
                 }
             )
+            .doOnSuccess(httpClientResponse -> message.ack())
             .ignoreElement()
             .doOnError(throwable -> log.error("An error occurred when trying to send webhook message.", throwable))
             .onErrorComplete();

@@ -20,9 +20,12 @@ import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.Comparator;
 import java.util.List;
@@ -50,7 +53,7 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
                 .flatMap(listener -> listener.getEntrypoints().stream())
                 .map(entrypoint -> this.<EntrypointConnector>createConnector(entrypointConnectorPluginManager, entrypoint))
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount))
+                .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -61,6 +64,14 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
         EntrypointConnectorFactory<?> connectorFactory = entrypointConnectorPluginManager.getFactoryById(entrypoint.getType());
 
         if (connectorFactory != null) {
+            if (connectorFactory.supportedApi() == ApiType.ASYNC) {
+                EntrypointAsyncConnectorFactory entrypointAsyncConnectorFactory = (EntrypointAsyncConnectorFactory) connectorFactory;
+                Qos qos = Qos.BALANCED;
+                if (entrypoint.getQos() != null) {
+                    qos = Qos.fromLabel(entrypoint.getQos().getLabel());
+                }
+                return (T) entrypointAsyncConnectorFactory.createConnector(qos, entrypoint.getConfiguration());
+            }
             return (T) connectorFactory.createConnector(entrypoint.getConfiguration());
         }
         return null;

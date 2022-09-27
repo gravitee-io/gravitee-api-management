@@ -21,6 +21,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+
     <parent>
         <groupId>io.gravitee.apim.plugin.endpoint</groupId>
         <artifactId>gravitee-apim-plugin-endpoint</artifactId>
@@ -29,7 +30,11 @@
 
     <artifactId>gravitee-apim-plugin-endpoint-kafka</artifactId>
     <name>Gravitee.io APIM - Plugin - Endpoint kafka</name>
-    <description>Endpoint mock</description>
+    <description>Kafka Endpoint</description>
+    <properties>
+        <reactor-kafka.version>1.3.12</reactor-kafka.version>
+        <reactor-test.version>3.2.3.RELEASE</reactor-test.version>
+    </properties>
     <dependencyManagement>
         <dependencies>
             <!-- Import bom to properly inherit all dependencies -->
@@ -62,8 +67,19 @@
         </dependency>
         <!-- Kafka dependencies -->
         <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-kafka-client</artifactId>
+            <groupId>io.projectreactor.kafka</groupId>
+            <artifactId>reactor-kafka</artifactId>
+            <version>${reactor-kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>reactive-streams</artifactId>
+                    <groupId>org.reactivestreams</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.addons</groupId>
+            <artifactId>reactor-adapter</artifactId>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
@@ -100,6 +116,12 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+            <version>${reactor-test.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>

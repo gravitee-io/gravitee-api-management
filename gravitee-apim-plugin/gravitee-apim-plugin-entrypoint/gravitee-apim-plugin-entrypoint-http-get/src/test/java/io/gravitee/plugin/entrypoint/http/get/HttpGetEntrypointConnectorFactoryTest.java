@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,19 +42,25 @@ class HttpGetEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportSubscribeMode() {
-        assertThat(httpGetEntrypointConnectorFactory.supportedModes()).contains(ConnectorMode.SUBSCRIBE);
+        assertThat(httpGetEntrypointConnectorFactory.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
+    }
+
+    @Test
+    void shouldSupportQos() {
+        assertThat(httpGetEntrypointConnectorFactory.supportedQos())
+            .containsOnly(Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  " })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
-        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(configuration);
+        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(null);
+        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessagesLimitCount()).isEqualTo(500);

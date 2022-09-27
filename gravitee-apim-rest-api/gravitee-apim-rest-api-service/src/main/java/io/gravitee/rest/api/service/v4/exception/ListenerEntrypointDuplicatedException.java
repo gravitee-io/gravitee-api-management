@@ -15,16 +15,24 @@
  */
 package io.gravitee.rest.api.service.v4.exception;
 
+import static java.util.Collections.singletonMap;
+
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpListenerEntrypointMissingException extends AbstractManagementException {
+@RequiredArgsConstructor
+public class ListenerEntrypointDuplicatedException extends AbstractManagementException {
+
+    private final ListenerType listenerType;
+    private final Set<String> duplicatedEntrypoints;
 
     @Override
     public int getHttpStatusCode() {
@@ -32,17 +40,17 @@ public class HttpListenerEntrypointMissingException extends AbstractManagementEx
     }
 
     @Override
+    public String getMessage() {
+        return "The api contains duplicated entrypoints [" + duplicatedEntrypoints + "] for listener [" + listenerType.getLabel() + "].";
+    }
+
+    @Override
     public String getTechnicalCode() {
-        return "listeners.http.entrypoints.missing";
+        return "api.listeners.entrypoints.type.duplicated";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public String getMessage() {
-        return "At least one entrypoint is required for the listener HTTP.";
+        return singletonMap("api.listeners.entrypoints.type.duplicated", duplicatedEntrypoints.toString());
     }
 }

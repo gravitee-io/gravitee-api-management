@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,16 +50,23 @@ class WebhookEntrypointConnectorFactoryTest {
         assertThat(webhookEntrypointConnectorFactory.supportedModes()).contains(ConnectorMode.SUBSCRIBE);
     }
 
+    @Test
+    void shouldSupportQos() {
+        assertThat(webhookEntrypointConnectorFactory.supportedQos())
+            .containsOnly(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(configuration);
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(
+            Qos.NONE,
             "{\"type\": \"webhook\",\"callbackUrl\":\"http://localhost:8082/callback\",\"retry\":{\"attempts\": 3}, \"headers\":{\"header1\":\"value1\", \"header2\": \"value2\"}, \"authentication\":{\"type\": \"oauth2\", \"jwksEndpoint\": \"http://localhost:8082/jwks\", \"tokenEndpoint\": \"http://localhost:8082/token\", \"clientId\": \"my-clientId\", \"clientSecret\": \"my-clientSecret\", \"scopes\": [\"scope1\", \"scope2\"], \"secret\": \"my-secret\", \"username\": \"my-username\", \"password\": \"my-password\"}}"
         );
         assertThat(connector).isNotNull();
@@ -84,7 +92,7 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(null);
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getCallbackUrl()).isNull();
@@ -95,7 +103,7 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(null);
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getCallbackUrl()).isNull();

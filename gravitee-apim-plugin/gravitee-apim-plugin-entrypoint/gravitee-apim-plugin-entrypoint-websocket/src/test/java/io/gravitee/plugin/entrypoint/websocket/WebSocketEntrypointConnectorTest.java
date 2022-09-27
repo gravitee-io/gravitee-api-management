@@ -29,6 +29,7 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
@@ -76,7 +77,7 @@ class WebSocketEntrypointConnectorTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
 
-        cut = new WebSocketEntrypointConnector(configuration);
+        cut = new WebSocketEntrypointConnector(Qos.NONE, configuration);
     }
 
     @Test
@@ -97,6 +98,11 @@ class WebSocketEntrypointConnectorTest {
     @Test
     void shouldSupportPublishAndSubscribeModes() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+    }
+
+    @Test
+    void shouldSupportQos() {
+        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED);
     }
 
     @Test

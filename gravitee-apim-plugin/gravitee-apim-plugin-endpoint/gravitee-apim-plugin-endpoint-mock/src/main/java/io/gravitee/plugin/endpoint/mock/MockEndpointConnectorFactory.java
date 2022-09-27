@@ -15,11 +15,13 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
+import static io.gravitee.plugin.endpoint.mock.MockEndpointConnector.SUPPORTED_QOS;
+
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -37,6 +39,11 @@ public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     @Override
     public Set<ConnectorMode> supportedModes() {
         return MockEndpointConnector.SUPPORTED_MODES;
+    }
+
+    @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
     }
 
     @Override

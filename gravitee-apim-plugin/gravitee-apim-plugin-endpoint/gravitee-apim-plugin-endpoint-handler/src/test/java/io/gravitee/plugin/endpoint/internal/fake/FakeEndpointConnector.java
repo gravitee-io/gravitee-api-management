@@ -15,13 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.internal.fake;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.Connector;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.reactivex.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -34,8 +33,8 @@ import lombok.Getter;
 @Getter
 public class FakeEndpointConnector extends EndpointAsyncConnector {
 
-    static final ApiType SUPPORTED_API = ApiType.SYNC;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.values());
 
     private FakeEndpointConnectorConfiguration configuration;
 
@@ -45,13 +44,13 @@ public class FakeEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    public ApiType supportedApi() {
-        return ApiType.SYNC;
+    public Set<ConnectorMode> supportedModes() {
+        return SUPPORTED_MODES;
     }
 
     @Override
-    public Set<ConnectorMode> supportedModes() {
-        return Set.of(ConnectorMode.REQUEST_RESPONSE);
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
     }
 
     @Override

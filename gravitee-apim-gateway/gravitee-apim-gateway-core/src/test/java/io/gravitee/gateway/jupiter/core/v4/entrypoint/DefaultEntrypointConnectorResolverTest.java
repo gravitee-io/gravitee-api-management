@@ -26,9 +26,13 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.internal.DefaultEntrypointConnectorPluginManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +81,25 @@ class DefaultEntrypointConnectorResolverTest {
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertSame(entrypointConnector, resolvedEntrypointConnector);
+    }
+
+    @Test
+    void shouldResolveAsyncEntrypointConnectorWithQos() {
+        final Api api = buildApi();
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        EntrypointAsyncConnectorFactory asyncConnectorFactory = mock(EntrypointAsyncConnectorFactory.class);
+        when(asyncConnectorFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenAnswer(invocation -> asyncConnectorFactory);
+
+        when(entrypointAsyncConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
+        when(asyncConnectorFactory.createConnector(Qos.BALANCED, ENTRYPOINT_CONFIG)).thenReturn(entrypointAsyncConnector);
+        when(entrypointAsyncConnector.matches(ctx)).thenReturn(true);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
+
+        assertSame(entrypointAsyncConnector, resolvedEntrypointConnector);
     }
 
     @Test

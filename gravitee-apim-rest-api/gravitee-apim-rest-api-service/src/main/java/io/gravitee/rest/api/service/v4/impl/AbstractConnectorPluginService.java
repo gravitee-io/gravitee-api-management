@@ -18,7 +18,12 @@ package io.gravitee.rest.api.service.v4.impl;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
@@ -69,6 +74,17 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         if (connectorFactory.supportedApi() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
+        if (connectorFactory.supportedApi() == io.gravitee.gateway.jupiter.api.ApiType.ASYNC) {
+            Set<io.gravitee.gateway.jupiter.api.qos.Qos> supportedQos = null;
+            if (connectorFactory instanceof EntrypointAsyncConnectorFactory) {
+                supportedQos = ((EntrypointAsyncConnectorFactory) connectorFactory).supportedQos();
+            } else if (connectorFactory instanceof EndpointAsyncConnectorFactory) {
+                supportedQos = ((EndpointAsyncConnectorFactory) connectorFactory).supportedQos();
+            }
+            if (supportedQos != null) {
+                entity.setSupportedQos(supportedQos.stream().map(qos -> Qos.fromLabel(qos.getLabel())).collect(Collectors.toSet()));
+            }
+        }
         if (connectorFactory.supportedModes() != null) {
             entity.setSupportedModes(
                 connectorFactory
@@ -77,6 +93,9 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                     .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
                     .collect(Collectors.toSet())
             );
+        }
+        if (connectorFactory.supportedApi() != null) {
+            entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
         if (
             plugin.manifest().properties() != null &&

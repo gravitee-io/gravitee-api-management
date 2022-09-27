@@ -29,6 +29,8 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyn
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
@@ -44,11 +46,14 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NA);
     private static final String ENTRYPOINT_ID = "http-post";
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
+    private final QosOptions qosOptions;
     private HttpPostEntrypointConnectorConfiguration configuration;
 
     public HttpPostEntrypointConnector(final HttpPostEntrypointConnectorConfiguration configuration) {
+        this.qosOptions = QosOptions.builder().qos(Qos.NA).errorRecoverySupported(false).manualAckSupported(false).build();
         this.configuration = configuration;
         if (this.configuration == null) {
             this.configuration = new HttpPostEntrypointConnectorConfiguration();
@@ -71,6 +76,11 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
+    public Set<Qos> supportedQos() {
+        return SUPPORTED_QOS;
+    }
+
+    @Override
     public int matchCriteriaCount() {
         return 1;
     }
@@ -78,6 +88,11 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
     @Override
     public boolean matches(final ExecutionContext ctx) {
         return (HttpMethod.POST == ctx.request().method());
+    }
+
+    @Override
+    public QosOptions qosOptions() {
+        return qosOptions;
     }
 
     @Override

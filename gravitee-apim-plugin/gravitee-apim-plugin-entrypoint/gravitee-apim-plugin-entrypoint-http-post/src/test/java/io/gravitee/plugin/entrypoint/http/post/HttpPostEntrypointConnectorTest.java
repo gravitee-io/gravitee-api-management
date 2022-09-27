@@ -32,6 +32,7 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Flowable;
@@ -98,6 +99,11 @@ class HttpPostEntrypointConnectorTest {
     }
 
     @Test
+    void shouldSupportQos() {
+        assertThat(cut.supportedQos()).containsOnly(Qos.NA);
+    }
+
+    @Test
     void shouldMatchesCriteriaReturnValidCount() {
         assertThat(cut.matchCriteriaCount()).isEqualTo(1);
     }
@@ -126,7 +132,7 @@ class HttpPostEntrypointConnectorTest {
         dummyRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
         cut.handleRequest(ctx).test().assertComplete();
 
-        dummyRequest.messages().test().assertValue(message -> "bodyContent".equals(message.content().toString()) && message.id() != null);
+        dummyRequest.messages().test().assertValue(message -> "bodyContent".equals(message.content().toString()));
     }
 
     @Test
@@ -145,10 +151,7 @@ class HttpPostEntrypointConnectorTest {
         dummyRequest
             .messages()
             .test()
-            .assertValue(
-                message ->
-                    "bodyContent".equals(message.content().toString()) && message.id() != null && message.headers().deeplyEquals(headers)
-            );
+            .assertValue(message -> "bodyContent".equals(message.content().toString()) && message.headers().deeplyEquals(headers));
     }
 
     @Test

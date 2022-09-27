@@ -155,7 +155,7 @@ class MockEndpointConnectorTest {
     void shouldGenerateLimitedMessagesFlowFromClientRequest() throws InterruptedException {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(3);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -175,7 +175,7 @@ class MockEndpointConnectorTest {
 
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(ctxLimitCount);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -191,7 +191,7 @@ class MockEndpointConnectorTest {
     void shouldGenerateLimitedInTimeMessagesFlowFromClientRequest() throws InterruptedException {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(1_000L);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -208,7 +208,7 @@ class MockEndpointConnectorTest {
         configuration.setMessageCount(2);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn("1");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn("1");
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
