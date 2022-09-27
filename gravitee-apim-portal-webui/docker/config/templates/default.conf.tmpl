@@ -23,7 +23,7 @@ server {
     location / {
         try_files $uri$args $uri$args/ $uri $uri/ /index.html =404;
         root /usr/share/nginx/html;
-        sub_filter '<base href="./"' '<base href="{{ getenv "PORTAL_BASE_HREF" "/" }}"';
+        sub_filter '<base href="/"' '<base href="{{ getenv "PORTAL_BASE_HREF" "/" }}"';
         sub_filter_once on;
     }
 
