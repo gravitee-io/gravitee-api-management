@@ -109,6 +109,7 @@ public class EventsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             event -> handleResponse(ctx, event)
         );
     }
@@ -149,6 +150,7 @@ public class EventsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
         );
     }
@@ -164,25 +166,25 @@ public class EventsHandler extends AbstractHandler {
                     promise.fail(ex);
                 }
             },
+            false,
             (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
         );
     }
 
     public void createOrPatch(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                        promise.complete(eventRepository.createOrPatch(event));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to create or update an event", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                    promise.complete(eventRepository.createOrPatch(event));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to create or update an event", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+        );
     }
 
     private EventCriteria readCriteria(JsonObject payload) {
