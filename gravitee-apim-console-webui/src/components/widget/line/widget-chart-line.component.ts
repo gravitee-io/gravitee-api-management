@@ -65,11 +65,15 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
       const timestamp = data.timestamp;
       this.events = data.events && data.events.content;
 
+      const orderedBucketNames = [];
+
       data.values.forEach((value, idx) => {
         let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
 
         if (value.buckets.length === 0) {
           const bucketCount = (data.timestamp.to - data.timestamp.from) / data.timestamp.interval;
+
+          orderedBucketNames.push(label);
 
           this.series.values.push({
             name: label,
@@ -97,8 +101,11 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 label = value.metadata[bucket.name].name;
               }
 
+              const valueName = isFieldRequest ? bucket.name : label;
+              orderedBucketNames.push(valueName);
+
               this.series.values.push({
-                name: isFieldRequest ? bucket.name : label,
+                name: valueName,
                 data: bucket.data,
                 labelPrefix: isFieldRequest ? label : '',
                 id: bucket.name,
@@ -106,7 +113,12 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
               });
             }
           });
+          orderedBucketNames.sort();
         }
+      });
+
+      this.series.values.forEach((value) => {
+        value.legendIndex = orderedBucketNames.indexOf(value.name);
       });
 
       this.options = {

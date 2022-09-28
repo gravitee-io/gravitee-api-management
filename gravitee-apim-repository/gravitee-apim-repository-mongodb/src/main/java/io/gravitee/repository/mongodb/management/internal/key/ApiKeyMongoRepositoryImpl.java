@@ -17,17 +17,21 @@ package io.gravitee.repository.mongodb.management.internal.key;
 
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Projections.exclude;
+import static com.mongodb.client.model.Projections.fields;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,6 +47,52 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Override
     public List<ApiKeyMongo> search(ApiKeyCriteria filter) {
+        if (CollectionUtils.isEmpty(filter.getPlans())) {
+            AggregateIterable<Document> aggregate = searchWithoutPlanFilter(filter);
+            return getListFromAggregate(aggregate);
+        }
+
+        AggregateIterable<Document> aggregate = searchWithPlanFilter(filter);
+        return getListFromSubscriptionAggregate(aggregate);
+    }
+
+    private AggregateIterable<Document> searchWithPlanFilter(ApiKeyCriteria filter) {
+        List<Bson> pipeline = new ArrayList<>();
+
+        pipeline.add(match(in("plan", filter.getPlans())));
+
+        pipeline.add(lookup(tablePrefix + "keys", "_id", "subscriptions", "keys"));
+        pipeline.add(unwind("$keys"));
+
+        pipeline.add(project(fields(exclude("keys._class", "_class"))));
+
+        if (!filter.isIncludeRevoked()) {
+            pipeline.add(match(eq("keys.revoked", false)));
+        }
+
+        // set range query
+        if (filter.getFrom() != 0 && filter.getTo() != 0) {
+            pipeline.add(match(and(gte("keys.updatedAt", new Date(filter.getFrom())), lte("keys.updatedAt", new Date(filter.getTo())))));
+        }
+
+        if (filter.getExpireAfter() > 0 && filter.getExpireBefore() > 0) {
+            pipeline.add(
+                match(
+                    and(gte("keys.expireAt", new Date(filter.getExpireAfter())), lte("keys.expireAt", new Date(filter.getExpireBefore())))
+                )
+            );
+        } else if (filter.getExpireAfter() > 0) {
+            pipeline.add(match(gte("keys.expireAt", new Date(filter.getExpireAfter()))));
+        } else if (filter.getExpireBefore() > 0) {
+            pipeline.add(match(lte("keys.expireAt", new Date(filter.getExpireBefore()))));
+        }
+
+        pipeline.add(sort(Sorts.descending("keys.updatedAt")));
+
+        return mongoTemplate.getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class)).aggregate(pipeline);
+    }
+
+    private AggregateIterable<Document> searchWithoutPlanFilter(ApiKeyCriteria filter) {
         List<Bson> pipeline = new ArrayList<>();
 
         if (!filter.isIncludeRevoked()) {
@@ -64,19 +114,9 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(lte("expireAt", new Date(filter.getExpireBefore()))));
         }
 
-        if (filter.getPlans() != null) {
-            pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));
-            pipeline.add(unwind("$sub"));
-            pipeline.add(match(in("sub.plan", filter.getPlans())));
-        }
-
         pipeline.add(sort(Sorts.descending("updatedAt")));
 
-        AggregateIterable<Document> aggregate = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
-            .aggregate(pipeline);
-
-        return getListFromAggregate(aggregate);
+        return mongoTemplate.getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class)).aggregate(pipeline);
     }
 
     @Override
@@ -113,6 +153,14 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         ArrayList<ApiKeyMongo> apiKeys = new ArrayList<>();
         for (Document doc : aggregate) {
             apiKeys.add(mongoTemplate.getConverter().read(ApiKeyMongo.class, doc));
+        }
+        return apiKeys;
+    }
+
+    private List<ApiKeyMongo> getListFromSubscriptionAggregate(AggregateIterable<Document> aggregate) {
+        ArrayList<ApiKeyMongo> apiKeys = new ArrayList<>();
+        for (Document doc : aggregate) {
+            apiKeys.add(mongoTemplate.getConverter().read(ApiKeyMongo.class, doc.get("keys", Document.class)));
         }
         return apiKeys;
     }

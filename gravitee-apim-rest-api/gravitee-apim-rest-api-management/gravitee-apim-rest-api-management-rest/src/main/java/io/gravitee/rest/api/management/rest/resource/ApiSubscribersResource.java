@@ -17,10 +17,15 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -37,12 +42,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -78,11 +88,15 @@ public class ApiSubscribersResource extends AbstractResource {
         description = "Paged result of API subscribers",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
+            array = @ArraySchema(schema = @Schema(implementation = ApplicationListItem.class))
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApplicationEntity> getApiSubscribers() {
+    public Collection<ApplicationListItem> getApiSubscribers(
+        @QueryParam("query") final String query,
+        @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
+        @Valid @BeanParam Pageable pageable
+    ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
@@ -96,12 +110,31 @@ public class ApiSubscribersResource extends AbstractResource {
         subscriptionQuery.setStatuses(Set.of(PENDING, ACCEPTED));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
-        return subscriptions
-            .stream()
-            .map(SubscriptionEntity::getApplication)
-            .distinct()
-            .map(application -> applicationService.findById(executionContext, application))
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-            .collect(Collectors.toList());
+
+        Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        if (exclude != null && !exclude.isEmpty()) {
+            applicationQuery.setExcludeFilters(exclude);
+        }
+        applicationQuery.setIds(applicationIds);
+        if (query != null && !query.isEmpty()) {
+            applicationQuery.setName(query);
+        }
+
+        Sortable sortable = new SortableImpl("name", true);
+
+        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            pageable.toPageable()
+        );
+
+        if (subscribersApplicationPage == null) {
+            return Collections.emptyList();
+        }
+
+        return subscribersApplicationPage.getContent();
     }
 }

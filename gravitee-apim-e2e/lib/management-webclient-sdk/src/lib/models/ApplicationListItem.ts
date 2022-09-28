@@ -68,6 +68,12 @@ export interface ApplicationListItem {
      */
     description?: string;
     /**
+     * 
+     * @type {boolean}
+     * @memberof ApplicationListItem
+     */
+    disable_membership_notifications?: boolean;
+    /**
      * Domain used by the application, if relevant
      * @type {string}
      * @memberof ApplicationListItem
@@ -159,6 +165,7 @@ export function ApplicationListItemFromJSONTyped(json: any, ignoreDiscriminator:
         'background_url': !exists(json, 'background_url') ? undefined : json['background_url'],
         'created_at': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
         'description': !exists(json, 'description') ? undefined : json['description'],
+        'disable_membership_notifications': !exists(json, 'disable_membership_notifications') ? undefined : json['disable_membership_notifications'],
         'domain': !exists(json, 'domain') ? undefined : json['domain'],
         'groups': !exists(json, 'groups') ? undefined : json['groups'],
         'id': !exists(json, 'id') ? undefined : json['id'],
@@ -187,6 +194,7 @@ export function ApplicationListItemToJSON(value?: ApplicationListItem | null): a
         'background_url': value.background_url,
         'created_at': value.created_at === undefined ? undefined : (value.created_at.toISOString()),
         'description': value.description,
+        'disable_membership_notifications': value.disable_membership_notifications,
         'domain': value.domain,
         'groups': value.groups,
         'id': value.id,

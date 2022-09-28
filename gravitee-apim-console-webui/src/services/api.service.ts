@@ -16,6 +16,8 @@
 import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
 
+import { ApplicationExcludeFilter } from './application.service';
+
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 
@@ -122,7 +124,7 @@ export class ApiService {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
-  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any): IHttpPromise<any> {
+  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any, ids?: string[]): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/`;
 
     // Fallback to paginated list if a page parameter is provided.
@@ -136,6 +138,7 @@ export class ApiService {
       portal: portal,
       page: page,
       order: order,
+      ids: ids,
     };
 
     return this.$http.get(url, opts);
@@ -469,8 +472,21 @@ export class ApiService {
     return this.$http.get(req, { timeout: 30000 });
   }
 
-  getSubscribers(apiId: string): IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers`);
+  getSubscribers(apiId: string, query?: string, page?: number, size?: number, exclude: ApplicationExcludeFilter[] = []): IHttpPromise<any> {
+    const queryParams: string[] = [];
+    if (query) {
+      queryParams.push(`query=${query}`);
+    }
+    if (page) {
+      queryParams.push(`page=${page}`);
+    }
+    if (size) {
+      queryParams.push(`size=${size}`);
+    }
+    if (exclude && exclude.length > 0) {
+      queryParams.push(exclude.map((filter) => `exclude=${filter}`).join('&'));
+    }
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers${queryParams ? '?' + queryParams.join('&') : ''}`);
   }
 
   getSubscription(apiId, subscriptionId): IHttpPromise<any> {

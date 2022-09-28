@@ -58,9 +58,12 @@ describe('PolicyStudioDebugInspectorComponent', () => {
     expect(treeNodes[0].children[0].name).toEqual('Method');
     expect(treeNodes[0].children[0].type).toBeUndefined();
     expect(treeNodes[0].children[0].children.length).toEqual(1);
-    expect(treeNodes[0].children[1].name).toEqual('Path');
+    expect(treeNodes[0].children[1].name).toEqual('Query params');
     expect(treeNodes[0].children[1].type).toBeUndefined();
-    expect(treeNodes[0].children[1].children[0].type).toEqual('text');
+    expect(treeNodes[0].children[1].children[0].type).toEqual('table');
+    expect(treeNodes[0].children[2].name).toEqual('Path');
+    expect(treeNodes[0].children[2].type).toBeUndefined();
+    expect(treeNodes[0].children[2].children[0].type).toEqual('text');
     expect(treeNodes[1].name).toEqual('HTTP headers');
     expect(treeNodes[1].children[0].type).toEqual('table');
     expect(treeNodes[1].children[0].input).toBeDefined();

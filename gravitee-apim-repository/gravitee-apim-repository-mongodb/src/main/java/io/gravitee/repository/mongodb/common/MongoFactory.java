@@ -142,6 +142,9 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class, false);
         sslBuilder.enabled(sslEnabled);
 
+        boolean sslInvalidHostNameAllowed = readPropertyValue(propertyPrefix + "sslInvalidHostNameAllowed", Boolean.class, false);
+        sslBuilder.invalidHostNameAllowed(sslInvalidHostNameAllowed);
+
         if (sslEnabled) {
             try {
                 String tlsProtocol = readPropertyValue(propertyPrefix + "tlsProtocol", String.class, "TLS");

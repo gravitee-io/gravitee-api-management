@@ -47,6 +47,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   role: string;
   memberships: MembershipListItem[];
   filteredMemberships: MembershipListItem[];
+  membershipsTableUnpaginatedLength = 0;
 
   private readonly unsubscribe$ = new Subject<boolean>();
 
@@ -68,6 +69,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
         tap((memberships) => {
           this.memberships = memberships;
           this.filteredMemberships = memberships;
+          this.membershipsTableUnpaginatedLength = memberships.length;
         }),
       )
       .subscribe();
@@ -79,7 +81,9 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   }
 
   onMembershipFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filteredMemberships = gioTableFilterCollection(this.memberships, filters);
+    const filtered = gioTableFilterCollection(this.memberships, filters);
+    this.filteredMemberships = filtered.filteredCollection;
+    this.membershipsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   onAddMemberClicked() {

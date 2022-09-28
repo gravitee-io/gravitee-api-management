@@ -19,6 +19,7 @@ import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,19 +33,22 @@ public class InstallationHandler extends AbstractHandler {
     @Autowired
     private InstallationRepository installationRepository;
 
+    public InstallationHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void find(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                (Handler<Promise<Optional<Installation>>>) promise -> {
-                    try {
-                        promise.complete(installationRepository.find());
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for installation", ex);
-                        promise.fail(ex);
-                    }
-                },
-                event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<Optional<Installation>>>) promise -> {
+                try {
+                    promise.complete(installationRepository.find());
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for installation", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
     }
 }

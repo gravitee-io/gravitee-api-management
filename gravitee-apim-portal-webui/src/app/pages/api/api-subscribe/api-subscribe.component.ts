@@ -259,7 +259,7 @@ export class ApiSubscribeComponent implements OnInit {
       })
       .slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
 
-    if (!this.canDisplayApiKeyModeStep()) {
+    if (this.canConfigureSharedApiKey() && !this.canDisplayApiKeyModeStep()) {
       this.steps.splice(2, 1);
     }
   }
@@ -350,9 +350,6 @@ export class ApiSubscribeComponent implements OnInit {
     if (this.canNext()) {
       this.currentStep += 1;
     }
-    if (!this.canDisplayApiKeyModeStep() && this.currentStep === 3) {
-      this.currentStep += 1;
-    }
   }
 
   canNext() {
@@ -366,9 +363,6 @@ export class ApiSubscribeComponent implements OnInit {
   onPrevious() {
     this.hasSubscriptionError = false;
     this.currentStep -= 1;
-    if (!this.canDisplayApiKeyModeStep() && this.currentStep === 3) {
-      this.currentStep -= 1;
-    }
   }
 
   hasPlans() {
@@ -661,7 +655,7 @@ export class ApiSubscribeComponent implements OnInit {
     return this.configurationService.hasFeature(FeatureEnum.applicationCreation);
   }
 
-  canConfigureSharedApiKey() {
+  private canConfigureSharedApiKey() {
     return this.configurationService.hasFeature(FeatureEnum.sharedApiKey);
   }
 

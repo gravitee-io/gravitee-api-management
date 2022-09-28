@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -49,11 +50,13 @@ import org.mockito.MockitoAnnotations;
 @RunWith(VertxUnitRunner.class)
 public class SubscriptionsHandlerTest {
 
+    private final WorkerExecutor executor = Vertx.vertx().createSharedWorkerExecutor("subscriptionsHandlerTestWorker");
+
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
     @InjectMocks
-    private final SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler();
+    private final SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler(executor);
 
     private WebClient client;
     private Vertx vertx;
@@ -86,6 +89,7 @@ public class SubscriptionsHandlerTest {
     @After
     public void tearDown(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
+        executor.close();
     }
 
     @Test

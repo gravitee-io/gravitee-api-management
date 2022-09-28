@@ -17,6 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
+import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { InstallationService } from '../../../services-ngx/installation.service';
 import { Installation } from '../../../entities/installation/installation';
 
@@ -34,7 +35,7 @@ export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor(private readonly installationService: InstallationService) {}
+  constructor(private readonly installationService: InstallationService, private readonly cockpitService: CockpitService) {}
 
   ngOnInit(): void {
     this.installationService
@@ -55,9 +56,15 @@ export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
   }
 
   private setupVM(installation: Installation): void {
-    const cockpitLink = `<a href="${installation.cockpitURL}" target="_blank">Cockpit</a>`;
+    const cockpitInstallationStatus = installation.additionalInformation.COCKPIT_INSTALLATION_STATUS;
+    const enhancedCockpitURL = this.cockpitService.addQueryParamsForAnalytics(
+      installation.cockpitURL,
+      UtmCampaign.DISCOVER_COCKPIT,
+      cockpitInstallationStatus,
+    );
+    const cockpitLink = `<a href="${enhancedCockpitURL}" target="_blank">Cockpit</a>`;
 
-    switch (installation.additionalInformation.COCKPIT_INSTALLATION_STATUS) {
+    switch (cockpitInstallationStatus) {
       case 'PENDING':
         this.icon = 'schedule';
         this.title = 'Almost there!';

@@ -64,6 +64,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   tags: Tag[];
   tagsTableDS: TagTableDS;
   filteredTagsTableDS: TagTableDS;
+  tagsTableUnpaginatedLength = 0;
   tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
 
   portalSettings: PortalSettings;
@@ -73,6 +74,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   entrypoints: Entrypoint[];
   entrypointsTableDS: EntrypointTableDS;
   filteredEntrypointsTableDS: EntrypointTableDS;
+  entrypointsTableUnpaginatedLength = 0;
   entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
 
   private unsubscribe$ = new Subject<boolean>();
@@ -105,6 +107,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
             .filter((name) => !!name),
         }));
         this.filteredTagsTableDS = this.tagsTableDS;
+        this.tagsTableUnpaginatedLength = this.tagsTableDS.length;
 
         this.portalSettings = portalSettings;
         this.defaultConfigForm = new FormGroup({
@@ -123,6 +126,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId)?.name ?? tagId),
         }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
+        this.entrypointsTableUnpaginatedLength = this.entrypointsTableDS.length;
 
         this.isLoading = false;
       });
@@ -134,7 +138,9 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onTagsFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filteredTagsTableDS = gioTableFilterCollection(this.tagsTableDS, filters);
+    const filtered = gioTableFilterCollection(this.tagsTableDS, filters);
+    this.filteredTagsTableDS = filtered.filteredCollection;
+    this.tagsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   isReadonlySetting(property: string): boolean {
@@ -287,7 +293,9 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onEntrypointsFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filteredEntrypointsTableDS = gioTableFilterCollection(this.entrypointsTableDS, filters);
+    const filtered = gioTableFilterCollection(this.entrypointsTableDS, filters);
+    this.filteredEntrypointsTableDS = filtered.filteredCollection;
+    this.entrypointsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   onAddEntrypointClicked() {

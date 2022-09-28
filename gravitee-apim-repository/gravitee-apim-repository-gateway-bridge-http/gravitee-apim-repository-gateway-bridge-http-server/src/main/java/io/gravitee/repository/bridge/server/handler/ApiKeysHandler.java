@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -46,25 +47,28 @@ public class ApiKeysHandler extends AbstractHandler {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    public ApiKeysHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void findByCriteria(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
 
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to find the API Key", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to find the API Key", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     /**
@@ -79,26 +83,22 @@ public class ApiKeysHandler extends AbstractHandler {
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
-                        Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
-                        promise.complete(
-                            apiKeys
-                                .stream()
-                                .flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById))
-                                .collect(toList())
-                        );
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to search for API Keys", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<List<DeprecatedApiKey>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
+                    Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
+                    promise.complete(
+                        apiKeys.stream().flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById)).collect(toList())
+                    );
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to search for API Keys", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<List<DeprecatedApiKey>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     /**
@@ -111,19 +111,18 @@ public class ApiKeysHandler extends AbstractHandler {
         final String apiId = ctx.request().getParam("apiId");
         final String key = ctx.request().getParam("key");
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(apiKeyRepository.findByKeyAndApi(key, apiId));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to find the API Key", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(apiKeyRepository.findByKeyAndApi(key, apiId));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to find the API Key", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Optional<ApiKey>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     private ApiKeyCriteria readCriteria(JsonObject payload) {

@@ -31,8 +31,8 @@
         'step-content': true,
         one: this.currentStep === 1,
         two: this.currentStep === 2,
-        three: this.canConfigureSharedApiKey() && this.currentStep === 3,
-        four: (this.canConfigureSharedApiKey() && this.currentStep === 4) || (!this.canConfigureSharedApiKey() && this.currentStep === 3)
+        three: this.canDisplayApiKeyModeStep() && this.currentStep === 3,
+        four: (this.canDisplayApiKeyModeStep() && this.currentStep === 4) || (!this.canDisplayApiKeyModeStep() && this.currentStep === 3)
       }"
     >
       <form [formGroup]="subscribeForm">
