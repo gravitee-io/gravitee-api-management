@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.standalone.websocket;
 
-import static org.junit.Assert.assertTrue;
-
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
@@ -42,6 +40,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected int websocetPort;
 
     static {
         System.setProperty("vertx.disableWebsockets", Boolean.FALSE.toString());
@@ -53,6 +52,7 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
 
     @Before
     public void initHttpClientAndServer() {
+        websocetPort = getFreePort();
         vertx = Vertx.vertx();
         httpServer = vertx.createHttpServer();
         httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
@@ -83,6 +83,8 @@ public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
         if (!latch.await(5, TimeUnit.SECONDS)) {
             logger.warn("Unable to close http client and server");
         }
+
+        vertx.close();
     }
 
     /**
