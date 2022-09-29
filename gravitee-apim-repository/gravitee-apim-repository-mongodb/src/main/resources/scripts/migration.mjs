@@ -1,0 +1,3 @@
+const MONGO_USER=$.env['MONGO_USER'];
+const MONGO_PASSWORD=$.env['MONGO_PASSWORD'];
+

@@ -86,7 +86,7 @@ public class ApiLoggingConditionUpgraderTest {
 
         boolean success = upgrader.upgrade();
 
-        assertFalse(success);
+        assertTrue(success);
         verify(installationService, never()).setAdditionalInformation(any());
     }
 

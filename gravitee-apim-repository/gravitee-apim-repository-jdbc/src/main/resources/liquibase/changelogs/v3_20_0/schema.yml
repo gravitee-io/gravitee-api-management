@@ -57,3 +57,17 @@ databaseChangeLog:
                   type: nvarchar(256)
                   constraints:
                     nullable: true
+
+        # ################
+        # Upgrader Changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}upgraders
+            columns:
+              - column: { name: id, type: nvarchar(1024), constraints: { nullable: false } }
+              - column: { name: applied_at, type: timestamp(6), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}upgraders
+            columnNames: id
+            tableName: ${gravitee_prefix}upgraders

@@ -19,11 +19,11 @@ import static io.gravitee.repository.management.model.DashboardReferenceType.*;
 import static java.lang.String.format;
 import static java.nio.charset.Charset.defaultCharset;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.service.DashboardService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
@@ -31,7 +31,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
+public class DefaultDashboardsUpgrader implements Upgrader {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultDashboardsUpgrader.class);
 

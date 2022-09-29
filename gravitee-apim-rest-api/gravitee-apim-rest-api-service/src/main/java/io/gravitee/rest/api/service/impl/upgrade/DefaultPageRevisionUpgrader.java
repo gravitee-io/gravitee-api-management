@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.Upgrader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
+public class DefaultPageRevisionUpgrader implements Upgrader {
 
     /**
      * Logger.

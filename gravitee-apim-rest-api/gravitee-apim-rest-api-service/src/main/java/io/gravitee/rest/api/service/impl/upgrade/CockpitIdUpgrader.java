@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CockpitIdUpgrader implements Upgrader, Ordered {
+public class CockpitIdUpgrader implements Upgrader {
 
     @Autowired
     private OrganizationService organizationService;

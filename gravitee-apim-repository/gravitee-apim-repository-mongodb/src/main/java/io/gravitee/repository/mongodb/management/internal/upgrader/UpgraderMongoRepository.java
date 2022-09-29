@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.repository.mongodb.management.internal.upgrader;
+
+import io.gravitee.repository.mongodb.management.internal.model.UpgradeRecordMongo;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Upgrader {
-    boolean upgrade();
-
-    int getOrder();
-}
+@Repository
+public interface UpgraderMongoRepository extends MongoRepository<UpgradeRecordMongo, String> {}
