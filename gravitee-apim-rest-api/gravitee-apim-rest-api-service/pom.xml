@@ -291,6 +291,10 @@
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-api</artifactId>
         </dependency>
+		<dependency>
+			<groupId>io.gravitee.node.services</groupId>
+			<artifactId>gravitee-node-services-upgrader</artifactId>
+		</dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>

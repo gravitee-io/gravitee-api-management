@@ -153,6 +153,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
 
+        // Upgrader framework may also set this value in the runtime to skip running Liquibase scripts in upgrade mode
         Boolean liquibase = readPropertyValue("jdbc.liquibase", Boolean.class, LIQUIBASE_ENABLED);
         if (liquibase) {
             runLiquibase(dataSource);

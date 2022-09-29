@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -37,7 +38,6 @@ import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,14 +47,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
 @Component
-public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
+public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApiPrimaryOwnerRemovalUpgrader.class);
 

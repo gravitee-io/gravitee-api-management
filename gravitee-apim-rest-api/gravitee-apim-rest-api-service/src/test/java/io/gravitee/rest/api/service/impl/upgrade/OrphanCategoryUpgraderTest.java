@@ -56,7 +56,7 @@ public class OrphanCategoryUpgraderTest {
     @Test
     public void upgrade_should_not_run_cause_already_executed_with_success() {
         setUpgradeStatus(UpgradeStatus.SUCCESS);
-        assertFalse(upgrader.upgrade());
+        assertTrue(upgrader.upgrade());
         verify(installationService, never()).setAdditionalInformation(any());
     }
 
