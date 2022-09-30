@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { ApiPortalDetailsModule } from './details/api-portal-details.module';
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
+import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule],
+  declarations: [ApiPortalDetailsComponent],
+  exports: [ApiPortalDetailsComponent],
+  imports: [CommonModule],
 })
-export class ApisModule {}
+export class ApiPortalDetailsModule {}

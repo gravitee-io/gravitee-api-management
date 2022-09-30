@@ -548,6 +548,7 @@ import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-
 import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
+import { ApiPortalDetailsComponent } from './api/details/api-portal-details.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -695,7 +696,10 @@ graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent(
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
+
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
+graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
+
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);

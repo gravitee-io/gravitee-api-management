@@ -54,6 +54,16 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.ng-general', {
+      url: '/ng-portal',
+      component: 'ngApiPortalDetails',
+      data: {
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-api',
+        },
+      },
+    })
     .state('management.apis.detail.portal.plans', {
       abstract: true,
       url: '/plans',
