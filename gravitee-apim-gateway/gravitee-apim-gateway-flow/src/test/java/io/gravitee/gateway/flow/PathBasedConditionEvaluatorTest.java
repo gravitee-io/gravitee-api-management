@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
@@ -151,5 +151,17 @@ public class PathBasedConditionEvaluatorTest {
         when(flow.getPath()).thenReturn("/my/:param");
 
         assertTrue(evaluator.evaluate(context, flow));
+    }
+
+    @Test
+    public void shouldUseFullRequestPath() {
+        PathBasedConditionEvaluator platformLevelEvaluator = new PathBasedConditionEvaluator(false);
+
+        when(request.path()).thenReturn("/my/path");
+        when(flow.getOperator()).thenReturn(Operator.EQUALS);
+        when(flow.getPath()).thenReturn("/my/path");
+
+        verify(request, never()).pathInfo();
+        assertTrue(platformLevelEvaluator.evaluate(context, flow));
     }
 }

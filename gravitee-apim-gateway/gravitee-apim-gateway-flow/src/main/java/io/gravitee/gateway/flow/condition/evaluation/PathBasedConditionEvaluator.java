@@ -39,13 +39,22 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
+    private final boolean stripContextPath;
+
+    public PathBasedConditionEvaluator() {
+        this(true);
+    }
+
+    public PathBasedConditionEvaluator(boolean stripContextPath) {
+        this.stripContextPath = stripContextPath;
+    }
+
     @Override
     public boolean evaluate(ExecutionContext context, Flow flow) {
         Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
+        String path = stripContextPath ? context.request().pathInfo() : context.request().path();
 
-        return (flow.getOperator() == Operator.EQUALS)
-            ? pattern.matcher(context.request().pathInfo()).matches()
-            : pattern.matcher(context.request().pathInfo()).lookingAt();
+        return (flow.getOperator() == Operator.EQUALS) ? pattern.matcher(path).matches() : pattern.matcher(path).lookingAt();
     }
 
     private Pattern transform(String path) {

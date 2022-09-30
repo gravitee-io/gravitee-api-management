@@ -39,7 +39,7 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
         super(
             new CompositeConditionEvaluator(
                 new HttpMethodConditionEvaluator(),
-                new PathBasedConditionEvaluator(),
+                new PathBasedConditionEvaluator(false),
                 new ExpressionLanguageFlowConditionEvaluator()
             )
         );
