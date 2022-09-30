@@ -21,7 +21,7 @@
   <div class="response-templates-list__header">
     <span>Define your own response templates if you're looking for overriding default responses from the gateway.</span>
 
-    <ng-container *ngIf="!isReadOnly">
+    <ng-container *ngIf="!isReadOnly && responseTemplateTableData">
       <button
         *gioPermission="{ anyOf: ['api-response_templates-c'] }"
         mat-raised-button
