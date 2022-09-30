@@ -35,7 +35,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'actions'];
-  public responseTemplateTableData: ResponseTemplate[] = [];
+  public responseTemplateTableData: ResponseTemplate[];
   public isReadOnly = false;
   public apiId: string;
 
