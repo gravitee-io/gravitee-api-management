@@ -369,7 +369,6 @@ import EntrypointService from '../services/entrypoint.service';
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
 // API Response Templates
-import ApiResponseTemplatesController from '../management/api/proxy/general/response-templates/response-templates.controller';
 import ApiResponseTemplateController from '../management/api/proxy/general/response-templates/response-template.controller';
 import ApiResponseTemplateTypeComponent from '../management/api/proxy/general/response-templates/response-template-type.component';
 import ApiResponseTemplateComponent from '../management/api/proxy/general/response-templates/response-template.component';
@@ -1004,7 +1003,6 @@ graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 
 // Response Templates
-graviteeManagementModule.controller('ApiResponseTemplatesController', ApiResponseTemplatesController);
 graviteeManagementModule.controller('ApiResponseTemplateController', ApiResponseTemplateController);
 graviteeManagementModule.component('gvResponseTemplateType', ApiResponseTemplateTypeComponent);
 graviteeManagementModule.component('gvResponseTemplate', ApiResponseTemplateComponent);
