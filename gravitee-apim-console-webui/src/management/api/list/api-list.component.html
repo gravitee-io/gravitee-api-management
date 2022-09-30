@@ -16,7 +16,7 @@
 
 -->
 <div class="title">
-  <h1>Apis</h1>
+  <h1>APIs</h1>
   <button
     (click)="onAddApiClick()"
     mat-raised-button
@@ -144,7 +144,7 @@
     <!-- Row shown when there is no data -->
     <tr class="mat-row" *matNoDataRow>
       <td *ngIf="!isLoadingData && apisTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
-        {{ 'There is no apis (yet).' }}
+        {{ 'There is no APIs (yet).' }}
       </td>
       <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
         {{ 'Loading...' }}
