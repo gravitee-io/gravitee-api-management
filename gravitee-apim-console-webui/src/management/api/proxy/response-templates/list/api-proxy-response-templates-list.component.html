@@ -62,15 +62,6 @@
         {{ element.statusCode }}
       </td>
     </ng-container>
-    <!-- Body Column -->
-    <ng-container matColumnDef="body">
-      <th mat-header-cell *matHeaderCellDef id="key" width="25%">Body (preview)</th>
-      <td mat-cell *matCellDef="let element">
-        <div class="response-templates-list__table__body">
-          {{ element.body }}
-        </div>
-      </td>
-    </ng-container>
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
