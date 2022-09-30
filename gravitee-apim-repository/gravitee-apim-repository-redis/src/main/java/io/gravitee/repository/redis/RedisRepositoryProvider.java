@@ -20,7 +20,6 @@ import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,20 +28,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 public class RedisRepositoryProvider implements RepositoryProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisRepositoryProvider.class);
-
-    public RedisRepositoryProvider() {
-        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-            try {
-                Class.forName(LettuceConnection.class.getName(), true, getClass().getClassLoader());
-            } catch (ClassNotFoundException e) {
-                LOGGER.error("Unable to initialize class LettuceConnection", e);
-            }
-        } finally {
-            Thread.currentThread().setContextClassLoader(tccl);
-        }
-    }
 
     @Override
     public String type() {
