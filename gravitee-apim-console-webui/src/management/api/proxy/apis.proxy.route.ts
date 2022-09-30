@@ -301,7 +301,7 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.ng-responsetemplate-new', {
-      url: '/ng-responsetemplates/',
+      url: '/responsetemplates/',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
         useAngularMaterial: true,
@@ -314,36 +314,12 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.ng-responsetemplate-edit', {
-      url: '/ng-responsetemplates/:responseTemplateId',
+      url: '/responsetemplates/:responseTemplateId',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
         useAngularMaterial: true,
         perms: {
           only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
-        },
-        docs: {
-          page: 'management-api-proxy-response-template',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.responsetemplates.new', {
-      url: '/new',
-      component: 'gvResponseTemplate',
-      data: {
-        perms: {
-          only: ['api-response_templates-c'],
-        },
-        docs: {
-          page: 'management-api-proxy-response-template',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.responsetemplates.edit', {
-      url: '/:key',
-      component: 'gvResponseTemplate',
-      data: {
-        perms: {
-          only: ['api-response_templates-r', 'api-response_templates-u'],
         },
         docs: {
           page: 'management-api-proxy-response-template',
