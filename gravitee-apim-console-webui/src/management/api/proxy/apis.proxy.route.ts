@@ -288,7 +288,7 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.ng-responsetemplates', {
-      url: '/ng-responsetemplates',
+      url: '/responsetemplates',
       component: 'ngApiProxyResponseTemplatesList',
       data: {
         useAngularMaterial: true,
@@ -323,24 +323,6 @@ function apisProxyRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-proxy-response-template',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.responsetemplates', {
-      url: '/responsetemplates',
-      abstract: true,
-    })
-    .state('management.apis.detail.proxy.responsetemplates.list', {
-      url: '/',
-      template: require('./general/response-templates/response-templates.html'),
-      controller: 'ApiResponseTemplatesController',
-      controllerAs: 'ctrl',
-      data: {
-        perms: {
-          only: ['api-response_templates-r'],
-        },
-        docs: {
-          page: 'management-api-proxy-response-templates',
         },
       },
     })
