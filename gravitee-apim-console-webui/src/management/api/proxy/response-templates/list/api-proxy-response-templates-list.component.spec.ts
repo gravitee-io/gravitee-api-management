@@ -117,7 +117,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableRows = await rtTable.getRows();
 
-      const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
+      const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
 
       const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
         MatButtonHarness.with({ selector: '[aria-label="Button to edit a Response Template"]' }),
@@ -157,9 +157,9 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     const rtTableRows = await rtTable.getCellTextByIndex();
 
     expect(rtTableRows).toEqual([
-      ['DEFAULT', 'application/json', '200', 'json', ''],
-      ['DEFAULT', 'text/xml', '200', 'xml', ''],
-      ['DEFAULT', '*/*', '200', 'default', ''],
+      ['DEFAULT', 'application/json', '200', ''],
+      ['DEFAULT', 'text/xml', '200', ''],
+      ['DEFAULT', '*/*', '200', ''],
     ]);
   });
 
@@ -188,7 +188,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
     const rtTableFirstRow = (await rtTable.getRows())[0];
 
-    const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
+    const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
 
     const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
       MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
@@ -225,7 +225,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
     const rtTableRows = await rtTable.getRows();
 
-    const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
+    const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
 
     const allActionsBtn = await rtTableFirstRowActionsCell.getAllHarnesses(MatButtonHarness);
     expect(allActionsBtn.length).toBe(1);

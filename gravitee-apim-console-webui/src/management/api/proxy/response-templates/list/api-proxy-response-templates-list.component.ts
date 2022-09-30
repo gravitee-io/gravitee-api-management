@@ -34,7 +34,7 @@ import { ResponseTemplate, toResponseTemplates } from '../response-templates.ada
 export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'body', 'actions'];
+  public responseTemplateTableDisplayedColumns = ['key', 'contentType', 'statusCode', 'actions'];
   public responseTemplateTableData: ResponseTemplate[] = [];
   public isReadOnly = false;
   public apiId: string;
