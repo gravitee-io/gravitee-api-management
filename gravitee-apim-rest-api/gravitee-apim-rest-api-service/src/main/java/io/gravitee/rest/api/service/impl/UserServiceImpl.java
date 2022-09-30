@@ -155,9 +155,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private NotifierService notifierService;
 
     @Autowired
-    private ApiService apiService;
-
-    @Autowired
     private ParameterService parameterService;
 
     @Autowired
@@ -1268,28 +1265,34 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public void delete(ExecutionContext executionContext, String id) {
         try {
             // If the users is PO of apps or apis, throw an exception
-            long apiCount = apiService
-                .findByUser(executionContext, id, null, false)
-                .stream()
-                .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
-                .count();
-            long applicationCount = applicationService
-                .findByUser(executionContext, id)
-                .stream()
-                .filter(app -> app.getPrimaryOwner() != null)
-                .filter(app -> app.getPrimaryOwner().getId().equals(id))
-                .count();
+            RoleEntity apiPoRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+            Set<MembershipEntity> apiPoMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                id,
+                MembershipReferenceType.API,
+                apiPoRole.getId()
+            );
+            long apiCount = apiPoMemberships.size();
+
+            RoleEntity appPoRole = roleService.findPrimaryOwnerRoleByOrganization(
+                executionContext.getOrganizationId(),
+                RoleScope.APPLICATION
+            );
+            Set<MembershipEntity> appPoMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                id,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            );
+            long applicationCount = appPoMemberships.size();
+
             if (apiCount > 0 || applicationCount > 0) {
                 throw new StillPrimaryOwnerException(apiCount, applicationCount);
             }
 
-            Optional<User> optionalUser = userRepository.findById(id);
-            if (!optionalUser.isPresent()) {
-                throw new UserNotFoundException(id);
-            }
+            User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
             membershipService.removeMemberMemberships(executionContext, MembershipMemberType.USER, id);
-            User user = optionalUser.get();
 
             //remove notifications
             portalNotificationService.deleteAll(user.getId());
@@ -1322,7 +1325,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             userRepository.update(user);
 
-            final UserEntity userEntity = convert(executionContext, optionalUser.get(), false);
+            final UserEntity userEntity = convert(executionContext, user, false);
             searchEngineService.delete(executionContext, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
