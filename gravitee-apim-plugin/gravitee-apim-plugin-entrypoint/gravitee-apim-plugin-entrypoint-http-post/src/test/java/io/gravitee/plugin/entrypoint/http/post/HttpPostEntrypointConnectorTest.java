@@ -15,10 +15,10 @@
  */
 package io.gravitee.plugin.entrypoint.http.post;
 
+import static io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector.STOP_MESSAGE_CONTENT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -26,14 +26,21 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
+import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.TestScheduler;
+import io.reactivex.subscribers.TestSubscriber;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,99 +56,118 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HttpPostEntrypointConnectorTest {
 
     @Mock
-    private ExecutionContext mockExecutionContext;
+    private ExecutionContext ctx;
 
-    private HttpPostEntrypointConnector httpPostEntrypointConnector;
-    private DummyMessageRequest dummyMessageRequest;
+    private HttpPostEntrypointConnector cut;
+    private DummyMessageRequest dummyRequest;
 
     @Mock
-    private Response mockMessageResponse;
+    private Response response;
 
     private HttpHeaders responseHeaders;
 
     @BeforeEach
     void beforeEach() {
-        dummyMessageRequest = new DummyMessageRequest();
-        dummyMessageRequest.messages(Flowable.empty());
-        lenient().when(mockExecutionContext.request()).thenReturn(dummyMessageRequest);
-        lenient().when(mockExecutionContext.response()).thenReturn(mockMessageResponse);
-        lenient().when(mockMessageResponse.headers()).thenReturn(HttpHeaders.create());
-        lenient().when(mockMessageResponse.messages()).thenReturn(Flowable.empty());
-        httpPostEntrypointConnector = new HttpPostEntrypointConnector(null);
+        dummyRequest = new DummyMessageRequest();
+        dummyRequest.messages(Flowable.empty());
+        lenient().when(ctx.request()).thenReturn(dummyRequest);
+        lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(response.headers()).thenReturn(HttpHeaders.create());
+        lenient().when(response.messages()).thenReturn(Flowable.empty());
+        cut = new HttpPostEntrypointConnector(null);
     }
 
     @Test
     void shouldIdReturnHttpPost() {
-        assertThat(httpPostEntrypointConnector.id()).isEqualTo("http-post");
+        assertThat(cut.id()).isEqualTo("http-post");
     }
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(httpPostEntrypointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
     void shouldSupportHttpListener() {
-        assertThat(httpPostEntrypointConnector.supportedListenerType()).isEqualTo(ListenerType.HTTP);
+        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
     }
 
     @Test
     void shouldSupportPublishModeOnly() {
-        assertThat(httpPostEntrypointConnector.supportedModes()).containsOnly(ConnectorMode.PUBLISH);
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH);
     }
 
     @Test
     void shouldMatchesCriteriaReturnValidCount() {
-        assertThat(httpPostEntrypointConnector.matchCriteriaCount()).isEqualTo(1);
+        assertThat(cut.matchCriteriaCount()).isEqualTo(1);
     }
 
     @Test
     void shouldMatchesWithValidContext() {
-        dummyMessageRequest.method(HttpMethod.POST);
+        dummyRequest.method(HttpMethod.POST);
 
-        boolean matches = httpPostEntrypointConnector.matches(mockExecutionContext);
+        boolean matches = cut.matches(ctx);
 
         assertThat(matches).isTrue();
     }
 
     @Test
     void shouldNotMatchesWithBadMethod() {
-        dummyMessageRequest.method(HttpMethod.GET);
+        dummyRequest.method(HttpMethod.GET);
 
-        boolean matches = httpPostEntrypointConnector.matches(mockExecutionContext);
+        boolean matches = cut.matches(ctx);
 
         assertThat(matches).isFalse();
     }
 
     @Test
     void shouldCompleteAndSetRequestBuffersInRequestMessages() {
-        dummyMessageRequest.headers(HttpHeaders.create());
-        dummyMessageRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
-        httpPostEntrypointConnector.handleRequest(mockExecutionContext).test().assertComplete();
+        dummyRequest.headers(HttpHeaders.create());
+        dummyRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
+        cut.handleRequest(ctx).test().assertComplete();
 
-        dummyMessageRequest
+        dummyRequest.messages().test().assertValue(message -> "bodyContent".equals(message.content().toString()) && message.id() != null);
+    }
+
+    @Test
+    void shouldAddRequestHeadersInMessageWhenConfigured() {
+        final HttpHeaders headers = HttpHeaders.create();
+        headers.add("X-Header", "X-Value");
+        dummyRequest.headers(headers);
+        dummyRequest.body(Maybe.just(Buffer.buffer("bodyContent")));
+
+        HttpPostEntrypointConnectorConfiguration configuration = new HttpPostEntrypointConnectorConfiguration();
+        configuration.setRequestHeadersToMessage(true);
+
+        cut = new HttpPostEntrypointConnector(configuration);
+        cut.handleRequest(ctx).test().assertComplete();
+
+        dummyRequest
             .messages()
             .test()
-            .assertValue(message -> "bodyContent".equals(message.content().toString()) && message.id() != null);
+            .assertValue(
+                message ->
+                    "bodyContent".equals(message.content().toString()) && message.id() != null && message.headers().deeplyEquals(headers)
+            );
     }
 
     @Test
     void shouldCompleteWhenMessagesComplete() {
-        httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(mockMessageResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         chunksCaptor.getValue().test().assertComplete();
-        verify(mockMessageResponse).status(HttpResponseStatus.ACCEPTED.code());
-        verify(mockMessageResponse).reason(HttpResponseStatus.ACCEPTED.reasonPhrase());
+        verify(response).status(HttpResponseStatus.ACCEPTED.code());
+        verify(response).reason(HttpResponseStatus.ACCEPTED.reasonPhrase());
     }
 
     @Test
     void shouldCompleteWhenResponseMessagesContainsFullError() {
         responseHeaders = HttpHeaders.create();
-        when(mockMessageResponse.headers()).thenReturn(responseHeaders);
-        when(mockMessageResponse.messages())
+        when(response.headers()).thenReturn(responseHeaders);
+        when(response.messages())
             .thenReturn(
                 Flowable.just(
                     DefaultMessage
@@ -158,51 +184,94 @@ class HttpPostEntrypointConnectorTest {
                         .build()
                 )
             );
-        httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(mockMessageResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         chunksCaptor.getValue().test().assertValue(buffer -> buffer.toString().equals("error"));
 
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
-        verify(mockMessageResponse).status(HttpResponseStatus.NOT_FOUND.code());
-        verify(mockMessageResponse).reason(HttpResponseStatus.NOT_FOUND.reasonPhrase());
+        verify(response).status(HttpResponseStatus.NOT_FOUND.code());
+        verify(response).reason(HttpResponseStatus.NOT_FOUND.reasonPhrase());
     }
 
     @Test
     void shouldCompleteWhenResponseMessagesContainsError() {
         responseHeaders = HttpHeaders.create();
-        when(mockMessageResponse.messages())
-            .thenReturn(Flowable.just(DefaultMessage.builder().error(true).content(Buffer.buffer("error")).build()));
-        httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        when(response.messages()).thenReturn(Flowable.just(DefaultMessage.builder().error(true).content(Buffer.buffer("error")).build()));
+        cut.handleResponse(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(mockMessageResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         chunksCaptor.getValue().test().assertValue(buffer -> buffer.toString().equals("error"));
 
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isFalse();
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isFalse();
-        verify(mockMessageResponse).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-        verify(mockMessageResponse).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        verify(response).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        verify(response).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
     }
 
     @Test
     void shouldCompleteWhenResponseMessagesContainsErrorWithBody() {
         responseHeaders = HttpHeaders.create();
-        when(mockMessageResponse.messages()).thenReturn(Flowable.just(DefaultMessage.builder().error(true).build()));
-        httpPostEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        when(response.messages()).thenReturn(Flowable.just(DefaultMessage.builder().error(true).build()));
+        cut.handleResponse(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        verify(mockMessageResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         chunksCaptor.getValue().test().assertValue(buffer -> buffer.toString().equals(""));
 
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isFalse();
         assertThat(responseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isFalse();
-        verify(mockMessageResponse).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-        verify(mockMessageResponse).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        verify(response).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        verify(response).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+    }
+
+    @Test
+    void shouldCompleteWithStopMessageWhenStoppingDuringRequest() throws Exception {
+        responseHeaders = HttpHeaders.create();
+        final TestScheduler testScheduler = new TestScheduler();
+
+        dummyRequest.body(Maybe.just(Buffer.buffer("test")).delay(1000, TimeUnit.MILLISECONDS, testScheduler));
+        when(response.messages()).thenReturn(Flowable.<Message>empty().delay(2000, TimeUnit.MILLISECONDS, testScheduler));
+        when(ctx.interruptMessagesWith(any(ExecutionFailure.class))).thenReturn(Flowable.just(new DefaultMessage("Stop")));
+
+        final TestObserver<Void> obs = cut.handleRequest(ctx).mergeWith(cut.handleResponse(ctx)).test();
+
+        // When merging request and response, it should not complete because response is not yet completed.
+        obs.assertNotComplete();
+
+        // Trigger stop.
+        cut.doStop();
+
+        // Should have completed because request has been interrupted by the stop.
+        obs.assertComplete();
+    }
+
+    @Test
+    void shouldCompleteWithStopMessageWhenStoppingDuringResponse() {
+        final TestScheduler testScheduler = new TestScheduler();
+        when(response.messages()).thenReturn(Flowable.<Message>empty().delay(1000, TimeUnit.MILLISECONDS, testScheduler));
+        cut.handleResponse(ctx).test().assertComplete();
+
+        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+        chunkObs.assertNotComplete();
+
+        testScheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+        chunkObs.assertNotComplete();
+
+        cut.doStop();
+        chunkObs.assertComplete();
+        chunkObs.assertValue(buffer -> buffer.toString().equals(STOP_MESSAGE_CONTENT));
+        verify(response).status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+        verify(response).reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
     }
 }

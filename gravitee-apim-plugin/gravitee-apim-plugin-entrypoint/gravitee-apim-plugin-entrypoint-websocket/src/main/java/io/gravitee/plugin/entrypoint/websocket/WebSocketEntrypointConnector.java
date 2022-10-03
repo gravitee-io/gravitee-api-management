@@ -15,6 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.*;
+
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -25,6 +27,8 @@ import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
+import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,14 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
-    static final int WEBSOCKET_STATUS_SERVER_ERROR = 1011;
-    static final String WEBSOCKET_STATUS_SERVER_ERROR_MSG = "Server error";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     private static final String ENTRYPOINT_ID = "websocket";
     protected final WebSocketEntrypointConnectorConfiguration configuration;
+    private WebSocketCloseStatus closeStatus;
 
     public WebSocketEntrypointConnector(final WebSocketEntrypointConnectorConfiguration configuration) {
         this.configuration = configuration;
+        this.closeStatus = NORMAL_CLOSURE;
     }
 
     @Override
@@ -88,13 +92,19 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
     public Completable handleResponse(final ExecutionContext ctx) {
         return Completable
             .defer(() -> Completable.mergeArray(ctx.request().messages().ignoreElements(), processResponseMessages(ctx)))
-            .andThen(Completable.defer(() -> ctx.request().webSocket().close()))
-            .onErrorResumeNext(t -> ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG));
+            .andThen(Completable.defer(() -> close(ctx, NORMAL_CLOSURE)))
+            .onErrorResumeNext(t -> close(ctx, t));
+    }
+
+    @Override
+    public EntrypointAsyncConnector preStop() {
+        emitStopMessage();
+        return this;
     }
 
     private Flowable<Message> prepareRequestMessages(WebSocket webSocket) {
         if (configuration.getPublisher().isEnabled()) {
-            return webSocket.read().map(buffer -> new DefaultMessage().content(buffer));
+            return webSocket.read().map(buffer -> new DefaultMessage().content(buffer)).compose(applyStopHook());
         } else {
             return Flowable.empty();
         }
@@ -105,17 +115,33 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
             return ctx
                 .response()
                 .messages()
+                .compose(applyStopHook())
                 .flatMapCompletable(
                     message -> {
                         if (!message.error()) {
                             return ctx.request().webSocket().write(message.content());
                         } else {
-                            return ctx.request().webSocket().close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+                            if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
+                                return Completable.error(new WebSocketException(TRY_AGAIN_LATER, TRY_AGAIN_LATER.reasonText()));
+                            }
+                            return Completable.error(new WebSocketException(SERVER_ERROR, message.content().toString()));
                         }
                     }
                 );
         } else {
             return Completable.complete();
         }
+    }
+
+    private Completable close(ExecutionContext ctx, Throwable e) {
+        if (e instanceof WebSocketException) {
+            return close(ctx, ((WebSocketException) e).getCloseStatus());
+        } else {
+            return close(ctx, SERVER_ERROR);
+        }
+    }
+
+    private Completable close(ExecutionContext ctx, WebSocketCloseStatus closeStatus) {
+        return ctx.request().webSocket().close(closeStatus.code(), closeStatus.reasonText());
     }
 }

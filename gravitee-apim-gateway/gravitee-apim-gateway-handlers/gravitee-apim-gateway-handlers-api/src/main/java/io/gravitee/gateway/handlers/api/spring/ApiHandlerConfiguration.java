@@ -226,6 +226,7 @@ public class ApiHandlerConfiguration {
         return new AsyncReactorFactory(
             applicationContext,
             configuration,
+            node,
             policyFactory,
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,

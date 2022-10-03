@@ -15,9 +15,11 @@
  */
 package io.gravitee.plugin.entrypoint.sse;
 
-import static io.gravitee.common.http.MediaType.TEXT_EVENT_STREAM;
+import static io.gravitee.common.http.MediaType.MEDIA_TEXT_EVENT_STREAM;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
@@ -31,12 +33,11 @@ import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorCon
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -86,9 +87,9 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public boolean matches(final ExecutionContext ctx) {
-        String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
+        final String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
 
-        return (ctx.request().method().equals(HttpMethod.GET) && acceptHeader != null && acceptHeader.contains(TEXT_EVENT_STREAM));
+        return ctx.request().method().equals(HttpMethod.GET) && MediaType.parseMediaTypes(acceptHeader).contains(MEDIA_TEXT_EVENT_STREAM);
     }
 
     @Override
@@ -119,22 +120,53 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
         );
     }
 
-    private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
-        final Flowable<Buffer> retryFlowable = Flowable.just(
-            Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format())
-        );
-        final Flowable<Buffer> heartBeatFlowable = Flowable
-            .interval(configuration.getHeartbeatIntervalInMs(), TimeUnit.MILLISECONDS)
-            .map(aLong -> Buffer.buffer(":\n\n"));
+    @Override
+    public SseEntrypointConnector preStop() {
+        emitStopMessage();
+        return this;
+    }
 
-        return retryFlowable
-            .concatWith(
-                heartBeatFlowable
-                    .materialize()
-                    .mergeWith(ctx.response().messages().map(this::messageToBuffer).materialize())
-                    .dematerialize(bufferNotification -> bufferNotification)
+    private Flowable<Buffer> messagesToBuffers(ExecutionContext ctx) {
+        final AtomicLong lastBufferTime = new AtomicLong(0);
+        final Flowable<Buffer> messageBufferFlow = messageBufferFlow(ctx, lastBufferTime);
+        final Flowable<Buffer> heartBeatFlow = heartBeatFlow(lastBufferTime);
+
+        return heartBeatFlow.compose(RxHelper.mergeWithFirst(messageBufferFlow)).onErrorReturn(this::errorToBuffer);
+    }
+
+    private Flowable<Buffer> messageBufferFlow(ExecutionContext ctx, AtomicLong lastBufferTime) {
+        return ctx
+            .response()
+            .messages()
+            .compose(applyStopHook())
+            .map(this::messageToBuffer)
+            .startWith(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
+            .timestamp()
+            .map(
+                timed -> {
+                    lastBufferTime.set(timed.time());
+                    return timed.value();
+                }
+            );
+    }
+
+    private Flowable<Buffer> heartBeatFlow(AtomicLong lastBufferTime) {
+        final int heartbeatIntervalInMs = configuration.getHeartbeatIntervalInMs();
+        return Flowable
+            .interval(heartbeatIntervalInMs, TimeUnit.MILLISECONDS)
+            .timestamp()
+            .flatMapMaybe(
+                timed -> {
+                    final long lastTime = lastBufferTime.get();
+                    final long currentTime = timed.time();
+                    if (currentTime - lastTime >= heartbeatIntervalInMs) {
+                        lastBufferTime.set(currentTime);
+                        return Maybe.just(Buffer.buffer(":\n\n"));
+                    }
+                    return Maybe.empty();
+                }
             )
-            .onErrorReturn(this::errorToBuffer);
+            .onBackpressureDrop();
     }
 
     private Buffer errorToBuffer(Throwable error) {
@@ -146,6 +178,10 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     private Buffer messageToBuffer(Message message) {
+        if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
+            return Buffer.buffer(SseEvent.builder().event("goaway").data(message.content().getBytes()).build().format());
+        }
+
         HashMap<String, Object> comments = new HashMap<>();
 
         if (configuration.isHeadersAsComment() && message.headers() != null) {

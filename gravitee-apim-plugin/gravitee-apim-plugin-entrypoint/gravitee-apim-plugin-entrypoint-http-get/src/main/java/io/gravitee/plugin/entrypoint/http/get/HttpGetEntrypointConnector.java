@@ -26,6 +26,7 @@ import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
@@ -144,12 +145,17 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
         );
     }
 
+    @Override
+    public void doStop() {
+        emitStopMessage();
+    }
+
     private Flowable<Buffer> messagesToBuffer(ExecutionContext ctx, final String contentType) {
         final AtomicBoolean first = new AtomicBoolean(true);
         Long messagesLimitDurationMs = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS);
         Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
 
-        Flowable<Message> limitedMessageFlowable = ctx.response().messages();
+        Flowable<Message> limitedMessageFlowable = ctx.response().messages().compose(applyStopHook());
 
         if (messagesLimitCount != null) {
             limitedMessageFlowable = limitedMessageFlowable.take(messagesLimitCount);
@@ -362,7 +368,7 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
                     }
                     return Flowable.just(Buffer.buffer(",\"pagination\":{" + String.join(",", paginationString) + "}"));
                 } else if (contentType.equals(MediaType.APPLICATION_XML)) {
-                    StringBuilder paginationString = new StringBuilder();
+                    StringBuilder paginationString = new StringBuilder("<pagination>");
                     if (currentCursor != null && !currentCursor.isEmpty()) {
                         paginationString.append("<cursor>").append(currentCursor).append("</cursor>");
                     }
@@ -372,7 +378,8 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
                     if (limit != null && !limit.isEmpty()) {
                         paginationString.append("<limit>").append(limit).append("</limit>");
                     }
-                    return Flowable.just(Buffer.buffer("<pagination>" + String.join("", paginationString) + "</pagination>"));
+                    paginationString.append("</pagination>");
+                    return Flowable.just(Buffer.buffer(paginationString.toString()));
                 } else {
                     StringBuilder paginationBuilder = new StringBuilder();
                     paginationBuilder.append("\npagination");

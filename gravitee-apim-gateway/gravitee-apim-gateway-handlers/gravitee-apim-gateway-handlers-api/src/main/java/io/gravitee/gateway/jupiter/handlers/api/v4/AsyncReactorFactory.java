@@ -46,6 +46,7 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -68,6 +69,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
 
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
+    private final Node node;
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
@@ -82,6 +84,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     public AsyncReactorFactory(
         final ApplicationContext applicationContext,
         final Configuration configuration,
+        final Node node,
         final PolicyFactory policyFactory,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
@@ -94,6 +97,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
+        this.node = node;
         this.policyFactory = policyFactory;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
@@ -187,10 +191,13 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     policyManager,
                     new DefaultEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
                     new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
+                    resourceLifecycleManager,
                     apiProcessorChainFactory,
                     apiMessageProcessorChainFactory,
                     flowChainFactory,
-                    v4FlowChainFactory
+                    v4FlowChainFactory,
+                    configuration,
+                    node
                 );
             }
         } catch (Exception ex) {

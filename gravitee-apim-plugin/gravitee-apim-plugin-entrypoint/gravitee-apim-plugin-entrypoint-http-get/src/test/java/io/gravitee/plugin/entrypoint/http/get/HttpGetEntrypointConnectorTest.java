@@ -19,9 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -44,8 +42,10 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailure
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,13 +65,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class HttpGetEntrypointConnectorTest {
 
     @Mock
-    private ExecutionContext mockExecutionContext;
+    private ExecutionContext ctx;
 
     @Mock
-    private Request mockRequest;
+    private Request request;
 
     @Mock
-    private Response mockResponse;
+    private Response response;
 
     @Mock
     private HttpGetEntrypointConnectorConfiguration configuration = new HttpGetEntrypointConnectorConfiguration();
@@ -79,56 +79,56 @@ class HttpGetEntrypointConnectorTest {
     @Captor
     private ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
 
-    private HttpGetEntrypointConnector httpGetEntrypointConnector;
+    private HttpGetEntrypointConnector cut;
 
     @BeforeEach
     void beforeEach() {
-        httpGetEntrypointConnector = new HttpGetEntrypointConnector(configuration);
+        cut = new HttpGetEntrypointConnector(configuration);
         lenient().when(configuration.isHeadersInPayload()).thenReturn(true);
         lenient().when(configuration.isMetadataInPayload()).thenReturn(true);
     }
 
     @Test
     void shouldIdReturnHttpGet() {
-        assertThat(httpGetEntrypointConnector.id()).isEqualTo("http-get");
+        assertThat(cut.id()).isEqualTo("http-get");
     }
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(httpGetEntrypointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
     void shouldSupportHttpListener() {
-        assertThat(httpGetEntrypointConnector.supportedListenerType()).isEqualTo(ListenerType.HTTP);
+        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
     }
 
     @Test
     void shouldSupportSubscribeModeOnly() {
-        assertThat(httpGetEntrypointConnector.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.SUBSCRIBE);
     }
 
     @Test
     void shouldMatchesCriteriaReturnValidCount() {
-        assertThat(httpGetEntrypointConnector.matchCriteriaCount()).isEqualTo(1);
+        assertThat(cut.matchCriteriaCount()).isEqualTo(1);
     }
 
     @Test
     void shouldMatchesWithValidContext() {
-        when(mockRequest.method()).thenReturn(HttpMethod.GET);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(ctx.request()).thenReturn(request);
 
-        boolean matches = httpGetEntrypointConnector.matches(mockExecutionContext);
+        boolean matches = cut.matches(ctx);
 
         assertThat(matches).isTrue();
     }
 
     @Test
     void shouldNotMatchesWithBadMethod() {
-        when(mockRequest.method()).thenReturn(HttpMethod.POST);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.method()).thenReturn(HttpMethod.POST);
+        when(ctx.request()).thenReturn(request);
 
-        boolean matches = httpGetEntrypointConnector.matches(mockExecutionContext);
+        boolean matches = cut.matches(ctx);
 
         assertThat(matches).isFalse();
     }
@@ -137,15 +137,15 @@ class HttpGetEntrypointConnectorTest {
     void shouldInterruptWithFailureBadAcceptHeader() {
         final HttpHeaders requestHttpHeaders = HttpHeaders.create();
         requestHttpHeaders.add(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_GRPC);
-        when(mockRequest.headers()).thenReturn(requestHttpHeaders);
+        when(request.headers()).thenReturn(requestHttpHeaders);
 
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(ctx.request()).thenReturn(request);
 
-        when(mockExecutionContext.interruptWith(any(ExecutionFailure.class)))
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
             .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
-        httpGetEntrypointConnector
-            .handleRequest(mockExecutionContext)
+        cut
+            .handleRequest(ctx)
             .test()
             .assertError(
                 e -> {
@@ -165,48 +165,47 @@ class HttpGetEntrypointConnectorTest {
     void shouldSetupInternalAttributeWithConfigurationValuesOnRequest(String limitQueryParam, int messagesLimitCount) {
         final HttpHeaders requestHttpHeaders = HttpHeaders.create();
         requestHttpHeaders.add(HttpHeaderNames.ACCEPT, MediaType.WILDCARD);
-        when(mockRequest.headers()).thenReturn(requestHttpHeaders);
+        when(request.headers()).thenReturn(requestHttpHeaders);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "1234");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, limitQueryParam);
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
         when(configuration.getMessagesLimitCount()).thenReturn(messagesLimitCount);
         when(configuration.getMessagesLimitDurationMs()).thenReturn(1_000L);
-        httpGetEntrypointConnector.handleRequest(mockExecutionContext).test().assertComplete();
+        cut.handleRequest(ctx).test().assertComplete();
 
-        verify(mockExecutionContext)
+        verify(ctx)
             .putInternalAttribute(
                 InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT,
                 Math.min(messagesLimitCount, Integer.parseInt(limitQueryParam))
             );
-        verify(mockExecutionContext).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS, 1_000L);
-        verify(mockExecutionContext).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, "1234");
-        verify(mockExecutionContext)
-            .putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
+        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS, 1_000L);
+        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID, "1234");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
     }
 
     @Test
     void shouldCompleteAndEndWhenResponseMessagesComplete() {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(response.headers()).thenReturn(httpHeaders);
         Flowable<Message> empty = Flowable.empty();
-        when(mockResponse.messages()).thenReturn(empty);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(empty);
+        when(ctx.response()).thenReturn(response);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -222,37 +221,36 @@ class HttpGetEntrypointConnectorTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldJsonArrayOfMessageAndCompleteAndEndWhenResponseMessagesComplete(boolean withHeadersAndMetadata) throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(response.headers()).thenReturn(httpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", MediaType.APPLICATION_JSON),
             createMessage("2", null),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -290,43 +288,42 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(5, message -> message.toString().equals("}"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldXmlArrayOfMessageAndCompleteAndEndWhenResponseMessagesComplete(boolean withHeadersAndMetadata) throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_XML);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        when(response.headers()).thenReturn(responseHttpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", MediaType.APPLICATION_XML),
             createMessage("2", null),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_XML);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -365,35 +362,33 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(5, message -> message.toString().equals("</response>"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldTextPlainArrayOfMessageAndCompleteAndEndWhenResponseMessagesComplete(boolean withHeadersAndMetadata)
         throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
-            .thenReturn(MediaType.TEXT_PLAIN);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE)).thenReturn(MediaType.TEXT_PLAIN);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        when(response.headers()).thenReturn(responseHttpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", null),
             createMessage("2", null),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
@@ -401,11 +396,11 @@ class HttpGetEntrypointConnectorTest {
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -446,44 +441,43 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldReturnJsonArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
         throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders httpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(httpHeaders);
+        when(response.headers()).thenReturn(httpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", MediaType.APPLICATION_JSON),
             createMessage("2", null, true),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -522,44 +516,43 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(6, message -> message.toString().equals("}"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldReturnXmlArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
         throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_XML);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        when(response.headers()).thenReturn(responseHttpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", MediaType.APPLICATION_XML),
             createMessage("2", null, true),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_XML);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -598,35 +591,33 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(5, message -> message.toString().equals("</response>"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void shouldReturnTextPlainArrayOfMessageWithErrorWhenResponseMessagesContainErrorMessage(boolean withHeadersAndMetadata)
         throws InterruptedException {
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
-            .thenReturn(MediaType.TEXT_PLAIN);
-        when(mockExecutionContext.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
-            .thenReturn(5_000L);
-        when(mockExecutionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE)).thenReturn(MediaType.TEXT_PLAIN);
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add(HttpGetEntrypointConnector.CURSOR_QUERY_PARAM, "0");
         queryParams.add(HttpGetEntrypointConnector.LIMIT_QUERY_PARAM, "2");
-        when(mockRequest.parameters()).thenReturn(queryParams);
-        when(mockExecutionContext.request()).thenReturn(mockRequest);
+        when(request.parameters()).thenReturn(queryParams);
+        when(ctx.request()).thenReturn(request);
 
         final HttpHeaders responseHttpHeaders = HttpHeaders.create();
-        when(mockResponse.headers()).thenReturn(responseHttpHeaders);
+        when(response.headers()).thenReturn(responseHttpHeaders);
         Flowable<Message> messages = Flowable.just(
             createMessage("1", null),
             createMessage("2", null, true),
             createMessage("Non returned messaged due to count limit", null)
         );
-        when(mockResponse.messages()).thenReturn(messages);
-        when(mockExecutionContext.response()).thenReturn(mockResponse);
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
 
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
@@ -634,11 +625,11 @@ class HttpGetEntrypointConnectorTest {
         when(configuration.isHeadersInPayload()).thenReturn(withHeadersAndMetadata);
         when(configuration.isMetadataInPayload()).thenReturn(withHeadersAndMetadata);
 
-        httpGetEntrypointConnector.handleResponse(mockExecutionContext).test().assertComplete();
+        cut.handleResponse(ctx).test().assertComplete();
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
-        verify(mockResponse).chunks(chunksCaptor.capture());
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
@@ -679,7 +670,61 @@ class HttpGetEntrypointConnectorTest {
             )
             .assertValueAt(3, message -> message.toString().equals("\npagination\ncursor: 0\nnextCursor: 2\nlimit: 2"));
 
-        verify(mockExecutionContext).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "1");
+    }
+
+    @Test
+    void shouldCompleteWithStopMessageWhenStopping() throws Exception {
+        final TestScheduler testScheduler = new TestScheduler();
+        when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
+            .thenReturn(MediaType.APPLICATION_JSON);
+        when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
+        when(ctx.request()).thenReturn(request);
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(response.messages())
+            .thenReturn(
+                Flowable
+                    .<Message>just(new DefaultMessage("test"), new DefaultMessage("test"), new DefaultMessage("test"))
+                    .zipWith(Flowable.interval(1000, TimeUnit.MILLISECONDS, testScheduler), (message, aLong) -> message)
+            );
+        when(ctx.response()).thenReturn(response);
+
+        cut.handleResponse(ctx).test().assertComplete();
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+
+        chunkObs.assertNotComplete();
+        testScheduler.triggerActions();
+        chunkObs.assertValueAt(0, buffer -> buffer.toString().equals("{\"items\":["));
+
+        // Should have a message after 1s.
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+        chunkObs.assertValueAt(1, buffer -> buffer.toString().contains("test"));
+
+        // Should have another message after 1s.
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+        chunkObs.assertValueAt(2, buffer -> buffer.toString().contains("test"));
+
+        // Trigger stop.
+        cut.doStop();
+
+        // Should have completed.
+        chunkObs.assertComplete();
+
+        // Message items should be closed.
+        chunkObs.assertValueAt(3, buffer -> buffer.toString().equals("]"));
+
+        // Next buffer should be an error indicating the stop is in progress.
+        chunkObs.assertValueAt(4, buffer -> buffer.toString().equals(",\"error\":"));
+        chunkObs.assertValueAt(
+            5,
+            buffer ->
+                buffer.toString().equals("{\"id\":\"goaway\",\"content\":\"Stopping, please reconnect\",\"headers\":{},\"metadata\":{}}")
+        );
     }
 
     private Message createMessage(String messageContent, String contentType) {

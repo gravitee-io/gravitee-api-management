@@ -15,8 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
-import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_SERVER_ERROR;
-import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.WEBSOCKET_STATUS_SERVER_ERROR_MSG;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,8 +35,9 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -176,7 +176,7 @@ class WebSocketEntrypointConnectorTest {
         when(request.messages()).thenReturn(Flowable.just(requestMessage1, requestMessage2, requestMessage3));
         when(response.messages()).thenReturn(Flowable.just(responseMessage1, responseMessage2, responseMessage3));
         when(webSocket.write(any(Buffer.class))).thenReturn(Completable.complete());
-        when(webSocket.close()).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
@@ -184,7 +184,7 @@ class WebSocketEntrypointConnectorTest {
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message1")));
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message2")));
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message3")));
-        verify(webSocket).close();
+        verify(webSocket).close(NORMAL_CLOSURE.code(), NORMAL_CLOSURE.reasonText());
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -199,13 +199,13 @@ class WebSocketEntrypointConnectorTest {
         when(request.messages()).thenReturn(Flowable.empty());
         when(response.messages()).thenReturn(Flowable.just(responseMessage1, responseMessage2, responseMessage3));
         when(webSocket.write(any(Buffer.class))).thenReturn(Completable.complete());
-        when(webSocket.close()).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
         verify(webSocket, times(3)).write(any(Buffer.class));
-        verify(webSocket).close();
+        verify(webSocket).close(NORMAL_CLOSURE.code(), NORMAL_CLOSURE.reasonText());
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -217,31 +217,49 @@ class WebSocketEntrypointConnectorTest {
         when(request.webSocket()).thenReturn(webSocket);
         when(request.messages()).thenReturn(Flowable.error(new RuntimeException(MOCK_EXCEPTION)));
         when(response.messages()).thenReturn(Flowable.just(message, message, message));
-        when(webSocket.close()).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
         verify(webSocket, never()).write(any(Buffer.class));
-        verify(webSocket).close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+        verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
         verifyNoMoreInteractions(webSocket);
     }
 
     @Test
     void shouldCloseWithErrorWhenErrorOccursOnResponseMessage() {
-        final Message message = new DefaultMessage("Response message");
+        final Message message = new DefaultMessage("Request message");
 
         when(configuration.getSubscriber()).thenReturn(new WebSocketEntrypointConnectorConfiguration.Subscriber(true));
         when(request.webSocket()).thenReturn(webSocket);
         when(request.messages()).thenReturn(Flowable.just(message, message, message));
         when(response.messages()).thenReturn(Flowable.error(new RuntimeException(MOCK_EXCEPTION)));
-        when(webSocket.close()).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
         verify(webSocket, never()).write(any(Buffer.class));
-        verify(webSocket).close(WEBSOCKET_STATUS_SERVER_ERROR, WEBSOCKET_STATUS_SERVER_ERROR_MSG);
+        verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
+        verifyNoMoreInteractions(webSocket);
+    }
+
+    @Test
+    void shouldCloseWithErrorWhenMessageErrorOccursOnResponseMessage() {
+        final Message message = new DefaultMessage("Request message");
+
+        when(configuration.getSubscriber()).thenReturn(new WebSocketEntrypointConnectorConfiguration.Subscriber(true));
+        when(request.webSocket()).thenReturn(webSocket);
+        when(request.messages()).thenReturn(Flowable.just(message, message, message));
+        when(response.messages()).thenReturn(Flowable.just(new DefaultMessage("error").error(true)));
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+
+        obs.assertNoValues();
+        verify(webSocket, never()).write(any(Buffer.class));
+        verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -252,13 +270,47 @@ class WebSocketEntrypointConnectorTest {
         when(configuration.getSubscriber()).thenReturn(new WebSocketEntrypointConnectorConfiguration.Subscriber(false));
         when(request.webSocket()).thenReturn(webSocket);
         when(request.messages()).thenReturn(Flowable.just(message, message, message));
-        when(webSocket.close()).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
         verify(webSocket, never()).write(any(Buffer.class));
-        verify(webSocket).close();
+        verify(webSocket).close(NORMAL_CLOSURE.code(), NORMAL_CLOSURE.reasonText());
+
+        verifyNoMoreInteractions(webSocket);
+    }
+
+    @Test
+    void shouldCloseWithTryAgainLaterWhenStopping() throws Exception {
+        final TestScheduler testScheduler = new TestScheduler();
+
+        final Message message = new DefaultMessage("Message");
+        final Flowable<Message> messageFlow = Flowable
+            .just(message, message, message)
+            .zipWith(Flowable.interval(1000, TimeUnit.MILLISECONDS, testScheduler), (m, aLong) -> m);
+
+        when(configuration.getSubscriber()).thenReturn(new WebSocketEntrypointConnectorConfiguration.Subscriber(true));
+        when(request.webSocket()).thenReturn(webSocket);
+        when(request.messages()).thenReturn(Flowable.empty());
+        when(response.messages()).thenReturn(messageFlow);
+        when(webSocket.write(any(Buffer.class))).thenReturn(Completable.complete());
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.assertNotComplete();
+
+        // Advance time by 2 seconds should produce 2 messages en request and 2 on response.
+        testScheduler.advanceTimeBy(2000, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        // Trigger stop.
+        cut.preStop();
+
+        // Should have completed.
+        obs.assertComplete();
+        verify(webSocket, times(2)).write(any(Buffer.class));
+        verify(webSocket).close(TRY_AGAIN_LATER.code(), TRY_AGAIN_LATER.reasonText());
         verifyNoMoreInteractions(webSocket);
     }
 }

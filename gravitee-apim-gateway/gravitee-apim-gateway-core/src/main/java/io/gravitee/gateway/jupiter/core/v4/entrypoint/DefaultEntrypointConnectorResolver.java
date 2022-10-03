@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.core.v4.entrypoint;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
@@ -28,14 +29,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @SuppressWarnings("unchecked")
-public class DefaultEntrypointConnectorResolver {
+public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultEntrypointConnectorResolver> {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultEntrypointConnectorResolver.class);
     private final List<EntrypointConnector> entrypointConnectors;
 
     public DefaultEntrypointConnectorResolver(final Api api, final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
@@ -71,5 +75,33 @@ public class DefaultEntrypointConnectorResolver {
             )
             .findFirst();
         return (T) entrypointConnector.orElse(null);
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+
+        for (EntrypointConnector connector : entrypointConnectors) {
+            try {
+                connector.stop();
+            } catch (Exception e) {
+                log.warn("An error occurred when stopping entrypoint connector [{}].", connector.id());
+            }
+        }
+    }
+
+    @Override
+    public DefaultEntrypointConnectorResolver preStop() throws Exception {
+        super.preStop();
+
+        for (EntrypointConnector connector : entrypointConnectors) {
+            try {
+                connector.preStop();
+            } catch (Exception e) {
+                log.warn("An error occurred when pre-stopping entrypoint connector [{}].", connector.id());
+            }
+        }
+
+        return this;
     }
 }

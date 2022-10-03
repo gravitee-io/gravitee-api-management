@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Acceptor;

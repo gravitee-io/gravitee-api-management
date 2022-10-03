@@ -15,12 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.reactivex.Completable.defer;
+import static io.reactivex.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
@@ -55,11 +54,16 @@ import io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionAc
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +82,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     private final PolicyManager policyManager;
     private final DefaultEntrypointConnectorResolver asyncEntrypointResolver;
     private final Invoker defaultInvoker;
+    private final ResourceLifecycleManager resourceLifecycleManager;
     private final ProcessorChain apiPreProcessorChain;
     private final ProcessorChain apiPostProcessorChain;
     private final ProcessorChain apiErrorProcessorChain;
@@ -87,22 +92,31 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     private final FlowChain apiFlowChain;
     private SecurityChain securityChain;
 
+    private final Node node;
+    private Lifecycle.State lifecycleState;
+    private final long pendingRequestsTimeout;
+    private final AtomicLong pendingRequests = new AtomicLong(0);
+
     public AsyncApiReactor(
         final Api api,
         final ComponentProvider apiComponentProvider,
         final PolicyManager policyManager,
         final DefaultEntrypointConnectorResolver asyncEntrypointResolver,
         final Invoker defaultInvoker,
+        final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final ApiMessageProcessorChainFactory apiMessageProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory flowChainFactory,
-        final FlowChainFactory v4FlowChainFactory
+        final FlowChainFactory v4FlowChainFactory,
+        final Configuration configuration,
+        final Node node
     ) {
         this.api = api;
         this.componentProvider = apiComponentProvider;
         this.policyManager = policyManager;
         this.asyncEntrypointResolver = asyncEntrypointResolver;
         this.defaultInvoker = defaultInvoker;
+        this.resourceLifecycleManager = resourceLifecycleManager;
 
         this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
         this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
@@ -113,6 +127,9 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api);
 
         this.processorChainHooks = new ArrayList<>();
+        this.lifecycleState = Lifecycle.State.INITIALIZED;
+        this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
+        this.node = node;
     }
 
     @Override
@@ -165,7 +182,9 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
             // Catch all possible unexpected errors
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
-            .andThen(ctx.response().end());
+            .andThen(ctx.response().end())
+            .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
+            .doFinally(pendingRequests::decrementAndGet);
     }
 
     private Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
@@ -307,7 +326,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
 
     @Override
     public Lifecycle.State lifecycleState() {
-        return null;
+        return lifecycleState;
     }
 
     @Override
@@ -323,13 +342,48 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
 
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
+
+        this.lifecycleState = Lifecycle.State.STARTED;
     }
 
     @Override
     protected void doStop() throws Exception {
         log.debug("API reactor is now stopping, closing context for {} ...", this);
 
+        this.lifecycleState = Lifecycle.State.STOPPING;
+
+        try {
+            asyncEntrypointResolver.preStop();
+
+            if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
+                log.debug("Current node is not started, API handler will be stopped immediately");
+                stopNow();
+            } else {
+                log.debug("Current node is started, API handler will wait for pending requests before stopping");
+                stopUntil().onErrorComplete().subscribe();
+            }
+        } catch (Exception e) {
+            log.warn("An error occurred when trying to stop the api reactor {}", this);
+        }
+    }
+
+    private Completable stopUntil() {
+        return interval(100, TimeUnit.MILLISECONDS)
+            .timestamp()
+            .takeWhile(t -> pendingRequests.get() > 0 && t.time() < pendingRequestsTimeout)
+            .ignoreElements()
+            .onErrorComplete()
+            .doFinally(this::stopNow);
+    }
+
+    private void stopNow() throws Exception {
+        log.debug("API reactor is now stopping, closing context for {} ...", this);
+
+        asyncEntrypointResolver.stop();
         policyManager.stop();
+        resourceLifecycleManager.stop();
+
+        lifecycleState = Lifecycle.State.STOPPED;
 
         log.debug("API reactor is now stopped: {}", this);
     }

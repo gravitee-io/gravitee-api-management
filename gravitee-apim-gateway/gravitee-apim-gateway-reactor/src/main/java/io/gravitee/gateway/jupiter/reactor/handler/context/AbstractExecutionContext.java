@@ -157,7 +157,7 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
             templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
 
             if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
+                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide((ExecutionContext) this));
             }
         }
 

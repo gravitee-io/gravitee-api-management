@@ -47,6 +47,7 @@ class DefaultEntrypointConnectorResolverTest {
 
     protected static final String ENTRYPOINT_TYPE = "test";
     protected static final String ENTRYPOINT_CONFIG = "{ \"config\": \"something\"}";
+    protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
     private ExecutionContext ctx;
@@ -157,6 +158,98 @@ class DefaultEntrypointConnectorResolverTest {
         final EntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEntrypointConnector);
+    }
+
+    @Test
+    void shouldPreStopEntrypointConnectors() throws Exception {
+        final Api api = buildApi();
+        api.getListeners().get(0).getEntrypoints().add(buildEntrypoint());
+
+        final EntrypointConnector entrypointConnector1 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector2 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector3 = mock(EntrypointConnector.class);
+
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG))
+            .thenReturn(entrypointConnector1)
+            .thenReturn(entrypointConnector2)
+            .thenReturn(entrypointConnector3);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        cut.preStop();
+
+        verify(entrypointConnector1).preStop();
+        verify(entrypointConnector2).preStop();
+        verify(entrypointConnector3).preStop();
+    }
+
+    @Test
+    void shouldIgnoreErrorWhenPreStopEntrypointConnectors() throws Exception {
+        final Api api = buildApi();
+        api.getListeners().get(0).getEntrypoints().add(buildEntrypoint());
+
+        final EntrypointConnector entrypointConnector1 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector2 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector3 = mock(EntrypointConnector.class);
+
+        when(entrypointConnector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
+
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG))
+            .thenReturn(entrypointConnector1)
+            .thenReturn(entrypointConnector2)
+            .thenReturn(entrypointConnector3);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        cut.preStop();
+
+        verify(entrypointConnector1).preStop();
+        verify(entrypointConnector2).preStop();
+        verify(entrypointConnector3).preStop();
+    }
+
+    @Test
+    void shouldStopEntrypointConnectors() throws Exception {
+        final Api api = buildApi();
+        api.getListeners().get(0).getEntrypoints().add(buildEntrypoint());
+
+        final EntrypointConnector entrypointConnector1 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector2 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector3 = mock(EntrypointConnector.class);
+
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG))
+            .thenReturn(entrypointConnector1)
+            .thenReturn(entrypointConnector2)
+            .thenReturn(entrypointConnector3);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        cut.stop();
+
+        verify(entrypointConnector1).stop();
+        verify(entrypointConnector2).stop();
+        verify(entrypointConnector3).stop();
+    }
+
+    @Test
+    void shouldIgnoreErrorWhenStopEntrypointConnectors() throws Exception {
+        final Api api = buildApi();
+        api.getListeners().get(0).getEntrypoints().add(buildEntrypoint());
+
+        final EntrypointConnector entrypointConnector1 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector2 = mock(EntrypointConnector.class);
+        final EntrypointConnector entrypointConnector3 = mock(EntrypointConnector.class);
+
+        when(entrypointConnector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
+
+        when(connectorFactory.createConnector(ENTRYPOINT_CONFIG))
+            .thenReturn(entrypointConnector1)
+            .thenReturn(entrypointConnector2)
+            .thenReturn(entrypointConnector3);
+
+        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, pluginManager);
+        cut.stop();
+
+        verify(entrypointConnector1).stop();
+        verify(entrypointConnector2).stop();
+        verify(entrypointConnector3).stop();
     }
 
     private Api buildApi() {
