@@ -15,12 +15,15 @@
  */
 package io.gravitee.plugin.entrypoint.http.post;
 
+import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -42,6 +45,7 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
     private static final String ENTRYPOINT_ID = "http-post";
+    protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
     private HttpPostEntrypointConnectorConfiguration configuration;
 
     public HttpPostEntrypointConnector(final HttpPostEntrypointConnectorConfiguration configuration) {
@@ -96,6 +100,16 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
                                 }
                             )
                             .toFlowable()
+                            .compose(
+                                RxHelper.mergeWithFirst(
+                                    stopHook.flatMap(
+                                        message ->
+                                            ctx.interruptMessagesWith(
+                                                new ExecutionFailure(INTERNAL_SERVER_ERROR_500).message(STOPPING_MESSAGE)
+                                            )
+                                    )
+                                )
+                            )
                     )
         );
     }
@@ -112,14 +126,20 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
         );
     }
 
+    @Override
+    public void doStop() {
+        emitStopMessage();
+    }
+
     private Flowable<Buffer> processResponseMessages(final ExecutionContext ctx) {
         return ctx
             .response()
             .messages()
+            .compose(applyStopHook())
             .filter(Message::error)
             .map(
                 message -> {
-                    Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                    Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", INTERNAL_SERVER_ERROR_500);
                     ctx.response().status(statusCode);
                     HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
                     if (httpResponseStatus != null) {

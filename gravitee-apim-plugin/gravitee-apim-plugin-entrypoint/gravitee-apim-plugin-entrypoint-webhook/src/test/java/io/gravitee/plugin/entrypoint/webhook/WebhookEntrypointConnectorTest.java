@@ -15,21 +15,12 @@
  */
 package io.gravitee.plugin.entrypoint.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT;
-import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.INTERNAL_ATTR_WEBHOOK_REQUEST_URI;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -51,6 +42,7 @@ import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConn
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpClient;
@@ -72,6 +64,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class WebhookEntrypointConnectorTest {
 
     protected static final String SUBSCRIPTION_CONFIGURATION = "subscription configuration";
+    protected static final String MOCK_ERROR = "Mock error";
     private final Vertx vertx = Vertx.vertx();
 
     @Mock
@@ -251,5 +244,71 @@ class WebhookEntrypointConnectorTest {
         chunksObs.awaitTerminalEvent();
 
         wmRuntimeInfo.getWireMock().verifyThat(4, postRequestedFor(urlPathEqualTo("/callback")));
+    }
+
+    @Test
+    void shouldStopSendingMessagesToWebhookWhenStopping(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        stubFor(post("/callback").willReturn(ok()));
+
+        when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+
+        // Prepare the client
+        cut.handleRequest(ctx).test().assertComplete();
+
+        final TestScheduler testScheduler = new TestScheduler();
+
+        // Prepare response messages
+        final DefaultMessage message = DefaultMessage
+            .builder()
+            .content(Buffer.buffer("message"))
+            .headers(HttpHeaders.create().set("my-header", "my-value"))
+            .build();
+
+        final Flowable<Message> messages = Flowable
+            .just(message, message, message)
+            .zipWith(Flowable.interval(1000, TimeUnit.MILLISECONDS, testScheduler), (m, aLong) -> m);
+
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.assertComplete();
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.assertNotComplete();
+
+        testScheduler.advanceTimeBy(2000, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        cut.preStop();
+
+        // Note: this is subject to change when subscription lifecycle will be fully handled.
+        chunksObs.assertErrorMessage(STOPPING_MESSAGE);
+        wmRuntimeInfo.getWireMock().verifyThat(lessThanOrExactly(2), postRequestedFor(urlPathEqualTo("/callback")));
+    }
+
+    @Test
+    void shouldErrorWhenMessageFlaggedInErrorIsReceived() {
+        when(response.messages()).thenReturn(Flowable.just(new DefaultMessage(MOCK_ERROR).error(true)));
+        when(ctx.response()).thenReturn(response);
+
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT)).thenReturn(mock(HttpClient.class));
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.assertComplete();
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.assertErrorMessage(MOCK_ERROR);
     }
 }

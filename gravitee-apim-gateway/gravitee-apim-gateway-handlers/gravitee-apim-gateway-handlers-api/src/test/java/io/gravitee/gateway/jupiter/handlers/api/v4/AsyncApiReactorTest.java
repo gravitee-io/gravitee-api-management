@@ -15,18 +15,17 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
+import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_INVOKER;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -54,11 +53,18 @@ import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import io.reactivex.CompletableObserver;
+import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.schedulers.TestScheduler;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -169,6 +175,15 @@ class AsyncApiReactorTest {
     @Mock
     private FlowChainFactory v4FlowChainFactory;
 
+    @Spy
+    ResourceLifecycleManager resourceLifecycleManager;
+
+    @Mock
+    Configuration configuration;
+
+    @Mock
+    Node node;
+
     @Mock
     private ApiProcessorChainFactory apiProcessorChainFactory;
 
@@ -211,7 +226,9 @@ class AsyncApiReactorTest {
     @Mock
     private SecurityChain securityChain;
 
-    private AsyncApiReactor asyncApiReactor;
+    private TestScheduler testScheduler;
+
+    private AsyncApiReactor cut;
 
     @BeforeEach
     public void init() throws Exception {
@@ -265,31 +282,39 @@ class AsyncApiReactorTest {
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
 
-        asyncApiReactor =
+        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
+
+        cut =
             new AsyncApiReactor(
                 api,
                 apiComponentProvider,
                 policyManager,
                 asyncEntrypointResolver,
                 defaultInvoker,
+                resourceLifecycleManager,
                 apiProcessorChainFactory,
                 apiMessageProcessorChainFactory,
                 flowChainFactory,
-                v4FlowChainFactory
+                v4FlowChainFactory,
+                configuration,
+                node
             );
-        asyncApiReactor.doStart();
-        ReflectionTestUtils.setField(asyncApiReactor, "securityChain", securityChain);
+        cut.doStart();
+        ReflectionTestUtils.setField(cut, "securityChain", securityChain);
+
+        testScheduler = new TestScheduler();
+        RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
     }
 
     @Test
     void shouldReturnAsyncApiType() {
-        ApiType apiType = asyncApiReactor.apiType();
+        ApiType apiType = cut.apiType();
         assertThat(apiType).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
     void shouldPrepareContextAttributes() throws Exception {
-        asyncApiReactor.handle(ctx).test().assertComplete();
+        cut.handle(ctx).test().assertComplete();
 
         verify(ctx).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
         verify(ctx).setAttribute(ContextAttributes.ATTR_API, API_ID);
@@ -302,7 +327,7 @@ class AsyncApiReactorTest {
     void shouldEndResponseWith404WhenNoEntrypoint() {
         when(response.end()).thenReturn(Completable.complete());
         when(asyncEntrypointResolver.resolve(ctx)).thenReturn(null);
-        asyncApiReactor.handle(ctx).test().assertComplete();
+        cut.handle(ctx).test().assertComplete();
 
         verify(ctx)
             .interruptWith(
@@ -323,7 +348,7 @@ class AsyncApiReactorTest {
         when(asyncEntrypointResolver.resolve(ctx)).thenReturn(entrypointConnector);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
 
-        asyncApiReactor.handle(ctx).test().assertComplete();
+        cut.handle(ctx).test().assertComplete();
 
         // verify flow chain has been executed in the right order
         InOrder inOrder = inOrder(
@@ -375,7 +400,7 @@ class AsyncApiReactorTest {
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
 
-        List<Acceptor<?>> acceptors = asyncApiReactor.acceptors();
+        List<Acceptor<?>> acceptors = cut.acceptors();
         assertThat(acceptors).hasSize(2);
         Acceptor<?> acceptor1 = acceptors.get(0);
         assertThat(acceptor1).isInstanceOf(HttpAcceptor.class);
@@ -386,5 +411,89 @@ class AsyncApiReactorTest {
         assertThat(acceptor2).isInstanceOf(SubscriptionAcceptor.class);
         SubscriptionAcceptor subscriptionAcceptor = (SubscriptionAcceptor) acceptor2;
         assertThat(subscriptionAcceptor.apiId()).isEqualTo(api.getId());
+    }
+
+    @Test
+    void shouldWaitForPendingRequestBeforeStopping() throws Exception {
+        when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        final AtomicLong pendingRequests = new AtomicLong(1);
+        ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
+
+        cut.doStop();
+
+        // Pre-stop should have been called on the asyncEnntrypointResolver.
+        verify(asyncEntrypointResolver).preStop();
+
+        testScheduler.advanceTimeBy(2500L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        // Not called yet as there is still a pending request and timeout has not expired.
+        verify(asyncEntrypointResolver, times(0)).stop();
+        verify(resourceLifecycleManager, times(0)).stop();
+        verify(policyManager, times(0)).stop();
+
+        // Ends the pending request.
+        pendingRequests.decrementAndGet();
+        testScheduler.advanceTimeBy(100L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        verify(asyncEntrypointResolver).stop();
+        verify(resourceLifecycleManager).stop();
+        verify(policyManager).stop();
+    }
+
+    @Test
+    void shouldWaitForPendingRequestAndForceStopAfter10sWhenRequestDoesNotFinish() throws Exception {
+        when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        final AtomicLong pendingRequests = new AtomicLong(1);
+        ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
+        cut.doStop();
+
+        // Pre-stop should have been called on the asyncEnntrypointResolver.
+        verify(asyncEntrypointResolver).preStop();
+
+        for (int i = 0; i < 99; i++) {
+            testScheduler.advanceTimeBy(100L, TimeUnit.MILLISECONDS);
+            testScheduler.triggerActions();
+
+            // Not called yet as there is still a pending request and timeout has not expired.
+            verify(asyncEntrypointResolver, times(0)).stop();
+            verify(resourceLifecycleManager, times(0)).stop();
+            verify(policyManager, times(0)).stop();
+        }
+
+        testScheduler.advanceTimeBy(100L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        verify(asyncEntrypointResolver).stop();
+        verify(resourceLifecycleManager).stop();
+        verify(policyManager).stop();
+
+        assertEquals(STOPPED, cut.lifecycleState());
+    }
+
+    @Test
+    void shouldNotWaitForPendingRequestWhenNodeIsShutdown() throws Exception {
+        when(node.lifecycleState()).thenReturn(STOPPED);
+        final AtomicLong pendingRequests = new AtomicLong(1);
+        ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
+        cut.doStop();
+
+        verify(asyncEntrypointResolver).preStop();
+        verify(asyncEntrypointResolver).stop();
+        verify(resourceLifecycleManager).stop();
+        verify(policyManager).stop();
+    }
+
+    @Test
+    void shouldIgnoreErrorAndContinueWhenErrorOccurredDuringStop() throws Exception {
+        when(node.lifecycleState()).thenReturn(STOPPED);
+        when(asyncEntrypointResolver.stop()).thenThrow(new RuntimeException("Mock exception"));
+        cut.stop();
+
+        verify(asyncEntrypointResolver).preStop();
+        verify(asyncEntrypointResolver).stop();
+        verify(resourceLifecycleManager, never()).stop();
+        verify(policyManager, never()).stop();
     }
 }

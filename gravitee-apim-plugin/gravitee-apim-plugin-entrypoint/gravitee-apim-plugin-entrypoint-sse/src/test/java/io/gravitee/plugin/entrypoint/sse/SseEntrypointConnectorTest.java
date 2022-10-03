@@ -16,12 +16,7 @@
 package io.gravitee.plugin.entrypoint.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -40,6 +35,8 @@ import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorCon
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.schedulers.TestScheduler;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -196,6 +193,89 @@ class SseEntrypointConnectorTest {
     }
 
     @Test
+    void shouldWriteSseHeartBeatMessages() {
+        try {
+            // Set up the test scheduler globally to get fine control on time.
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+
+            // Set heart beat each 1s.
+            final SseEntrypointConnectorConfiguration configuration = new SseEntrypointConnectorConfiguration();
+            configuration.setHeartbeatIntervalInMs(1000);
+
+            // Fake a message emission each 8s. Should take 26s to produce all 3 messages.
+            final Flowable<Message> messages = Flowable
+                .just(
+                    new DefaultMessage("content 1").id("1"),
+                    new DefaultMessage("content 2").id("2"),
+                    new DefaultMessage("content 3").id("3")
+                )
+                .zipWith(Flowable.interval(8000, TimeUnit.MILLISECONDS), (message, aLong) -> message);
+
+            final HttpHeaders httpHeaders = HttpHeaders.create();
+
+            when(response.messages()).thenReturn(messages);
+            when(response.headers()).thenReturn(httpHeaders);
+            when(ctx.response()).thenReturn(response);
+
+            cut = new SseEntrypointConnector(configuration);
+            final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+            obs.assertComplete();
+
+            verifyResponseHeaders(httpHeaders);
+            verify(response).chunks(chunksCaptor.capture());
+
+            final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
+
+            chunkObs.assertNotComplete();
+
+            // Retry message is produced instantaneously (0s).
+            chunkObs.assertValueAt(0, buffer -> buffer.toString().contains("retry"));
+
+            for (int i = 1; i < 8; i++) {
+                // Advance time second per second should produce heartbeat messages (7s).
+                testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+                testScheduler.triggerActions();
+                chunkObs.assertValueAt(i, buffer -> buffer.toString().equals(":\n\n"));
+            }
+
+            // At the 8th second, the first message is produced (8s).
+            testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+            testScheduler.triggerActions();
+            chunkObs.assertValueAt(8, message -> message.toString().equals("id: 1\nevent: message\ndata: content 1\n\n"));
+
+            // Jump to 10s in the future should produce 7 heartbeat and one next message (18s).
+            testScheduler.advanceTimeBy(10000, TimeUnit.MILLISECONDS);
+            testScheduler.triggerActions();
+
+            for (int i = 9; i < 16; i++) {
+                chunkObs.assertValueAt(i, buffer -> buffer.toString().equals(":\n\n"));
+            }
+
+            chunkObs.assertValueAt(16, message -> message.toString().equals("id: 2\nevent: message\ndata: content 2\n\n"));
+
+            // Advance time by 7 seconds with no message should produce 7 heartbeats (25s).
+            testScheduler.advanceTimeBy(7000, TimeUnit.MILLISECONDS);
+            testScheduler.triggerActions();
+
+            for (int i = 17; i < 24; i++) {
+                chunkObs.assertValueAt(i, buffer -> buffer.toString().equals(":\n\n"));
+            }
+
+            // Advance time by 1 second more should produce the last message (26s).
+            testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+            testScheduler.triggerActions();
+
+            // The last message is emitted and should complete.
+            chunkObs.assertValueAt(24, message -> message.toString().equals("id: 3\nevent: message\ndata: content 3\n\n"));
+
+            chunkObs.assertComplete();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
     void shouldWriteSseMessagesWithoutCommentsWhenDisabled() {
         final Flowable<Message> messages = Flowable.just(
             new DefaultMessage("content 1")
@@ -310,16 +390,6 @@ class SseEntrypointConnectorTest {
         chunkObs.assertValueAt(0, message -> message.toString().startsWith("retry: "));
     }
 
-    private boolean ignoreHeartbeat(final Buffer buffer) {
-        return !buffer.toString().equals(":\n\n");
-    }
-
-    private void verifyResponseHeaders(HttpHeaders httpHeaders) {
-        assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
-        assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
-        assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();
-    }
-
     @Test
     void shouldWriteErrorSseEventWhenErrorOccurs() {
         Flowable<Message> messages = Flowable.error(new RuntimeException("error"));
@@ -327,7 +397,49 @@ class SseEntrypointConnectorTest {
         HttpHeaders httpHeaders = HttpHeaders.create();
         when(response.headers()).thenReturn(httpHeaders);
         when(ctx.response()).thenReturn(response);
-        boolean b = cut.handleResponse(ctx).test().awaitTerminalEvent(10, TimeUnit.SECONDS);
+        cut.handleResponse(ctx).test().assertComplete();
+        verifyResponseHeaders(httpHeaders);
+    }
+
+    @Test
+    void shouldWriteGoAwaySseEventWhenStopping() throws Exception {
+        final TestScheduler testScheduler = new TestScheduler();
+
+        final DefaultMessage message = new DefaultMessage("test");
+        when(response.messages())
+            .thenReturn(
+                Flowable
+                    .<Message>just(message, message, message)
+                    .zipWith(Flowable.interval(1000, TimeUnit.MILLISECONDS, testScheduler), (m, aLong) -> m)
+            );
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.assertComplete();
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().filter(this::ignoreHeartbeat).test();
+        chunkObs.assertNotComplete();
+        chunkObs.assertValueAt(0, buffer -> buffer.toString().startsWith("retry: "));
+
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+        chunkObs.assertValueAt(1, buffer -> buffer.toString().matches("id: .*\nevent: message\ndata: test\n\n"));
+
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+        chunkObs.assertValueAt(2, buffer -> buffer.toString().matches("id: .*\nevent: message\ndata: test\n\n"));
+
+        cut.preStop();
+        chunkObs.assertComplete();
+        chunkObs.assertValueAt(3, buffer -> buffer.toString().equals("event: goaway\ndata: Stopping, please reconnect\n\n"));
+    }
+
+    private boolean ignoreHeartbeat(final Buffer buffer) {
+        return !buffer.toString().equals(":\n\n");
+    }
+
+    private void verifyResponseHeaders(HttpHeaders httpHeaders) {
         assertThat(httpHeaders.contains(HttpHeaderNames.CONTENT_TYPE)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CONNECTION)).isTrue();
         assertThat(httpHeaders.contains(HttpHeaderNames.CACHE_CONTROL)).isTrue();

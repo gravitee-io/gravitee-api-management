@@ -18,9 +18,7 @@ package io.gravitee.plugin.endpoint.mock;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
@@ -62,11 +60,11 @@ class MockEndpointConnectorTest {
     private static final String MESSAGE_TO_LOG = "message to log";
     private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
 
-    @Mock
-    Logger logger;
+    @Mock(name = "io.gravitee.plugin.endpoint.mock.MockEndpointConnector")
+    Logger log;
 
     @InjectMocks
-    private MockEndpointConnector mockEndpointConnector;
+    private MockEndpointConnector cut;
 
     @Mock
     private ExecutionContext ctx;
@@ -84,7 +82,7 @@ class MockEndpointConnectorTest {
     public void setup() {
         configuration.setMessageInterval(100L);
         configuration.setMessageContent(MESSAGE_CONTENT);
-        mockEndpointConnector = new MockEndpointConnector(configuration);
+        cut = new MockEndpointConnector(configuration);
         lenient().when(request.onMessage(any())).thenReturn(Completable.complete());
 
         lenient().when(ctx.request()).thenReturn(request);
@@ -95,35 +93,35 @@ class MockEndpointConnectorTest {
 
     @Test
     void shouldIdReturnMock() {
-        assertThat(mockEndpointConnector.id()).isEqualTo("mock");
+        assertThat(cut.id()).isEqualTo("mock");
     }
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(mockEndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
     void shouldSupportPublishAndSubscribeModes() {
-        assertThat(mockEndpointConnector.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+        assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     }
 
     @Test
     @DisplayName("Should receive messages")
     void shouldLogRequestMessagesFlow() {
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Function<Message, Maybe<Message>>> messagesCaptor = ArgumentCaptor.forClass(Function.class);
 
         verify(request).onMessage(messagesCaptor.capture());
         messagesCaptor.getValue().apply(new DefaultMessage(MESSAGE_TO_LOG)).test().assertComplete();
-        verify(logger).info("Received message: {}", MESSAGE_TO_LOG);
+        verify(log).info("Received message: {}", MESSAGE_TO_LOG);
     }
 
     @Test
     @DisplayName("Should generate messages flow")
     void shouldGenerateMessagesFlow() {
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
@@ -144,7 +142,7 @@ class MockEndpointConnectorTest {
     void shouldGenerateLimitedMessagesFlowFromConfiguration() throws InterruptedException {
         configuration.setMessageCount(5);
 
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
@@ -160,7 +158,7 @@ class MockEndpointConnectorTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
@@ -180,7 +178,7 @@ class MockEndpointConnectorTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
@@ -196,7 +194,7 @@ class MockEndpointConnectorTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
@@ -213,7 +211,7 @@ class MockEndpointConnectorTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RESUME_LASTID)).thenReturn("1");
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
-        mockEndpointConnector.connect(ctx).test().assertComplete();
+        cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());

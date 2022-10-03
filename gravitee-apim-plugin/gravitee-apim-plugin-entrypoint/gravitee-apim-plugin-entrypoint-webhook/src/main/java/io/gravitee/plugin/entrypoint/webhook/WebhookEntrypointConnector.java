@@ -18,13 +18,19 @@ package io.gravitee.plugin.entrypoint.webhook;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
+import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.Maybe;
+import io.reactivex.processors.BehaviorProcessor;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.reactivex.core.Vertx;
@@ -46,6 +52,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     private static final String ENTRYPOINT_ID = "webhook";
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
     public WebhookEntrypointConnector(final WebhookEntrypointConnectorConfiguration configuration) {
@@ -97,12 +104,47 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                         ctx
                             .response()
                             .messages()
-                            .flatMapCompletable(message -> sendAndDiscard(requestUri, httpClient, message))
+                            .compose(applyStopHook())
+                            .flatMapCompletable(
+                                message -> {
+                                    if (message.error()) {
+                                        return Completable.error(new Exception(message.content().toString()));
+                                    }
+                                    return sendAndDiscard(requestUri, httpClient, message);
+                                }
+                            )
                             .doFinally(httpClient::close)
                             .toFlowable()
                     );
             }
         );
+    }
+
+    @Override
+    public WebhookEntrypointConnector preStop() {
+        emitStopMessage();
+        return this;
+    }
+
+    private Completable sendAndDiscard(String requestUri, HttpClient httpClient, Message message) {
+        // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
+        return httpClient
+            .rxRequest(HttpMethod.POST, requestUri)
+            .flatMap(
+                request -> {
+                    if (message.headers() != null) {
+                        message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                    }
+                    if (message.content() != null) {
+                        return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
+                    } else {
+                        return request.rxSend();
+                    }
+                }
+            )
+            .ignoreElement()
+            .doOnError(throwable -> log.error("An error occurred when trying to send webhook message.", throwable))
+            .onErrorComplete();
     }
 
     private Completable prepareClientOptions(final ExecutionContext ctx) {
@@ -153,24 +195,5 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                 }
             }
         );
-    }
-
-    private Completable sendAndDiscard(String requestUri, HttpClient httpClient, Message message) {
-        // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
-        return httpClient
-            .rxRequest(HttpMethod.POST, requestUri)
-            .flatMap(
-                request -> {
-                    if (message.headers() != null) {
-                        message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
-                    }
-                    if (message.content() != null) {
-                        return request.rxSend(Buffer.buffer(message.content().getBytes()));
-                    } else {
-                        return request.rxSend();
-                    }
-                }
-            )
-            .flatMapCompletable(response -> Completable.complete());
     }
 }
