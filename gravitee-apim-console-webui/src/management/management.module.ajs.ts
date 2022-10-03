@@ -547,7 +547,7 @@ import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component
 import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-deployments.component';
 import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
-import { ApiProxyEndpointListComponent } from './api/proxy/endpoint/list/api-proxy-endpoint-list.component';
+import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
