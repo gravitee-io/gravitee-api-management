@@ -1,0 +1,24 @@
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.endpoint-list {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__card {
+    margin: 8px 0;
+  }
+
+  &__table {
+    &__actions {
+      display: flex;
+      justify-content: center;
+    }
+  }
+}

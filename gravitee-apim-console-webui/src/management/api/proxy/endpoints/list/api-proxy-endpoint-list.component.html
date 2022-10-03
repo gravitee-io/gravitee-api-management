@@ -1,0 +1,130 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="endpoint-list__header" *ngIf="!isReadOnly && endpointGroupsTableData">
+  <h1>Endpoints</h1>
+
+  <div>
+    <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-raised-button type="button" color="primary" (click)="navigateToGroup('')">
+      <mat-icon svgIcon="gio:plus"></mat-icon>Add new endpoint group
+    </button>
+  </div>
+</div>
+
+<div *ngIf="endpointGroupsTableData">
+  <mat-card class="endpoint-list__card" *ngFor="let endpointGroupData of endpointGroupsTableData; let i = index">
+    <div class="endpoint-list__header">
+      <h2>{{ endpointGroupData.name }}</h2>
+      <div>
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-icon-button
+          (click)="navigateToEndpoint(endpointGroupData.name, '')"
+          aria-label="Add new endpoint"
+          matTooltip="Add new endpoint"
+        >
+          <mat-icon svgIcon="gio:plus"></mat-icon>
+        </button>
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-icon-button
+          (click)="navigateToGroup(endpointGroupData.name)"
+          aria-label="Edit group"
+          matTooltip="Edit group"
+        >
+          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <table
+      mat-table
+      [dataSource]="endpointGroupData.endpoints"
+      [attr.id]="'endpointGroupsTable-' + i"
+      aria-label="Endpoint group table"
+      class="endpoint-list__table"
+    >
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name" width="20%">Name</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.name }}
+        </td>
+      </ng-container>
+
+      <!-- Target Column -->
+      <ng-container matColumnDef="target">
+        <th mat-header-cell *matHeaderCellDef id="target" width="20%">Target</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.target }}
+        </td>
+      </ng-container>
+
+      <!-- Type Column -->
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef id="type" width="20%">Type</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.type }}
+        </td>
+      </ng-container>
+
+      <!-- Weight Column -->
+      <ng-container matColumnDef="weight">
+        <th mat-header-cell *matHeaderCellDef id="weight" width="20%">Weight</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.weight }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="endpoint-list__table__actions">
+            <button
+              *ngIf="isReadOnly"
+              mat-icon-button
+              aria-label="Button to open endpoint detail"
+              matTooltip="Open endpoint detail"
+              (click)="navigateToEndpoint(endpointGroupData.name, element.name)"
+            >
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            </button>
+            <button
+              *ngIf="!isReadOnly"
+              mat-icon-button
+              aria-label="Button to edit an endpoint"
+              matTooltip="Edit endpoint"
+              (click)="navigateToEndpoint(endpointGroupData.name, element.name)"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="endpointTableDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: endpointTableDisplayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="endpointTableDisplayedColumns.length">No Endpoints</td>
+      </tr>
+    </table>
+  </mat-card>
+</div>
