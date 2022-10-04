@@ -21,12 +21,14 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api } from '../../../../../entities/api';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
@@ -34,9 +36,11 @@ import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
   const fakeUiRouter = { go: jest.fn() };
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyEndpointListComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const currentUser = new User();
@@ -48,14 +52,20 @@ describe('ApiProxyEndpointListComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: AjsRootScope, useValue: fakeRootScope },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiProxyEndpointListComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -244,8 +254,37 @@ describe('ApiProxyEndpointListComponent', () => {
     });
   });
 
+  describe('deleteGroup', () => {
+    it('should delete the endpoint group', async () => {
+      const api = fakeApi({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+
+      const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
+      let rtTableRows0 = await rtTable0.getCellTextByIndex();
+      expect(rtTableRows0).toEqual([['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', '']]);
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' })).then((element) => element.click());
+      await rootLoader
+        .getHarness(MatDialogHarness)
+        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+        .then((element) => element.click());
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({ ...api, proxy: { groups: [] } });
+      rtTableRows0 = await rtTable0.getCellTextByIndex();
+      expect(rtTableRows0).toEqual([]);
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
 });

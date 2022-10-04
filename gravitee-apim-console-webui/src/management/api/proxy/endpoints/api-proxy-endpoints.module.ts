@@ -24,6 +24,8 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiProxyEndpointListComponent } from './list/api-proxy-endpoint-list.component';
 
@@ -42,6 +44,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatAutocompleteModule,
     MatInputModule,
     MatTooltipModule,
+    MatDialogModule,
+    MatSnackBarModule,
 
     GioIconsModule,
     GioPermissionModule,
