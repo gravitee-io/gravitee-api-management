@@ -33,7 +33,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
   public isReadOnly = false;
   public apiId: string;
   public endpointGroupsTableData: EndpointGroup[];
-  public endpointTableDisplayedColumns = ['name', 'target', 'type', 'weight', 'actions'];
+  public endpointTableDisplayedColumns = ['name', 'healthCheck', 'target', 'type', 'weight', 'actions'];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -49,7 +49,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
-          this.endpointGroupsTableData = toEndpoints(api.proxy.groups);
+          this.endpointGroupsTableData = toEndpoints(api);
 
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definition_context?.origin === 'kubernetes';
         }),

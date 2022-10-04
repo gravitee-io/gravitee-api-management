@@ -64,12 +64,23 @@
         <th mat-header-cell *matHeaderCellDef id="name" width="20%">Name</th>
         <td mat-cell *matCellDef="let element">
           {{ element.name }}
+          <span *ngIf="element.isBackup" matTooltip="Secondary endpoint" class="endpoint-list__table__badge gio-badge-neutral"
+            >Secondary</span
+          >
+        </td>
+      </ng-container>
+
+      <!-- Health Check Column -->
+      <ng-container matColumnDef="healthCheck">
+        <th mat-header-cell *matHeaderCellDef id="healthCheck" width="5%"></th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon *ngIf="element.healthcheck" matTooltip="Health check is enabled">favorite</mat-icon>
         </td>
       </ng-container>
 
       <!-- Target Column -->
       <ng-container matColumnDef="target">
-        <th mat-header-cell *matHeaderCellDef id="target" width="20%">Target</th>
+        <th mat-header-cell *matHeaderCellDef id="target" width="30%">Target</th>
         <td mat-cell *matCellDef="let element">
           {{ element.target }}
         </td>

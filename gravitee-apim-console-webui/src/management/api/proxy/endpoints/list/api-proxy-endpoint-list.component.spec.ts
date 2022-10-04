@@ -18,7 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
@@ -97,7 +97,7 @@ describe('ApiProxyEndpointListComponent', () => {
       const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       const rtTableRows = await rtTable.getRows();
 
-      const [_1, _2, _3, _4, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
+      const [_1, _2, _3, _4, _5, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
 
       const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
         MatButtonHarness.with({ selector: `[aria-label="${buttonAreaLabel}"]` }),
@@ -111,88 +111,137 @@ describe('ApiProxyEndpointListComponent', () => {
     });
   });
 
-  it('should display the first endpoint group table', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      proxy: {
-        groups: [
-          {
-            name: 'default-group',
-            endpoints: [
-              {
-                name: 'default',
-                target: 'https://api.le-systeme-solaire.net/rest/',
-                weight: 1,
-                backup: false,
-                type: 'HTTP',
-                inherit: true,
-              },
-              {
-                name: 'secondary endpoint',
-                target: 'https://api.gravitee.io/echo',
-                weight: 1,
-                backup: false,
-                type: 'HTTP',
-                inherit: true,
-              },
-            ],
-            load_balancing: {
-              type: 'ROUND_ROBIN',
+  describe('mat table tests', () => {
+    it('should display the first endpoint group table', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+                {
+                  name: 'secondary endpoint',
+                  target: 'https://api.gravitee.io/echo',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
             },
-            http: {
-              connectTimeout: 5000,
-              idleTimeout: 60000,
-              keepAlive: true,
-              readTimeout: 10000,
-              pipelining: false,
-              maxConcurrentConnections: 100,
-              useCompression: true,
-              followRedirects: false,
+            {
+              name: 'second group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.gravitee.io/echo',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
             },
-          },
-          {
-            name: 'second group',
-            endpoints: [
-              {
-                name: 'default',
-                target: 'https://api.gravitee.io/echo',
-                weight: 1,
-                backup: false,
-                type: 'HTTP',
-                inherit: true,
-              },
-            ],
-            load_balancing: {
-              type: 'ROUND_ROBIN',
-            },
-            http: {
-              connectTimeout: 5000,
-              idleTimeout: 60000,
-              keepAlive: true,
-              readTimeout: 10000,
-              pipelining: false,
-              maxConcurrentConnections: 100,
-              useCompression: true,
-              followRedirects: false,
-            },
-          },
-        ],
-      },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
+      const rtTableRows0 = await rtTable0.getCellTextByIndex();
+
+      expect(rtTableRows0).toEqual([
+        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+        ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
+      ]);
+
+      const rtTable1 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-1' }));
+      const rtTableRows1 = await rtTable1.getCellTextByIndex();
+
+      expect(rtTableRows1).toEqual([['default', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', '']]);
     });
-    expectApiGetRequest(api);
 
-    const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
-    const rtTableRows0 = await rtTable0.getCellTextByIndex();
+    it("should display health check icon when it's configured at endpoint level", async () => {
+      const api = fakeApi({
+        id: API_ID,
+        services: {
+          'health-check': {
+            enabled: false,
+          },
+        },
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                  healthcheck: {
+                    enabled: true,
+                    inherit: false,
+                    schedule: '0 0/1 * 1/1 * ? *',
+                    steps: [],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
 
-    expect(rtTableRows0).toEqual([
-      ['default', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
-      ['secondary endpoint', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
-    ]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+    });
 
-    const rtTable1 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-1' }));
-    const rtTableRows1 = await rtTable1.getCellTextByIndex();
+    it("should display health check icon when it's configured at API level", async () => {
+      const api = fakeApi({
+        id: API_ID,
+        services: {
+          'health-check': {
+            enabled: true,
+          },
+        },
+      });
+      expectApiGetRequest(api);
 
-    expect(rtTableRows1).toEqual([['default', 'https://api.gravitee.io/echo', 'HTTP', '1', '']]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+    });
+
+    it('should not display health check icon', async () => {
+      expect.assertions(1);
+      const api = fakeApi({
+        id: API_ID,
+        services: {
+          'health-check': {
+            enabled: false,
+          },
+        },
+      });
+      expectApiGetRequest(api);
+
+      await loader
+        .getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))
+        .catch((error) =>
+          expect(error.message).toEqual(
+            'Failed to find element matching one of the following queries:\n' +
+              '(MatIconHarness with host element matching selector: ".mat-icon" satisfying the constraints: host matches selector "[mattooltip="Health check is enabled"]")',
+          ),
+        );
+    });
   });
 
   function expectApiGetRequest(api: Api) {
