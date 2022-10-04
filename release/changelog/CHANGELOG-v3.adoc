@@ -5,6 +5,49 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/553?closed=1[APIM - 3.19.0 (2022-10-04)]
+
+=== Bug fixes
+
+*_General_*
+
+- Merge `3.18.x` into `3.19.0` https://github.com/gravitee-io/issues/issues/8500[#8500]
+
+*_Management_*
+
+ - Response template config asks for Content-Type but Accept header param is taken into account instead https://github.com/gravitee-io/issues/issues/8263[#8263]
+- Subscription start date is ignored https://github.com/gravitee-io/issues/issues/7311[#7311]
+
+
+=== Features
+
+
+*_Beta - Gravitee Kubernetes Operator_*
+
+- Make the gateway listen to ConfigMap https://github.com/gravitee-io/issues/issues/8189[#8189]
+- Define ManagementContext to target specific environment https://github.com/gravitee-io/issues/issues/7982[#7982]
+- Create API using CRD on Management API https://github.com/gravitee-io/issues/issues/7980[#7980]
+- Start/stop an API on gateway using CRD https://github.com/gravitee-io/issues/issues/8136[#8136]
+- Update an API using CRD https://github.com/gravitee-io/issues/issues/7981[#7981]
+
+*_Beta - Jupiter - New gateway execution engine_*
+
+- Issue with response template and invoker timeout https://github.com/gravitee-io/issues/issues/8075[#8075]
+- Reactive Timeout https://github.com/gravitee-io/issues/issues/7988[#7988]
+- Security plan execution https://github.com/gravitee-io/issues/issues/7991[#7991]
+- Support Failover https://github.com/gravitee-io/issues/issues/8086[#8086]
+
+*_Alpha - Introducing Event-Native API Management_*
+
+- Introduce v4 api defitinion to support sync & async APIs https://github.com/gravitee-io/issues/issues/8068[#8068]
+- Deploy v4 api definition https://github.com/gravitee-io/issues/issues/8009[#8009]
+- Subscribe to V4 APIs https://github.com/gravitee-io/issues/issues/8287[#8287]
+- Http-post entrypoint https://github.com/gravitee-io/issues/issues/8036[#8036]
+- [Kafka endpoint] Publish to topic https://github.com/gravitee-io/issues/issues/8247[#8247]
+- [Kafka endpoint] Subscribe to topic https://github.com/gravitee-io/issues/issues/8245[#8245]
+
+ 
+
 == https://github.com/gravitee-io/issues/milestone/600?closed=1[APIM - 3.18.10 (2022-09-23)]
 
 === Bug fixes
