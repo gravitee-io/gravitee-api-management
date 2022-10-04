@@ -49,6 +49,15 @@
         >
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </button>
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-icon-button
+          (click)="deleteGroup(endpointGroupData.name)"
+          aria-label="Delete group"
+          matTooltip="Delete group"
+        >
+          <mat-icon svgIcon="gio:trash"></mat-icon>
+        </button>
       </div>
     </div>
 

@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { StateService } from '@uirouter/angular';
-import { takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import * as _ from 'lodash';
+import { IScope } from 'angular';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { EndpointGroup, toEndpoints } from '../endpoint.adapter';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { Api } from '../../../../../entities/api';
 
 @Component({
   selector: 'api-proxy-endpoint-list',
@@ -38,8 +44,11 @@ export class ApiProxyEndpointListComponent implements OnInit {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
     private readonly apiService: ApiService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -48,10 +57,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((api) => {
-          this.apiId = api.id;
-          this.endpointGroupsTableData = toEndpoints(api);
-
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definition_context?.origin === 'kubernetes';
+          this.initData(api);
         }),
       )
       .subscribe();
@@ -63,5 +69,45 @@ export class ApiProxyEndpointListComponent implements OnInit {
 
   navigateToEndpoint(groupName: string, endpointName: string): void {
     this.ajsState.go('management.apis.detail.proxy.endpoint', { endpointName, groupName });
+  }
+
+  deleteGroup(groupName: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete Endpoint Group',
+          content: `Are you sure you want to delete the Group <strong>${groupName}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEndpointGroupConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.apiId)),
+        switchMap((api) => {
+          _.remove(api.proxy.groups, (g) => g.name === groupName);
+          return this.apiService.update(api);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap((api) => {
+          this.initData(api);
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
+        }),
+        map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
+      )
+      .subscribe();
+  }
+
+  private initData(api: Api): void {
+    this.apiId = api.id;
+    this.endpointGroupsTableData = toEndpoints(api);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definition_context?.origin === 'kubernetes';
   }
 }
