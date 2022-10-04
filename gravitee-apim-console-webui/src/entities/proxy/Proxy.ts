@@ -50,6 +50,7 @@ export interface ProxyGroupEndpoint {
   tenants?: string[];
   type?: string;
   inherit?: boolean;
+  healthcheck?: ProxyGroupEndpointHealthCheck;
 }
 
 export interface ProxyGroupLoadBalancer {
@@ -111,4 +112,26 @@ export interface ProxyLogging {
   scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
   content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
   condition?: string;
+}
+
+export interface ProxyGroupEndpointHealthCheck {
+  enabled: boolean;
+  inherit: boolean;
+  schedule: string;
+  steps: ProxyGroupEndpointHealthCheckStep[];
+}
+
+export interface ProxyGroupEndpointHealthCheckStep {
+  request: ProxyGroupEndpointHealthCheckStepRequest;
+  response: ProxyGroupEndpointHealthCheckStepResponse;
+}
+
+export interface ProxyGroupEndpointHealthCheckStepRequest {
+  headers: Record<string, string>;
+  method: string;
+  path: string;
+}
+
+export interface ProxyGroupEndpointHealthCheckStepResponse {
+  assertions: string[];
 }

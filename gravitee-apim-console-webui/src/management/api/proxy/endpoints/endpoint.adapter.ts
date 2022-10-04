@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { ProxyGroup, ProxyGroupEndpoint } from '../../../../entities/proxy';
+import { ProxyGroupEndpoint } from '../../../../entities/proxy';
+import { Api } from '../../../../entities/api';
 
 export type EndpointGroup = {
   name: string;
@@ -26,27 +27,39 @@ export type Endpoint = {
   type: string;
   target: string;
   weight: number;
+  isBackup: boolean;
+  healthcheck: boolean;
 };
 
-export const toEndpoints = (endpointGroups: ProxyGroup[]): EndpointGroup[] => {
-  if (!endpointGroups) {
+export const toEndpoints = (api: Api): EndpointGroup[] => {
+  if (!api.proxy.groups) {
     return [];
   }
 
-  return endpointGroups.flatMap((endpointGroup) => {
+  const hasApiHealthCheckService = api.services && api.services['health-check'] && api.services['health-check'].enabled;
+
+  return api.proxy.groups.flatMap((endpointGroup) => {
     return {
       name: endpointGroup.name,
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0
           ? endpointGroup.endpoints.map((endpoint: ProxyGroupEndpoint) => ({
               name: endpoint.name,
-              inherit: endpoint.inherit,
               type: endpoint.type,
               target: endpoint.target,
               weight: endpoint.weight,
               isBackup: endpoint.backup,
+              healthcheck: hasHealthCheck(hasApiHealthCheckService, endpoint),
             }))
           : [],
     };
   });
+};
+
+const hasHealthCheck = (hasApiHealthCheckService: boolean, endpoint: ProxyGroupEndpoint): boolean => {
+  if (endpoint.backup || (endpoint.type.toLowerCase() !== 'http' && endpoint.type.toLowerCase() !== 'grpc')) {
+    return false;
+  }
+
+  return endpoint.healthcheck != null ? endpoint.healthcheck.enabled : hasApiHealthCheckService;
 };
