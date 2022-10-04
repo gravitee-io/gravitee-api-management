@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 import { ApiEntity, ApiEntityFlowModeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
-import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { PageEntity, PageEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
+import { Visibility, VisibilityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
-import { Proxy } from '@gravitee/management-webclient-sdk/src/lib/models/Proxy';
+import { Proxy, ProxyToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/Proxy';
 import { NewApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApiEntity';
 import faker from '@faker-js/faker';
 import { NewRatingEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewRatingEntity';
 import { RatingInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RatingInput';
-import { PrimaryOwnerEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PrimaryOwnerEntity';
+import { PrimaryOwnerEntity, PrimaryOwnerEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PrimaryOwnerEntity';
 import { ResponseTemplate } from '@gravitee/management-webclient-sdk/src/lib/models/ResponseTemplate';
-import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
-import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { Flow, FlowToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
+import { PlanEntity, PlanEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { PropertyToJSON, ResourceToJSON } from '../../management-webclient-sdk/src/lib/models';
 
 export interface ApiImportEntity {
   id?: string;
@@ -189,4 +190,35 @@ export class ApisFaker {
       value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
     };
   }
+}
+
+export function ApiImportEntityToJSON(value?: ApiImportEntity | null): any {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  return {
+    id: value.id,
+    crossId: value.crossId,
+    name: value.name,
+    version: value.version,
+    description: value.description,
+    visibility: VisibilityToJSON(value.visibility),
+    gravitee: value.gravitee,
+    flow_mode: value.flow_mode,
+    flows: value.flows === undefined ? undefined : (value.flows as Array<any>).map(FlowToJSON),
+    resources: value.resources === undefined ? undefined : (value.resources as Array<any>).map(ResourceToJSON),
+    properties: value.properties === undefined ? undefined : (value.properties as Array<any>).map(PropertyToJSON),
+    groups: value.groups,
+    path_mappings: value.path_mappings,
+    members: value.members,
+    pages: value.pages === undefined ? undefined : (value.pages as Array<any>).map(PageEntityToJSON),
+    plans: value.plans === undefined ? undefined : (value.plans as Array<any>).map(PlanEntityToJSON),
+    metadata: value.metadata,
+    primaryOwner: PrimaryOwnerEntityToJSON(value.primaryOwner),
+    response_templates: value.response_templates,
+    proxy: ProxyToJSON(value.proxy),
+  };
 }
