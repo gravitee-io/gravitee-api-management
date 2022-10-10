@@ -84,6 +84,7 @@
         <th mat-header-cell *matHeaderCellDef id="healthCheck" width="5%"></th>
         <td mat-cell *matCellDef="let element">
           <mat-icon *ngIf="element.healthcheck" matTooltip="Health check is enabled">favorite</mat-icon>
+          <mat-icon *ngIf="element.inherit" matTooltip="HTTP configuration inherited">subdirectory_arrow_right</mat-icon>
         </td>
       </ng-container>
 
