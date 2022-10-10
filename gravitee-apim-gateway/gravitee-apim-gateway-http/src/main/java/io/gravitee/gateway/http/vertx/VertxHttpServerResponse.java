@@ -103,7 +103,7 @@ public class VertxHttpServerResponse implements Response {
             }
 
             serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
-            serverResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
+            serverResponse.write(io.vertx.core.buffer.Buffer.buffer(chunk.getNativeBuffer()));
         }
         return this;
     }

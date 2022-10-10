@@ -435,6 +435,18 @@ class VertxHttpServerRequestTest {
         assertTrue(cut.isWebSocketUpgraded());
     }
 
+    @Test
+    void shouldPause() {
+        cut.pause();
+        verify(httpServerRequest).pause();
+    }
+
+    @Test
+    void shouldResume() {
+        cut.resume();
+        verify(httpServerRequest).resume();
+    }
+
     private void mockWithEmpty() {
         final Flowable<io.vertx.reactivex.core.buffer.Buffer> chunks = Flowable
             .<io.vertx.reactivex.core.buffer.Buffer>empty()

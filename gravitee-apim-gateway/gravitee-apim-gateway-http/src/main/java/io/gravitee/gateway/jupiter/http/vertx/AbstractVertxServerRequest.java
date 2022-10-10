@@ -214,4 +214,20 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     public String host() {
         return this.nativeRequest.host();
     }
+
+    /**
+     * Pauses the current request.
+     * <b>WARN: use with caution</b>
+     */
+    public void pause() {
+        this.nativeRequest.pause();
+    }
+
+    /**
+     * Resumes the current request.
+     * <b>WARN: use with caution</b>
+     */
+    public void resume() {
+        this.nativeRequest.resume();
+    }
 }
