@@ -78,22 +78,8 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.deployments', {
-      url: '/deployments',
-      template: require('./general/apiProxyDeployments.html'),
-      controller: 'ApiProxyController',
-      controllerAs: 'apiProxyCtrl',
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-proxy',
-        },
-      },
-    })
     .state('management.apis.detail.proxy.ng-deployments', {
-      url: '/ng-deployments',
+      url: '/deployments',
       component: 'ngApiProxyDeployments',
       data: {
         useAngularMaterial: true,
