@@ -65,22 +65,8 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.cors', {
-      url: '/cors',
-      template: require('./general/apiProxyCORS.html'),
-      controller: 'ApiProxyController',
-      controllerAs: 'apiProxyCtrl',
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-proxy',
-        },
-      },
-    })
     .state('management.apis.detail.proxy.ng-cors', {
-      url: '/ng-cors',
+      url: '/cors',
       component: 'ngApiProxyCors',
       data: {
         useAngularMaterial: true,
