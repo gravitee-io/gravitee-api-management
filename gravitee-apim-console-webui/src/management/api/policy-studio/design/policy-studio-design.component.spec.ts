@@ -25,7 +25,7 @@ import { fakePolicyListItem } from '../../../../entities/policy';
 import { ManagementModule } from '../../../management.module';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
@@ -55,6 +55,7 @@ describe('PolicyStudioDesignComponent', () => {
           provide: CurrentUserService,
           useValue: { currentUser },
         },
+        { provide: AjsRootScope, useValue: null },
       ],
     })
       .overrideProvider(InteractivityChecker, {

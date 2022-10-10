@@ -36,7 +36,6 @@ import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
   const fakeUiRouter = { go: jest.fn() };
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyEndpointListComponent>;
   let loader: HarnessLoader;
@@ -45,6 +44,7 @@ describe('ApiProxyEndpointListComponent', () => {
 
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -52,8 +52,8 @@ describe('ApiProxyEndpointListComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: AjsRootScope, useValue: fakeRootScope },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: fakeRootScope },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

@@ -16,17 +16,25 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import * as _ from 'lodash';
+import { map } from 'rxjs/operators';
+import { IScope } from 'angular';
 
 import { Api, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
+  ) {}
 
   get(apiId: string): Observable<Api> {
     return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${apiId}`);
@@ -37,40 +45,47 @@ export class ApiService {
   }
 
   update(api: UpdateApi & { id: string }): Observable<Api> {
-    return this.http.put<Api>(
-      `${this.constants.env.baseURL}/apis/${api.id}`,
-      {
-        version: api.version,
-        description: api.description,
-        proxy: api.proxy,
-        paths: api.paths,
-        flows: api.flows,
-        plans: api.plans,
-        // TODO To remove ? not present inside backend model
-        // private: api.private,
-        visibility: api.visibility,
-        name: api.name,
-        services: api.services,
-        properties: api.properties,
-        tags: api.tags,
-        picture: api.picture,
-        picture_url: api.picture_url,
-        background: api.background,
-        background_url: api.background_url,
-        resources: api.resources,
-        categories: api.categories,
-        groups: api.groups,
-        labels: api.labels,
-        path_mappings: api.path_mappings,
-        response_templates: api.response_templates,
-        lifecycle_state: api.lifecycle_state,
-        disable_membership_notifications: api.disable_membership_notifications,
-        flow_mode: api.flow_mode,
-        gravitee: api.gravitee,
-        execution_mode: api.execution_mode,
-      },
-      { headers: new HttpHeaders({ ...(api.etag ? { 'If-Match': api.etag } : {}) }) },
-    );
+    return this.http
+      .put<Api>(
+        `${this.constants.env.baseURL}/apis/${api.id}`,
+        {
+          version: api.version,
+          description: api.description,
+          proxy: api.proxy,
+          paths: api.paths,
+          flows: api.flows,
+          plans: api.plans,
+          // TODO To remove ? not present inside backend model
+          // private: api.private,
+          visibility: api.visibility,
+          name: api.name,
+          services: api.services,
+          properties: api.properties,
+          tags: api.tags,
+          picture: api.picture,
+          picture_url: api.picture_url,
+          background: api.background,
+          background_url: api.background_url,
+          resources: api.resources,
+          categories: api.categories,
+          groups: api.groups,
+          labels: api.labels,
+          path_mappings: api.path_mappings,
+          response_templates: api.response_templates,
+          lifecycle_state: api.lifecycle_state,
+          disable_membership_notifications: api.disable_membership_notifications,
+          flow_mode: api.flow_mode,
+          gravitee: api.gravitee,
+          execution_mode: api.execution_mode,
+        },
+        { headers: new HttpHeaders({ ...(api.etag ? { 'If-Match': api.etag } : {}) }) },
+      )
+      .pipe(
+        map((api) => {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
+          return api;
+        }),
+      );
   }
 
   getAll(

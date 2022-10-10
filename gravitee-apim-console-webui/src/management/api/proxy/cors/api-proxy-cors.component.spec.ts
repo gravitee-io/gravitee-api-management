@@ -29,7 +29,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 import { ApiProxyCorsModule } from './api-proxy-cors.module';
 
-import { UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
+import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Api } from '../../../../entities/api';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
@@ -52,6 +52,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: null },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

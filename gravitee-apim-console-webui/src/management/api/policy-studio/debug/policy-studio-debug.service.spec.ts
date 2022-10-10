@@ -24,16 +24,19 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
+import { AjsRootScope } from '../../../../ajs-upgraded-providers';
 
 describe('PolicyStudioDebugService', () => {
   let httpTestingController: HttpTestingController;
   let policyStudioDebugService: PolicyStudioDebugService;
   let policyStudioService: PolicyStudioService;
   const api = fakeApi();
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
+      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
