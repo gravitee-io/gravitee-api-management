@@ -105,6 +105,40 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .subscribe();
   }
 
+  deleteEndpoint(groupName: string, endpointName: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete Endpoint',
+          content: `Are you sure you want to delete the Endpoint <strong>${endpointName}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEndpointConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.apiId)),
+        switchMap((api) => {
+          _.remove(_.find(api.proxy.groups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
+          return this.apiService.update(api);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap((api) => {
+          this.initData(api);
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
+        }),
+        map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
+      )
+      .subscribe();
+  }
+
   private initData(api: Api): void {
     this.apiId = api.id;
     this.endpointGroupsTableData = toEndpoints(api);

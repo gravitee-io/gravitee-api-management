@@ -278,6 +278,81 @@ describe('ApiProxyEndpointListComponent', () => {
     });
   });
 
+  describe('deleteEndpoint', () => {
+    it('should delete the endpoint', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+                {
+                  name: 'secondary endpoint',
+                  target: 'https://api.gravitee.io/echo',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      let rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
+      let rtTableRows0 = await rtTable0.getCellTextByIndex();
+      expect(rtTableRows0).toEqual([
+        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+        ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
+      ]);
+
+      await loader
+        .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }))
+        .then((elements) => elements[1].click());
+      await rootLoader
+        .getHarness(MatDialogHarness)
+        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+        .then((element) => element.click());
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
+      rtTableRows0 = await rtTable0.getCellTextByIndex();
+      expect(rtTableRows0).toEqual([['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', '']]);
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
