@@ -50,6 +50,7 @@ export const toEndpoints = (api: Api): EndpointGroup[] => {
               weight: endpoint.weight,
               isBackup: endpoint.backup,
               healthcheck: hasHealthCheck(hasApiHealthCheckService, endpoint),
+              inherit: endpoint.inherit,
             }))
           : [],
     };

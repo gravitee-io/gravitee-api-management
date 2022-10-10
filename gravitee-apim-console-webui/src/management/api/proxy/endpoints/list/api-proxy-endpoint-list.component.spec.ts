@@ -136,7 +136,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
                 {
                   name: 'secondary endpoint',
@@ -144,7 +144,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
               ],
             },
@@ -157,7 +157,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
               ],
             },
@@ -263,7 +263,9 @@ describe('ApiProxyEndpointListComponent', () => {
 
       const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       let rtTableRows0 = await rtTable0.getCellTextByIndex();
-      expect(rtTableRows0).toEqual([['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', '']]);
+      expect(rtTableRows0).toEqual([
+        ['default', 'favoritesubdirectory_arrow_right', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+      ]);
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' })).then((element) => element.click());
       await rootLoader
@@ -293,7 +295,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
                 {
                   name: 'secondary endpoint',
@@ -301,7 +303,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
               ],
             },
@@ -339,7 +341,7 @@ describe('ApiProxyEndpointListComponent', () => {
                   weight: 1,
                   backup: false,
                   type: 'HTTP',
-                  inherit: true,
+                  inherit: false,
                 },
               ],
             },
@@ -350,6 +352,34 @@ describe('ApiProxyEndpointListComponent', () => {
       rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       rtTableRows0 = await rtTable0.getCellTextByIndex();
       expect(rtTableRows0).toEqual([['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', '']]);
+    });
+  });
+
+  describe('HTTP configuration', () => {
+    it('should display inherit HTTP configuration icon', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: true,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="HTTP configuration inherited"]' }))).toBeTruthy();
     });
   });
 
