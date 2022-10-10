@@ -25,7 +25,9 @@ import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -40,9 +42,11 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
     private WebSocketAdapter adaptedWebSocket;
+    private final AtomicBoolean hasBeenResumed;
 
     public RequestAdapter(HttpRequest request) {
         this.request = request;
+        this.hasBeenResumed = new AtomicBoolean(false);
     }
 
     public void onResume(Runnable onResume) {
@@ -51,7 +55,17 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public ReadStream<Buffer> resume() {
-        onResumeHandler.run();
+        if (hasBeenResumed.compareAndSet(false, true)) {
+            onResumeHandler.run();
+        } else {
+            ((VertxHttpServerRequest) request).resume();
+        }
+        return this;
+    }
+
+    @Override
+    public ReadStream<Buffer> pause() {
+        ((VertxHttpServerRequest) request).pause();
         return this;
     }
 

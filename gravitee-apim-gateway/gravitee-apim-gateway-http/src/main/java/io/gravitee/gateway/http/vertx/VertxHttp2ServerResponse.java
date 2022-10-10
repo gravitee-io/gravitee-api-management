@@ -32,7 +32,7 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        serverResponse.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
+        serverResponse.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getNativeBuffer()));
 
         return this;
     }
