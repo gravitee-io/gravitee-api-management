@@ -27,7 +27,7 @@ import { ApiProxyResponseTemplatesEditComponent } from './api-proxy-response-tem
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
-import { UIRouterStateParams, UIRouterState, CurrentUserService } from '../../../../../ajs-upgraded-providers';
+import { UIRouterStateParams, UIRouterState, CurrentUserService, AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../entities/api';
@@ -50,6 +50,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, responseTemplateId } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: null },
       ],
     });
     fixture = TestBed.createComponent(ApiProxyResponseTemplatesEditComponent);

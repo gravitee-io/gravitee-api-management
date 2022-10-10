@@ -20,9 +20,8 @@ import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operato
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import * as _ from 'lodash';
-import { IScope } from 'angular';
 
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { EndpointGroup, toEndpoints } from '../endpoint.adapter';
@@ -44,7 +43,6 @@ export class ApiProxyEndpointListComponent implements OnInit {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
     private readonly apiService: ApiService,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
@@ -96,10 +94,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((api) => {
-          this.initData(api);
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
-        }),
+        tap((api) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
       )
       .subscribe();
@@ -130,10 +125,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((api) => {
-          this.initData(api);
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
-        }),
+        tap((api) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
       )
       .subscribe();

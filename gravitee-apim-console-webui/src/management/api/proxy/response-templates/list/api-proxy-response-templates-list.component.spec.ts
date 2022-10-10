@@ -29,7 +29,7 @@ import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-tem
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { UIRouterStateParams, CurrentUserService, UIRouterState, AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api } from '../../../../../entities/api';
 
@@ -52,6 +52,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: null },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

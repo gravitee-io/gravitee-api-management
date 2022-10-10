@@ -34,7 +34,7 @@ import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component'
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { Api } from '../../../../entities/api';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
@@ -56,6 +56,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: null },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

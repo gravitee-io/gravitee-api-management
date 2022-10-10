@@ -16,6 +16,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { omit } from 'lodash';
+import * as _ from 'lodash';
 
 import { ApiService } from './api.service';
 
@@ -23,14 +24,17 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 describe('ApiService', () => {
   let httpTestingController: HttpTestingController;
   let apiService: ApiService;
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
+      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -79,12 +83,13 @@ describe('ApiService', () => {
       const apiToUpdate = fakeUpdateApi();
 
       apiService.update({ id: apiId, ...apiToUpdate }).subscribe(() => {
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: { id: apiId, ...apiToUpdate } });
         done();
       });
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}` });
       expect(req.request.body).toEqual(omit(apiToUpdate, 'definition_context'));
-      req.flush({});
+      req.flush({ id: apiId, ...apiToUpdate });
     });
   });
 

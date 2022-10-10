@@ -31,6 +31,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 import { Api } from '../../entities/api/Api';
 import { fakeApi } from '../../entities/api/Api.fixture';
 import { GioTableWrapperHarness } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { AjsRootScope } from '../../ajs-upgraded-providers';
 
 describe('EnvAuditComponent', () => {
   let fixture: ComponentFixture<EnvAuditComponent>;
@@ -40,6 +41,7 @@ describe('EnvAuditComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, EnvAuditModule],
+      providers: [{ provide: AjsRootScope, useValue: null }],
     });
   });
 
