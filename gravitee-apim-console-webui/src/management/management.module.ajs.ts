@@ -549,6 +549,7 @@ import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-tem
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
 import { ApiPortalDetailsComponent } from './api/details/api-portal-details.component';
+import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
 
 (<any>window).moment = moment;
@@ -693,6 +694,7 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: ApiProxyResponseTemplatesEditComponent }),
 );
 graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent({ component: ApiProxyEndpointListComponent }));
+graviteeManagementModule.directive('ngApiProxyGroupEdit', downgradeComponent({ component: ApiProxyGroupEditComponent }));
 graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ component: ApiProxyFailoverComponent }));
 
 // Pendo Analytics

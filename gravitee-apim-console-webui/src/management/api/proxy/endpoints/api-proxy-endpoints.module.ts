@@ -28,6 +28,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiProxyEndpointListComponent } from './list/api-proxy-endpoint-list.component';
+import { ApiProxyGroupsModule } from './groups/api-proxy-groups.module';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
@@ -49,6 +50,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     GioIconsModule,
     GioPermissionModule,
+
+    ApiProxyGroupsModule,
   ],
 })
 export class ApiProxyEndpointModule {}
