@@ -59,7 +59,7 @@ export class GioAvatarComponent implements AfterViewInit, OnChanges {
     }
 
     if (this.avatarContainerEleRef) {
-      const svgString = toSvg(this.name, this.size, { backColor: '#FFF' });
+      const svgString = toSvg(this.name, this.size, { backColor: '#FFF', padding: 0 });
       this.avatarContainerEleRef.nativeElement.innerHTML = svgString;
     }
   }
