@@ -15,4 +15,36 @@
     limitations under the License.
 
 -->
-🚧
+<h1>Details</h1>
+
+<form *ngIf="apiDetailsForm" [formGroup]="apiDetailsForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card class="details-card">
+    <div class="details-card__header">
+      <div class="details-card__header__info-inputs">
+        <div class="details-card__header__info-inputs__first-row">
+          <mat-form-field class="details-card__header__info-inputs__first-row__name-field" appearance="fill">
+            <mat-label>Name</mat-label>
+            <input #apiName matInput formControlName="name" required />
+            <mat-error *ngIf="apiDetailsForm.controls.name.hasError('required')">Name is required.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field class="details-card__header__info-inputs__first-row__version-field" appearance="fill">
+            <mat-label>Version</mat-label>
+            <input matInput formControlName="version" required />
+            <mat-error *ngIf="apiDetailsForm.controls.version.hasError('required')">Version is required.</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="details-card__header__info-inputs__second-row">
+          <mat-form-field class="details-card__header__info-inputs__second-row__description-field" appearance="fill">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" required />
+            <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="details-card__header__media"></div>
+    </div>
+  </mat-card>
+
+  <gio-save-bar [form]="apiDetailsForm" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
+</form>

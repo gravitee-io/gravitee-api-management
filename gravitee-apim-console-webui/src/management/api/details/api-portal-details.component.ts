@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { ApiService } from '../../../services-ngx/api.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-portal-details',
@@ -24,14 +31,81 @@ import { Subject } from 'rxjs';
 export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
+  public apiDetailsForm: FormGroup;
+  public initialApiDetailsFormValue: unknown;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+    private readonly permissionService: GioPermissionService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
+
+          this.apiDetailsForm = new FormGroup({
+            name: new FormControl(
+              {
+                value: api.name,
+                disabled: isReadOnly,
+              },
+              [Validators.required],
+            ),
+            version: new FormControl(
+              {
+                value: api.version,
+                disabled: isReadOnly,
+              },
+              [Validators.required],
+            ),
+            description: new FormControl(
+              {
+                value: api.description,
+                disabled: isReadOnly,
+              },
+              [Validators.required],
+            ),
+          });
+
+          this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
+        }),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onSubmit() {
+    const apiDetailsFormValue = this.apiDetailsForm.getRawValue();
+
+    return this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) =>
+          this.apiService.update({
+            ...api,
+            name: apiDetailsFormValue.name,
+            version: apiDetailsFormValue.version,
+            description: apiDetailsFormValue.description,
+          }),
+        ),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
   }
 }

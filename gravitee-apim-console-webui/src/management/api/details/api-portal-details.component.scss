@@ -1,5 +1,57 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 @use '../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+}
+
+.details-card {
+  &__header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: space-between;
+    align-items: stretch;
+
+    &__info-inputs {
+      flex: 1 1 auto;
+
+      &__first-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+
+        &__name-field {
+          flex: 6 1 auto;
+        }
+
+        &__version-field {
+          flex: 1 1 auto;
+          margin-top: 0; // Remove "Default margin between two mat-form-field" automatically added by ui-particles
+          margin-left: 16px;
+        }
+      }
+
+      &__second-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+
+        &__description-field {
+          flex: 1 1 auto;
+        }
+      }
+    }
+
+    &__media {
+      margin-left: 16px;
+      display: flex;
+    }
+  }
 }
