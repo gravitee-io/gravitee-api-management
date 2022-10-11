@@ -15,8 +15,8 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -46,6 +46,15 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
+        switchMap((api) =>
+          combineLatest([isImgUrl(api.picture_url), isImgUrl(api.background_url)]).pipe(
+            map(([hasPictureImg, hasBackgroundImg]) => ({
+              ...api,
+              picture_url: hasPictureImg ? api.picture_url : null,
+              background_url: hasBackgroundImg ? api.background_url : null,
+            })),
+          ),
+        ),
         tap((api) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
@@ -71,6 +80,14 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               },
               [Validators.required],
             ),
+            picture: new FormControl({
+              value: api.picture_url ? [api.picture_url] : [],
+              disabled: isReadOnly,
+            }),
+            background: new FormControl({
+              value: api.background_url ? [api.background_url] : [],
+              disabled: isReadOnly,
+            }),
           });
 
           this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
@@ -92,20 +109,53 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api) =>
-          this.apiService.update({
-            ...api,
-            name: apiDetailsFormValue.name,
-            version: apiDetailsFormValue.version,
-            description: apiDetailsFormValue.description,
-          }),
+          combineLatest([getBase64(apiDetailsFormValue.picture[0]), getBase64(apiDetailsFormValue.background[0])]).pipe(
+            map(([picture, background]) => ({
+              ...api,
+              ...(picture !== null ? { picture: picture } : { picture_url: null, picture: null }),
+              ...(background !== null ? { background: background } : { background_url: null, background: null }),
+              name: apiDetailsFormValue.name,
+              version: apiDetailsFormValue.version,
+              description: apiDetailsFormValue.description,
+            })),
+          ),
         ),
+        switchMap((api) => this.apiService.update(api)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
       )
       .subscribe();
   }
+}
+
+const isImgUrl = (url: string): Promise<boolean> => {
+  const img = new Image();
+  img.src = url;
+  return new Promise((resolve) => {
+    img.onerror = () => resolve(false);
+    img.onload = () => resolve(true);
+  });
+};
+
+function getBase64(file?: File): Observable<string | undefined | null> {
+  if (!file) {
+    // If no file, return null to remove it
+    return of(null);
+  }
+  if (!(file instanceof Blob)) {
+    // If file not changed, return undefined to keep it
+    return of(undefined);
+  }
+
+  return new Observable((subscriber) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => subscriber.next(reader.result.toString());
+    reader.onerror = (error) => subscriber.error(error);
+    return () => reader.abort();
+  });
 }

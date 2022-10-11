@@ -70,6 +70,12 @@ module.exports = {
         ],
       },
       {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+        resolve: { mainFields: ['es2015', 'browser', 'module', 'main'] },
+      },
+      {
         test: /\.html$/,
         loader: 'html-loader',
       },
