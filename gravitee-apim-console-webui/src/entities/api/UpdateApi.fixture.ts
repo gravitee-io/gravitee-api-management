@@ -20,7 +20,7 @@ import { UpdateApi } from './UpdateApi';
 export function fakeUpdateApi(modifier?: Partial<UpdateApi> | ((baseApi: UpdateApi) => UpdateApi)): UpdateApi {
   const base: UpdateApi = {
     version: '1.0',
-    description: 'The whole universe in your hand. s',
+    description: 'The whole universe in your hand.',
     proxy: {
       virtual_hosts: [{ path: '/planets', override_entrypoint: true }],
       strip_context_path: false,

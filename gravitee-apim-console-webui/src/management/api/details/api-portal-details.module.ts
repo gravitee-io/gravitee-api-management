@@ -16,12 +16,31 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
+
+import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
   exports: [ApiPortalDetailsComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSnackBarModule,
+
+    GioFormFocusInvalidModule,
+    GioSaveBarModule,
+  ],
 })
 export class ApiPortalDetailsModule {}
