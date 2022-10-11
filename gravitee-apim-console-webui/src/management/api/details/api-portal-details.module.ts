@@ -22,12 +22,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
-import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
@@ -41,6 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatSnackBarModule,
     MatIconModule,
+    MatSelectModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,

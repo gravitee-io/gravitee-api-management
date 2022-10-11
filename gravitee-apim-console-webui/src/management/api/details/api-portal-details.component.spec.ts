@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Api } from '../../../entities/api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
-import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { Category } from '../../../entities/category/Category';
 
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
@@ -48,7 +50,7 @@ describe('ApiPortalDetailsComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: 'Constants', useValue: CONSTANTS_TESTING },
-        { provide: AjsRootScope, useValue: fakeRootScope }
+        { provide: AjsRootScope, useValue: fakeRootScope },
       ],
     });
   });
@@ -66,17 +68,22 @@ describe('ApiPortalDetailsComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should edit api details',  async () => {
+  it('should edit api details', async () => {
     const api = fakeApi({
       id: API_ID,
       name: '🐶 API',
       version: '1.0.0',
       labels: ['label1', 'label2'],
+      categories: ['category1'],
     });
     expectApiGetRequest(api);
+    expectCategoriesGetRequest([
+      { id: 'category1', name: 'Category 1', key: 'category1' },
+      { id: 'category2', name: 'Category 2', key: 'category2' },
+    ]);
 
     // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isVisible()).toBe(false);
@@ -105,6 +112,10 @@ describe('ApiPortalDetailsComponent', () => {
     expect(await labelsInput.getTags()).toEqual(['label1', 'label2']);
     await labelsInput.addTag('label3');
 
+    const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
+    expect(await categoriesInput.getValueText()).toEqual('Category 1');
+    await categoriesInput.clickOptions({ text: 'Category 2' });
+
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
 
@@ -112,7 +123,7 @@ describe('ApiPortalDetailsComponent', () => {
     expectApiGetRequest(api);
 
     // Wait image to be covert to base64
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
     expect(req.request.body.name).toEqual('🦊 API');
@@ -121,10 +132,16 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.picture).toEqual('data:image/png;base64,');
     expect(req.request.body.background).toEqual('data:image/png;base64,');
     expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
+    expect(req.request.body.categories).toEqual(['category1', 'category2']);
   });
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectCategoriesGetRequest(categories: Category[] = []) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'GET' }).flush(categories);
     fixture.detectChanges();
   }
 });
@@ -140,7 +157,6 @@ function trackImageOnload() {
       this._onload();
     },
   });
-
 }
 
 export function newImageFile(fileName: string, type: string): File {

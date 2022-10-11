@@ -19,8 +19,10 @@ import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
+import { CategoryService } from '../../../services-ngx/category.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -34,11 +36,13 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   public apiDetailsForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
-  public labelsAutocompleteOptions = [];
+  public labelsAutocompleteOptions: string[] = [];
+  public apiCategories: Category[] = [];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
+    private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
@@ -47,21 +51,28 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
 
-    this.apiService
-      .get(this.ajsStateParams.apiId)
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((api) =>
+        switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api.picture_url), isImgUrl(api.background_url)]).pipe(
-            map(([hasPictureImg, hasBackgroundImg]) => ({
-              ...api,
-              picture_url: hasPictureImg ? api.picture_url : null,
-              background_url: hasBackgroundImg ? api.background_url : null,
-            })),
+            map(
+              ([hasPictureImg, hasBackgroundImg]) =>
+                [
+                  {
+                    ...api,
+                    picture_url: hasPictureImg ? api.picture_url : null,
+                    background_url: hasBackgroundImg ? api.background_url : null,
+                  },
+                  categories,
+                ] as const,
+            ),
           ),
         ),
-        tap((api) => {
+        tap(([api, categories]) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
+
+          this.apiCategories = categories;
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(
@@ -97,6 +108,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               value: api.labels,
               disabled: isReadOnly,
             }),
+            categories: new FormControl({
+              value: api.categories,
+              disabled: isReadOnly,
+            }),
           });
 
           this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
@@ -127,6 +142,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               version: apiDetailsFormValue.version,
               description: apiDetailsFormValue.description,
               labels: apiDetailsFormValue.labels,
+              categories: apiDetailsFormValue.categories,
             })),
           ),
         ),
