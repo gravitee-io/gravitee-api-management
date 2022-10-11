@@ -43,9 +43,20 @@
 
           <mat-form-field class="details-card__header__info-inputs__second-row__labels-field" appearance="fill">
             <mat-label>Labels</mat-label>
-            <gio-form-tags-input formControlName="labels" 
-            [addOnBlur]="false"
-            [autocompleteOptions]="labelsAutocompleteOptions"></gio-form-tags-input>
+            <gio-form-tags-input
+              formControlName="labels"
+              [addOnBlur]="false"
+              [autocompleteOptions]="labelsAutocompleteOptions"
+            ></gio-form-tags-input>
+          </mat-form-field>
+
+          <mat-form-field class="details-card__header__info-inputs__second-row__categories-field" appearance="fill">
+            <mat-label>Categories</mat-label>
+            <mat-select formControlName="categories" multiple>
+              <mat-option *ngFor="let category of apiCategories" [value]="category.key"
+                >{{ category.name }} <em *ngIf="category.description"> - {{ category.description }}</em></mat-option
+              >
+            </mat-select>
           </mat-form-field>
         </div>
       </div>
