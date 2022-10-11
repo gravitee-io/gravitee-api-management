@@ -167,6 +167,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-group', {
+      url: '/ng-groups/:groupName',
+      component: 'ngApiProxyGroupEdit',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-proxy-group',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.endpointhc', {
       url: '/groups/:groupName/endpoints/:endpointName/healthcheck',
       template: require('./backend/healthcheck/healthcheck-configure.html'),
