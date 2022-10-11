@@ -26,8 +26,9 @@ $foreground: map.get(gio.$mat-theme, foreground);
       justify-content: center;
     }
 
-    &__badge {
-      margin-bottom: 2px;
+    &__hc {
+      display: flex;
+      flex-direction: row;
     }
   }
 }
