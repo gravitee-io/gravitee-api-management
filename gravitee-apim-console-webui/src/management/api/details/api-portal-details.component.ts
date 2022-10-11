@@ -38,6 +38,9 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
+  public apiOwner: string;
+  public apiCreatedAt: number;
+  public apiLastDeploymentAt: number;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -73,6 +76,9 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.apiCategories = categories;
+          this.apiOwner = api.owner.displayName;
+          this.apiCreatedAt = api.created_at;
+          this.apiLastDeploymentAt = api.updated_at;
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(

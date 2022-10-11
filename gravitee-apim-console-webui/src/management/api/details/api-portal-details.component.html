@@ -41,7 +41,7 @@
             <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
           </mat-form-field>
 
-          <mat-form-field class="details-card__header__info-inputs__second-row__labels-field" appearance="fill">
+          <mat-form-field class="etails-card__header__info-inputs__second-row__labels-field" appearance="fill">
             <mat-label>Labels</mat-label>
             <gio-form-tags-input
               formControlName="labels"
@@ -50,7 +50,7 @@
             ></gio-form-tags-input>
           </mat-form-field>
 
-          <mat-form-field class="details-card__header__info-inputs__second-row__categories-field" appearance="fill">
+          <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field" appearance="fill">
             <mat-label>Categories</mat-label>
             <mat-select formControlName="categories" multiple>
               <mat-option *ngFor="let category of apiCategories" [value]="category.key"
@@ -60,27 +60,46 @@
           </mat-form-field>
         </div>
       </div>
-      <div class="details-card__header__media">
-        <gio-form-file-picker class="details-card__header__media__picture" formControlName="picture" accept="image/*">
-          <gio-form-file-picker-add-button class="details-card__header__media__picture__btn">
-            <span class="details-card__header__media__picture__btn__text">
-              Change picture
-              <br />
-              Drag your image
-            </span>
-            <gio-avatar class="details-card__header__media__picture__btn__default-avatar" size="114" [name]="apiName.value"></gio-avatar>
-          </gio-form-file-picker-add-button>
-        </gio-form-file-picker>
-        <gio-form-file-picker class="details-card__header__media__background" formControlName="background" accept="image/*">
-          <gio-form-file-picker-add-button class="details-card__header__media__background__btn">
-            <span class="details-card__header__media__background__btn__text">
-              Change background
-              <br />
-              Drag your image
-            </span>
-          </gio-form-file-picker-add-button>
-          <gio-form-file-picker-empty>No background defined</gio-form-file-picker-empty>
-        </gio-form-file-picker>
+      <div class="details-card__header__right-coll">
+        <div class="details-card__header__right-coll__media">
+          <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
+            <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
+              <span class="details-card__header__right-coll__media__picture__btn__text">
+                Change picture
+                <br />
+                Drag your image
+              </span>
+              <gio-avatar
+                class="details-card__header__right-coll_media__picture__btn__default-avatar"
+                size="114"
+                [name]="apiName.value"
+              ></gio-avatar>
+            </gio-form-file-picker-add-button>
+          </gio-form-file-picker>
+          <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
+            <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
+              <span class="details-card__header__right-coll__media__background__btn__text">
+                Change background
+                <br />
+                Drag your image
+              </span>
+            </gio-form-file-picker-add-button>
+            <gio-form-file-picker-empty>No background defined</gio-form-file-picker-empty>
+          </gio-form-file-picker>
+        </div>
+
+        <div class="details-card__header__right-coll__info">
+          <dl class="gio-description-list">
+            <dt>Owner</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="apiOwner">{{ apiOwner }}</dd>
+
+            <dt>Created</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="apiCreatedAt">{{ apiCreatedAt | date: 'medium' }}</dd>
+
+            <dt>Last connection</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="apiLastDeploymentAt">{{ apiLastDeploymentAt | date: 'medium' }}</dd>
+          </dl>
+        </div>
       </div>
     </div>
   </mat-card>
