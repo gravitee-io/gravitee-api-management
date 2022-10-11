@@ -54,6 +54,8 @@ import io.gravitee.plugin.core.internal.PluginImpl;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
@@ -154,6 +156,8 @@ public class GatewayRunner {
             testInstance.setApplicationContext(applicationContext);
 
             registerReporters(gatewayContainer);
+
+            registerEntrypoints(gatewayContainer);
 
             registerConnectors(gatewayContainer);
 
@@ -498,6 +502,16 @@ public class GatewayRunner {
 
     private void ensureMinimalRequirementForConnectors(Map<String, ConnectorPlugin> connectors) {
         connectors.putIfAbsent("connector-http", ConnectorBuilder.build("connector-http", HttpConnectorFactory.class));
+    }
+
+    private void registerEntrypoints(GatewayTestContainer container) {
+        final EntrypointConnectorPluginManager entrypointPluginManager = container
+            .applicationContext()
+            .getBean(EntrypointConnectorPluginManager.class);
+
+        Map<String, EntrypointConnectorPlugin<?>> entrypointsMap = new HashMap<>();
+        testInstance.configureEntrypoints(entrypointsMap);
+        entrypointsMap.forEach((key, value) -> entrypointPluginManager.register(value));
     }
 
     private void registerEndpoints(GatewayTestContainer container) {
