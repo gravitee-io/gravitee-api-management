@@ -35,7 +35,7 @@ interface EnvSettings {
     clientTimeout: number;
   };
   api: {
-    labelsDictionary: any[];
+    labelsDictionary: string[];
     primaryOwnerMode: string;
   };
   apiQualityMetrics: {

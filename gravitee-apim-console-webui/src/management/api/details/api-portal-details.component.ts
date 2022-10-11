@@ -19,6 +19,7 @@ import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -33,15 +34,19 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   public apiDetailsForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
+  public labelsAutocompleteOptions = [];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
+    this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
+
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -88,6 +93,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               value: api.background_url ? [api.background_url] : [],
               disabled: isReadOnly,
             }),
+            labels: new FormControl({
+              value: api.labels,
+              disabled: isReadOnly,
+            }),
           });
 
           this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
@@ -117,6 +126,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               name: apiDetailsFormValue.name,
               version: apiDetailsFormValue.version,
               description: apiDetailsFormValue.description,
+              labels: apiDetailsFormValue.labels,
             })),
           ),
         ),

@@ -40,6 +40,13 @@
             <input matInput formControlName="description" required />
             <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
           </mat-form-field>
+
+          <mat-form-field class="details-card__header__info-inputs__second-row__labels-field" appearance="fill">
+            <mat-label>Labels</mat-label>
+            <gio-form-tags-input formControlName="labels" 
+            [addOnBlur]="false"
+            [autocompleteOptions]="labelsAutocompleteOptions"></gio-form-tags-input>
+          </mat-form-field>
         </div>
       </div>
       <div class="details-card__header__media">

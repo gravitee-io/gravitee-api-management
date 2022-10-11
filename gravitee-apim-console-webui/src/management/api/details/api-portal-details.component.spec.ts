@@ -25,8 +25,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Api } from '../../../entities/api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
-import { GioFormFilePickerInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { UIRouterStateParams, CurrentUserService } from '../../../ajs-upgraded-providers';
+import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
@@ -35,6 +35,7 @@ describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
   let loader: HarnessLoader;
@@ -46,6 +47,8 @@ describe('ApiPortalDetailsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: 'Constants', useValue: CONSTANTS_TESTING },
+        { provide: AjsRootScope, useValue: fakeRootScope }
       ],
     });
   });
@@ -68,6 +71,7 @@ describe('ApiPortalDetailsComponent', () => {
       id: API_ID,
       name: '🐶 API',
       version: '1.0.0',
+      labels: ['label1', 'label2'],
     });
     expectApiGetRequest(api);
 
@@ -97,9 +101,12 @@ describe('ApiPortalDetailsComponent', () => {
     expect((await backgroundPicker.getPreviewImages())[0]).toContain(api.background_url);
     await backgroundPicker.dropFiles(fixture, [newImageFile('new-image.png', 'image/png')]);
 
+    const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
+    expect(await labelsInput.getTags()).toEqual(['label1', 'label2']);
+    await labelsInput.addTag('label3');
+
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
-
 
     // Expect fetch api and update
     expectApiGetRequest(api);
@@ -113,6 +120,7 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.description).toEqual('🦊 API description');
     expect(req.request.body.picture).toEqual('data:image/png;base64,');
     expect(req.request.body.background).toEqual('data:image/png;base64,');
+    expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
   });
 
   function expectApiGetRequest(api: Api) {
