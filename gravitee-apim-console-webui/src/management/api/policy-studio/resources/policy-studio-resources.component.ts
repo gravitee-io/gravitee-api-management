@@ -53,7 +53,7 @@ export class PolicyStudioResourcesComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(([definition, resourceTypes]) => {
           this.apiDefinition = definition;
-          this.isReadonly = definition.origin === 'kubernetes';
+          this.isReadonly = definition.origin === 'kubernetes' ? true : null;
           this.resourceTypes = resourceTypes;
         }),
       )
