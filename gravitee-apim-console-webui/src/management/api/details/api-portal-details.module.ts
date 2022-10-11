@@ -24,12 +24,14 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio-clipboard.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
@@ -44,6 +46,7 @@ import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio
     MatSnackBarModule,
     MatIconModule,
     MatSelectModule,
+    MatButtonModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
@@ -51,6 +54,7 @@ import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio
     GioSaveBarModule,
     GioFormTagsInputModule,
     GioClipboardModule,
+    GioPermissionModule,
   ],
 })
 export class ApiPortalDetailsModule {}

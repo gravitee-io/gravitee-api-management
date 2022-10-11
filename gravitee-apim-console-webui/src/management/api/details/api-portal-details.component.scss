@@ -7,7 +7,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
 .details-card {
@@ -51,7 +51,8 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__right-coll {
-      flex: 0 0 460px;
+      flex: 0 0 320px;
+
       &__media {
         margin-left: 16px;
         display: flex;
@@ -106,6 +107,28 @@ $typography: map.get(gio.$mat-theme, typography);
       &__info {
         padding-left: 16px;
       }
+    }
+  }
+}
+
+.danger-card {
+  margin-top: 16px;
+  border: 1px solid mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+
+  &__title {
+    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+
+    &__action {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      height: 48px;
     }
   }
 }

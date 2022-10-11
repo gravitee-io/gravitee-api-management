@@ -19,6 +19,7 @@ import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { Api } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -41,6 +42,19 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public apiOwner: string;
   public apiCreatedAt: number;
   public apiLastDeploymentAt: number;
+  public dangerActions = {
+    canAskForReview: false,
+    canStartApi: false,
+    canStopApi: false,
+    canChangeApiLifecycle: false,
+    canPublish: false,
+    canUnpublish: false,
+    canChangeVisibilityToPublic: false,
+    canChangeVisibilityToPrivate: false,
+    canDeprecate: false,
+    canDelete: false,
+  };
+  public canPromote = false;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -79,6 +93,30 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           this.apiOwner = api.owner.displayName;
           this.apiCreatedAt = api.created_at;
           this.apiLastDeploymentAt = api.updated_at;
+
+          this.dangerActions = {
+            canAskForReview:
+              this.constants.env?.settings?.apiReview?.enabled &&
+              (api.workflow_state === 'DRAFT' || api.workflow_state === 'REQUEST_FOR_CHANGES' || !api.workflow_state),
+            canStartApi:
+              (!this.constants.env?.settings?.apiReview?.enabled ||
+                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflow_state || api.workflow_state === 'REVIEW_OK'))) &&
+              api.state === 'STOPPED',
+            canStopApi:
+              (!this.constants.env?.settings?.apiReview?.enabled ||
+                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflow_state || api.workflow_state === 'REVIEW_OK'))) &&
+              api.state === 'STARTED',
+
+            canChangeApiLifecycle: this.canChangeApiLifecycle(api),
+            canPublish: !api.lifecycle_state || api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'UNPUBLISHED',
+            canUnpublish: api.lifecycle_state === 'PUBLISHED',
+
+            canChangeVisibilityToPublic: api.lifecycle_state !== 'DEPRECATED' && api.visibility === 'PRIVATE',
+            canChangeVisibilityToPrivate: api.lifecycle_state !== 'DEPRECATED' && api.visibility === 'PUBLIC',
+            canDeprecate: api.lifecycle_state !== 'DEPRECATED',
+            canDelete: !(api.state === 'STARTED' || api.lifecycle_state === 'PUBLISHED'),
+          };
+          this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycle_state !== 'DEPRECATED';
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(
@@ -161,6 +199,34 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         tap(() => this.ngOnInit()),
       )
       .subscribe();
+  }
+
+  askForReview() {
+    // TODO
+  }
+
+  changeLifecycle() {
+    // TODO
+  }
+
+  changeApiLifecycle() {
+    // TODO
+  }
+
+  changeVisibility() {
+    // TODO
+  }
+
+  delete() {
+    // TODO
+  }
+
+  private canChangeApiLifecycle(api: Api): boolean {
+    if (this.constants.env?.settings?.apiReview?.enabled) {
+      return !api.workflow_state || api.workflow_state === 'REVIEW_OK';
+    } else {
+      return api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'PUBLISHED' || api.lifecycle_state === 'UNPUBLISHED';
+    }
   }
 }
 
