@@ -25,7 +25,6 @@ $typography: map.get(gio.$mat-theme, typography);
       &__first-row {
         display: flex;
         align-items: center;
-        margin-bottom: 16px;
 
         &__name-field {
           flex: 6 1 auto;
@@ -40,10 +39,12 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__second-row {
         display: flex;
-        align-items: center;
-        margin-bottom: 16px;
+        flex-direction: column;
 
         &__description-field {
+          flex: 1 1 auto;
+        }
+        &__labels-field {
           flex: 1 1 auto;
         }
       }
