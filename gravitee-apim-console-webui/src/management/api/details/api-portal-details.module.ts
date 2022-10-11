@@ -29,6 +29,7 @@ import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
@@ -49,6 +50,7 @@ import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-f
     GioFormFilePickerModule,
     GioSaveBarModule,
     GioFormTagsInputModule,
+    GioClipboardModule,
   ],
 })
 export class ApiPortalDetailsModule {}
