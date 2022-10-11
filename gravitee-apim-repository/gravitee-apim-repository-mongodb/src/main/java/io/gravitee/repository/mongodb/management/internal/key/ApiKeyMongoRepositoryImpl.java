@@ -47,16 +47,16 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Override
     public List<ApiKeyMongo> search(ApiKeyCriteria filter) {
-        if (CollectionUtils.isEmpty(filter.getPlans())) {
-            AggregateIterable<Document> aggregate = searchWithoutPlanFilter(filter);
-            return getListFromAggregate(aggregate);
+        // if filter contains no plans, do the search from keys collection as there is no need to join subscriptions collection
+        // if filter contains a period from/to, do the search from keys collection as subscriptions lookup will be optimized
+        if (CollectionUtils.isEmpty(filter.getPlans()) || filter.getFrom() != 0 || filter.getTo() != 0) {
+            return getListFromAggregate(searchFromKeysJoiningSubscription(filter));
         }
-
-        AggregateIterable<Document> aggregate = searchWithPlanFilter(filter);
-        return getListFromSubscriptionAggregate(aggregate);
+        // elsewhere, do the search from the subscription collection, joining the keys collection
+        return getListFromSubscriptionAggregate(searchFromSubscriptionJoiningKeys(filter));
     }
 
-    private AggregateIterable<Document> searchWithPlanFilter(ApiKeyCriteria filter) {
+    private AggregateIterable<Document> searchFromSubscriptionJoiningKeys(ApiKeyCriteria filter) {
         List<Bson> pipeline = new ArrayList<>();
 
         pipeline.add(match(in("plan", filter.getPlans())));
@@ -92,7 +92,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         return mongoTemplate.getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class)).aggregate(pipeline);
     }
 
-    private AggregateIterable<Document> searchWithoutPlanFilter(ApiKeyCriteria filter) {
+    private AggregateIterable<Document> searchFromKeysJoiningSubscription(ApiKeyCriteria filter) {
         List<Bson> pipeline = new ArrayList<>();
 
         if (!filter.isIncludeRevoked()) {
@@ -112,6 +112,12 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(gte("expireAt", new Date(filter.getExpireAfter()))));
         } else if (filter.getExpireBefore() > 0) {
             pipeline.add(match(lte("expireAt", new Date(filter.getExpireBefore()))));
+        }
+
+        if (!CollectionUtils.isEmpty(filter.getPlans())) {
+            pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));
+            pipeline.add(unwind("$sub"));
+            pipeline.add(match(in("sub.plan", filter.getPlans())));
         }
 
         pipeline.add(sort(Sorts.descending("updatedAt")));
