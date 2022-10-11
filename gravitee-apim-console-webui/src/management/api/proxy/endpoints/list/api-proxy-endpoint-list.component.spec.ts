@@ -60,9 +60,7 @@ describe('ApiProxyEndpointListComponent', () => {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
       },
     });
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ApiProxyEndpointListComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -86,7 +84,19 @@ describe('ApiProxyEndpointListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ text: /Add new endpoint group/ })).then((button) => button.click());
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: '' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-group', { groupName: '' });
+    });
+
+    it('should navigate to existing group', async () => {
+      const api = fakeApi({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Edit group"]' })).then((btn) => btn.click());
+
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-group', { groupName: 'default-group' });
     });
   });
 
