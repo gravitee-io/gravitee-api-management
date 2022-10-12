@@ -200,4 +200,19 @@ describe('ApiService', () => {
       });
     });
   });
+
+  describe('askForReview', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.askForReview(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/reviews?action=ASK`);
+      expect(req.request.method).toEqual('POST');
+
+      req.flush({});
+    });
+  });
 });

@@ -22,6 +22,9 @@ import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarne
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
@@ -41,6 +44,7 @@ describe('ApiPortalDetailsComponent', () => {
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -49,15 +53,34 @@ describe('ApiPortalDetailsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: 'Constants', useValue: CONSTANTS_TESTING },
+        {
+          provide: 'Constants',
+          useValue: {
+            ...CONSTANTS_TESTING,
+            env: {
+              ...CONSTANTS_TESTING.env,
+              settings: {
+                ...CONSTANTS_TESTING.env.settings,
+                apiReview: {
+                  enabled: true,
+                },
+              },
+            },
+          },
+        },
         { provide: AjsRootScope, useValue: fakeRootScope },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiPortalDetailsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -135,6 +158,28 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.categories).toEqual(['category1', 'category2']);
   });
 
+  it('should ask for review', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      workflow_state: 'DRAFT',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Ask for a review' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#reviewApiDialog' }));
+    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Ask for review' }));
+    await confirmDialogSwitchButton.click();
+
+    httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/reviews?action=ASK`,
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -162,3 +207,5 @@ function trackImageOnload() {
 export function newImageFile(fileName: string, type: string): File {
   return new File([''], fileName, { type });
 }
+
+const waitImageCheck = () => new Promise((resolve) => setTimeout(resolve, 1));
