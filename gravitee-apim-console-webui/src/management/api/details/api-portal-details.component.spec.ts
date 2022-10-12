@@ -224,6 +224,27 @@ describe('ApiPortalDetailsComponent', () => {
     });
   });
 
+  it('should publish the api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      lifecycle_state: 'CREATED',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Publish the API' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
+    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+    await confirmDialogSwitchButton.click();
+
+    expectApiGetRequest(api);
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    expect(req.request.body.lifecycle_state).toEqual('PUBLISHED');
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
