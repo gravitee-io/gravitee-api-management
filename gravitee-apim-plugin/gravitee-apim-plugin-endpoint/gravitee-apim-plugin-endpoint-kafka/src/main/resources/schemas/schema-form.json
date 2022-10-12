@@ -51,7 +51,7 @@
                     "title": "enabled",
                     "description": "Allow to enable or disable the producer capability.",
                     "type": "boolean",
-                    "default": "true"
+                    "default": true
                 }
             }
         }
