@@ -125,4 +125,12 @@ export class ApiService {
   askForReview(apiId: string, message?: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/${apiId}/reviews?action=ASK`, { message });
   }
+
+  start(apiId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/` + apiId + '?action=START', {});
+  }
+
+  stop(apiId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/` + apiId + '?action=STOP', {});
+  }
 }
