@@ -20,6 +20,8 @@ import static java.util.Collections.emptyList;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -107,12 +109,19 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         if (apiEntity.getPicture() != null) {
             jsonGenerator.writeObjectField("picture", apiEntity.getPicture());
         }
-        if (apiEntity.getPaths() != null) {
-            jsonGenerator.writeObjectFieldStart("paths");
-            for (Map.Entry<String, List<Rule>> entry : apiEntity.getPaths().entrySet()) {
-                jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
+
+        if (DefinitionVersion.V1.getLabel().equals(apiEntity.getGraviteeDefinitionVersion())) {
+            if (apiEntity.getPaths() != null) {
+                jsonGenerator.writeObjectFieldStart("paths");
+                for (Map.Entry<String, List<Rule>> entry : apiEntity.getPaths().entrySet()) {
+                    jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
+                }
+                jsonGenerator.writeEndObject();
             }
-            jsonGenerator.writeEndObject();
+        } else {
+            if (apiEntity.getFlows() != null) {
+                jsonGenerator.writeObjectField("flows", apiEntity.getFlows());
+            }
         }
 
         if (apiEntity.getGraviteeDefinitionVersion() != null) {
@@ -121,10 +130,6 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getFlowMode() != null) {
             jsonGenerator.writeObjectField("flow_mode", apiEntity.getFlowMode().toString().toUpperCase());
-        }
-
-        if (apiEntity.getFlows() != null) {
-            jsonGenerator.writeObjectField("flows", apiEntity.getFlows());
         }
 
         if (apiEntity.getServices() != null && !apiEntity.getServices().isEmpty()) {

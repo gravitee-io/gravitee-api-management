@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SKIP_SECURITY_CHAIN;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
+import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
@@ -81,6 +83,7 @@ class SecurityChainTest {
         final TestObserver<Void> obs = cut.execute(ctx).test();
 
         obs.assertResult();
+        verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
     }
 
     @Test
@@ -106,6 +109,7 @@ class SecurityChainTest {
         obs.assertResult();
         verify(policy2).order();
         verifyNoMoreInteractions(policy2);
+        verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
     }
 
     @Test
@@ -132,6 +136,7 @@ class SecurityChainTest {
         verify(policy1).order();
         verify(policy2).order();
         verifyNoMoreInteractions(policy1, policy2);
+        verify(ctx, never()).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
     }
 
     @Test
@@ -144,6 +149,7 @@ class SecurityChainTest {
 
         obs.assertError(Throwable.class);
         verifyUnauthorized();
+        verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
     }
 
     @Test
@@ -168,6 +174,7 @@ class SecurityChainTest {
 
         obs.assertError(Throwable.class);
         verifyUnauthorized();
+        verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
     }
 
     private void verifyUnauthorized() {

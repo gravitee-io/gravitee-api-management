@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.FieldNameConstants;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -36,9 +35,8 @@ import lombok.experimental.FieldNameConstants;
 @Setter
 @ToString
 @EqualsAndHashCode
-@FieldNameConstants
 // Require only for tests
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = FlowSelector.Fields.type)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(value = FlowHttpSelector.class, name = "HTTP"),

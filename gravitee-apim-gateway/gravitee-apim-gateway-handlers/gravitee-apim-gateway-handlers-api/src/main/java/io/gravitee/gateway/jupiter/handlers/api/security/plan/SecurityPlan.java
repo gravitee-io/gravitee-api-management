@@ -19,6 +19,7 @@ import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_API
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_APPLICATION;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_PLAN;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -78,6 +79,7 @@ public class SecurityPlan {
     public Single<Boolean> canExecute(HttpExecutionContext ctx) {
         return policy
             .extractSecurityToken(ctx)
+            .doOnSuccess(securityToken -> ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken))
             .flatMap(
                 securityToken ->
                     matchSelectionRule(ctx)

@@ -41,10 +41,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -94,10 +91,11 @@ public class ApplicationsResource extends AbstractResource {
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
         @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+        @QueryParam("ids") final List<String> ids,
         @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters
     ) {
         ApplicationsOrderParam applicationsOrderParam = new ApplicationsOrderParam("ARCHIVED".equals(status) ? "updated_at" : "name");
-        return this.getApplicationsPaged(group, query, status, applicationsOrderParam, null, excludeFilters).getData();
+        return this.getApplicationsPaged(group, query, status, ids, applicationsOrderParam, null, excludeFilters).getData();
     }
 
     @GET
@@ -120,6 +118,7 @@ public class ApplicationsResource extends AbstractResource {
         @QueryParam("group") final String group,
         @QueryParam("query") final String query,
         @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+        @QueryParam("ids") final List<String> ids,
         @Parameter(
             name = "order",
             schema = @Schema(
@@ -142,6 +141,10 @@ public class ApplicationsResource extends AbstractResource {
             applicationQuery.setGroups(Set.of(group));
         }
         applicationQuery.setName(query);
+
+        if (ids != null && !ids.isEmpty()) {
+            applicationQuery.setIds(new HashSet<>(ids));
+        }
 
         if (!isAdmin()) {
             applicationQuery.setUser(getAuthenticatedUser());

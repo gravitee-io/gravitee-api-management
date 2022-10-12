@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -40,23 +41,26 @@ public class SubscriptionsHandler extends AbstractHandler {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    public SubscriptionsHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void search(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
         final SubscriptionCriteria subscriptionCriteria = readCriteria(searchPayload);
 
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        promise.complete(subscriptionRepository.search(subscriptionCriteria));
-                    } catch (TechnicalException te) {
-                        LOGGER.error("Unable to search for subscriptions", te);
-                        promise.fail(te);
-                    }
-                },
-                (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(subscriptionRepository.search(subscriptionCriteria));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to search for subscriptions", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result)
+        );
     }
 
     public void findByIds(RoutingContext ctx) {

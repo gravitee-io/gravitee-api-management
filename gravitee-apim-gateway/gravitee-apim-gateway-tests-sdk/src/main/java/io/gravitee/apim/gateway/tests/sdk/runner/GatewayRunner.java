@@ -23,7 +23,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
 import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
@@ -57,7 +56,6 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
-import io.gravitee.plugin.entrypoint.sse.SseEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
@@ -510,12 +508,7 @@ public class GatewayRunner {
 
         Map<String, EntrypointConnectorPlugin<?, ?>> entrypointsMap = new HashMap<>();
         testInstance.configureEntrypoints(entrypointsMap);
-        ensureMinimalRequirementForEntrypoints(entrypointsMap);
         entrypointsMap.forEach((key, value) -> entrypointPluginManager.register(value));
-    }
-
-    private void ensureMinimalRequirementForEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
     }
 
     private void registerEndpoints(GatewayTestContainer container) {

@@ -55,6 +55,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   displayedColumns: string[] = ['logo', 'id', 'name', 'description', 'activated', 'sync', 'availableOnPortal', 'updatedAt', 'actions'];
   tableData: TableData[] = [];
   filteredTableData: TableData[] = [];
+  tableUnpaginatedLength = 0;
 
   consoleSettings: ConsoleSettings;
 
@@ -88,7 +89,9 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    this.filteredTableData = gioTableFilterCollection(this.tableData, filters);
+    const filtered = gioTableFilterCollection(this.tableData, filters);
+    this.filteredTableData = filtered.filteredCollection;
+    this.tableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   onDeleteActionClicked(identityProvider: TableData) {
@@ -204,6 +207,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
 
     this.tableData = matTableData;
     this.filteredTableData = matTableData;
+    this.tableUnpaginatedLength = matTableData.length;
   }
 
   getLocalLoginTooltipMessage(): string | null {

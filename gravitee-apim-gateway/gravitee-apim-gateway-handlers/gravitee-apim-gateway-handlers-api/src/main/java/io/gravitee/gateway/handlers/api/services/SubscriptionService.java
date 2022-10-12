@@ -91,6 +91,9 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         Subscription cachedSubscription = cacheBySubscriptionId.get(subscription.getId());
         String key = buildClientIdCacheKey(subscription);
 
+        // Index the subscription without plan id to allow search without plan criteria.
+        final String keyWithoutPlan = buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
+
         // remove subscription from cache if its client_id changed
         if (
             cachedSubscription != null &&
@@ -103,8 +106,10 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         // put or remove subscription from cache according to its status
         if (ACCEPTED.name().equals(subscription.getStatus())) {
             cacheByApiClientId.put(key, subscription);
+            cacheByApiClientId.put(keyWithoutPlan, subscription);
         } else if (cachedSubscription != null) {
             cacheByApiClientId.evict(key);
+            cacheByApiClientId.evict(keyWithoutPlan);
         }
     }
 

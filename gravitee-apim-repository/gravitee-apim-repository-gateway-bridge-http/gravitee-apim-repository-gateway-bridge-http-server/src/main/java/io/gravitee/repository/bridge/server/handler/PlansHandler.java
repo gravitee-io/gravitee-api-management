@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Plan;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
 import java.util.Set;
@@ -35,20 +36,23 @@ public class PlansHandler extends AbstractHandler {
     @Autowired
     private PlanRepository planRepository;
 
+    public PlansHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void handle(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        List<String> apiIds = ctx.getBodyAsJsonArray().getList();
-                        promise.complete(planRepository.findByApis(apiIds));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to get plans for apis", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<List<Plan>>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    List<String> apiIds = ctx.getBodyAsJsonArray().getList();
+                    promise.complete(planRepository.findByApis(apiIds));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to get plans for apis", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            (Handler<AsyncResult<List<Plan>>>) event -> handleResponse(ctx, event)
+        );
     }
 }

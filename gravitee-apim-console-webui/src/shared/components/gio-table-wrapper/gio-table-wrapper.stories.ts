@@ -70,10 +70,10 @@ export const Default: Story = {
     <ng-template #contentTemplate>
       <h2>The title</h2>
       <p>Some content bla bla bla ...</p>
-      <gio-table-wrapper [length]="length" [filters]="filters" (filtersChange)="filtersChange($event); _filters = $event" >
+      <gio-table-wrapper [length]="filterDataSource(_filters).unpaginatedLength" [filters]="filters" (filtersChange)="filtersChange($event); _filters = $event" >
         <table
           mat-table
-          [dataSource]="filterDataSource(_filters)"
+          [dataSource]="filterDataSource(_filters).filteredCollection"
           matSort
         >
           <!-- Position Column -->
@@ -81,19 +81,19 @@ export const Default: Story = {
             <th mat-header-cell *matHeaderCellDef mat-sort-header> No. </th>
             <td mat-cell *matCellDef="let element"> {{element.position}} </td>
           </ng-container>
-        
+
           <!-- Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
             <td mat-cell *matCellDef="let element"> {{element.name}} </td>
           </ng-container>
-        
+
           <!-- Weight Column -->
           <ng-container matColumnDef="weight">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Weight </th>
             <td mat-cell *matCellDef="let element"> {{element.weight}} </td>
           </ng-container>
-        
+
           <!-- Symbol Column -->
           <ng-container matColumnDef="symbol">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Symbol </th>
@@ -102,7 +102,7 @@ export const Default: Story = {
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      
+
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell" [attr.colspan]="displayedColumns.length">No Data</td>
           </tr>

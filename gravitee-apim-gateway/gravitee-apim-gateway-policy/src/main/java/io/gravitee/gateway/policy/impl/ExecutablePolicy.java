@@ -28,12 +28,16 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import jdk.dynalink.linker.support.Lookup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ExecutablePolicy implements Policy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutablePolicy.class);
 
     private final String id;
     private final Object policy;
@@ -105,6 +109,7 @@ public class ExecutablePolicy implements Policy {
         try {
             headMethodHandle.invoke(policy, chain, context, context.request(), context.response());
         } catch (Throwable ex) {
+            LOGGER.error("Error during {} policy execution", id, ex);
             throw new PolicyException(ex);
         }
     }
@@ -115,6 +120,7 @@ public class ExecutablePolicy implements Policy {
             Object stream = streamMethodHandle.invoke(policy, chain, context, context.request(), context.response());
             return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
         } catch (Throwable ex) {
+            LOGGER.error("Error during {} policy execution", id, ex);
             throw new PolicyException(ex);
         }
     }

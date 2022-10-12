@@ -43,7 +43,7 @@ public class PlanBasedAuthenticationHandlerTest {
             super(handler, plan);
         }
 
-        protected boolean canHandleSubscription(AuthenticationContext authenticationContext) {
+        protected boolean preCheckSubscription(AuthenticationContext authenticationContext) {
             return false;
         }
     }

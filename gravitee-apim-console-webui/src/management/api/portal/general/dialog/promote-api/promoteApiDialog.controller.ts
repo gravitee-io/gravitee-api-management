@@ -18,6 +18,7 @@ import { IOnInit } from 'angular';
 import '@gravitee/ui-components/wc/gv-select';
 import * as angular from 'angular';
 
+import { CockpitService, UtmCampaign } from '../../../../../../services-ngx/cockpit.service';
 import { PromotionService } from '../../../../../../services/promotion.service';
 import NotificationService from '../../../../../../services/notification.service';
 
@@ -36,6 +37,7 @@ export class PromoteApiDialogController implements IOnInit {
   private hasCockpit: boolean;
 
   constructor(
+    private readonly cockpitService: CockpitService,
     private readonly promotionService: PromotionService,
     private readonly NotificationService: NotificationService,
     private readonly $mdDialog: angular.material.IDialogService,
@@ -78,7 +80,7 @@ export class PromoteApiDialogController implements IOnInit {
           err.interceptorFuture.cancel();
           this.hasCockpit = false;
           const { cockpitURL } = err.data.parameters;
-          this.cockpitURL = cockpitURL;
+          this.cockpitURL = this.cockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_PROMOTION);
         }
       })
       .finally(() => {
