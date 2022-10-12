@@ -234,8 +234,31 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  changeLifecycle() {
-    // TODO
+  changeLifecycle(state: 'START' | 'STOP') {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `${state === 'START' ? 'Start' : 'Stop'} API`,
+          content: `Are you sure you want to ${state === 'START' ? 'start' : 'stop'} the API?`,
+          confirmButton: `${state === 'START' ? 'Start' : 'Stop'}`,
+        },
+        role: 'alertdialog',
+        id: 'lifecycleDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => (state === 'START' ? this.apiService.start(this.apiId) : this.apiService.stop(this.apiId))),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+        map(() => this.snackBarService.success(`The API has been ${state === 'START' ? 'started' : 'stopped'} with success.`)),
+      )
+      .subscribe();
   }
 
   changeApiLifecycle() {

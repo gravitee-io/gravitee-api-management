@@ -180,6 +180,50 @@ describe('ApiPortalDetailsComponent', () => {
     });
   });
 
+  it('should start the api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      state: 'STOPPED',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Start the API' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
+    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Start' }));
+    await confirmDialogSwitchButton.click();
+
+    httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=START`,
+    });
+  });
+
+  it('should stop the api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      state: 'STARTED',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Stop the API' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
+    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Stop' }));
+    await confirmDialogSwitchButton.click();
+
+    httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=STOP`,
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();

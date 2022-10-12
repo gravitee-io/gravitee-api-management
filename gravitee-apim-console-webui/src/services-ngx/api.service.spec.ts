@@ -215,4 +215,34 @@ describe('ApiService', () => {
       req.flush({});
     });
   });
+
+  describe('start', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.start(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}?action=START`);
+      expect(req.request.method).toEqual('POST');
+
+      req.flush({});
+    });
+
+    describe('stop', () => {
+      it('should call the API', (done) => {
+        const apiId = 'api#1';
+
+        apiService.stop(apiId).subscribe(() => {
+          done();
+        });
+
+        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}?action=STOP`);
+        expect(req.request.method).toEqual('POST');
+
+        req.flush({});
+      });
+    });
+  });
 });
