@@ -245,6 +245,27 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.lifecycle_state).toEqual('PUBLISHED');
   });
 
+  it('should make public the api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      visibility: 'PRIVATE',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
+    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
+    await confirmDialogSwitchButton.click();
+
+    expectApiGetRequest(api);
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    expect(req.request.body.visibility).toEqual('PUBLIC');
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();

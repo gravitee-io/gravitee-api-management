@@ -299,8 +299,41 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  changeVisibility() {
-    // TODO
+  changeVisibility(visibility: 'PUBLIC' | 'PRIVATE') {
+    const actionLabel = {
+      PUBLIC: 'Make Public',
+      PRIVATE: 'Make Private',
+    };
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Change visibility`,
+          content: `Are you sure you want to ${actionLabel[visibility].toLowerCase()} the API?`,
+          confirmButton: `${actionLabel[visibility]}`,
+        },
+        role: 'alertdialog',
+        id: 'apiLifecycleDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap((api) =>
+          this.apiService.update({
+            ...api,
+            visibility: visibility,
+          }),
+        ),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+        map(() => this.snackBarService.success(`The API has been ${actionLabel[visibility]} with success.`)),
+      )
+      .subscribe();
   }
 
   delete() {
