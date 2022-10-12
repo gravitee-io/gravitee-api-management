@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Getter(onMethod_ = @JsonValue)
 public enum DefinitionVersion {
     @JsonEnumDefaultValue
     V1("1.0.0"),
@@ -59,5 +57,11 @@ public enum DefinitionVersion {
     @SuppressWarnings("java:S5361")
     public Integer asInteger() {
         return Integer.valueOf(label.replaceAll("\\.", ""));
+    }
+
+    // @JsonValue on the getter instead of attribute makes enum values relevant in generated openapi file
+    @JsonValue
+    public String getLabel() {
+        return label;
     }
 }

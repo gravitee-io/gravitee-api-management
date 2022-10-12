@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security.plan;
 
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -33,6 +34,7 @@ import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
 import java.util.Optional;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -83,6 +85,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -96,6 +99,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -109,6 +113,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(true);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -122,6 +127,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(false);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -132,6 +138,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(false);
+        verify(ctx, never()).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -150,6 +157,7 @@ class SecurityPlanTest {
 
         verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
         obs.assertResult(false);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -170,6 +178,7 @@ class SecurityPlanTest {
 
         verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
         obs.assertResult(false);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -193,6 +202,7 @@ class SecurityPlanTest {
 
         verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
         obs.assertResult(false);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -216,6 +226,7 @@ class SecurityPlanTest {
 
         verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
         obs.assertResult(true);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test
@@ -233,6 +244,7 @@ class SecurityPlanTest {
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
 
         obs.assertResult(false);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 
     @Test

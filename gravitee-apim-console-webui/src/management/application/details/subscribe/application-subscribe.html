@@ -23,13 +23,13 @@
       <md-autocomplete
         class="application-subscribe__content__api-selector-container__selector"
         md-input-id="new-view-apis-autocomplete-id"
-        md-search-text="$ctrl.filterAPI"
+        md-search-text="searchText"
         md-selected-item-change="$ctrl.onSelectAPI(api)"
-        md-items="api in $ctrl.apis | filter:$ctrl.filterAPI"
+        md-items="api in $ctrl.searchApiByName(searchText)"
         md-item-text="api.name"
-        placeholder="Select an API to subscribe"
+        placeholder="Search and select an API to subscribe | name:'My api *' | ownerName:admin"
         md-autofocus="false"
-        md-min-length="0"
+        md-min-length="3"
         md-no-cache="true"
         md-menu-class="autocomplete-custom-template"
       >
@@ -40,7 +40,7 @@
             </div>
           </md-list-item>
         </md-item-template>
-        <md-not-found> No API matching "{{$ctrl.filterAPI}}" were found. </md-not-found>
+        <md-not-found> No API matching "{{searchText}}" were found. </md-not-found>
       </md-autocomplete>
     </div>
     <div class="gv-forms application-subscribe__content__subscribed-api">

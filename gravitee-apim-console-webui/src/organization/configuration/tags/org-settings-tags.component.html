@@ -29,7 +29,7 @@
       </button>
     </div>
 
-    <gio-table-wrapper [length]="tagsTableDS.length" (filtersChange)="onTagsFiltersChanged($event)">
+    <gio-table-wrapper [length]="tagsTableUnpaginatedLength" (filtersChange)="onTagsFiltersChanged($event)">
       <table
         mat-table
         [dataSource]="filteredTagsTableDS"
@@ -132,7 +132,7 @@
       <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
     </mat-form-field>
 
-    <gio-table-wrapper [length]="entrypointsTableDS.length" (filtersChange)="onEntrypointsFiltersChanged($event)">
+    <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
       <table
         mat-table
         [dataSource]="filteredEntrypointsTableDS"

@@ -19,6 +19,7 @@ import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,78 +33,79 @@ public class NodeMonitoringHandler extends AbstractHandler {
     @Autowired
     private NodeMonitoringRepository nodeMonitoringRepository;
 
+    public NodeMonitoringHandler(WorkerExecutor bridgeWorkerExecutor) {
+        super(bridgeWorkerExecutor);
+    }
+
     public void create(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
-                        nodeMonitoringRepository
-                            .create(monitoring)
-                            .subscribe(
-                                promise::complete,
-                                throwable -> {
-                                    LOGGER.error("Unable to create a node monitoring", throwable);
-                                    promise.fail(throwable);
-                                }
-                            );
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to create a node monitoring", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
+                    nodeMonitoringRepository
+                        .create(monitoring)
+                        .subscribe(
+                            promise::complete,
+                            throwable -> {
+                                LOGGER.error("Unable to create a node monitoring", throwable);
+                                promise.fail(throwable);
+                            }
+                        );
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to create a node monitoring", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
+        );
     }
 
     public void update(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
-                        nodeMonitoringRepository
-                            .update(monitoring)
-                            .subscribe(
-                                promise::complete,
-                                throwable -> {
-                                    LOGGER.error("Unable to update a node monitoring", throwable);
-                                    promise.fail(throwable);
-                                }
-                            );
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to update a node monitoring", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
+                    nodeMonitoringRepository
+                        .update(monitoring)
+                        .subscribe(
+                            promise::complete,
+                            throwable -> {
+                                LOGGER.error("Unable to update a node monitoring", throwable);
+                                promise.fail(throwable);
+                            }
+                        );
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to update a node monitoring", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
+        );
     }
 
     public void findByNodeIdAndType(RoutingContext ctx) {
-        ctx
-            .vertx()
-            .executeBlocking(
-                promise -> {
-                    try {
-                        nodeMonitoringRepository
-                            .findByNodeIdAndType(ctx.request().getParam("nodeId"), ctx.request().getParam("type"))
-                            .subscribe(
-                                monitoring -> promise.complete(Optional.of(monitoring)),
-                                throwable -> {
-                                    LOGGER.error("Unable to find a node monitoring by type and ID", throwable);
-                                    promise.fail(throwable);
-                                },
-                                () -> promise.complete(Optional.empty())
-                            );
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to find a node monitoring by type and ID", ex);
-                        promise.fail(ex);
-                    }
-                },
-                (Handler<AsyncResult<Optional<Monitoring>>>) event -> handleResponse(ctx, event)
-            );
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    nodeMonitoringRepository
+                        .findByNodeIdAndType(ctx.request().getParam("nodeId"), ctx.request().getParam("type"))
+                        .subscribe(
+                            monitoring -> promise.complete(Optional.of(monitoring)),
+                            throwable -> {
+                                LOGGER.error("Unable to find a node monitoring by type and ID", throwable);
+                                promise.fail(throwable);
+                            },
+                            () -> promise.complete(Optional.empty())
+                        );
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to find a node monitoring by type and ID", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Optional<Monitoring>>>) event -> handleResponse(ctx, event)
+        );
     }
 }

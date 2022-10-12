@@ -43,7 +43,7 @@ interface NodeContainerElement {
 const HTTP_PROPERTIES_NODES: Record<string, NodeContainerElement> = {
   parameters: {
     name: 'Query params',
-    type: 'text',
+    type: 'table',
   },
   pathParameters: {
     name: 'Path params',

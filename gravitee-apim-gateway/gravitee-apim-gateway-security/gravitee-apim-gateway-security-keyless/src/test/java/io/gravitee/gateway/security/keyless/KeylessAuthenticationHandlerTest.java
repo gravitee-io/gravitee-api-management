@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.security.keyless;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
+import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_NONE;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -66,5 +69,10 @@ public class KeylessAuthenticationHandlerTest {
     @Test
     public void shouldReturnOrder() {
         Assert.assertEquals(1000, authenticationHandler.order());
+    }
+
+    @Test
+    public void shouldReuturnTokenType() {
+        assertEquals(TOKEN_TYPE_NONE, authenticationHandler.tokenType());
     }
 }

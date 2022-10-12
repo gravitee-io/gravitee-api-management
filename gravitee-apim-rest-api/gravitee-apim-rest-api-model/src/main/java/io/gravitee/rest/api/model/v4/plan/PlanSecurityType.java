@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Getter(onMethod_ = @JsonValue)
+@Getter
 @Schema(enumAsRef = true, name = "PlanSecurityTypeV4")
 public enum PlanSecurityType {
     /**
@@ -67,7 +67,6 @@ public enum PlanSecurityType {
         SUBSCRIPTION
     );
 
-    @JsonValue
     private final String label;
 
     public static PlanSecurityType valueOfLabel(final String label) {
@@ -83,5 +82,11 @@ public enum PlanSecurityType {
             return planSecurityType;
         }
         return null;
+    }
+
+    // @JsonValue on the getter instead of attribute makes enum values relevant in generated openapi file
+    @JsonValue
+    public String getLabel() {
+        return label;
     }
 }

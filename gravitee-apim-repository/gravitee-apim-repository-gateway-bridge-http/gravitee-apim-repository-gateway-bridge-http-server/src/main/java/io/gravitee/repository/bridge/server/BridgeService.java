@@ -23,6 +23,7 @@ import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Router;
@@ -66,6 +67,10 @@ public class BridgeService extends AbstractService {
 
     @Autowired
     private HttpServerConfiguration httpServerConfiguration;
+
+    @Autowired
+    @Qualifier("bridgeWorkerExecutor")
+    private WorkerExecutor bridgeWorkerExecutor;
 
     @Override
     protected void doStart() throws Exception {
@@ -115,56 +120,58 @@ public class BridgeService extends AbstractService {
             bridgeRouter.get("/").handler(rootHandler);
 
             // APIs handler
-            ApisHandler apisHandler = new ApisHandler();
+            ApisHandler apisHandler = new ApisHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apisHandler);
             bridgeRouter.get("/apis").handler(apisHandler::search);
             bridgeRouter.get("/apis/:apiId").handler(apisHandler::findById);
 
             // API Plans handler
-            ApiPlansHandler apiPlansHandler = new ApiPlansHandler();
+            ApiPlansHandler apiPlansHandler = new ApiPlansHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPlansHandler);
             bridgeRouter.get("/apis/:apiId/plans").handler(apiPlansHandler::handle);
 
             // Plans handler
-            PlansHandler plansHandler = new PlansHandler();
+            PlansHandler plansHandler = new PlansHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(plansHandler);
             bridgeRouter.post("/plans").handler(plansHandler::handle);
 
             // API Keys handler
-            ApiKeysHandler apiKeysHandler = new ApiKeysHandler();
+            ApiKeysHandler apiKeysHandler = new ApiKeysHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeysHandler);
             bridgeRouter.post("/keys/_findByCriteria").handler(apiKeysHandler::findByCriteria);
             bridgeRouter.post("/keys/_search").handler(apiKeysHandler::search);
             bridgeRouter.get("/apis/:apiId/keys/:key").handler(apiKeysHandler::findByKeyAndApi);
 
             // Subscriptions handler
-            SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler();
+            SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(subscriptionsHandler);
             bridgeRouter.post("/subscriptions/_search").handler(subscriptionsHandler::search);
             bridgeRouter.post("/subscriptions/_findByIds").handler(subscriptionsHandler::findByIds);
 
             // Events handler
-            EventsHandler eventsHandler = new EventsHandler();
+            EventsHandler eventsHandler = new EventsHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(eventsHandler);
             bridgeRouter.post("/events/_search").handler(eventsHandler::search);
             bridgeRouter.post("/events/_searchLatest").handler(eventsHandler::searchLatest);
             bridgeRouter.post("/events").handler(eventsHandler::create);
+            bridgeRouter.post("/events/_createOrPatch").handler(eventsHandler::createOrPatch);
             bridgeRouter.put("/events/:eventId").handler(eventsHandler::update);
+            bridgeRouter.get("/events/:eventId").handler(eventsHandler::findById);
 
             // Dictionaries handler
-            DictionariesHandler dictionariesHandler = new DictionariesHandler();
+            DictionariesHandler dictionariesHandler = new DictionariesHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(dictionariesHandler);
             bridgeRouter.get("/dictionaries").handler(dictionariesHandler::find);
 
             // Node Monitoring handler
-            NodeMonitoringHandler nodeMonitoringHandler = new NodeMonitoringHandler();
+            NodeMonitoringHandler nodeMonitoringHandler = new NodeMonitoringHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(nodeMonitoringHandler);
             bridgeRouter.post("/node/monitoring").handler(nodeMonitoringHandler::create);
             bridgeRouter.put("/node/monitoring").handler(nodeMonitoringHandler::update);
             bridgeRouter.get("/node/monitoring").handler(nodeMonitoringHandler::findByNodeIdAndType);
 
             // Environments handler
-            EnvironmentsHandler environmentsHandler = new EnvironmentsHandler();
+            EnvironmentsHandler environmentsHandler = new EnvironmentsHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(environmentsHandler);
             bridgeRouter.get("/environments").handler(environmentsHandler::findAll);
             bridgeRouter.get("/environments/_byOrganizationId").handler(environmentsHandler::findByOrganizationId);
@@ -172,14 +179,14 @@ public class BridgeService extends AbstractService {
             bridgeRouter.get("/environments/:environmentId").handler(environmentsHandler::findById);
 
             // Organizations handler
-            OrganizationsHandler organizationsHandler = new OrganizationsHandler();
+            OrganizationsHandler organizationsHandler = new OrganizationsHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(organizationsHandler);
             bridgeRouter.get("/organizations").handler(organizationsHandler::findAll);
             bridgeRouter.get("/organizations/_byHrids").handler(organizationsHandler::findByHrids);
             bridgeRouter.get("/organizations/:organizationId").handler(organizationsHandler::findById);
 
             // Installation handler
-            InstallationHandler installationHandler = new InstallationHandler();
+            InstallationHandler installationHandler = new InstallationHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(installationHandler);
             bridgeRouter.get("/installation").handler(installationHandler::find);
         }
@@ -196,6 +203,7 @@ public class BridgeService extends AbstractService {
     protected void doStop() throws Exception {
         super.doStop();
 
+        bridgeWorkerExecutor.close(event -> LOGGER.debug("WorkerExecutor for bridge has been closed"));
         httpServer.close(event -> LOGGER.info("HTTP server for bridge has been stopped"));
     }
 

@@ -31,10 +31,33 @@
             </md-input-container>
             <md-input-container class="md-block" flex-gt-sm flex="20">
               <label>Application</label>
-              <md-select ng-model="$ctrl.query.applications" placeholder="Applications" multiple>
+              <md-select
+                ng-model="$ctrl.query.applications"
+                data-md-container-class="selectdemoSelectHeader"
+                md-on-open="$ctrl.applicationSearchTermSearch()"
+                placeholder="Applications"
+                multiple
+              >
+                <md-select-header class="demo-select-header">
+                  <input
+                    ng-model="$ctrl.applicationSearchTerm"
+                    ng-change="$ctrl.applicationSearchTermSearch()"
+                    ng-keydown="$event.stopPropagation()"
+                    type="search"
+                    placeholder="Search applications."
+                    class="demo-header-searchbox md-text"
+                  />
+                </md-select-header>
+
+                <md-option ng-if="$ctrl.subscribers === null" disabled>Loading...</md-option>
                 <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
                   >{{ subscriber.name }}</md-option
                 >
+                <md-optgroup ng-if="$ctrl.subscribersSelected && $ctrl.subscribersSelected.length > 0" label="Selected">
+                  <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribersSelected track by subscriber.id"
+                    >{{ subscriber.name }}</md-option
+                  >
+                </md-optgroup>
               </md-select>
             </md-input-container>
             <md-input-container class="md-block" flex-gt-sm flex="20">

@@ -170,9 +170,6 @@ function apisPortalRouterConfig($stateProvider) {
           return ApiService.getSubscriptions($stateParams.apiId, query).then((response) => response.data);
         },
 
-        subscribers: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams.apiId).then((response) => response.data),
-
         plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
       },
       data: {

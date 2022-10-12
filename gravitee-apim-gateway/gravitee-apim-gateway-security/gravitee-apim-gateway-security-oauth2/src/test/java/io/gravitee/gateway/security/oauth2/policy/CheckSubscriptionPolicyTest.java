@@ -28,6 +28,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
+import java.util.Date;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,9 +46,26 @@ public class CheckSubscriptionPolicyTest {
     @Mock
     private Request request;
 
+    @Mock
+    private SubscriptionService subscriptionService;
+
+    @Mock
+    private ExecutionContext executionContext;
+
+    private static final String API_ID = "api-id";
+    private static final String PLAN_ID = "plan-id";
+    private static final String CLIENT_ID = "client-id";
+
     @Before
     public void init() {
         when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
+        when(request.timestamp()).thenReturn(currentTimeMillis());
+
+        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
+        when(executionContext.request()).thenReturn(request);
     }
 
     @Test
@@ -58,11 +76,8 @@ public class CheckSubscriptionPolicyTest {
         when(response.headers()).thenReturn(mock(HttpHeaders.class));
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(null);
         when(executionContext.response()).thenReturn(response);
-
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
 
         policy.execute(policyChain, executionContext);
 
@@ -82,17 +97,10 @@ public class CheckSubscriptionPolicyTest {
 
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
 
         // no subscription found in cache for this API / clientID
-        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
@@ -112,19 +120,10 @@ public class CheckSubscriptionPolicyTest {
 
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-
-        // subscription found in cache, with invalid time
-        Subscription subscription = mock(Subscription.class);
-        when(subscription.isTimeValid(anyLong())).thenReturn(false);
-        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
+        // subscription found in cache, with end date in the past
+        Subscription subscription = new Subscription();
+        subscription.setEndingAt(new Date(currentTimeMillis() - 100000));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -139,30 +138,48 @@ public class CheckSubscriptionPolicyTest {
     }
 
     @Test
-    public void shouldContinue() throws PolicyException {
+    public void shouldContinueWhenNoSelectionRule() throws PolicyException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
-        when(executionContext.request()).thenReturn(request);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(false);
         when(executionContext.response()).thenReturn(response);
 
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-
         // subscription found in cache, with a valid plan, and time
-        Subscription subscription = mock(Subscription.class);
-        when(subscription.isTimeValid(anyLong())).thenReturn(true);
-        when(subscription.getPlan()).thenReturn("plan-id");
-        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
+        Subscription subscription = new Subscription();
+        subscription.setPlan(PLAN_ID);
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
+        verify(policyChain, times(1)).doNext(request, response);
+    }
+
+    @Test
+    public void shouldFilterRightPlanWhenSelectionRuleBasedPlan() throws PolicyException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+
+        Response response = mock(Response.class);
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
+
+        when(executionContext.response()).thenReturn(response);
+
+        final Subscription subscription = new Subscription();
+        subscription.setId("subscription-id");
+        subscription.setPlan(PLAN_ID);
+        subscription.setApplication("application-id");
+
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
+
+        policy.execute(policyChain, executionContext);
+
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
+        verify(executionContext).setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
         verify(policyChain, times(1)).doNext(request, response);
     }
 
@@ -172,18 +189,12 @@ public class CheckSubscriptionPolicyTest {
 
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
-        when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
-        when(executionContext.request()).thenReturn(request);
-
-        SubscriptionService subscriptionService = mock(SubscriptionService.class);
-        when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
 
         // subscription found in cache, with an invalid plan
-        Subscription subscription = mock(Subscription.class);
-        when(subscriptionService.getByApiAndClientIdAndPlan("api-id", "my-client-id", "plan-id")).thenReturn(Optional.of(subscription));
+        Subscription subscription = new Subscription();
+        subscription.setPlan("another-plan");
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 

@@ -17,7 +17,6 @@ import { StateParams, StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 
 import { ApplicationType } from '../../entities/application';
-import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
 import EnvironmentService from '../../services/environment.service';
@@ -301,7 +300,6 @@ function applicationsConfig($stateProvider) {
       url: '/subscribe',
       component: 'applicationSubscribe',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list(null, true).then((response) => response.data),
         groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),

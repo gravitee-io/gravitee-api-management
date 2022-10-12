@@ -84,7 +84,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['There is no apis (yet).']]);
+      expect(rowCells).toEqual([['There is no API (yet).']]);
     }));
 
     it('should display a table with one row', fakeAsync(async () => {

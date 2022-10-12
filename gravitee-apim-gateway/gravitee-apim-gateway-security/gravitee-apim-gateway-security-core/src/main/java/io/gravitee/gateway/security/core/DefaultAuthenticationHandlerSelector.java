@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.security.core;
 
+import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE;
+
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,11 +35,23 @@ public class DefaultAuthenticationHandlerSelector implements AuthenticationHandl
     @Override
     public AuthenticationHandler select(ExecutionContext executionContext) {
         // Prepare the authentication context
-        final SimpleAuthenticationContext context = new SimpleAuthenticationContext(executionContext);
+        final SimpleAuthenticationContext authenticationContext = new SimpleAuthenticationContext(executionContext);
+        final List<AuthenticationHandler> authenticationHandlers = authenticationHandlerManager.getAuthenticationHandlers();
 
-        for (AuthenticationHandler securityProvider : authenticationHandlerManager.getAuthenticationHandlers()) {
-            if (securityProvider.canHandle(context)) {
-                return securityProvider;
+        for (int i = 0; i < authenticationHandlers.size(); i++) {
+            final AuthenticationHandler authenticationHandler = authenticationHandlers.get(i);
+            authenticationContext.setInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
+
+            if (i < authenticationHandlers.size() - 1) {
+                // Check whether the next authentication handler works on the same type of token or not.
+                authenticationContext.setInternalAttribute(
+                    ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE,
+                    !authenticationHandler.tokenType().equals(authenticationHandlers.get(i + 1).tokenType())
+                );
+            }
+
+            if (authenticationHandler.canHandle(authenticationContext)) {
+                return authenticationHandler;
             }
         }
 

@@ -275,8 +275,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
             Api api = (Api) reactableApi.getDefinition();
             // Define dynamically endpoint port
             for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-                final int port = endpoint.getTarget().startsWith("https") ? wiremockHttpsPort : wiremockPort;
-                endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
+                if (endpoint.getTarget().contains("8080")) {
+                    final int port = endpoint.getTarget().contains("https") ? wiremockHttpsPort : wiremockPort;
+                    endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
+                }
             }
         }
     }
@@ -325,7 +327,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         organizationManager.register(updatingOrganization);
     }
 
-    private int getAvailablePort() {
+    protected int getAvailablePort() {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         } catch (IOException e) {

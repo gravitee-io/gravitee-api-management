@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.server.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import io.vertx.core.WorkerExecutor;
 import java.util.Set;
 import org.junit.Test;
 
@@ -61,5 +62,10 @@ public class AbstractHandlerTest {
         assertEquals(0, items.size());
     }
 
-    private static class TestHandler extends AbstractHandler {}
+    private static class TestHandler extends AbstractHandler {
+
+        protected TestHandler() {
+            super(null);
+        }
+    }
 }

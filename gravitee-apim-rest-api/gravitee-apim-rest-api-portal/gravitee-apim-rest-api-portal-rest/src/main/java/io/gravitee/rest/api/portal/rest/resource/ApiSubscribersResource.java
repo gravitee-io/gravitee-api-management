@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -23,6 +24,9 @@ import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -87,14 +91,32 @@ public class ApiSubscribersResource extends AbstractResource {
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
-            List<Application> subscribersApplication = subscriptions
+
+            Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+
+            ApplicationQuery applicationQuery = new ApplicationQuery();
+            applicationQuery.setIds(applicationIds);
+
+            Sortable sortable = new SortableImpl("name", true);
+
+            Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
+                executionContext,
+                applicationQuery,
+                sortable,
+                null
+            );
+
+            if (subscribersApplicationPage == null) {
+                return createListResponse(executionContext, Collections.emptyList(), paginationParam);
+            }
+
+            List<Application> subscribersApplication = subscribersApplicationPage
+                .getContent()
                 .stream()
-                .map(SubscriptionEntity::getApplication)
-                .distinct()
-                .map(application -> applicationService.findById(executionContext, application))
                 .map(application -> applicationMapper.convert(executionContext, application, uriInfo))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
+
             return createListResponse(executionContext, subscribersApplication, paginationParam);
         }
         throw new ApiNotFoundException(apiId);

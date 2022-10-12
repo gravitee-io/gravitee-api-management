@@ -157,6 +157,7 @@ management:
 
 ## SSL settings
 #    sslEnabled:                  # mongodb ssl mode (default false)
+#    sslInvalidHostNameAllowed:   # mongodb ssl allow invalid host name (default false)
 #    tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
 #    keystore:
 #      path:                      # Path to the keystore (when sslEnabled is true, default null)

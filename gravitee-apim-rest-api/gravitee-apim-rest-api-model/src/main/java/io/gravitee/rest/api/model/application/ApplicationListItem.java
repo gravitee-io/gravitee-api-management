@@ -83,6 +83,9 @@ public class ApplicationListItem {
     @Schema(description = "The API key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     public String getId() {
         return id;
     }
@@ -209,6 +212,18 @@ public class ApplicationListItem {
 
     public void setApiKeyMode(ApiKeyMode apiKeyMode) {
         this.apiKeyMode = apiKeyMode;
+    }
+
+    public boolean hasApiKeySharedMode() {
+        return apiKeyMode == ApiKeyMode.SHARED;
+    }
+
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
     @Override

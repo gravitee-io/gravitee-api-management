@@ -48,6 +48,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,7 +215,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     request.setUri(hcRequestUri.toString());
 
                     if (requestPreparationEvent.failed()) {
-                        reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request, httpClient);
+                        reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
                     } else {
                         healthRequest.response(
                             healthRequestEvent -> {
@@ -242,14 +243,15 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                         throwable -> logger.error("An error has occurred during Health check response handler", throwable)
                                     );
                                 } else {
-                                    logger.error("An error has occurred during Health check response handler", healthRequestEvent.cause());
+                                    logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
+                                    reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                                 }
                             }
                         );
 
                         healthRequest.exceptionHandler(
                             throwable -> {
-                                reportThrowable(throwable, step, healthBuilder, startTime, request, httpClient);
+                                reportThrowable(throwable, step, healthBuilder, startTime, request);
                             }
                         );
 
@@ -273,8 +275,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         HealthCheckStep step,
         EndpointStatus.Builder healthBuilder,
         long startTime,
-        Request request,
-        HttpClient httpClient
+        Request request
     ) {
         long endTime = currentTimeMillis();
         Step failingStep = buildFailingStep(step, startTime, endTime, request, throwable);
@@ -327,7 +328,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             request.setHeaders(getHttpHeaders(step));
         }
 
-        if (throwable instanceof ConnectTimeoutException) {
+        if (throwable instanceof ConnectTimeoutException || throwable instanceof TimeoutException) {
             stepBuilder.fail(throwable.getMessage());
             healthResponse.setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
         } else {
