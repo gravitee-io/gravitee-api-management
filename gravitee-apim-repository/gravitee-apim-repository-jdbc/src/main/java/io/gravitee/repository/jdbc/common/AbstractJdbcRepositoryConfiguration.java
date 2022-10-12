@@ -209,7 +209,6 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
                 new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
                 new JdbcConnection(conn)
             );
-            liquibase.setIgnoreClasspathPrefix(true);
             liquibase.update((Contexts) null);
         } catch (Exception ex) {
             throw new DatabaseInitializationException("Failed to set up database", ex);

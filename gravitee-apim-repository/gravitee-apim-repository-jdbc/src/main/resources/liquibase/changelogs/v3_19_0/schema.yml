@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.19.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         # ################
         # Apis v4 Changes
@@ -61,13 +62,11 @@ databaseChangeLog:
               - column:
                   name: definition_version
                   type: nvarchar(64)
-                  beforeColumn: definition
                   constraints:
                     nullable: true
               - column:
                   name: type
                   type: nvarchar(64)
-                  afterColumn: definition
                   constraints:
                     nullable: true
         # ################
