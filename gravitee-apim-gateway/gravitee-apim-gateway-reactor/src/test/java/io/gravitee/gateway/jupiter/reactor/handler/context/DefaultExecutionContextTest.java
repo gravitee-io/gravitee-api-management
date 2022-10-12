@@ -259,6 +259,28 @@ class DefaultExecutionContextTest {
     }
 
     @Test
+    void shouldInterruptBodyWithInterruptionException() {
+        cut.interruptBody().test().assertError(InterruptionException.class);
+    }
+
+    @Test
+    void shouldInterruptBodyWithInterruptionFailureException() {
+        cut
+            .interruptBodyWith(new ExecutionFailure(404))
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                    ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+                    assertThat(executionFailure.statusCode()).isEqualTo(404);
+                    return true;
+                }
+            );
+    }
+
+    @Test
     void shouldInterruptMessagesWithInterruptionException() {
         cut.interruptMessages().test().assertError(InterruptionException.class);
     }
@@ -267,6 +289,26 @@ class DefaultExecutionContextTest {
     void shouldInterruptMessagesWithInterruptionFailureException() {
         cut
             .interruptMessagesWith(new ExecutionFailure(404))
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                    return true;
+                }
+            );
+    }
+
+    @Test
+    void shouldInterruptMessageWithInterruptionException() {
+        cut.interruptMessage().test().assertError(InterruptionException.class);
+    }
+
+    @Test
+    void shouldInterruptMessageWithInterruptionFailureException() {
+        cut
+            .interruptMessageWith(new ExecutionFailure(404))
             .test()
             .assertError(
                 throwable -> {

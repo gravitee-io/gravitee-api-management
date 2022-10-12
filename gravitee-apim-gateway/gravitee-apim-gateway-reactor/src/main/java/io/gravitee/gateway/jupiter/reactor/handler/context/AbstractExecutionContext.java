@@ -18,9 +18,14 @@ package io.gravitee.gateway.jupiter.reactor.handler.context;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.*;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -28,6 +33,7 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionExcepti
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +66,7 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
 
     @Override
     public Completable interrupt() {
-        return Completable.error(new InterruptionException());
+        return messagesInterruption();
     }
 
     @Override
@@ -74,13 +80,46 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     }
 
     @Override
+    public Maybe<Buffer> interruptBody() {
+        return interrupt().toMaybe();
+    }
+
+    @Override
+    public Maybe<Buffer> interruptBodyWith(final ExecutionFailure failure) {
+        return interruptWith(failure).toMaybe();
+    }
+
+    @Override
     public Flowable<Message> interruptMessages() {
-        return Flowable.error(new InterruptionException());
+        return messagesInterruption().toFlowable();
+    }
+
+    @Override
+    public Maybe<Message> interruptMessage() {
+        return messagesInterruption().toMaybe();
+    }
+
+    private Completable messagesInterruption() {
+        return Completable.error(new InterruptionException());
     }
 
     @Override
     public Flowable<Message> interruptMessagesWith(final ExecutionFailure executionFailure) {
-        return Flowable.error(new InterruptionFailureException(executionFailure));
+        return messageInterruptionFailure(executionFailure).toFlowable();
+    }
+
+    @Override
+    public Maybe<Message> interruptMessageWith(final ExecutionFailure executionFailure) {
+        return messageInterruptionFailure(executionFailure).toMaybe();
+    }
+
+    private Completable messageInterruptionFailure(final ExecutionFailure executionFailure) {
+        return Completable.defer(
+            () -> {
+                internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+                return Completable.error(new InterruptionFailureException(executionFailure));
+            }
+        );
     }
 
     @Override
