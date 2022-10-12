@@ -78,7 +78,6 @@ export class ApiService {
           gravitee: api.gravitee,
           execution_mode: api.execution_mode,
         },
-        { headers: new HttpHeaders({ ...(api.etag ? { 'If-Match': api.etag } : {}) }) },
       )
       .pipe(
         map((api) => {

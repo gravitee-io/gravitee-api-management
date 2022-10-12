@@ -18,10 +18,12 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CsrfInterceptor } from './csrf.interceptor';
 import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
 import { ReplaceEnvInterceptor } from './replace-env.interceptor';
+import { IfMatchEtagInterceptor } from './if-match-etag.interceptor';
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
   { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: IfMatchEtagInterceptor, multi: true },
 ];
