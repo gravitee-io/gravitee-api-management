@@ -15,8 +15,10 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api } from '../../../entities/api';
@@ -35,6 +37,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
+  public apiId: string;
   public apiDetailsForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
@@ -63,6 +66,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -89,6 +93,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         tap(([api, categories]) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
+          this.apiId = api.id;
           this.apiCategories = categories;
           this.apiOwner = api.owner.displayName;
           this.apiCreatedAt = api.created_at;
@@ -116,6 +121,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             canDeprecate: api.lifecycle_state !== 'DEPRECATED',
             canDelete: !(api.state === 'STARTED' || api.lifecycle_state === 'PUBLISHED'),
           };
+
           this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycle_state !== 'DEPRECATED';
 
           this.apiDetailsForm = new FormGroup({
@@ -202,7 +208,30 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   }
 
   askForReview() {
-    // TODO
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Review API',
+          content: `Are you sure you want to ask for a review of the API?`,
+          confirmButton: 'Ask for review',
+        },
+        role: 'alertdialog',
+        id: 'reviewApiDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.askForReview(this.apiId)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+        map(() => this.snackBarService.success(`Review has been asked.`)),
+      )
+      .subscribe();
   }
 
   changeLifecycle() {

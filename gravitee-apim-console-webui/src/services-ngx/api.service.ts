@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import * as _ from 'lodash';
@@ -46,39 +46,36 @@ export class ApiService {
 
   update(api: UpdateApi & { id: string }): Observable<Api> {
     return this.http
-      .put<Api>(
-        `${this.constants.env.baseURL}/apis/${api.id}`,
-        {
-          version: api.version,
-          description: api.description,
-          proxy: api.proxy,
-          paths: api.paths,
-          flows: api.flows,
-          plans: api.plans,
-          // TODO To remove ? not present inside backend model
-          // private: api.private,
-          visibility: api.visibility,
-          name: api.name,
-          services: api.services,
-          properties: api.properties,
-          tags: api.tags,
-          picture: api.picture,
-          picture_url: api.picture_url,
-          background: api.background,
-          background_url: api.background_url,
-          resources: api.resources,
-          categories: api.categories,
-          groups: api.groups,
-          labels: api.labels,
-          path_mappings: api.path_mappings,
-          response_templates: api.response_templates,
-          lifecycle_state: api.lifecycle_state,
-          disable_membership_notifications: api.disable_membership_notifications,
-          flow_mode: api.flow_mode,
-          gravitee: api.gravitee,
-          execution_mode: api.execution_mode,
-        },
-      )
+      .put<Api>(`${this.constants.env.baseURL}/apis/${api.id}`, {
+        version: api.version,
+        description: api.description,
+        proxy: api.proxy,
+        paths: api.paths,
+        flows: api.flows,
+        plans: api.plans,
+        // TODO To remove ? not present inside backend model
+        // private: api.private,
+        visibility: api.visibility,
+        name: api.name,
+        services: api.services,
+        properties: api.properties,
+        tags: api.tags,
+        picture: api.picture,
+        picture_url: api.picture_url,
+        background: api.background,
+        background_url: api.background_url,
+        resources: api.resources,
+        categories: api.categories,
+        groups: api.groups,
+        labels: api.labels,
+        path_mappings: api.path_mappings,
+        response_templates: api.response_templates,
+        lifecycle_state: api.lifecycle_state,
+        disable_membership_notifications: api.disable_membership_notifications,
+        flow_mode: api.flow_mode,
+        gravitee: api.gravitee,
+        execution_mode: api.execution_mode,
+      })
       .pipe(
         map((api) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
@@ -123,5 +120,9 @@ export class ApiService {
 
   getQualityMetrics(apiId: string): Observable<ApiQualityMetrics> {
     return this.http.get<ApiQualityMetrics>(`${this.constants.env.baseURL}/apis/${apiId}/quality`);
+  }
+
+  askForReview(apiId: string, message?: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/${apiId}/reviews?action=ASK`, { message });
   }
 }

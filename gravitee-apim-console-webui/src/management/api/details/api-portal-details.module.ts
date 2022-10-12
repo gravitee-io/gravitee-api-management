@@ -25,6 +25,7 @@ import { GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } fro
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
@@ -47,6 +48,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatIconModule,
     MatSelectModule,
     MatButtonModule,
+    MatDialogModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
