@@ -42,11 +42,13 @@ public class BufferFlow {
     public Single<Buffer> bodyOrEmpty() {
         return body()
             .switchIfEmpty(
-                Single.fromCallable(() -> {
-                    final Buffer emptyBuffer = Buffer.buffer();
-                    cachedBuffer = Maybe.empty();
-                    return emptyBuffer;
-                })
+                Single.fromCallable(
+                    () -> {
+                        final Buffer emptyBuffer = Buffer.buffer();
+                        cachedBuffer = Maybe.empty();
+                        return emptyBuffer;
+                    }
+                )
             );
     }
 
@@ -92,13 +94,15 @@ public class BufferFlow {
         return upstream ->
             upstream
                 .doOnComplete(() -> cachedBuffer = Maybe.empty())
-                .doOnError(t -> {
-                    if (t.getMessage() != null) {
-                        cachedBuffer = Maybe.just(Buffer.buffer(t.getMessage()));
-                    } else {
-                        cachedBuffer = Maybe.just(Buffer.buffer());
+                .doOnError(
+                    t -> {
+                        if (t.getMessage() != null) {
+                            cachedBuffer = Maybe.just(Buffer.buffer(t.getMessage()));
+                        } else {
+                            cachedBuffer = Maybe.just(Buffer.buffer());
+                        }
                     }
-                })
+                )
                 .doOnSuccess(buffer -> cachedBuffer = Maybe.just(buffer));
     }
 
