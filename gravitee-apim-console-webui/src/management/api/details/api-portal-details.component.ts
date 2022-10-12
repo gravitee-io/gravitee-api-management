@@ -261,8 +261,42 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  changeApiLifecycle() {
-    // TODO
+  changeApiLifecycle(lifecycleState: 'PUBLISHED' | 'UNPUBLISHED' | 'DEPRECATED') {
+    const actionLabel = {
+      PUBLISHED: 'Publish',
+      UNPUBLISHED: 'Unpublish',
+      DEPRECATED: 'Deprecate',
+    };
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `${actionLabel[lifecycleState]} API`,
+          content: `Are you sure you want to ${actionLabel[lifecycleState].toLowerCase()} the API?`,
+          confirmButton: `${actionLabel[lifecycleState]}`,
+        },
+        role: 'alertdialog',
+        id: 'apiLifecycleDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap((api) =>
+          this.apiService.update({
+            ...api,
+            lifecycle_state: lifecycleState,
+          }),
+        ),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+        map(() => this.snackBarService.success(`The API has been ${actionLabel[lifecycleState].toLowerCase()} with success.`)),
+      )
+      .subscribe();
   }
 
   changeVisibility() {
