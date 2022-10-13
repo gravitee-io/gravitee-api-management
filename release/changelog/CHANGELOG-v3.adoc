@@ -5,6 +5,25 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/603?closed=1[APIM - 3.18.11 (2022-10-13)]
+
+=== Bug fixes
+
+*_Expression-language_*
+
+- Allow nested EL expressions https://github.com/gravitee-io/issues/issues/8564[#8564]
+
+*_Gateway_*
+
+- Api key synchronization process consumes too much database resources https://github.com/gravitee-io/issues/issues/8565[#8565]
+
+*_General_*
+
+- DELETE user throw errors when user is member of an API https://github.com/gravitee-io/issues/issues/8566[#8566]
+
+ 
+ 
+
 == https://github.com/gravitee-io/issues/milestone/553?closed=1[APIM - 3.19.0 (2022-10-04)]
 
 === Bug fixes
