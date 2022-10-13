@@ -26,6 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
@@ -33,6 +34,7 @@ import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avata
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
@@ -49,6 +51,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatSelectModule,
     MatButtonModule,
     MatDialogModule,
+    MatSlideToggleModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
@@ -57,6 +60,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioFormTagsInputModule,
     GioClipboardModule,
     GioPermissionModule,
+    GioFormSlideToggleModule,
   ],
 })
 export class ApiPortalDetailsModule {}

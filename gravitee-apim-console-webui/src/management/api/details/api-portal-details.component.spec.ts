@@ -25,6 +25,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
@@ -62,6 +63,15 @@ describe('ApiPortalDetailsComponent', () => {
               settings: {
                 ...CONSTANTS_TESTING.env.settings,
                 apiReview: {
+                  enabled: true,
+                },
+              },
+            },
+            org: {
+              ...CONSTANTS_TESTING.org,
+              settings: {
+                ...CONSTANTS_TESTING.org.settings,
+                jupiterMode: {
                   enabled: true,
                 },
               },
@@ -139,6 +149,10 @@ describe('ApiPortalDetailsComponent', () => {
     expect(await categoriesInput.getValueText()).toEqual('Category 1');
     await categoriesInput.clickOptions({ text: 'Category 2' });
 
+    const jupiterModeInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enableJupiter"]' }));
+    expect(await jupiterModeInput.isChecked()).toBe(false);
+    await jupiterModeInput.check();
+
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
 
@@ -156,6 +170,7 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.background).toEqual('data:image/png;base64,');
     expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
     expect(req.request.body.categories).toEqual(['category1', 'category2']);
+    expect(req.request.body.execution_mode).toEqual('jupiter');
   });
 
   it('should ask for review', async () => {
