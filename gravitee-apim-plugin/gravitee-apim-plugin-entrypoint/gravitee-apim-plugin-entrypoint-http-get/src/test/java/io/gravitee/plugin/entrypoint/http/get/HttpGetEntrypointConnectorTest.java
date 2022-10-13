@@ -47,13 +47,16 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -142,10 +145,14 @@ class HttpGetEntrypointConnectorTest {
         assertThat(matches).isFalse();
     }
 
-    @Test
-    void shouldInterruptWithFailureBadAcceptHeader() {
+    @ParameterizedTest
+    @MethodSource("io.gravitee.plugin.entrypoint.http.get.utils.IntegrationTestMethodSourceProvider#provideBadAcceptHeaders")
+    void shouldInterruptWithFailureBadAcceptHeader(List<String> acceptHeaderValues) {
         final HttpHeaders requestHttpHeaders = HttpHeaders.create();
-        requestHttpHeaders.add(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_GRPC);
+        // add multiple ACCEPT headers depending on the parameter
+        for (String header : acceptHeaderValues) {
+            requestHttpHeaders.add(HttpHeaderNames.ACCEPT, header);
+        }
         when(request.headers()).thenReturn(requestHttpHeaders);
 
         when(ctx.request()).thenReturn(request);
@@ -161,12 +168,59 @@ class HttpGetEntrypointConnectorTest {
                     assertTrue(e instanceof InterruptionFailureException);
                     assertEquals(HttpStatusCode.BAD_REQUEST_400, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
                     assertEquals(
-                        "Unsupported accept header: " + MediaType.APPLICATION_GRPC,
+                        "Unsupported accept header: " + requestHttpHeaders.getAll(HttpHeaderNames.ACCEPT),
                         ((InterruptionFailureException) e).getExecutionFailure().message()
                     );
                     return true;
                 }
             );
+    }
+
+    @ParameterizedTest(name = "Expected: {0}, parameters: {1}")
+    @DisplayName("Should select the best Content-Type based on ACCEPT headers, including quality parameter")
+    @MethodSource("io.gravitee.plugin.entrypoint.http.get.utils.IntegrationTestMethodSourceProvider#provideValidAcceptHeaders")
+    void shouldSelectTheBestContentTypeBasedOnAcceptHeader(String expectedHeader, List<String> acceptHeaderValues) {
+        final HttpHeaders requestHttpHeaders = HttpHeaders.create();
+        // add multiple ACCEPT headers depending on the parameter
+        for (String header : acceptHeaderValues) {
+            requestHttpHeaders.add(HttpHeaderNames.ACCEPT, header);
+        }
+        when(request.headers()).thenReturn(requestHttpHeaders);
+        when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
+
+        when(ctx.request()).thenReturn(request);
+
+        cut
+            .handleRequest(ctx)
+            .test()
+            .assertOf(
+                aVoid -> {
+                    verify(ctx, times(1))
+                        .putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, expectedHeader);
+                }
+            )
+            .assertComplete();
+    }
+
+    @Test
+    @DisplayName("Should select the best Content-Type based on ACCEPT headers, including quality parameter")
+    void shouldSelectTextPlainWhenAcceptHeaderNull() {
+        final HttpHeaders requestHttpHeaders = HttpHeaders.create();
+        when(request.headers()).thenReturn(requestHttpHeaders);
+        when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
+
+        when(ctx.request()).thenReturn(request);
+
+        cut
+            .handleRequest(ctx)
+            .test()
+            .assertOf(
+                aVoid -> {
+                    verify(ctx, times(1))
+                        .putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
+                }
+            )
+            .assertComplete();
     }
 
     @ParameterizedTest
@@ -192,7 +246,7 @@ class HttpGetEntrypointConnectorTest {
             );
         verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS, 1_000L);
         verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID, "1234");
-        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
+        verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.APPLICATION_JSON);
     }
 
     @Test

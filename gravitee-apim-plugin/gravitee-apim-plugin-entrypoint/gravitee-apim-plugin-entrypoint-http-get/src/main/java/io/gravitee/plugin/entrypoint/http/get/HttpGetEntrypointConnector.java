@@ -26,7 +26,6 @@ import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
-import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
@@ -106,6 +105,41 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
         return (HttpMethod.GET == ctx.request().method());
     }
 
+    /**
+     * Selects the Content-Type based on the ACCEPT header values. Supports quality parameters.
+     * Supported types are "application/json", "application/xml", "text/plain" and WILDCARD.
+     * A WILDCARD ACCEPT header will fall back to an "application/json" Content-Type.
+     * If ACCEPT header is null or empty, "text/plain" will be chosen by default.
+     * @param acceptHeaderValues is the list of ACCEPT header values to parse in order to select the best one.
+     * @return the {@link MediaType} as a {@link String}
+     */
+    private String selectContentType(final List<String> acceptHeaderValues) {
+        final List<MediaType> mediaTypes = MediaType.parseMediaTypes(acceptHeaderValues);
+        MediaType.sortByQualityValue(mediaTypes);
+        return mediaTypes
+            .stream()
+            // First check if a supported header is present and select the best based on its quality parameter
+            .filter(HttpGetEntrypointConnector::isMediaTypeSupported)
+            .map(MediaType::toMediaString)
+            .findFirst()
+            .orElseGet(
+                () -> {
+                    // If no supported header, we use the first of the list
+                    // A null or empty header will return "text/plain"
+                    // A WILDCARD header will return "application/json"
+                    // else we simply return it
+                    String bestAcceptHeader = !mediaTypes.isEmpty() ? mediaTypes.get(0).toMediaString() : null;
+                    if (bestAcceptHeader == null || bestAcceptHeader.isEmpty()) {
+                        return MediaType.TEXT_PLAIN;
+                    } else if (bestAcceptHeader.equals(MediaType.WILDCARD)) {
+                        return MediaType.APPLICATION_JSON;
+                    } else {
+                        return bestAcceptHeader;
+                    }
+                }
+            );
+    }
+
     @Override
     public QosOptions qosOptions() {
         return qosOptions;
@@ -115,17 +149,11 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     public Completable handleRequest(final ExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
-                final String contentType = (acceptHeader == null || acceptHeader.isEmpty() || acceptHeader.equals(MediaType.WILDCARD))
-                    ? MediaType.TEXT_PLAIN
-                    : acceptHeader;
-                if (
-                    !contentType.equals(MediaType.APPLICATION_JSON) &&
-                    !contentType.equals(MediaType.APPLICATION_XML) &&
-                    !contentType.equals(MediaType.TEXT_PLAIN)
-                ) {
+                List<String> acceptHeaderValues = ctx.request().headers().getAll(HttpHeaderNames.ACCEPT);
+                final String contentType = selectContentType(acceptHeaderValues);
+                if (!isMediaTypeSupported(contentType)) {
                     return ctx.interruptWith(
-                        new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).message("Unsupported accept header: " + acceptHeader)
+                        new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).message("Unsupported accept header: " + acceptHeaderValues)
                     );
                 }
                 ctx.putInternalAttribute(ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, contentType);
@@ -412,6 +440,18 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
                 }
                 return Flowable.empty();
             }
+        );
+    }
+
+    private static boolean isMediaTypeSupported(MediaType mediaType) {
+        return isMediaTypeSupported(mediaType.toMediaString());
+    }
+
+    private static boolean isMediaTypeSupported(String mediaType) {
+        return (
+            mediaType.equals(MediaType.APPLICATION_JSON) ||
+            mediaType.equals(MediaType.APPLICATION_XML) ||
+            mediaType.equals(MediaType.TEXT_PLAIN)
         );
     }
 }
