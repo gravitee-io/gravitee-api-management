@@ -31,32 +31,15 @@ function apisProxyRouterConfig($stateProvider) {
         resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent(),
       },
     })
-    .state('management.apis.detail.proxy.entrypoints', {
+    .state('management.apis.detail.proxy.ng-entrypoints', {
       url: '/proxy',
-      template: require('./general/apiProxyEntrypoints.html'),
-      controller: 'ApiProxyController',
-      controllerAs: 'apiProxyCtrl',
-      resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
-      },
+      component: 'ngApiProxyEntrypoints',
       data: {
+        useAngularMaterial: true,
         menu: {
           label: 'Proxy',
           icon: 'device_hub',
         },
-        perms: {
-          only: ['api-definition-r', 'api-health-r'],
-        },
-        docs: {
-          page: 'management-api-proxy',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.ng-entrypoints', {
-      url: '/ng-proxy',
-      component: 'ngApiProxyEntrypoints',
-      data: {
-        useAngularMaterial: true,
         perms: {
           only: ['api-definition-r', 'api-health-r'],
         },
