@@ -9,10 +9,6 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 
 === Bug fixes
 
-*_Expression-language_*
-
-- Allow nested EL expressions https://github.com/gravitee-io/issues/issues/8564[#8564]
-
 *_Gateway_*
 
 - Api key synchronization process consumes too much database resources https://github.com/gravitee-io/issues/issues/8565[#8565]
@@ -20,8 +16,7 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *_General_*
 
 - DELETE user throw errors when user is member of an API https://github.com/gravitee-io/issues/issues/8566[#8566]
-
- 
+- Allow nested EL expressions https://github.com/gravitee-io/issues/issues/8564[#8564]
  
 
 == https://github.com/gravitee-io/issues/milestone/553?closed=1[APIM - 3.19.0 (2022-10-04)]
