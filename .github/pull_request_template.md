@@ -1,6 +1,6 @@
 ## Issue
 
-https://github.com/gravitee-io/issues/issues/XXXXX
+https://graviteecommunity.atlassian.net/browse/APIM-XXX
 
 ## Description
 
