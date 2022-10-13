@@ -58,6 +58,20 @@
               >
             </mat-select>
           </mat-form-field>
+
+          <gio-form-slide-toggle
+            *ngIf="canDisplayJupiterToggle"
+            appearance="fill"
+            class="etails-card__header__info-inputs__second-row__jupiter-field"
+          >
+            <p>Enable Jupiter mode</p>
+            <mat-slide-toggle
+              gioFormSlideToggle
+              formControlName="enableJupiter"
+              aria-label="Enable Jupiter mode"
+              name="enableJupiter"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
         </div>
       </div>
       <div class="details-card__header__right-coll">

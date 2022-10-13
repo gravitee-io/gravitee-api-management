@@ -58,6 +58,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     canDelete: false,
   };
   public canPromote = false;
+  public canDisplayJupiterToggle = false;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -71,6 +72,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
+    this.canDisplayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
 
     combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
       .pipe(
@@ -162,6 +164,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               value: api.categories,
               disabled: isReadOnly,
             }),
+            enableJupiter: new FormControl({
+              value: api.execution_mode === 'jupiter',
+              disabled: isReadOnly,
+            }),
           });
 
           this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
@@ -193,6 +199,9 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               description: apiDetailsFormValue.description,
               labels: apiDetailsFormValue.labels,
               categories: apiDetailsFormValue.categories,
+              ...(this.canDisplayJupiterToggle
+                ? { execution_mode: apiDetailsFormValue.enableJupiter ? ('jupiter' as const) : ('v3' as const) }
+                : {}),
             })),
           ),
         ),
