@@ -28,6 +28,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,13 +72,13 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                     InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID
                 );
 
-                final Integer configurationLimitCount = configuration.getMessageCount();
+                final Integer maximumPublishedMessages = configuration.getMessageCount();
 
-                final Integer limitCount = configurationLimitCount != null && messagesLimitCount != null
-                    ? Integer.valueOf(Math.min(configurationLimitCount, messagesLimitCount))
-                    : messagesLimitCount != null ? messagesLimitCount : configurationLimitCount;
-
-                ctx.response().messages(generateMessageFlow(limitCount, messagesLimitDurationMs, messagesResumeLastId));
+                ctx
+                    .response()
+                    .messages(
+                        generateMessageFlow(messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
+                    );
             }
         );
     }
@@ -99,6 +100,7 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
 
     private Flowable<Message> generateMessageFlow(
         final Integer messagesLimitCount,
+        final Integer maximumPublishedMessages,
         final Long messagesLimitDurationMs,
         final String lastId
     ) {
@@ -108,7 +110,12 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
             .<Message, Long>generate(
                 () -> stateInitValue,
                 (state, emitter) -> {
-                    if (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount) {
+                    if (
+                        // If we have no published message limit or state is before the limit
+                        (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
+                        // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
+                        (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
+                    ) {
                         emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state)));
                     } else {
                         emitter.onComplete();

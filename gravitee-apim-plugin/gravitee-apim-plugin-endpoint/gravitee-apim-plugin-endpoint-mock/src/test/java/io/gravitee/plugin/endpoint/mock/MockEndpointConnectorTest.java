@@ -58,7 +58,7 @@ class MockEndpointConnectorTest {
 
     protected static final String MESSAGE_CONTENT = "test mock endpoint";
     private static final String MESSAGE_TO_LOG = "message to log";
-    private final MockEndpointConnectorConfiguration configuration = new MockEndpointConnectorConfiguration();
+    private MockEndpointConnectorConfiguration configuration;
 
     @Mock(name = "io.gravitee.plugin.endpoint.mock.MockEndpointConnector")
     Logger log;
@@ -80,6 +80,7 @@ class MockEndpointConnectorTest {
 
     @BeforeEach
     public void setup() {
+        configuration = new MockEndpointConnectorConfiguration();
         configuration.setMessageInterval(100L);
         configuration.setMessageContent(MESSAGE_CONTENT);
         cut = new MockEndpointConnector(configuration);
@@ -166,7 +167,7 @@ class MockEndpointConnectorTest {
         messagesCaptor.getValue().test().await().assertValueCount(3);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "configurationLimitCount: {0}, ctxLimitCount: {1}")
     @CsvSource({ "3,4", "4,2" })
     @DisplayName("Should generate messages flow with a limited count of messages from the client request and the configuration")
     void shouldGenerateLimitedMessagesFlowFromClientRequestAndConfiguration(int configurationLimitCount, int ctxLimitCount)
@@ -205,7 +206,7 @@ class MockEndpointConnectorTest {
     @Test
     @DisplayName("Should generate messages flow from lastId")
     void shouldGenerateMessagesFlowFromLastId() throws InterruptedException {
-        configuration.setMessageCount(2);
+        configuration.setMessageCount(4);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn("1");
