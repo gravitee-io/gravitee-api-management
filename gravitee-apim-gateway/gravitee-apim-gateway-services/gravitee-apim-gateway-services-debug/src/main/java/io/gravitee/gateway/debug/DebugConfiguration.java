@@ -34,9 +34,11 @@ import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.jupiter.debug.DebugReactorEventListener;
 import io.gravitee.gateway.jupiter.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.jupiter.debug.policy.condition.DebugExpressionLanguageConditionFilter;
+import io.gravitee.gateway.jupiter.debug.policy.condition.DebugExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.jupiter.debug.reactor.DebugHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
@@ -255,7 +257,11 @@ public class DebugConfiguration {
 
     @Bean
     public PolicyFactory debugPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(policyPluginFactory, new DebugExpressionLanguageConditionFilter());
+        return new DefaultPolicyFactory(
+            policyPluginFactory,
+            new DebugExpressionLanguageConditionFilter(),
+            new DebugExpressionLanguageMessageConditionFilter()
+        );
     }
 
     @Bean

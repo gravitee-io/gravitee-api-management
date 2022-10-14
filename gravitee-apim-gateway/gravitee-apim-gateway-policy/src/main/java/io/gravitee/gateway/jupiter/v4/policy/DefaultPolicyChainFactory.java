@@ -98,7 +98,12 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     }
 
     private PolicyMetadata buildPolicyMetadata(Step step) {
-        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+        final PolicyMetadata policyMetadata = new PolicyMetadata(
+            step.getPolicy(),
+            step.getConfiguration(),
+            step.getCondition(),
+            step.getMessageCondition()
+        );
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.JUPITER);
 
         return policyMetadata;

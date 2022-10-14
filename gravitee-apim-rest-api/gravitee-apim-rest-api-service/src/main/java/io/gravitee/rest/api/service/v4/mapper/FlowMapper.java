@@ -105,6 +105,7 @@ public class FlowMapper {
         repositoryStep.setConfiguration(definitionStep.getConfiguration());
         repositoryStep.setDescription(definitionStep.getDescription());
         repositoryStep.setCondition(definitionStep.getCondition());
+        repositoryStep.setMessageCondition(definitionStep.getMessageCondition());
         return repositoryStep;
     }
 
@@ -116,6 +117,7 @@ public class FlowMapper {
         definitionStep.setConfiguration(repositoryStep.getConfiguration());
         definitionStep.setDescription(repositoryStep.getDescription());
         definitionStep.setCondition(repositoryStep.getCondition());
+        definitionStep.setMessageCondition(repositoryStep.getMessageCondition());
         return definitionStep;
     }
 

@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.condition;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
@@ -36,42 +37,42 @@ class CompositeConditionFilterTest {
     protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
-    private ConditionFilter<Object> evaluator1;
+    private ConditionFilter<ConditionSupplier> evaluator1;
 
     @Mock
-    private ConditionFilter<Object> evaluator2;
+    private ConditionFilter<ConditionSupplier> evaluator2;
 
     @Mock
-    private ConditionFilter<Object> evaluator3;
+    private ConditionFilter<ConditionSupplier> evaluator3;
 
     @Mock
     private HttpExecutionContext ctx;
 
     @Mock
-    private Object conditionSupplier;
+    private ConditionSupplier conditionSupplier;
 
     @Test
     void shouldNotFilterWhenAllEvaluatorsReturnTheValue() {
-        final CompositeConditionFilter<Object> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilter(evaluator3);
 
-        final TestObserver<Object> obs = cut.filter(ctx, conditionSupplier).test();
+        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult(conditionSupplier);
     }
 
     @Test
     void shouldFilterWhenOneEvaluatorReturnsEmpty() {
-        final CompositeConditionFilter<Object> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilterEmpty(evaluator3);
 
-        final TestObserver<Object> obs = cut.filter(ctx, conditionSupplier).test();
+        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult();
         obs.assertNoValues();
@@ -79,24 +80,24 @@ class CompositeConditionFilterTest {
 
     @Test
     void shouldErrorWhenOneEvaluatorReturnsError() {
-        final CompositeConditionFilter<Object> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilter(evaluator1);
         mockFilter(evaluator2);
         mockFilterError(evaluator3);
 
-        final TestObserver<Object> obs = cut.filter(ctx, conditionSupplier).test();
+        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertErrorMessage(MOCK_EXCEPTION);
     }
 
     @Test
     void shouldNotContinueWhenReturnsEmpty() {
-        final CompositeConditionFilter<Object> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
+        final CompositeConditionFilter<ConditionSupplier> cut = new CompositeConditionFilter<>(evaluator1, evaluator2, evaluator3);
 
         mockFilterEmpty(evaluator1);
 
-        final TestObserver<Object> obs = cut.filter(ctx, conditionSupplier).test();
+        final TestObserver<ConditionSupplier> obs = cut.filter(ctx, conditionSupplier).test();
 
         obs.assertResult();
         obs.assertNoValues();
@@ -105,15 +106,15 @@ class CompositeConditionFilterTest {
         verifyNoInteractions(evaluator3);
     }
 
-    private void mockFilter(ConditionFilter<Object> filter) {
+    private void mockFilter(ConditionFilter<ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.just(i.getArgument(1)));
     }
 
-    private void mockFilterEmpty(ConditionFilter<Object> filter) {
+    private void mockFilterEmpty(ConditionFilter<ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.empty());
     }
 
-    private void mockFilterError(ConditionFilter<Object> filter) {
+    private void mockFilterError(ConditionFilter<ConditionSupplier> filter) {
         when(filter.filter(ctx, conditionSupplier)).thenAnswer(i -> Maybe.error(new RuntimeException(MOCK_EXCEPTION)));
     }
 }

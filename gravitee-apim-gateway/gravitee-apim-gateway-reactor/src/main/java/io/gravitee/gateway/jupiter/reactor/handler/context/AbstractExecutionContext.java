@@ -26,6 +26,7 @@ import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.el.EvaluableMessage;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -48,6 +49,10 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
     protected Collection<TemplateVariableProvider> templateVariableProviders;
+
+    private EvaluableRequest evaluableRequest;
+    private EvaluableResponse evaluableResponse;
+    private EvaluableExecutionContext evaluableExecutionContext;
 
     AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -186,20 +191,55 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     public TemplateEngine getTemplateEngine() {
         if (templateEngine == null) {
             templateEngine = TemplateEngine.templateEngine();
-
-            final TemplateContext templateContext = templateEngine.getTemplateContext();
-            final EvaluableRequest evaluableRequest = new EvaluableRequest(request());
-            final EvaluableResponse evaluableResponse = new EvaluableResponse(response());
-
-            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
-            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
-            templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
-
-            if (templateVariableProviders != null) {
-                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide((ExecutionContext) this));
-            }
+            prepareTemplateEngine(templateEngine);
         }
 
         return templateEngine;
+    }
+
+    @Override
+    public TemplateEngine getTemplateEngine(Message message) {
+        final TemplateEngine engine = TemplateEngine.templateEngine();
+        prepareTemplateEngine(engine);
+
+        engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_MESSAGE, new EvaluableMessage(message));
+
+        return engine;
+    }
+
+    private void prepareTemplateEngine(final TemplateEngine templateEngine) {
+        final TemplateContext templateContext = templateEngine.getTemplateContext();
+        final EvaluableRequest evaluableReq = getEvaluableRequest();
+        final EvaluableResponse evaluableResp = getEvaluableResponse();
+        final EvaluableExecutionContext evaluableCtx = getEvaluableExecutionContext();
+
+        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableReq);
+        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResp);
+        templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, evaluableCtx);
+
+        if (templateVariableProviders != null) {
+            templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide((ExecutionContext) this));
+        }
+    }
+
+    private EvaluableRequest getEvaluableRequest() {
+        if (evaluableRequest == null) {
+            this.evaluableRequest = new EvaluableRequest(request());
+        }
+        return evaluableRequest;
+    }
+
+    private EvaluableResponse getEvaluableResponse() {
+        if (evaluableResponse == null) {
+            this.evaluableResponse = new EvaluableResponse(response());
+        }
+        return evaluableResponse;
+    }
+
+    private EvaluableExecutionContext getEvaluableExecutionContext() {
+        if (evaluableExecutionContext == null) {
+            this.evaluableExecutionContext = new EvaluableExecutionContext(this);
+        }
+        return evaluableExecutionContext;
     }
 }

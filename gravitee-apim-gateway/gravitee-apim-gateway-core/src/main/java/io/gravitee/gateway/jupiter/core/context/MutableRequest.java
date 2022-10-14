@@ -16,12 +16,16 @@
 package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.message.Message;
+import io.reactivex.Completable;
+import io.reactivex.FlowableTransformer;
+import java.util.function.Function;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableRequest extends Request {
+public interface MutableRequest extends Request, OnMessagesInterceptor {
     /**
      * Allow setting context path.
      *

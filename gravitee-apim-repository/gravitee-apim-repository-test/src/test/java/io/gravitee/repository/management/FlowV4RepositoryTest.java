@@ -64,6 +64,13 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(2, flow.getRequest().size());
         assertEquals(3, flow.getResponse().size());
+        assertEquals(1, flow.getPublish().size());
+        assertEquals(1, flow.getSubscribe().size());
+
+        assertEquals("{#request.headers != null}", flow.getPublish().get(0).getCondition());
+        assertEquals("{#message.content != null}", flow.getPublish().get(0).getMessageCondition());
+        assertEquals("{#response.headers != null}", flow.getSubscribe().get(0).getCondition());
+        assertEquals("{#message.headers != null}", flow.getSubscribe().get(0).getMessageCondition());
 
         assertEquals(3, flow.getSelectors().size());
         flow
@@ -110,15 +117,30 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         flow.setSelectors(List.of(flowHttpSelector, flowConditionSelector));
 
         FlowStep postStep = new FlowStep();
-        postStep.setName("post-step");
+        postStep.setName("response-step");
         postStep.setPolicy("policy");
         flow.setResponse(List.of(postStep));
-        FlowStep preStep = new FlowStep();
-        preStep.setName("pre-step");
-        preStep.setPolicy("policy");
-        preStep.setCondition("pre-condition");
-        preStep.setOrder(1);
-        flow.setRequest(List.of(preStep));
+        FlowStep requestStep = new FlowStep();
+        requestStep.setName("request-step");
+        requestStep.setPolicy("policy");
+        requestStep.setCondition("request-condition");
+        requestStep.setOrder(1);
+        flow.setRequest(List.of(requestStep));
+
+        FlowStep publishStep = new FlowStep();
+        publishStep.setName("publish-step");
+        publishStep.setPolicy("policy");
+        publishStep.setCondition("publish-condition");
+        publishStep.setOrder(1);
+        flow.setPublish(List.of(publishStep));
+
+        FlowStep subscribeStep = new FlowStep();
+        subscribeStep.setName("subscribe-step");
+        subscribeStep.setPolicy("policy");
+        subscribeStep.setCondition("subscribe-condition");
+        subscribeStep.setOrder(1);
+        flow.setSubscribe(List.of(subscribeStep));
+
         flow.setReferenceId("my-orga");
         flow.setReferenceType(FlowReferenceType.ORGANIZATION);
         flow.setUpdatedAt(new Date(1470157767000L));
@@ -139,15 +161,19 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                 )
         );
 
-        assertEquals(flowCreated.getCreatedAt(), flow.getCreatedAt());
-        assertEquals(flowCreated.isEnabled(), flow.isEnabled());
-        assertEquals(flowCreated.getReferenceId(), flow.getReferenceId());
-        assertEquals(flowCreated.getUpdatedAt(), flow.getUpdatedAt());
-        assertEquals(flowCreated.getTags().size(), flow.getTags().size());
-        assertEquals(flowCreated.getTags(), flow.getTags());
-        assertEquals(flowCreated.getOrder(), flow.getOrder());
-        assertEquals(flowCreated.getRequest().get(0).getOrder(), flow.getRequest().get(0).getOrder());
-        assertEquals(flowCreated.getRequest().get(0).getCondition(), flow.getRequest().get(0).getCondition());
+        assertEquals(flow.getCreatedAt(), flowCreated.getCreatedAt());
+        assertEquals(flow.isEnabled(), flowCreated.isEnabled());
+        assertEquals(flow.getReferenceId(), flowCreated.getReferenceId());
+        assertEquals(flow.getUpdatedAt(), flowCreated.getUpdatedAt());
+        assertEquals(flow.getTags().size(), flowCreated.getTags().size());
+        assertEquals(flow.getTags(), flowCreated.getTags());
+        assertEquals(flow.getOrder(), flowCreated.getOrder());
+        assertEquals(flow.getRequest().get(0).getOrder(), flowCreated.getRequest().get(0).getOrder());
+        assertEquals(flow.getRequest().get(0).getCondition(), flowCreated.getRequest().get(0).getCondition());
+        assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
+        assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
+        assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
+        assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
     }
 
     @Test

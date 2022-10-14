@@ -23,6 +23,7 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.http.vertx.MessageFlow;
 import io.reactivex.*;
+import java.util.function.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -144,5 +145,15 @@ public class SubscriptionResponse implements MutableResponse {
     @Override
     public Completable end() {
         return Completable.defer(() -> chunks.ignoreElements().andThen(Completable.fromRunnable(() -> ended = true)));
+    }
+
+    @Override
+    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
+        this.messageFlow.setOnMessagesInterceptor(interceptor);
+    }
+
+    @Override
+    public void unsetMessagesInterceptor() {
+        this.messageFlow.unsetOnMessagesInterceptor();
     }
 }

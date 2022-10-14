@@ -138,10 +138,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "API successfully updated",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(implementation = io.gravitee.rest.api.model.api.ApiEntity.class)
-        )
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
@@ -212,10 +209,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "API successfully deployed",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(implementation = io.gravitee.rest.api.model.api.ApiEntity.class)
-        )
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })

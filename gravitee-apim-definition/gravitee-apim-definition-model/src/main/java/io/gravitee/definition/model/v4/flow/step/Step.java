@@ -57,6 +57,8 @@ public class Step implements Serializable {
 
     private String condition;
 
+    private String messageCondition;
+
     @JsonSetter
     public void setConfiguration(final JsonNode configuration) {
         if (configuration != null) {

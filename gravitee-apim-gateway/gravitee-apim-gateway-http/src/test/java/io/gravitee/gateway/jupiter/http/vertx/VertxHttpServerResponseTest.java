@@ -16,23 +16,23 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 import io.reactivex.Maybe;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
 import io.vertx.reactivex.core.http.HttpHeaders;
 import io.vertx.reactivex.core.http.HttpServerRequest;
 import io.vertx.reactivex.core.http.HttpServerResponse;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -377,6 +377,26 @@ class VertxHttpServerResponseTest {
         obs.assertComplete();
         verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));
         verify(httpServerResponse, times(0)).rxEnd();
+    }
+
+    @Test
+    void shouldSetOnMessagesInterceptor() {
+        final MessageFlow messageFlow = mock(MessageFlow.class);
+        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
+        cut.setMessagesInterceptor(interceptor);
+
+        verify(messageFlow).setOnMessagesInterceptor(interceptor);
+    }
+
+    @Test
+    void shouldUnsetOnMessagesInterceptor() {
+        final MessageFlow messageFlow = mock(MessageFlow.class);
+        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+
+        cut.unsetMessagesInterceptor();
+
+        verify(messageFlow).unsetOnMessagesInterceptor();
     }
 
     private void mockWithEmpty() {

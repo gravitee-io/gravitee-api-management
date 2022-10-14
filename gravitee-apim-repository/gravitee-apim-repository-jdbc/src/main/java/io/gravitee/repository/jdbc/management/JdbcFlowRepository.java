@@ -85,6 +85,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 .addColumn("configuration", Types.NVARCHAR, String.class)
                 .addColumn("order", Types.INTEGER, int.class)
                 .addColumn("condition", Types.NVARCHAR, String.class)
+                .addColumn("message_condition", Types.NVARCHAR, String.class)
                 .build();
     }
 
@@ -460,7 +461,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 escapeReservedWord("order") +
                 ", " +
                 escapeReservedWord("condition") +
-                ", phase ) values ( ?, ?, ?, ?, ? , ?, ?, ?, ?)",
+                ", phase, message_condition ) values ( ?, ?, ?, ?, ? , ?, ?, ?, ?, ?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -474,6 +475,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                         ps.setInt(7, flowStep.getOrder());
                         ps.setString(8, flowStep.getCondition());
                         ps.setString(9, phase.name());
+                        ps.setString(10, flowStep.getMessageCondition());
                     }
 
                     @Override
