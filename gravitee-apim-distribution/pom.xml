@@ -712,6 +712,7 @@
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
                 <gravitee-policy-data-logging-masking.version>2.0.1</gravitee-policy-data-logging-masking.version>
+                <gravitee-entrypoint-sse-advanced.version>1.0.0</gravitee-entrypoint-sse-advanced.version>
 
                 <!-- Management API Only -->
                 <!-- Gateway Only -->
@@ -722,6 +723,14 @@
                     <groupId>io.gravitee.connector</groupId>
                     <artifactId>gravitee-connector-kafka</artifactId>
                     <version>${gravitee-connector-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <!-- Entrypoints -->
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-sse-advanced</artifactId>
+                    <version>${gravitee-entrypoint-sse-advanced.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
