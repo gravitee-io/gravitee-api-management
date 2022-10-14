@@ -35,6 +35,7 @@ import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-f
 import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
+import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 
 @NgModule({
   declarations: [ApiPortalDetailsComponent],
@@ -61,6 +62,7 @@ import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-sl
     GioClipboardModule,
     GioPermissionModule,
     GioFormSlideToggleModule,
+    GioCircularPercentageModule,
   ],
 })
 export class ApiPortalDetailsModule {}
