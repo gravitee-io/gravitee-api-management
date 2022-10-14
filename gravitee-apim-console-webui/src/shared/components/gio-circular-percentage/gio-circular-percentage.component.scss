@@ -1,0 +1,57 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  max-width: 100px;
+  display: block;
+}
+
+.circular {
+  &__circle-bg {
+    fill: none;
+    stroke: mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
+    stroke-width: 2.8;
+  }
+
+  &__circle {
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+  }
+
+  &__percentage {
+    fill: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+    font-family: sans-serif;
+    font-size: 0.7em;
+    text-anchor: middle;
+  }
+
+  &.bad-color {
+    .circular__circle {
+      stroke: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
+    .circular__percentage {
+      fill: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
+  }
+
+  &.medium-color {
+    .circular__circle {
+      stroke: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+    }
+    .circular__percentage {
+      fill: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+    }
+  }
+
+  &.good-color {
+    .circular__circle {
+      stroke: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+    .circular__percentage {
+      fill: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+  }
+}

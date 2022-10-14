@@ -17,15 +17,17 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { forEach } from 'lodash';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api } from '../../../entities/api';
+import { Api, ApiQualityMetrics } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
 import { CategoryService } from '../../../services-ngx/category.service';
+import { QualityRuleService } from '../../../services-ngx/quality-rule.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -60,11 +62,24 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public canPromote = false;
   public canDisplayJupiterToggle = false;
 
+  public isQualityEnabled = false;
+  public qualityMetricsDescription: Record<string, string> = {
+    'api.quality.metrics.functional.documentation.weight': 'A functional page must be published',
+    'api.quality.metrics.technical.documentation.weight': 'A swagger page must be published',
+    'api.quality.metrics.healthcheck.weight': 'An healthcheck must be configured',
+    'api.quality.metrics.description.weight': 'The API description must be filled',
+    'api.quality.metrics.logo.weight': 'Put your own logo',
+    'api.quality.metrics.categories.weight': 'Link your API to categories',
+    'api.quality.metrics.labels.weight': 'Add labels to your API',
+  };
+  public qualityMetrics: ApiQualityMetrics;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
+    private readonly qualityRuleService: QualityRuleService,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly matDialog: MatDialog,
@@ -74,10 +89,17 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
     this.canDisplayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
 
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
+    this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
+
+    combineLatest([
+      this.apiService.get(this.ajsStateParams.apiId),
+      this.categoryService.list(),
+      this.isQualityEnabled ? this.qualityRuleService.list() : of(undefined),
+      this.isQualityEnabled ? this.apiService.getQualityMetrics(this.ajsStateParams.apiId) : of(undefined),
+    ])
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap(([api, categories]) =>
+        switchMap(([api, categories, qualityRules, qualityMetrics]) =>
           combineLatest([isImgUrl(api.picture_url), isImgUrl(api.background_url)]).pipe(
             map(
               ([hasPictureImg, hasBackgroundImg]) =>
@@ -88,11 +110,13 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
                     background_url: hasBackgroundImg ? api.background_url : null,
                   },
                   categories,
+                  qualityRules,
+                  qualityMetrics,
                 ] as const,
             ),
           ),
         ),
-        tap(([api, categories]) => {
+        tap(([api, categories, qualityRules, qualityMetrics]) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.apiId = api.id;
@@ -125,6 +149,13 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           };
 
           this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycle_state !== 'DEPRECATED';
+
+          if (this.isQualityEnabled) {
+            forEach(qualityRules, (qualityRule) => {
+              this.qualityMetricsDescription[qualityRule.id] = qualityRule.description;
+            });
+            this.qualityMetrics = qualityMetrics;
+          }
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(

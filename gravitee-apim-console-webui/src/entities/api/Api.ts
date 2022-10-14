@@ -134,7 +134,7 @@ export interface ApiStateEntity {
 
 export interface ApiQualityMetrics {
   score: number;
-  metricsPassed: Record<string, boolean>;
+  metrics_passed: Record<string, boolean>;
 }
 
 export interface ApiResponseTemplate {
