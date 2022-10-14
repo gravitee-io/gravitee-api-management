@@ -56,19 +56,28 @@ public class ApiKeyMongo {
     /**
      * The subscription for which the Api Key is generated
      *
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility only and subscriptions should be used instead
      */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     private String subscription;
 
     /**
      * The subscribed plan
      *
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and plans should be accessed through subscriptions instead
      */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     private String plan;
 
     /**
      * The api on which this api key is used
      *
+     * @deprecated
+     * Starting from 3.17 this field is kept for backward compatibility and apis should be accessed through subscriptions instead
      */
+    @Deprecated(since = "3.17.0", forRemoval = true)
     private String api;
 
     /**
