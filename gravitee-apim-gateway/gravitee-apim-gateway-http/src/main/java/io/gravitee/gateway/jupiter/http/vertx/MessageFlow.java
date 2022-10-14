@@ -16,15 +16,17 @@
 package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
+import java.util.function.Function;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MessageFlow {
+
+    private Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> onMessagesInterceptor;
 
     protected Flowable<Message> messages = Flowable.empty();
 
@@ -37,6 +39,20 @@ public class MessageFlow {
     }
 
     public void onMessages(final FlowableTransformer<Message, Message> onMessages) {
-        this.messages = this.messages.compose(onMessages);
+        if (onMessagesInterceptor != null) {
+            this.messages = this.messages.compose(onMessagesInterceptor.apply(onMessages));
+        } else {
+            this.messages = this.messages.compose(onMessages);
+        }
+    }
+
+    public void setOnMessagesInterceptor(
+        Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor
+    ) {
+        this.onMessagesInterceptor = interceptor;
+    }
+
+    public void unsetOnMessagesInterceptor() {
+        this.onMessagesInterceptor = null;
     }
 }

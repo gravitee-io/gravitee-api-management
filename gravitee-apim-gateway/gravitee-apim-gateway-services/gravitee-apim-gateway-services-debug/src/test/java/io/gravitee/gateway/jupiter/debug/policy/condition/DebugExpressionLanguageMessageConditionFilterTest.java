@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
+import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyRequestStep;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
@@ -33,14 +35,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class DebugExpressionLanguageConditionFilterTest {
+class DebugExpressionLanguageMessageConditionFilterTest {
 
     private static final String CONDITION = "test";
     private static final String MESSAGE_CONDITION = "test";
+
+    private static final Message MESSAGE = new DefaultMessage("test");
 
     @Mock
     private DebugExecutionContext debugCtx;
@@ -48,17 +52,17 @@ class DebugExpressionLanguageConditionFilterTest {
     @Mock
     private TemplateEngine templateEngine;
 
-    private DebugExpressionLanguageConditionFilter conditionFilter;
+    private DebugExpressionLanguageMessageConditionFilter messageConditionFilter;
     private ConditionalPolicy conditionalPolicy;
     private PolicyRequestStep policyRequestStep;
 
     @BeforeEach
     public void beforeEach() {
-        conditionFilter = new DebugExpressionLanguageConditionFilter();
-        DebugExpressionLanguageMessageConditionFilter messageConditionFilter = new DebugExpressionLanguageMessageConditionFilter();
+        DebugExpressionLanguageConditionFilter conditionFilter = new DebugExpressionLanguageConditionFilter();
+        messageConditionFilter = new DebugExpressionLanguageMessageConditionFilter();
         conditionalPolicy =
             new ConditionalPolicy(mock(Policy.class), CONDITION, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        when(debugCtx.getTemplateEngine()).thenReturn(templateEngine);
+        when(debugCtx.getTemplateEngine(MESSAGE)).thenReturn(templateEngine);
         policyRequestStep = new PolicyRequestStep("policyId", ExecutionPhase.REQUEST, "flowPhase");
         doReturn(policyRequestStep).when(debugCtx).getCurrentDebugStep();
     }
@@ -67,7 +71,7 @@ class DebugExpressionLanguageConditionFilterTest {
     void shouldNotSkippedWhenConditionEvaluatedToTrue() {
         when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(true));
 
-        conditionFilter.filter(debugCtx, conditionalPolicy).test().assertResult(conditionalPolicy);
+        messageConditionFilter.filter(debugCtx, conditionalPolicy, MESSAGE).test().assertResult(conditionalPolicy);
         assertThat(policyRequestStep.getCondition()).isEqualTo(CONDITION);
         assertThat(policyRequestStep.getStatus()).isNotEqualTo(DebugStepStatus.SKIPPED);
     }
@@ -76,7 +80,7 @@ class DebugExpressionLanguageConditionFilterTest {
     void shouldSkippedWhenConditionEvaluatedToFalse() {
         when(templateEngine.eval(CONDITION, Boolean.class)).thenReturn(Maybe.just(false));
 
-        conditionFilter.filter(debugCtx, conditionalPolicy).test().assertResult();
+        messageConditionFilter.filter(debugCtx, conditionalPolicy, MESSAGE).test().assertResult();
         assertThat(policyRequestStep.getCondition()).isEqualTo(CONDITION);
         assertThat(policyRequestStep.getStatus()).isEqualTo(DebugStepStatus.SKIPPED);
     }

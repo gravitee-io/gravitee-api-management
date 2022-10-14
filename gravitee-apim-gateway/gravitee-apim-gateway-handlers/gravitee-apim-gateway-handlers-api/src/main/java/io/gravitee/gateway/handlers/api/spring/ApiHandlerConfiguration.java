@@ -32,6 +32,7 @@ import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionService;
 import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
@@ -119,7 +120,11 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+        return new DefaultPolicyFactory(
+            policyPluginFactory,
+            new ExpressionLanguageConditionFilter<>(),
+            new ExpressionLanguageMessageConditionFilter<>()
+        );
     }
 
     @Bean

@@ -28,6 +28,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.*;
 import java.util.Collections;
+import java.util.function.Function;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -254,5 +255,15 @@ public class SubscriptionRequest implements MutableRequest {
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
         // No transformation on messages can be performed on a subscription request.
         return Completable.complete();
+    }
+
+    @Override
+    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
+        // No message so no interceptor.
+    }
+
+    @Override
+    public void unsetMessagesInterceptor() {
+        // No message so no interceptor.
     }
 }

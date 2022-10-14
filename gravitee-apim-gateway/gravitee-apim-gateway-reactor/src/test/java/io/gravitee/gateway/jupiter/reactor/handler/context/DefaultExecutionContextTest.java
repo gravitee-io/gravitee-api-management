@@ -15,28 +15,26 @@
  */
 package io.gravitee.gateway.jupiter.reactor.handler.context;
 
-import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT;
-import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
+import static io.gravitee.gateway.jupiter.api.context.HttpExecutionContext.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +52,7 @@ class DefaultExecutionContextTest {
     protected static final String ATTRIBUTE_KEY = "key";
     protected static final String ATTRIBUTE_VALUE = "value";
 
-    protected ExecutionContext cut;
+    protected MutableExecutionContext cut;
 
     @Mock
     protected MutableRequest request;
@@ -318,5 +316,53 @@ class DefaultExecutionContextTest {
                     return true;
                 }
             );
+    }
+
+    @Test
+    void shouldCreateTemplateEngineOnce() {
+        final TemplateEngine templateEngine = cut.getTemplateEngine();
+
+        for (int i = 0; i < 10; i++) {
+            assertSame(templateEngine, cut.getTemplateEngine());
+        }
+    }
+
+    @Test
+    void shouldCreateTemplateEnginePerMessage() {
+        final TemplateEngine templateEngine = cut.getTemplateEngine(mock(Message.class));
+        final TemplateContext templateContext = templateEngine.getTemplateContext();
+
+        for (int i = 0; i < 10; i++) {
+            final TemplateEngine otherTemplateEngine = cut.getTemplateEngine(mock(Message.class));
+            final TemplateContext otherTemplateContext = otherTemplateEngine.getTemplateContext();
+
+            // Template engine and template context are per message.
+            assertNotSame(templateEngine, otherTemplateEngine);
+            assertNotSame(templateContext, otherTemplateContext);
+
+            // But evaluable request/response/context are common.
+            assertSame(
+                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST),
+                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)
+            );
+            assertSame(
+                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE),
+                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)
+            );
+            assertSame(
+                templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT),
+                otherTemplateContext.lookupVariable(TEMPLATE_ATTRIBUTE_CONTEXT)
+            );
+        }
+    }
+
+    @Test
+    void shouldProvideTemplateVariablesWhenProvidersAreSpecified() {
+        final TemplateVariableProvider templateVariableProvider = mock(TemplateVariableProvider.class);
+        cut.templateVariableProviders(List.of(templateVariableProvider));
+
+        cut.getTemplateEngine();
+
+        verify(templateVariableProvider).provide(cut);
     }
 }

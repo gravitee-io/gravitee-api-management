@@ -37,6 +37,8 @@ import org.junit.Test;
  */
 public class FlowMapperTest {
 
+    protected static final String POLICY_CONDITION = "Policy condition";
+    protected static final String MESSAGE_LEVEL_CONDITION = "Message level condition";
     private final FlowMapper flowMapper = new FlowMapper();
 
     private static List<Selector> selectors() {
@@ -55,6 +57,8 @@ public class FlowMapperTest {
         step.setEnabled(true);
         step.setName("IPFiltering");
         step.setPolicy("ip-filtering");
+        step.setCondition(POLICY_CONDITION);
+        step.setMessageCondition(MESSAGE_LEVEL_CONDITION);
         step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
         return List.of(step);
     }
@@ -64,6 +68,8 @@ public class FlowMapperTest {
         step.setEnabled(true);
         step.setName("Transform Headers");
         step.setPolicy("transform-headers");
+        step.setCondition(POLICY_CONDITION);
+        step.setMessageCondition(MESSAGE_LEVEL_CONDITION);
         step.setConfiguration("{\"scope\":\"RESPONSE\",\"addHeaders\":[{\"name\":\"x-platform\",\"value\":\"true\"}]}");
         return List.of(step);
     }
@@ -92,6 +98,11 @@ public class FlowMapperTest {
         assertFalse(model.getTags().isEmpty());
         assertEquals(FlowReferenceType.ORGANIZATION, model.getReferenceType());
         assertEquals("DEFAULT", model.getReferenceId());
+
+        assertEquals(POLICY_CONDITION, model.getPublish().get(0).getCondition());
+        assertEquals(MESSAGE_LEVEL_CONDITION, model.getPublish().get(0).getMessageCondition());
+        assertEquals(POLICY_CONDITION, model.getSubscribe().get(0).getCondition());
+        assertEquals(MESSAGE_LEVEL_CONDITION, model.getSubscribe().get(0).getMessageCondition());
     }
 
     @Test

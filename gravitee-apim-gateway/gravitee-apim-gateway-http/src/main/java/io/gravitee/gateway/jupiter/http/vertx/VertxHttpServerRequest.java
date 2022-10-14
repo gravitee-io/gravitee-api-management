@@ -23,6 +23,7 @@ import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.reactivex.*;
 import io.vertx.reactivex.core.http.HttpServerRequest;
+import java.util.function.Function;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -32,8 +33,8 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
 
     private final BufferFlow bufferFlow;
     private MessageFlow messageFlow;
-    protected Boolean isWebSocket = null;
-    protected WebSocket webSocket;
+    private Boolean isWebSocket = null;
+    private WebSocket webSocket;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         super(nativeRequest, idGenerator);
@@ -132,6 +133,16 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
     @Override
     public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
         return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
+    }
+
+    @Override
+    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
+        messageFlow.setOnMessagesInterceptor(interceptor);
+    }
+
+    @Override
+    public void unsetMessagesInterceptor() {
+        messageFlow.unsetOnMessagesInterceptor();
     }
 
     private MessageFlow getMessageFlow() {

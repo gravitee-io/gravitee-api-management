@@ -72,8 +72,8 @@ public class BufferImpl implements Buffer {
     }
 
     @Override
-    public Buffer appendString(String str, String enc) {
-        return append(str, Charset.forName(Objects.requireNonNull(enc)));
+    public Buffer appendString(String str, String charset) {
+        return append(str, Charset.forName(Objects.requireNonNull(charset)));
     }
 
     @Override

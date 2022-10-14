@@ -64,4 +64,9 @@ public class FlowStep {
      * Condition attached to the FlowStep
      */
     private String condition;
+
+    /**
+     * Message condition attached to the FlowStep
+     */
+    private String messageCondition;
 }

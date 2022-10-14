@@ -80,6 +80,30 @@
         "enabled": true,
         "order": 3
       }
+    ],
+    "publish": [
+      {
+        "name": "JSON to XML",
+        "description": "Json to xml",
+        "enabled": true,
+        "condition": "{#request.headers != null}",
+        "messageCondition": "{#message.content != null}",
+        "policy": "json-xml",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"REQUEST\"\n        }",
+        "order": 1
+      }
+    ],
+    "subscribe": [
+      {
+        "name": "JSON to XML",
+        "description": "Json to xml",
+        "enabled": true,
+        "condition": "{#response.headers != null}",
+        "messageCondition": "{#message.headers != null}",
+        "policy": "json-xml",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"RESPONSE\"\n        }",
+        "order": 1
+      }
     ]
   },
   {

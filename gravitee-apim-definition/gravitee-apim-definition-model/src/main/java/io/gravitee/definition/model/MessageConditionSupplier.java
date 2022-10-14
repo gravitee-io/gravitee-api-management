@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.context;
-
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.Response;
+package io.gravitee.definition.model;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * Interface allowing to indicate that the entity can supply a message condition.
+ *
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableResponse extends Response, OnMessagesInterceptor {
+@FunctionalInterface
+public interface MessageConditionSupplier {
     /**
-     * Allows to replace the response headers.
-     *
-     * @param headers the new response headers.
+     * Returns the message condition or <code>null</code> if there is no message condition defined.
+     * @return the message condition or <code>null</code>.
      */
-    void setHeaders(final HttpHeaders headers);
+    String getMessageCondition();
 }

@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.policy;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.policy.Policy;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.jupiter.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
@@ -38,13 +39,16 @@ public class DefaultPolicyFactory implements PolicyFactory {
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     private final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
+    private final ExpressionLanguageMessageConditionFilter<ConditionalPolicy> messageFilter;
 
     public DefaultPolicyFactory(
         final PolicyPluginFactory policyPluginFactory,
-        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter
+        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter,
+        final ExpressionLanguageMessageConditionFilter<ConditionalPolicy> messageFilter
     ) {
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
+        this.messageFilter = messageFilter;
         // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by jupiter.
         this.v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory);
     }
@@ -57,7 +61,13 @@ public class DefaultPolicyFactory implements PolicyFactory {
         final PolicyMetadata policyMetadata
     ) {
         return policies.computeIfAbsent(
-            generateKey(executionPhase, policyManifest, policyConfiguration, policyMetadata.getCondition()),
+            generateKey(
+                executionPhase,
+                policyManifest,
+                policyConfiguration,
+                policyMetadata.getCondition(),
+                policyMetadata.getMessageCondition()
+            ),
             k -> createPolicy(executionPhase, policyManifest, policyConfiguration, policyMetadata)
         );
     }
@@ -91,8 +101,11 @@ public class DefaultPolicyFactory implements PolicyFactory {
 
         if (policy != null) {
             final String condition = policyMetadata.getCondition();
-            if (condition != null && !condition.isBlank()) {
-                policy = new ConditionalPolicy(policy, condition, filter);
+            final String messageCondition = policyMetadata.getMessageCondition();
+
+            // Avoid creating a conditional policy if no condition or message condition is defined.
+            if (isNotBlank(condition) || isNotBlank(messageCondition)) {
+                policy = new ConditionalPolicy(policy, condition, messageCondition, filter, messageFilter);
             }
         }
 
@@ -108,7 +121,8 @@ public class DefaultPolicyFactory implements PolicyFactory {
         final ExecutionPhase executionPhase,
         final PolicyManifest policyManifest,
         final PolicyConfiguration policyConfiguration,
-        final String condition
+        final String condition,
+        final String messageCondition
     ) {
         return (
             Objects.hashCode(executionPhase) +
@@ -117,7 +131,13 @@ public class DefaultPolicyFactory implements PolicyFactory {
             "-" +
             Objects.hashCode(policyConfiguration) +
             "-" +
-            Objects.hashCode(condition)
+            Objects.hashCode(condition) +
+            "-" +
+            Objects.hashCode(messageCondition)
         );
+    }
+
+    private boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
     }
 }

@@ -15,3 +15,15 @@ databaseChangeLog:
             constraintName: pk_${gravitee_prefix}flow_selector_channel_entrypoints
             columnNames: flow_id, channel_entrypoint
             tableName: ${gravitee_prefix}flow_selector_channel_entrypoints
+        - addColumn:
+            tableName: ${gravitee_prefix}flow_steps
+            columns:
+              - column:
+                  name: message_condition
+                  type: nvarchar(256)
+                  constraints:
+                    nullable: true
+        - modifyDataType:
+            tableName: ${gravitee_prefix}flow_steps
+            columnName: condition
+            newDataType: nvarchar(256)

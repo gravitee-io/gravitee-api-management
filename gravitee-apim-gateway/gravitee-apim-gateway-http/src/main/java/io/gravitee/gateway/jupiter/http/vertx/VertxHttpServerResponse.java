@@ -17,14 +17,9 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.ws.WebSocket;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableTransformer;
-import io.reactivex.Maybe;
-import io.reactivex.MaybeTransformer;
-import io.reactivex.Single;
+import io.reactivex.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.reactivestreams.Subscription;
 
 /**
@@ -129,6 +124,16 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
     @Override
     public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
         return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
+    }
+
+    @Override
+    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
+        messageFlow.setOnMessagesInterceptor(interceptor);
+    }
+
+    @Override
+    public void unsetMessagesInterceptor() {
+        messageFlow.unsetOnMessagesInterceptor();
     }
 
     private MessageFlow getMessageFlow() {
