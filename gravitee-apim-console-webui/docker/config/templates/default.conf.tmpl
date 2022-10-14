@@ -19,7 +19,7 @@ server {
     location / {
         try_files $uri $uri/ =404;
         root /usr/share/nginx/html;
-        sub_filter '<base href="/"' '<base href="{{ getenv "CONSOLE_BASE_HREF" "/" }}"';
+        sub_filter '<base href="./"' '<base href="{{ getenv "CONSOLE_BASE_HREF" "./" }}"';
         sub_filter_once on;
     }
 
