@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 
-import { ProxyGroup } from '../../../../../../../entities/proxy';
+import { ProxyGroupLoadBalancerEnum } from '../../../../../../../entities/proxy';
 
 @Component({
   selector: 'api-proxy-group-general',
@@ -23,5 +24,6 @@ import { ProxyGroup } from '../../../../../../../entities/proxy';
   styles: [require('./api-proxy-group-general.component.scss')],
 })
 export class ApiProxyGroupGeneralComponent {
-  @Input() group: ProxyGroup;
+  @Input() generalForm: FormGroup;
+  public loadBalancingValues = ProxyGroupLoadBalancerEnum;
 }

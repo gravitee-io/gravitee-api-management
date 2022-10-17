@@ -17,15 +17,37 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
 import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-general.component';
+import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
 
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiProxyGroupGeneralComponent, ApiProxyGroupEditComponent],
   exports: [ApiProxyGroupEditComponent],
-  imports: [CommonModule, MatTabsModule, GioGoBackButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    MatCardModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSnackBarModule,
+
+    GioGoBackButtonModule,
+    GioFormFocusInvalidModule,
+    GioSaveBarModule,
+  ],
 })
 export class ApiProxyGroupsModule {}
