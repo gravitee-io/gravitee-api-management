@@ -1,0 +1,29 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.card {
+  &__group-name,
+  &__group-lb {
+    &__label {
+      @include mat.typography-level($typography, body-2);
+    }
+
+    &__label,
+    &__hint {
+      padding: 0 0.75em 0 0.75em;
+    }
+
+    &__form-field {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+  }
+}

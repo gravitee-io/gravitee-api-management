@@ -53,9 +53,18 @@ export interface ProxyGroupEndpoint {
   healthcheck?: ProxyGroupEndpointHealthCheck;
 }
 
-export interface ProxyGroupLoadBalancer {
-  type: 'ROUND_ROBIN' | 'RANDOM' | 'WEIGHTED_ROUND_ROBIN' | 'WEIGHTED_RANDOM';
+export enum ProxyGroupLoadBalancerEnum {
+  'ROUND_ROBIN' = 'ROUND_ROBIN',
+  'RANDOM' = 'RANDOM',
+  'WEIGHTED_ROUND_ROBIN' = 'WEIGHTED_ROUND_ROBIN',
+  'WEIGHTED_RANDOM' = 'WEIGHTED_RANDOM',
 }
+type ProxyGroupLoadBalancerType = `${ProxyGroupLoadBalancerEnum}`;
+
+export interface ProxyGroupLoadBalancer {
+  type: ProxyGroupLoadBalancerType;
+}
+
 export interface ProxyGroupProxy {
   enabled: boolean;
   useSystemProxy: boolean;
@@ -108,7 +117,7 @@ export interface ProxyCors {
 }
 
 export interface ProxyLogging {
-  mode: 'PROXY' | 'CLIENT' | 'PROXY' | 'CLIENT_PROXY';
+  mode: 'CLIENT' | 'PROXY' | 'CLIENT_PROXY';
   scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
   content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
   condition?: string;

@@ -20,6 +20,10 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
@@ -31,6 +35,7 @@ import { Api } from '../../../../../../entities/api';
 
 describe('ApiProxyGroupWrapperComponent', () => {
   const API_ID = 'apiId';
+  const DEFAULT_GROUP_NAME = 'default-group';
   const fakeUiRouter = { go: jest.fn() };
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
@@ -42,7 +47,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: AjsRootScope, useValue: fakeRootScope },
       ],
@@ -72,8 +77,102 @@ describe('ApiProxyGroupWrapperComponent', () => {
     expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-endpoints', { apiId: API_ID }, undefined);
   });
 
+  describe('Edit general information of existing group', () => {
+    let api: Api;
+
+    beforeEach(async () => {
+      api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: DEFAULT_GROUP_NAME,
+              endpoints: [],
+              load_balancing: { type: 'ROUND_ROBIN' },
+            },
+          ],
+        },
+      });
+      expectApiGetRequest(api);
+
+      await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
+      fixture.detectChanges();
+    });
+
+    it('should edit group name and save it', async () => {
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+      expect(await nameInput.getValue()).toEqual(DEFAULT_GROUP_NAME);
+
+      const newGroupName = 'new-group-name';
+      await nameInput.setValue(newGroupName);
+      expect(await nameInput.getValue()).toEqual(newGroupName);
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+      await gioSaveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: {
+          groups: [
+            {
+              name: newGroupName,
+              endpoints: [],
+              load_balancing: { type: 'ROUND_ROBIN' },
+            },
+          ],
+        },
+      });
+    });
+
+    it('should not be able to save group when name is invalid', async () => {
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+      expect(await nameInput.getValue()).toEqual(DEFAULT_GROUP_NAME);
+
+      const newGroupName = 'new-group-name : ';
+      await nameInput.setValue(newGroupName);
+      expect(await nameInput.getValue()).toEqual(newGroupName);
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
+    });
+
+    it('should update load balancing type and save it', async () => {
+      const lbSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }));
+      expect(await lbSelect.getValueText()).toEqual('ROUND_ROBIN');
+
+      const newLbType = 'RANDOM';
+      await lbSelect.clickOptions({ text: newLbType });
+      expect(await lbSelect.getValueText()).toEqual(newLbType);
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+      await gioSaveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: {
+          groups: [
+            {
+              name: DEFAULT_GROUP_NAME,
+              endpoints: [],
+              load_balancing: { type: newLbType },
+            },
+          ],
+        },
+      });
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
 });
