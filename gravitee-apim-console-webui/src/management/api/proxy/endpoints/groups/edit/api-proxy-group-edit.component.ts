@@ -19,10 +19,15 @@ import { EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
+import { ConfigurationEvent, ProxyGroupConfiguration } from './configuration/api-proxy-group-configuration.model';
+
 import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../../services-ngx/api.service';
 import { Api } from '../../../../../../entities/api';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { ConnectorService } from '../../../../../../services-ngx/connector.service';
+import { toProxyGroup } from '../api-proxy-groups.adapter';
+import { ProxyGroup } from '../../../../../../entities/proxy';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -31,14 +36,16 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private updatedConfiguration: ProxyGroupConfiguration;
 
   public apiId: string;
-  public groupName: string;
   public api: Api;
+  public group: ProxyGroup;
+  public isReadOnly: boolean;
   public generalForm: FormGroup;
   public groupForm: FormGroup;
   public initialGroupFormValue: unknown;
-  public isReadOnly: boolean;
+  public schemaForm: unknown;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -46,6 +53,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
+    private readonly connectorService: ConnectorService,
   ) {}
 
   public ngOnInit(): void {
@@ -60,6 +68,15 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe();
+
+    this.connectorService
+      .list(true)
+      .pipe(
+        map((connectors) => {
+          this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
+        }),
+      )
+      .subscribe();
   }
 
   public ngOnDestroy(): void {
@@ -69,21 +86,13 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
   public onSubmit(): Subscription {
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
-
-          const updatedGroup = {
-            ...api.proxy.groups[groupIndex],
-            name: this.generalForm.get('name').value,
-            load_balancing: {
-              type: this.generalForm.get('lb').value,
-            },
-          };
+          const updatedGroup = toProxyGroup(api.proxy.groups[groupIndex], this.generalForm.getRawValue(), this.updatedConfiguration);
           api.proxy.groups.splice(groupIndex, 1, updatedGroup);
-
           return this.apiService.update(api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
@@ -91,17 +100,29 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.ajsStateParams.apiId })),
+        tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.apiId })),
       )
       .subscribe();
   }
 
+  public onConfigurationChange(event: ConfigurationEvent): void {
+    this.groupForm.markAsDirty();
+    this.groupForm.markAsTouched();
+    if (this.groupForm.getError('invalidConfiguration') && event.isSchemaValid) {
+      delete this.groupForm.errors['invalidConfiguration'];
+      this.groupForm.updateValueAndValidity();
+    } else if (!event.isSchemaValid) {
+      this.groupForm.setErrors({ invalidConfiguration: true });
+    }
+    this.updatedConfiguration = event.configuration;
+  }
+
   private initForms(): void {
-    const group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
+    this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
 
     this.generalForm = this.formBuilder.group({
-      name: [group.name ?? '', [Validators.required, Validators.pattern(/^[^:]*$/)]],
-      lb: [group.load_balancing.type ?? null],
+      name: [this.group.name ?? '', [Validators.required, Validators.pattern(/^[^:]*$/)]],
+      lb: [this.group.load_balancing.type ?? null],
     });
 
     this.groupForm = this.formBuilder.group({

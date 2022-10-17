@@ -15,7 +15,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -27,12 +27,13 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-general.component';
 import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
+import { ApiProxyGroupConfigurationComponent } from './edit/configuration/api-proxy-group-configuration.component';
 
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiProxyGroupGeneralComponent, ApiProxyGroupEditComponent],
+  declarations: [ApiProxyGroupGeneralComponent, ApiProxyGroupEditComponent, ApiProxyGroupConfigurationComponent],
   exports: [ApiProxyGroupEditComponent],
   imports: [
     CommonModule,
@@ -49,5 +50,6 @@ import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-
     GioFormFocusInvalidModule,
     GioSaveBarModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApiProxyGroupsModule {}

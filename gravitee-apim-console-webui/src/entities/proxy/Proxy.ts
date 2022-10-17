@@ -59,7 +59,7 @@ export enum ProxyGroupLoadBalancerEnum {
   'WEIGHTED_ROUND_ROBIN' = 'WEIGHTED_ROUND_ROBIN',
   'WEIGHTED_RANDOM' = 'WEIGHTED_RANDOM',
 }
-type ProxyGroupLoadBalancerType = `${ProxyGroupLoadBalancerEnum}`;
+export type ProxyGroupLoadBalancerType = `${ProxyGroupLoadBalancerEnum}`;
 
 export interface ProxyGroupLoadBalancer {
   type: ProxyGroupLoadBalancerType;
