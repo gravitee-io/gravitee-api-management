@@ -36,9 +36,9 @@ import io.gravitee.reporter.api.monitor.OsInfo;
 import io.gravitee.reporter.api.monitor.ProcessInfo;
 import io.gravitee.reporter.elasticsearch.spring.ElasticsearchReporterConfigurationTest;
 import io.gravitee.reporter.elasticsearch.spring.context.*;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.TestScheduler;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -93,7 +93,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shouldReportMetrics() {
+    public void shouldReportMetrics() throws InterruptedException {
         final Metrics requestMetrics = Metrics.on(Instant.now().toEpochMilli()).build();
         requestMetrics.setTransactionId("transactionId");
         requestMetrics.setTenant("tenant");
@@ -126,9 +126,9 @@ public class ElasticsearchReporterTest {
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
 
-        metrics1.awaitTerminalEvent();
-        metrics2.awaitTerminalEvent();
-        metrics3.awaitTerminalEvent();
+        metrics1.await();
+        metrics2.await();
+        metrics3.await();
 
         metrics1.assertNoErrors();
         metrics2.assertNoErrors();
@@ -136,7 +136,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shoutReportHealth() {
+    public void shoutReportHealth() throws InterruptedException {
         final Response defaultResponse = new Response();
         defaultResponse.setStatus(200);
         final Request defaultRequest = new Request();
@@ -180,7 +180,7 @@ public class ElasticsearchReporterTest {
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
 
-        metrics1.awaitTerminalEvent();
+        metrics1.await();
         metrics1.assertNoErrors();
     }
 
@@ -249,12 +249,12 @@ public class ElasticsearchReporterTest {
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
 
-        metrics1.awaitTerminalEvent();
+        metrics1.await();
         metrics1.assertNoErrors();
     }
 
     @Test
-    public void shouldReportLog() {
+    public void shouldReportLog() throws InterruptedException {
         Log log = new Log(Instant.now().toEpochMilli());
 
         log.setApi("my-api");
@@ -300,18 +300,18 @@ public class ElasticsearchReporterTest {
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
 
-        logObs.awaitTerminalEvent();
+        logObs.await();
         logObs.assertNoErrors();
     }
 
     @Test
-    public void reportTest() {
+    public void reportTest() throws InterruptedException {
         TestObserver metrics1 = reporter.rxReport(mockRequestMetrics()).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
 
-        metrics1.awaitTerminalEvent();
+        metrics1.await();
         metrics1.assertNoErrors();
     }
 

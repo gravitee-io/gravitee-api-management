@@ -27,15 +27,15 @@
 
     <groupId>io.gravitee.reporter</groupId>
     <artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>3.12.4</version>
+    <version>4.0.0-alpha.1</version>
 
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-bom.version>1.1</gravitee-bom.version>
-        <gravitee-common-elasticsearch.version>3.12.1</gravitee-common-elasticsearch.version>
-        <gravitee-gateway-api.version>1.32.3</gravitee-gateway-api.version>
-        <gravitee-node-api.version>1.10.3</gravitee-node-api.version>
+        <gravitee-bom.version>2.7</gravitee-bom.version>
+        <gravitee-common-elasticsearch.version>4.0.0-alpha.1</gravitee-common-elasticsearch.version>
+        <gravitee-gateway-api.version>2.0.0-alpha.1</gravitee-gateway-api.version>
+        <gravitee-node-api.version>2.0.0-alpha.3</gravitee-node-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.22.0</gravitee-reporter-api.version>
         <commons-validator.version>1.7</commons-validator.version>
@@ -130,7 +130,7 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-rx-java2</artifactId>
+            <artifactId>vertx-rx-java3</artifactId>
             <scope>provided</scope>
         </dependency>
 

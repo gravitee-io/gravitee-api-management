@@ -18,9 +18,9 @@ package io.gravitee.reporter.elasticsearch.mapping.es6;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.mapping.PerTypeIndexPreparer;
-import io.reactivex.Completable;
-import io.reactivex.CompletableSource;
-import io.reactivex.functions.Function;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
+import io.reactivex.rxjava3.functions.Function;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 

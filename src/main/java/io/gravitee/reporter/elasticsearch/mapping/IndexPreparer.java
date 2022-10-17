@@ -15,7 +15,7 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping;
 
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

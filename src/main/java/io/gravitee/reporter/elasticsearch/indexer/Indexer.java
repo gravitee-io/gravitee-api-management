@@ -16,7 +16,7 @@
 package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.reporter.api.Reportable;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 
 /**

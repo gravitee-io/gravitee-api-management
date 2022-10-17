@@ -17,7 +17,7 @@ package io.gravitee.reporter.elasticsearch.mapping.es5;
 
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
-import io.reactivex.Completable;
+import io.reactivex.rxjava3.core.Completable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

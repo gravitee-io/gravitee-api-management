@@ -16,10 +16,10 @@
 package io.gravitee.reporter.elasticsearch.mapping;
 
 import io.gravitee.elasticsearch.utils.Type;
-import io.reactivex.Completable;
-import io.reactivex.CompletableSource;
-import io.reactivex.Flowable;
-import io.reactivex.functions.Function;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.functions.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
