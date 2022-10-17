@@ -13,40 +13,101 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { map, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject, Subscription } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { StateService } from '@uirouter/core';
 
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
-import { ProxyGroup } from '../../../../../../entities/proxy';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../../services-ngx/api.service';
+import { Api } from '../../../../../../entities/api';
+import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-proxy-group-edit',
   template: require('./api-proxy-group-edit.component.html'),
   styles: [require('./api-proxy-group-edit.component.scss')],
 })
-export class ApiProxyGroupEditComponent implements OnInit {
+export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private groupName: string;
 
   public apiId: string;
-  public group: ProxyGroup;
+  public groupName: string;
+  public api: Api;
+  public generalForm: FormGroup;
+  public groupForm: FormGroup;
+  public initialGroupFormValue: unknown;
+  public isReadOnly: boolean;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly formBuilder: FormBuilder,
+    private readonly apiService: ApiService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
-  ngOnInit() {
+  public ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
-    this.groupName = this.ajsStateParams.groupName;
-
     this.apiService
       .get(this.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
         map((api) => {
-          this.group = api.proxy.groups.find((group) => group.name === this.groupName);
+          this.api = api;
+          this.initForms();
         }),
       )
       .subscribe();
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  public onSubmit(): Subscription {
+    return this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => {
+          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
+
+          const updatedGroup = {
+            ...api.proxy.groups[groupIndex],
+            name: this.generalForm.get('name').value,
+            load_balancing: {
+              type: this.generalForm.get('lb').value,
+            },
+          };
+          api.proxy.groups.splice(groupIndex, 1, updatedGroup);
+
+          return this.apiService.update(api);
+        }),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.ajsStateParams.apiId })),
+      )
+      .subscribe();
+  }
+
+  private initForms(): void {
+    const group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
+
+    this.generalForm = this.formBuilder.group({
+      name: [group.name ?? '', [Validators.required, Validators.pattern(/^[^:]*$/)]],
+      lb: [group.load_balancing.type ?? null],
+    });
+
+    this.groupForm = this.formBuilder.group({
+      general: this.generalForm,
+    });
+
+    this.initialGroupFormValue = this.groupForm.getRawValue();
   }
 }
