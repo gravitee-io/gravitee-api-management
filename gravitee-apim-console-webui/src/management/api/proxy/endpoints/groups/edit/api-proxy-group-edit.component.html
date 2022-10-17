@@ -29,6 +29,14 @@
   </mat-tab>
   <mat-tab label="Configuration">
     <!-- Configuration tab content -->
+    <div class="tab-body-wrapper">
+      <api-proxy-group-configuration
+        *ngIf="schemaForm && group"
+        [schemaForm]="schemaForm"
+        [group]="group"
+        (onConfigurationChange)="onConfigurationChange($event)"
+      ></api-proxy-group-configuration>
+    </div>
   </mat-tab>
   <mat-tab label="Service discovery">
     <!-- Service discovery tab content -->
@@ -36,6 +44,7 @@
 </mat-tab-group>
 
 <gio-save-bar
+  class="save-bar"
   *ngIf="!isReadOnly && groupForm?.dirty"
   [form]="groupForm"
   [formInitialValues]="initialGroupFormValue"
