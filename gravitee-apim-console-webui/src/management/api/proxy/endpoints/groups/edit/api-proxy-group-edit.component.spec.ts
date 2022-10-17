@@ -32,6 +32,9 @@ import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../..
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { fakeApi } from '../../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../../entities/api';
+import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
+import { fakeConnectorListItem } from '../../../../../../entities/connector/connector-list-item.fixture';
+import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 
 describe('ApiProxyGroupWrapperComponent', () => {
   const API_ID = 'apiId';
@@ -42,6 +45,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
   let fixture: ComponentFixture<ApiProxyGroupEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let connector: ConnectorListItem;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -58,6 +62,8 @@ describe('ApiProxyGroupWrapperComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    connector = fakeConnectorListItem();
   });
 
   afterEach(() => {
@@ -70,6 +76,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
       id: API_ID,
     });
     expectApiGetRequest(api);
+    expectConnectorRequest(connector);
     const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
     await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
@@ -94,6 +101,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
         },
       });
       expectApiGetRequest(api);
+      expectConnectorRequest(connector);
 
       await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
       fixture.detectChanges();
@@ -164,6 +172,97 @@ describe('ApiProxyGroupWrapperComponent', () => {
         },
       });
     });
+
+    it('should call snack bar error', async () => {
+      const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      const newGroupName = 'new-group-name';
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+      await nameInput.setValue(newGroupName);
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      await gioSaveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      expectApiPutRequestError(API_ID);
+      expect(snackBarSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Edit configuration of existing group', () => {
+    let api: Api;
+
+    beforeEach(async () => {
+      api = fakeApi({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectConnectorRequest(connector);
+    });
+
+    it('should mark form as invalid, touched and dirty', async () => {
+      const component = fixture.componentInstance;
+      expect(component.groupForm.valid).toStrictEqual(true);
+      expect(component.groupForm.touched).toStrictEqual(false);
+      expect(component.groupForm.dirty).toStrictEqual(false);
+
+      component.onConfigurationChange({
+        isSchemaValid: false,
+        configuration: {},
+      });
+
+      expect(component.groupForm.valid).toStrictEqual(false);
+      expect(component.groupForm.touched).toStrictEqual(true);
+      expect(component.groupForm.dirty).toStrictEqual(true);
+    });
+
+    it('should mark unset configuration error', async () => {
+      const component = fixture.componentInstance;
+      component.onConfigurationChange({
+        isSchemaValid: false,
+        configuration: {},
+      });
+
+      expect(component.groupForm.valid).toStrictEqual(false);
+      expect(component.groupForm.touched).toStrictEqual(true);
+      expect(component.groupForm.dirty).toStrictEqual(true);
+
+      component.onConfigurationChange({
+        isSchemaValid: true,
+        configuration: {},
+      });
+      expect(component.groupForm.valid).toStrictEqual(true);
+    });
+
+    it('should update api configuration', async () => {
+      const component = fixture.componentInstance;
+      component.onConfigurationChange({
+        isSchemaValid: false,
+        configuration: {
+          http: {
+            ...api.proxy.groups[0].http,
+            connectTimeout: 1000,
+          },
+        },
+      });
+
+      component.onSubmit();
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: {
+          groups: [
+            {
+              ...api.proxy.groups[0],
+              http: {
+                ...api.proxy.groups[0].http,
+                connectTimeout: 1000,
+              },
+            },
+          ],
+        },
+      });
+      expect(component.api.proxy.groups[0].http.connectTimeout).toStrictEqual(1000);
+    });
   });
 
   function expectApiGetRequest(api: Api) {
@@ -171,8 +270,20 @@ describe('ApiProxyGroupWrapperComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectConnectorRequest(connector: ConnectorListItem) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' }).flush([connector]);
+    fixture.detectChanges();
+  }
+
   function expectApiPutRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequestError(apiId: string) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'PUT' })
+      .error(new ErrorEvent('error'));
     fixture.detectChanges();
   }
 });
