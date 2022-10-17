@@ -389,6 +389,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         plan.setSelectionRule(repoPlan.getSelectionRule());
         plan.setTags(repoPlan.getTags());
         plan.setStatus(repoPlan.getStatus().name());
+        plan.setApi(repoPlan.getApi());
 
         if (repoPlan.getSecurity() != null) {
             plan.setSecurity(repoPlan.getSecurity().name());
