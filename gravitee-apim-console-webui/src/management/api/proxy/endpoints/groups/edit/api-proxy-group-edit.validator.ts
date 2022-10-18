@@ -21,3 +21,10 @@ export const serviceDiscoveryValidator: ValidatorFn = (control: AbstractControl)
 
   return enabled && !type ? { requireTypeWhenEnabled: true } : null;
 };
+
+export const isUniq = (values: string[], defaultValue: string): ValidatorFn | null => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const formControlValue = control.value;
+    return formControlValue !== defaultValue && values.includes(formControlValue) ? { isUnique: true } : null;
+  };
+};

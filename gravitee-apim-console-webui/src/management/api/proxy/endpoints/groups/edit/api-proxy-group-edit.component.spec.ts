@@ -397,6 +397,18 @@ describe('ApiProxyGroupWrapperComponent', () => {
         },
       });
     });
+
+    it('should not be able to create new group when name is already used', async () => {
+      const newGroupName = 'default-group';
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }))
+        .then((inputName) => inputName.setValue(newGroupName));
+      fixture.detectChanges();
+
+      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
+      expect(fixture.componentInstance.generalForm.get('name').hasError('isUnique')).toBeTruthy();
+    });
   });
 
   describe('Read only', () => {
