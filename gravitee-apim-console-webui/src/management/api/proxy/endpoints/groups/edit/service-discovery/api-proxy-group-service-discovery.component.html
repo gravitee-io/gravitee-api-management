@@ -37,7 +37,7 @@
 
     <div class="card__group-sd" *ngIf="displaySchema">
       <gv-schema-form
-        *ngIf="displaySchema"
+        [attr.readonly]="isReadOnly ? isReadOnly : null"
         [schema]="schema"
         [values]="group?.services?.discovery?.configuration"
         (:gv-schema-form:change)="onSchemaFormChange($event)"

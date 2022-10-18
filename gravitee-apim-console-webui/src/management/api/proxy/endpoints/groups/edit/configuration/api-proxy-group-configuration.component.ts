@@ -28,6 +28,7 @@ import { SchemaFormEvent } from '../../api-proxy-groups.model';
 export class ApiProxyGroupConfigurationComponent {
   @Input() schemaForm: unknown;
   @Input() group: ProxyGroup;
+  @Input() isReadOnly: boolean;
   @Output() onConfigurationChange = new EventEmitter<ConfigurationEvent>();
 
   public onChange(event: SchemaFormEvent): void {
