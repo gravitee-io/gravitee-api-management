@@ -24,16 +24,23 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-general.component';
 import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
 import { ApiProxyGroupConfigurationComponent } from './edit/configuration/api-proxy-group-configuration.component';
+import { ApiProxyGroupServiceDiscoveryComponent } from './edit/service-discovery/api-proxy-group-service-discovery.component';
 
 import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiProxyGroupGeneralComponent, ApiProxyGroupEditComponent, ApiProxyGroupConfigurationComponent],
+  declarations: [
+    ApiProxyGroupGeneralComponent,
+    ApiProxyGroupEditComponent,
+    ApiProxyGroupConfigurationComponent,
+    ApiProxyGroupServiceDiscoveryComponent,
+  ],
   exports: [ApiProxyGroupEditComponent],
   imports: [
     CommonModule,
@@ -45,6 +52,7 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
     MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatCheckboxModule,
 
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,

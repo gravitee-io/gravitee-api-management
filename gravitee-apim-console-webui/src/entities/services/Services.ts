@@ -27,7 +27,7 @@ export interface Services {
   discovery?: {
     enabled?: boolean;
     provider?: string;
-    configuration?: string;
+    configuration?: unknown;
   };
   'health-check'?: {
     enabled?: boolean;

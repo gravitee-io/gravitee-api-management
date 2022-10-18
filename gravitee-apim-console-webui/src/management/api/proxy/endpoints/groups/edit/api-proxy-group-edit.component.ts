@@ -19,7 +19,12 @@ import { EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
+import { serviceDiscoveryValidator } from './api-proxy-group-wrapper.validator';
 import { ConfigurationEvent, ProxyGroupConfiguration } from './configuration/api-proxy-group-configuration.model';
+import {
+  ProxyGroupServiceDiscoveryConfiguration,
+  ServiceDiscoveryEvent,
+} from './service-discovery/api-proxy-group-service-discovery.model';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../../services-ngx/api.service';
@@ -28,6 +33,8 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 import { ConnectorService } from '../../../../../../services-ngx/connector.service';
 import { toProxyGroup } from '../api-proxy-groups.adapter';
 import { ProxyGroup } from '../../../../../../entities/proxy';
+import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
+import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -37,6 +44,7 @@ import { ProxyGroup } from '../../../../../../entities/proxy';
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private updatedConfiguration: ProxyGroupConfiguration;
+  private updatedServiceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration;
 
   public apiId: string;
   public api: Api;
@@ -44,8 +52,10 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   public isReadOnly: boolean;
   public generalForm: FormGroup;
   public groupForm: FormGroup;
+  public serviceDiscoveryForm: FormGroup;
   public initialGroupFormValue: unknown;
   public schemaForm: unknown;
+  public serviceDiscoveryItems: ResourceListItem[];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -54,6 +64,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
     private readonly connectorService: ConnectorService,
+    private readonly serviceDiscoveryService: ServiceDiscoveryService,
   ) {}
 
   public ngOnInit(): void {
@@ -62,8 +73,12 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       .get(this.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        map((api) => {
+        switchMap((api) => {
           this.api = api;
+          return this.serviceDiscoveryService.list();
+        }),
+        map((serviceDiscoveryItems: ResourceListItem[]) => {
+          this.serviceDiscoveryItems = serviceDiscoveryItems;
           this.initForms();
         }),
       )
@@ -91,7 +106,12 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
-          const updatedGroup = toProxyGroup(api.proxy.groups[groupIndex], this.generalForm.getRawValue(), this.updatedConfiguration);
+          const updatedGroup = toProxyGroup(
+            api.proxy.groups[groupIndex],
+            this.generalForm.getRawValue(),
+            this.updatedConfiguration,
+            this.updatedServiceDiscoveryConfiguration,
+          );
           api.proxy.groups.splice(groupIndex, 1, updatedGroup);
           return this.apiService.update(api);
         }),
@@ -117,6 +137,35 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.updatedConfiguration = event.configuration;
   }
 
+  public onServiceDiscoveryChange(event: ServiceDiscoveryEvent): void {
+    this.groupForm.markAsDirty();
+    this.groupForm.markAsTouched();
+    const enabled = this.serviceDiscoveryForm.get('enabled');
+
+    if (!enabled) {
+      this.updatedServiceDiscoveryConfiguration = null;
+    }
+
+    if (!event.isSchemaValid) {
+      this.groupForm.setErrors({ invalidServiceDiscovery: true });
+    }
+
+    if (this.groupForm.getError('invalidServiceDiscovery') && event.isSchemaValid) {
+      delete this.groupForm.errors['invalidServiceDiscovery'];
+      this.groupForm.updateValueAndValidity();
+    }
+
+    if (this.serviceDiscoveryForm.valid && enabled.value && event.isSchemaValid) {
+      this.updatedServiceDiscoveryConfiguration = {
+        discovery: {
+          enabled: this.serviceDiscoveryForm.get('enabled').value,
+          provider: this.serviceDiscoveryForm.get('type').value,
+          configuration: event.serviceDiscoveryValues,
+        },
+      };
+    }
+  }
+
   private initForms(): void {
     this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
 
@@ -125,8 +174,22 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       lb: [this.group.load_balancing.type ?? null],
     });
 
+    this.serviceDiscoveryForm = this.formBuilder.group(
+      {
+        enabled: [{ value: this.group.services?.discovery.enabled ?? false, disabled: false }],
+        type: [
+          {
+            value: this.group.services?.discovery.provider ?? null,
+            disabled: this.group.services?.discovery.enabled === false,
+          },
+        ],
+      },
+      { validators: [serviceDiscoveryValidator] },
+    );
+
     this.groupForm = this.formBuilder.group({
       general: this.generalForm,
+      serviceDiscovery: this.serviceDiscoveryForm,
     });
 
     this.initialGroupFormValue = this.groupForm.getRawValue();
