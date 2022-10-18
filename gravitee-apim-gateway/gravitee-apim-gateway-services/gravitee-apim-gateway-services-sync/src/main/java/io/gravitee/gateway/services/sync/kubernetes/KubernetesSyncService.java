@@ -135,7 +135,14 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
                 event.setPayload(mapper.writeValueAsString(api));
                 apiSynchronizer
                     .processApiEvents(Flowable.just(event))
-                    .subscribe(s -> logger.info("Event processed"), t -> logger.error("An error occurred while processing event", t));
+                    .subscribe(
+                        s -> logger.info("Event {} processed for API {}", kubEvent.getType(), api.getId()),
+                        t ->
+                            logger.error(
+                                String.format("An error occurred while processing event %s for API %s", kubEvent.getType(), api.getId()),
+                                t
+                            )
+                    );
             } catch (Exception ex) {
                 logger.error(
                     "Unexpected error while trying to register service {}",
