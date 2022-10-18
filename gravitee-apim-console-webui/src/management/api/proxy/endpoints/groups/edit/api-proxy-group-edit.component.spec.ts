@@ -24,6 +24,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
@@ -32,9 +33,11 @@ import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../..
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { fakeApi } from '../../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../../entities/api';
-import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
-import { fakeConnectorListItem } from '../../../../../../entities/connector/connector-list-item.fixture';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { fakeConnectorListItem } from '../../../../../../entities/connector/connector-list-item.fixture';
+import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
+import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
+import { fakeResourceListItem } from '../../../../../../entities/resource/resourceListItem.fixture';
 
 describe('ApiProxyGroupWrapperComponent', () => {
   const API_ID = 'apiId';
@@ -46,6 +49,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let connector: ConnectorListItem;
+  let serviceDiscovery: ResourceListItem;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -64,6 +68,10 @@ describe('ApiProxyGroupWrapperComponent', () => {
     fixture.detectChanges();
 
     connector = fakeConnectorListItem();
+    serviceDiscovery = fakeResourceListItem({
+      name: 'Consul.io Service Discovery',
+      id: 'consul-service-discovery',
+    });
   });
 
   afterEach(() => {
@@ -77,6 +85,8 @@ describe('ApiProxyGroupWrapperComponent', () => {
     });
     expectApiGetRequest(api);
     expectConnectorRequest(connector);
+    expectServiceDiscoveryRequest(serviceDiscovery);
+
     const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
     await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
@@ -102,6 +112,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
       });
       expectApiGetRequest(api);
       expectConnectorRequest(connector);
+      expectServiceDiscoveryRequest(serviceDiscovery);
 
       await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
       fixture.detectChanges();
@@ -197,6 +208,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
       });
       expectApiGetRequest(api);
       expectConnectorRequest(connector);
+      expectServiceDiscoveryRequest(serviceDiscovery);
     });
 
     it('should mark form as invalid, touched and dirty', async () => {
@@ -265,6 +277,66 @@ describe('ApiProxyGroupWrapperComponent', () => {
     });
   });
 
+  describe('Edit existing service discovery configuration', () => {
+    let api: Api;
+
+    beforeEach(async () => {
+      api = fakeApi({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectConnectorRequest(connector);
+      expectServiceDiscoveryRequest(serviceDiscovery);
+
+      await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
+
+      expect(fixture.debugElement.nativeElement.querySelector('#sdSchemaForm')).toBeFalsy();
+
+      await loader
+        .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
+        .then((checkbox) => checkbox.check());
+
+      await loader
+        .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
+        .then((select) => select.clickOptions({ text: 'Consul.io Service Discovery' }));
+
+      fixture.detectChanges();
+      expectServiceDiscoverySchemaRequest();
+    });
+
+    it('should display service discovery gv-schema-form and save url', async () => {
+      expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
+
+      await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+
+      expectApiGetRequest(api);
+      expectApiPutRequest(api);
+    });
+
+    it('should disable select', async () => {
+      await loader
+        .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
+        .then((checkbox) => checkbox.uncheck());
+
+      expect(
+        await loader
+          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
+          .then((select) => select.isDisabled()),
+      ).toEqual(true);
+    });
+
+    it('should mark the form as invalid when the service discovery is enabled but the url is not set', async () => {
+      const component = fixture.componentInstance;
+      component.onServiceDiscoveryChange({
+        isSchemaValid: false,
+        serviceDiscoveryValues: {},
+      });
+
+      expect(component.groupForm.valid).toStrictEqual(false);
+      expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toEqual(true);
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -272,6 +344,32 @@ describe('ApiProxyGroupWrapperComponent', () => {
 
   function expectConnectorRequest(connector: ConnectorListItem) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' }).flush([connector]);
+    fixture.detectChanges();
+  }
+
+  function expectServiceDiscoveryRequest(serviceDiscovery: ResourceListItem) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/services-discovery`, method: 'GET' })
+      .flush([serviceDiscovery]);
+    fixture.detectChanges();
+  }
+
+  function expectServiceDiscoverySchemaRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/services-discovery/consul-service-discovery/schema`, method: 'GET' })
+      .flush({
+        id: 'urn:jsonschema:io:gravitee:discovery:consul:configuration:ConsulServiceDiscoveryConfiguration',
+        properties: {
+          url: {
+            title: 'Consul.io URL',
+            description: 'Address of the Consul.io agent',
+            type: 'string',
+            default: 'http://localhost:8500',
+          },
+          required: ['url', 'service', 'trustStoreType', 'keyStoreType'],
+          type: 'object',
+        },
+      });
     fixture.detectChanges();
   }
 

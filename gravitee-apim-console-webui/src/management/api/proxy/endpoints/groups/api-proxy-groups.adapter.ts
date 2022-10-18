@@ -15,6 +15,7 @@
  */
 
 import { ProxyGroupConfiguration } from './edit/configuration/api-proxy-group-configuration.model';
+import { ProxyGroupServiceDiscoveryConfiguration } from './edit/service-discovery/api-proxy-group-service-discovery.model';
 
 import { ProxyGroup, ProxyGroupLoadBalancerType } from '../../../../../entities/proxy';
 
@@ -22,6 +23,7 @@ export const toProxyGroup = (
   group: ProxyGroup,
   generalData: { name: string; type: ProxyGroupLoadBalancerType },
   configuration: ProxyGroupConfiguration,
+  serviceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration,
 ): ProxyGroup => {
   let updatedGroup: ProxyGroup = {
     ...group,
@@ -38,6 +40,26 @@ export const toProxyGroup = (
       ssl: configuration.ssl,
       headers: configuration.headers,
       proxy: configuration.proxy,
+    };
+  }
+
+  if (serviceDiscoveryConfiguration) {
+    updatedGroup = {
+      ...updatedGroup,
+      services: {
+        discovery: {
+          ...serviceDiscoveryConfiguration.discovery,
+        },
+      },
+    };
+  } else {
+    updatedGroup = {
+      ...updatedGroup,
+      services: {
+        discovery: {
+          enabled: false,
+        },
+      },
     };
   }
 

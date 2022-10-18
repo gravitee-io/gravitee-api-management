@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProxyGroup } from '../../../../../../../entities/proxy';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-export type ProxyGroupConfiguration = Pick<ProxyGroup, 'http' | 'proxy' | 'ssl' | 'headers'>;
+export const serviceDiscoveryValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const enabled = control.get('enabled').value;
+  const type = control.get('type').value;
 
-export interface ConfigurationEvent {
-  isSchemaValid: boolean;
-  configuration: ProxyGroupConfiguration;
-}
+  return enabled && !type ? { requireTypeWhenEnabled: true } : null;
+};
