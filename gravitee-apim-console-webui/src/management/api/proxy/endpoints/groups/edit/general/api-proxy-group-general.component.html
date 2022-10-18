@@ -25,6 +25,7 @@
         <input type="text" aria-label="Group name input" matInput formControlName="name" required />
         <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
         <mat-error *ngIf="generalForm.get('name').hasError('pattern')"> Group name does not support <code>:</code> in its name. </mat-error>
+        <mat-error *ngIf="generalForm.get('name').hasError('isUnique')"> This name is used by another endpoint group. </mat-error>
       </mat-form-field>
     </div>
 

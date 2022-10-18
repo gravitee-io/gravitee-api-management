@@ -19,7 +19,7 @@ import { EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
-import { serviceDiscoveryValidator } from './api-proxy-group-wrapper.validator';
+import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
 import { ConfigurationEvent, ProxyGroupConfiguration } from './configuration/api-proxy-group-configuration.model';
 import {
   ProxyGroupServiceDiscoveryConfiguration,
@@ -179,7 +179,17 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
 
     this.generalForm = this.formBuilder.group({
-      name: [{ value: this.group?.name ?? null, disabled: this.isReadOnly }, [Validators.required, Validators.pattern(/^[^:]*$/)]],
+      name: [
+        { value: this.group?.name ?? null, disabled: this.isReadOnly },
+        [
+          Validators.required,
+          Validators.pattern(/^[^:]*$/),
+          isUniq(
+            this.api.proxy.groups.reduce((acc, group) => [...acc, group.name], []),
+            this.group?.name,
+          ),
+        ],
+      ],
       lb: [{ value: this.group?.load_balancing.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
