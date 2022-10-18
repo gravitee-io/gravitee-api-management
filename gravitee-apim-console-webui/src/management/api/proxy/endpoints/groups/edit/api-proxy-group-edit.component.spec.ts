@@ -344,6 +344,41 @@ describe('ApiProxyGroupWrapperComponent', () => {
         expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toEqual(true);
       });
     });
+
+    describe('Reset', () => {
+      let api: Api;
+
+      beforeEach(async () => {
+        api = fakeApi({
+          id: API_ID,
+        });
+        expectApiGetRequest(api);
+        expectConnectorRequest(connector);
+        expectServiceDiscoveryRequest(serviceDiscovery);
+      });
+
+      it('should reset the forms', async () => {
+        const newGroupName = 'new-group-name';
+        const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+        await nameInput.setValue(newGroupName);
+        expect(await nameInput.getValue()).toStrictEqual(newGroupName);
+
+        const newLbType = 'RANDOM';
+        const lbSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }));
+        await lbSelect.clickOptions({ text: newLbType });
+        expect(await lbSelect.getValueText()).toEqual(newLbType);
+        fixture.detectChanges();
+
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        await gioSaveBar.clickReset();
+
+        expectApiGetRequest(api);
+        expectConnectorRequest(connector);
+        expectServiceDiscoveryRequest(serviceDiscovery);
+        expect(await nameInput.getValue()).toStrictEqual('default-group');
+        expect(await lbSelect.getValueText()).toStrictEqual('ROUND_ROBIN');
+      });
+    });
   });
 
   describe('New mode ', () => {
