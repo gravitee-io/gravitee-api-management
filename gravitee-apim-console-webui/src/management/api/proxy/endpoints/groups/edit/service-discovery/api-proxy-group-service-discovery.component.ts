@@ -33,6 +33,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit {
   @Input() serviceDiscoveryForm: FormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
   @Input() group: ProxyGroup;
+  @Input() isReadOnly: boolean;
   @Output() onServiceDiscoveryConfigurationChange = new EventEmitter<ServiceDiscoveryEvent>();
 
   public schema: unknown;

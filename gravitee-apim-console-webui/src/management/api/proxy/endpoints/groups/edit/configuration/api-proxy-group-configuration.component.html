@@ -16,5 +16,10 @@
 
 -->
 <mat-card>
-  <gv-schema-form [schema]="schemaForm" [values]="group" (:gv-schema-form:change)="onChange($event)"></gv-schema-form>
+  <gv-schema-form
+    [attr.readonly]="isReadOnly ? isReadOnly : null"
+    [schema]="schemaForm"
+    [values]="group"
+    (:gv-schema-form:change)="onChange($event)"
+  ></gv-schema-form>
 </mat-card>
