@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProxyGroup } from '../../../../../../../entities/proxy';
 
-export type ProxyGroupConfiguration = Pick<ProxyGroup, 'http' | 'proxy' | 'ssl' | 'headers'>;
+import { Services } from '../../../../../../../entities/services';
 
-export interface ConfigurationEvent {
+export type ProxyGroupServiceDiscoveryConfiguration = Pick<Services, 'discovery'>;
+
+export interface ServiceDiscoveryEvent {
   isSchemaValid: boolean;
-  configuration: ProxyGroupConfiguration;
+  serviceDiscoveryValues: unknown;
 }

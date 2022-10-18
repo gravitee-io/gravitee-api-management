@@ -40,6 +40,15 @@
   </mat-tab>
   <mat-tab label="Service discovery">
     <!-- Service discovery tab content -->
+    <div class="tab-body-wrapper">
+      <api-proxy-group-service-discovery
+        *ngIf="serviceDiscoveryForm && serviceDiscoveryItems && group"
+        [serviceDiscoveryForm]="serviceDiscoveryForm"
+        [serviceDiscoveryItems]="serviceDiscoveryItems"
+        [group]="group"
+        (onServiceDiscoveryConfigurationChange)="onServiceDiscoveryChange($event)"
+      ></api-proxy-group-service-discovery>
+    </div>
   </mat-tab>
 </mat-tab-group>
 

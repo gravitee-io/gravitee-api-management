@@ -15,9 +15,10 @@
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { ConfigurationEvent, SchemaFormEvent } from './api-proxy-group-configuration.model';
+import { ConfigurationEvent } from './api-proxy-group-configuration.model';
 
 import { ProxyGroup } from '../../../../../../../entities/proxy';
+import { SchemaFormEvent } from '../../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-configuration',
