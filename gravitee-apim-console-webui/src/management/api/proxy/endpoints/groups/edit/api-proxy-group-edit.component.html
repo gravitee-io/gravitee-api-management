@@ -34,6 +34,7 @@
         *ngIf="schemaForm"
         [schemaForm]="schemaForm"
         [group]="group"
+        [isReadOnly]="isReadOnly"
         (onConfigurationChange)="onConfigurationChange($event)"
       ></api-proxy-group-configuration>
     </div>
@@ -46,6 +47,7 @@
         [serviceDiscoveryForm]="serviceDiscoveryForm"
         [serviceDiscoveryItems]="serviceDiscoveryItems"
         [group]="group"
+        [isReadOnly]="isReadOnly"
         (onServiceDiscoveryConfigurationChange)="onServiceDiscoveryChange($event)"
       ></api-proxy-group-service-discovery>
     </div>

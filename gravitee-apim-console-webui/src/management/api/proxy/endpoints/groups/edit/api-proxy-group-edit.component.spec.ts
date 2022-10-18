@@ -29,7 +29,7 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { fakeApi } from '../../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../../entities/api';
@@ -38,6 +38,7 @@ import { fakeConnectorListItem } from '../../../../../../entities/connector/conn
 import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { fakeResourceListItem } from '../../../../../../entities/resource/resourceListItem.fixture';
+import { User } from '../../../../../../entities/user';
 
 describe('ApiProxyGroupWrapperComponent', () => {
   const API_ID = 'apiId';
@@ -51,6 +52,9 @@ describe('ApiProxyGroupWrapperComponent', () => {
   let connector: ConnectorListItem;
   let serviceDiscovery: ResourceListItem;
 
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-definition-u'];
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
@@ -58,6 +62,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: AjsRootScope, useValue: fakeRootScope },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });
 
@@ -391,6 +396,57 @@ describe('ApiProxyGroupWrapperComponent', () => {
           ],
         },
       });
+    });
+  });
+
+  describe('Read only', () => {
+    let api: Api;
+
+    beforeEach(() => {
+      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: null } });
+      TestBed.compileComponents();
+      fixture = TestBed.createComponent(ApiProxyGroupEditComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+
+      api = fakeApi({
+        id: API_ID,
+        definition_context: {
+          origin: 'kubernetes',
+        },
+      });
+      expectApiGetRequest(api);
+      expectConnectorRequest(connector);
+      expectServiceDiscoveryRequest(serviceDiscovery);
+    });
+
+    it('should not allow user to update the form', async () => {
+      expect(
+        await loader
+          .getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }))
+          .then((nameInput) => nameInput.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader
+          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }))
+          .then((select) => select.isDisabled()),
+      ).toBeTruthy();
+
+      await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
+
+      expect(
+        await loader
+          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
+          .then((checkbox) => checkbox.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader
+          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
+          .then((select) => select.isDisabled()),
+      ).toBeTruthy();
     });
   });
 

@@ -35,6 +35,7 @@ import { toProxyGroup } from '../api-proxy-groups.adapter';
 import { ProxyGroup } from '../../../../../../entities/proxy';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
+import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -66,6 +67,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly connectorService: ConnectorService,
     private readonly serviceDiscoveryService: ServiceDiscoveryService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   public ngOnInit(): void {
@@ -78,6 +80,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
           this.api = api;
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
           return this.serviceDiscoveryService.list();
         }),
         map((serviceDiscoveryItems: ResourceListItem[]) => {
@@ -176,17 +179,17 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
 
     this.generalForm = this.formBuilder.group({
-      name: [this.group?.name ?? null, [Validators.required, Validators.pattern(/^[^:]*$/)]],
-      lb: [this.group?.load_balancing.type ?? null, [Validators.required]],
+      name: [{ value: this.group?.name ?? null, disabled: this.isReadOnly }, [Validators.required, Validators.pattern(/^[^:]*$/)]],
+      lb: [{ value: this.group?.load_balancing.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
-        enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: false }],
+        enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
         type: [
           {
             value: this.group?.services?.discovery.provider ?? null,
-            disabled: this.group?.services?.discovery.enabled === false,
+            disabled: this.group?.services?.discovery.enabled === false || this.isReadOnly,
           },
         ],
       },
