@@ -45,6 +45,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private updatedConfiguration: ProxyGroupConfiguration;
   private updatedServiceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration;
+  private mode: 'new' | 'edit';
 
   public apiId: string;
   public api: Api;
@@ -69,6 +70,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+    this.mode = !this.ajsStateParams.groupName ? 'new' : 'edit';
+
     this.apiService
       .get(this.apiId)
       .pipe(
@@ -105,14 +108,17 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
-          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
+          const groupIndex =
+            this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName) : -1;
+
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
             this.updatedConfiguration,
             this.updatedServiceDiscoveryConfiguration,
           );
-          api.proxy.groups.splice(groupIndex, 1, updatedGroup);
+
+          groupIndex !== -1 ? api.proxy.groups.splice(groupIndex, 1, updatedGroup) : api.proxy.groups.push(updatedGroup);
           return this.apiService.update(api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
@@ -170,17 +176,17 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
 
     this.generalForm = this.formBuilder.group({
-      name: [this.group.name ?? '', [Validators.required, Validators.pattern(/^[^:]*$/)]],
-      lb: [this.group.load_balancing.type ?? null],
+      name: [this.group?.name ?? null, [Validators.required, Validators.pattern(/^[^:]*$/)]],
+      lb: [this.group?.load_balancing.type ?? null, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
-        enabled: [{ value: this.group.services?.discovery.enabled ?? false, disabled: false }],
+        enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: false }],
         type: [
           {
-            value: this.group.services?.discovery.provider ?? null,
-            disabled: this.group.services?.discovery.enabled === false,
+            value: this.group?.services?.discovery.provider ?? null,
+            disabled: this.group?.services?.discovery.enabled === false,
           },
         ],
       },
