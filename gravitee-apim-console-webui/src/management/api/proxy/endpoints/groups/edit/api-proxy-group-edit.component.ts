@@ -175,8 +175,16 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     }
   }
 
+  public reset(): void {
+    // here we the force reset for the two components containing a gv-schema-form
+    this.group = null;
+    this.schemaForm = null;
+    this.serviceDiscoveryItems = null;
+    this.ngOnInit();
+  }
+
   private initForms(): void {
-    this.group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
+    this.group = { ...this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName) };
 
     this.generalForm = this.formBuilder.group({
       name: [
@@ -190,7 +198,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           ),
         ],
       ],
-      lb: [{ value: this.group?.load_balancing.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      lb: [{ value: this.group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
