@@ -41,7 +41,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit {
   constructor(private readonly serviceDiscoveryService: ServiceDiscoveryService) {}
 
   ngOnInit(): void {
-    if (this.group.services?.discovery.enabled) {
+    if (this.group?.services?.discovery.enabled) {
       this.onFormValuesChange(this.group.services.discovery.provider);
     }
 
