@@ -16,19 +16,16 @@
 package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
-import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BalancedStrategy implements QosStrategy {
+public class BalancedStrategy extends AbstractQosStrategy {
 
     @Override
     public Flux<ConsumerRecord<String, byte[]>> receive(
@@ -36,7 +33,7 @@ public class BalancedStrategy implements QosStrategy {
         final KafkaEndpointConnectorConfiguration configuration,
         final ReceiverOptions<String, byte[]> receiverOptions
     ) {
-        return KafkaReceiver.create(receiverOptions).receiveAutoAck().concatMap(c -> c);
+        return createReceiver(receiverOptions).receiveAutoAck().concatMap(c -> c);
     }
 
     @Override
