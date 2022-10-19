@@ -32,6 +32,8 @@ public class Query<T extends Indexable> {
 
     private Map<String, Object> filters = new HashMap<>();
 
+    private Map<String, Collection<String>> excludedFilters = new HashMap<>();
+
     private final Class<T> root;
 
     private Pageable page;
@@ -58,6 +60,14 @@ public class Query<T extends Indexable> {
 
     public void setFilters(Map<String, Object> filters) {
         this.filters = filters;
+    }
+
+    public void setExcludedFilters(Map<String, Collection<String>> excludedFilters) {
+        this.excludedFilters = excludedFilters;
+    }
+
+    public Map<String, Collection<String>> getExcludedFilters() {
+        return excludedFilters;
     }
 
     public Class<T> getRoot() {
