@@ -16,9 +16,7 @@
 package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import java.time.Duration;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -31,10 +29,10 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoneStrategy implements QosStrategy {
+public class NoneStrategy extends AbstractQosStrategy {
 
     @Override
-    public void addExtraConfig(final Map<String, Object> config) {
+    public void addCustomConfig(final Map<String, Object> config) {
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     }
 
@@ -45,7 +43,7 @@ public class NoneStrategy implements QosStrategy {
         final ReceiverOptions<String, byte[]> receiverOptions
     ) {
         ReceiverOptions<String, byte[]> noCommitReceiverOptions = receiverOptions.commitInterval(Duration.ZERO).commitBatchSize(0);
-        return KafkaReceiver.create(noCommitReceiverOptions).receive().map(receiverRecord -> receiverRecord);
+        return createReceiver(noCommitReceiverOptions).receive().map(receiverRecord -> receiverRecord);
     }
 
     @Override

@@ -29,6 +29,7 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.factory.CustomProducerFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategyFactory;
 import io.reactivex.rxjava3.core.Completable;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -97,8 +99,9 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
                     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
                     config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+                    addCustomProducerConfig(config);
                     SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
-                    KafkaSender<String, byte[]> kafkaSender = KafkaSender.create(senderOptions);
+                    KafkaSender<String, byte[]> kafkaSender = KafkaSender.create(CustomProducerFactory.INSTANCE, senderOptions);
                     Set<String> topics = getTopics(ctx);
                     return ctx
                         .request()
@@ -125,6 +128,14 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
         } else {
             return Completable.complete();
         }
+    }
+
+    /**
+     * This method could be overridden to add custom configuration for producer client.
+     * @param config
+     */
+    protected void addCustomProducerConfig(final Map<String, Object> config) {
+        // Nothing to do here
     }
 
     private ProducerRecord<String, byte[]> createProducerRecord(
@@ -175,7 +186,8 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                     config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId);
                                     config.put(ConsumerConfig.CLIENT_ID_CONFIG, instanceId);
 
-                                    qosStrategy.addExtraConfig(config);
+                                    addCustomConsumerConfig(config);
+                                    qosStrategy.addCustomConfig(config);
 
                                     ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
                                         .<String, byte[]>create(config)
@@ -219,6 +231,14 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                 }
             }
         );
+    }
+
+    /**
+     * This method could be overridden to add custom configuration for consumer client
+     * @param config
+     */
+    protected void addCustomConsumerConfig(final Map<String, Object> config) {
+        // Nothing to do here
     }
 
     private String getGroupId(final MessageExecutionContext ctx) {
