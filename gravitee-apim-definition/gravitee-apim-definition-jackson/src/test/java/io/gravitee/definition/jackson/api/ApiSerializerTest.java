@@ -492,6 +492,21 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_withclientoptions_propagateClientAcceptEncoding() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json", Api.class);
+        String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        Assert.assertNotNull(generatedJsonDefinition);
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
+    }
+
+    @Test
     public void definition_withHeaders() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-headers.json", Api.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/api-headers-expected.json";
