@@ -16,10 +16,8 @@
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import java.util.Map;
-import java.util.Set;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
 import reactor.kafka.receiver.ReceiverOptions;
@@ -31,7 +29,7 @@ import reactor.kafka.receiver.ReceiverOptions;
 public interface QosStrategy {
     Runnable doNothing = () -> {};
 
-    default void addExtraConfig(final Map<String, Object> config) {}
+    default void addCustomConfig(final Map<String, Object> config) {}
 
     Flux<ConsumerRecord<String, byte[]>> receive(
         final ExecutionContext executionContext,
