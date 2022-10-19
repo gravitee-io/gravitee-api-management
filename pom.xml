@@ -120,7 +120,7 @@
         <nimbus-jose-jwt.version>9.15.2</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <protobuf-java.version>3.19.3</protobuf-java.version>
-        <reactor-adapter.version>3.4.6</reactor-adapter.version>
+        <reactor-adapter.version>3.4.8</reactor-adapter.version>
         <slf4j-mock.version>2.2.0</slf4j-mock.version>
         <snakeyaml.version>1.32</snakeyaml.version>
         <swagger-jaxrs2.version>2.1.13</swagger-jaxrs2.version>
@@ -141,10 +141,20 @@
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <prettier-maven-plugin.version>0.18</prettier-maven-plugin.version>
         <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
+        <rxjava3.version>3.0.13</rxjava3.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+
+            <!-- FIXME : This temporary downgrades rxJava from 3.1 to 3.0, dur to reactor-addons incompatibility
+                see https://github.com/reactor/reactor-addons/issues/283 -->
+            <dependency>
+                <groupId>io.reactivex.rxjava3</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava3.version}</version>
+            </dependency>
+
             <!-- Gravitee dependencies -->
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>
