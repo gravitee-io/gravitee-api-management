@@ -550,6 +550,7 @@ import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-tem
 import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
 import { ApiPortalDetailsComponent } from './api/details/api-portal-details.component';
 import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
+import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -694,6 +695,7 @@ graviteeManagementModule.directive(
 );
 graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent({ component: ApiProxyEndpointListComponent }));
 graviteeManagementModule.directive('ngApiProxyGroupEdit', downgradeComponent({ component: ApiProxyGroupEditComponent }));
+graviteeManagementModule.directive('ngApiProxyGroupEndpointEdit', downgradeComponent({ component: ApiProxyGroupEndpointEditComponent }));
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));

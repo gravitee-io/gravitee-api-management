@@ -22,27 +22,17 @@ import { MatCardModule } from '@angular/material/card';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
-import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-general.component';
-import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
-import { ApiProxyGroupConfigurationComponent } from './edit/configuration/api-proxy-group-configuration.component';
-import { ApiProxyGroupServiceDiscoveryComponent } from './edit/service-discovery/api-proxy-group-service-discovery.component';
-import { ApiProxyGroupsEndpointModule } from './endpoint/api-proxy-groups-endpoint.module';
+import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
 
-import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [
-    ApiProxyGroupGeneralComponent,
-    ApiProxyGroupEditComponent,
-    ApiProxyGroupConfigurationComponent,
-    ApiProxyGroupServiceDiscoveryComponent,
-  ],
-  exports: [ApiProxyGroupEditComponent],
+  declarations: [ApiProxyGroupEndpointEditComponent],
+  exports: [ApiProxyGroupEndpointEditComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -51,16 +41,13 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
     MatTabsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatSnackBarModule,
     MatCheckboxModule,
 
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,
     GioSaveBarModule,
-
-    ApiProxyGroupsEndpointModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class ApiProxyGroupsModule {}
+export class ApiProxyGroupsEndpointModule {}

@@ -136,6 +136,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-endpoint', {
+      url: '/ng-groups/:groupName/ng-endpoints/:endpointName',
+      component: 'ngApiProxyGroupEndpointEdit',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-proxy-endpoints',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.group', {
       url: '/groups/:groupName',
       template: require('./backend/endpoint/group.html'),
