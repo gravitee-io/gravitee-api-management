@@ -124,7 +124,7 @@ describe('ApiProxyEndpointListComponent', () => {
       );
       await vhTableFirstRowHostInput.click();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.endpoint', {
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-endpoint', {
         groupName: 'default-group',
         endpointName: 'default',
       });
