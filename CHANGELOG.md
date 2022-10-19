@@ -1,3 +1,15 @@
+# [4.0.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.4...4.0.0-alpha.1) (2022-10-19)
+
+
+### chore
+
+* bump to rxJava3 ([be029a0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/be029a04e4e4c76ca3b3ece147df22dcbddb60e3))
+
+
+### BREAKING CHANGES
+
+* rxJava3 required
+
 ## [3.12.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.3...3.12.4) (2022-06-30)
 
 
