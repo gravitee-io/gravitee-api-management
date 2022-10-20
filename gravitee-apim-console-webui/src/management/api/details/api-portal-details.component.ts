@@ -16,9 +16,9 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
 import { forEach } from 'lodash';
-import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -215,27 +215,26 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   onSubmit() {
     const apiDetailsFormValue = this.apiDetailsForm.getRawValue();
 
+    const picture = getBase64(apiDetailsFormValue.picture[0]);
+    const background = getBase64(apiDetailsFormValue.background[0]);
+
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((api) =>
-          combineLatest([getBase64(apiDetailsFormValue.picture[0]), getBase64(apiDetailsFormValue.background[0])]).pipe(
-            map(([picture, background]) => ({
-              ...api,
-              ...(picture !== null ? { picture: picture } : { picture_url: null, picture: null }),
-              ...(background !== null ? { background: background } : { background_url: null, background: null }),
-              name: apiDetailsFormValue.name,
-              version: apiDetailsFormValue.version,
-              description: apiDetailsFormValue.description,
-              labels: apiDetailsFormValue.labels,
-              categories: apiDetailsFormValue.categories,
-              ...(this.canDisplayJupiterToggle
-                ? { execution_mode: apiDetailsFormValue.enableJupiter ? ('jupiter' as const) : ('v3' as const) }
-                : {}),
-            })),
-          ),
-        ),
+        map((api) => ({
+          ...api,
+          ...(picture !== null ? { picture: picture } : { picture_url: null, picture: null }),
+          ...(background !== null ? { background: background } : { background_url: null, background: null }),
+          name: apiDetailsFormValue.name,
+          version: apiDetailsFormValue.version,
+          description: apiDetailsFormValue.description,
+          labels: apiDetailsFormValue.labels,
+          categories: apiDetailsFormValue.categories,
+          ...(this.canDisplayJupiterToggle
+            ? { execution_mode: apiDetailsFormValue.enableJupiter ? ('jupiter' as const) : ('v3' as const) }
+            : {}),
+        })),
         switchMap((api) => this.apiService.update(api)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError((err) => {
@@ -398,21 +397,15 @@ const isImgUrl = (url: string): Promise<boolean> => {
   });
 };
 
-function getBase64(file?: File): Observable<string | undefined | null> {
+function getBase64(file?: NewFile | string): string | undefined | null {
   if (!file) {
     // If no file, return null to remove it
-    return of(null);
+    return null;
   }
-  if (!(file instanceof Blob)) {
+  if (!(file instanceof NewFile)) {
     // If file not changed, return undefined to keep it
-    return of(undefined);
+    return undefined;
   }
 
-  return new Observable((subscriber) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => subscriber.next(reader.result.toString());
-    reader.onerror = (error) => subscriber.error(error);
-    return () => reader.abort();
-  });
+  return file.dataUrl;
 }
