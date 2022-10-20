@@ -1,0 +1,65 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.card__group-endpoint {
+  &__row {
+    display: flex;
+    align-items: center;
+
+    &__type,
+    &__name,
+    &__target,
+    &__weight,
+    &__backup,
+    &__tenant {
+      flex: 1 1 auto;
+
+      &__label {
+        @include mat.typography-level($typography, body-2);
+      }
+
+      &__label,
+      &__hint {
+        padding: 0 0.75em 0 0.75em;
+      }
+
+      &__form-field {
+        width: 100%;
+        padding: 0 8px;
+      }
+    }
+
+    &__backup {
+      &__checkbox {
+        margin-left: 8px;
+
+        &__label {
+          white-space: initial;
+        }
+      }
+    }
+
+    &__tenant {
+      mat-option .card__group-endpoint__row__tenant__option {
+        height: 100%;
+      }
+
+      &__name {
+        @include mat.typography-level($typography, body-2);
+      }
+
+      &__description {
+        padding: 0 0.75em 0 0.75em;
+        @include mat.typography-level($typography, caption);
+      }
+    }
+  }
+}

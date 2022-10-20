@@ -30,7 +30,7 @@ import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-ge
 import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
 import { ApiProxyGroupConfigurationComponent } from './edit/configuration/api-proxy-group-configuration.component';
 import { ApiProxyGroupServiceDiscoveryComponent } from './edit/service-discovery/api-proxy-group-service-discovery.component';
-import { ApiProxyGroupsEndpointModule } from './endpoint/api-proxy-groups-endpoint.module';
+import { ApiProxyGroupEndpointModule } from './endpoint/api-proxy-group-endpoint.module';
 
 import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
@@ -59,7 +59,7 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
     GioFormFocusInvalidModule,
     GioSaveBarModule,
 
-    ApiProxyGroupsEndpointModule,
+    ApiProxyGroupEndpointModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

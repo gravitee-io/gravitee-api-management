@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { StateService } from '@uirouter/core';
 
-import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
+import { ApiService } from '../../../../../../../services-ngx/api.service';
+import { Api } from '../../../../../../../entities/api';
+import { ProxyGroupEndpoint } from '../../../../../../../entities/proxy';
+import { TenantService } from '../../../../../../../services-ngx/tenant.service';
+import { Tenant } from '../../../../../../../entities/tenant/tenant';
+import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
+import { toProxyGroupEndpoint } from '../api-proxy-group-endpoint.adapter';
+import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -23,11 +36,115 @@ import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers
   styles: [require('./api-proxy-group-endpoint-edit.component.scss')],
 })
 export class ApiProxyGroupEndpointEditComponent implements OnInit {
-  public apiId: string;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private api: Api;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams) {}
+  public apiId: string;
+  public isReadOnly: boolean;
+  public supportedTypes: string[];
+  public endpointForm: FormGroup;
+  public generalForm: FormGroup;
+  public endpoint: ProxyGroupEndpoint;
+  public initialEndpointFormValue: unknown;
+  public tenants: Tenant[];
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly formBuilder: FormBuilder,
+    private readonly apiService: ApiService,
+    private readonly connectorService: ConnectorService,
+    private readonly tenantService: TenantService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+
+    combineLatest([this.apiService.get(this.apiId), this.connectorService.list(true), this.tenantService.list()])
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        map(([api, connectors, tenants]) => {
+          this.api = api;
+          this.supportedTypes = connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
+          this.tenants = tenants;
+          this.initForms();
+        }),
+      )
+      .subscribe();
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  public onSubmit(): Subscription {
+    return this.apiService
+      .get(this.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => {
+          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
+          const endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
+            (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
+          );
+          const updatedEndpoint = toProxyGroupEndpoint(
+            api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
+            this.generalForm.getRawValue(),
+          );
+
+          endpointIndex !== -1
+            ? api.proxy.groups[groupIndex].endpoints.splice(groupIndex, 1, updatedEndpoint)
+            : api.proxy.groups[groupIndex].endpoints.push(updatedEndpoint);
+
+          return this.apiService.update(api);
+        }),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.apiId })),
+      )
+      .subscribe();
+  }
+
+  private initForms(): void {
+    const group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
+
+    if (group && group.endpoints && group.endpoints.length > 0) {
+      this.endpoint = {
+        ...group.endpoints.find((endpoint) => endpoint.name === this.ajsStateParams.endpointName),
+      };
+    }
+
+    this.generalForm = this.formBuilder.group({
+      name: [
+        {
+          value: this.endpoint?.name ?? null,
+          disabled: false,
+        },
+        [
+          Validators.required,
+          Validators.pattern(/^[^:]*$/),
+          isUniq(
+            group.endpoints.reduce((acc, endpoint) => [...acc, endpoint.name], []),
+            this.endpoint?.name,
+          ),
+        ],
+      ],
+      type: [{ value: this.endpoint?.type ?? null, disabled: false }, [Validators.required]],
+      target: [{ value: this.endpoint?.target ?? null, disabled: false }, [Validators.required]],
+      weight: [{ value: this.endpoint?.weight ?? null, disabled: false }, [Validators.required]],
+      tenants: [{ value: this.endpoint?.tenants ?? null, disabled: false }],
+      backup: [{ value: this.endpoint?.backup ?? false, disabled: false }],
+    });
+
+    this.endpointForm = this.formBuilder.group({
+      general: this.generalForm,
+    });
+
+    this.initialEndpointFormValue = this.endpointForm.getRawValue();
   }
 }

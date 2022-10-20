@@ -23,10 +23,25 @@
 <mat-tab-group animationDuration="0ms">
   <mat-tab label="General">
     <!-- General tab content -->
+    <div class="tab-body-wrapper">
+      <api-proxy-group-endpoint-edit-general
+        *ngIf="generalForm && endpoint && supportedTypes && tenants"
+        [generalForm]="generalForm"
+        [endpoint]="endpoint"
+        [supportedTypes]="supportedTypes"
+        [tenants]="tenants"
+      ></api-proxy-group-endpoint-edit-general>
+    </div>
   </mat-tab>
   <mat-tab label="Configuration">
     <!-- Configuration tab content -->
   </mat-tab>
 </mat-tab-group>
 
-
+<gio-save-bar
+  class="save-bar"
+  *ngIf="!isReadOnly && endpointForm?.dirty"
+  [form]="endpointForm"
+  [formInitialValues]="initialEndpointFormValue"
+  (submitted)="onSubmit()"
+></gio-save-bar>
