@@ -94,7 +94,8 @@ describe('ApiPortalDetailsComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    trackImageOnload();
+
+    GioFormFilePickerInputHarness.forceImageOnload();
   });
 
   afterEach(() => {
@@ -134,12 +135,12 @@ describe('ApiPortalDetailsComponent', () => {
     await descriptionInput.setValue('🦊 API description');
 
     const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
-    expect((await picturePicker.getPreviewImages())[0]).toContain(api.picture_url);
-    await picturePicker.dropFiles(fixture, [newImageFile('new-image.png', 'image/png')]);
+    expect((await picturePicker.getPreviews())[0]).toContain(api.picture_url);
+    await picturePicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
     const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
-    expect((await backgroundPicker.getPreviewImages())[0]).toContain(api.background_url);
-    await backgroundPicker.dropFiles(fixture, [newImageFile('new-image.png', 'image/png')]);
+    expect((await backgroundPicker.getPreviews())[0]).toContain(api.background_url);
+    await backgroundPicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
     const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
     expect(await labelsInput.getTags()).toEqual(['label1', 'label2']);
@@ -291,19 +292,6 @@ describe('ApiPortalDetailsComponent', () => {
     fixture.detectChanges();
   }
 });
-
-/** Override Image global to force onload call */
-function trackImageOnload() {
-  Object.defineProperty(Image.prototype, 'onload', {
-    get: function () {
-      return this._onload;
-    },
-    set: function (fn) {
-      this._onload = fn;
-      this._onload();
-    },
-  });
-}
 
 export function newImageFile(fileName: string, type: string): File {
   return new File([''], fileName, { type });
