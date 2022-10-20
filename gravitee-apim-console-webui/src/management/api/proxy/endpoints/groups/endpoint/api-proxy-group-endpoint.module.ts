@@ -24,14 +24,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
+import { ApiProxyGroupEndpointEditGeneralComponent } from './edit/general/api-proxy-group-endpoint-edit-general.component';
 
 import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiProxyGroupEndpointEditComponent],
+  declarations: [ApiProxyGroupEndpointEditComponent, ApiProxyGroupEndpointEditGeneralComponent],
   exports: [ApiProxyGroupEndpointEditComponent],
   imports: [
     CommonModule,
@@ -43,11 +46,12 @@ import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-g
     MatInputModule,
     MatSnackBarModule,
     MatCheckboxModule,
+    MatSelectModule,
+    MatTooltipModule,
 
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,
     GioSaveBarModule,
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class ApiProxyGroupsEndpointModule {}
+export class ApiProxyGroupEndpointModule {}
