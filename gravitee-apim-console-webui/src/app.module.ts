@@ -22,11 +22,19 @@ import { UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
 
-import { uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider, ajsRootScopeProvider } from './ajs-upgraded-providers';
+import {
+  uiRouterStateProvider,
+  uiRouterStateParamsProvider,
+  currentUserProvider,
+  ajsRootScopeProvider,
+  portalSettingsProvider,
+} from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
 import { ManagementModule } from './management/management.module';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
+import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -43,6 +51,7 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
     OrganizationSettingsModule,
     ManagementModule,
     GioPendoModule.forRoot(),
+    GioSideNavModule,
   ],
   providers: [
     httpInterceptorProviders,
@@ -50,6 +59,7 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
     uiRouterStateParamsProvider,
     currentUserProvider,
     ajsRootScopeProvider,
+    portalSettingsProvider,
     {
       provide: GIO_PENDO_SETTINGS_TOKEN,
       useFactory: (constants: Constants) => {
