@@ -63,3 +63,14 @@ export const ajsRootScopeProvider = {
   useFactory: ajsRootScopeServiceFactory,
   deps: ['$injector'],
 };
+
+export const PortalSettingsService = new InjectionToken<IScope>('PortalSettingsService');
+
+function portalSettingsServiceFactory(i: any) {
+  return i.get('PortalConfigService');
+}
+export const portalSettingsProvider = {
+  provide: PortalSettingsService,
+  useFactory: portalSettingsServiceFactory,
+  deps: ['$injector'],
+};

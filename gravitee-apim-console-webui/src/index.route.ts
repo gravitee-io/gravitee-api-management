@@ -53,7 +53,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/environments/:environmentId',
       views: {
         sidenav: {
-          component: 'gvSidenav',
+          component: 'gioSideNav',
         },
         '': {
           template:
