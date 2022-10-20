@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -179,7 +180,8 @@ class HttpGetEntrypointConnectorTest {
     @ParameterizedTest(name = "Expected: {0}, parameters: {1}")
     @DisplayName("Should select the best Content-Type based on ACCEPT headers, including quality parameter")
     @MethodSource("io.gravitee.plugin.entrypoint.http.get.utils.IntegrationTestMethodSourceProvider#provideValidAcceptHeaders")
-    void shouldSelectTheBestContentTypeBasedOnAcceptHeader(String expectedHeader, List<String> acceptHeaderValues) {
+    void shouldSelectTheBestContentTypeBasedOnAcceptHeader(String expectedHeader, List<String> acceptHeaderValues)
+        throws InterruptedException {
         final HttpHeaders requestHttpHeaders = HttpHeaders.create();
         // add multiple ACCEPT headers depending on the parameter
         for (String header : acceptHeaderValues) {
@@ -190,37 +192,23 @@ class HttpGetEntrypointConnectorTest {
 
         when(ctx.request()).thenReturn(request);
 
-        cut
-            .handleRequest(ctx)
-            .test()
-            .assertOf(
-                aVoid -> {
-                    verify(ctx, times(1))
-                        .putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, expectedHeader);
-                }
-            )
-            .assertComplete();
+        cut.handleRequest(ctx).test().await().assertComplete();
+
+        verify(ctx, times(1)).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, expectedHeader);
     }
 
     @Test
     @DisplayName("Should select the best Content-Type based on ACCEPT headers, including quality parameter")
-    void shouldSelectTextPlainWhenAcceptHeaderNull() {
+    void shouldSelectTextPlainWhenAcceptHeaderNull() throws InterruptedException {
         final HttpHeaders requestHttpHeaders = HttpHeaders.create();
         when(request.headers()).thenReturn(requestHttpHeaders);
         when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
 
         when(ctx.request()).thenReturn(request);
 
-        cut
-            .handleRequest(ctx)
-            .test()
-            .assertOf(
-                aVoid -> {
-                    verify(ctx, times(1))
-                        .putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
-                }
-            )
-            .assertComplete();
+        cut.handleRequest(ctx).test().await().assertComplete();
+
+        verify(ctx, times(1)).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, MediaType.TEXT_PLAIN);
     }
 
     @ParameterizedTest

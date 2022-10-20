@@ -27,15 +27,13 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.reactivex.observers.TestObserver;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.buffer.Buffer;
-import io.vertx.reactivex.ext.web.client.HttpRequest;
-import io.vertx.reactivex.ext.web.client.HttpResponse;
-import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,21 +63,29 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest(name = "Expected: {0}, parameters: {1}")
     @MethodSource("io.gravitee.plugin.entrypoint.http.get.utils.IntegrationTestMethodSourceProvider#provideValidAcceptHeaders")
     @DisplayName("Should deploy a V4 API with a HTTP GET entrypoint and get the good Content-Type for response")
-    void shouldGetCorrectContentType(String expectedHeader, List<String> acceptHeaderValues, WebClient client) {
-        final HttpRequest<Buffer> request = client.get("/test");
-        request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeaderValues);
-        final TestObserver<HttpResponse<Buffer>> obs = request.rxSend().test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+    void shouldGetCorrectContentType(String expectedHeader, List<String> acceptHeaderValues, HttpClient client)
+        throws InterruptedException {
+        AtomicBoolean hasJsonContent = new AtomicBoolean(false);
+        client
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeaderValues).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(expectedHeader);
 
                     // Doing content assertion only in json because it's easier
-                    if (response.getHeader(HttpHeaderNames.CONTENT_TYPE).equals(MediaType.APPLICATION_JSON)) {
-                        final JsonObject content = response.bodyAsJsonObject();
+                    hasJsonContent.set(response.getHeader(HttpHeaderNames.CONTENT_TYPE).equals(MediaType.APPLICATION_JSON));
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    if (hasJsonContent.get()) {
+                        final JsonObject content = new JsonObject(body.toString());
 
                         final JsonObject pagination = content.getJsonObject("pagination");
                         assertThat(pagination.getString(CURSOR_QUERY_PARAM)).isNull();
@@ -100,24 +106,24 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should get the good messages count thanks to cursor param")
-    void shouldGetCorrectContentTypePagination(WebClient client) {
-        final TestObserver<HttpResponse<Buffer>> obs = client
-            .get("/test")
-            .addQueryParam(CURSOR_QUERY_PARAM, "9")
-            .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-            .rxSend()
-            .test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+    void shouldGetCorrectContentTypePagination(HttpClient client) throws InterruptedException {
+        client
+            .rxRequest(HttpMethod.GET, String.format("/test?%s=%s", CURSOR_QUERY_PARAM, 9))
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    final JsonObject content = response.bodyAsJsonObject();
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertValue(
+                body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
                     final JsonObject pagination = content.getJsonObject("pagination");
-                    assertThat(pagination.getString(CURSOR_QUERY_PARAM)).isEqualTo("9");
                     // This value is due to the entrypoint "messagesLimitCount=" configuration field
                     assertThat(pagination.getString("nextCursor")).isEqualTo("14");
 
@@ -136,20 +142,23 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should get the good messages count when endpoint limits the numbers of messages")
     @DeployApi("/apis/http-get-entrypoint-limiting-mock.json")
-    void shouldGetCorrectContentTypePaginationLimitingMock(WebClient client) {
-        final TestObserver<HttpResponse<Buffer>> obs = client
-            .get("/test-limiting-mock")
-            .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-            .rxSend()
-            .test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+    void shouldGetCorrectContentTypePaginationLimitingMock(HttpClient client) throws InterruptedException {
+        client
+            .rxRequest(HttpMethod.GET, "/test-limiting-mock")
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    final JsonObject content = response.bodyAsJsonObject();
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
                     final JsonObject pagination = content.getJsonObject("pagination");
                     assertThat(pagination.getString(CURSOR_QUERY_PARAM)).isNull();
@@ -171,20 +180,23 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should get the same count of messages whatever the cursor when endpoint provides messages in an unlimited way")
     @DeployApi("/apis/http-get-entrypoint-unlimited-mock.json")
-    void shouldGetCorrectContentTypePaginationUnlimitedMock(WebClient client) {
-        TestObserver<HttpResponse<Buffer>> obs = client
-            .get("/test-unlimited-mock")
-            .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-            .rxSend()
-            .test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+    void shouldGetCorrectContentTypePaginationUnlimitedMock(HttpClient client) throws InterruptedException {
+        client
+            .rxRequest(HttpMethod.GET, "/test-unlimited-mock")
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    final JsonObject content = response.bodyAsJsonObject();
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
                     final JsonObject pagination = content.getJsonObject("pagination");
                     assertThat(pagination.getString(CURSOR_QUERY_PARAM)).isNull();
@@ -202,24 +214,25 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             )
             .assertNoErrors();
 
-        obs =
-            client
-                .get("/test-unlimited-mock")
-                .addQueryParam(CURSOR_QUERY_PARAM, "14")
-                .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-                .rxSend()
-                .test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+        // A second call with a cursor to 14 should provide 12 elements
+        client
+            .rxRequest(HttpMethod.GET, String.format("/test-unlimited-mock?%s=%s", CURSOR_QUERY_PARAM, "14"))
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    final JsonObject content = response.bodyAsJsonObject();
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
                     final JsonObject pagination = content.getJsonObject("pagination");
-                    assertThat(pagination.getString(CURSOR_QUERY_PARAM)).isEqualTo("14");
                     // This value is due to the entrypoint "messagesLimitCount" configuration field
                     assertThat(pagination.getString("nextCursor")).isEqualTo("26");
 
@@ -237,21 +250,23 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should limit the messages received by the endpoint")
-    void shouldUseLimit(WebClient client) {
-        final TestObserver<HttpResponse<Buffer>> obs = client
-            .get("/test")
-            .addQueryParam(LIMIT_QUERY_PARAM, "3")
-            .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-            .rxSend()
-            .test();
-
-        awaitTerminalEvent(obs)
-            .assertComplete()
-            .assertValue(
+    void shouldUseLimit(HttpClient client) throws InterruptedException {
+        client
+            .rxRequest(HttpMethod.GET, String.format("/test?%s=%s", LIMIT_QUERY_PARAM, 3))
+            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
+            .flatMap(
                 response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    final JsonObject content = response.bodyAsJsonObject();
+                    return response.body();
+                }
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .assertValue(
+                body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
                     final JsonObject pagination = content.getJsonObject("pagination");
                     assertThat(pagination.getString(LIMIT_QUERY_PARAM)).isEqualTo("3");
