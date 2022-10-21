@@ -5,6 +5,17 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/607?closed=1[APIM - 3.19.1 (2022-10-21)]
+
+=== Bug fixes
+
+*_Management_*
+
+- Paths based APIs failed to match subscription https://github.com/gravitee-io/issues/issues/8570[#8570]
+
+ 
+ 
+
 == https://github.com/gravitee-io/issues/milestone/603?closed=1[APIM - 3.18.11 (2022-10-13)]
 
 === Bug fixes
