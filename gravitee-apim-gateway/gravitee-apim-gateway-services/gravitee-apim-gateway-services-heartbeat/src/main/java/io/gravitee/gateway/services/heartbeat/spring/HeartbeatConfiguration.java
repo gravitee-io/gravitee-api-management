@@ -24,16 +24,14 @@ import io.gravitee.gateway.services.heartbeat.spring.configuration.HeartbeatStra
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.message.MessageProducer;
-import io.gravitee.node.cluster.spring.HazelcastClusterConfiguration;
-import io.gravitee.node.cluster.spring.StandaloneClusterConfiguration;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,19 +46,15 @@ public class HeartbeatConfiguration {
     }
 
     @Bean("heartbeatStrategy")
-    @Conditional(StandaloneClusterConfiguration.StandaloneModeEnabled.class)
-    public HeartbeatStrategy heartbeatStandaloneStrategy(HeartbeatStrategyConfiguration heartbeatStrategyConfiguration) {
-        return new StandaloneHeartbeatStrategy(heartbeatStrategyConfiguration);
-    }
-
-    @Bean("heartbeatStrategy")
-    @Conditional(HazelcastClusterConfiguration.ClusterModeEnabled.class)
-    public HeartbeatStrategy heartbeatHazelcastStrategy(
-        HeartbeatStrategyConfiguration heartbeatStrategyConfiguration,
-        ClusterManager clusterManager,
-        MessageProducer messageProducer
-    ) {
-        return new HazelcastHeartbeatStrategy(heartbeatStrategyConfiguration, clusterManager, messageProducer);
+    public HeartbeatStrategy heartbeatStandaloneStrategy(
+            ClusterManager clusterManager,
+            MessageProducer messageProducer,
+            HeartbeatStrategyConfiguration heartbeatStrategyConfiguration) {
+        if (clusterManager.isStandalone()) {
+            return new StandaloneHeartbeatStrategy(heartbeatStrategyConfiguration);
+        } else {
+            return new HazelcastHeartbeatStrategy(heartbeatStrategyConfiguration, clusterManager, messageProducer);
+        }
     }
 
     @Bean

@@ -661,6 +661,22 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Clusters -->
+        <dependency>
+            <groupId>io.gravitee.node.plugin.cluster</groupId>
+            <artifactId>gravitee-node-plugin-cluster-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.node.plugin.cluster</groupId>
+            <artifactId>gravitee-node-plugin-cluster-hazelcast</artifactId>
+            <version>${gravitee-node.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>

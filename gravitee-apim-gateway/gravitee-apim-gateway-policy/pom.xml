@@ -88,12 +88,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cache</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Jackson dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
