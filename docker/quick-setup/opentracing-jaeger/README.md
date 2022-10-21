@@ -7,7 +7,9 @@ You can call your APIs through your gateway classically (for example: `http://lo
 
 ## How To Run This Docker Compose 
 
-⚠️ 1. Since the Jaeger tracer is not bundled by default, **you must download the zip file** related to the version you want to run. [Click here](https://download.gravitee.io/#graviteeio-apim/plugins/tracers/gravitee-tracer-jaeger/) to download the .ZIP.
+⚠️ You need a license file to be able to run Enterprise Edition of APIM. Do not forget to add your license file into `./.license`.
+
+1. ⚠️ Since the Jaeger tracer is not bundled by default, **you must download the zip file** related to the version you want to run. [Click here](https://download.gravitee.io/#graviteeio-apim/plugins/tracers/gravitee-tracer-jaeger/) to download the .ZIP.
 
 2. Next, **copy the .ZIP file into `opentracing-jaeger/.plugins` directory** using the command below:
 
