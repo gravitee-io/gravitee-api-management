@@ -84,6 +84,7 @@ services:
     volumes:
       - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
       - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
+      - ./.license:/opt/graviteeio-gateway/license
     environment:
       - gravitee_management_type=jdbc
       - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
@@ -122,6 +123,7 @@ services:
     volumes:
       - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
       - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
+      - ./.license:/opt/graviteeio-gateway/license
     environment:
       - gravitee_management_type=http
       - gravitee_management_http_url=http://gateway-server:18092
@@ -155,6 +157,7 @@ services:
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc
+      - ./.license:/opt/graviteeio-management-api/license
     environment:
       - gravitee_management_type=jdbc
       - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee

@@ -11,6 +11,8 @@ Keycloak UI is accessible here http://localhost:8081/auth
 
 ## How to use ?
 
+⚠️ You need a license file to be able to run Enterprise Edition of APIM. Do not forget to add your license file into `./.license`.
+
 In the Keycloak UI (https://docs.gravitee.io/apim/3.x/apim_installguide_authentication_keycloak.html#create_a_new_client):
 - Read how to create a new client for your application. (Already imported with `realm/realm-gio.json`)
 - Create a user in the "GIO" realm.

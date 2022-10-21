@@ -10,6 +10,8 @@ To test the **Prometheus scrapping endpoint**, you can call, for example, `http:
 
 ## How to run ?
 
+⚠️ You need a license file to be able to run Enterprise Edition of APIM. Do not forget to add your license file into `./.license`.
+
 `APIM_VERSION={APIM_VERSION} docker-compose up -d ` 
 
 To be sure to fetch last version of images, you can do
