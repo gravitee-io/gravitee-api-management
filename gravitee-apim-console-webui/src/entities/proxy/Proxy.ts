@@ -31,18 +31,21 @@ export interface ProxyVirtualHost {
   override_entrypoint?: boolean;
 }
 
-export interface ProxyGroup {
-  name?: string;
-  endpoints?: ProxyGroupEndpoint[];
-  load_balancing?: ProxyGroupLoadBalancer;
-  services?: Services;
+export interface ProxyConfiguration {
   proxy?: ProxyGroupProxy;
   http?: ProxyGroupHttpClientOptions;
   ssl?: ProxyGroupHttpClientSslOptions;
   headers?: Record<string, string>;
 }
 
-export interface ProxyGroupEndpoint {
+export interface ProxyGroup extends ProxyConfiguration {
+  name?: string;
+  endpoints?: ProxyGroupEndpoint[];
+  load_balancing?: ProxyGroupLoadBalancer;
+  services?: Services;
+}
+
+export interface ProxyGroupEndpoint extends ProxyConfiguration {
   name?: string;
   target?: string;
   weight?: number;
