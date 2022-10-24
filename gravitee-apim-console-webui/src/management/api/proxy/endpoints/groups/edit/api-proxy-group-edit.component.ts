@@ -20,7 +20,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
-import { ConfigurationEvent, ProxyGroupConfiguration } from './configuration/api-proxy-group-configuration.model';
 import {
   ProxyGroupServiceDiscoveryConfiguration,
   ServiceDiscoveryEvent,
@@ -32,10 +31,11 @@ import { Api } from '../../../../../../entities/api';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { ConnectorService } from '../../../../../../services-ngx/connector.service';
 import { toProxyGroup } from '../api-proxy-groups.adapter';
-import { ProxyGroup } from '../../../../../../entities/proxy';
+import { ProxyConfiguration, ProxyGroup } from '../../../../../../entities/proxy';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { ConfigurationEvent } from '../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -44,7 +44,7 @@ import { GioPermissionService } from '../../../../../../shared/components/gio-pe
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private updatedConfiguration: ProxyGroupConfiguration;
+  private updatedConfiguration: ProxyConfiguration;
   private updatedServiceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration;
   private mode: 'new' | 'edit';
 

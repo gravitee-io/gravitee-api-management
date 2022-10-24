@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -23,30 +23,36 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upg
 import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
 import { ApiService } from '../../../../../../../services-ngx/api.service';
 import { Api } from '../../../../../../../entities/api';
-import { ProxyGroupEndpoint } from '../../../../../../../entities/proxy';
+import { ProxyConfiguration, ProxyGroupEndpoint } from '../../../../../../../entities/proxy';
 import { TenantService } from '../../../../../../../services-ngx/tenant.service';
 import { Tenant } from '../../../../../../../entities/tenant/tenant';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
 import { toProxyGroupEndpoint } from '../api-proxy-group-endpoint.adapter';
 import { isUniq } from '../../edit/api-proxy-group-edit.validator';
+import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
+import { ConfigurationEvent } from '../../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
   template: require('./api-proxy-group-endpoint-edit.component.html'),
   styles: [require('./api-proxy-group-endpoint-edit.component.scss')],
 })
-export class ApiProxyGroupEndpointEditComponent implements OnInit {
+export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
+  private connectors: ConnectorListItem[];
+  private updatedConfiguration: ProxyConfiguration;
 
   public apiId: string;
   public isReadOnly: boolean;
   public supportedTypes: string[];
   public endpointForm: FormGroup;
   public generalForm: FormGroup;
+  public configurationForm: FormGroup;
   public endpoint: ProxyGroupEndpoint;
   public initialEndpointFormValue: unknown;
   public tenants: Tenant[];
+  public configurationSchema: unknown;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -66,9 +72,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
         map(([api, connectors, tenants]) => {
           this.api = api;
-          this.supportedTypes = connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
+          this.connectors = connectors;
           this.tenants = tenants;
           this.initForms();
+          this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
+          this.configurationSchema = JSON.parse(
+            this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase()))?.schema,
+          );
         }),
       )
       .subscribe();
@@ -89,9 +99,14 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit {
           const endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
             (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
           );
+
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
+            {
+              ...this.updatedConfiguration,
+              inherit: this.configurationForm.getRawValue().inherit,
+            },
           );
 
           endpointIndex !== -1
@@ -108,6 +123,18 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit {
         tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.apiId })),
       )
       .subscribe();
+  }
+
+  public onConfigurationChange(event: ConfigurationEvent) {
+    this.endpointForm.markAsDirty();
+    this.endpointForm.markAsTouched();
+    if (this.endpointForm.getError('invalidConfiguration') && event.isSchemaValid) {
+      delete this.endpointForm.errors['invalidConfiguration'];
+      this.endpointForm.updateValueAndValidity();
+    } else if (!event.isSchemaValid) {
+      this.endpointForm.setErrors({ invalidConfiguration: true });
+    }
+    this.updatedConfiguration = event.configuration;
   }
 
   private initForms(): void {
@@ -141,10 +168,22 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit {
       backup: [{ value: this.endpoint?.backup ?? false, disabled: false }],
     });
 
+    this.configurationForm = this.formBuilder.group({
+      inherit: [{ value: this.endpoint?.inherit ?? false, disabled: false }],
+    });
+
     this.endpointForm = this.formBuilder.group({
       general: this.generalForm,
+      configuration: this.configurationForm,
     });
 
     this.initialEndpointFormValue = this.endpointForm.getRawValue();
+
+    this.generalForm
+      .get('type')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((type) => {
+        this.configurationSchema = JSON.parse(this.connectors.find((connector) => connector.supportedTypes.includes(type))?.schema);
+      });
   }
 }

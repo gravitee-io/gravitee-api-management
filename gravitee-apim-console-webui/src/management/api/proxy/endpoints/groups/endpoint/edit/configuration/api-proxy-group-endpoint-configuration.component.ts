@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 
-import { ProxyGroup } from '../../../../../../../entities/proxy';
-import { ConfigurationEvent, SchemaFormEvent } from '../../api-proxy-groups.model';
+import { ProxyGroupEndpoint } from '../../../../../../../../entities/proxy';
+import { ConfigurationEvent, SchemaFormEvent } from '../../../api-proxy-groups.model';
 
 @Component({
-  selector: 'api-proxy-group-configuration',
-  template: require('./api-proxy-group-configuration.component.html'),
-  styles: [require('./api-proxy-group-configuration.component.scss')],
+  selector: 'api-proxy-group-endpoint-configuration',
+  template: require('./api-proxy-group-endpoint-configuration.component.html'),
+  styles: [require('./api-proxy-group-endpoint-configuration.component.scss')],
 })
-export class ApiProxyGroupConfigurationComponent {
-  @Input() schemaForm: unknown;
-  @Input() group: ProxyGroup;
-  @Input() isReadOnly: boolean;
+export class ApiProxyGroupEndpointConfigurationComponent {
+  @Input() configurationForm: FormGroup;
+  @Input() configurationSchema: unknown;
+  @Input() endpoint: ProxyGroupEndpoint;
   @Output() onConfigurationChange = new EventEmitter<ConfigurationEvent>();
 
   public onChange(event: SchemaFormEvent): void {

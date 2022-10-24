@@ -15,12 +15,30 @@
  */
 
 import { EndpointGeneralData } from './edit/general/api-proxy-group-endpoint-edit-general.model';
+import { EndpointConfigurationData } from './edit/configuration/api-proxy-group-endpoint-edit-configuration.model';
 
 import { ProxyGroupEndpoint } from '../../../../../../entities/proxy';
 
-export const toProxyGroupEndpoint = (endpoint: ProxyGroupEndpoint, generalData: EndpointGeneralData): ProxyGroupEndpoint => {
-  return {
+export const toProxyGroupEndpoint = (
+  endpoint: ProxyGroupEndpoint,
+  generalData: EndpointGeneralData,
+  configurationData: EndpointConfigurationData,
+): ProxyGroupEndpoint => {
+  let updatedEndpoint = {
     ...endpoint,
     ...generalData,
+    inherit: configurationData.inherit,
   };
+
+  if (configurationData) {
+    updatedEndpoint = {
+      ...updatedEndpoint,
+      http: configurationData.http,
+      ssl: configurationData.ssl,
+      headers: configurationData.headers,
+      proxy: configurationData.proxy,
+    };
+  }
+
+  return updatedEndpoint;
 };

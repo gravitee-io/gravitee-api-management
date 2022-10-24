@@ -29,12 +29,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEndpointEditGeneralComponent } from './edit/general/api-proxy-group-endpoint-edit-general.component';
+import { ApiProxyGroupEndpointConfigurationComponent } from './edit/configuration/api-proxy-group-endpoint-configuration.component';
 
 import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiProxyGroupEndpointEditComponent, ApiProxyGroupEndpointEditGeneralComponent],
+  declarations: [
+    ApiProxyGroupEndpointEditComponent,
+    ApiProxyGroupEndpointEditGeneralComponent,
+    ApiProxyGroupEndpointConfigurationComponent,
+  ],
   exports: [ApiProxyGroupEndpointEditComponent],
   imports: [
     CommonModule,
@@ -53,5 +58,6 @@ import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-g
     GioFormFocusInvalidModule,
     GioSaveBarModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApiProxyGroupEndpointModule {}

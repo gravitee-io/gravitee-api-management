@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-import { ProxyGroupConfiguration } from './edit/configuration/api-proxy-group-configuration.model';
 import { ProxyGroupServiceDiscoveryConfiguration } from './edit/service-discovery/api-proxy-group-service-discovery.model';
 
-import { ProxyGroup, ProxyGroupLoadBalancerType } from '../../../../../entities/proxy';
+import { ProxyConfiguration, ProxyGroup, ProxyGroupLoadBalancerType } from '../../../../../entities/proxy';
 
 export const toProxyGroup = (
   group: ProxyGroup,
   generalData: { name: string; type: ProxyGroupLoadBalancerType },
-  configuration: ProxyGroupConfiguration,
+  configuration: ProxyConfiguration,
   serviceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration,
 ): ProxyGroup => {
   let updatedGroup: ProxyGroup = {
