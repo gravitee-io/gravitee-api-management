@@ -29,7 +29,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
 import { Api } from '../../../../../../../entities/api';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
@@ -37,6 +37,7 @@ import { fakeApi } from '../../../../../../../entities/api/Api.fixture';
 import { fakeConnectorListItem } from '../../../../../../../entities/connector/connector-list-item.fixture';
 import { fakeTenant } from '../../../../../../../entities/tenant/tenant.fixture';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
+import { User } from '../../../../../../../entities/user';
 
 describe('ApiProxyGroupEndpointEditComponent', () => {
   const API_ID = 'apiId';
@@ -45,12 +46,14 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
   const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-definition-u'];
+
   let fixture: ComponentFixture<ApiProxyGroupEndpointEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let httpConnector: ConnectorListItem;
   let grpcConnector: ConnectorListItem;
-  let api: Api;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -59,39 +62,12 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: AjsRootScope, useValue: fakeRootScope },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });
 
     httpConnector = fakeConnectorListItem({ schema: '{ "name": "http-schema" }', supportedTypes: ['http'] });
     grpcConnector = fakeConnectorListItem({ schema: '{ "name": "grpc-schema" }', supportedTypes: ['grpc'] });
-    api = fakeApi({
-      id: API_ID,
-      proxy: {
-        groups: [
-          {
-            name: 'default-group',
-            endpoints: [
-              {
-                name: 'endpoint#1',
-                target: 'https://api.le-systeme-solaire.net/rest/',
-                weight: 1,
-                backup: false,
-                type: 'HTTP',
-                inherit: true,
-              },
-              {
-                name: 'endpoint#2',
-                target: 'https://api.le-systeme-solaire.net/rest/',
-                weight: 1,
-                backup: false,
-                type: 'HTTP',
-                inherit: true,
-              },
-            ],
-          },
-        ],
-      },
-    });
   });
 
   afterEach(() => {
@@ -100,12 +76,42 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Edit mode', () => {
+    let api: Api;
+
     beforeEach(async () => {
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
+      api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'endpoint#1',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+                {
+                  name: 'endpoint#2',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                },
+              ],
+            },
+          ],
+        },
+      });
 
       expectApiGetRequest(api);
       expectConnectorRequest();
@@ -272,6 +278,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Create mode', () => {
+    let api: Api;
+
     beforeEach(async () => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
       TestBed.compileComponents();
@@ -279,6 +287,27 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
+
+      api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: false,
+                },
+              ],
+            },
+          ],
+        },
+      });
 
       expectApiGetRequest(api);
       expectConnectorRequest();
@@ -340,6 +369,91 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           ],
         },
       });
+    });
+  });
+
+  describe('Read only', () => {
+    let api: Api;
+
+    beforeEach(() => {
+      TestBed.overrideProvider(UIRouterStateParams, {
+        useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME },
+      });
+      TestBed.compileComponents();
+      fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+
+      api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'endpoint#1',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: false,
+                },
+              ],
+            },
+          ],
+        },
+        definition_context: {
+          origin: 'kubernetes',
+        },
+      });
+      expectApiGetRequest(api);
+      expectConnectorRequest();
+      expectTenantsRequest();
+    });
+
+    it('should not allow user to update the form', async () => {
+      expect(
+        await loader
+          .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
+          .then((input) => input.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' })).then((select) => select.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader
+          .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
+          .then((input) => input.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader
+          .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
+          .then((input) => input.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint tenants"]' })).then((input) => input.isDisabled()),
+      ).toBeTruthy();
+
+      expect(
+        await loader
+          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Secondary endpoint checkbox"]' }))
+          .then((input) => input.isDisabled()),
+      ).toBeTruthy();
+
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+      fixture.detectChanges();
+
+      expect(
+        await loader
+          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Inherit configuration"]' }))
+          .then((checkbox) => checkbox.isDisabled()),
+      ).toBeTruthy();
     });
   });
 

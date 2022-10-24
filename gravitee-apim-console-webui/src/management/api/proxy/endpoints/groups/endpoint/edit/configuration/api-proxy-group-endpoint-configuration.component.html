@@ -23,7 +23,12 @@
     </div>
 
     <div *ngIf="!configurationForm.get('inherit').value">
-      <gv-schema-form [schema]="configurationSchema" [values]="endpoint" (:gv-schema-form:change)="onChange($event)"></gv-schema-form>
+      <gv-schema-form
+        [attr.readonly]="isReadOnly ? isReadOnly : null"
+        [schema]="configurationSchema"
+        [values]="endpoint"
+        (:gv-schema-form:change)="onChange($event)"
+      ></gv-schema-form>
     </div>
   </mat-card>
 </form>
