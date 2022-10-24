@@ -31,6 +31,7 @@ import { toProxyGroupEndpoint } from '../api-proxy-group-endpoint.adapter';
 import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
 import { ConfigurationEvent } from '../../api-proxy-groups.model';
+import { GioPermissionService } from '../../../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -63,6 +64,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     private readonly connectorService: ConnectorService,
     private readonly tenantService: TenantService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   public ngOnInit(): void {
@@ -76,6 +78,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.api = api;
           this.connectors = connectors;
           this.tenants = tenants;
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
           this.initForms();
           this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
           if (this.mode === 'edit') {
@@ -158,7 +161,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       name: [
         {
           value: this.endpoint?.name ?? null,
-          disabled: false,
+          disabled: this.isReadOnly,
         },
         [
           Validators.required,
@@ -169,15 +172,15 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           ),
         ],
       ],
-      type: [{ value: this.endpoint?.type ?? null, disabled: false }, [Validators.required]],
-      target: [{ value: this.endpoint?.target ?? null, disabled: false }, [Validators.required]],
-      weight: [{ value: this.endpoint?.weight ?? null, disabled: false }, [Validators.required]],
-      tenants: [{ value: this.endpoint?.tenants ?? null, disabled: false }],
-      backup: [{ value: this.endpoint?.backup ?? false, disabled: false }],
+      type: [{ value: this.endpoint?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      target: [{ value: this.endpoint?.target ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      weight: [{ value: this.endpoint?.weight ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      tenants: [{ value: this.endpoint?.tenants ?? null, disabled: this.isReadOnly }],
+      backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
     });
 
     this.configurationForm = this.formBuilder.group({
-      inherit: [{ value: this.endpoint?.inherit ?? true, disabled: false }],
+      inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
     });
 
     this.endpointForm = this.formBuilder.group({
