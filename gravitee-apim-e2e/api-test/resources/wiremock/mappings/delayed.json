@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/delayed"
+  },
+  "response": {
+    "status": 503,
+    "fixedDelayMilliseconds": 4000,
+    "headers": {
+      "X-Wiremock": "true"
+    }
+  }
+}

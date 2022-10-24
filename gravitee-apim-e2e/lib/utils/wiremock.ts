@@ -28,3 +28,10 @@ export async function setWiremockState(scenarioName: string, state: string) {
     throw new Error(`Unable to put scenario ${scenarioName} in state ${state} (HTTP ${status})`);
   }
 }
+
+export async function verifyWiremockRequest(url: string, method: string) {
+  return fetchApi(`${process.env.WIREMOCK_BASE_URL_FOR_JEST}/__admin/requests/count`, {
+    method: 'POST',
+    body: JSON.stringify({ method, url }),
+  });
+}
