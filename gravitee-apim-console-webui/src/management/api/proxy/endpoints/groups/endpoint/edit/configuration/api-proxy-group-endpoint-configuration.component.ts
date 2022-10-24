@@ -28,6 +28,7 @@ export class ApiProxyGroupEndpointConfigurationComponent {
   @Input() configurationForm: FormGroup;
   @Input() configurationSchema: unknown;
   @Input() endpoint: ProxyGroupEndpoint;
+  @Input() isReadOnly: boolean;
   @Output() onConfigurationChange = new EventEmitter<ConfigurationEvent>();
 
   public onChange(event: SchemaFormEvent): void {
