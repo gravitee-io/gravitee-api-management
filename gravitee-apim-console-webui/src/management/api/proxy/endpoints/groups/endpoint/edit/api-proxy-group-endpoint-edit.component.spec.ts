@@ -50,6 +50,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   let httpTestingController: HttpTestingController;
   let httpConnector: ConnectorListItem;
   let grpcConnector: ConnectorListItem;
+  let api: Api;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -63,6 +64,34 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
     httpConnector = fakeConnectorListItem({ schema: '{ "name": "http-schema" }', supportedTypes: ['http'] });
     grpcConnector = fakeConnectorListItem({ schema: '{ "name": "grpc-schema" }', supportedTypes: ['grpc'] });
+    api = fakeApi({
+      id: API_ID,
+      proxy: {
+        groups: [
+          {
+            name: 'default-group',
+            endpoints: [
+              {
+                name: 'endpoint#1',
+                target: 'https://api.le-systeme-solaire.net/rest/',
+                weight: 1,
+                backup: false,
+                type: 'HTTP',
+                inherit: true,
+              },
+              {
+                name: 'endpoint#2',
+                target: 'https://api.le-systeme-solaire.net/rest/',
+                weight: 1,
+                backup: false,
+                type: 'HTTP',
+                inherit: true,
+              },
+            ],
+          },
+        ],
+      },
+    });
   });
 
   afterEach(() => {
@@ -71,8 +100,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Edit mode', () => {
-    let api: Api;
-
     beforeEach(async () => {
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
@@ -80,38 +107,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
-        id: API_ID,
-        proxy: {
-          groups: [
-            {
-              name: 'default-group',
-              endpoints: [
-                {
-                  name: 'endpoint#1',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: true,
-                },
-                {
-                  name: 'endpoint#2',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: true,
-                },
-              ],
-            },
-          ],
-        },
-      });
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-      fixture.detectChanges();
     });
 
     it('should go back to endpoints', async () => {
@@ -269,6 +267,78 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
         expect(fixture.componentInstance.endpointForm.valid).toBeTruthy();
         expect(fixture.componentInstance.endpointForm.hasError('invalidConfiguration')).toBeFalsy();
+      });
+    });
+  });
+
+  describe('Create mode', () => {
+    beforeEach(async () => {
+      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
+      TestBed.compileComponents();
+      fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+
+      expectApiGetRequest(api);
+      expectConnectorRequest();
+      expectTenantsRequest();
+    });
+
+    it('should create new endpoint', async () => {
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
+        .then((input) => input.setValue('endpoint#3'));
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
+        .then((select) => select.clickOptions({ text: 'http' }));
+
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
+        .then((input) => input.setValue('42'));
+
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
+        .then((input) => input.setValue('https//dummy.com'));
+      expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
+      await saveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'default',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: false,
+                },
+                {
+                  name: 'endpoint#3',
+                  target: 'https//dummy.com',
+                  weight: 42,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: false,
+                },
+              ],
+            },
+          ],
+        },
       });
     });
   });
