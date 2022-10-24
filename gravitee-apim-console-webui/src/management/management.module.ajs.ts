@@ -560,7 +560,7 @@ Map(Highcharts);
 
 import '@highcharts/map-collection/custom/world';
 import { DebugApiService } from '../services/debugApi.service';
-import { downgradeComponent } from '@angular/upgrade/static';
+import { downgradeComponent, downgradeInjectable } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
@@ -578,6 +578,7 @@ import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org
 import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
 import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
+import { CockpitService } from '../services-ngx/cockpit.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -882,6 +883,8 @@ graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.component('cockpit', CockpitComponent);
 graviteeManagementModule.directive('ngCockpit', downgradeComponent({ component: OrgSettingsCockpitComponent }));
+graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
+
 graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponentAjs);
 graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
