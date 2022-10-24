@@ -48,6 +48,10 @@ export async function fetchGatewayBadRequest(request?: Partial<GatewayRequest>, 
   return _fetchGatewayWithRetries({ expectedStatusCode: 400, ...request }, logger);
 }
 
+export async function fetchGatewayServiceUnavailable(request?: Partial<GatewayRequest>, logger: Logger = console) {
+  return _fetchGatewayWithRetries({ expectedStatusCode: 503, ...request }, logger);
+}
+
 async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>, logger: Logger): Promise<Response> {
   const request = <GatewayRequest>{
     expectedStatusCode: 200,
