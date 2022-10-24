@@ -42,6 +42,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private api: Api;
   private connectors: ConnectorListItem[];
   private updatedConfiguration: ProxyConfiguration;
+  private mode: 'edit' | 'new';
 
   public apiId: string;
   public isReadOnly: boolean;
@@ -66,6 +67,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+    this.mode = !this.ajsStateParams.groupName || !this.ajsStateParams.endpointName ? 'new' : 'edit';
 
     combineLatest([this.apiService.get(this.apiId), this.connectorService.list(true), this.tenantService.list()])
       .pipe(
@@ -76,9 +78,11 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.tenants = tenants;
           this.initForms();
           this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
-          this.configurationSchema = JSON.parse(
-            this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase()))?.schema,
-          );
+          if (this.mode === 'edit') {
+            this.configurationSchema = JSON.parse(
+              this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase()))?.schema,
+            );
+          }
         }),
       )
       .subscribe();
@@ -96,9 +100,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
-          const endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
-            (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
-          );
+
+          let endpointIndex = -1;
+          if (this.mode === 'edit') {
+            endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
+              (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
+            );
+          }
 
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
@@ -169,7 +177,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     });
 
     this.configurationForm = this.formBuilder.group({
-      inherit: [{ value: this.endpoint?.inherit ?? false, disabled: false }],
+      inherit: [{ value: this.endpoint?.inherit ?? true, disabled: false }],
     });
 
     this.endpointForm = this.formBuilder.group({
