@@ -22,6 +22,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
@@ -45,7 +48,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   let fixture: ComponentFixture<ApiProxyGroupEndpointEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  let connector: ConnectorListItem;
+  let httpConnector: ConnectorListItem;
+  let grpcConnector: ConnectorListItem;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -57,7 +61,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       ],
     });
 
-    connector = fakeConnectorListItem();
+    httpConnector = fakeConnectorListItem({ schema: '{ "name": "http-schema" }', supportedTypes: ['http'] });
+    grpcConnector = fakeConnectorListItem({ schema: '{ "name": "grpc-schema" }', supportedTypes: ['grpc'] });
   });
 
   afterEach(() => {
@@ -104,7 +109,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         },
       });
       expectApiGetRequest(api);
-      expectConnectorRequest(connector);
+      expectConnectorRequest();
       expectTenantsRequest();
       fixture.detectChanges();
     });
@@ -115,44 +120,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
 
       expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.ng-endpoints', { apiId: API_ID }, undefined);
-    });
-
-    it('should update existing endpoint', async () => {
-      expect(fixture.componentInstance.supportedTypes).toEqual(['http', 'grpc']);
-
-      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }));
-      expect(await nameInput.getValue()).toEqual(DEFAULT_ENDPOINT_NAME);
-
-      const newEndpointName = 'new-endpoint-name';
-      await nameInput.setValue(newEndpointName);
-      expect(await nameInput.getValue()).toEqual(newEndpointName);
-
-      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
-      await gioSaveBar.clickSubmit();
-
-      expectApiGetRequest(api);
-      expectApiPutRequest({
-        ...api,
-        proxy: {
-          groups: [
-            {
-              name: newEndpointName,
-              endpoints: [],
-              load_balancing: { type: 'ROUND_ROBIN' },
-            },
-          ],
-        },
-      });
-    });
-
-    it('should not be able to save changes when endpoint name is already used', async () => {
-      await loader
-        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-        .then((input) => input.setValue('endpoint#2'));
-
-      const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
     });
 
     it('should warn the user on update error', async () => {
@@ -172,6 +139,138 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         .error(new ErrorEvent('error', { message: 'An error occurred' }));
       expect(snackBarServiceSpy).toHaveBeenCalledWith('An error occurred');
     });
+
+    describe('Edit general information of existing endpoint', () => {
+      it('should not be able to save changes when endpoint name is already used', async () => {
+        await loader
+          .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
+          .then((input) => input.setValue('endpoint#2'));
+
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
+      });
+
+      it('should update existing endpoint', async () => {
+        expect(fixture.componentInstance.supportedTypes).toEqual(['http', 'grpc']);
+
+        const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }));
+        expect(await nameInput.getValue()).toEqual(DEFAULT_ENDPOINT_NAME);
+
+        const newEndpointName = 'new-endpoint-name';
+        await nameInput.setValue(newEndpointName);
+        expect(await nameInput.getValue()).toEqual(newEndpointName);
+
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+        await gioSaveBar.clickSubmit();
+
+        expectApiGetRequest(api);
+        expectApiPutRequest({
+          ...api,
+          proxy: {
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    name: newEndpointName,
+                    target: 'https://api.le-systeme-solaire.net/rest/',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: true,
+                  },
+                ],
+              },
+            ],
+          },
+        });
+      });
+
+      it('should find connector schema', async () => {
+        expect(fixture.componentInstance.configurationSchema).toBeTruthy();
+        expect(fixture.componentInstance.configurationSchema['name']).toEqual('http-schema');
+
+        await loader
+          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
+          .then((select) => select.clickOptions({ text: 'grpc' }));
+
+        expect(fixture.componentInstance.configurationSchema).toBeTruthy();
+        expect(fixture.componentInstance.configurationSchema['name']).toEqual('grpc-schema');
+      });
+    });
+
+    describe('Edit configuration of existing endpoint', () => {
+      beforeEach(async () => {
+        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+        fixture.detectChanges();
+      });
+
+      it('should update existing endpoint configuration', async () => {
+        const inheritCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Inherit configuration"]' }));
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeFalsy();
+
+        await inheritCheckbox.toggle();
+
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
+        expect(fixture.componentInstance.configurationForm.getRawValue().inherit).toStrictEqual(false);
+
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+        await gioSaveBar.clickSubmit();
+
+        expectApiGetRequest(api);
+        expectApiPutRequest({
+          ...api,
+          proxy: {
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    name: 'default',
+                    target: 'https://api.le-systeme-solaire.net/rest/',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: false,
+                  },
+                ],
+              },
+            ],
+          },
+        });
+      });
+
+      it('should disable the save bar when the configuration form is invalid', async () => {
+        fixture.componentInstance.onConfigurationChange({
+          isSchemaValid: false,
+          configuration: {},
+        });
+
+        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+        expect(fixture.componentInstance.endpointForm.valid).toBeFalsy();
+      });
+
+      it('should enable the save bar when the configuration form become valie', async () => {
+        fixture.componentInstance.onConfigurationChange({
+          isSchemaValid: false,
+          configuration: {},
+        });
+        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+        expect(fixture.componentInstance.endpointForm.valid).toBeFalsy();
+        expect(fixture.componentInstance.endpointForm.hasError('invalidConfiguration')).toBeTruthy();
+
+        fixture.componentInstance.onConfigurationChange({
+          isSchemaValid: true,
+          configuration: {},
+        });
+
+        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
+        expect(fixture.componentInstance.endpointForm.valid).toBeTruthy();
+        expect(fixture.componentInstance.endpointForm.hasError('invalidConfiguration')).toBeFalsy();
+      });
+    });
   });
 
   function expectApiGetRequest(api: Api) {
@@ -179,8 +278,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectConnectorRequest(connector: ConnectorListItem) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' }).flush([connector]);
+  function expectConnectorRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' })
+      .flush([httpConnector, grpcConnector]);
     fixture.detectChanges();
   }
 

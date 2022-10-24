@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProxyGroup } from '../../../../../../../entities/proxy';
+import { ProxyConfiguration, ProxyGroupEndpoint } from '../../../../../../../../entities/proxy';
 
-export type ProxyGroupConfiguration = Pick<ProxyGroup, 'http' | 'proxy' | 'ssl' | 'headers'>;
-
-export interface ConfigurationEvent {
-  isSchemaValid: boolean;
-  configuration: ProxyGroupConfiguration;
-}
+export type EndpointConfigurationData = Pick<ProxyGroupEndpoint, 'inherit'> & ProxyConfiguration;

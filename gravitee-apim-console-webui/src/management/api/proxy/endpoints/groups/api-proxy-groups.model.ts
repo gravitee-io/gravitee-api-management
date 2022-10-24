@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+import { ProxyConfiguration } from '../../../../../entities/proxy';
+
+export interface ConfigurationEvent {
+  isSchemaValid: boolean;
+  configuration: ProxyConfiguration;
+}
+
 export interface SchemaFormEvent {
   detail: {
     validation: {
