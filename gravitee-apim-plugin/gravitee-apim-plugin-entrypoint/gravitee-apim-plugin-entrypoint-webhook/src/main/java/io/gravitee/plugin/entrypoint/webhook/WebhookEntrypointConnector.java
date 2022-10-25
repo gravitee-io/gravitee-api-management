@@ -18,21 +18,16 @@ package io.gravitee.plugin.entrypoint.webhook;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
-import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
+import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.FlowableTransformer;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.processors.BehaviorProcessor;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.Vertx;
@@ -57,6 +52,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
     private final QosOptions qosOptions;
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
+
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
     public WebhookEntrypointConnector(final Qos qos, final WebhookEntrypointConnectorConfiguration configuration) {
@@ -166,17 +162,20 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     private Completable prepareClientOptions(final ExecutionContext ctx) {
         return Completable.defer(
             () -> {
+                WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = null;
+
                 try {
                     final Vertx vertx = ctx.getComponent(Vertx.class);
                     final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
                     final ConnectorFactoryHelper connectorFactoryHelper = ctx.getComponent(ConnectorFactoryHelper.class);
-                    final WebhookEntrypointConnectorConfiguration configuration = connectorFactoryHelper.getConnectorConfiguration(
-                        WebhookEntrypointConnectorConfiguration.class,
-                        subscription.getConfiguration()
-                    );
+                    subscriptionConfiguration =
+                        connectorFactoryHelper.getConnectorConfiguration(
+                            WebhookEntrypointConnectorSubscriptionConfiguration.class,
+                            subscription.getConfiguration()
+                        );
 
                     final HttpClientOptions options = new HttpClientOptions();
-                    final String url = configuration.getCallbackUrl();
+                    final String url = subscriptionConfiguration.getCallbackUrl();
                     final URL target = new URL(null, url);
                     final String protocol = target.getProtocol();
 
@@ -204,7 +203,9 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                 } catch (Exception ex) {
                     return Completable.error(
                         new IllegalArgumentException(
-                            "Unable to prepare the HTTP client for the webhook subscription url[" + configuration.getCallbackUrl() + "]",
+                            "Unable to prepare the HTTP client for the webhook subscription configuration [" +
+                            subscriptionConfiguration +
+                            "]",
                             ex
                         )
                     );

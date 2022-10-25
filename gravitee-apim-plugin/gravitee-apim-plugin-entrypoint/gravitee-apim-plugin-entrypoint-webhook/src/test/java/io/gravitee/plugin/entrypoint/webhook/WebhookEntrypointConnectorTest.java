@@ -40,6 +40,7 @@ import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
+import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -81,6 +82,9 @@ class WebhookEntrypointConnectorTest {
     private WebhookEntrypointConnectorConfiguration configuration;
 
     @Mock
+    private WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration;
+
+    @Mock
     private ConnectorFactoryHelper connectorFactoryHelper;
 
     @Mock
@@ -105,11 +109,11 @@ class WebhookEntrypointConnectorTest {
         lenient()
             .when(
                 connectorFactoryHelper.getConnectorConfiguration(
-                    eq(WebhookEntrypointConnectorConfiguration.class),
+                    eq(WebhookEntrypointConnectorSubscriptionConfiguration.class),
                     eq(SUBSCRIPTION_CONFIGURATION)
                 )
             )
-            .thenReturn(configuration);
+            .thenReturn(subscriptionConfiguration);
         lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
 
         cut = new WebhookEntrypointConnector(Qos.NONE, configuration);
@@ -163,7 +167,7 @@ class WebhookEntrypointConnectorTest {
 
     @Test
     void shouldHandlingRequestInErrorWithInvalidCallbackUrl() {
-        when(configuration.getCallbackUrl()).thenReturn("unknown_url");
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("unknown_url");
 
         final TestObserver<Void> obs = cut.handleRequest(ctx).test();
         obs.assertError(IllegalArgumentException.class);
@@ -171,7 +175,7 @@ class WebhookEntrypointConnectorTest {
 
     @Test
     void shouldHandleRequestWithValidCallback() {
-        when(configuration.getCallbackUrl()).thenReturn("http://callbackserver/endpoint");
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://callbackserver/endpoint");
 
         final TestObserver<Void> obs = cut.handleRequest(ctx).test();
         obs.assertNoValues();
@@ -184,7 +188,7 @@ class WebhookEntrypointConnectorTest {
     void shouldNotCallWebHookWhenNoMessage(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
         stubFor(post("/callback").willReturn(ok()));
 
-        when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
@@ -211,7 +215,7 @@ class WebhookEntrypointConnectorTest {
     void shouldCallWebhookWhenMessages(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
         stubFor(post("/callback").willReturn(ok()));
 
-        when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
@@ -256,7 +260,7 @@ class WebhookEntrypointConnectorTest {
     void shouldStopSendingMessagesToWebhookWhenStopping(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         stubFor(post("/callback").willReturn(ok()));
 
-        when(configuration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
