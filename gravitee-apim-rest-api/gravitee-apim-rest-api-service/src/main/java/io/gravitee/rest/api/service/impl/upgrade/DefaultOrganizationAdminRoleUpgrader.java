@@ -49,6 +49,6 @@ public class DefaultOrganizationAdminRoleUpgrader extends OrganizationUpgrader {
 
     @Override
     public int getOrder() {
-        return 160;
+        return 130;
     }
 }
