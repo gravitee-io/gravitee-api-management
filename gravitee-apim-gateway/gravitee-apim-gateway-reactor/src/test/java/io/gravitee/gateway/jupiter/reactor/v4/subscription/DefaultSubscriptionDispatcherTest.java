@@ -127,7 +127,7 @@ public class DefaultSubscriptionDispatcherTest {
 
         when(subscription.getId()).thenReturn("sub-id");
         when(subscription.getStatus()).thenReturn("ACCEPTED");
-        when(subscription.getConfiguration()).thenReturn("{\"type\": \"webhook\"}");
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
 
         dispatcher.dispatch(subscription);
 
@@ -153,7 +153,7 @@ public class DefaultSubscriptionDispatcherTest {
 
         when(subscription.getId()).thenReturn("sub-id");
         when(subscription.getStatus()).thenReturn("ACCEPTED");
-        when(subscription.getConfiguration()).thenReturn("{\"type\": \"webhook\"}");
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
 
         // Dispatch accepted subscription
         dispatcher.dispatch(subscription);
@@ -179,7 +179,7 @@ public class DefaultSubscriptionDispatcherTest {
 
         when(subscription.getId()).thenReturn("sub-id");
         when(subscription.getStatus()).thenReturn("ACCEPTED");
-        when(subscription.getConfiguration()).thenReturn("{\"type\": \"webhook\"}");
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
 
         // Dispatch accepted subscription
         dispatcher.dispatch(subscription);

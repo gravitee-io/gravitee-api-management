@@ -15,15 +15,35 @@
  */
 package io.gravitee.plugin.entrypoint.webhook.configuration;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointConnectorSubscriptionConfiguration;
+import io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Getter
 @Setter
-public class WebhookEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {}
+@ToString
+public class WebhookEntrypointConnectorSubscriptionConfiguration implements EntrypointConnectorSubscriptionConfiguration {
+
+    @JsonProperty
+    @Override
+    public String entrypointId() {
+        return WebhookEntrypointConnector.ENTRYPOINT_ID;
+    }
+
+    /**
+     * The callback URL called by the entrypoint on a message.
+     */
+    private String callbackUrl;
+
+    /**
+     * The list of headers to add to the request to the callback URL.
+     */
+    private Map<String, String> headers;
+}
