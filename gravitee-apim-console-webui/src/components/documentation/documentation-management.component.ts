@@ -401,7 +401,7 @@ class DocumentationManagementComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.newdocumentation', { type: type, parent: this.rootDir });
     } else {
-      this.$state.go('management.settings.newdocumentation', { type: type, parent: this.rootDir });
+      this.$state.go('management.settings.documentation.new', { type: type, parent: this.rootDir });
     }
   }
 
@@ -410,13 +410,13 @@ class DocumentationManagementComponentController implements IController {
       if (this.apiId) {
         return this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, type: page.type, parent: page.id });
       } else {
-        return this.$state.go('management.settings.documentation', { parent: page.id });
+        return this.$state.go('management.settings.documentation.list', { parent: page.id });
       }
     } else {
       if (this.apiId) {
         return this.$state.go('management.apis.detail.portal.editdocumentation', { apiId: this.apiId, type: page.type, pageId: page.id });
       } else {
-        return this.$state.go('management.settings.editdocumentation', { pageId: page.id, type: page.type, tab: 'content' });
+        return this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type, tab: 'content' });
       }
     }
   }
@@ -425,7 +425,7 @@ class DocumentationManagementComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.importdocumentation', { apiId: this.apiId });
     } else {
-      this.$state.go('management.settings.importdocumentation');
+      this.$state.go('management.settings.documentation.import');
     }
   }
 

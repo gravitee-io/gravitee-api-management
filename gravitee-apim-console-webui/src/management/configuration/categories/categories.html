@@ -60,7 +60,9 @@
                   image-width="40"
                 ></gravitee-identity-picture>
               </td>
-              <td md-cell width="1%" nowrap><a ui-sref="management.settings.category({categoryId: category.key})">{{category.name}}</a></td>
+              <td md-cell width="1%" nowrap>
+                <a ui-sref="management.settings.categories.category({categoryId: category.key})">{{category.name}}</a>
+              </td>
               <td md-cell>{{category.description}}</td>
               <td permission permission-only="'environment-category-u'" md-cell width="1%" nowrap>
                 <ng-md-icon icon="visibility{{category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(category)"></ng-md-icon>
@@ -106,7 +108,7 @@
   aria-label="Add category"
   class="md-fab md-fab-bottom-right md-fab-scrollable"
   ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-  ui-sref="management.settings.categorynew"
+  ui-sref="management.settings.categories.create"
 >
   <md-tooltip md-direction="top" md-visible="false">Add a new category</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>

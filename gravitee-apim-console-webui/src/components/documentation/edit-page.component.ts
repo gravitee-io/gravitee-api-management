@@ -144,7 +144,7 @@ class EditPageComponentController implements IController {
     this.pageList = this.DocumentationService.buildPageList(this.pageResources, true, folderSituation);
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
     if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
-      this.$state.go('management.settings.documentation');
+      this.$state.go('management.settings.documentation.list');
     }
 
     this.initEditor();
@@ -220,7 +220,7 @@ class EditPageComponentController implements IController {
           );
         } else {
           this.$state.go(
-            'management.settings.editdocumentation',
+            'management.settings.documentation.edit',
             { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
             { reload: true },
           );
@@ -239,7 +239,7 @@ class EditPageComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, parent: this.page.parentId });
     } else {
-      this.$state.go('management.settings.documentation', { parent: this.page.parentId });
+      this.$state.go('management.settings.documentation.list', { parent: this.page.parentId });
     }
   }
 
@@ -247,7 +247,7 @@ class EditPageComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id }, { reload: true });
     } else {
-      this.$state.go('management.settings.editdocumentation', { pageId: this.page.id, type: this.page.type }, { reload: true });
+      this.$state.go('management.settings.documentation.edit', { pageId: this.page.id, type: this.page.type }, { reload: true });
     }
   }
 
@@ -280,7 +280,7 @@ class EditPageComponentController implements IController {
       );
     } else {
       this.$state.transitionTo(
-        'management.settings.editdocumentation',
+        'management.settings.documentation.edit',
         { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
         { notify: false },
       );

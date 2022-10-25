@@ -553,6 +553,7 @@ import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/ap
 import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
 import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
+import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -676,6 +677,7 @@ graviteeManagementModule.run(runBlock);
 
 // New Navigation components
 graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component: GioSideNavComponent }));
+graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 
 // Apis
 graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));

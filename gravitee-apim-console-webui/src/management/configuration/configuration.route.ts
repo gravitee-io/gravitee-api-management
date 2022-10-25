@@ -15,6 +15,7 @@
  */
 import { StateParams } from '@uirouter/core';
 import * as _ from 'lodash';
+import { StateProvider } from '@uirouter/angularjs';
 
 import { ApiService } from '../../services/api.service';
 import ApiHeaderService from '../../services/apiHeader.service';
@@ -38,7 +39,7 @@ import TopApiService from '../../services/top-api.service';
 
 export default configurationRouterConfig;
 
-function configurationRouterConfig($stateProvider) {
+function configurationRouterConfig($stateProvider: StateProvider) {
   'ngInject';
   $stateProvider
     .state('management.settings', {
@@ -75,8 +76,159 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
+    // Portal
+    .state('management.settings.analytics', {
+      abstract: true,
+      url: '/analytics',
+    })
+    .state('management.settings.analytics.list', {
+      url: '',
+      component: 'analyticsSettings',
+      resolve: {
+        dashboardsPlatform: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
+        dashboardsApi: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
+        dashboardsApplication: (DashboardService: DashboardService) =>
+          DashboardService.list('APPLICATION').then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-analytics',
+        },
+        perms: {
+          only: ['environment-settings-r'],
+        },
+      },
+    })
+    .state('management.settings.analytics.dashboardnew', {
+      url: '/dashboard/:type/new',
+      component: 'dashboard',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dashboard',
+        },
+        perms: {
+          only: ['environment-dashboard-c'],
+        },
+      },
+    })
+    .state('management.settings.analytics.dashboard', {
+      url: '/dashboard/:type/:dashboardId',
+      component: 'dashboard',
+      resolve: {
+        dashboard: (DashboardService: DashboardService, $stateParams) =>
+          DashboardService.get($stateParams.dashboardId).then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dashboard',
+        },
+        perms: {
+          only: ['environment-dashboard-u'],
+        },
+      },
+    })
+    .state('management.settings.apiPortalHeader', {
+      url: '/apiportalheader',
+      component: 'configApiPortalHeader',
+      resolve: {
+        apiPortalHeaders: (ApiHeaderService: ApiHeaderService) => ApiHeaderService.list().then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiportalheader',
+        },
+        perms: {
+          only: ['environment-api_header-r'],
+        },
+      },
+    })
+    .state('management.settings.apiQuality', {
+      abstract: true,
+      url: '/apiquality',
+    })
+    .state('management.settings.apiQuality.list', {
+      url: '',
+      component: 'configApiQuality',
+      resolve: {
+        qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality',
+        },
+        perms: {
+          only: ['environment-settings-r'],
+        },
+      },
+    })
+    .state('management.settings.apiQuality.qualityRulenew', {
+      url: '/new',
+      component: 'qualityRule',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality',
+        },
+        perms: {
+          only: ['environment-quality_rule-c'],
+        },
+      },
+    })
+    .state('management.settings.apiQuality.qualityRule', {
+      url: '/:qualityRuleId',
+      component: 'qualityRule',
+      resolve: {
+        qualityRule: (QualityRuleService: QualityRuleService, $stateParams) =>
+          QualityRuleService.get($stateParams.qualityRuleId).then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality',
+        },
+        perms: {
+          only: ['environment-quality_rule-u'],
+        },
+      },
+    })
+    .state('management.settings.environment', {
+      abstract: true,
+      url: '/environment',
+    })
+    .state('management.settings.environment.identityproviders', {
+      url: '/identity-providers',
+      component: 'identityProviders',
+      resolve: {
+        target: () => 'ENVIRONMENT',
+        targetId: (Constants) => Constants.org.currentEnv.id,
+        identityProviders: (IdentityProviderService: IdentityProviderService) =>
+          IdentityProviderService.list().then((response) => response),
+        identities: (EnvironmentService: EnvironmentService, Constants) =>
+          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-identityproviders',
+        },
+        perms: {
+          only: ['environment-identity_provider_activation-r'],
+        },
+      },
+    })
     .state('management.settings.categories', {
+      abstract: true,
       url: '/categories',
+    })
+    .state('management.settings.categories.list', {
+      url: '',
       component: 'categories',
       resolve: {
         categories: (CategoryService: CategoryService) => CategoryService.list(['total-apis']).then((response) => response.data),
@@ -91,8 +243,8 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.categorynew', {
-      url: '/categories/new',
+    .state('management.settings.categories.create', {
+      url: '/new',
       component: 'category',
       resolve: {
         pages: (DocumentationService: DocumentationService) => {
@@ -112,8 +264,8 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.category', {
-      url: '/categories/:categoryId',
+    .state('management.settings.categories.category', {
+      url: '/:categoryId',
       component: 'category',
       resolve: {
         category: (CategoryService: CategoryService, $stateParams) =>
@@ -136,105 +288,68 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.tags', {
-      url: '/tags',
-      component: 'moved',
-      resolve: {
-        destinationName: () => 'Organization settings > Tags',
-        permissions: () => ['organization-tag-r'],
-        goTo: () => 'organization.settings.ng-tags',
-        destinationIcon: () => 'settings_applications',
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-sharding-tags',
-        },
-        perms: {
-          only: ['environment-tag-r'],
-        },
-      },
-    })
-    .state('management.settings.tenants', {
-      url: '/tenants',
-      component: 'moved',
-      resolve: {
-        destinationName: () => 'Organization settings > Tenants',
-        permissions: () => ['organization-tenant-r'],
-        goTo: () => 'organization.settings.ng-tenants',
-        destinationIcon: () => 'settings_applications',
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-tenants',
-        },
-        perms: {
-          only: ['environment-tenant-r'],
-        },
-      },
-    })
-    .state('management.settings.groups', {
+    .state('management.settings.clientregistrationproviders', {
       abstract: true,
-      url: '/groups',
+      url: '/client-registration',
     })
-    .state('management.settings.groups.list', {
+    .state('management.settings.clientregistrationproviders.list', {
       url: '/',
-      component: 'groups',
+      component: 'clientRegistrationProviders',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => _.filter(response.data, 'manageable')),
+        clientRegistrationProviders: (ClientRegistrationProviderService: ClientRegistrationProviderService) =>
+          ClientRegistrationProviderService.list().then((response) => response),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-groups',
+          page: 'management-configuration-client-registration-providers',
         },
         perms: {
-          only: ['environment-group-r'],
+          only: ['environment-client_registration_provider-r'],
         },
       },
     })
-    .state('management.settings.groups.create', {
+    .state('management.settings.clientregistrationproviders.create', {
       url: '/new',
-      component: 'group',
-      resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-      },
+      component: 'clientRegistrationProvider',
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-group',
+          page: 'management-configuration-client-registration-provider',
         },
         perms: {
-          only: ['environment-group-r'],
+          only: ['environment-client_registration_provider-c'],
         },
       },
     })
-    .state('management.settings.groups.group', {
-      url: '/:groupId',
-      component: 'group',
+    .state('management.settings.clientregistrationproviders.clientregistrationprovider', {
+      url: '/:id',
+      component: 'clientRegistrationProvider',
       resolve: {
-        group: (GroupService: GroupService, $stateParams) => GroupService.get($stateParams.groupId).then((response) => response.data),
-        apiRoles: (RoleService: RoleService) =>
-          RoleService.list('API').then((roles) => [{ scope: 'API', name: '', system: false }].concat(roles)),
-        applicationRoles: (RoleService: RoleService) =>
-          RoleService.list('APPLICATION').then((roles) => [{ scope: 'APPLICATION', name: '', system: false }].concat(roles)),
-        invitations: (GroupService: GroupService, $stateParams) =>
-          GroupService.getInvitations($stateParams.groupId).then((response) => response.data),
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        clientRegistrationProvider: (ClientRegistrationProviderService: ClientRegistrationProviderService, $stateParams) =>
+          ClientRegistrationProviderService.get($stateParams.id).then((response) => response),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-group',
+          page: 'management-configuration-client-registration-provider',
         },
         perms: {
-          only: ['environment-group-r'],
+          only: [
+            'environment-client_registration_provider-r',
+            'environment-client_registration_provider-u',
+            'environment-client_registration_provider-d',
+          ],
         },
       },
     })
     .state('management.settings.documentation', {
-      url: '/pages?:parent',
+      abstract: true,
+      url: '/pages',
+    })
+    .state('management.settings.documentation.list', {
+      url: '?:parent',
       component: 'documentationManagement',
       resolve: {
         pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
@@ -274,8 +389,8 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.newdocumentation', {
-      url: '/pages/new?type&:parent',
+    .state('management.settings.documentation.new', {
+      url: '/new?type&:parent',
       component: 'newPage',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
@@ -343,8 +458,8 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.importdocumentation', {
-      url: '/pages/import',
+    .state('management.settings.documentation.import', {
+      url: '/import',
       component: 'importPages',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
@@ -368,8 +483,8 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.editdocumentation', {
-      url: '/pages/:pageId?:tab&type',
+    .state('management.settings.documentation.edit', {
+      url: '/:pageId?:tab&type',
       component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
@@ -462,21 +577,20 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.customUserFields', {
-      url: '/custom-user-fields',
-      component: 'customUserFields',
+    .state('management.settings.portal', {
+      url: '/portal',
+      component: 'portalSettings',
       resolve: {
-        fields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then((response) => response.data),
-        fieldFormats: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listFormats(),
-        predefinedKeys: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listPredefinedKeys(),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-custom-user-fields',
+          page: 'management-configuration-portal',
         },
         perms: {
-          only: ['organization-custom_user_fields-r'],
+          only: ['environment-settings-r'],
         },
       },
     })
@@ -510,20 +624,20 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.portal', {
-      url: '/portal',
-      component: 'portalSettings',
+    // Gateway
+    .state('management.settings.api_logging', {
+      url: '/api_logging',
+      component: 'apiLogging',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-portal',
+          page: 'management-configuration-apilogging',
         },
         perms: {
-          only: ['environment-settings-r'],
+          only: ['organization-settings-r'],
         },
       },
     })
@@ -577,213 +691,119 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.analytics', {
-      url: '/analytics',
-      component: 'analyticsSettings',
+    .state('management.settings.tags', {
+      url: '/tags',
+      component: 'moved',
       resolve: {
-        dashboardsPlatform: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
-        dashboardsApi: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
-        dashboardsApplication: (DashboardService: DashboardService) =>
-          DashboardService.list('APPLICATION').then((response) => response.data),
+        destinationName: () => 'Organization settings > Tags',
+        permissions: () => ['organization-tag-r'],
+        goTo: () => 'organization.settings.ng-tags',
+        destinationIcon: () => 'settings_applications',
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-analytics',
+          page: 'management-configuration-sharding-tags',
         },
         perms: {
-          only: ['environment-settings-r'],
+          only: ['environment-tag-r'],
         },
       },
     })
-    .state('management.settings.dashboardnew', {
-      url: '/analytics/dashboard/:type/new',
-      component: 'dashboard',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-dashboard',
-        },
-        perms: {
-          only: ['environment-dashboard-c'],
-        },
-      },
-    })
-    .state('management.settings.dashboard', {
-      url: '/analytics/dashboard/:type/:dashboardId',
-      component: 'dashboard',
+    .state('management.settings.tenants', {
+      url: '/tenants',
+      component: 'moved',
       resolve: {
-        dashboard: (DashboardService: DashboardService, $stateParams) =>
-          DashboardService.get($stateParams.dashboardId).then((response) => response.data),
+        destinationName: () => 'Organization settings > Tenants',
+        permissions: () => ['organization-tenant-r'],
+        goTo: () => 'organization.settings.ng-tenants',
+        destinationIcon: () => 'settings_applications',
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-dashboard',
+          page: 'management-configuration-tenants',
         },
         perms: {
-          only: ['environment-dashboard-u'],
+          only: ['environment-tenant-r'],
         },
       },
     })
-    .state('management.settings.apiPortalHeader', {
-      url: '/apiportalheader',
-      component: 'configApiPortalHeader',
+    // User management
+    .state('management.settings.customUserFields', {
+      url: '/custom-user-fields',
+      component: 'customUserFields',
       resolve: {
-        apiPortalHeaders: (ApiHeaderService: ApiHeaderService) => ApiHeaderService.list().then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        fields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then((response) => response.data),
+        fieldFormats: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listFormats(),
+        predefinedKeys: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listPredefinedKeys(),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-apiportalheader',
+          page: 'management-configuration-custom-user-fields',
         },
         perms: {
-          only: ['environment-api_header-r'],
+          only: ['organization-custom_user_fields-r'],
         },
       },
     })
-    .state('management.settings.apiQuality', {
-      url: '/apiquality',
-      component: 'configApiQuality',
-      resolve: {
-        qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-apiquality',
-        },
-        perms: {
-          only: ['environment-settings-r'],
-        },
-      },
-    })
-    .state('management.settings.qualityRulenew', {
-      url: '/apiquality/new',
-      component: 'qualityRule',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-apiquality',
-        },
-        perms: {
-          only: ['environment-quality_rule-c'],
-        },
-      },
-    })
-    .state('management.settings.qualityRule', {
-      url: '/apiquality/:qualityRuleId',
-      component: 'qualityRule',
-      resolve: {
-        qualityRule: (QualityRuleService: QualityRuleService, $stateParams) =>
-          QualityRuleService.get($stateParams.qualityRuleId).then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-apiquality',
-        },
-        perms: {
-          only: ['environment-quality_rule-u'],
-        },
-      },
-    })
-    .state('management.settings.environment', {
+    .state('management.settings.groups', {
       abstract: true,
-      url: '/environment',
+      url: '/groups',
     })
-    .state('management.settings.environment.identityproviders', {
-      url: '/identity-providers',
-      component: 'identityProviders',
-      resolve: {
-        target: () => 'ENVIRONMENT',
-        targetId: (Constants) => Constants.org.currentEnv.id,
-        identityProviders: (IdentityProviderService: IdentityProviderService) =>
-          IdentityProviderService.list().then((response) => response),
-        identities: (EnvironmentService: EnvironmentService, Constants) =>
-          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-identityproviders',
-        },
-        perms: {
-          only: ['environment-identity_provider_activation-r'],
-        },
-      },
-    })
-    .state('management.settings.api_logging', {
-      url: '/api_logging',
-      component: 'apiLogging',
-      resolve: {
-        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-apilogging',
-        },
-        perms: {
-          only: ['organization-settings-r'],
-        },
-      },
-    })
-    .state('management.settings.clientregistrationproviders', {
-      abstract: true,
-      url: '/client-registration',
-    })
-    .state('management.settings.clientregistrationproviders.list', {
+    .state('management.settings.groups.list', {
       url: '/',
-      component: 'clientRegistrationProviders',
+      component: 'groups',
       resolve: {
-        clientRegistrationProviders: (ClientRegistrationProviderService: ClientRegistrationProviderService) =>
-          ClientRegistrationProviderService.list().then((response) => response),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => _.filter(response.data, 'manageable')),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-client-registration-providers',
+          page: 'management-configuration-groups',
         },
         perms: {
-          only: ['environment-client_registration_provider-r'],
+          only: ['environment-group-r'],
         },
       },
     })
-    .state('management.settings.clientregistrationproviders.create', {
+    .state('management.settings.groups.create', {
       url: '/new',
-      component: 'clientRegistrationProvider',
+      component: 'group',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+      },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-client-registration-provider',
+          page: 'management-configuration-group',
         },
         perms: {
-          only: ['environment-client_registration_provider-c'],
+          only: ['environment-group-r'],
         },
       },
     })
-    .state('management.settings.clientregistrationproviders.clientregistrationprovider', {
-      url: '/:id',
-      component: 'clientRegistrationProvider',
+    .state('management.settings.groups.group', {
+      url: '/:groupId',
+      component: 'group',
       resolve: {
-        clientRegistrationProvider: (ClientRegistrationProviderService: ClientRegistrationProviderService, $stateParams) =>
-          ClientRegistrationProviderService.get($stateParams.id).then((response) => response),
+        group: (GroupService: GroupService, $stateParams) => GroupService.get($stateParams.groupId).then((response) => response.data),
+        apiRoles: (RoleService: RoleService) =>
+          RoleService.list('API').then((roles) => [{ scope: 'API', name: '', system: false }].concat(roles)),
+        applicationRoles: (RoleService: RoleService) =>
+          RoleService.list('APPLICATION').then((roles) => [{ scope: 'APPLICATION', name: '', system: false }].concat(roles)),
+        invitations: (GroupService: GroupService, $stateParams) =>
+          GroupService.getInvitations($stateParams.groupId).then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-client-registration-provider',
+          page: 'management-configuration-group',
         },
         perms: {
-          only: [
-            'environment-client_registration_provider-r',
-            'environment-client_registration_provider-u',
-            'environment-client_registration_provider-d',
-          ],
+          only: ['environment-group-r'],
         },
       },
     });

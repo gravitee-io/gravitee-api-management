@@ -69,7 +69,7 @@ class NewPageComponentController implements IController {
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
 
     if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
-      this.$state.go('management.settings.documentation', { parent: this.$state.params.parent });
+      this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
     }
 
     const q = new DocumentationQuery();
@@ -173,7 +173,7 @@ class NewPageComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, parent: this.$state.params.parent });
     } else {
-      this.$state.go('management.settings.documentation', { parent: this.$state.params.parent });
+      this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
     }
   }
 
@@ -181,7 +181,7 @@ class NewPageComponentController implements IController {
     if (this.apiId) {
       this.$state.go('management.apis.detail.portal.editdocumentation', { apiId: this.apiId, pageId: page.id, type: page.type });
     } else {
-      this.$state.go('management.settings.editdocumentation', { pageId: page.id, type: page.type });
+      this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type });
     }
   }
 }

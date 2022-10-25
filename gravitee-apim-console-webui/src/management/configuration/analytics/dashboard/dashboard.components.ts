@@ -90,7 +90,7 @@ const DashboardComponent: ng.IComponentOptions = {
         savePromise = DashboardService.create(clonedDashboard);
       }
       savePromise.then((response) => {
-        $state.go('management.settings.dashboard', _.merge($state.params, { dashboardId: response.data.id }), { reload: true });
+        $state.go('management.settings.analytics.dashboard', _.merge($state.params, { dashboardId: response.data.id }), { reload: true });
         this.formDashboard.$setPristine();
         NotificationService.show(`Dashboard ${this.editMode ? 'updated' : 'created'} with success`);
       });

@@ -15,9 +15,13 @@
     limitations under the License.
 
 -->
-<div flex>
-  <div flex layout="row">
-    <settings-navigation></settings-navigation>
-    <div class="gv-sub-content" flex layout="column" ui-view></div>
-  </div>
+<div class="settings-navigation">
+  <gio-submenu>
+    <ng-container *ngFor="let item of this.filterMenuByPermission(this.subMenuItems)">
+      <gio-submenu-item *ngIf="!item.targetRoute">{{ item.displayName }}</gio-submenu-item>
+      <gio-submenu-subitem *ngIf="item.targetRoute" (click)="navigateTo(item.targetRoute)" [active]="isActive(item.baseRoute)">{{
+        item.displayName
+      }}</gio-submenu-subitem>
+    </ng-container>
+  </gio-submenu>
 </div>

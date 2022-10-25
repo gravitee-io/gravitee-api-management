@@ -106,7 +106,7 @@ class CategoryController {
       });
       this.$q.all(apiFunctions).then(() => {
         this.NotificationService.show('Category ' + category.name + ' has been saved.');
-        this.$state.go('management.settings.category', { categoryId: category.key }, { reload: true });
+        this.$state.go('management.settings.categories.category', { categoryId: category.key }, { reload: true });
       });
     });
   }

@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { GioSubmenuModule } from '@gravitee/ui-particles-angular';
 
-const SettingsComponent: ng.IComponentOptions = {
-  template: require('./settings.html'),
-  controller: function ($rootScope: IScope, $state: StateService) {
-    'ngInject';
-    this.$state = $state;
-  },
-};
+import { SettingsNavigationComponent } from './settings-navigation.component';
 
-export default SettingsComponent;
+@NgModule({
+  imports: [CommonModule, GioSubmenuModule],
+  declarations: [SettingsNavigationComponent],
+  exports: [SettingsNavigationComponent],
+  entryComponents: [SettingsNavigationComponent],
+})
+export class SettingsNavigationModule {}
