@@ -46,6 +46,8 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
     protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
+    protected static final String INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG = "webhook.subscriptionConfiguration";
+
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     private static final String ENTRYPOINT_ID = "webhook";
@@ -98,7 +100,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return prepareClientOptions(ctx);
+        return computeSubscriptionContextAttributes(ctx);
     }
 
     @Override
@@ -107,6 +109,9 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             () -> {
                 final String requestUri = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI);
                 final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+                final WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = ctx.getInternalAttribute(
+                    INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG
+                );
 
                 // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
                 ctx
@@ -121,7 +126,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                                     if (message.error()) {
                                         return Completable.error(new Exception(message.content().toString()));
                                     }
-                                    return sendAndDiscard(requestUri, httpClient, message);
+                                    return sendAndDiscard(requestUri, httpClient, subscriptionConfiguration, message);
                                 }
                             )
                             .doFinally(httpClient::close)
@@ -137,14 +142,31 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         return this;
     }
 
-    private Completable sendAndDiscard(String requestUri, HttpClient httpClient, Message message) {
+    private Completable sendAndDiscard(
+        String requestUri,
+        HttpClient httpClient,
+        WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration,
+        Message message
+    ) {
         // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
         return httpClient
             .rxRequest(HttpMethod.POST, requestUri)
             .flatMap(
                 request -> {
+                    // FIXME : to discuss : is that relevant to copy message headers to request headers ?
                     if (message.headers() != null) {
                         message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                    }
+                    if (subscriptionConfiguration.getHeaders() != null) {
+                        subscriptionConfiguration
+                            .getHeaders()
+                            .forEach(
+                                (key, value) -> {
+                                    if (!request.headers().contains(key)) {
+                                        request.putHeader(key, value);
+                                    }
+                                }
+                            );
                     }
                     if (message.content() != null) {
                         return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
@@ -159,51 +181,33 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             .onErrorComplete();
     }
 
-    private Completable prepareClientOptions(final ExecutionContext ctx) {
+    private Completable computeSubscriptionContextAttributes(final ExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = null;
 
                 try {
-                    final Vertx vertx = ctx.getComponent(Vertx.class);
                     final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-                    final ConnectorFactoryHelper connectorFactoryHelper = ctx.getComponent(ConnectorFactoryHelper.class);
+
                     subscriptionConfiguration =
-                        connectorFactoryHelper.getConnectorConfiguration(
-                            WebhookEntrypointConnectorSubscriptionConfiguration.class,
-                            subscription.getConfiguration()
-                        );
+                        ctx
+                            .getComponent(ConnectorFactoryHelper.class)
+                            .getConnectorConfiguration(
+                                WebhookEntrypointConnectorSubscriptionConfiguration.class,
+                                subscription.getConfiguration()
+                            );
 
-                    final HttpClientOptions options = new HttpClientOptions();
-                    final String url = subscriptionConfiguration.getCallbackUrl();
-                    final URL target = new URL(null, url);
-                    final String protocol = target.getProtocol();
+                    final URL targetUrl = new URL(null, subscriptionConfiguration.getCallbackUrl());
 
-                    if (protocol.charAt(protocol.length() - 1) == 's') {
-                        options.setSsl(true).setUseAlpn(true);
-                    }
-
-                    options.setDefaultHost(target.getHost());
-
-                    if (target.getPort() == -1) {
-                        options.setDefaultPort(options.isSsl() ? 443 : 80);
-                    } else {
-                        options.setDefaultPort(target.getPort());
-                    }
-
-                    final String requestUri = (target.getQuery() == null)
-                        ? target.getPath()
-                        : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery();
-                    final HttpClient httpClient = vertx.createHttpClient(options);
-
-                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, requestUri);
-                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT, httpClient);
+                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
+                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, extractRequestUri(targetUrl));
+                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT, createHttpClient(ctx, targetUrl));
 
                     return Completable.complete();
                 } catch (Exception ex) {
                     return Completable.error(
                         new IllegalArgumentException(
-                            "Unable to prepare the HTTP client for the webhook subscription configuration [" +
+                            "Unable to prepare the execution context for the webhook, with subscription configuration [" +
                             subscriptionConfiguration +
                             "]",
                             ex
@@ -212,5 +216,24 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                 }
             }
         );
+    }
+
+    private String extractRequestUri(URL targetUrl) {
+        return targetUrl.getQuery() == null ? targetUrl.getPath() : targetUrl.getPath() + URI_QUERY_DELIMITER_CHAR + targetUrl.getQuery();
+    }
+
+    private HttpClient createHttpClient(ExecutionContext ctx, URL targetUrl) {
+        final HttpClientOptions options = new HttpClientOptions();
+        String protocol = targetUrl.getProtocol();
+        if (protocol.charAt(protocol.length() - 1) == 's') {
+            options.setSsl(true).setUseAlpn(true);
+        }
+        options.setDefaultHost(targetUrl.getHost());
+        if (targetUrl.getPort() == -1) {
+            options.setDefaultPort(options.isSsl() ? 443 : 80);
+        } else {
+            options.setDefaultPort(targetUrl.getPort());
+        }
+        return ctx.getComponent(Vertx.class).createHttpClient(options);
     }
 }

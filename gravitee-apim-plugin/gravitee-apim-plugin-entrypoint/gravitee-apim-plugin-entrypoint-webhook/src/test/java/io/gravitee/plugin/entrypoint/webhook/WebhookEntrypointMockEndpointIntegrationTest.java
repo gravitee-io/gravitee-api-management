@@ -65,11 +65,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
 
-        Subscription subscription = new Subscription();
-        subscription.setApi(API_ID);
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setStatus("ACCEPTED");
-        subscription.setConfiguration(MAPPER.writeValueAsString(configuration));
+        Subscription subscription = buildTestSubscription(configuration);
 
         getBean(SubscriptionDispatcher.class).dispatch(subscription);
 
@@ -82,5 +78,43 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // verify requests received by wiremock
         wiremock.verify(7, postRequestedFor(urlPathEqualTo(WEBHOOK_URL_PATH)).withRequestBody(equalTo("Mock data")));
+    }
+
+    @Test
+    @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
+    void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
+        WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
+        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
+        configuration.setHeaders(Map.of("Header1", "my-header-1-value", "Header2", "my-header-2-value"));
+
+        Subscription subscription = buildTestSubscription(configuration);
+
+        getBean(SubscriptionDispatcher.class).dispatch(subscription);
+
+        // wait for callback wiremock to receive 7 requests (timeouts after 1 sec)
+        interval(50, MILLISECONDS)
+            .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(anyUrl()).build()).getCount() < 7)
+            .test()
+            .awaitDone(1, SECONDS)
+            .assertComplete();
+
+        // verify requests received by wiremock
+        wiremock.verify(
+            7,
+            postRequestedFor(urlPathEqualTo(WEBHOOK_URL_PATH))
+                .withRequestBody(equalTo("Mock data"))
+                .withHeader("Header1", equalTo("my-header-1-value"))
+                .withHeader("Header2", equalTo("my-header-2-value"))
+        );
+    }
+
+    private Subscription buildTestSubscription(WebhookEntrypointConnectorSubscriptionConfiguration configuration)
+        throws JsonProcessingException {
+        Subscription subscription = new Subscription();
+        subscription.setApi(API_ID);
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus("ACCEPTED");
+        subscription.setConfiguration(MAPPER.writeValueAsString(configuration));
+        return subscription;
     }
 }
