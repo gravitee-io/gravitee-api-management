@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.definition.model.DefinitionContext.*;
 import static java.util.Collections.singleton;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -146,6 +145,39 @@ public class ApiService_CreateWithDefinitionTest {
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
+    }
+
+    @Test
+    public void shouldNotStartApiIfNotManagedByKubernetesAndStateIsStopped() throws Exception {
+        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
+        UpdateApiEntity api = new UpdateApiEntity();
+        Proxy proxy = new Proxy();
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("endpointGroupName");
+        Endpoint endpoint = new Endpoint("endpointName", null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        proxy.setGroups(singleton(endpointGroup));
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        api.setProxy(proxy);
+        api.setVersion("1.0");
+        api.setName("k8s basic");
+        api.setDescription("k8s basic example");
+        api.setState(Lifecycle.State.STOPPED);
+
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+
+        Api updateApiDefinition = new Api();
+        when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
+
+        when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
+
+        when(apiConverter.toApiEntity(any(), any(), any(), any(), anyBoolean())).thenReturn(new ApiEntity());
+
+        when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
+
+        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", definition);
+
+        verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
     }
 
     @Test
