@@ -28,6 +28,7 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
@@ -38,6 +39,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -1182,7 +1184,55 @@ public class ApiService_UpdateTest {
                     api ->
                         api.getId().equals(API_ID) &&
                         api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
-                        api.getMode().equals(Api.MODE_FULLY_MANAGED)
+                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                        api.getLifecycleState().equals(LifecycleState.STARTED)
+                )
+            );
+    }
+
+    @Test
+    public void shouldKeepApiStoppedStateForKubernetesApi() throws TechnicalException {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        api.setMode(Api.MODE_FULLY_MANAGED);
+        prepareUpdate();
+
+        updateApiEntity.setState(Lifecycle.State.STOPPED);
+
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository)
+            .update(
+                argThat(
+                    api ->
+                        api.getId().equals(API_ID) &&
+                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                        api.getLifecycleState().equals(LifecycleState.STOPPED)
+                )
+            );
+    }
+
+    @Test
+    public void shouldKeepApiStartedStateForKubernetesApi() throws TechnicalException {
+        api.setOrigin(Api.ORIGIN_KUBERNETES);
+        api.setMode(Api.MODE_FULLY_MANAGED);
+        prepareUpdate();
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        updateApiEntity.setState(Lifecycle.State.STARTED);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository)
+            .update(
+                argThat(
+                    api ->
+                        api.getId().equals(API_ID) &&
+                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                        api.getLifecycleState().equals(LifecycleState.STARTED)
                 )
             );
     }
