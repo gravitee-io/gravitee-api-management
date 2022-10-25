@@ -83,6 +83,7 @@ public class EntrypointResource {
     )
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @ApiResponse(responseCode = "204", description = "Schema not found")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getEntrypointSchema(@PathParam("entrypoint") String entrypoint) {
         // Check that the entrypoint exists
@@ -105,11 +106,35 @@ public class EntrypointResource {
     )
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @ApiResponse(responseCode = "204", description = "Documentation not found")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getEntrypointDoc(@PathParam("entrypoint") String entrypoint) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypoint);
 
         return entrypointService.getDocumentation(entrypoint);
+    }
+
+    @GET
+    @Path("subscriptionSchema")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "🧪 Get a entrypoint's subscription schema",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Entrypoint schema",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Entrypoint not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @ApiResponse(responseCode = "204", description = "Subscription schema not found")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    public String getEntrypointSubscriptionSchema(@PathParam("entrypoint") String entrypoint) {
+        // Check that the entrypoint exists
+        entrypointService.findById(entrypoint);
+
+        return entrypointService.getSubscriptionSchema(entrypoint);
     }
 }

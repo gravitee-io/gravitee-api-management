@@ -20,7 +20,9 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import java.io.IOException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,5 +44,19 @@ public class EntrypointConnectorPluginServiceImpl
     @Override
     protected ConnectorFactory<?> getConnectorFactory(final String connectorId) {
         return ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(connectorId);
+    }
+
+    @Override
+    public String getSubscriptionSchema(final String connectorId) {
+        try {
+            logger.debug("Find entrypoint subscription schema by ID: {}", connectorId);
+            return ((EntrypointConnectorPluginManager) pluginManager).getSubscriptionSchema(connectorId);
+        } catch (IOException ioex) {
+            logger.error("An error occurs while trying to get entrypoint subscription schema for plugin {}", connectorId, ioex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get entrypoint subscription schema for plugin " + connectorId,
+                ioex
+            );
+        }
     }
 }
