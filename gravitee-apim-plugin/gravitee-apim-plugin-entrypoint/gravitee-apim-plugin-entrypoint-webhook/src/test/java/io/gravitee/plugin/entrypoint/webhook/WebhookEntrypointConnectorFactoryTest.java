@@ -65,29 +65,9 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(
-            Qos.NONE,
-            "{\"type\": \"webhook\",\"callbackUrl\":\"http://localhost:8082/callback\",\"retry\":{\"attempts\": 3}, \"headers\":{\"header1\":\"value1\", \"header2\": \"value2\"}, \"authentication\":{\"type\": \"oauth2\", \"jwksEndpoint\": \"http://localhost:8082/jwks\", \"tokenEndpoint\": \"http://localhost:8082/token\", \"clientId\": \"my-clientId\", \"clientSecret\": \"my-clientSecret\", \"scopes\": [\"scope1\", \"scope2\"], \"secret\": \"my-secret\", \"username\": \"my-username\", \"password\": \"my-password\"}}"
-        );
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getType()).isEqualTo("webhook");
-        assertThat(connector.configuration.getCallbackUrl()).isEqualTo("http://localhost:8082/callback");
-        assertThat(connector.configuration.getRetry()).isNotNull();
-        assertThat(connector.configuration.getRetry().getAttempts()).isEqualTo(3);
-        assertThat(connector.configuration.getHeaders()).isNotNull();
-        assertThat(connector.configuration.getHeaders().get("header1")).isEqualTo("value1");
-        assertThat(connector.configuration.getAuthentication()).isNotNull();
-        assertThat(connector.configuration.getAuthentication().getType()).isEqualTo("oauth2");
-        assertThat(connector.configuration.getAuthentication().getJwksEndpoint()).isEqualTo("http://localhost:8082/jwks");
-        assertThat(connector.configuration.getAuthentication().getTokenEndpoint()).isEqualTo("http://localhost:8082/token");
-        assertThat(connector.configuration.getAuthentication().getClientId()).isEqualTo("my-clientId");
-        assertThat(connector.configuration.getAuthentication().getClientSecret()).isEqualTo("my-clientSecret");
-        assertThat(connector.configuration.getAuthentication().getScopes()).isNotEmpty();
-        assertThat(connector.configuration.getAuthentication().getScopes().get(0)).isEqualTo("scope1");
-        assertThat(connector.configuration.getAuthentication().getSecret()).isEqualTo("my-secret");
-        assertThat(connector.configuration.getAuthentication().getUsername()).isEqualTo("my-username");
-        assertThat(connector.configuration.getAuthentication().getPassword()).isEqualTo("my-password");
     }
 
     @Test
@@ -95,20 +75,5 @@ class WebhookEntrypointConnectorFactoryTest {
         WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getCallbackUrl()).isNull();
-        assertThat(connector.configuration.getRetry()).isNull();
-        assertThat(connector.configuration.getHeaders()).isNull();
-        assertThat(connector.configuration.getAuthentication()).isNull();
-    }
-
-    @Test
-    void shouldCreateConnectorWithEmptyConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, null);
-        assertThat(connector).isNotNull();
-        assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getCallbackUrl()).isNull();
-        assertThat(connector.configuration.getRetry()).isNull();
-        assertThat(connector.configuration.getHeaders()).isNull();
-        assertThat(connector.configuration.getAuthentication()).isNull();
     }
 }
