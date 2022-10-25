@@ -17,6 +17,7 @@ package io.gravitee.plugin.entrypoint;
 
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import java.io.IOException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,4 +28,6 @@ public interface EntrypointConnectorPluginManager extends ConfigurablePluginMana
      * @return the factory <code>Class</code> according to the given plugin id
      */
     <T extends EntrypointConnectorFactory<?>> T getFactoryById(final String entrypointPluginId);
+
+    String getSubscriptionSchema(String pluginId) throws IOException;
 }

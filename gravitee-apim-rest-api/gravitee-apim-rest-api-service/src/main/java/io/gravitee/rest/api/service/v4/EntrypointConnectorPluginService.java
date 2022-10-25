@@ -19,4 +19,11 @@ package io.gravitee.rest.api.service.v4;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointConnectorPluginService extends ConnectorPluginService {}
+public interface EntrypointConnectorPluginService extends ConnectorPluginService {
+    /**
+     * Retrieve the subscription schema of the entrypoint if it exists.
+     * @param connectorId is the id of the entrypoint
+     * @return the subscription schema as a string, else {@code null}
+     */
+    String getSubscriptionSchema(String connectorId);
+}

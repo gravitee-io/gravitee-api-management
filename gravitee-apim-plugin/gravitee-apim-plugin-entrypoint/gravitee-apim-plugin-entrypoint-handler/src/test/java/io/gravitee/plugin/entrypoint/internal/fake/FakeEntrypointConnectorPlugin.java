@@ -18,8 +18,10 @@ package io.gravitee.plugin.entrypoint.internal.fake;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,6 +29,19 @@ import java.nio.file.Path;
  */
 public class FakeEntrypointConnectorPlugin
     implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration> {
+
+    private static final String WITH_SUBSCRIPTION_FILE = "with-subscription";
+    private static final String WITHOUT_SUBSCRIPTION_FILE = "without-subscription";
+
+    private final String resourceFolder;
+
+    public FakeEntrypointConnectorPlugin(boolean withoutResource) {
+        resourceFolder = withoutResource ? WITHOUT_SUBSCRIPTION_FILE : WITH_SUBSCRIPTION_FILE;
+    }
+
+    public FakeEntrypointConnectorPlugin() {
+        resourceFolder = WITH_SUBSCRIPTION_FILE;
+    }
 
     @Override
     public String id() {
@@ -50,7 +65,11 @@ public class FakeEntrypointConnectorPlugin
 
     @Override
     public Path path() {
-        return null;
+        try {
+            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

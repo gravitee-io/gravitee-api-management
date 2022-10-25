@@ -22,6 +22,7 @@ import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -86,5 +87,10 @@ public class DefaultEntrypointConnectorPluginManager
     @Override
     public EntrypointConnectorFactory<?> getFactoryById(final String entrypointPluginId) {
         return factories.get(entrypointPluginId);
+    }
+
+    @Override
+    public String getSubscriptionSchema(String pluginId) throws IOException {
+        return getSchema(pluginId, "subscriptions");
     }
 }
