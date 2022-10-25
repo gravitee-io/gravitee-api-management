@@ -68,7 +68,7 @@ class ApplicationAnalyticsController {
 
   viewLogs() {
     // update the query parameter
-    this.$state.transitionTo('management.applications.application.logs', this.$state.params);
+    this.$state.transitionTo('management.applications.application.logs.list', this.$state.params);
   }
 }
 

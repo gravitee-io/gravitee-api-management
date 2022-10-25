@@ -15,7 +15,14 @@
     limitations under the License.
 
 -->
-<div flex layout="row">
-  <application-navigation [application-name]="$ctrl.application.name"></application-navigation>
-  <div class="gv-sub-content" flex layout="column" ui-view></div>
+<div class="application-navigation">
+  <div class="application-navigation__title">{{ this.applicationName }}</div>
+  <gio-submenu class="application-navigation__menu">
+    <ng-container *ngFor="let item of this.subMenuItems">
+      <gio-submenu-item *ngIf="!item.targetRoute">{{ item.displayName }}</gio-submenu-item>
+      <gio-submenu-subitem *ngIf="item.targetRoute" (click)="navigateTo(item.targetRoute)" [active]="isActive(item.baseRoute)">{{
+        item.displayName
+      }}</gio-submenu-subitem>
+    </ng-container>
+  </gio-submenu>
 </div>
