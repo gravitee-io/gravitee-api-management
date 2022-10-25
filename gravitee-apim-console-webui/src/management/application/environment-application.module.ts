@@ -29,6 +29,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgModule } from '@angular/core';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
+import { ApplicationNavigationModule } from './details/application-navigation/application-navigation.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -58,6 +59,8 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+
+    ApplicationNavigationModule,
   ],
   declarations: [EnvApplicationListComponent],
   exports: [EnvApplicationListComponent],

@@ -58,12 +58,6 @@ function applicationsConfig($stateProvider) {
       },
       data: {
         useAngularMaterial: true,
-        menu: {
-          label: 'Applications',
-          icon: 'list',
-          firstLevel: true,
-          order: 20,
-        },
         perms: {
           only: ['environment-application-r'],
         },
@@ -144,10 +138,6 @@ function applicationsConfig($stateProvider) {
       url: '/',
       component: 'applicationGeneral',
       data: {
-        menu: {
-          label: 'Global settings',
-          icon: 'blur_on',
-        },
         perms: {
           only: ['application-definition-r'],
         },
@@ -175,10 +165,6 @@ function applicationsConfig($stateProvider) {
         },
       },
       data: {
-        menu: {
-          label: 'Metadata',
-          icon: 'collections_bookmark',
-        },
         perms: {
           only: ['application-metadata-r'],
         },
@@ -200,10 +186,6 @@ function applicationsConfig($stateProvider) {
           ApplicationService.getSubscribedAPI($stateParams.applicationId).then((response) => response.data),
       },
       data: {
-        menu: {
-          label: 'Subscriptions',
-          icon: 'vpn_key',
-        },
         perms: {
           only: ['application-subscription-r'],
         },
@@ -323,10 +305,6 @@ function applicationsConfig($stateProvider) {
         },
       },
       data: {
-        menu: {
-          label: 'Members',
-          icon: 'group',
-        },
         perms: {
           only: ['application-member-r'],
         },
@@ -340,10 +318,6 @@ function applicationsConfig($stateProvider) {
       component: 'applicationAnalytics',
       resolve: {},
       data: {
-        menu: {
-          label: 'Analytics',
-          icon: 'insert_chart',
-        },
         perms: {
           only: ['application-analytics-r'],
         },
@@ -371,13 +345,13 @@ function applicationsConfig($stateProvider) {
       },
     })
     .state('management.applications.application.logs', {
-      url: '/logs?from&to&q&page&size',
+      abstract: true,
+      url: '/logs',
+    })
+    .state('management.applications.application.logs.list', {
+      url: '?from&to&q&page&size',
       component: 'applicationLogs',
       data: {
-        menu: {
-          label: 'Logs',
-          icon: 'receipt',
-        },
         perms: {
           only: ['application-log-r'],
         },
@@ -412,8 +386,8 @@ function applicationsConfig($stateProvider) {
           ApplicationService.getSubscribedAPI($stateParams.applicationId),
       },
     })
-    .state('management.applications.application.log', {
-      url: '/logs/:logId?timestamp&from&to&q&page&size',
+    .state('management.applications.application.logs.log', {
+      url: '/:logId?timestamp&from&to&q&page&size',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams, ApplicationService: ApplicationService) =>
