@@ -78,6 +78,6 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 150;
+        return 120;
     }
 }
