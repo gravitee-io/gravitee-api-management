@@ -88,6 +88,19 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.proxy.ng-failover', {
+      url: '/ng-failover',
+      component: 'ngApiProxyFailover',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-proxy-failover',
+        },
+      },
+    })
     .state('management.apis.detail.proxy.endpoints', {
       url: '/endpoints',
       template: require('./backend/endpoint/apiEndpoints.html'),

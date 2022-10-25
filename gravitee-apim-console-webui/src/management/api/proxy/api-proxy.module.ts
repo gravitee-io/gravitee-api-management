@@ -21,6 +21,7 @@ import { ApiProxyDeploymentsModule } from './deployments/api-proxy-deployments.m
 import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
 import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-response-templates.module';
 import { ApiProxyEndpointModule } from './endpoints/api-proxy-endpoints.module';
+import { ApiProxyFailoverModule } from './failover/api-proxy-failover.module';
 
 @NgModule({
   imports: [
@@ -29,6 +30,7 @@ import { ApiProxyEndpointModule } from './endpoints/api-proxy-endpoints.module';
     ApiProxyDeploymentsModule,
     ApiProxyResponseTemplatesModule,
     ApiProxyEndpointModule,
+    ApiProxyFailoverModule,
   ],
 })
 export class ApiProxyModule {}
