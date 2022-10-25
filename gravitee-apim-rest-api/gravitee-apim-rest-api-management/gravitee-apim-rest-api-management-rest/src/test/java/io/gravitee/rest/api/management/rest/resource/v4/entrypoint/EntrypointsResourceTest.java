@@ -101,4 +101,39 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("schema", pluginEntity.get("schema"));
         assertEquals("icon", pluginEntity.get("icon"));
     }
+
+    @Test
+    public void shouldReturnAllEntrypointsWithSchemaAndSubscriptionSchema() {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId("id");
+        connectorPlugin.setName("name");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        when(entrypointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
+        when(entrypointConnectorPluginService.getSchema(connectorPlugin.getId())).thenReturn("schema");
+        when(entrypointConnectorPluginService.getIcon(connectorPlugin.getId())).thenReturn("icon");
+        when(entrypointConnectorPluginService.getSubscriptionSchema(connectorPlugin.getId())).thenReturn("subscriptionSchema");
+
+        final Response response = envTarget()
+            .queryParam("expand", "schema")
+            .queryParam("expand", "subscriptionSchema")
+            .queryParam("expand", "icon")
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final List<Map<String, String>> pluginEntities = response.readEntity(List.class);
+        assertEquals(1, pluginEntities.size());
+        Map<String, String> pluginEntity = pluginEntities.get(0);
+        assertEquals("id", pluginEntity.get("id"));
+        assertEquals("name", pluginEntity.get("name"));
+        assertEquals("1.0", pluginEntity.get("version"));
+        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        ArrayList<String> arrayList = new ArrayList<>();
+        arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
+        assertEquals(arrayList, pluginEntity.get("supportedModes"));
+        assertEquals("schema", pluginEntity.get("schema"));
+        assertEquals("icon", pluginEntity.get("icon"));
+        assertEquals("subscriptionSchema", pluginEntity.get("subscriptionSchema"));
+    }
 }

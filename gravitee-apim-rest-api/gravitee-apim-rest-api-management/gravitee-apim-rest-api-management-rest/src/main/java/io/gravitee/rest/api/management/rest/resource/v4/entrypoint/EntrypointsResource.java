@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,8 +72,18 @@ public class EntrypointsResource extends AbstractConnectorsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<ConnectorExpandPluginEntity> getEntrypoints(@QueryParam("expand") List<String> expands) {
-        return super.expand(entrypointService.findAll(), expands);
+    public Collection<ConnectorExpandPluginEntity> getEntrypoints(
+        @QueryParam("expand") @ApiParam(
+            name = "expand",
+            allowableValues = "schema, icon, subscriptionSchema",
+            allowMultiple = true
+        ) List<String> expands
+    ) {
+        final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
+        if (expands != null && expands.contains("subscriptionSchema")) {
+            connectors.forEach(connector -> connector.setSubscriptionSchema(entrypointService.getSubscriptionSchema(connector.getId())));
+        }
+        return connectors;
     }
 
     @Override
