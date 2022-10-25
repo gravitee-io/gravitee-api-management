@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionDispatcher> implements SubscriptionDispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
-    private static final String SUBSCRIPTION_TYPE_FIELD = "type";
+    private static final String SUBSCRIPTION_TYPE_FIELD = "entrypointId";
     private final Map<String, Disposable> actives = new ConcurrentHashMap<>();
     private final SubscriptionAcceptorResolver subscriptionAcceptorResolver;
     private final ObjectMapper mapper = new ObjectMapper();

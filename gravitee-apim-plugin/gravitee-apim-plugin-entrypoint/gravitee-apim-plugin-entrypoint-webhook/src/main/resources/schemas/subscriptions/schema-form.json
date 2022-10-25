@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebhookEntrypointConnectorSubscriptionConfiguration",
+  "properties": {
+    "callbackUrl": {
+      "type": "string",
+      "title": "The callback URL called by the entrypoint on a message",
+      "description": "The callback URL called by the entrypoint on a message"
+    },
+    "headers": {
+      "type": "array",
+      "title": "HTTP Headers",
+      "description": "The list of headers to add to the request to the callback URL",
+      "items": {
+        "type": "object",
+        "title": "Header",
+        "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:HttpHeader",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "required": ["name", "value"]
+      }
+    }
+  },
+  "required": [
+    "callbackUrl"
+  ]
+}
