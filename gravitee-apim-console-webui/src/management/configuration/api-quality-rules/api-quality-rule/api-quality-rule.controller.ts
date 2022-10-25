@@ -48,7 +48,7 @@ class ApiQualityRuleController {
     save.then((response) => {
       const qualityRule = response.data;
       this.NotificationService.show('Quality rule ' + qualityRule.name + ' has been saved.');
-      this.$state.go('management.settings.qualityRule', { qualityRuleId: qualityRule.id }, { reload: true });
+      this.$state.go('management.settings.apiQuality.qualityRule', { qualityRuleId: qualityRule.id }, { reload: true });
     });
   }
 }

@@ -25,6 +25,7 @@ import { EnvAuditModule } from './audit/env-audit.module';
 import { ApiCreationModule } from './api/creation/api-creation.module';
 import { EnvironmentApplicationModule } from './application/environment-application.module';
 import { ApisModule } from './api/apis.module';
+import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
@@ -42,6 +43,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
     EnvironmentApplicationModule,
     ApisModule,
+    SettingsNavigationModule,
   ],
   declarations: [],
   entryComponents: [],

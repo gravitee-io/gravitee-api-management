@@ -40,7 +40,7 @@
           <a ng-if="$ctrl.apiId && !$last" ui-sref="management.apis.detail.portal.documentation({apiId: $ctrl.apiId, parent: folder.id})"
             >{{folder.name}}</a
           >
-          <a ng-if="!$ctrl.apiId && !$last" ui-sref="management.settings.documentation({parent: folder.id})">{{folder.name}}</a>
+          <a ng-if="!$ctrl.apiId && !$last" ui-sref="management.settings.documentation.list({parent: folder.id})">{{folder.name}}</a>
           <span ng-if="$ctrl.apiId && $last">{{folder.name}}</span>
           <span ng-if="!$ctrl.apiId && $last">{{folder.name}}</span>
           <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>
