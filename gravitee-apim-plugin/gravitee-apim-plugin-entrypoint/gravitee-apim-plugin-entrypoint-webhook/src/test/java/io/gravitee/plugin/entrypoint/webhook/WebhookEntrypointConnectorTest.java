@@ -191,7 +191,9 @@ class WebhookEntrypointConnectorTest {
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
         cut.handleRequest(ctx).test().assertComplete();
@@ -218,7 +220,9 @@ class WebhookEntrypointConnectorTest {
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
         // Prepare the client
@@ -263,7 +267,9 @@ class WebhookEntrypointConnectorTest {
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
         // Prepare the client
