@@ -1,0 +1,69 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h1>Failover</h1>
+
+<form *ngIf="failoverForm" [formGroup]="failoverForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <mat-card-content>
+      <!-- Enable failover -->
+      <gio-form-slide-toggle appearance="fill" class="failover-card__enable-toggle">
+        <gio-form-label>Enable Failover</gio-form-label>
+        When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or
+        "timeout" have been reached.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Failover enable toggle "
+          name="enableFailover"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <mat-divider></mat-divider>
+
+      <!-- Max Attempts -->
+      <div class="failover-card__max-attempts" [class.disabled]="!enabled.value">
+        <div class="failover-card__max-attempts__label">Max attempts</div>
+        <p class="failover-card__max-attempts__hint">
+          Limits the number of possible tries before returning an error. Each try get an endpoint according to the load balancing algorithm.
+        </p>
+        <mat-form-field class="failover-card__max-attempts__form-field" appearance="fill">
+          <mat-label>Max Attempts</mat-label>
+          <input matInput formControlName="maxAttempts" type="number" min="1" required />
+          <mat-hint>Must be greater than 0.</mat-hint>
+          <mat-error *ngIf="maxAttempts.hasError('min')">Must be greater than 0.</mat-error>
+          <mat-error *ngIf="maxAttempts.hasError('required')">Max Attempts is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Timeout -->
+      <div class="failover-card__timeout" [class.disabled]="!enabled.value">
+        <div class="failover-card__timeout__label">Timeout (ms)</div>
+        <p class="failover-card__timeout__hint">Limits the time allowed to try another attempt.</p>
+        <mat-form-field class="failover-card__timeout__form-field" appearance="fill" [disabled]="enableChecked$ | async">
+          <mat-label>Timeout</mat-label>
+          <input matInput formControlName="retryTimeout" type="number" min="1" required [disabled]="enableChecked$ | async" />
+          <mat-hint>Must be greater than 0.</mat-hint>
+          <mat-error *ngIf="retryTimeout.hasError('min')">Must be greater than 0.</mat-error>
+          <mat-error *ngIf="retryTimeout.hasError('required')">Timeout is required</mat-error>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar [form]="failoverForm" [formInitialValues]="initialFailoverFormValue" (submitted)="onSubmit()"></gio-save-bar>
+</form>
