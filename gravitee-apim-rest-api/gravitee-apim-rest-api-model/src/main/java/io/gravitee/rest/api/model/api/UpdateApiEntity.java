@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -151,6 +152,9 @@ public class UpdateApiEntity {
     @JsonProperty("background_url")
     @Schema(description = "the API background URL")
     private String backgroundUrl;
+
+    @Schema(hidden = true, description = "The API's lifecycle state has been added for the kubernetes operator only.")
+    private Lifecycle.State state;
 
     @JsonIgnore
     public void setProperties(PropertiesEntity properties) {

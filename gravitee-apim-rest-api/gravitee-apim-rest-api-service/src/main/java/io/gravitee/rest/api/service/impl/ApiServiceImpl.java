@@ -568,7 +568,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (DefinitionContext.isKubernetes(repoApi.getOrigin())) {
                 // Be sure that api is always marked as STARTED when managed by k8s.
-                repoApi.setLifecycleState(LifecycleState.STARTED);
+                repoApi.setLifecycleState(
+                    api.getState() == null ? LifecycleState.STARTED : LifecycleState.valueOf(api.getState().toString())
+                );
 
                 // Set the api lifecycle state if defined or set it to CREATED by default.
                 repoApi.setApiLifecycleState(
@@ -1201,7 +1203,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (DefinitionContext.isKubernetes(api.getOrigin())) {
                 // Be sure that api is started when managed by k8s.
-                api.setLifecycleState(LifecycleState.STARTED);
+                api.setLifecycleState(
+                    updateApiEntity.getState() == null
+                        ? LifecycleState.STARTED
+                        : LifecycleState.valueOf(updateApiEntity.getState().toString())
+                );
                 if (updateApiEntity.getLifecycleState() != null) {
                     api.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
                 }
