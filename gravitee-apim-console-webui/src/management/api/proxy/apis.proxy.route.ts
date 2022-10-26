@@ -26,7 +26,6 @@ function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {
-      template: require('./apis.proxy.route.html'),
       resolve: {
         resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent(),
       },
@@ -295,7 +294,11 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.ng-responsetemplates', {
+      abstract: true,
       url: '/responsetemplates',
+    })
+    .state('management.apis.detail.proxy.ng-responsetemplates.list', {
+      url: '',
       component: 'ngApiProxyResponseTemplatesList',
       data: {
         useAngularMaterial: true,
@@ -307,8 +310,8 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplate-new', {
-      url: '/responsetemplates/',
+    .state('management.apis.detail.proxy.ng-responsetemplates.new', {
+      url: '/',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
         useAngularMaterial: true,
@@ -320,8 +323,8 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplate-edit', {
-      url: '/responsetemplates/:responseTemplateId',
+    .state('management.apis.detail.proxy.ng-responsetemplates.edit', {
+      url: '/:responseTemplateId',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
         useAngularMaterial: true,

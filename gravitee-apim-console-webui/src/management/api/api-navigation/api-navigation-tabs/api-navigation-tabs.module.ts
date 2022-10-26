@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatTabsModule } from '@angular/material/tabs';
 
-import { ApiPortalDetailsModule } from './details/api-portal-details.module';
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
-import { ApiNavigationModule } from './api-navigation/api-navigation.module';
+import { ApiNavigationTabsComponent } from './api-navigation-tabs.component';
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiNavigationModule],
+  imports: [CommonModule, MatTabsModule],
+  declarations: [ApiNavigationTabsComponent],
+  exports: [ApiNavigationTabsComponent],
+  entryComponents: [ApiNavigationTabsComponent],
 })
-export class ApisModule {}
+export class ApiNavigationTabsModule {}

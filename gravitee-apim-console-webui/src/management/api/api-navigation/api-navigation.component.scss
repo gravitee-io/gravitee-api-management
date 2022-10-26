@@ -13,14 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-import { ApiPortalDetailsModule } from './details/api-portal-details.module';
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
-import { ApiNavigationModule } from './api-navigation/api-navigation.module';
+.api-navigation {
+  display: flex;
+  justify-content: flex-start;
 
-@NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiNavigationModule],
-})
-export class ApisModule {}
+  &__menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-y: scroll;
+    height: calc(100vh - 54px);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: calc(100vh - 54px);
+    overflow-y: hidden;
+
+    &__view {
+      height: 100%;
+      overflow-y: auto;
+    }
+  }
+}

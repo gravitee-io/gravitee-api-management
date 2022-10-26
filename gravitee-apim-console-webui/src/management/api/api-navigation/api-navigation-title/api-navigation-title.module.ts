@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { ApiPortalDetailsModule } from './details/api-portal-details.module';
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
-import { ApiNavigationModule } from './api-navigation/api-navigation.module';
+import { ApiNavigationTitleComponent } from './api-navigation-title.component';
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiNavigationModule],
+  imports: [CommonModule, GioIconsModule],
+  declarations: [ApiNavigationTitleComponent],
+  exports: [ApiNavigationTitleComponent],
+  entryComponents: [ApiNavigationTitleComponent],
 })
-export class ApisModule {}
+export class ApiNavigationTitleModule {}
