@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -40,14 +40,14 @@ public class DefaultEndpointConnectorPluginManager
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
-    private final ConnectorFactoryHelper connectorFactoryHelper;
+    private final ConnectorConfigurationHelper connectorConfigurationHelper;
 
     public DefaultEndpointConnectorPluginManager(
         final EndpointConnectorClassLoaderFactory classLoaderFactory,
-        final ConnectorFactoryHelper connectorFactoryHelper
+        final ConnectorConfigurationHelper connectorConfigurationHelper
     ) {
         this.classLoaderFactory = classLoaderFactory;
-        this.connectorFactoryHelper = connectorFactoryHelper;
+        this.connectorConfigurationHelper = connectorConfigurationHelper;
     }
 
     @Override
@@ -71,10 +71,10 @@ public class DefaultEndpointConnectorPluginManager
         throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         EndpointConnectorFactory<?> factory;
         try {
-            Constructor<EndpointConnectorFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor(
-                ConnectorFactoryHelper.class
+            Constructor<EndpointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
+                ConnectorConfigurationHelper.class
             );
-            factory = constructorWithFactoryHelper.newInstance(connectorFactoryHelper);
+            factory = constructorWithConfigurationHelper.newInstance(connectorConfigurationHelper);
         } catch (NoSuchMethodException e) {
             Constructor<EndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();

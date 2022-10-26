@@ -17,9 +17,8 @@ package io.gravitee.plugin.entrypoint.webhook;
 
 import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.SUPPORTED_QOS;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
@@ -35,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class WebhookEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
 
-    private ConnectorFactoryHelper connectorFactoryHelper;
+    private ConnectorConfigurationHelper connectorConfigurationHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -52,7 +51,7 @@ public class WebhookEntrypointConnectorFactory implements EntrypointAsyncConnect
         try {
             return new WebhookEntrypointConnector(
                 qos,
-                connectorFactoryHelper.getConnectorConfiguration(WebhookEntrypointConnectorConfiguration.class, configuration)
+                connectorConfigurationHelper.getConnectorConfiguration(WebhookEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (Exception e) {
             log.error("Can't create connector cause no valid configuration", e);

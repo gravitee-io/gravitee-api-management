@@ -18,7 +18,7 @@ package io.gravitee.plugin.entrypoint.webhook;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
@@ -50,7 +50,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
-    private static final String ENTRYPOINT_ID = "webhook";
+    public static final String ENTRYPOINT_ID = "webhook";
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
     private final QosOptions qosOptions;
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
@@ -191,8 +191,8 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
                     subscriptionConfiguration =
                         ctx
-                            .getComponent(ConnectorFactoryHelper.class)
-                            .getConnectorConfiguration(
+                            .getComponent(ConnectorConfigurationHelper.class)
+                            .getEntrypointSubscriptionConfiguration(
                                 WebhookEntrypointConnectorSubscriptionConfiguration.class,
                                 subscription.getConfiguration()
                             );

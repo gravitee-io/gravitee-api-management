@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
@@ -47,7 +47,7 @@ class DefaultEntrypointConnectorPluginManagerTest {
         entrypointConnectorPluginManager =
             new DefaultEntrypointConnectorPluginManager(
                 new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
-                new ConnectorFactoryHelper(null, new ObjectMapper())
+                new ConnectorConfigurationHelper(null, new ObjectMapper())
             );
     }
 
