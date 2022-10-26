@@ -18,7 +18,7 @@ package io.gravitee.plugin.entrypoint.webhook;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
@@ -50,14 +50,20 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
-    private static final String ENTRYPOINT_ID = "webhook";
+    public static final String ENTRYPOINT_ID = "webhook";
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    private final ConnectorHelper connectorHelper;
     private final QosOptions qosOptions;
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
 
     protected final WebhookEntrypointConnectorConfiguration configuration;
 
-    public WebhookEntrypointConnector(final Qos qos, final WebhookEntrypointConnectorConfiguration configuration) {
+    public WebhookEntrypointConnector(
+        final ConnectorHelper connectorHelper,
+        final Qos qos,
+        final WebhookEntrypointConnectorConfiguration configuration
+    ) {
+        this.connectorHelper = connectorHelper;
         this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(false).manualAckSupported(true).build();
         this.configuration = configuration;
     }
@@ -153,7 +159,6 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             .rxRequest(HttpMethod.POST, requestUri)
             .flatMap(
                 request -> {
-                    // FIXME : to discuss : is that relevant to copy message headers to request headers ?
                     if (message.headers() != null) {
                         message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
                     }
@@ -186,16 +191,13 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             () -> {
                 WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = null;
 
+                final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
                 try {
-                    final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-
                     subscriptionConfiguration =
-                        ctx
-                            .getComponent(ConnectorFactoryHelper.class)
-                            .getConnectorConfiguration(
-                                WebhookEntrypointConnectorSubscriptionConfiguration.class,
-                                subscription.getConfiguration()
-                            );
+                        connectorHelper.readConfiguration(
+                            WebhookEntrypointConnectorSubscriptionConfiguration.class,
+                            subscription.getConfiguration()
+                        );
 
                     final URL targetUrl = new URL(null, subscriptionConfiguration.getCallbackUrl());
 
@@ -207,9 +209,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                 } catch (Exception ex) {
                     return Completable.error(
                         new IllegalArgumentException(
-                            "Unable to prepare the execution context for the webhook, with subscription configuration [" +
-                            subscriptionConfiguration +
-                            "]",
+                            "Unable to prepare the execution context for the webhook, with subscription id [" + subscription.getId() + "]",
                             ex
                         )
                     );

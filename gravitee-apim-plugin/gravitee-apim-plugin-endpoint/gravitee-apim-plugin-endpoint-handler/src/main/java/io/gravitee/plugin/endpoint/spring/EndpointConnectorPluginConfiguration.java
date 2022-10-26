@@ -15,8 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -34,9 +33,9 @@ public class EndpointConnectorPluginConfiguration {
     @Bean
     public ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> endpointPluginManager(
         final EndpointConnectorClassLoaderFactory endpointConnectorClassLoaderFactory,
-        final ConnectorFactoryHelper connectorFactoryHelper
+        final ConnectorHelper connectorHelper
     ) {
-        return new DefaultEndpointConnectorPluginManager(endpointConnectorClassLoaderFactory, connectorFactoryHelper);
+        return new DefaultEndpointConnectorPluginManager(endpointConnectorClassLoaderFactory, connectorHelper);
     }
 
     @Bean

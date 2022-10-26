@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class SseEntrypointConnectorFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        sseEntrypointConnectorFactory = new SseEntrypointConnectorFactory(new ConnectorFactoryHelper(null, new ObjectMapper()));
+        sseEntrypointConnectorFactory = new SseEntrypointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
     }
 
     @Test
