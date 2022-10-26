@@ -136,7 +136,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                     throw new ListenerEntrypointMissingTypeException();
                 }
                 checkEntrypointQos(entrypoint);
-                checkoutEntrypointConfiguration(entrypoint);
+                checkEntrypointConfiguration(entrypoint);
             }
         );
     }
@@ -159,7 +159,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         }
     }
 
-    private void checkoutEntrypointConfiguration(final Entrypoint entrypoint) {
+    private void checkEntrypointConfiguration(final Entrypoint entrypoint) {
         String entrypointConfiguration = null;
         if (entrypoint.getConfiguration() != null) {
             entrypointConfiguration = entrypoint.getConfiguration();
