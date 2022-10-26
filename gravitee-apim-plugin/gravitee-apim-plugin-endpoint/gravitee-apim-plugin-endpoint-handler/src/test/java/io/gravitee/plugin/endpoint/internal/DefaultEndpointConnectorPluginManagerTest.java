@@ -18,8 +18,7 @@ package io.gravitee.plugin.endpoint.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
@@ -42,7 +41,7 @@ class DefaultEndpointConnectorPluginManagerTest {
         endpointConnectorPluginManager =
             new DefaultEndpointConnectorPluginManager(
                 new DefaultEndpointConnectorClassLoaderFactory(),
-                new ConnectorFactoryHelper(null, new ObjectMapper())
+                new ConnectorHelper(null, new ObjectMapper())
             );
     }
 

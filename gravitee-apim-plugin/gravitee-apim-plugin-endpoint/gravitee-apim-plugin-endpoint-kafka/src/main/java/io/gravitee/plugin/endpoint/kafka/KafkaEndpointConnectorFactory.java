@@ -19,7 +19,7 @@ import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED
 import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
@@ -36,11 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
-    private final ConnectorFactoryHelper connectorFactoryHelper;
+    private final ConnectorHelper connectorHelper;
     private final QosStrategyFactory qosStrategyFactory;
 
-    public KafkaEndpointConnectorFactory(final ConnectorFactoryHelper connectorFactoryHelper) {
-        this.connectorFactoryHelper = connectorFactoryHelper;
+    public KafkaEndpointConnectorFactory(final ConnectorHelper connectorHelper) {
+        this.connectorHelper = connectorHelper;
         this.qosStrategyFactory = new DefaultQosStrategyFactory();
     }
 
@@ -58,7 +58,7 @@ public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFact
     public KafkaEndpointConnector createConnector(final String configuration) {
         try {
             return new KafkaEndpointConnector(
-                connectorFactoryHelper.getConnectorConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
+                connectorHelper.readConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
                 qosStrategyFactory
             );
         } catch (PluginConfigurationException e) {

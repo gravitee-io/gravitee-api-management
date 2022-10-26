@@ -18,7 +18,7 @@ package io.gravitee.plugin.entrypoint.http.get;
 import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
 
-    private ConnectorFactoryHelper connectorFactoryHelper;
+    private ConnectorHelper connectorHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -52,7 +52,7 @@ public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnect
         try {
             return new HttpGetEntrypointConnector(
                 qos,
-                connectorFactoryHelper.getConnectorConfiguration(HttpGetEntrypointConnectorConfiguration.class, configuration)
+                connectorHelper.readConfiguration(HttpGetEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);

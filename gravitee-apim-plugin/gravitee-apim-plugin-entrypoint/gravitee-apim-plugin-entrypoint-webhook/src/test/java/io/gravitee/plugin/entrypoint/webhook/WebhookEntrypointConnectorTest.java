@@ -30,7 +30,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
@@ -85,7 +85,7 @@ class WebhookEntrypointConnectorTest {
     private WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration;
 
     @Mock
-    private ConnectorFactoryHelper connectorFactoryHelper;
+    private ConnectorHelper connectorHelper;
 
     @Mock
     private Subscription subscription;
@@ -105,10 +105,10 @@ class WebhookEntrypointConnectorTest {
         lenient().when(response.end()).thenReturn(Completable.complete());
         lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
-        lenient().when(ctx.getComponent(ConnectorFactoryHelper.class)).thenReturn(connectorFactoryHelper);
+        lenient().when(ctx.getComponent(ConnectorHelper.class)).thenReturn(connectorHelper);
         lenient()
             .when(
-                connectorFactoryHelper.getConnectorConfiguration(
+                connectorHelper.readConfiguration(
                     eq(WebhookEntrypointConnectorSubscriptionConfiguration.class),
                     eq(SUBSCRIPTION_CONFIGURATION)
                 )
@@ -116,7 +116,7 @@ class WebhookEntrypointConnectorTest {
             .thenReturn(subscriptionConfiguration);
         lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
 
-        cut = new WebhookEntrypointConnector(Qos.NONE, configuration);
+        cut = new WebhookEntrypointConnector(connectorHelper, Qos.NONE, configuration);
     }
 
     @Test
