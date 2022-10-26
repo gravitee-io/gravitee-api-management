@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
@@ -42,13 +42,13 @@ class WebSocketEntrypointConnectorFactoryTest {
     protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
-    private ConnectorFactoryHelper connectorFactoryHelper;
+    private ConnectorConfigurationHelper connectorConfigurationHelper;
 
     private WebSocketEntrypointConnectorFactory cut;
 
     @BeforeEach
     void init() {
-        cut = new WebSocketEntrypointConnectorFactory(connectorFactoryHelper);
+        cut = new WebSocketEntrypointConnectorFactory(connectorConfigurationHelper);
     }
 
     @Test
@@ -68,7 +68,9 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnector() throws PluginConfigurationException {
-        when(connectorFactoryHelper.getConnectorConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
+        when(
+            connectorConfigurationHelper.getConnectorConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION)
+        )
             .thenReturn(new WebSocketEntrypointConnectorConfiguration());
 
         final WebSocketEntrypointConnector connector = cut.createConnector(Qos.NONE, CONNECTOR_CONFIGURATION);
@@ -78,7 +80,9 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateNullConnectorWhenExceptionOccursGettingConfiguration() throws PluginConfigurationException {
-        when(connectorFactoryHelper.getConnectorConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
+        when(
+            connectorConfigurationHelper.getConnectorConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION)
+        )
             .thenThrow(new RuntimeException(MOCK_EXCEPTION));
 
         final WebSocketEntrypointConnector connector = cut.createConnector(Qos.NONE, CONNECTOR_CONFIGURATION);

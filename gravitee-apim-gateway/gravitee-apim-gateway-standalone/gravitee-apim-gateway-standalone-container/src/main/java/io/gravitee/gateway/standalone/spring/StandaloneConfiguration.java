@@ -26,7 +26,7 @@ import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
@@ -102,11 +102,11 @@ public class StandaloneConfiguration {
     }
 
     @Bean
-    public ConnectorFactoryHelper connectorFactoryHelper(
+    public ConnectorConfigurationHelper connectorConfigurationHelper(
         final io.gravitee.node.api.configuration.Configuration configuration,
         final ObjectMapper objectMapper
     ) {
-        return new ConnectorFactoryHelper(configuration, objectMapper);
+        return new ConnectorConfigurationHelper(configuration, objectMapper);
     }
 
     @Bean

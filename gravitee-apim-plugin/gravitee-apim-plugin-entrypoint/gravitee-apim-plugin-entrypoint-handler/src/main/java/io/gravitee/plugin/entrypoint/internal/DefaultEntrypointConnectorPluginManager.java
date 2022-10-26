@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactoryHelper;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -41,15 +41,15 @@ public class DefaultEntrypointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
-    private final ConnectorFactoryHelper connectorFactoryHelper;
+    private final ConnectorConfigurationHelper connectorConfigurationHelper;
     private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(
         final EntrypointConnectorClassLoaderFactory classLoaderFactory,
-        final ConnectorFactoryHelper connectorFactoryHelper
+        final ConnectorConfigurationHelper connectorConfigurationHelper
     ) {
         this.classLoaderFactory = classLoaderFactory;
-        this.connectorFactoryHelper = connectorFactoryHelper;
+        this.connectorConfigurationHelper = connectorConfigurationHelper;
     }
 
     @Override
@@ -73,10 +73,10 @@ public class DefaultEntrypointConnectorPluginManager
         throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         EntrypointConnectorFactory<?> factory;
         try {
-            Constructor<EntrypointConnectorFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor(
-                ConnectorFactoryHelper.class
+            Constructor<EntrypointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
+                ConnectorConfigurationHelper.class
             );
-            factory = constructorWithFactoryHelper.newInstance(connectorFactoryHelper);
+            factory = constructorWithConfigurationHelper.newInstance(connectorConfigurationHelper);
         } catch (NoSuchMethodException e) {
             Constructor<EntrypointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();
