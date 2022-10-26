@@ -34,7 +34,6 @@ function apisPortalRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.portal', {
-      template: require('./apis.portal.route.html'),
       resolve: {
         qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data),
       },

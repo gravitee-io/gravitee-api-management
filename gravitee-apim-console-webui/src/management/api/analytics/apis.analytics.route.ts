@@ -28,7 +28,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.analytics', {
-      template: require('./apis.analytics.route.html'),
+      abstract: true,
     })
     .state('management.apis.detail.analytics.overview', {
       url: '/analytics?from&to&q&dashboard',
@@ -70,7 +70,11 @@ function apisAnalyticsRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.analytics.logs', {
-      url: '/logs?from&to&q&page&size',
+      abstract: true,
+      url: '/logs',
+    })
+    .state('management.apis.detail.analytics.logs.list', {
+      url: '?from&to&q&page&size',
       template: require('./logs/logs.html'),
       controller: 'ApiLogsController',
       controllerAs: 'logsCtrl',
@@ -110,8 +114,8 @@ function apisAnalyticsRouterConfig($stateProvider) {
         tenants: (TenantService: TenantService) => TenantService.list(),
       },
     })
-    .state('management.apis.detail.analytics.loggingconfigure', {
-      url: '/logs/configure',
+    .state('management.apis.detail.analytics.logs.loggingconfigure', {
+      url: '/configure',
       template: require('./logs/logging-configuration.html'),
       controller: 'ApiLoggingConfigurationController',
       controllerAs: 'loggingCtrl',
@@ -128,8 +132,8 @@ function apisAnalyticsRouterConfig($stateProvider) {
         spelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
-    .state('management.apis.detail.analytics.log', {
-      url: '/logs/:logId?timestamp&from&to&q&page&size',
+    .state('management.apis.detail.analytics.logs.log', {
+      url: '/:logId?timestamp&from&to&q&page&size',
       component: 'log',
       resolve: {
         log: ($stateParams: StateParams, ApiService: ApiService) =>
