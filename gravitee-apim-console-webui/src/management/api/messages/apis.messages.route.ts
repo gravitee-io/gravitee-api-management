@@ -28,10 +28,6 @@ function apisMessagesRouterConfig($stateProvider) {
       resolvedRoles: (RoleService: RoleService) => RoleService.list('APPLICATION'),
     },
     data: {
-      menu: {
-        label: 'Messages',
-        icon: 'message',
-      },
       perms: {
         only: ['api-message-c'],
       },

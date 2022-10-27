@@ -39,10 +39,6 @@ function apisAnalyticsRouterConfig($stateProvider) {
         dashboards: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
       },
       data: {
-        menu: {
-          label: 'Analytics',
-          icon: 'insert_chart',
-        },
         perms: {
           only: ['api-analytics-r'],
         },
@@ -120,7 +116,6 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controller: 'ApiLoggingConfigurationController',
       controllerAs: 'loggingCtrl',
       data: {
-        menu: null,
         perms: {
           only: ['api-log-u'],
         },

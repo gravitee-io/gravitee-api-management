@@ -19,7 +19,6 @@ import '@gravitee/ui-components/wc/gv-icon';
 
 import { PromoteApiDialogController } from './dialog/promote-api/promoteApiDialog.controller';
 
-import SidenavService from '../../../../components/sidenav/sidenav.service';
 import { QualityMetrics } from '../../../../entities/qualityMetrics';
 import { ApiService } from '../../../../services/api.service';
 import PolicyService from '../../../../services/policy.service';
@@ -58,7 +57,6 @@ class ApiPortalController {
     private $rootScope,
     private $state,
     private GroupService,
-    private SidenavService: SidenavService,
     private resolvedCategories,
     private resolvedGroups,
     private resolvedTags,
@@ -371,7 +369,6 @@ class ApiPortalController {
     this.formApi.$setPristine();
     this.$rootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(updatedApi) });
     this.NotificationService.show("API '" + this.initialApi.name + "' saved");
-    this.SidenavService.setCurrentResource(this.api.name);
     this.initState();
     this.computeQualityMetrics();
   }

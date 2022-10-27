@@ -44,10 +44,6 @@ function apisPortalRouterConfig($stateProvider) {
       controller: 'ApiPortalController',
       controllerAs: 'portalCtrl',
       data: {
-        menu: {
-          label: 'Portal',
-          icon: 'important_devices',
-        },
         docs: {
           page: 'management-api',
         },
@@ -359,7 +355,6 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
       data: {
-        menu: null,
         docs: {
           page: 'management-api-documentation',
         },
@@ -423,7 +418,6 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
       data: {
-        menu: null,
         docs: {
           page: 'management-api-documentation',
         },
@@ -462,7 +456,6 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
       data: {
-        menu: null,
         docs: {
           page: 'management-api-documentation',
         },
@@ -532,7 +525,6 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
       data: {
-        menu: null,
         docs: {
           page: 'management-api-documentation',
         },

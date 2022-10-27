@@ -73,10 +73,7 @@ import DiffDirective from '../components/diff/diff.directive';
 import DialogApiImportController from '../management/api/portal/general/dialog/apiImportDialog.controller';
 import DialogApiExportController from '../management/api/portal/general/dialog/apiExportDialog.controller';
 import DialogApiDuplicateController from '../management/api/portal/general/dialog/apiDuplicateDialog.controller';
-// Sidenav
-import SidenavService from '../components/sidenav/sidenav.service';
-import { SidenavComponent } from '../components/sidenav/sidenav.component';
-import { SubmenuComponent } from '../components/sidenav/submenu.component';
+// Navbar
 import { NavbarComponent } from '../components/navbar/navbar.component';
 // Api
 import ApiCreationComponent from '../management/api/creation/steps/api-creation.component';
@@ -243,7 +240,6 @@ import globalNotificationsRouterConfig from './configuration/notifications/globa
 import UserService from '../services/user.service';
 import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
-import { submenuFilter } from '../components/sidenav/submenu.filter';
 // User Tasks
 import { TasksComponent } from './tasks/tasks.component';
 import { PromotionTaskComponent } from './tasks/promotion/promotion-task.component';
@@ -669,10 +665,6 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
 
   $mdThemingProvider.theme('default').primaryPalette('gravitee').accentPalette('gravitee').warnPalette('graviteeWarn');
 
-  $mdThemingProvider.theme('sidenav').backgroundPalette('grey', {
-    default: '50',
-  });
-
   $mdThemingProvider.theme('toast-success');
   $mdThemingProvider.theme('toast-error');
 });
@@ -994,13 +986,8 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: OrgSettingsNotificationTemplateComponent }),
 );
 
-graviteeManagementModule.component('gvSidenav', SidenavComponent);
-graviteeManagementModule.component('gvSubmenu', SubmenuComponent);
 graviteeManagementModule.component('logout', LogoutComponent);
 graviteeManagementModule.component('graviteeNavbar', NavbarComponent);
-
-graviteeManagementModule.filter('currentSubmenus', submenuFilter);
-graviteeManagementModule.service('SidenavService', SidenavService);
 
 graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);

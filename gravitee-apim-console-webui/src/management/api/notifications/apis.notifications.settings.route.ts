@@ -29,10 +29,6 @@ function apisNotificationsRouterConfig($stateProvider) {
       url: '/notifications',
       component: 'notificationsComponent',
       data: {
-        menu: {
-          label: 'Notifications',
-          icon: 'notifications',
-        },
         perms: {
           only: ['api-notification-r'],
         },
@@ -57,7 +53,6 @@ function apisNotificationsRouterConfig($stateProvider) {
       url: '/:notificationId',
       component: 'notificationSettingsComponent',
       data: {
-        menu: null,
         docs: {
           page: 'management-api-notifications',
         },
@@ -74,11 +69,6 @@ function apisNotificationsRouterConfig($stateProvider) {
       url: '/',
       component: 'alertsComponent',
       data: {
-        menu: {
-          label: 'Alerts',
-          icon: 'alarm',
-          parameter: 'org.settings.alert.enabled',
-        },
         perms: {
           only: ['api-alert-r'],
         },
@@ -98,7 +88,6 @@ function apisNotificationsRouterConfig($stateProvider) {
       url: '/create',
       component: 'alertComponent',
       data: {
-        menu: null,
         docs: {
           page: 'management-alerts',
         },
@@ -119,7 +108,6 @@ function apisNotificationsRouterConfig($stateProvider) {
       url: '/:alertId?:tab',
       component: 'alertComponent',
       data: {
-        menu: null,
         docs: {
           page: 'management-alerts',
         },

@@ -35,10 +35,6 @@ function apisProxyRouterConfig($stateProvider) {
       component: 'ngApiProxyEntrypoints',
       data: {
         useAngularMaterial: true,
-        menu: {
-          label: 'Proxy',
-          icon: 'device_hub',
-        },
         perms: {
           only: ['api-definition-r', 'api-health-r'],
         },
@@ -198,7 +194,6 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiHealthCheckConfigureController',
       controllerAs: 'healthCheckCtrl',
       data: {
-        menu: null,
         perms: {
           only: ['api-health-c'],
         },
@@ -253,7 +248,6 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiHealthCheckConfigureController',
       controllerAs: 'healthCheckCtrl',
       data: {
-        menu: null,
         perms: {
           only: ['api-health-c'],
         },

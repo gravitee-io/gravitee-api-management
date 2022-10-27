@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-import SidenavService from '../../../components/sidenav/sidenav.service';
-
 const ApplicationComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-  },
-  controller: function (SidenavService: SidenavService) {
-    'ngInject';
-
-    this.$onInit = function () {
-      SidenavService.setCurrentResource(this.application.name);
-    };
   },
   template: require('./application.html'),
 };
