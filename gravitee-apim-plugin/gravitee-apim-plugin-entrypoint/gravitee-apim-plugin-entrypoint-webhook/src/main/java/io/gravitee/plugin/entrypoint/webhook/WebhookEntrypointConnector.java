@@ -161,9 +161,9 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                         subscriptionConfiguration
                             .getHeaders()
                             .forEach(
-                                (key, value) -> {
-                                    if (!request.headers().contains(key)) {
-                                        request.putHeader(key, value);
+                                header -> {
+                                    if (!request.headers().contains(header.getName())) {
+                                        request.putHeader(header.getName(), header.getValue());
                                     }
                                 }
                             );

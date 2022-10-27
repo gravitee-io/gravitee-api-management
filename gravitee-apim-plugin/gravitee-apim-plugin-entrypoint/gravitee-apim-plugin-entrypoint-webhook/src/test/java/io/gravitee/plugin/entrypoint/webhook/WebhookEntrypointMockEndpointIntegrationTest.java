@@ -30,7 +30,9 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.webhook.configuration.HttpHeader;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.UUID;
@@ -86,7 +88,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
-        configuration.setHeaders(Map.of("Header1", "my-header-1-value", "Header2", "my-header-2-value"));
+        configuration.setHeaders(List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value")));
 
         Subscription subscription = buildTestSubscription(configuration);
 
