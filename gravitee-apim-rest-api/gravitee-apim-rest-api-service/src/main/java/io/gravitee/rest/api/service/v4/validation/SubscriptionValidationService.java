@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.service.v4.validation;
+
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointConnectorPluginService extends ConnectorPluginService {
-    /**
-     * Retrieve the subscription schema of the entrypoint if it exists.
-     * @param connectorId is the id of the entrypoint
-     * @return the subscription schema as a string, else {@code null}
-     */
-    String getSubscriptionSchema(String connectorId);
+public interface SubscriptionValidationService {
+    void validateAndSanitize(NewSubscriptionEntity subscription);
 
-    String validateEntrypointSubscriptionConfiguration(final String entrypointId, final String configuration);
+    void validateAndSanitize(UpdateSubscriptionEntity subscription);
 }
