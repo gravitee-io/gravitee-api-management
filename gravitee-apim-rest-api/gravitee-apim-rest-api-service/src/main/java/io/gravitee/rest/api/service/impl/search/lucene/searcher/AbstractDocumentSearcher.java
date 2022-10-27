@@ -45,6 +45,12 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     protected static final String FIELD_TYPE = "type";
     protected static final String FIELD_API_TYPE_VALUE = "api";
 
+    protected static void increaseMaxClauseCountIfNecessary(int size) {
+        if (size > BooleanQuery.getMaxClauseCount()) {
+            BooleanQuery.setMaxClauseCount(size);
+        }
+    }
+
     protected Analyzer analyzer = new CustomWhitespaceAnalyzer();
 
     @Autowired
@@ -120,9 +126,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             Object values = filters.get(FIELD_API_TYPE_VALUE);
             if (Collection.class.isAssignableFrom(values.getClass())) {
                 Collection valuesAsCollection = (Collection) values;
-                if (valuesAsCollection.size() > BooleanQuery.getMaxClauseCount()) {
-                    BooleanQuery.setMaxClauseCount(valuesAsCollection.size());
-                }
+                increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
+
                 BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
                 ((Collection<?>) values).forEach(
                         value -> filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
