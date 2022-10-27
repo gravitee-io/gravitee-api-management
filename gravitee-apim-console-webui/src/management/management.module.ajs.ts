@@ -556,6 +556,7 @@ import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.com
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
+import { InstancesNavigationComponent } from './instances/details/instances-navigation/instances-navigation.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -682,6 +683,7 @@ graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component:
 graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
 graviteeManagementModule.directive('apiNavigation', downgradeComponent({ component: ApiNavigationComponent }));
+graviteeManagementModule.directive('instancesNavigation', downgradeComponent({ component: InstancesNavigationComponent }));
 
 // Apis
 graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
