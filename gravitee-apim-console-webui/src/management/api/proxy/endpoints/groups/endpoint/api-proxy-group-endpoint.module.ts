@@ -26,6 +26,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEndpointEditGeneralComponent } from './edit/general/api-proxy-group-endpoint-edit-general.component';
@@ -33,6 +34,7 @@ import { ApiProxyGroupEndpointConfigurationComponent } from './edit/configuratio
 
 import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioFormSlideToggleModule } from '../../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   declarations: [
@@ -53,10 +55,12 @@ import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-g
     MatCheckboxModule,
     MatSelectModule,
     MatTooltipModule,
+    MatSlideToggleModule,
 
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,
     GioSaveBarModule,
+    GioFormSlideToggleModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

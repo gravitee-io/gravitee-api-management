@@ -27,17 +27,26 @@ export const toProxyGroupEndpoint = (
   let updatedEndpoint = {
     ...endpoint,
     ...generalData,
-    inherit: configurationData.inherit,
   };
 
-  if (configurationData) {
+  if (!configurationData.inherit) {
     updatedEndpoint = {
       ...updatedEndpoint,
+      inherit: false,
       http: configurationData.http,
       ssl: configurationData.ssl,
       headers: configurationData.headers,
       proxy: configurationData.proxy,
     };
+  } else {
+    updatedEndpoint = {
+      ...updatedEndpoint,
+      inherit: true,
+    };
+    delete updatedEndpoint.http;
+    delete updatedEndpoint.ssl;
+    delete updatedEndpoint.headers;
+    delete updatedEndpoint.proxy;
   }
 
   return updatedEndpoint;

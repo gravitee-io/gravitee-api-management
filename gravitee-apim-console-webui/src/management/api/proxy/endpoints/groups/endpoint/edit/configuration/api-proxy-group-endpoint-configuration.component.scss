@@ -12,13 +12,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .card {
   &__endpoint-configuration {
     &__inherit {
-      &__label {
-        @include mat.typography-level($typography, body-2);
-      }
-
-      &__label {
-        padding: 0 0.75em 0 0.75em;
-      }
+      width: 100%;
     }
   }
 }
