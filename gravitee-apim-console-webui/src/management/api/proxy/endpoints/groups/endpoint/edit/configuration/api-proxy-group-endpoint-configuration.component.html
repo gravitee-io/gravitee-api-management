@@ -17,10 +17,16 @@
 -->
 <form [formGroup]="configurationForm">
   <mat-card>
-    <div class="card__endpoint-configuration__inherit">
-      <div class="card__endpoint-configuration__inherit__label">Inherit configuration</div>
-      <mat-checkbox aria-label="Inherit configuration" formControlName="inherit"> Inherit endpoint configuration from group. </mat-checkbox>
-    </div>
+    <gio-form-slide-toggle appearance="fill" class="card__endpoint-configuration__inherit">
+      <gio-form-label>Inherit configuration</gio-form-label>
+      Inherit endpoint configuration from group.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="inherit"
+        aria-label="Inherit configuration"
+        name="enableEndpointConfiguration"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
     <div *ngIf="!configurationForm.get('inherit').value">
       <gv-schema-form

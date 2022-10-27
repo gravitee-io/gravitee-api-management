@@ -13,10 +13,6 @@ $typography: map.get(gio.$mat-theme, typography);
   &__group-sd {
     &__enable,
     &__type {
-      &__label {
-        @include mat.typography-level($typography, body-2);
-      }
-
       &__label,
       &__hint {
         padding: 0 0.75em 0 0.75em;
@@ -30,8 +26,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__enable {
       width: 100%;
-      padding-bottom: 1.34375em;
-      margin-bottom: 8px;
     }
   }
 }

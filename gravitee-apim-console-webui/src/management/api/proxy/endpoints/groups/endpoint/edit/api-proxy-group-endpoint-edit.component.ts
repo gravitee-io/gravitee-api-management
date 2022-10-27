@@ -81,11 +81,9 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
           this.initForms();
           this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
-          if (this.mode === 'edit') {
-            this.configurationSchema = JSON.parse(
-              this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase()))?.schema,
-            );
-          }
+          this.configurationSchema = JSON.parse(
+            this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase() ?? 'http'))?.schema,
+          );
         }),
       )
       .subscribe();
@@ -121,7 +119,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           );
 
           endpointIndex !== -1
-            ? api.proxy.groups[groupIndex].endpoints.splice(groupIndex, 1, updatedEndpoint)
+            ? api.proxy.groups[groupIndex].endpoints.splice(endpointIndex, 1, updatedEndpoint)
             : api.proxy.groups[groupIndex].endpoints.push(updatedEndpoint);
 
           return this.apiService.update(api);
@@ -172,7 +170,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           ),
         ],
       ],
-      type: [{ value: this.endpoint?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      type: [{ value: this.endpoint?.type ?? 'http', disabled: this.isReadOnly }, [Validators.required]],
       target: [{ value: this.endpoint?.target ?? null, disabled: this.isReadOnly }, [Validators.required]],
       weight: [{ value: this.endpoint?.weight ?? null, disabled: this.isReadOnly }, [Validators.required]],
       tenants: [{ value: this.endpoint?.tenants ?? null, disabled: this.isReadOnly }],

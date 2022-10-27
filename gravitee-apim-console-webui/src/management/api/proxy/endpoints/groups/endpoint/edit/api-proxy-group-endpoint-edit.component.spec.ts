@@ -23,8 +23,9 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatTabHarness } from '@angular/material/tabs/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
@@ -211,10 +212,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       });
 
       it('should update existing endpoint configuration', async () => {
-        const inheritCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Inherit configuration"]' }));
+        const inherit = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
         expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeFalsy();
 
-        await inheritCheckbox.toggle();
+        await inherit.toggle();
 
         expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
         expect(fixture.componentInstance.configurationForm.getRawValue().inherit).toStrictEqual(false);
@@ -451,8 +452,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
       expect(
         await loader
-          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Inherit configuration"]' }))
-          .then((checkbox) => checkbox.isDisabled()),
+          .getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }))
+          .then((slider) => slider.isDisabled()),
       ).toBeTruthy();
     });
   });

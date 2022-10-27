@@ -24,7 +24,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
@@ -40,7 +40,7 @@ import { ResourceListItem } from '../../../../../../entities/resource/resourceLi
 import { fakeResourceListItem } from '../../../../../../entities/resource/resourceListItem.fixture';
 import { User } from '../../../../../../entities/user';
 
-describe('ApiProxyGroupWrapperComponent', () => {
+describe('ApiProxyGroupEditComponent', () => {
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
   const fakeUiRouter = { go: jest.fn() };
@@ -300,9 +300,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
 
         expect(fixture.debugElement.nativeElement.querySelector('#sdSchemaForm')).toBeFalsy();
 
-        await loader
-          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
-          .then((checkbox) => checkbox.check());
+        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
 
         await loader
           .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
@@ -322,9 +320,7 @@ describe('ApiProxyGroupWrapperComponent', () => {
       });
 
       it('should disable select', async () => {
-        await loader
-          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
-          .then((checkbox) => checkbox.uncheck());
+        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
 
         expect(
           await loader
@@ -485,8 +481,8 @@ describe('ApiProxyGroupWrapperComponent', () => {
 
       expect(
         await loader
-          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Enable service discovery"]' }))
-          .then((checkbox) => checkbox.isDisabled()),
+          .getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }))
+          .then((slide) => slide.isDisabled()),
       ).toBeTruthy();
 
       expect(

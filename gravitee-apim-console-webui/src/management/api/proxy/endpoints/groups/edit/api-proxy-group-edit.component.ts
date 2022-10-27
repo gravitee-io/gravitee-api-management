@@ -93,6 +93,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.connectorService
       .list(true)
       .pipe(
+        takeUntil(this.unsubscribe$),
         map((connectors) => {
           this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
         }),
@@ -207,7 +208,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         type: [
           {
             value: this.group?.services?.discovery.provider ?? null,
-            disabled: this.group?.services?.discovery.enabled === false || this.isReadOnly,
+            disabled: !this.group?.services?.discovery.enabled || this.isReadOnly,
           },
         ],
       },

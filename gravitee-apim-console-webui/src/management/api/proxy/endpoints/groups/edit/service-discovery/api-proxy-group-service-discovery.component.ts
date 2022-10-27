@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { map } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { ServiceDiscoveryEvent } from './api-proxy-group-service-discovery.model';
 
@@ -29,7 +30,9 @@ import { SchemaFormEvent } from '../../api-proxy-groups.model';
   template: require('./api-proxy-group-service-discovery.component.html'),
   styles: [require('./api-proxy-group-service-discovery.component.scss')],
 })
-export class ApiProxyGroupServiceDiscoveryComponent implements OnInit {
+export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
   @Input() serviceDiscoveryForm: FormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
   @Input() group: ProxyGroup;
@@ -46,7 +49,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit {
       this.onFormValuesChange(this.group.services.discovery.provider);
     }
 
-    this.serviceDiscoveryForm.valueChanges.subscribe((values) => {
+    this.serviceDiscoveryForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
       const typeControl = this.serviceDiscoveryForm.get('type');
       if (values.enabled) {
         typeControl.enable({ emitEvent: false });
@@ -57,6 +60,11 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit {
         this.schema = null;
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
   }
 
   onSchemaFormChange(event: SchemaFormEvent) {
