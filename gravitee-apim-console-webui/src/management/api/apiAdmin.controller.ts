@@ -16,7 +16,6 @@
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 
-import SidenavService from '../../components/sidenav/sidenav.service';
 import { ApiService } from '../../services/api.service';
 import FlowService from '../../services/flow.service';
 import NotificationService from '../../services/notification.service';
@@ -27,7 +26,6 @@ class ApiAdminController {
   private api: any;
   private apiJustDeployed: boolean;
   private apiIsSynchronized: boolean;
-  private menu: any;
   private hasPlatformPolicies: boolean;
 
   constructor(
@@ -40,7 +38,6 @@ class ApiAdminController {
     private ApiService: ApiService,
     private NotificationService: NotificationService,
     private resolvedApiState: any,
-    private SidenavService: SidenavService,
     private UserService: UserService,
     private Constants,
     private FlowService: FlowService,
@@ -59,14 +56,11 @@ class ApiAdminController {
 
     this.resolvedApiGroups = resolvedApiGroups;
 
-    SidenavService.setCurrentResource(this.api.name);
-
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
     this.apiJustDeployed = false;
     this.apiIsSynchronized = resolvedApiState.data.is_synchronized;
-    this.menu = {};
     this.init();
   }
 
@@ -89,33 +83,6 @@ class ApiAdminController {
     this.FlowService.getConfiguration().then((response) => {
       this.hasPlatformPolicies = response.data.has_policies;
     });
-
-    this.menu = {
-      plans: {
-        perm: this.UserService.isUserHasPermissions(['api-plan-r']),
-        goTo: 'management.apis.detail.portal.plans.list',
-      },
-      subscriptions: {
-        perm: this.UserService.isUserHasPermissions(['api-subscription-r']),
-        goTo: 'management.apis.detail.portal.subscriptions.list',
-      },
-      documentation: {
-        perm: this.UserService.isUserHasPermissions(['api-documentation-r']),
-        goTo: 'management.apis.detail.portal.documentation',
-      },
-      metadata: {
-        perm: this.UserService.isUserHasPermissions(['api-metadata-r']),
-        goTo: 'management.apis.detail.portal.metadata',
-      },
-      members: {
-        perm: this.UserService.isUserHasPermissions(['api-member-r']),
-        goTo: 'management.apis.detail.portal.members',
-      },
-      groups: {
-        perm: this.UserService.isUserHasPermissions(['api-member-r']),
-        goTo: 'management.apis.detail.portal.groups',
-      },
-    };
   }
 
   checkAPISynchronization(api) {

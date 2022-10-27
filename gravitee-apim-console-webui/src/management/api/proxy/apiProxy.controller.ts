@@ -15,7 +15,6 @@
  */
 import * as _ from 'lodash';
 
-import SidenavService from '../../../components/sidenav/sidenav.service';
 import { ApiService } from '../../../services/api.service';
 import CorsService from '../../../services/cors.service';
 import GroupService from '../../../services/group.service';
@@ -55,7 +54,6 @@ class ApiProxyController {
     private $rootScope,
     private $state,
     private GroupService: GroupService,
-    private SidenavService: SidenavService,
     private resolvedCategories,
     private resolvedCurrentEnvironment,
     private resolvedGroups,
@@ -230,7 +228,6 @@ class ApiProxyController {
     this.formApi.$setPristine();
     this.$rootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(updatedApi) });
     this.NotificationService.show("API '" + this.initialApi.name + "' saved");
-    this.SidenavService.setCurrentResource(this.api.name);
   }
 
   update(api) {

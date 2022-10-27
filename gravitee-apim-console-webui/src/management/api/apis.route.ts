@@ -155,12 +155,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
       component: 'ngApiList',
       data: {
         useAngularMaterial: true,
-        menu: {
-          label: 'APIs',
-          icon: 'dashboard',
-          firstLevel: true,
-          order: 10,
-        },
         docs: {
           page: 'management-apis',
         },

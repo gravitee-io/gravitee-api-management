@@ -28,10 +28,6 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       url: '/notifications',
       component: 'notificationsComponent',
       data: {
-        menu: {
-          label: 'Notifications',
-          icon: 'notifications',
-        },
         perms: {
           only: ['environment-notification-r'],
         },
@@ -67,11 +63,6 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       url: '/',
       component: 'alertsComponent',
       data: {
-        menu: {
-          label: 'Alerts',
-          icon: 'alarm',
-          parameter: 'alert.enabled',
-        },
         perms: {
           only: ['environment-alert-r'],
         },

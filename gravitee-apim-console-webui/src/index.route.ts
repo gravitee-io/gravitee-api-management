@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 import { StateProvider, UrlService } from '@uirouter/angularjs';
-import { StateService } from '@uirouter/core';
 
-import { User } from './entities/user';
 import OrganizationService from './services/organization.service';
 import UserService from './services/user.service';
 
@@ -61,21 +59,6 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             '<div class="gv-main-container" ui-view layout="column" flex></div>' +
             '<gv-contextual-doc></gv-contextual-doc>' +
             '</div>',
-        },
-      },
-      resolve: {
-        allMenuItems: ($state: StateService) => $state.get(),
-        menuItems: ($state: StateService, graviteeUser: User) => {
-          'ngInject';
-          return $state
-            .get()
-            .filter((state: any) => !state.abstract && state.data && state.data.menu)
-            .filter((routeMenuItem) => {
-              const isMenuItem = routeMenuItem.data.menu.firstLevel;
-              const isMenuAllowed =
-                !routeMenuItem.data.perms || !routeMenuItem.data.perms.only || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
-              return isMenuItem && isMenuAllowed;
-            });
         },
       },
     })

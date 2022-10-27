@@ -34,10 +34,6 @@ function apisDesignRouterConfig($stateProvider) {
       },
       apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
       data: {
-        menu: {
-          label: 'Design',
-          icon: 'palette',
-        },
         perms: {
           only: ['api-definition-r'],
         },

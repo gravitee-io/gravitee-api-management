@@ -29,10 +29,6 @@ function apisAuditRouterConfig($stateProvider) {
       controller: 'ApiAuditController',
       controllerAs: 'auditCtrl',
       data: {
-        menu: {
-          label: 'Audit',
-          icon: 'visibility',
-        },
         perms: {
           only: ['api-audit-r'],
         },

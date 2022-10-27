@@ -58,12 +58,6 @@ function managementRouterConfig($stateProvider) {
         docs: {
           page: 'management-dashboard-home',
         },
-        menu: {
-          label: 'Dashboard',
-          icon: 'home',
-          firstLevel: true,
-          order: 0,
-        },
       },
     })
     .state('management.dashboard.apis-status', {
@@ -148,12 +142,6 @@ function managementRouterConfig($stateProvider) {
         instances: (InstancesService: InstancesService) => InstancesService.search().then((response) => response.data),
       },
       data: {
-        menu: {
-          label: 'Gateways',
-          icon: 'developer_dashboard',
-          firstLevel: true,
-          order: 30,
-        },
         perms: {
           only: ['environment-instance-r'],
         },
@@ -175,10 +163,6 @@ function managementRouterConfig($stateProvider) {
       url: '/environment',
       component: 'instanceEnvironment',
       data: {
-        menu: {
-          label: 'Environment',
-          icon: 'computer',
-        },
         docs: {
           page: 'management-gateway-environment',
         },
@@ -188,10 +172,6 @@ function managementRouterConfig($stateProvider) {
       url: '/monitoring',
       component: 'instanceMonitoring',
       data: {
-        menu: {
-          label: 'Monitoring',
-          icon: 'graphic_eq',
-        },
         docs: {
           page: 'management-gateway-monitoring',
         },
@@ -264,12 +244,6 @@ function managementRouterConfig($stateProvider) {
       component: 'ngEnvAudit',
       data: {
         useAngularMaterial: true,
-        menu: {
-          label: 'Audit',
-          icon: 'visibility',
-          firstLevel: true,
-          order: 50,
-        },
         perms: {
           only: ['environment-audit-r'],
         },
@@ -282,12 +256,6 @@ function managementRouterConfig($stateProvider) {
       url: '/messages',
       component: 'messages',
       data: {
-        menu: {
-          label: 'Messages',
-          icon: 'message',
-          firstLevel: true,
-          order: 50,
-        },
         perms: {
           only: ['environment-message-c'],
         },

@@ -17,7 +17,6 @@
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 
-import SidenavService from '../../../../components/sidenav/sidenav.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 
@@ -35,7 +34,6 @@ class ApplicationGeneralController {
     private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
-    private SidenavService: SidenavService,
   ) {
     'ngInject';
   }
@@ -61,7 +59,6 @@ class ApplicationGeneralController {
       this.initialApplication = _.cloneDeep(this.application);
       this.$scope.formApplication.$setPristine();
       this.NotificationService.show(this.application.name + ' has been updated');
-      this.SidenavService.setCurrentResource(this.application.name);
     });
   }
 

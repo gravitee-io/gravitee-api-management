@@ -46,12 +46,6 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/settings',
       component: 'settings',
       data: {
-        menu: {
-          label: 'Settings',
-          icon: 'settings',
-          firstLevel: true,
-          order: 50,
-        },
         perms: {
           only: [
             // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
