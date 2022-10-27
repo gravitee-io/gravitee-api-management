@@ -33,41 +33,46 @@
       <div>
         <ng-container *ngIf="!isReadOnly; else readOnlyGroupActions">
           <button
+            class="endpoint-list__action"
             *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-icon-button
+            mat-raised-button
             (click)="navigateToEndpoint(endpointGroupData.name, '')"
             aria-label="Add new endpoint"
             matTooltip="Add new endpoint"
           >
-            <mat-icon svgIcon="gio:plus"></mat-icon>
+            <mat-icon svgIcon="gio:plus"></mat-icon> Add new endpoint
           </button>
           <button
+            class="endpoint-list__action"
             *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-icon-button
+            mat-raised-button
             (click)="navigateToGroup(endpointGroupData.name)"
             aria-label="Edit group"
             matTooltip="Edit group"
           >
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon> Edit group
           </button>
           <button
+            class="endpoint-list__action"
             *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-icon-button
+            mat-raised-button
             (click)="deleteGroup(endpointGroupData.name)"
             aria-label="Delete group"
             matTooltip="Delete group"
           >
-            <mat-icon svgIcon="gio:trash"></mat-icon>
+            <mat-icon svgIcon="gio:trash"></mat-icon> Delete group
           </button>
         </ng-container>
         <ng-template #readOnlyGroupActions>
           <button
-            mat-icon-button
+            class="endpoint-list__action"
+            mat-raised-button
+            color="primary"
             aria-label="Button to open group detail"
             matTooltip="Open group detail"
             (click)="navigateToGroup(endpointGroupData.name)"
           >
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon> Open group detail
           </button>
         </ng-template>
       </div>

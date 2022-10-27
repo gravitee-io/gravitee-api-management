@@ -10,6 +10,10 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .endpoint-list {
+  &__action {
+    margin: 0 4px;
+  }
+
   &__header {
     display: flex;
     justify-content: space-between;
