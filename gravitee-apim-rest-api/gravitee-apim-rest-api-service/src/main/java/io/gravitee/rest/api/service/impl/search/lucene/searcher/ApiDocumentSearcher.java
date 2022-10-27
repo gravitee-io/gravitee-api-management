@@ -127,6 +127,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private Optional<BooleanQuery> buildIdsQuery(io.gravitee.rest.api.service.search.query.Query query) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
+            increaseMaxClauseCountIfNecessary(query.getIds().size());
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
             query.getIds().forEach(id -> mainQuery.add(new TermQuery(new Term(FIELD_ID, (String) id)), BooleanClause.Occur.SHOULD));
             return Optional.of(mainQuery.build());
