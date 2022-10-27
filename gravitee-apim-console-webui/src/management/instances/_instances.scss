@@ -103,3 +103,20 @@
     color: #cdcdcd;
   }
 }
+
+.gravitee-instances-detail {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 54px);
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+
+    &__view {
+      overflow-y: auto;
+    }
+  }
+}
