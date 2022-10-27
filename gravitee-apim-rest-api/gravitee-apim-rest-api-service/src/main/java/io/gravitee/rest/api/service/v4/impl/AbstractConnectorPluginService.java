@@ -145,7 +145,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
 
     @Override
     public String validateConnectorConfiguration(final String connectorPluginId, final String configuration) {
-        ConnectorPluginEntity entrypointPluginEntity = this.findById(connectorPluginId);
-        return validateConfiguration(entrypointPluginEntity.getId(), configuration);
+        ConnectorPluginEntity connectorPluginEntity = this.findById(connectorPluginId);
+        return validateConfiguration(connectorPluginEntity.getId(), configuration);
     }
 }

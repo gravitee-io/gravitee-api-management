@@ -59,4 +59,19 @@ public class EntrypointConnectorPluginServiceImpl
             );
         }
     }
+
+    @Override
+    public String validateEntrypointSubscriptionConfiguration(String entrypointId, String configuration) {
+        // Only to check if plugin exists
+        findById(entrypointId);
+        return validateSubscriptionConfiguration(entrypointId, configuration);
+    }
+
+    private String validateSubscriptionConfiguration(String pluginId, String configuration) {
+        if (pluginId != null && configuration != null) {
+            String schema = getSubscriptionSchema(pluginId);
+            return jsonSchemaService.validate(schema, configuration);
+        }
+        return configuration;
+    }
 }

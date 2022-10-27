@@ -103,6 +103,7 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -204,6 +205,9 @@ public class SubscriptionServiceTest {
 
     @Mock
     private ApiEntrypointService apiEntrypointService;
+
+    @Mock
+    private SubscriptionValidationService subscriptionValidationService;
 
     @Mock
     private PlanEntity planEntity;
@@ -412,16 +416,20 @@ public class SubscriptionServiceTest {
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+        newSubscriptionEntity.setConfiguration("a configuration");
+
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(
             GraviteeContext.getExecutionContext(),
-            new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID)
+            newSubscriptionEntity
         );
 
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(newSubscriptionEntity);
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -453,6 +461,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).create(subscriptionCapture.capture());
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
+        verify(subscriptionValidationService, never()).validateAndSanitize(any(NewSubscriptionEntity.class));
         assertEquals(Subscription.Type.SUBSCRIPTION, subscriptionCapture.getValue().getType());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
@@ -776,6 +785,29 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        verify(subscriptionValidationService, never()).validateAndSanitize(any(UpdateSubscriptionEntity.class));
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithConfiguration() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+        updatedSubscription.setConfiguration("a configuration");
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(any(Subscription.class));
+        verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(updatedSubscription);
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
