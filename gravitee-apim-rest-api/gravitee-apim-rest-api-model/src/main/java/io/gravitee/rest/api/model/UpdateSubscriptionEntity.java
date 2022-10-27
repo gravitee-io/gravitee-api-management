@@ -16,14 +16,25 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Date;
+import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class UpdateSubscriptionEntity {
 
+    @EqualsAndHashCode.Include
     private String id;
 
     @JsonProperty("starting_at")
@@ -32,42 +43,41 @@ public class UpdateSubscriptionEntity {
     @JsonProperty("ending_at")
     private Date endingAt;
 
-    public String getId() {
-        return id;
-    }
+    private String filter;
+
+    @JsonRawValue
+    private String configuration;
+
+    private Map<String, String> metadata;
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public Date getStartingAt() {
-        return startingAt;
     }
 
     public void setStartingAt(Date startingAt) {
         this.startingAt = startingAt;
     }
 
-    public Date getEndingAt() {
-        return endingAt;
-    }
-
     public void setEndingAt(Date endingAt) {
         this.endingAt = endingAt;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UpdateSubscriptionEntity that = (UpdateSubscriptionEntity) o;
-
-        return id.equals(that.id);
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 }

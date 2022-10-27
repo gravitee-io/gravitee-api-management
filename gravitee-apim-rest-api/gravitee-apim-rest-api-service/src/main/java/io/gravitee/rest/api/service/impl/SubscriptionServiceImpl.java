@@ -25,7 +25,6 @@ import static io.gravitee.repository.management.model.Subscription.AuditEvent.SU
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_UPDATED;
 import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -108,6 +107,7 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -185,6 +185,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ApiTemplateService apiTemplateService;
+
+    @Autowired
+    private SubscriptionValidationService subscriptionValidationService;
 
     @Override
     public SubscriptionEntity findById(String subscriptionId) {
@@ -276,6 +279,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         try {
             logger.debug("Create a new subscription for plan {} and application {}", plan, application);
+
+            if (newSubscriptionEntity.getConfiguration() != null && !newSubscriptionEntity.getConfiguration().isEmpty()) {
+                subscriptionValidationService.validateAndSanitize(newSubscriptionEntity);
+            }
 
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, plan);
 
@@ -567,7 +574,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(updateSubscription.getId()));
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                if (updateSubscription.getConfiguration() != null && !updateSubscription.getConfiguration().isEmpty()) {
+                    subscriptionValidationService.validateAndSanitize(updateSubscription);
+                }
+
                 Subscription previousSubscription = new Subscription(subscription);
+                subscription.setConfiguration(updateSubscription.getConfiguration());
+                subscription.setFilter(updateSubscription.getFilter());
+                subscription.setMetadata(updateSubscription.getMetadata());
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
                 subscription.setEndingAt(updateSubscription.getEndingAt());

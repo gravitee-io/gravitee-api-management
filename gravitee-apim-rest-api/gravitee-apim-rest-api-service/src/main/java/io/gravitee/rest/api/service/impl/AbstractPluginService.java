@@ -40,7 +40,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final JsonSchemaService jsonSchemaService;
+    protected final JsonSchemaService jsonSchemaService;
 
     protected ConfigurablePluginManager<T> pluginManager;
 

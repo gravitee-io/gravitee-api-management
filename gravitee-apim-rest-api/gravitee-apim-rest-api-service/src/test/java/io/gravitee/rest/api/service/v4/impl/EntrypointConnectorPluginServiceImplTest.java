@@ -16,17 +16,32 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.google.errorprone.annotations.DoNotMock;
+import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.Connector;
+import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +89,126 @@ public class EntrypointConnectorPluginServiceImplTest {
         } catch (TechnicalManagementException e) {
             assertThat(e.getMessage())
                 .isEqualTo("An error occurs while trying to get entrypoint subscription schema for plugin " + CONNECTOR_ID);
+        }
+    }
+
+    @Test(expected = PluginNotFoundException.class)
+    public void shouldNotValidateSubscriptionConfigurationBecauseOfAbsentPlugin() {
+        when(pluginManager.get(CONNECTOR_ID)).thenReturn(null);
+
+        cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, "a configuration");
+    }
+
+    @Test
+    public void shouldReturnNullWhenConfigurationNull() throws IOException {
+        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
+
+        assertThat(cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null)).isNull();
+    }
+
+    @Test
+    public void shouldValidateAndSanitize() throws IOException {
+        final String configuration = "to_validate_and_sanitize";
+        final String expectedConfiguration = "validated_and_sanitized";
+
+        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenReturn("subscriptionConfiguration");
+        when(jsonSchemaService.validate("subscriptionConfiguration", configuration)).thenReturn(expectedConfiguration);
+
+        final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, configuration);
+        assertThat(result).isEqualTo(expectedConfiguration);
+    }
+
+    private static class FakePlugin implements EntrypointConnectorPlugin {
+
+        @Override
+        public Class connectorFactory() {
+            return FakeConnectorFactory.class;
+        }
+
+        @Override
+        public Class configuration() {
+            return null;
+        }
+
+        @Override
+        public String id() {
+            return CONNECTOR_ID;
+        }
+
+        @Override
+        public String clazz() {
+            return null;
+        }
+
+        @Override
+        public Path path() {
+            return null;
+        }
+
+        @Override
+        public PluginManifest manifest() {
+            return new PluginManifest() {
+                @Override
+                public String id() {
+                    return CONNECTOR_ID;
+                }
+
+                @Override
+                public String name() {
+                    return null;
+                }
+
+                @Override
+                public String description() {
+                    return null;
+                }
+
+                @Override
+                public String category() {
+                    return null;
+                }
+
+                @Override
+                public String version() {
+                    return null;
+                }
+
+                @Override
+                public String plugin() {
+                    return null;
+                }
+
+                @Override
+                public String type() {
+                    return null;
+                }
+            };
+        }
+
+        @Override
+        public URL[] dependencies() {
+            return new URL[0];
+        }
+    }
+
+    private static class FakeConnectorFactory implements EntrypointConnectorFactory {
+
+        @Override
+        public ApiType supportedApi() {
+            return null;
+        }
+
+        @Override
+        public Set<ConnectorMode> supportedModes() {
+            return null;
+        }
+
+        @Override
+        public Connector createConnector(String s) {
+            return null;
         }
     }
 }
