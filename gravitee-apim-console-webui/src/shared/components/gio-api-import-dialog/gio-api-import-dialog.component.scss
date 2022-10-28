@@ -7,6 +7,13 @@ $typography: map.get(gio.$mat-theme, typography);
 .content {
   width: 768px;
 
+  &__file-tab,
+  &__url-tab {
+    &__config {
+      padding-left: 8px;
+    }
+  }
+
   &__file-tab {
     display: flex;
     flex-direction: row-reverse;
@@ -34,10 +41,16 @@ $typography: map.get(gio.$mat-theme, typography);
         }
       }
     }
-
     &__config {
       padding-top: 16px;
-      padding-left: 8px;
+    }
+  }
+
+  &__url-tab {
+    padding-top: 16px;
+
+    &__field {
+      width: 100%;
     }
   }
 }

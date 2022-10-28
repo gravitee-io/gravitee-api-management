@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, Inject, OnDestroy } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { NewFile } from '@gravitee/ui-particles-angular';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
+
 import { PolicyListItem } from '../../../entities/policy';
 import { ApiService } from '../../../services-ngx/api.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -47,7 +48,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
 
   importType: 'WSDL' | 'SWAGGER' | 'GRAVITEE';
 
-  displayImportConfig: boolean = false;
+  displayImportConfig = false;
 
   policies = [];
 
@@ -55,11 +56,13 @@ export class GioApiImportDialogComponent implements OnDestroy {
   importFile: File;
   importFileContent: string;
 
+  descriptorUrl: FormControl;
+
   configsForm: FormGroup;
   importPolicyPathsIntermediate = false;
 
   public get isImportValid(): boolean {
-    return !!this.importType;
+    return !!this.importType && (!!this.importFile || !!this.descriptorUrl?.value);
   }
 
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -155,8 +158,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
           // Check if it's a swagger. if not consider is gravitee api definition
           this.importType = isSwaggerJsonContent(json) ? 'SWAGGER' : 'GRAVITEE';
         } catch (error) {
-          console.log('aaa', {fileContent}, {error});
-          
           this.resetImportFile('Invalid JSON file.');
         }
         break;
@@ -178,22 +179,32 @@ export class GioApiImportDialogComponent implements OnDestroy {
   }
 
   onSelectedTab(event: MatTabChangeEvent) {
+    this.importType = undefined;
+    const initUrlDescriptor = () => {
+      if (!this.descriptorUrl) {
+        this.descriptorUrl = new FormControl('', [Validators.required]);
+      }
+    };
+
     switch (event.tab.textLabel) {
       case this.tabLabels.UploadFile:
-        this.importType = undefined;
-        // Defined after file upload
+        this.resetImportFile();
+        this.descriptorUrl = undefined;
         break;
 
       case this.tabLabels.SwaggerOpenAPI:
         this.importType = 'SWAGGER';
+        initUrlDescriptor();
         break;
 
       case this.tabLabels.ApiDefinition:
         this.importType = 'GRAVITEE';
+        initUrlDescriptor();
         break;
 
       case this.tabLabels.WSDL:
         this.importType = 'WSDL';
+        initUrlDescriptor();
         break;
     }
   }
@@ -208,15 +219,23 @@ export class GioApiImportDialogComponent implements OnDestroy {
   async onImport() {
     const configsFormValue = this.configsForm.value;
 
+    const isFile = !!this.importFile;
+    const payload = isFile ? this.importFileContent : this.descriptorUrl.value;
+
+    if (!this.importFile && !this.descriptorUrl.value) {
+      // Crazy guard. should not happen
+      throw new Error('No file or url provided');
+    }
+
     let importRequest$;
 
     switch (this.importType) {
       case 'WSDL':
         importRequest$ = this.apiService.importSwaggerApi(
           {
-            payload: this.importFileContent,
+            payload: payload,
+            type: isFile ? 'INLINE' : 'URL',
             format: 'WSDL',
-            type: 'INLINE',
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
             with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
@@ -229,9 +248,9 @@ export class GioApiImportDialogComponent implements OnDestroy {
       case 'SWAGGER':
         importRequest$ = this.apiService.importSwaggerApi(
           {
-            payload: this.importFileContent,
+            payload: payload,
+            type: isFile ? 'INLINE' : 'URL',
             format: 'API',
-            type: 'INLINE',
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
             with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
@@ -242,7 +261,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
         break;
 
       case 'GRAVITEE':
-        importRequest$ = this.apiService.importApiDefinition('graviteeJson', this.importFileContent, '2.0.0');
+        importRequest$ = this.apiService.importApiDefinition(isFile ? 'graviteeJson' : 'graviteeUrl', payload, '2.0.0');
         break;
     }
 
@@ -256,7 +275,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
         }),
       )
       .subscribe(() => {
-        // this.dialogRef.close();
+        this.dialogRef.close();
       });
   }
 
