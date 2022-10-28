@@ -232,7 +232,7 @@ public class Subscription {
 
         private final String id;
         private final String name;
-        private PlanSecurityType security;
+        private String security;
 
         public Plan(final String id, final String name) {
             this.id = id;
@@ -247,11 +247,11 @@ public class Subscription {
             return name;
         }
 
-        public PlanSecurityType getSecurity() {
+        public String getSecurity() {
             return security;
         }
 
-        public void setSecurity(PlanSecurityType security) {
+        public void setSecurity(String security) {
             this.security = security;
         }
     }
