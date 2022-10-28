@@ -18,37 +18,31 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * @author Eric LELEU (eric.leleu at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-@Getter
 @Setter
-public class NewSubscriptionEntity {
+@Getter
+public class UpdateSubscriptionConfigurationEntity {
 
-    private String application;
-    private String plan;
-    private String request;
-    private PageEntity.PageRevisionId generalConditionsContentRevision;
-    private Boolean generalConditionsAccepted;
+    private String subscriptionId;
 
     private String filter;
 
     @JsonRawValue
     private String configuration;
 
-    private Map<String, String> metadata;
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
 
-    public NewSubscriptionEntity(String plan, String application) {
-        this.application = application;
-        this.plan = plan;
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
     }
 
     @JsonSetter
@@ -56,9 +50,5 @@ public class NewSubscriptionEntity {
         if (configuration != null) {
             this.configuration = configuration.toString();
         }
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
     }
 }

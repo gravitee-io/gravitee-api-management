@@ -39,3 +39,16 @@ databaseChangeLog:
               - column: {name: subscription_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: k, type: nvarchar(128), constraints: { nullable: false } }
               - column: {name: v, type: nvarchar(4000), constraints: { nullable: false } }
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: consumer_status
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: consumer_paused_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: true

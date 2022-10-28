@@ -25,6 +25,17 @@ import java.util.Map;
  */
 public class Subscription implements Serializable {
 
+    public enum AuditEvent implements Audit.ApiAuditEvent {
+        SUBSCRIPTION_CREATED,
+        SUBSCRIPTION_UPDATED,
+        SUBSCRIPTION_DELETED,
+        SUBSCRIPTION_CLOSED,
+        SUBSCRIPTION_PAUSED,
+        SUBSCRIPTION_RESUMED,
+        SUBSCRIPTION_PAUSED_BY_CONSUMER,
+        SUBSCRIPTION_RESUMED_BY_CONSUMER,
+    }
+
     /**
      * Subscription ID.
      */
@@ -57,7 +68,17 @@ public class Subscription implements Serializable {
      * Give a reason to the developer if the subscription is accepted or not.
      */
     private String reason;
+
+    /**
+     * The status of the current subscription
+     */
     private Status status;
+
+    /**
+     * The status chosen by the consumer
+     */
+    private ConsumerStatus consumerStatus = ConsumerStatus.STARTED;
+
     /**
      * The username of the user who has processed the subscription
      * <code>null</code> if the subscription is relative to an automatic plan.
@@ -79,6 +100,9 @@ public class Subscription implements Serializable {
     private Date updatedAt;
     private Date closedAt;
     private Date pausedAt;
+
+    private Date consumerPausedAt;
+
     private Integer generalConditionsContentRevision;
     private String generalConditionsContentPageId;
     private Boolean generalConditionsAccepted;
@@ -100,6 +124,7 @@ public class Subscription implements Serializable {
         this.processedAt = cloned.processedAt;
         this.reason = cloned.reason;
         this.status = cloned.status;
+        this.consumerStatus = cloned.consumerStatus;
         this.processedBy = cloned.processedBy;
         this.subscribedBy = cloned.subscribedBy;
         this.startingAt = cloned.startingAt;
@@ -108,6 +133,7 @@ public class Subscription implements Serializable {
         this.updatedAt = cloned.updatedAt;
         this.closedAt = cloned.closedAt;
         this.pausedAt = cloned.pausedAt;
+        this.consumerPausedAt = cloned.consumerPausedAt;
         this.generalConditionsAccepted = cloned.generalConditionsAccepted;
         this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
         this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
@@ -229,6 +255,14 @@ public class Subscription implements Serializable {
         this.status = status;
     }
 
+    public ConsumerStatus getConsumerStatus() {
+        return consumerStatus;
+    }
+
+    public void setConsumerStatus(ConsumerStatus consumerStatus) {
+        this.consumerStatus = consumerStatus;
+    }
+
     public Date getClosedAt() {
         return closedAt;
     }
@@ -251,6 +285,14 @@ public class Subscription implements Serializable {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public Date getConsumerPausedAt() {
+        return consumerPausedAt;
+    }
+
+    public void setConsumerPausedAt(Date consumerPausedAt) {
+        this.consumerPausedAt = consumerPausedAt;
     }
 
     public Integer getGeneralConditionsContentRevision() {
@@ -324,15 +366,6 @@ public class Subscription implements Serializable {
         return id != null ? id.hashCode() : 0;
     }
 
-    public enum AuditEvent implements Audit.ApiAuditEvent {
-        SUBSCRIPTION_CREATED,
-        SUBSCRIPTION_UPDATED,
-        SUBSCRIPTION_DELETED,
-        SUBSCRIPTION_CLOSED,
-        SUBSCRIPTION_PAUSED,
-        SUBSCRIPTION_RESUMED,
-    }
-
     public enum Status {
         /**
          * Waiting for validation
@@ -358,6 +391,17 @@ public class Subscription implements Serializable {
          * Subscription has been paused
          */
         PAUSED,
+    }
+
+    public enum ConsumerStatus {
+        /**
+         * Subscription is started
+         */
+        STARTED,
+        /**
+         * Subscription has been paused
+         */
+        STOPPED,
     }
 
     public enum Type {

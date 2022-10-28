@@ -20,8 +20,11 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -38,16 +41,26 @@ import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -79,6 +92,8 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private KeyMapper keyMapper;
 
+    private static final GraviteeMapper MAPPER = new GraviteeMapper();
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -104,6 +119,9 @@ public class SubscriptionsResource extends AbstractResource {
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
+            newSubscriptionEntity.setFilter(subscriptionInput.getFilter());
+            newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
+            newSubscriptionEntity.setConfiguration(MAPPER.valueToTree(subscriptionInput.getConfiguration()));
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.

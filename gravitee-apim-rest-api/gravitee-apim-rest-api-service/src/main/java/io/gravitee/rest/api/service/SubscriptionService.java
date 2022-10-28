@@ -51,13 +51,21 @@ public interface SubscriptionService {
 
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
-    SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
-
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription, String clientId);
+
+    SubscriptionEntity update(
+        ExecutionContext executionContext,
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity
+    );
+
+    SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
 
     SubscriptionEntity process(ExecutionContext executionContext, ProcessSubscriptionEntity processSubscription, String userId);
 
+    SubscriptionEntity pauseConsumer(ExecutionContext executionContext, String subscription);
     SubscriptionEntity pause(ExecutionContext executionContext, String subscription);
+
+    SubscriptionEntity resumeConsumer(ExecutionContext executionContext, String subscriptionId);
 
     SubscriptionEntity resume(ExecutionContext executionContext, String subscription);
 

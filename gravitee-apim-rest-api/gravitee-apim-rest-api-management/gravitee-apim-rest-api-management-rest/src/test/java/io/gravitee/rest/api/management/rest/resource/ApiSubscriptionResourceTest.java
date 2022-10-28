@@ -17,10 +17,11 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
@@ -41,6 +42,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     private ApplicationEntity fakeApplicationEntity;
     private static final String API_NAME = "my-api";
     private static final String SUBSCRIPTION_ID = "subscriptionId";
+    private static final String PLAN_ID = "my-plan";
     private static final String FAKE_KEY = "fakeKey";
 
     @Override
@@ -61,6 +63,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         fakeSubscriptionEntity = new SubscriptionEntity();
         fakeSubscriptionEntity.setId(SUBSCRIPTION_ID);
+        fakeSubscriptionEntity.setPlan(PLAN_ID);
 
         fakeUserEntity = new UserEntity();
         fakeUserEntity.setFirstname("firstName");
@@ -124,5 +127,37 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void getApiSubscription_onPlanV3() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        PlanEntity planV3 = new PlanEntity();
+        planV3.setSecurity(PlanSecurityType.OAUTH2);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV3);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
+    }
+
+    @Test
+    public void getApiSubscription_onPlanV4() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("oauth2");
+        planV4.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
     }
 }

@@ -19,10 +19,13 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static io.gravitee.repository.management.model.Subscription.Status.REJECTED;
+import static io.gravitee.rest.api.model.v4.plan.PlanValidationType.AUTO;
+import static io.gravitee.rest.api.model.v4.plan.PlanValidationType.MANUAL;
 import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMIN;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -31,20 +34,12 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyMap;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.nullable;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -65,6 +60,7 @@ import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -93,7 +89,10 @@ import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableException;
 import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiKeyException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
@@ -112,7 +111,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -810,6 +808,25 @@ public class SubscriptionServiceTest {
         verify(subscriptionValidationService, times(1)).validateAndSanitize(updatedSubscription);
     }
 
+    @Test
+    public void shouldUpdateSubscriptionWithClientId() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, "my-client-id");
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(argThat(s -> "my-client-id".equals(s.getClientId())));
+    }
+
     @Test(expected = SubscriptionNotFoundException.class)
     public void shouldNotCloseSubscriptionBecauseDoesNoExist() throws Exception {
         // Stub
@@ -919,9 +936,8 @@ public class SubscriptionServiceTest {
         ArgumentCaptor<SubscriptionEntity> subscriptionCaptor = ArgumentCaptor.forClass(SubscriptionEntity.class);
         verify(apiKeyService)
             .generate(eq(GraviteeContext.getExecutionContext()), appCaptor.capture(), subscriptionCaptor.capture(), eq(customApiKey));
-        Assertions.assertThat(appCaptor.getValue()).extracting(ApplicationEntity::getId).isEqualTo(APPLICATION_ID);
-        Assertions
-            .assertThat(subscriptionCaptor.getValue())
+        assertThat(appCaptor.getValue()).extracting(ApplicationEntity::getId).isEqualTo(APPLICATION_ID);
+        assertThat(subscriptionCaptor.getValue())
             .extracting(
                 SubscriptionEntity::getId,
                 SubscriptionEntity::getPlan,
@@ -1513,7 +1529,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void update_should_update_subscription_with_endingDate_and_set_apiKey_expiration_if_not_shared_apikey() throws Exception {
+    public void shouldUpdateSubscriptionWithEndingDateAndSetApiKeyExpirationIfNotSharedApikey() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());
@@ -1557,7 +1573,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void update_should_update_subscription_with_endingDate_and_dont_set_apiKey_expiration_if_shared_apikey() throws Exception {
+    public void shouldUpdateSubscriptionWithEndingDateAndDontSetApiKeyExpirationIfSharedApikey() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());
@@ -1588,6 +1604,265 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).update(subscription);
         verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotUpdateSubscriptionConfigurationCauseNotFound() {
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+    }
+
+    @Test(expected = SubscriptionNotUpdatableException.class)
+    public void shouldNotUpdateSubscriptionCauseClosed() throws TechnicalException {
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+
+        when(subscription.getStatus()).thenReturn(Subscription.Status.CLOSED);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionConfigurationOnPlanWithAutomaticValidation() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setValidation(AUTO);
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("key-less");
+        planV4.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Subscription subscription = new Subscription();
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setPlan(PLAN_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
+        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+
+        // verify subscription has been updated without any status change
+        verify(subscriptionRepository)
+            .update(argThat(sub -> sub.getStatus() == ACCEPTED && sub.getConfiguration().equals("{\"url\":\"my-url\"}")));
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionConfigurationOnPlanWithManualValidation() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setValidation(MANUAL);
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("key-less");
+        planV4.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Subscription subscription = new Subscription();
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setPlan(PLAN_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
+        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+
+        // verify subscription has been updated with pending status
+        verify(subscriptionRepository)
+            .update(argThat(sub -> sub.getStatus() == PENDING && sub.getConfiguration().equals("{\"url\":\"my-url\"}")));
+    }
+
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotPauseByConsumerBecauseDoesNoExist() throws Exception {
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    public void shouldNotPauseByConsumerBecauseApiDefinitionNotV4() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    public void shouldNotPauseByConsumerBecauseNoSubscriptionListener() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of());
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionNotPausableException.class)
+    public void shouldNotPauseByConsumerBecauseAlreadyPaused() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldPauseByConsumer() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
+        when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertThat(subscription.getConsumerPausedAt()).isNotNull();
+        assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STOPPED);
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_PAUSED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
+        verify(auditService)
+            .createApplicationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(APPLICATION_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_PAUSED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
+    }
+
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotResumeByConsumerBecauseDoesNoExist() throws Exception {
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    public void shouldNotResumeByConsumerBecauseApiDefinitionNotV4() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    public void shouldNotResumeByConsumerBecauseNoSubscriptionListener() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of());
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test(expected = SubscriptionNotPausedException.class)
+    public void shouldNotResumeByConsumerBecauseAlreadyActive() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldResumeByConsumer() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
+        when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertThat(subscription.getConsumerPausedAt()).isNull();
+        assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STARTED);
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
+        verify(auditService)
+            .createApplicationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(APPLICATION_ID),
+                anyMap(),
+                eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
+                any(),
+                any(),
+                any()
+            );
     }
 
     private ApiKeyEntity buildTestApiKey(String id, boolean revoked, boolean expired) {

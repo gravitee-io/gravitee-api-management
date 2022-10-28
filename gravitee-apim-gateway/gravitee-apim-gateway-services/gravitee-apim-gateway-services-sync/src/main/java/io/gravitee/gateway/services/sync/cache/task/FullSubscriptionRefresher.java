@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.cache.task;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,13 +27,15 @@ import java.util.Collection;
 public class FullSubscriptionRefresher extends SubscriptionRefresher {
 
     private final Collection<String> plans;
+    private final Date initialDate;
 
-    public FullSubscriptionRefresher(Collection<String> plans) {
+    public FullSubscriptionRefresher(Collection<String> plans, Date initialDate) {
         this.plans = plans;
+        this.initialDate = initialDate;
     }
 
     @Override
     public Result<Boolean> call() {
-        return doRefresh(new SubscriptionCriteria.Builder().status(Subscription.Status.ACCEPTED).plans(plans).build());
+        return doRefresh(new SubscriptionCriteria.Builder().status(Subscription.Status.ACCEPTED).plans(plans).build(), initialDate);
     }
 }

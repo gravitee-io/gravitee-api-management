@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  version: "3.20.0-apim-199-mqtt-qos-SNAPSHOT"
+  version: "3.20.0-SNAPSHOT"
 servers:
   - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
@@ -1945,6 +1945,40 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Subscription
+      summary: Update a subscription
+      requestBody:
+        description: Configuration of the subscription to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionConfigurationInput'
+      description: |
+        Update a subscription.
+
+        User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+      operationId: updateSubscription
+      responses:
+        200:
+          description: Subscription updated
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        400:
+          description: Subscription not updatable, or bad subscription configuration format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /subscriptions/{subscriptionId}/_close:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -1962,6 +1996,34 @@ paths:
           description: No-Content
         403:
           $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /subscriptions/{subscriptionId}/_changeConsumerStatus:
+    parameters:
+      - $ref: '#/components/parameters/subscriptionIdParam'
+      - $ref: '#/components/parameters/subscriptionConsumerStatusParam'
+    post:
+      tags:
+        - Subscription
+      summary: Update the consumer status of a subscription
+      description: |
+        Update the consumer status of a subscription
+
+        User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+      operationId: updateSubscriptionConsumerStatus
+      responses:
+        200:
+          description: Subscription successfully updated
+        403:
+          $ref: '#/components/responses/PermissionError'
+        400:
+          description: Invalid Request
         404:
           description: Subscription not found
           content:
@@ -3327,6 +3389,16 @@ components:
           type: string
           enum:
             - keys
+    subscriptionConsumerStatusParam:
+      name: status
+      in: query
+      required: true
+      description: consumer status of subscription.
+      schema:
+        type: string
+        enum:
+          - STARTED
+          - STOPPED
 
     #Users filtering
     usersQueryParam:
@@ -4221,6 +4293,16 @@ components:
             - CLOSED
             - REJECTED
             - PAUSED
+        consumerStatus:
+          description: Consumer status of the subscription.
+          type: string
+          enum:
+            - ACTIVE
+            - PAUSED
+        consumerPausedAt:
+          description: Paused date and time of the subscription for the customer.
+          type: string
+          format: date-time
         ###################
         # may be included #
         ###################
@@ -4789,6 +4871,25 @@ components:
         general_conditions_content_revision:
           description: Page revision of the general conditions visualized and accepted by the API subscriber
           $ref: '#/components/schemas/PageRevisionId'
+        filter:
+          description: Subscription messages filter
+          type: string
+        metadata:
+          description: Subscription metadata
+          type: object
+          additionalProperties:
+            type: string
+        configuration:
+          description: Subscription configuration
+          type: object
+    SubscriptionConfigurationInput:
+      properties:
+        filter:
+          description: Subscription messages filter
+          type: string
+        configuration:
+          description: Subscription configuration
+          type: object
     TransferOwnershipInput:
       properties:
         new_primary_owner_id:

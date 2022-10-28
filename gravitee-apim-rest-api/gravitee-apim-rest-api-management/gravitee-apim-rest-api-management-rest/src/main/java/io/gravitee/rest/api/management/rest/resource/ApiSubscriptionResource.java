@@ -25,9 +25,11 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -59,7 +61,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     private ApiKeyService apiKeyService;
 
     @Inject
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Inject
     private ApplicationService applicationService;
@@ -245,6 +247,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setRequest(subscriptionEntity.getRequest());
         subscription.setStatus(subscriptionEntity.getStatus());
+        subscription.setConsumerStatus(subscriptionEntity.getConsumerStatus());
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
@@ -254,9 +257,9 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setClientId(subscriptionEntity.getClientId());
         subscription.setMetadata(subscriptionEntity.getMetadata());
 
-        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
-        subscription.getPlan().setSecurity(plan.getSecurity());
+        subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
 
         ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(
@@ -273,6 +276,7 @@ public class ApiSubscriptionResource extends AbstractResource {
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
+        subscription.setConsumerPausedAt(subscriptionEntity.getConsumerPausedAt());
 
         return subscription;
     }
