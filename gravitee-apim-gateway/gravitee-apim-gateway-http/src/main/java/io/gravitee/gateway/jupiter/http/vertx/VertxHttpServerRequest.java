@@ -137,12 +137,12 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
 
     @Override
     public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        messageFlow.setOnMessagesInterceptor(interceptor);
+        getMessageFlow().setOnMessagesInterceptor(interceptor);
     }
 
     @Override
     public void unsetMessagesInterceptor() {
-        messageFlow.unsetOnMessagesInterceptor();
+        getMessageFlow().unsetOnMessagesInterceptor();
     }
 
     private MessageFlow getMessageFlow() {
