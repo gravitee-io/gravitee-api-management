@@ -268,6 +268,17 @@ describe('ApiService', () => {
 
       req.flush({});
     });
+
+    it('should call the API with apiId', (done) => {
+      apiService.importApiDefinition('graviteeUrl', '{}', '2.0.0', 'apiId').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/apiId/import-url?definitionVersion=2.0.0`);
+      expect(req.request.method).toEqual('PUT');
+
+      req.flush({});
+    });
   });
 
   describe('importSwaggerApi', () => {
@@ -288,6 +299,27 @@ describe('ApiService', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/import/swagger?definitionVersion=2.0.0`);
       expect(req.request.method).toEqual('POST');
+
+      req.flush({});
+    });
+
+    it('should call the API with apiId', (done) => {
+      const payload = {
+        payload: '{}',
+        format: 'API' as const,
+        type: 'INLINE' as const,
+        with_documentation: true,
+        with_path_mapping: true,
+        with_policies: ['policy1', 'policy2'],
+        with_policy_paths: true,
+      };
+
+      apiService.importSwaggerApi(payload, '2.0.0', 'apiId').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/apiId/import/swagger?definitionVersion=2.0.0`);
+      expect(req.request.method).toEqual('PUT');
 
       req.flush({});
     });

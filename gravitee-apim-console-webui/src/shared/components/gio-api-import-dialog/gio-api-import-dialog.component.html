@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title class="title">{{ true ? 'Import you API' : 'Update the API' }}</h2>
+<h2 mat-dialog-title class="title">{{ isUpdateMode ? 'Import you API' : 'Update the API' }}</h2>
 
 <mat-dialog-content class="content">
   <mat-tab-group dynamicHeight mat-stretch-tabs (selectedTabChange)="onSelectedTab($event)">
@@ -23,11 +23,7 @@
     <mat-tab [label]="tabLabels.UploadFile">
       <div class="content__file-tab">
         <div class="content__file-tab__file">
-          <gio-form-file-picker
-            accept=".yml,.yaml,.json,.wsdl,.xml,.pdf"
-            [ngModel]="filePickerValue"
-            (ngModelChange)="onImportFile($event)"
-          >
+          <gio-form-file-picker accept=".yml,.yaml,.json,.wsdl,.xml" [ngModel]="filePickerValue" (ngModelChange)="onImportFile($event)">
             <gio-form-file-picker-add-button class="content__file-tab__file__add-btn">
               <div class="content__file-tab__file__add-btn__wrapper">
                 <span class="mat-body-strong"
@@ -49,8 +45,8 @@
       <div class="content__url-tab">
         <mat-form-field class="content__url-tab__field">
           <mat-label>Swagger descriptor URL</mat-label>
-          <input matInput type="url" [formControl]="descriptorUrl" required />
-          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+          <input matInput type="url" [formControl]="descriptorUrlForm" required />
+          <mat-error *ngIf="descriptorUrlForm?.hasError('required')">URL is required.</mat-error>
         </mat-form-field>
 
         <div class="content__url-tab__config">
@@ -63,8 +59,8 @@
       <div class="content__url-tab">
         <mat-form-field class="content__url-tab__field">
           <mat-label>Api definition URL</mat-label>
-          <input matInput type="url" [formControl]="descriptorUrl" required />
-          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+          <input matInput type="url" [formControl]="descriptorUrlForm" required />
+          <mat-error *ngIf="descriptorUrlForm?.hasError('required')">URL is required.</mat-error>
         </mat-form-field>
       </div>
     </mat-tab>
@@ -73,8 +69,8 @@
       <div class="content__url-tab">
         <mat-form-field class="content__url-tab__field">
           <mat-label>WSDL descriptor URL</mat-label>
-          <input matInput type="url" [formControl]="descriptorUrl" required />
-          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+          <input matInput type="url" [formControl]="descriptorUrlForm" required />
+          <mat-error *ngIf="descriptorUrlForm?.hasError('required')">URL is required.</mat-error>
         </mat-form-field>
 
         <div class="content__url-tab__config">

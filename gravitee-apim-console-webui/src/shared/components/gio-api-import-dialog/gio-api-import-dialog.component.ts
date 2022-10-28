@@ -31,6 +31,7 @@ type FileExtension = typeof allowedFileExtensions[number];
 
 export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
+  apiId?: string;
 };
 
 @Component({
@@ -51,18 +52,20 @@ export class GioApiImportDialogComponent implements OnDestroy {
   displayImportConfig = false;
 
   policies = [];
+  isUpdateMode = false;
+  updateModeApiId?: string;
 
   filePickerValue = [];
   importFile: File;
   importFileContent: string;
 
-  descriptorUrl: FormControl;
+  descriptorUrlForm = new FormControl();
 
   configsForm: FormGroup;
   importPolicyPathsIntermediate = false;
 
   public get isImportValid(): boolean {
-    return !!this.importType && (!!this.importFile || !!this.descriptorUrl?.value);
+    return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
   }
 
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -74,6 +77,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
     private readonly snackBarService: SnackBarService,
   ) {
     this.policies = dialogData?.policies ?? [];
+    this.isUpdateMode = !!dialogData?.apiId ?? false;
+    this.updateModeApiId = dialogData?.apiId ?? undefined;
 
     this.configsForm = new FormGroup({
       importDocumentation: new FormControl(false),
@@ -181,15 +186,15 @@ export class GioApiImportDialogComponent implements OnDestroy {
   onSelectedTab(event: MatTabChangeEvent) {
     this.importType = undefined;
     const initUrlDescriptor = () => {
-      if (!this.descriptorUrl) {
-        this.descriptorUrl = new FormControl('', [Validators.required]);
+      if (!this.descriptorUrlForm) {
+        this.descriptorUrlForm = new FormControl('', [Validators.required]);
       }
     };
 
     switch (event.tab.textLabel) {
       case this.tabLabels.UploadFile:
         this.resetImportFile();
-        this.descriptorUrl = undefined;
+        this.descriptorUrlForm = new FormControl();
         break;
 
       case this.tabLabels.SwaggerOpenAPI:
@@ -220,9 +225,9 @@ export class GioApiImportDialogComponent implements OnDestroy {
     const configsFormValue = this.configsForm.value;
 
     const isFile = !!this.importFile;
-    const payload = isFile ? this.importFileContent : this.descriptorUrl.value;
+    const payload = isFile ? this.importFileContent : this.descriptorUrlForm.value;
 
-    if (!this.importFile && !this.descriptorUrl.value) {
+    if (!this.importFile && !this.descriptorUrlForm.value) {
       // Crazy guard. should not happen
       throw new Error('No file or url provided');
     }
@@ -242,6 +247,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           '2.0.0',
+          this.updateModeApiId,
         );
         break;
 
@@ -257,11 +263,17 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           '2.0.0',
+          this.updateModeApiId,
         );
         break;
 
       case 'GRAVITEE':
-        importRequest$ = this.apiService.importApiDefinition(isFile ? 'graviteeJson' : 'graviteeUrl', payload, '2.0.0');
+        importRequest$ = this.apiService.importApiDefinition(
+          isFile ? 'graviteeJson' : 'graviteeUrl',
+          payload,
+          '2.0.0',
+          this.updateModeApiId,
+        );
         break;
     }
 

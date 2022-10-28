@@ -34,6 +34,7 @@ import { ApiService } from '../../../services-ngx/api.service';
 })
 class ApiImportDialogStoryComponent {
   @Input() public policies?: PolicyListItem[];
+  @Input() public apiId?: string;
 
   constructor(private readonly matDialog: MatDialog) {}
 
@@ -42,6 +43,7 @@ class ApiImportDialogStoryComponent {
       .open<GioApiImportDialogComponent, GioApiImportDialogData, boolean>(GioApiImportDialogComponent, {
         data: {
           policies: this.policies,
+          apiId: this.apiId,
         },
         role: 'alertdialog',
         id: 'dialog',
@@ -87,7 +89,7 @@ export default {
     },
   },
   render: (args) => ({
-    template: `<gio-api-import-dialog-story [policies]="policies"></gio-api-import-dialog-story>`,
+    template: `<gio-api-import-dialog-story [policies]="policies" [apiId]="apiId"></gio-api-import-dialog-story>`,
     props: { ...args },
   }),
   parameters: {
@@ -135,4 +137,14 @@ Default.args = {
       onResponse: false,
     },
   ],
+};
+
+export const UpdateMode: StoryObj = {
+  play: (context) => {
+    const button = context.canvasElement.querySelector('#open-dialog') as HTMLButtonElement;
+    button.click();
+  },
+};
+UpdateMode.args = {
+  apiId: 'api-id',
 };

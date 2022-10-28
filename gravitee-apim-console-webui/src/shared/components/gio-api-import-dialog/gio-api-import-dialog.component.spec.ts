@@ -271,4 +271,67 @@ describe('GioApiImportDialogComponent', () => {
       });
     });
   });
+
+  describe('With apiId', () => {
+    beforeEach(() => {
+      component.isUpdateMode = true;
+      component.updateModeApiId = 'apiId';
+      fixture.detectChanges();
+    });
+
+    it('should import with Gravitee ApiDefinition URL', async () => {
+      const swaggerTab = await loader.getHarness(MatTabHarness.with({ label: component.tabLabels.ApiDefinition }));
+      await swaggerTab.select();
+
+      const descriptorUrlInput = (await (
+        await loader.getHarness(MatFormFieldHarness.with({ selector: '.content__url-tab__field' }))
+      ).getControl()) as MatInputHarness;
+      await descriptorUrlInput.setValue('https://gravitee.io');
+
+      // expect not config needed
+      const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
+      expect(checkboxInput.length).toEqual(0);
+
+      const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
+      expect(await importButton.isDisabled()).toBe(false);
+      await importButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/apiId/import-url?definitionVersion=2.0.0`,
+      });
+
+      expect(req.request.body).toEqual('https://gravitee.io');
+    });
+
+    it('should import wsdl file', async () => {
+      const fileInput = await loader.getHarness(GioFormFilePickerInputHarness);
+
+      await fileInput.dropFiles([new File(['<wsdl></wsdl>'], 'wsdl.wsdl', { type: 'application/xml' })]);
+      // Wait for the file to be read
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
+      expect(checkboxInput.length).toEqual(5);
+
+      const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
+      expect(await importButton.isDisabled()).toBe(false);
+      await importButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/apiId/import/swagger?definitionVersion=2.0.0`,
+      });
+
+      expect(req.request.body).toEqual({
+        format: 'WSDL',
+        payload: '<wsdl></wsdl>',
+        type: 'INLINE',
+        with_documentation: false,
+        with_path_mapping: false,
+        with_policies: [],
+        with_policy_paths: false,
+      });
+    });
+  });
 });
