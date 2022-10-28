@@ -1,7 +1,7 @@
 {
   "portal": {
     "navbar": {
-      "background-color": "#010002",
+      "background-color": "#1c1e39",
       "color": "#fff",
       "help": {
         "fill": "#fff"
@@ -18,8 +18,8 @@
         },
         "notification": {
           "background-color": "#B8D9FF",
-          "border": "1px solid #010002",
-          "color": "#010002",
+          "border": "1px solid #1c1e39",
+          "color": "#1c1e39",
           "padding-top": "2px"
         }
       }
