@@ -33,12 +33,14 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -72,6 +74,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @Inject
     private PlanService planService;
+
+    @Inject
+    private PlanSearchService planSearchService;
 
     @Inject
     private ApiService apiService;
@@ -195,9 +200,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             )
         );
 
-        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
-        subscription.getPlan().setSecurity(plan.getSecurity());
+        subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi());
         subscription.setApi(
