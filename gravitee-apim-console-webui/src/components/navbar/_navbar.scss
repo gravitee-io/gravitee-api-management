@@ -1,3 +1,6 @@
+@use 'sass:map';
+@use '@gravitee/ui-particles-angular' as gio;
+
 md-toolbar.topnavbar {
   max-height: $navbarHeaderHeight;
   height: $navbarHeaderHeight;
@@ -5,6 +8,7 @@ md-toolbar.topnavbar {
   position: fixed;
   //dialog popup has a zindex value of 80
   z-index: 75;
+  border-bottom: 1px solid map.get(gio.$mat-space-palette, lighter40);
 }
 
 .topnavbar-brand {
