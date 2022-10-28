@@ -16,7 +16,7 @@
 
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { afterAll, beforeAll, describe, expect } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
@@ -35,7 +35,7 @@ describe('Configure LB to round robin and use it', () => {
   let createdApi: ApiEntity;
 
   beforeAll(async () => {
-    // create an API with a published free plan and 2 endpoints in one endpoint group (lb: random)
+    // create an API with a published free plan and 2 endpoints in one endpoint group (lb: weighted-random)
     createdApi = await succeed(
       apisResourceAsPublisher.importApiDefinitionRaw({
         envId,
@@ -84,7 +84,6 @@ describe('Configure LB to round robin and use it', () => {
   });
 
   test('Should switch between two configured endpoints using a random loadbalancer', async () => {
-    expect(true).toBe(true);
     const contextPath = createdApi.context_path;
     const numberOfSendRequests = 30; // amount of request to be sent
     let endpointHits: number[] = []; // array containing information about which endpoint was hit
