@@ -1,0 +1,65 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.content {
+  width: 768px;
+
+  &__file-tab {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-around;
+    align-items: flex-start;
+
+    &__file {
+      display: flex;
+      justify-content: center;
+      padding-top: 16px;
+
+      gio-form-file-picker {
+        flex: 0 0 0px;
+      }
+
+      &__add-btn {
+        width: 400px;
+        height: 200px;
+
+        &__wrapper {
+          display: flex;
+          height: 200px;
+          flex-direction: column;
+          justify-content: center;
+        }
+      }
+    }
+
+    &__config {
+      padding-top: 16px;
+      padding-left: 8px;
+    }
+  }
+}
+
+.configs {
+  padding: 16px 0;
+
+  &__checkbox {
+    padding-bottom: 8px;
+
+    &__warn {
+      padding-left: 24px;
+      @include mat.typography-level($typography, 'caption');
+    }
+
+    &__hint {
+      padding-left: 24px;
+      @include mat.typography-level($typography, 'caption');
+    }
+
+    &.policies-section {
+      padding-left: 24px;
+    }
+  }
+}

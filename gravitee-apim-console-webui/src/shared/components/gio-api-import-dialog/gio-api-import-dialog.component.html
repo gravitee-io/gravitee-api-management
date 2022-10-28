@@ -1,0 +1,98 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title class="title">{{ true ? 'Import you API' : 'Update the API' }}</h2>
+
+<mat-dialog-content class="content">
+  <mat-tab-group dynamicHeight mat-stretch-tabs (selectedTabChange)="onSelectedTab($event)">
+    <!-- Import file -->
+    <mat-tab [label]="tabLabels.UploadFile">
+      <div class="content__file-tab">
+        <div class="content__file-tab__file">
+          <gio-form-file-picker
+            accept=".yml,.yaml,.json,.wsdl,.xml,.pdf"
+            [ngModel]="filePickerValue"
+            (ngModelChange)="onImportFile($event)"
+          >
+            <gio-form-file-picker-add-button class="content__file-tab__file__add-btn">
+              <div class="content__file-tab__file__add-btn__wrapper">
+                <span class="mat-body-strong"
+                  >Drag and drop a file to upload it. <br />
+                  Alternatively, click here to choose a file.</span
+                >
+                <p><code>Supported file formats: yml, yaml, json, wsdl, xml</code></p>
+              </div>
+            </gio-form-file-picker-add-button>
+          </gio-form-file-picker>
+        </div>
+        <div *ngIf="importFile && importType !== 'GRAVITEE'" class="content__file-tab__config">
+          <ng-container *ngTemplateOutlet="configs"></ng-container>
+        </div>
+      </div>
+    </mat-tab>
+    <!-- Swagger / OpenAPI link -->
+    <mat-tab [label]="tabLabels.SwaggerOpenAPI"> </mat-tab>
+    <!-- API definition link -->
+    <mat-tab [label]="tabLabels.ApiDefinition"> </mat-tab>
+    <!-- API definition link -->
+    <mat-tab [label]="tabLabels.WSDL"> </mat-tab>
+  </mat-tab-group>
+
+  <ng-template #configs>
+    <div *ngIf="configsForm && importType !== 'GRAVITEE'" class="configs" [formGroup]="configsForm">
+      <h4>Configuration imported from the {{ importType === 'WSDL' ? 'WSDL' : 'swagger' }} descriptor</h4>
+
+      <div class="configs__checkbox">
+        <mat-checkbox formControlName="importDocumentation">Create documentation</mat-checkbox>
+        <div class="configs__checkbox__warn">
+          This will overwrite the swagger documentation if there is only one existing, or create it if it does not exist yet.
+        </div>
+      </div>
+
+      <div class="configs__checkbox">
+        <mat-checkbox formControlName="importPathMapping">Create the path mapping for analytics</mat-checkbox>
+        <div class="configs__checkbox__warn">This will overwrite all the path-mappings.</div>
+      </div>
+
+      <div class="configs__checkbox">
+        <mat-checkbox formControlName="importPolicyPaths" [indeterminate]="importPolicyPathsIntermediate"
+          >Create policies on paths</mat-checkbox
+        >
+        <div class="configs__checkbox__warn">This will overwrite all the policies.</div>
+      </div>
+
+      <div *ngFor="let policy of policies" class="configs__checkbox policies-section" formGroupName="importPolicies">
+        <mat-checkbox [formControlName]="policy.id">Apply {{ policy.name }} policy</mat-checkbox>
+        <div class="configs__checkbox__warn">This will overwrite all the existing policy.</div>
+      </div>
+    </div>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="actions">
+  <button class="confirm-dialog__cancel-button" mat-flat-button [mat-dialog-close]="false">Cancel</button>
+  <button
+    class="confirm-dialog__confirm-button"
+    color="warn"
+    mat-raised-button
+    data-testid="confirm-dialog"
+    [disabled]="!isImportValid"
+    (click)="onImport()"
+  >
+    Import
+  </button>
+</mat-dialog-actions>
