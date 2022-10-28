@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.Subscription;
 import java.util.Date;
 import java.util.Map;
 import org.springframework.data.annotation.Id;
@@ -60,6 +61,11 @@ public class SubscriptionMongo extends Auditable {
     private String status;
 
     /**
+     * STOPPED, STARTED
+     */
+    private String consumerStatus = Subscription.ConsumerStatus.STARTED.name();
+
+    /**
      * Vhen the subscription have been processed.
      */
     private Date processedAt;
@@ -92,6 +98,8 @@ public class SubscriptionMongo extends Auditable {
     private Date closedAt;
 
     private Date pausedAt;
+
+    private Date consumerPausedAt;
 
     private PageRevisionPkMongo generalConditionsContentRevision;
 
@@ -201,6 +209,14 @@ public class SubscriptionMongo extends Auditable {
         this.status = status;
     }
 
+    public String getConsumerStatus() {
+        return consumerStatus;
+    }
+
+    public void setConsumerStatus(String consumerStatus) {
+        this.consumerStatus = consumerStatus;
+    }
+
     public String getSubscribedBy() {
         return subscribedBy;
     }
@@ -231,6 +247,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public Date getConsumerPausedAt() {
+        return consumerPausedAt;
+    }
+
+    public void setConsumerPausedAt(Date consumerPausedAt) {
+        this.consumerPausedAt = consumerPausedAt;
     }
 
     public PageRevisionPkMongo getGeneralConditionsContentRevision() {

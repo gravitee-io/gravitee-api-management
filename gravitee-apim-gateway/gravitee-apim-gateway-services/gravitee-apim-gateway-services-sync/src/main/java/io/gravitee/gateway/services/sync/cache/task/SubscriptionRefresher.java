@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import java.util.Date;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,27 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         }
     }
 
+    protected Result<Boolean> doRefresh(SubscriptionCriteria criteria, Date fetchDate) {
+        logger.debug("Refresh subscriptions");
+
+        try {
+            subscriptionRepository
+                .search(criteria)
+                .stream()
+                .map(this::convertModelSubscriptionToCache)
+                .map(
+                    s -> {
+                        s.setInitialFetchDate(fetchDate);
+                        return s;
+                    }
+                )
+                .forEach(subscriptionService::save);
+            return Result.success(true);
+        } catch (Exception ex) {
+            return Result.failure(ex);
+        }
+    }
+
     public void setSubscriptionRepository(SubscriptionRepository subscriptionRepository) {
         this.subscriptionRepository = subscriptionRepository;
     }
@@ -65,6 +87,9 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         subscription.setPlan(subscriptionModel.getPlan());
         if (subscriptionModel.getStatus() != null) {
             subscription.setStatus(subscriptionModel.getStatus().name());
+        }
+        if (subscriptionModel.getConsumerStatus() != null) {
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(subscriptionModel.getConsumerStatus().name()));
         }
         if (subscriptionModel.getType() != null) {
             subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));

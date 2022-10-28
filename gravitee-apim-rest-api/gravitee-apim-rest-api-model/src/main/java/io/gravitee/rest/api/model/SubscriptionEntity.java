@@ -36,6 +36,9 @@ public class SubscriptionEntity {
 
     private SubscriptionStatus status;
 
+    @JsonProperty("consumerStatus")
+    private SubscriptionConsumerStatus consumerStatus;
+
     @JsonProperty("processed_at")
     private Date processedAt;
 
@@ -72,6 +75,9 @@ public class SubscriptionEntity {
 
     @JsonProperty("paused_at")
     private Date pausedAt;
+
+    @JsonProperty("consumerPausedAt")
+    private Date consumerPausedAt;
 
     @JsonProperty("client_id")
     private String clientId;
@@ -143,6 +149,14 @@ public class SubscriptionEntity {
 
     public void setStatus(SubscriptionStatus status) {
         this.status = status;
+    }
+
+    public SubscriptionConsumerStatus getConsumerStatus() {
+        return consumerStatus;
+    }
+
+    public void setConsumerStatus(SubscriptionConsumerStatus consumerStatus) {
+        this.consumerStatus = consumerStatus;
     }
 
     public Date getProcessedAt() {
@@ -223,6 +237,14 @@ public class SubscriptionEntity {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public Date getConsumerPausedAt() {
+        return consumerPausedAt;
+    }
+
+    public void setConsumerPausedAt(Date consumerPausedAt) {
+        this.consumerPausedAt = consumerPausedAt;
     }
 
     public List<String> getKeys() {

@@ -53,14 +53,14 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.2.7</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>2.8</gravitee-bom.version>
+        <gravitee-bom.version>2.9</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.0.0-alpha.1</gravitee-cockpit-api.version>
-        <gravitee-common.version>2.0.0-alpha.1</gravitee-common.version>
+        <gravitee-common.version>2.0.0-alpha.3</gravitee-common.version>
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
         <gravitee-expression-language.version>2.0.0-alpha.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>2.0.0-alpha.8</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>2.0.0-alpha.9</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
         <gravitee-node.version>2.0.0-alpha.3</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
@@ -133,7 +133,6 @@
         <wiremock.version>2.27.2</wiremock.version>
         <wiremock-jre8.version>2.32.0</wiremock-jre8.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
-        <lombok.version>1.18.24</lombok.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -800,12 +799,6 @@
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
                 <version>${os-maven-plugin.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

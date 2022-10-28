@@ -58,6 +58,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("Subscription reason", "reason", subscription.getReason());
         assertEquals("Subscription request", "request", subscription.getRequest());
         assertEquals("Subscription status", PENDING, subscription.getStatus());
+        assertEquals("Subscription consumer status", Subscription.ConsumerStatus.STARTED, subscription.getConsumerStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
         assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
@@ -66,6 +67,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
         assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
         assertTrue("Subscription paused at", compareDate(1479022010883L, subscription.getPausedAt().getTime()));
+        assertTrue("Subscription consumer paused at", compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
         assertTrue("Subscription GCU accepted", subscription.getGeneralConditionsAccepted());
         assertEquals("Subscription GCU content pageId", "ref", subscription.getGeneralConditionsContentPageId());

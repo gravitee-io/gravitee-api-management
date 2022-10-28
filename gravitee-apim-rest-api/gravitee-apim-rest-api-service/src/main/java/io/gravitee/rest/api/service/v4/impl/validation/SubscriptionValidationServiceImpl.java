@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -51,6 +52,13 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     @Override
     public void validateAndSanitize(UpdateSubscriptionEntity subscription) {
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(subscription.getConfiguration()));
+    }
+
+    @Override
+    public void validateAndSanitize(UpdateSubscriptionConfigurationEntity subscriptionConfiguration) {
+        subscriptionConfiguration.setConfiguration(
+            validateAndSanitizeSubscriptionConfiguration(subscriptionConfiguration.getConfiguration())
+        );
     }
 
     private String validateAndSanitizeSubscriptionConfiguration(String configuration) {

@@ -27,7 +27,14 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -49,7 +56,6 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String APPLICATION = "my-application";
     private static final String PLAN = "my-plan";
-    private static final String NEW_APIKEY = "my-new-apikey";
 
     @Override
     protected String contextPath() {
@@ -57,17 +63,18 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCreateSubscription() {
-        reset(apiSearchServiceV4, planService, subscriptionService, userService);
+    public void shouldCreateSubscription_onV3plan() {
+        reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
         newSubscriptionEntity.setApplication(APPLICATION);
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
 
-        when(planService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
+        createdSubscription.setPlan(PLAN);
         createdSubscription.setId(SUBSCRIPTION);
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
@@ -76,22 +83,75 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
 
+        PlanEntity foundPlan = new PlanEntity();
+        foundPlan.setSecurity(PlanSecurityType.OAUTH2);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+
         final Response response = envTarget()
             .path(APPLICATION)
             .path("subscriptions")
             .queryParam("plan", PLAN)
             .request()
             .post(Entity.json(newSubscriptionEntity));
+
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
             envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
+    }
+
+    @Test
+    public void shouldCreateSubscription_onV4plan() {
+        reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
+
+        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+        newSubscriptionEntity.setApplication(APPLICATION);
+        newSubscriptionEntity.setPlan(PLAN);
+        newSubscriptionEntity.setRequest("request");
+
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+            .thenReturn(mock(io.gravitee.rest.api.model.v4.plan.PlanEntity.class));
+
+        SubscriptionEntity createdSubscription = new SubscriptionEntity();
+        createdSubscription.setPlan(PLAN);
+        createdSubscription.setId(SUBSCRIPTION);
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+
+        ApiEntity foundApi = new ApiEntity();
+        foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(foundApi);
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("oauth2");
+        foundPlan.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+
+        final Response response = envTarget()
+            .path(APPLICATION)
+            .path("subscriptions")
+            .queryParam("plan", PLAN)
+            .request()
+            .post(Entity.json(newSubscriptionEntity));
+
+        assertEquals(CREATED_201, response.getStatus());
+        assertEquals(
+            envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
+
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
     }
 
     @Test
     public void shouldGetSubscriptions_expandingSecurity() {
-        reset(apiSearchServiceV4, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
         when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true)))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
@@ -111,7 +171,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptions_WithDefaultStatus() {
-        reset(apiSearchServiceV4, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
         when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
@@ -132,7 +192,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptions_WithStatusFromQueryParams() {
-        reset(apiSearchServiceV4, planService, subscriptionService, userService);
+        reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
         when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));

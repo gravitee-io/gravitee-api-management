@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
 import java.util.Map;
@@ -37,6 +38,9 @@ public class Subscription {
     private Application application;
 
     private SubscriptionStatus status;
+
+    @JsonProperty("consumerStatus")
+    private SubscriptionConsumerStatus consumerStatus;
 
     @JsonProperty("processed_at")
     private Date processedAt;
@@ -75,6 +79,9 @@ public class Subscription {
     @JsonProperty("paused_at")
     private Date pausedAt;
 
+    @JsonProperty("consumer_paused_at")
+    private Date consumerPausedAt;
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -94,6 +101,14 @@ public class Subscription {
 
     public void setStatus(SubscriptionStatus status) {
         this.status = status;
+    }
+
+    public SubscriptionConsumerStatus getConsumerStatus() {
+        return consumerStatus;
+    }
+
+    public void setConsumerStatus(SubscriptionConsumerStatus consumerStatus) {
+        this.consumerStatus = consumerStatus;
     }
 
     public Plan getPlan() {
@@ -224,6 +239,14 @@ public class Subscription {
         this.metadata = metadata;
     }
 
+    public Date getConsumerPausedAt() {
+        return consumerPausedAt;
+    }
+
+    public void setConsumerPausedAt(Date consumerPausedAt) {
+        this.consumerPausedAt = consumerPausedAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -243,7 +266,7 @@ public class Subscription {
 
         private final String id;
         private final String name;
-        private PlanSecurityType security;
+        private String security;
 
         public Plan(final String id, final String name) {
             this.id = id;
@@ -258,11 +281,11 @@ public class Subscription {
             return name;
         }
 
-        public PlanSecurityType getSecurity() {
+        public String getSecurity() {
             return security;
         }
 
-        public void setSecurity(PlanSecurityType security) {
+        public void setSecurity(String security) {
             this.security = security;
         }
     }

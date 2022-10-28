@@ -23,7 +23,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.common.data.domain.Page;
@@ -36,11 +35,18 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Key;
+import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
+import java.util.Map;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -148,7 +154,13 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateSubscription() {
-        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).request("request");
+        SubscriptionInput subscriptionInput = new SubscriptionInput()
+            .application(APPLICATION)
+            .plan(PLAN)
+            .filter("my-filter")
+            .metadata(Map.of("my-metadata", "my-value"))
+            ._configuration(new SubscriptionConfiguration("my-url"))
+            .request("request");
 
         final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         final Key key = new Key();
@@ -164,6 +176,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(APPLICATION, argument.getValue().getApplication());
         assertEquals(PLAN, argument.getValue().getPlan());
         assertEquals("request", argument.getValue().getRequest());
+        assertEquals("my-filter", argument.getValue().getFilter());
+        assertEquals(Map.of("my-metadata", "my-value"), argument.getValue().getMetadata());
+        assertEquals("{\"url\":\"my-url\"}", argument.getValue().getConfiguration());
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
@@ -306,5 +321,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
         assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private class SubscriptionConfiguration {
+
+        private String url;
     }
 }

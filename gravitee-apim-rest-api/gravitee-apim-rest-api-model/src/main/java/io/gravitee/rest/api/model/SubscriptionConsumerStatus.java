@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.validation;
+package io.gravitee.rest.api.model;
 
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SubscriptionValidationService {
-    void validateAndSanitize(NewSubscriptionEntity subscription);
-
-    void validateAndSanitize(UpdateSubscriptionEntity subscription);
-
-    void validateAndSanitize(UpdateSubscriptionConfigurationEntity subscriptionConfiguration);
+@Schema(enumAsRef = true)
+public enum SubscriptionConsumerStatus {
+    STARTED,
+    STOPPED,
 }

@@ -117,6 +117,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         subscription.setApi(API_ID);
         subscription.setId(UUID.randomUUID().toString());
         subscription.setStatus("ACCEPTED");
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
         subscription.setConfiguration(MAPPER.writeValueAsString(configuration));
         return subscription;
     }
