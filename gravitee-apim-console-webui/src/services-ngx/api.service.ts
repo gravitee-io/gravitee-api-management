@@ -134,6 +134,10 @@ export class ApiService {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/` + apiId + '?action=STOP', {});
   }
 
+  delete(apiId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/apis/` + apiId);
+  }
+
   importApiDefinition(type: 'graviteeJson' | 'graviteeUrl', payload: string, definitionVersion: string, apiId?: string): Observable<Api> {
     const isGraviteeUrl = type === 'graviteeUrl';
 
