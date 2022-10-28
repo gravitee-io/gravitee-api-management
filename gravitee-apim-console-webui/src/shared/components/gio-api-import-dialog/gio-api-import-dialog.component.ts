@@ -313,5 +313,10 @@ const getFileContent = (file: File): Promise<string> => {
 };
 
 const isSwaggerJsonContent = (fileContent: unknown): boolean => {
-  return fileContent.hasOwnProperty('swagger') || fileContent.hasOwnProperty('swaggerVersion') || fileContent.hasOwnProperty('openapi');
+  return (
+    fileContent instanceof Object &&
+    (Object.prototype.hasOwnProperty.call(fileContent, 'swagger') ||
+      Object.prototype.hasOwnProperty.call(fileContent, 'swaggerVersion') ||
+      Object.prototype.hasOwnProperty.call(fileContent, 'openapi'))
+  );
 };

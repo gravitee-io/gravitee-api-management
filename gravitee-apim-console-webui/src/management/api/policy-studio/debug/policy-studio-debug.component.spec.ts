@@ -27,7 +27,7 @@ import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 import { PolicyStudioDebugModule } from './policy-studio-debug.module';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
 
-import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
@@ -60,15 +60,11 @@ describe('PolicyStudioDebugComponent', () => {
     }),
   ];
   const api = fakeApi();
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDebugModule, MatIconTestingModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
-        { provide: AjsRootScope, useValue: fakeRootScope },
-      ],
+      providers: [{ provide: UIRouterStateParams, useValue: { apiId: api.id } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

@@ -38,7 +38,7 @@ import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Api } from '../../../entities/api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
-import { UIRouterStateParams, CurrentUserService, AjsRootScope, UIRouterState } from '../../../ajs-upgraded-providers';
+import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { Category } from '../../../entities/category/Category';
 
@@ -46,7 +46,6 @@ describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d'];
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
   const fakeAjsState = {
     go: jest.fn(),
   };
@@ -87,7 +86,6 @@ describe('ApiPortalDetailsComponent', () => {
             },
           },
         },
-        { provide: AjsRootScope, useValue: fakeRootScope },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

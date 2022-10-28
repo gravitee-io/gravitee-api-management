@@ -28,7 +28,7 @@ import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.compone
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api } from '../../../../../entities/api';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
@@ -44,7 +44,6 @@ describe('ApiProxyEndpointListComponent', () => {
 
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -53,7 +52,6 @@ describe('ApiProxyEndpointListComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: fakeRootScope },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
