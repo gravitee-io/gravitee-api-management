@@ -24,12 +24,11 @@ import {
   NewFile,
 } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/core';
-import { forEach } from 'lodash';
-import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api, ApiQualityMetrics } from '../../../entities/api';
+import { Api } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -71,16 +70,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public canDisplayJupiterToggle = false;
 
   public isQualityEnabled = false;
-  public qualityMetricsDescription: Record<string, string> = {
-    'api.quality.metrics.functional.documentation.weight': 'A functional page must be published',
-    'api.quality.metrics.technical.documentation.weight': 'A swagger page must be published',
-    'api.quality.metrics.healthcheck.weight': 'An healthcheck must be configured',
-    'api.quality.metrics.description.weight': 'The API description must be filled',
-    'api.quality.metrics.logo.weight': 'Put your own logo',
-    'api.quality.metrics.categories.weight': 'Link your API to categories',
-    'api.quality.metrics.labels.weight': 'Add labels to your API',
-  };
-  public qualityMetrics: ApiQualityMetrics;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -100,15 +89,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
     this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
 
-    combineLatest([
-      this.apiService.get(this.ajsStateParams.apiId),
-      this.categoryService.list(),
-      this.isQualityEnabled ? this.qualityRuleService.list() : of(undefined),
-      this.isQualityEnabled ? this.apiService.getQualityMetrics(this.ajsStateParams.apiId) : of(undefined),
-    ])
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap(([api, categories, qualityRules, qualityMetrics]) =>
+        switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api.picture_url), isImgUrl(api.background_url)]).pipe(
             map(
               ([hasPictureImg, hasBackgroundImg]) =>
@@ -119,13 +103,11 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
                     background_url: hasBackgroundImg ? api.background_url : null,
                   },
                   categories,
-                  qualityRules,
-                  qualityMetrics,
                 ] as const,
             ),
           ),
         ),
-        tap(([api, categories, qualityRules, qualityMetrics]) => {
+        tap(([api, categories]) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.apiId = api.id;
@@ -159,13 +141,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           };
 
           this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycle_state !== 'DEPRECATED';
-
-          if (this.isQualityEnabled) {
-            forEach(qualityRules, (qualityRule) => {
-              this.qualityMetricsDescription[qualityRule.id] = qualityRule.description;
-            });
-            this.qualityMetrics = qualityMetrics;
-          }
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(
@@ -251,7 +226,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
-        tap(() => this.ngOnInit()),
+        tap(() => {
+          this.apiId = undefined; // force to reload quality metrics
+          this.ngOnInit();
+        }),
       )
       .subscribe();
   }
