@@ -45,11 +45,43 @@
       </div>
     </mat-tab>
     <!-- Swagger / OpenAPI link -->
-    <mat-tab [label]="tabLabels.SwaggerOpenAPI"> </mat-tab>
+    <mat-tab [label]="tabLabels.SwaggerOpenAPI">
+      <div class="content__url-tab">
+        <mat-form-field class="content__url-tab__field">
+          <mat-label>Swagger descriptor URL</mat-label>
+          <input matInput type="url" [formControl]="descriptorUrl" required />
+          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+        </mat-form-field>
+
+        <div class="content__url-tab__config">
+          <ng-container *ngTemplateOutlet="configs"></ng-container>
+        </div>
+      </div>
+    </mat-tab>
     <!-- API definition link -->
-    <mat-tab [label]="tabLabels.ApiDefinition"> </mat-tab>
+    <mat-tab [label]="tabLabels.ApiDefinition">
+      <div class="content__url-tab">
+        <mat-form-field class="content__url-tab__field">
+          <mat-label>Api definition URL</mat-label>
+          <input matInput type="url" [formControl]="descriptorUrl" required />
+          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+        </mat-form-field>
+      </div>
+    </mat-tab>
     <!-- API definition link -->
-    <mat-tab [label]="tabLabels.WSDL"> </mat-tab>
+    <mat-tab [label]="tabLabels.WSDL">
+      <div class="content__url-tab">
+        <mat-form-field class="content__url-tab__field">
+          <mat-label>WSDL descriptor URL</mat-label>
+          <input matInput type="url" [formControl]="descriptorUrl" required />
+          <mat-error *ngIf="descriptorUrl?.hasError('required')">URL is required.</mat-error>
+        </mat-form-field>
+
+        <div class="content__url-tab__config">
+          <ng-container *ngTemplateOutlet="configs"></ng-container>
+        </div>
+      </div>
+    </mat-tab>
   </mat-tab-group>
 
   <ng-template #configs>

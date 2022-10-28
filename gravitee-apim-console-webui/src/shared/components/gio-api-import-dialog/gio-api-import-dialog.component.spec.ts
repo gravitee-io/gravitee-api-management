@@ -20,14 +20,17 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
 
 import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
 import { GioApiImportDialogModule } from './gio-api-import-dialog.module';
+
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
 
 describe('GioApiImportDialogComponent', () => {
   let component: GioApiImportDialogComponent;
@@ -152,7 +155,6 @@ describe('GioApiImportDialogComponent', () => {
       // Wait for the file to be read
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      // expect not config needed
       const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
       expect(checkboxInput.length).toEqual(5);
 
@@ -169,6 +171,99 @@ describe('GioApiImportDialogComponent', () => {
         format: 'WSDL',
         payload: '<wsdl></wsdl>',
         type: 'INLINE',
+        with_documentation: false,
+        with_path_mapping: false,
+        with_policies: [],
+        with_policy_paths: false,
+      });
+    });
+  });
+
+  describe('With URL', () => {
+    it('should import with swagger URL', async () => {
+      const swaggerTab = await loader.getHarness(MatTabHarness.with({ label: component.tabLabels.SwaggerOpenAPI }));
+      await swaggerTab.select();
+
+      const descriptorUrlInput = (await (
+        await loader.getHarness(MatFormFieldHarness.with({ selector: '.content__url-tab__field' }))
+      ).getControl()) as MatInputHarness;
+      await descriptorUrlInput.setValue('https://gravitee.io');
+
+      const importDocumentationInput = await loader.getHarness(
+        MatCheckboxHarness.with({ selector: '[formControlName="importDocumentation"]' }),
+      );
+      await importDocumentationInput.check();
+
+      const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
+      expect(await importButton.isDisabled()).toBe(false);
+      await importButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/import/swagger?definitionVersion=2.0.0`,
+      });
+
+      expect(req.request.body).toEqual({
+        format: 'API',
+        payload: 'https://gravitee.io',
+        type: 'URL',
+        with_documentation: true,
+        with_path_mapping: false,
+        with_policies: [],
+        with_policy_paths: false,
+      });
+    });
+
+    it('should import with Gravitee ApiDefinition URL', async () => {
+      const swaggerTab = await loader.getHarness(MatTabHarness.with({ label: component.tabLabels.ApiDefinition }));
+      await swaggerTab.select();
+
+      const descriptorUrlInput = (await (
+        await loader.getHarness(MatFormFieldHarness.with({ selector: '.content__url-tab__field' }))
+      ).getControl()) as MatInputHarness;
+      await descriptorUrlInput.setValue('https://gravitee.io');
+
+      // expect not config needed
+      const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
+      expect(checkboxInput.length).toEqual(0);
+
+      const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
+      expect(await importButton.isDisabled()).toBe(false);
+      await importButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/import-url?definitionVersion=2.0.0`,
+      });
+
+      expect(req.request.body).toEqual('https://gravitee.io');
+    });
+
+    it('should import with WSDL URL', async () => {
+      const swaggerTab = await loader.getHarness(MatTabHarness.with({ label: component.tabLabels.WSDL }));
+      await swaggerTab.select();
+
+      const descriptorUrlInput = (await (
+        await loader.getHarness(MatFormFieldHarness.with({ selector: '.content__url-tab__field' }))
+      ).getControl()) as MatInputHarness;
+      await descriptorUrlInput.setValue('https://gravitee.io');
+
+      const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
+      expect(checkboxInput.length).toEqual(5);
+
+      const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
+      expect(await importButton.isDisabled()).toBe(false);
+      await importButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/import/swagger?definitionVersion=2.0.0`,
+      });
+
+      expect(req.request.body).toEqual({
+        format: 'WSDL',
+        payload: 'https://gravitee.io',
+        type: 'URL',
         with_documentation: false,
         with_path_mapping: false,
         with_policies: [],

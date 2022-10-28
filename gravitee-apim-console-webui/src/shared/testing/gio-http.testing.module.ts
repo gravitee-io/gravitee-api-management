@@ -15,8 +15,8 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgModule } from '@angular/core';
-import { AjsRootScope } from '../../ajs-upgraded-providers';
 
+import { AjsRootScope } from '../../ajs-upgraded-providers';
 import { Constants } from '../../entities/Constants';
 
 export const CONSTANTS_TESTING: Constants = {
