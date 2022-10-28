@@ -76,6 +76,7 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
 
     private static final Logger log = LoggerFactory.getLogger(AsyncApiReactor.class);
     private static final String ATTR_INVOKER_SKIP = "invoker.skip";
+    protected static final int STOP_UNTIL_INTERVAL_PERIOD_MS = 100;
     protected final List<ChainHook> processorChainHooks;
     private final Api api;
     private final ComponentProvider componentProvider;
@@ -368,9 +369,9 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     }
 
     private Completable stopUntil() {
-        return interval(100, TimeUnit.MILLISECONDS)
+        return interval(STOP_UNTIL_INTERVAL_PERIOD_MS, TimeUnit.MILLISECONDS)
             .timestamp()
-            .takeWhile(t -> pendingRequests.get() > 0 && t.time() < pendingRequestsTimeout)
+            .takeWhile(t -> pendingRequests.get() > 0 && (t.value() + 1) * STOP_UNTIL_INTERVAL_PERIOD_MS < pendingRequestsTimeout)
             .ignoreElements()
             .onErrorComplete()
             .doFinally(this::stopNow);

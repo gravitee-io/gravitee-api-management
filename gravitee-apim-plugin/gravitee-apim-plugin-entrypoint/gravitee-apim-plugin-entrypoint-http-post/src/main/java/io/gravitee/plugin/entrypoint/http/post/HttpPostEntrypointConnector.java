@@ -15,9 +15,13 @@
  */
 package io.gravitee.plugin.entrypoint.http.post;
 
-import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+import static io.gravitee.common.http.HttpHeadersValues.CONNECTION_CLOSE;
+import static io.gravitee.common.http.HttpHeadersValues.CONNECTION_GO_AWAY;
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.CONNECTION;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -48,7 +52,6 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NA);
     private static final String ENTRYPOINT_ID = "http-post";
-    protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
     private final QosOptions qosOptions;
     private HttpPostEntrypointConnectorConfiguration configuration;
 
@@ -102,27 +105,25 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
                 ctx
                     .request()
                     .messages(
-                        ctx
-                            .request()
-                            .body()
-                            .<Message>map(
-                                buffer -> {
-                                    DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder().content(buffer);
-                                    if (configuration.isRequestHeadersToMessage()) {
-                                        messageBuilder.headers(HttpHeaders.create(ctx.request().headers()));
-                                    }
-                                    return messageBuilder.build();
-                                }
-                            )
-                            .toFlowable()
+                        stopHook
+                            .flatMap(message -> interruptWithStopMessage(ctx, message))
                             .compose(
                                 RxHelper.mergeWithFirst(
-                                    stopHook.flatMap(
-                                        message ->
-                                            ctx.interruptMessagesWith(
-                                                new ExecutionFailure(INTERNAL_SERVER_ERROR_500).message(STOPPING_MESSAGE)
-                                            )
-                                    )
+                                    ctx
+                                        .request()
+                                        .body()
+                                        .<Message>map(
+                                            buffer -> {
+                                                DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage
+                                                    .builder()
+                                                    .content(buffer);
+                                                if (configuration.isRequestHeadersToMessage()) {
+                                                    messageBuilder.headers(HttpHeaders.create(ctx.request().headers()));
+                                                }
+                                                return messageBuilder.build();
+                                            }
+                                        )
+                                        .toFlowable()
                                 )
                             )
                     )
@@ -146,21 +147,35 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
         emitStopMessage();
     }
 
+    private Flowable<Message> interruptWithStopMessage(ExecutionContext ctx, Message message) {
+        if (ctx.request().version() == HttpVersion.HTTP_2) {
+            ctx.response().headers().set(CONNECTION, CONNECTION_GO_AWAY);
+        } else {
+            ctx.response().headers().set(CONNECTION, CONNECTION_CLOSE);
+        }
+
+        return ctx.interruptMessagesWith(
+            new ExecutionFailure(SERVICE_UNAVAILABLE_503).message(message.content().toString()).key(message.id())
+        );
+    }
+
     private Flowable<Buffer> processResponseMessages(final ExecutionContext ctx) {
-        return ctx
-            .response()
-            .messages()
-            .compose(applyStopHook())
-            .filter(Message::error)
+        return stopHook
+            .flatMap(message -> interruptWithStopMessage(ctx, message))
+            .compose(RxHelper.mergeWithFirst(ctx.response().messages().filter(Message::error)))
             .map(
                 message -> {
-                    Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", INTERNAL_SERVER_ERROR_500);
+                    final Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", SERVICE_UNAVAILABLE_503);
+                    final HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
+
                     ctx.response().status(statusCode);
-                    HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
+
                     if (httpResponseStatus != null) {
                         ctx.response().reason(httpResponseStatus.reasonPhrase());
                     }
-                    Buffer content = message.content();
+
+                    final Buffer content = message.content();
+
                     if (content != null) {
                         if (message.headers() != null) {
                             if (message.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
