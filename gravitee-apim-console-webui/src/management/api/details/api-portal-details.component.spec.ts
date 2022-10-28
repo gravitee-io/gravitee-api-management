@@ -18,7 +18,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import {
+  GioConfirmAndValidateDialogHarness,
+  GioFormFilePickerInputHarness,
+  GioFormTagsInputHarness,
+  GioSaveBarHarness,
+} from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
@@ -33,15 +38,18 @@ import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Api } from '../../../entities/api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
-import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../ajs-upgraded-providers';
+import { UIRouterStateParams, CurrentUserService, AjsRootScope, UIRouterState } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { Category } from '../../../entities/category/Category';
 
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
+  currentUser.userPermissions = ['api-definition-u', 'api-definition-d'];
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
+  const fakeAjsState = {
+    go: jest.fn(),
+  };
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
   let loader: HarnessLoader;
@@ -52,6 +60,7 @@ describe('ApiPortalDetailsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
       providers: [
+        { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
@@ -280,6 +289,27 @@ describe('ApiPortalDetailsComponent', () => {
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
     expect(req.request.body.visibility).toEqual('PUBLIC');
+  });
+
+  it('should delete the api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      lifecycle_state: 'CREATED',
+      visibility: 'PRIVATE',
+      state: 'STOPPED',
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+    await confirmDialog.confirm();
+
+    httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` }).flush({});
+    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng-list');
   });
 
   function expectApiGetRequest(api: Api) {

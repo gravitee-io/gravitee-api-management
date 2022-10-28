@@ -16,12 +16,19 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData, NewFile } from '@gravitee/ui-particles-angular';
+import {
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  NewFile,
+} from '@gravitee/ui-particles-angular';
+import { StateService } from '@uirouter/core';
 import { forEach } from 'lodash';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiQualityMetrics } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -40,6 +47,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public apiId: string;
+  public apiName: string;
   public apiDetailsForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
@@ -76,6 +84,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
     private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
@@ -120,6 +129,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.apiId = api.id;
+          this.apiName = api.name;
           this.apiCategories = categories;
           this.apiOwner = api.owner.displayName;
           this.apiCreatedAt = api.created_at;
@@ -376,7 +386,34 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    // TODO
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Delete API`,
+          content: `Are you sure you want to delete the API?`,
+          confirmButton: `Yes, delete it`,
+          validationMessage: `Please, type in the name of the api <code>${this.apiName}</code> to confirm.`,
+          validationValue: this.apiName,
+          warning: `This operation is irreversible.`,
+        },
+        role: 'alertdialog',
+        id: 'apiDeleteDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.delete(this.ajsStateParams.apiId)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map(() => this.snackBarService.success(`The API has been deleted.`)),
+      )
+      .subscribe(() => {
+        this.ajsState.go('management.apis.ng-list');
+      });
   }
 
   private canChangeApiLifecycle(api: Api): boolean {

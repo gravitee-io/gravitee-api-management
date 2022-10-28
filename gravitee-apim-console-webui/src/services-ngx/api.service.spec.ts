@@ -246,6 +246,21 @@ describe('ApiService', () => {
     });
   });
 
+  describe('delete', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.delete(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`);
+      expect(req.request.method).toEqual('DELETE');
+
+      req.flush({});
+    });
+  });
+
   describe('importApiDefinition', () => {
     it('should call the API with graviteeJson', (done) => {
       apiService.importApiDefinition('graviteeJson', '{}', '2.0.0').subscribe(() => {
