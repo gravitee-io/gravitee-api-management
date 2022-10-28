@@ -26,7 +26,7 @@ import { ApiProxyDeploymentsModule } from './api-proxy-deployments.module';
 import { ApiProxyDeploymentsComponent } from './api-proxy-deployments.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../../ajs-upgraded-providers';
+import { UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Api } from '../../../../entities/api';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
@@ -41,7 +41,6 @@ describe('ApiProxyDeploymentsComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
 
@@ -51,7 +50,6 @@ describe('ApiProxyDeploymentsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: fakeRootScope },
       ],
     });
   });

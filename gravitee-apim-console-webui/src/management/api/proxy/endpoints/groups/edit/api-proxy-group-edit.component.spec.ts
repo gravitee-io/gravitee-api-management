@@ -29,7 +29,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { fakeApi } from '../../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../../entities/api';
@@ -44,7 +44,6 @@ describe('ApiProxyGroupEditComponent', () => {
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
   const fakeUiRouter = { go: jest.fn() };
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyGroupEditComponent>;
   let loader: HarnessLoader;
@@ -61,7 +60,6 @@ describe('ApiProxyGroupEditComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } },
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: AjsRootScope, useValue: fakeRootScope },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });

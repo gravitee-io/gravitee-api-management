@@ -30,7 +30,7 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
 import { Api } from '../../../../../../../entities/api';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
@@ -46,7 +46,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   const DEFAULT_ENDPOINT_NAME = 'endpoint#1';
   const fakeUiRouter = { go: jest.fn() };
   const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
 
@@ -62,7 +61,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } },
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: AjsRootScope, useValue: fakeRootScope },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });

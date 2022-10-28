@@ -19,17 +19,14 @@ import { TestBed } from '@angular/core/testing';
 import { ServiceDiscoveryService } from './service-discovery.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 
 describe('ServiceDiscoveryService', () => {
   let httpTestingController: HttpTestingController;
   let serviceDiscoveryService: ServiceDiscoveryService;
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
-      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

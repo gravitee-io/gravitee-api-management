@@ -28,7 +28,7 @@ import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
 
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
@@ -42,7 +42,6 @@ describe('ApisListComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   const fakeConstants = CONSTANTS_TESTING;
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['environment-api-c'];
 
@@ -59,7 +58,6 @@ describe('ApisListComponent', () => {
           { provide: UIRouterStateParams, useValue: {} },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: fakeConstants },
-          { provide: AjsRootScope, useValue: fakeRootScope },
         ],
       }).compileComponents();
 
@@ -203,7 +201,6 @@ describe('ApisListComponent', () => {
           { provide: UIRouterStateParams, useValue: {} },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: withQualityEnabled },
-          { provide: AjsRootScope, useValue: fakeRootScope },
         ],
       }).compileComponents();
 
