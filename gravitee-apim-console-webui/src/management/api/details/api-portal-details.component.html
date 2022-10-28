@@ -131,27 +131,7 @@
     </div>
   </mat-card>
 
-  <mat-card *ngIf="isQualityEnabled" class="api-quality">
-    <h3>Quality</h3>
-    <div class="api-quality__content">
-      <gio-circular-percentage class="api-quality__content__score" [score]="qualityMetrics.score"></gio-circular-percentage>
-      <div class="api-quality__content__list">
-        <div *ngFor="let qualityMetric of qualityMetrics.metrics_passed | keyvalue" class="api-quality__content__list__item">
-          <mat-icon
-            *ngIf="qualityMetric.value"
-            class="api-quality__content__list__item__green-icon"
-            svgIcon="gio:check-circled-outline"
-          ></mat-icon>
-          <mat-icon
-            *ngIf="!qualityMetric.value"
-            class="api-quality__content__list__item__red-icon"
-            svgIcon="gio:warning-circled-outline"
-          ></mat-icon>
-          <span class="api-quality__content__list__item__text">{{ qualityMetricsDescription[qualityMetric.key] }}</span>
-        </div>
-      </div>
-    </div>
-  </mat-card>
+  <api-portal-details-quality *ngIf="isQualityEnabled" class="api-quality" [apiId]="apiId"></api-portal-details-quality>
 
   <mat-card class="danger-card">
     <h3 class="danger-card__title">Danger Zone</h3>

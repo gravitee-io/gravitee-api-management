@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { PortalSettings } from '../entities/portal/portalSettings';
+import { QualityRule } from '../entities/qualityRule';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +26,7 @@ import { PortalSettings } from '../entities/portal/portalSettings';
 export class QualityRuleService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  list(): Observable<PortalSettings> {
-    return this.http.get<PortalSettings>(`${this.constants.env.baseURL}/configuration/quality-rules`);
+  list(): Observable<QualityRule[]> {
+    return this.http.get<QualityRule[]>(`${this.constants.env.baseURL}/configuration/quality-rules`);
   }
 }
