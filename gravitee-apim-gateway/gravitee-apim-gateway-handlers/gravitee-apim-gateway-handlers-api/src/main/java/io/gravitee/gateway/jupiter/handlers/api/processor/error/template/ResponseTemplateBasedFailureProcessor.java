@@ -25,6 +25,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.AbstractFailureProcessor;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.Completable;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         final ExecutionFailure executionFailure
     ) {
         context.response().status(template.getStatusCode());
+        context.response().reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {

@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.processor.error.templates;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
@@ -26,7 +28,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.Collections;
 import java.util.HashMap;
@@ -120,6 +121,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -146,6 +148,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -204,6 +207,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
+        verify(response, times(1)).reason("Bad Gateway");
     }
 
     @Test
@@ -231,6 +235,7 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -260,5 +265,6 @@ public class ResponseTemplateBasedFailureProcessorTest {
         processor.handle(context);
 
         verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(response, times(1)).reason("Bad Request");
     }
 }

@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.List;
 import java.util.Map;
 
@@ -111,6 +112,7 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
     private void handleTemplate(final ExecutionContext context, final ResponseTemplate template, final ProcessorFailure failure) {
         context.response().status(template.getStatusCode());
+        context.response().reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
