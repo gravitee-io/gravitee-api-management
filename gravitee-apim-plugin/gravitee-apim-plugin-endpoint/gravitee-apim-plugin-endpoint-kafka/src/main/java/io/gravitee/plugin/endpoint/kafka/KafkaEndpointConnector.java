@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.kafka;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
@@ -29,7 +30,8 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.kafka.factory.CustomProducerFactory;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaSenderFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategyFactory;
 import io.reactivex.rxjava3.core.Completable;
@@ -39,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -69,6 +70,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
     private static final String ENDPOINT_ID = "kafka";
+    private static final String KAFKA_CLIENT_IDENTIFIER = UUID.randomUUID().toString();
 
     protected final KafkaEndpointConnectorConfiguration configuration;
     private final QosStrategyFactory qosStrategyFactory;
@@ -98,10 +100,10 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     // Set kafka producer properties
                     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
                     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-                    config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+                    config.put(ProducerConfig.CLIENT_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
                     addCustomProducerConfig(config);
                     SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
-                    KafkaSender<String, byte[]> kafkaSender = KafkaSender.create(CustomProducerFactory.INSTANCE, senderOptions);
+                    KafkaSender<String, byte[]> kafkaSender = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
                     Set<String> topics = getTopics(ctx);
                     return ctx
                         .request()
@@ -121,7 +123,6 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                         )
                                     )
                                     .map(SenderResult::correlationMetadata)
-                                    .doFinally(kafkaSender::close)
                         );
                 }
             );
@@ -182,9 +183,8 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
                                     String groupId = getGroupId(ctx);
                                     config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-                                    String instanceId = UUID.randomUUID().toString();
-                                    config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId);
-                                    config.put(ConsumerConfig.CLIENT_ID_CONFIG, instanceId);
+                                    config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
+                                    config.put(ConsumerConfig.CLIENT_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
 
                                     addCustomConsumerConfig(config);
                                     qosStrategy.addCustomConfig(config);
@@ -285,5 +285,13 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
             }
         }
         return key;
+    }
+
+    @Override
+    public Connector stop() throws Exception {
+        super.stop();
+        KafkaSenderFactory.INSTANCE.clear();
+        KafkaReceiverFactory.INSTANCE.clear();
+        return this;
     }
 }
