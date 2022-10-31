@@ -17,22 +17,18 @@ package io.gravitee.gateway.jupiter.handlers.api.v4;
 
 import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_INVOKER;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_INVOKER;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +52,7 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionExcepti
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
@@ -67,14 +64,14 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.Date;
-import java.util.Date;
-import java.util.List;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -164,6 +161,15 @@ class AsyncApiReactorTest {
     @Spy
     Completable spyInterruptSecurityChain = Completable.error(new InterruptionFailureException(new ExecutionFailure(UNAUTHORIZED_401)));
 
+    @Spy
+    ResourceLifecycleManager resourceLifecycleManager;
+
+    @Mock
+    Configuration configuration;
+
+    @Mock
+    Node node;
+
     @Mock
     private Api api;
 
@@ -180,22 +186,19 @@ class AsyncApiReactorTest {
     private DefaultEntrypointConnectorResolver asyncEntrypointResolver;
 
     @Mock
-    private Invoker defaultInvoker;
+    private EntrypointConnectorPluginManager entrypointConnectorPluginManager;
+
+    @Mock
+    private EndpointConnectorPluginManager endpointConnectorPluginManager;
+
+    @Mock
+    private EndpointInvoker defaultInvoker;
 
     @Mock
     private io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory flowChainFactory;
 
     @Mock
     private FlowChainFactory v4FlowChainFactory;
-
-    @Spy
-    ResourceLifecycleManager resourceLifecycleManager;
-
-    @Mock
-    Configuration configuration;
-
-    @Mock
-    Node node;
 
     @Mock
     private ApiProcessorChainFactory apiProcessorChainFactory;
@@ -302,8 +305,8 @@ class AsyncApiReactorTest {
                 api,
                 apiComponentProvider,
                 policyManager,
-                asyncEntrypointResolver,
-                defaultInvoker,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
                 resourceLifecycleManager,
                 apiProcessorChainFactory,
                 apiMessageProcessorChainFactory,
@@ -312,6 +315,8 @@ class AsyncApiReactorTest {
                 configuration,
                 node
             );
+        ReflectionTestUtils.setField(cut, "asyncEntrypointResolver", asyncEntrypointResolver);
+        ReflectionTestUtils.setField(cut, "defaultInvoker", defaultInvoker);
         cut.doStart();
         ReflectionTestUtils.setField(cut, "securityChain", securityChain);
 
@@ -326,7 +331,7 @@ class AsyncApiReactorTest {
     }
 
     @Test
-    void shouldPrepareContextAttributes() throws Exception {
+    void shouldPrepareContextAttributes() {
         cut.handle(ctx).test().assertComplete();
 
         verify(ctx).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
@@ -434,14 +439,16 @@ class AsyncApiReactorTest {
 
         cut.doStop();
 
-        // Pre-stop should have been called on the asyncEnntrypointResolver.
+        // Pre-stop should have been called
         verify(asyncEntrypointResolver).preStop();
+        verify(defaultInvoker).preStop();
 
         testScheduler.advanceTimeBy(2500L, TimeUnit.MILLISECONDS);
         testScheduler.triggerActions();
 
         // Not called yet as there is still a pending request and timeout has not expired.
         verify(asyncEntrypointResolver, times(0)).stop();
+        verify(defaultInvoker, times(0)).stop();
         verify(resourceLifecycleManager, times(0)).stop();
         verify(policyManager, times(0)).stop();
 
@@ -451,6 +458,7 @@ class AsyncApiReactorTest {
         testScheduler.triggerActions();
 
         verify(asyncEntrypointResolver).stop();
+        verify(defaultInvoker).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
     }
@@ -462,8 +470,9 @@ class AsyncApiReactorTest {
         ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
         cut.doStop();
 
-        // Pre-stop should have been called on the asyncEnntrypointResolver.
+        // Pre-stop should have been called
         verify(asyncEntrypointResolver).preStop();
+        verify(defaultInvoker).preStop();
 
         for (int i = 0; i < 99; i++) {
             testScheduler.advanceTimeBy(100L, TimeUnit.MILLISECONDS);
@@ -471,6 +480,7 @@ class AsyncApiReactorTest {
 
             // Not called yet as there is still a pending request and timeout has not expired.
             verify(asyncEntrypointResolver, times(0)).stop();
+            verify(defaultInvoker, times(0)).stop();
             verify(resourceLifecycleManager, times(0)).stop();
             verify(policyManager, times(0)).stop();
         }
@@ -479,6 +489,7 @@ class AsyncApiReactorTest {
         testScheduler.triggerActions();
 
         verify(asyncEntrypointResolver).stop();
+        verify(defaultInvoker).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
 
@@ -494,6 +505,8 @@ class AsyncApiReactorTest {
 
         verify(asyncEntrypointResolver).preStop();
         verify(asyncEntrypointResolver).stop();
+        verify(defaultInvoker).preStop();
+        verify(defaultInvoker).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
     }
@@ -506,6 +519,8 @@ class AsyncApiReactorTest {
 
         verify(asyncEntrypointResolver).preStop();
         verify(asyncEntrypointResolver).stop();
+        verify(defaultInvoker).preStop();
+        verify(defaultInvoker, never()).stop();
         verify(resourceLifecycleManager, never()).stop();
         verify(policyManager, never()).stop();
     }

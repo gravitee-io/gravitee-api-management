@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.invoker;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
@@ -33,7 +34,7 @@ import io.reactivex.rxjava3.core.Completable;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointInvoker implements Invoker {
+public class EndpointInvoker extends AbstractService<EndpointInvoker> implements Invoker {
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
@@ -72,5 +73,18 @@ public class EndpointInvoker implements Invoker {
         }
 
         return endpointConnector.connect(ctx);
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+        endpointResolver.stop();
+    }
+
+    @Override
+    public EndpointInvoker preStop() throws Exception {
+        super.preStop();
+        endpointResolver.preStop();
+        return this;
     }
 }

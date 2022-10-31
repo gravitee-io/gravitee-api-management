@@ -24,9 +24,6 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
-import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
@@ -69,7 +66,6 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
 
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
-    private final Node node;
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
@@ -79,6 +75,7 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
     protected final ApiMessageProcessorChainFactory apiMessageProcessorChainFactory;
     protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
+    private final Node node;
     private final Logger logger = LoggerFactory.getLogger(AsyncReactorFactory.class);
 
     public AsyncReactorFactory(
@@ -189,8 +186,8 @@ public class AsyncReactorFactory implements ReactorFactory<Api> {
                     api,
                     apiComponentProvider,
                     policyManager,
-                    new DefaultEntrypointConnectorResolver(api.getDefinition(), entrypointConnectorPluginManager),
-                    new EndpointInvoker(new DefaultEndpointConnectorResolver(api.getDefinition(), endpointConnectorPluginManager)),
+                    entrypointConnectorPluginManager,
+                    endpointConnectorPluginManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,
                     apiMessageProcessorChainFactory,

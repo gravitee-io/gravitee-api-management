@@ -19,26 +19,32 @@ import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @SuppressWarnings("unchecked")
-public class DefaultEndpointConnectorResolver {
+public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEndpointConnectorResolver> {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultEndpointConnectorResolver.class);
     private final Map<EndpointGroup, List<EndpointConnector>> connectorsByGroup;
 
     public DefaultEndpointConnectorResolver(final Api api, final EndpointConnectorPluginManager endpointConnectorPluginManager) {
@@ -85,5 +91,44 @@ public class DefaultEndpointConnectorResolver {
 
     private String getEndpointConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
         return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getConfiguration();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+
+        connectorsByGroup
+            .values()
+            .stream()
+            .flatMap(Collection::stream)
+            .forEach(
+                endpointConnector -> {
+                    try {
+                        endpointConnector.stop();
+                    } catch (Exception e) {
+                        log.warn("An error occurred when stopping endpoint connector [{}].", endpointConnector.id());
+                    }
+                }
+            );
+    }
+
+    @Override
+    public DefaultEndpointConnectorResolver preStop() throws Exception {
+        super.preStop();
+
+        connectorsByGroup
+            .values()
+            .stream()
+            .flatMap(Collection::stream)
+            .forEach(
+                endpointConnector -> {
+                    try {
+                        endpointConnector.preStop();
+                    } catch (Exception e) {
+                        log.warn("An error occurred when pre-stopping endpoint connector [{}].", endpointConnector.id());
+                    }
+                }
+            );
+        return this;
     }
 }
