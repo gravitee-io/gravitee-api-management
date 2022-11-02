@@ -53,6 +53,7 @@
           <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field" appearance="fill">
             <mat-label>Categories</mat-label>
             <mat-select formControlName="categories" multiple>
+              <mat-option *ngIf="apiCategories.length === 0" disabled>No categories available</mat-option>
               <mat-option *ngFor="let category of apiCategories" [value]="category.key"
                 >{{ category.name }} <em *ngIf="category.description"> - {{ category.description }}</em></mat-option
               >
@@ -77,11 +78,10 @@
       <div class="details-card__header__right-coll">
         <div class="details-card__header__right-coll__media">
           <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
+            <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
               <span class="details-card__header__right-coll__media__picture__btn__text">
-                Change picture
-                <br />
-                Drag your image
+                Click here or drag an image
               </span>
               <gio-avatar
                 class="details-card__header__right-coll__media__picture__btn__default-avatar"
@@ -91,11 +91,10 @@
             </gio-form-file-picker-add-button>
           </gio-form-file-picker>
           <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
+            <gio-form-file-picker-label>API background</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
               <span class="details-card__header__right-coll__media__background__btn__text">
-                Change background
-                <br />
-                Drag your image
+                Click here or drag an image
               </span>
             </gio-form-file-picker-add-button>
             <gio-form-file-picker-empty>No background defined</gio-form-file-picker-empty>
