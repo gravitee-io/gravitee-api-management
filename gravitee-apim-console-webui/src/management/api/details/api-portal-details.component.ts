@@ -15,25 +15,16 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import {
-  GioConfirmAndValidateDialogComponent,
-  GioConfirmAndValidateDialogData,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-  NewFile,
-} from '@gravitee/ui-particles-angular';
-import { StateService } from '@uirouter/core';
+import { NewFile } from '@gravitee/ui-particles-angular';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
 import { CategoryService } from '../../../services-ngx/category.service';
-import { QualityRuleService } from '../../../services-ngx/quality-rule.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -46,7 +37,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public apiId: string;
-  public apiName: string;
+  public api: Api;
+
   public apiDetailsForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
@@ -73,14 +65,11 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
     private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
-    private readonly qualityRuleService: QualityRuleService,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
-    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -111,7 +100,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.apiId = api.id;
-          this.apiName = api.name;
+          this.api = api;
+
           this.apiCategories = categories;
           this.apiOwner = api.owner.displayName;
           this.apiCreatedAt = api.created_at;
@@ -232,166 +222,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe();
-  }
-
-  askForReview() {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: 'Review API',
-          content: `Are you sure you want to ask for a review of the API?`,
-          confirmButton: 'Ask for review',
-        },
-        role: 'alertdialog',
-        id: 'reviewApiDialog',
-      })
-      .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.askForReview(this.apiId)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        tap(() => this.ngOnInit()),
-        map(() => this.snackBarService.success(`Review has been asked.`)),
-      )
-      .subscribe();
-  }
-
-  changeLifecycle(state: 'START' | 'STOP') {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `${state === 'START' ? 'Start' : 'Stop'} API`,
-          content: `Are you sure you want to ${state === 'START' ? 'start' : 'stop'} the API?`,
-          confirmButton: `${state === 'START' ? 'Start' : 'Stop'}`,
-        },
-        role: 'alertdialog',
-        id: 'lifecycleDialog',
-      })
-      .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => (state === 'START' ? this.apiService.start(this.apiId) : this.apiService.stop(this.apiId))),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        tap(() => this.ngOnInit()),
-        map(() => this.snackBarService.success(`The API has been ${state === 'START' ? 'started' : 'stopped'} with success.`)),
-      )
-      .subscribe();
-  }
-
-  changeApiLifecycle(lifecycleState: 'PUBLISHED' | 'UNPUBLISHED' | 'DEPRECATED') {
-    const actionLabel = {
-      PUBLISHED: 'Publish',
-      UNPUBLISHED: 'Unpublish',
-      DEPRECATED: 'Deprecate',
-    };
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `${actionLabel[lifecycleState]} API`,
-          content: `Are you sure you want to ${actionLabel[lifecycleState].toLowerCase()} the API?`,
-          confirmButton: `${actionLabel[lifecycleState]}`,
-        },
-        role: 'alertdialog',
-        id: 'apiLifecycleDialog',
-      })
-      .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
-        switchMap((api) =>
-          this.apiService.update({
-            ...api,
-            lifecycle_state: lifecycleState,
-          }),
-        ),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        tap(() => this.ngOnInit()),
-        map(() => this.snackBarService.success(`The API has been ${actionLabel[lifecycleState].toLowerCase()} with success.`)),
-      )
-      .subscribe();
-  }
-
-  changeVisibility(visibility: 'PUBLIC' | 'PRIVATE') {
-    const actionLabel = {
-      PUBLIC: 'Make Public',
-      PRIVATE: 'Make Private',
-    };
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Change visibility`,
-          content: `Are you sure you want to ${actionLabel[visibility].toLowerCase()} the API?`,
-          confirmButton: `${actionLabel[visibility]}`,
-        },
-        role: 'alertdialog',
-        id: 'apiLifecycleDialog',
-      })
-      .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
-        switchMap((api) =>
-          this.apiService.update({
-            ...api,
-            visibility: visibility,
-          }),
-        ),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        tap(() => this.ngOnInit()),
-        map(() => this.snackBarService.success(`The API has been ${actionLabel[visibility]} with success.`)),
-      )
-      .subscribe();
-  }
-
-  delete() {
-    this.matDialog
-      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Delete API`,
-          content: `Are you sure you want to delete the API?`,
-          confirmButton: `Yes, delete it`,
-          validationMessage: `Please, type in the name of the api <code>${this.apiName}</code> to confirm.`,
-          validationValue: this.apiName,
-          warning: `This operation is irreversible.`,
-        },
-        role: 'alertdialog',
-        id: 'apiDeleteDialog',
-      })
-      .afterClosed()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.delete(this.ajsStateParams.apiId)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        map(() => this.snackBarService.success(`The API has been deleted.`)),
-      )
-      .subscribe(() => {
-        this.ajsState.go('management.apis.ng-list');
-      });
   }
 
   private canChangeApiLifecycle(api: Api): boolean {

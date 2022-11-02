@@ -18,17 +18,10 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import {
-  GioConfirmAndValidateDialogHarness,
-  GioFormFilePickerInputHarness,
-  GioFormTagsInputHarness,
-  GioSaveBarHarness,
-} from '@gravitee/ui-particles-angular';
+import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
@@ -52,7 +45,6 @@ describe('ApiPortalDetailsComponent', () => {
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
   let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -66,15 +58,6 @@ describe('ApiPortalDetailsComponent', () => {
           provide: 'Constants',
           useValue: {
             ...CONSTANTS_TESTING,
-            env: {
-              ...CONSTANTS_TESTING.env,
-              settings: {
-                ...CONSTANTS_TESTING.env.settings,
-                apiReview: {
-                  enabled: true,
-                },
-              },
-            },
             org: {
               ...CONSTANTS_TESTING.org,
               settings: {
@@ -97,7 +80,6 @@ describe('ApiPortalDetailsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiPortalDetailsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -124,7 +106,7 @@ describe('ApiPortalDetailsComponent', () => {
     ]);
 
     // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await waitImageCheck();
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isVisible()).toBe(false);
@@ -179,135 +161,6 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
     expect(req.request.body.categories).toEqual(['category1', 'category2']);
     expect(req.request.body.execution_mode).toEqual('jupiter');
-  });
-
-  it('should ask for review', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      workflow_state: 'DRAFT',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Ask for a review' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#reviewApiDialog' }));
-    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Ask for review' }));
-    await confirmDialogSwitchButton.click();
-
-    httpTestingController.expectOne({
-      method: 'POST',
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/reviews?action=ASK`,
-    });
-  });
-
-  it('should start the api', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      state: 'STOPPED',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Start the API' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
-    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Start' }));
-    await confirmDialogSwitchButton.click();
-
-    httpTestingController.expectOne({
-      method: 'POST',
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=START`,
-    });
-  });
-
-  it('should stop the api', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      state: 'STARTED',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Stop the API' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
-    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Stop' }));
-    await confirmDialogSwitchButton.click();
-
-    httpTestingController.expectOne({
-      method: 'POST',
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=STOP`,
-    });
-  });
-
-  it('should publish the api', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      lifecycle_state: 'CREATED',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Publish the API' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
-    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
-    await confirmDialogSwitchButton.click();
-
-    expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-    expect(req.request.body.lifecycle_state).toEqual('PUBLISHED');
-  });
-
-  it('should make public the api', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      visibility: 'PRIVATE',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
-    const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
-    await confirmDialogSwitchButton.click();
-
-    expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-    expect(req.request.body.visibility).toEqual('PUBLIC');
-  });
-
-  it('should delete the api', async () => {
-    const api = fakeApi({
-      id: API_ID,
-      lifecycle_state: 'CREATED',
-      visibility: 'PRIVATE',
-      state: 'STOPPED',
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-    await confirmDialog.confirm();
-
-    httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` }).flush({});
-    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng-list');
   });
 
   function expectApiGetRequest(api: Api) {
