@@ -235,4 +235,14 @@ class DefaultPolicyChainFactoryTest {
 
         verifyNoMoreInteractions(policyManager);
     }
+
+    @Test
+    public void shouldNoCreateAnyPolicyWhenUnsupportedPhase() {
+        final Flow flow = mock(Flow.class);
+
+        final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.MESSAGE_REQUEST);
+        assertNotNull(policyChain);
+
+        verifyNoInteractions(policyManager);
+    }
 }

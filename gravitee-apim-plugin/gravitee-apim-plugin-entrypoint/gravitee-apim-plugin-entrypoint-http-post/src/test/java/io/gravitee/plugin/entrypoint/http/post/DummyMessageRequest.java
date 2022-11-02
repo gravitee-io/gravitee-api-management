@@ -34,11 +34,16 @@ import javax.net.ssl.SSLSession;
 
 public class DummyMessageRequest implements Request {
 
+    private HttpVersion httpVersion = HttpVersion.HTTP_1_1;
     Flowable<Message> flowableMessages;
     HttpMethod method;
     Maybe<Buffer> body;
 
     HttpHeaders headers;
+
+    public void setHttpVersion(HttpVersion httpVersion) {
+        this.httpVersion = httpVersion;
+    }
 
     @Override
     public Flowable<Message> messages() {
@@ -165,7 +170,7 @@ public class DummyMessageRequest implements Request {
 
     @Override
     public HttpVersion version() {
-        return null;
+        return httpVersion;
     }
 
     @Override
