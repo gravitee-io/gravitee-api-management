@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.*;
 import javax.validation.constraints.NotNull;
@@ -282,6 +281,7 @@ public class PlanEntity implements GenericPlanEntity {
         this.needRedeployAt = needRedeployAt;
     }
 
+    @Override
     public boolean isCommentRequired() {
         return commentRequired;
     }

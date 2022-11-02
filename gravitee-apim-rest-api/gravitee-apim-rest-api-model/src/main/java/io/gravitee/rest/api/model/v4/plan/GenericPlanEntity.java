@@ -34,6 +34,8 @@ public interface GenericPlanEntity {
 
     List<String> getExcludedGroups();
 
+    boolean isCommentRequired();
+
     String getGeneralConditions();
 
     //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model

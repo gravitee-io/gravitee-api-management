@@ -73,9 +73,6 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     private SubscriptionService subscriptionService;
 
     @Inject
-    private PlanService planService;
-
-    @Inject
     private PlanSearchService planSearchService;
 
     @Inject
@@ -109,7 +106,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
 
         if (
             planEntity.isCommentRequired() && (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())
