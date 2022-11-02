@@ -224,6 +224,29 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  importApi() {
+    this.policyService
+      .listSwaggerPolicies()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((policies) =>
+          this.matDialog
+            .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
+              data: {
+                apiId: this.ajsStateParams.apiId,
+                policies,
+              },
+              role: 'alertdialog',
+              id: 'importApiDialog',
+            })
+            .afterClosed(),
+        ),
+        filter((confirm) => confirm === true),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
+  }
+
   private canChangeApiLifecycle(api: Api): boolean {
     if (this.constants.env?.settings?.apiReview?.enabled) {
       return !api.workflow_state || api.workflow_state === 'REVIEW_OK';
