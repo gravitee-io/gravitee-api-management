@@ -102,8 +102,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     @Override
-    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId) {
-        String json = exportAsJson(executionContext, apiId, "2.0.0");
+    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, String... filteredFields) {
+        String json = exportAsJson(executionContext, apiId, "2.0.0", filteredFields);
         try {
             JsonNode jsonNode = objectMapper.readTree(json);
             String name = jsonNode.get("name").asText();
