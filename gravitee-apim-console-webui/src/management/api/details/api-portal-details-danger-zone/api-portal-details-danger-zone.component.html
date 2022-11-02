@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="danger-card">
+  <h3 class="danger-card__title">Danger Zone</h3>
+
+  <div class="danger-card__actions">
+    <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
+      <div *ngIf="dangerActions.canAskForReview" class="danger-card__actions__action">
+        <span>Ask for a review before to be able to publish / start your API.</span>
+        <button mat-button color="warn" (click)="askForReview()">Ask for a review</button>
+      </div>
+
+      <div *ngIf="dangerActions.canStopApi" class="danger-card__actions__action">
+        <span> Stop the API. It will no longer be available on all gateways. </span>
+        <button mat-button color="warn" (click)="changeLifecycle('STOP')">Stop the API</button>
+      </div>
+
+      <div *ngIf="dangerActions.canStartApi" class="danger-card__actions__action">
+        <span> Start the API. It will be available on all gateways (depending on sharding tags). </span>
+        <button mat-button color="warn" (click)="changeLifecycle('START')">Start the API</button>
+      </div>
+
+      <div *ngIf="dangerActions.canChangeApiLifecycle" class="danger-card__actions__action">
+        <ng-container *ngIf="dangerActions.canPublish">
+          <span> Publish the API. It will be available on portal (depending on visibility/rights). </span>
+          <button mat-button color="warn" (click)="changeApiLifecycle('PUBLISHED')">Publish the API</button>
+        </ng-container>
+        <ng-container *ngIf="dangerActions.canUnpublish">
+          <span> Unpublish the API. It will no longer be available on portal. </span>
+
+          <button mat-button color="warn" (click)="changeApiLifecycle('UNPUBLISHED')">Unpublish the API</button>
+        </ng-container>
+      </div>
+
+      <div *ngIf="dangerActions.canChangeVisibilityToPrivate" class="danger-card__actions__action">
+        <span> Make this API private. Only members will see it. </span>
+        <button mat-button color="warn" (click)="changeVisibility('PRIVATE')">Make Private</button>
+      </div>
+
+      <div *ngIf="dangerActions.canChangeVisibilityToPublic" class="danger-card__actions__action">
+        <span>Make this API public. Everyone can see it.</span>
+        <button mat-button color="warn" (click)="changeVisibility('PUBLIC')">Make Public</button>
+      </div>
+    </ng-container>
+
+    <ng-container *gioPermission="{ anyOf: ['api-definition-d'] }">
+      <div *ngIf="dangerActions.canDeprecate" class="danger-card__actions__action">
+        <span>Deprecate this API. It will no longer be published on portal.</span>
+        <button mat-button color="warn" (click)="changeApiLifecycle('DEPRECATED')">Deprecate</button>
+      </div>
+
+      <div class="danger-card__actions__action">
+        <span class="gv-form-danger-text">
+          Delete this API.
+          <span *ngIf="!dangerActions.canDelete">A running or published API cannot be deleted</span>
+        </span>
+        <button mat-button color="warn" [disabled]="!dangerActions.canDelete" (click)="delete()">Delete</button>
+      </div>
+    </ng-container>
+  </div>
+</mat-card>

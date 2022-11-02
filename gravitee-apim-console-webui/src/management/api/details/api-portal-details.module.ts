@@ -30,6 +30,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { ApiPortalDetailsQualityComponent } from './api-portal-details-quality/api-portal-details-quality.component';
+import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone/api-portal-details-danger-zone.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
@@ -39,7 +40,7 @@ import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-sl
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 
 @NgModule({
-  declarations: [ApiPortalDetailsComponent, ApiPortalDetailsQualityComponent],
+  declarations: [ApiPortalDetailsComponent, ApiPortalDetailsQualityComponent, ApiPortalDetailsDangerZoneComponent],
   exports: [ApiPortalDetailsComponent],
   imports: [
     CommonModule,
