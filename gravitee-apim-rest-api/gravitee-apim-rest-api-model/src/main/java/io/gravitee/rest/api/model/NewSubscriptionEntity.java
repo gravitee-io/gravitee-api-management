@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -48,5 +49,16 @@ public class NewSubscriptionEntity {
     public NewSubscriptionEntity(String plan, String application) {
         this.application = application;
         this.plan = plan;
+    }
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
     }
 }
