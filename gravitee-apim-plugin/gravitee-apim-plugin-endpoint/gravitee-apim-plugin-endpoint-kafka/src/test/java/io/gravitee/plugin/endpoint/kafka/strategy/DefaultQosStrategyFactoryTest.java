@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.BalancedStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
 import java.util.stream.Stream;
@@ -49,7 +50,7 @@ class DefaultQosStrategyFactoryTest {
     @ParameterizedTest
     @MethodSource("provideQosFactory")
     void shouldReturnValidStrategy(Qos qos, final Class<? extends QosStrategy> qosStrategyClass) {
-        QosStrategy qosStrategy = cut.createQosStrategy(QosOptions.builder().qos(qos).build());
+        QosStrategy qosStrategy = cut.createQosStrategy(new KafkaReceiverFactory(), QosOptions.builder().qos(qos).build());
         assertThat(qosStrategy).isInstanceOf(qosStrategyClass);
     }
 
@@ -57,6 +58,7 @@ class DefaultQosStrategyFactoryTest {
     @EnumSource(value = Qos.class, names = { "NONE", "BALANCED" }, mode = EnumSource.Mode.EXCLUDE)
     void shouldThrowExceptionOnUnsupportedQos() {
         QosOptions qosOptions = QosOptions.builder().qos(null).build();
-        assertThatThrownBy(() -> cut.createQosStrategy(qosOptions)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cut.createQosStrategy(new KafkaReceiverFactory(), qosOptions))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

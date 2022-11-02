@@ -17,6 +17,8 @@ package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
@@ -24,9 +26,12 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractQosStrategy implements QosStrategy {
 
+    private final KafkaReceiverFactory kafkaReceiverFactory;
+
     protected <K, V> KafkaReceiver<K, V> createReceiver(final ReceiverOptions<K, V> receiverOptions) {
-        return KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions);
+        return kafkaReceiverFactory.createReceiver(receiverOptions);
     }
 }

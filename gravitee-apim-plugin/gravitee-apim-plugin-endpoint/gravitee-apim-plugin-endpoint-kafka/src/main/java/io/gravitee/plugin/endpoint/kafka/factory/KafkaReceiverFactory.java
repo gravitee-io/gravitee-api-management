@@ -16,23 +16,30 @@
 package io.gravitee.plugin.endpoint.kafka.factory;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class KafkaReceiverFactory {
 
-    public static final KafkaReceiverFactory INSTANCE = new KafkaReceiverFactory();
     private final Map<Integer, KafkaReceiver<?, ?>> consumers = new ConcurrentHashMap<>();
 
     public <K, V> KafkaReceiver<K, V> createReceiver(final ReceiverOptions<K, V> receiverOptions) {
         return (KafkaReceiver<K, V>) consumers.computeIfAbsent(
             receiverOptions.hashCode(),
-            hashCode -> KafkaReceiver.create(CustomConsumerFactory.INSTANCE, receiverOptions)
+            hashCode -> {
+                receiverOptions.consumerProperty(ConsumerConfig.CLIENT_ID_CONFIG, generateClientId());
+                return KafkaReceiver.create(CustomConsumerFactory.INSTANCE, receiverOptions);
+            }
         );
+    }
+
+    private String generateClientId() {
+        return "gio-apim-consumer-" + UUID.randomUUID().toString().split("-")[0];
     }
 
     public void clear() {

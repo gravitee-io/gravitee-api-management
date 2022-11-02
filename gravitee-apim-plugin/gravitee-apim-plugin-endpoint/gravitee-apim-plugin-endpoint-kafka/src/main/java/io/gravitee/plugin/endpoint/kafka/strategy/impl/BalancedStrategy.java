@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
 import reactor.kafka.receiver.ReceiverOptions;
@@ -26,6 +27,10 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author GraviteeSource Team
  */
 public class BalancedStrategy extends AbstractQosStrategy {
+
+    public BalancedStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
+        super(kafkaReceiverFactory);
+    }
 
     @Override
     public Flux<ConsumerRecord<String, byte[]>> receive(

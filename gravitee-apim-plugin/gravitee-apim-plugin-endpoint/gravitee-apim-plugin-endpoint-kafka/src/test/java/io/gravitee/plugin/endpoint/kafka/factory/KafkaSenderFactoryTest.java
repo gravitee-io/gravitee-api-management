@@ -16,15 +16,12 @@
 package io.gravitee.plugin.endpoint.kafka.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import reactor.kafka.receiver.KafkaReceiver;
-import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 
@@ -34,14 +31,21 @@ import reactor.kafka.sender.SenderOptions;
  */
 class KafkaSenderFactoryTest {
 
+    private KafkaSenderFactory kafkaSenderFactory;
+
+    @BeforeEach
+    public void beforeEach() {
+        kafkaSenderFactory = new KafkaSenderFactory();
+    }
+
     @Test
     void shouldReturnSameInstanceWithSameOptions() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
 
-        KafkaSender<String, byte[]> sender1 = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
-        KafkaSender<String, byte[]> sender2 = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
+        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
+        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
         assertThat(sender1).isSameAs(sender2);
     }
 
@@ -52,8 +56,8 @@ class KafkaSenderFactoryTest {
         SenderOptions<String, byte[]> senderOptions1 = SenderOptions.create(config);
         SenderOptions<String, byte[]> senderOptions2 = SenderOptions.<String, byte[]>create(config).maxInFlight(152);
 
-        KafkaSender<String, byte[]> sender1 = KafkaSenderFactory.INSTANCE.createSender(senderOptions1);
-        KafkaSender<String, byte[]> sender2 = KafkaSenderFactory.INSTANCE.createSender(senderOptions2);
+        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions1);
+        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions2);
         assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
     }
 
@@ -63,9 +67,9 @@ class KafkaSenderFactoryTest {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
 
-        KafkaSender<String, byte[]> sender1 = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
-        KafkaSenderFactory.INSTANCE.clear();
-        KafkaSender<String, byte[]> sender2 = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
+        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
+        kafkaSenderFactory.clear();
+        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
         assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
     }
 }

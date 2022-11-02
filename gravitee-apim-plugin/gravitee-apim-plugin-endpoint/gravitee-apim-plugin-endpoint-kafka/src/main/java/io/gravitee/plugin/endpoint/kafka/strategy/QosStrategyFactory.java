@@ -16,11 +16,12 @@
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface QosStrategyFactory {
-    QosStrategy createQosStrategy(final QosOptions qosOptions);
+    QosStrategy createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions);
 }

@@ -16,23 +16,30 @@
 package io.gravitee.plugin.endpoint.kafka.factory;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class KafkaSenderFactory {
 
-    public static final KafkaSenderFactory INSTANCE = new KafkaSenderFactory();
     private final Map<Integer, KafkaSender<?, ?>> senders = new ConcurrentHashMap<>();
 
     public <K, V> KafkaSender<K, V> createSender(final SenderOptions<K, V> senderOptions) {
         return (KafkaSender<K, V>) senders.computeIfAbsent(
             senderOptions.hashCode(),
-            hashCode -> KafkaSender.create(CustomProducerFactory.INSTANCE, senderOptions)
+            hashCode -> {
+                senderOptions.producerProperty(ProducerConfig.CLIENT_ID_CONFIG, generateClientId());
+                return KafkaSender.create(CustomProducerFactory.INSTANCE, senderOptions);
+            }
         );
+    }
+
+    private String generateClientId() {
+        return "gio-apim-producer-" + UUID.randomUUID().toString().split("-")[0];
     }
 
     public void clear() {
