@@ -24,6 +24,8 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
@@ -38,13 +40,14 @@ import { Category } from '../../../entities/category/Category';
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-d'];
+  currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
   const fakeAjsState = {
     go: jest.fn(),
   };
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -80,6 +83,7 @@ describe('ApiPortalDetailsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiPortalDetailsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -88,7 +92,7 @@ describe('ApiPortalDetailsComponent', () => {
   });
 
   afterEach(() => {
-    httpTestingController.verify();
+    httpTestingController.verify({ ignoreCancelled: true });
   });
 
   it('should edit api details', async () => {
@@ -163,6 +167,36 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.execution_mode).toEqual('jupiter');
   });
 
+  it('should duplicate api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+
+    // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
+    await button.click();
+
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#duplicateApiDialog' }));
+
+    const contextPathInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="contextPath"]' }));
+    await contextPathInput.setValue('/duplicate');
+    await expectVerifyContextPathGetRequest();
+
+    const versionInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+    await versionInput.setValue('1.0.0');
+
+    const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
+    await confirmButton.click();
+
+    await expectDuplicatePostRequest(API_ID);
+
+    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: 'newApiId' });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -171,6 +205,17 @@ describe('ApiPortalDetailsComponent', () => {
   function expectCategoriesGetRequest(categories: Category[] = []) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'GET' }).flush(categories);
     fixture.detectChanges();
+  }
+
+  function expectDuplicatePostRequest(apiId: string) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/duplicate`, method: 'POST' }).flush({
+      id: 'newApiId',
+    });
+    fixture.detectChanges();
+  }
+
+  function expectVerifyContextPathGetRequest() {
+    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
   }
 });
 

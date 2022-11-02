@@ -27,10 +27,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { ApiPortalDetailsQualityComponent } from './api-portal-details-quality/api-portal-details-quality.component';
 import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone/api-portal-details-danger-zone.component';
+import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-duplicate-dialog/api-portal-details-duplicate-dialog.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
@@ -38,9 +41,10 @@ import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
+import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
 
 @NgModule({
-  declarations: [ApiPortalDetailsComponent, ApiPortalDetailsQualityComponent, ApiPortalDetailsDangerZoneComponent],
+  declarations: [ApiPortalDetailsComponent, ApiPortalDetailsQualityComponent, ApiPortalDetailsDangerZoneComponent, ApiPortalDetailsDuplicateDialogComponent],
   exports: [ApiPortalDetailsComponent],
   imports: [
     CommonModule,
@@ -55,6 +59,8 @@ import { GioCircularPercentageModule } from '../../../shared/components/gio-circ
     MatButtonModule,
     MatDialogModule,
     MatSlideToggleModule,
+    MatCheckboxModule,
+    MatTooltipModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
@@ -65,6 +71,7 @@ import { GioCircularPercentageModule } from '../../../shared/components/gio-circ
     GioPermissionModule,
     GioFormSlideToggleModule,
     GioCircularPercentageModule,
+    GioApiImportDialogModule,
   ],
 })
 export class ApiPortalDetailsModule {}

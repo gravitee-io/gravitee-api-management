@@ -25,13 +25,9 @@
         underscore.</mat-hint
       >
       <mat-error *ngIf="entrypointsForm.get('contextPath').hasError('required')">Context path is required.</mat-error>
-      <mat-error *ngIf="entrypointsForm.get('contextPath').hasError('minlength')"
-        >Context path has to be more than 3 characters long.</mat-error
-      >
-      <mat-error *ngIf="entrypointsForm.get('contextPath').hasError('pattern')"
-        >Context path is not valid (must start with a '/' and must contain any letter, capitalize letter, number, dash or
-        underscore).</mat-error
-      >
+      <mat-error *ngIf="entrypointsForm.get('contextPath').hasError('contextPath')">{{
+        entrypointsForm.get('contextPath').getError('contextPath')
+      }}</mat-error>
     </mat-form-field>
   </mat-card>
 
