@@ -17,12 +17,12 @@ package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import java.time.Duration;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
-import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
 /**
@@ -30,6 +30,10 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author GraviteeSource Team
  */
 public class NoneStrategy extends AbstractQosStrategy {
+
+    public NoneStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
+        super(kafkaReceiverFactory);
+    }
 
     @Override
     public void addCustomConfig(final Map<String, Object> config) {

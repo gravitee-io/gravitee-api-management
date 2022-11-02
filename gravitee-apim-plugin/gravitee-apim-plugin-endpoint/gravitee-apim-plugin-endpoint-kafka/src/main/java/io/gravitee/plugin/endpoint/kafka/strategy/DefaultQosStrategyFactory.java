@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.BalancedStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
 
@@ -25,13 +26,13 @@ import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
  */
 public class DefaultQosStrategyFactory implements QosStrategyFactory {
 
-    public QosStrategy createQosStrategy(final QosOptions qosOptions) {
+    public QosStrategy createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions) {
         if (qosOptions != null && qosOptions.getQos() != null) {
             switch (qosOptions.getQos()) {
                 case NONE:
-                    return new NoneStrategy();
+                    return new NoneStrategy(kafkaReceiverFactory);
                 case BALANCED:
-                    return new BalancedStrategy();
+                    return new BalancedStrategy(kafkaReceiverFactory);
                 case AT_BEST:
                 case AT_MOST_ONCE:
                 case AT_LEAST_ONCE:

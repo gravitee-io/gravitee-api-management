@@ -70,10 +70,12 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
     private static final String ENDPOINT_ID = "kafka";
-    private static final String KAFKA_CLIENT_IDENTIFIER = UUID.randomUUID().toString();
 
     protected final KafkaEndpointConnectorConfiguration configuration;
     private final QosStrategyFactory qosStrategyFactory;
+
+    private final KafkaReceiverFactory kafkaReceiverFactory = new KafkaReceiverFactory();
+    private final KafkaSenderFactory kafkaSenderFactory = new KafkaSenderFactory();
 
     @Override
     public String id() {
@@ -100,10 +102,9 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     // Set kafka producer properties
                     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
                     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-                    config.put(ProducerConfig.CLIENT_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
                     addCustomProducerConfig(config);
                     SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
-                    KafkaSender<String, byte[]> kafkaSender = KafkaSenderFactory.INSTANCE.createSender(senderOptions);
+                    KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
                     Set<String> topics = getTopics(ctx);
                     return ctx
                         .request()
@@ -170,7 +171,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                         InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR
                                     );
                                     final QosOptions qosOptions = entrypointAsyncConnector.qosOptions();
-                                    QosStrategy qosStrategy = qosStrategyFactory.createQosStrategy(qosOptions);
+                                    QosStrategy qosStrategy = qosStrategyFactory.createQosStrategy(kafkaReceiverFactory, qosOptions);
 
                                     Map<String, Object> config = new HashMap<>();
                                     config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
@@ -183,8 +184,6 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
                                     String groupId = getGroupId(ctx);
                                     config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-                                    config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
-                                    config.put(ConsumerConfig.CLIENT_ID_CONFIG, KAFKA_CLIENT_IDENTIFIER);
 
                                     addCustomConsumerConfig(config);
                                     qosStrategy.addCustomConfig(config);
@@ -290,8 +289,8 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     @Override
     public Connector stop() throws Exception {
         super.stop();
-        KafkaSenderFactory.INSTANCE.clear();
-        KafkaReceiverFactory.INSTANCE.clear();
+        kafkaSenderFactory.clear();
+        kafkaReceiverFactory.clear();
         return this;
     }
 }

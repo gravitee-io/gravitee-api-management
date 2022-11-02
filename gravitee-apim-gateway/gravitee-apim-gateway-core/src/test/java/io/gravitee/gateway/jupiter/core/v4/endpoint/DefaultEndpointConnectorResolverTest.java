@@ -53,6 +53,7 @@ class DefaultEndpointConnectorResolverTest {
     protected static final String ENDPOINT_TYPE = "test";
     protected static final String ENDPOINT_GROUP_CONFIG = "{ \"groupSharedConfig\": \"something\"}";
     protected static final String ENDPOINT_CONFIG = "{ \"config\": \"something\"}";
+    protected static final String MOCK_EXCEPTION = "Mock exception";
     protected static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     protected static final ApiType SUPPORTED_API_TYPE = ApiType.ASYNC;
 
@@ -70,7 +71,7 @@ class DefaultEndpointConnectorResolverTest {
 
     @BeforeEach
     void init() {
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
 
@@ -191,6 +192,110 @@ class DefaultEndpointConnectorResolverTest {
         verify(connectorFactory, times(2)).createConnector(ENDPOINT_CONFIG);
         // 1 connector has been created with endpoint group configuration, cause endpoint2 inherits group configuration
         verify(connectorFactory, times(1)).createConnector(ENDPOINT_GROUP_CONFIG);
+    }
+
+    @Test
+    void shouldPreStopEndpointConnectors() throws Exception {
+        final Api api = buildApi();
+        final Endpoint endpoint2 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
+        final Endpoint endpoint3 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
+
+        final EndpointConnector endpointConnector1 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
+
+        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+            .thenReturn(endpointConnector1)
+            .thenReturn(endpointConnector2)
+            .thenReturn(endpointConnector3);
+
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        cut.preStop();
+
+        verify(endpointConnector1).preStop();
+        verify(endpointConnector2).preStop();
+        verify(endpointConnector3).preStop();
+    }
+
+    @Test
+    void shouldIgnoreErrorWhenPreStopEndpointConnectors() throws Exception {
+        final Api api = buildApi();
+        final Endpoint endpoint2 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
+        final Endpoint endpoint3 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
+
+        final EndpointConnector endpointConnector1 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
+
+        when(endpointConnector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
+
+        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+            .thenReturn(endpointConnector1)
+            .thenReturn(endpointConnector2)
+            .thenReturn(endpointConnector3);
+
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        cut.preStop();
+
+        verify(endpointConnector1).preStop();
+        verify(endpointConnector2).preStop();
+        verify(endpointConnector3).preStop();
+    }
+
+    @Test
+    void shouldStopEndpointConnectors() throws Exception {
+        final Api api = buildApi();
+        final Endpoint endpoint2 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
+        final Endpoint endpoint3 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
+
+        final EndpointConnector endpointConnector1 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
+
+        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+            .thenReturn(endpointConnector1)
+            .thenReturn(endpointConnector2)
+            .thenReturn(endpointConnector3);
+
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        cut.stop();
+
+        verify(endpointConnector1).stop();
+        verify(endpointConnector2).stop();
+        verify(endpointConnector3).stop();
+    }
+
+    @Test
+    void shouldIgnoreErrorWhenStopEndpointConnectors() throws Exception {
+        final Api api = buildApi();
+        final Endpoint endpoint2 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
+        final Endpoint endpoint3 = buildEndpoint();
+        api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
+
+        final EndpointConnector endpointConnector1 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
+        final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
+
+        when(endpointConnector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
+
+        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+            .thenReturn(endpointConnector1)
+            .thenReturn(endpointConnector2)
+            .thenReturn(endpointConnector3);
+
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        cut.stop();
+
+        verify(endpointConnector1).stop();
+        verify(endpointConnector2).stop();
+        verify(endpointConnector3).stop();
     }
 
     private Api buildApi() {

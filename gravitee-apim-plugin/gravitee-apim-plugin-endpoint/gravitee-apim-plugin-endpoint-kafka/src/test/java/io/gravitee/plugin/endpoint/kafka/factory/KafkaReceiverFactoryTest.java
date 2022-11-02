@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
@@ -31,14 +32,21 @@ import reactor.kafka.receiver.ReceiverOptions;
  */
 class KafkaReceiverFactoryTest {
 
+    private KafkaReceiverFactory kafkaReceiverFactory;
+
+    @BeforeEach
+    public void beforeEach() {
+        kafkaReceiverFactory = new KafkaReceiverFactory();
+    }
+
     @Test
     void shouldReturnSameInstanceWithSameOptions() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions.<String, byte[]>create(config).subscription(Set.of("test"));
 
-        KafkaReceiver<String, byte[]> receiver1 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions);
-        KafkaReceiver<String, byte[]> receiver2 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions);
+        KafkaReceiver<String, byte[]> receiver1 = kafkaReceiverFactory.createReceiver(receiverOptions);
+        KafkaReceiver<String, byte[]> receiver2 = kafkaReceiverFactory.createReceiver(receiverOptions);
         assertThat(receiver1).isSameAs(receiver2);
     }
 
@@ -49,8 +57,8 @@ class KafkaReceiverFactoryTest {
         ReceiverOptions<String, byte[]> receiverOptions1 = ReceiverOptions.<String, byte[]>create(config).subscription(Set.of("test"));
         ReceiverOptions<String, byte[]> receiverOptions2 = ReceiverOptions.<String, byte[]>create(config).subscription(Set.of("test2"));
 
-        KafkaReceiver<String, byte[]> receiver1 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions1);
-        KafkaReceiver<String, byte[]> receiver2 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions2);
+        KafkaReceiver<String, byte[]> receiver1 = kafkaReceiverFactory.createReceiver(receiverOptions1);
+        KafkaReceiver<String, byte[]> receiver2 = kafkaReceiverFactory.createReceiver(receiverOptions2);
         assertThat(receiver1).isNotSameAs(receiver2).isNotEqualTo(receiver2);
     }
 
@@ -60,9 +68,9 @@ class KafkaReceiverFactoryTest {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions.<String, byte[]>create(config).subscription(Set.of("test"));
 
-        KafkaReceiver<String, byte[]> receiver1 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions);
-        KafkaReceiverFactory.INSTANCE.clear();
-        KafkaReceiver<String, byte[]> receiver2 = KafkaReceiverFactory.INSTANCE.createReceiver(receiverOptions);
+        KafkaReceiver<String, byte[]> receiver1 = kafkaReceiverFactory.createReceiver(receiverOptions);
+        kafkaReceiverFactory.clear();
+        KafkaReceiver<String, byte[]> receiver2 = kafkaReceiverFactory.createReceiver(receiverOptions);
         assertThat(receiver1).isNotSameAs(receiver2).isNotEqualTo(receiver2);
     }
 }
