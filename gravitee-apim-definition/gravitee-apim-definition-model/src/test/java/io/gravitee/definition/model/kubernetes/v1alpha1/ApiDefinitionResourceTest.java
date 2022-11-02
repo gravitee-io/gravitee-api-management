@@ -36,7 +36,6 @@ public class ApiDefinitionResourceTest {
         assertFalse(resource.getSpec().has("definition_context"));
         assertFalse(resource.getSpec().has("execution_context"));
         assertFalse(resource.getSpec().has("primaryOwner"));
-        assertFalse(resource.getSpec().has("metadata"));
         assertFalse(resource.getSpec().has("pages"));
         assertFalse(resource.getSpec().has("members"));
         assertFalse(resource.getSpec().has("picture"));
@@ -48,6 +47,11 @@ public class ApiDefinitionResourceTest {
         assertFalse(plan.has("created_at"));
         assertFalse(plan.has("updated_at"));
         assertFalse(resource.getSpec().has("published_at"));
+
+        ArrayNode metadata = (ArrayNode) resource.getSpec().get("metadata");
+
+        JsonNode meta = metadata.iterator().next();
+        assertFalse(meta.has("apiId"));
     }
 
     private ObjectNode readDefinition() throws Exception {

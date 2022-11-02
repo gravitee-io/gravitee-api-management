@@ -20,5 +20,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 public interface ApiExportService {
     String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
 
-    String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId);
+    String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, String... filteredFields);
 }

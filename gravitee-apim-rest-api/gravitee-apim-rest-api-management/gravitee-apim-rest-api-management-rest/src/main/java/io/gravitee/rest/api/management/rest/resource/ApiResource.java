@@ -611,10 +611,10 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "API definition", content = @Content(mediaType = "application/yaml"))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiCRD() {
+    public Response exportApiCRD(@QueryParam("exclude") @DefaultValue("") String exclude) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
-        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, api);
+        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, api, exclude.split(","));
         return Response
             .ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "yml")))

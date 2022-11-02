@@ -35,7 +35,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "groups",
         "members",
         "pages",
-        "metadata",
         "createdAt",
         "updatedAt",
         "picture",
@@ -45,6 +44,10 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     private static final List<String> UNSUPPORTED_PLAN_FIELDS = List.of("created_at", "updated_at", "published_at");
 
     private static final String PLANS_FIELD = "plans";
+
+    private static final String METADATA_FIELD = "metadata";
+
+    private static final List<String> UNSUPPORTED_METADATA_FIELDS = List.of("apiId");
 
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
@@ -57,6 +60,11 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         if (getSpec().hasNonNull(PLANS_FIELD)) {
             ArrayNode plans = (ArrayNode) getSpec().get(PLANS_FIELD);
             plans.forEach(plan -> ((ObjectNode) plan).remove(UNSUPPORTED_PLAN_FIELDS));
+        }
+
+        if (getSpec().hasNonNull(METADATA_FIELD)) {
+            ArrayNode metadata = (ArrayNode) getSpec().get(METADATA_FIELD);
+            metadata.forEach(data -> ((ObjectNode) data).remove(UNSUPPORTED_METADATA_FIELDS));
         }
     }
 }
