@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionDispatcher> implements SubscriptionDispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
-    private static final String SUBSCRIPTION_TYPE_FIELD = "entrypointId";
+    private static final String SUBSCRIPTION_ENTRYPOINT_FIELD = "entrypointId";
     private final Map<String, Disposable> actives = new ConcurrentHashMap<>();
     private final SubscriptionAcceptorResolver subscriptionAcceptorResolver;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -67,9 +67,9 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                     try {
                         // Extract the type from the configuration
                         // For now, we admit that only webhook is supported
-                        String type = mapper.readTree(configuration).path(SUBSCRIPTION_TYPE_FIELD).asText();
+                        String type = mapper.readTree(configuration).path(SUBSCRIPTION_ENTRYPOINT_FIELD).asText();
                         if (type == null || type.trim().isEmpty()) {
-                            LOGGER.error("Unable to handle subscription without known type");
+                            LOGGER.error("Unable to handle subscription without known entrypoint id");
                         } else {
                             MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
