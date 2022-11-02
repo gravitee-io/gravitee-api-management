@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,6 +40,7 @@ public class NewSubscriptionEntity {
 
     private String filter;
 
+    @JsonRawValue
     private String configuration;
 
     private Map<String, String> metadata;
