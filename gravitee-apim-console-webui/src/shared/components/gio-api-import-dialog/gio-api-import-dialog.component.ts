@@ -287,7 +287,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
         }),
       )
       .subscribe(() => {
-        this.dialogRef.close();
+        this.dialogRef.close(true);
       });
   }
 

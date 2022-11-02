@@ -15,10 +15,11 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import * as _ from 'lodash';
-import { map } from 'rxjs/operators';
+import { catchError, map, mapTo } from 'rxjs/operators';
 import { IScope } from 'angular';
+import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 import { Api, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
@@ -168,5 +169,60 @@ export class ApiService {
     return apiId
       ? this.http.put<Api>(`${this.constants.env.baseURL}/apis/${apiId}/import/swagger${params}`, payload)
       : this.http.post<Api>(`${this.constants.env.baseURL}/apis/import/swagger${params}`, payload);
+  }
+
+  duplicate(apiId: string, config: { context_path: string; version: string; filtered_fields: any[] }): Observable<Api> {
+    return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
+  }
+
+  contextPathValidator(currentContextPath?: string): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      if (!control.value) {
+        // If the control is empty, return no error
+        return of(null);
+      }
+      const contextPath = control.value;
+
+      if (contextPath.length < 3) {
+        return of({ contextPath: 'Context path has to be more than 3 characters long.' });
+      }
+
+      if (currentContextPath === contextPath) {
+        return of(null);
+      }
+
+      return this.http
+        .post(
+          `${this.constants.env.baseURL}/apis/verify`,
+          { context_path: contextPath },
+          {
+            responseType: 'text',
+          },
+        )
+        .pipe(
+          mapTo(null),
+          catchError((error) => {
+            let message = 'Context path is not valid.';
+            try {
+              const errorResponse = JSON.parse(error.error);
+              message = errorResponse.message;
+            } catch (error) {}
+
+            return of({ contextPath: message });
+          }),
+        );
+    };
+  }
+
+  versionValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        // If the control is empty, return no error
+        return null;
+      }
+      const version = control.value;
+
+      return version.length > 32 ? { version: 'Maximum length is 32 characters.' } : null;
+    };
   }
 }

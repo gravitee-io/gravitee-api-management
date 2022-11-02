@@ -1,0 +1,30 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.content {
+  width: 600px;
+
+  &__row {
+    padding-bottom: 18px;
+
+    &__contextPath-field {
+      margin-right: 8px;
+      width: calc(72% - 8px);
+    }
+    &__version-field {
+      width: 28%;
+    }
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    padding-left: 8px;
+    padding-bottom: 8px;
+
+    &__option {
+      padding: 4px 0;
+    }
+  }
+}

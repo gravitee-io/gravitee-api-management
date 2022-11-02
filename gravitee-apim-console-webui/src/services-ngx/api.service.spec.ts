@@ -17,6 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { omit } from 'lodash';
 import * as _ from 'lodash';
+import { FormControl } from '@angular/forms';
+import { from } from 'rxjs';
 
 import { ApiService } from './api.service';
 
@@ -337,6 +339,61 @@ describe('ApiService', () => {
       expect(req.request.method).toEqual('PUT');
 
       req.flush({});
+    });
+  });
+
+  describe('duplicate', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService
+        .duplicate(apiId, {
+          context_path: 'My API',
+          version: '1.0.0',
+          filtered_fields: ['groups'],
+        })
+        .subscribe(() => {
+          done();
+        });
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/duplicate`, method: 'POST' });
+
+      req.flush({});
+    });
+  });
+
+  describe('contextPathValidator', () => {
+    function expectVerifyContextPathPostRequest() {
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' }).flush({});
+    }
+
+    function expectVerifyContextPathFailedRequest() {
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+      req.flush({ message: 'The path [/echo/] is already covered by an other API.' }, { status: 422, statusText: 'Unprocessable Entity' });
+      return;
+    }
+
+    it.each([
+      ['a', null, { contextPath: 'Context path has to be more than 3 characters long.' }],
+      [
+        'aa',
+        null,
+        {
+          contextPath: 'Context path has to be more than 3 characters long.',
+        },
+      ],
+      ['aaa', expectVerifyContextPathPostRequest, null],
+      ['/aaa', expectVerifyContextPathPostRequest, null],
+      ['/echo', expectVerifyContextPathFailedRequest, { contextPath: 'The path [/echo/] is already covered by an other API.' }],
+    ] as any[])('should validate %p contextPath', (contextPath, expectVerifyContextPathGetRequest, error, done) => {
+      from(apiService.contextPathValidator()(new FormControl(contextPath))).subscribe((result) => {
+        expect(result).toEqual(error);
+        done();
+      });
+
+      if (expectVerifyContextPathGetRequest) {
+        expectVerifyContextPathGetRequest();
+      }
     });
   });
 });

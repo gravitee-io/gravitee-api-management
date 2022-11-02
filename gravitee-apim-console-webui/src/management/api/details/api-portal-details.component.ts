@@ -15,17 +15,29 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { NewFile } from '@gravitee/ui-particles-angular';
+import { StateService } from '@uirouter/angular';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import {
+  ApiPortalDetailsDuplicateDialogComponent,
+  ApiPortalDetailsDuplicateDialogData,
+} from './api-portal-details-duplicate-dialog/api-portal-details-duplicate-dialog.component';
+
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api } from '../../../entities/api';
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
 import { ApiService } from '../../../services-ngx/api.service';
 import { CategoryService } from '../../../services-ngx/category.service';
+import { PolicyService } from '../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import {
+  GioApiImportDialogComponent,
+  GioApiImportDialogData,
+} from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
@@ -65,10 +77,13 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
+    private readonly policyService: PolicyService,
     private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
 
@@ -145,7 +160,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
                 value: api.version,
                 disabled: isReadOnly,
               },
-              [Validators.required],
+              [Validators.required, this.apiService.versionValidator()],
             ),
             description: new FormControl(
               {
@@ -243,6 +258,24 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         ),
         filter((confirm) => confirm === true),
         tap(() => this.ngOnInit()),
+      )
+      .subscribe();
+  }
+
+  duplicateApi() {
+    this.matDialog
+      .open<ApiPortalDetailsDuplicateDialogComponent, ApiPortalDetailsDuplicateDialogData>(ApiPortalDetailsDuplicateDialogComponent, {
+        data: {
+          api: this.api,
+        },
+        role: 'alertdialog',
+        id: 'duplicateApiDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((apiDuplicated) => !!apiDuplicated),
+        tap((apiDuplicated) => this.ajsState.go('management.apis.detail.portal.general', { apiId: apiDuplicated.id })),
       )
       .subscribe();
   }

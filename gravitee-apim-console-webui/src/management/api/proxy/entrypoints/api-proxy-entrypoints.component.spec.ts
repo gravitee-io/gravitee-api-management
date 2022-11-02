@@ -75,7 +75,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   afterEach(() => {
-    httpTestingController.verify();
+    httpTestingController.verify({ ignoreCancelled: true });
   });
 
   describe('context-path mode', () => {
@@ -95,6 +95,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(await contextPathInput.getValue()).toEqual('/path');
 
       await contextPathInput.setValue('/new-path');
+      await expectVerifyContextPathGetRequest();
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -357,5 +358,9 @@ describe('ApiProxyEntrypointsComponent', () => {
   function exceptEnvironmentGetRequest(environment: Environment) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
     fixture.detectChanges();
+  }
+
+  function expectVerifyContextPathGetRequest() {
+    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
   }
 });

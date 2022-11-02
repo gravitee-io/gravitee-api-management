@@ -17,6 +17,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Api } from '../../../../../entities/api';
+import { ApiService } from '../../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-proxy-entrypoints-context-path',
@@ -36,6 +37,8 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
   public entrypointsForm: FormGroup;
   public initialEntrypointsFormValue: unknown;
 
+  constructor(private readonly apiService: ApiService) {}
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
       this.initForm(this.apiProxy);
@@ -53,7 +56,8 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
           value: apiProxy.virtual_hosts[0].path,
           disabled: this.readOnly,
         },
-        [Validators.required, Validators.minLength(3), Validators.pattern(/^\/[/.a-zA-Z0-9-_]+$/)],
+        [Validators.required],
+        [this.apiService.contextPathValidator(apiProxy.virtual_hosts[0].path)],
       ),
     });
     this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();
