@@ -77,7 +77,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
             .test()
-            .awaitDone(1, SECONDS)
+            .awaitDone(10, SECONDS)
             .assertComplete();
 
         // verify requests received by wiremock
@@ -105,7 +105,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
             .test()
-            .awaitDone(1, SECONDS)
+            .awaitDone(10, SECONDS)
             .assertComplete();
 
         // verify requests received by wiremock
