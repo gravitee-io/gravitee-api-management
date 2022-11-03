@@ -67,6 +67,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
+        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
 
         Subscription subscription = buildTestSubscription(configuration);
 
@@ -89,6 +90,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
         configuration.setHeaders(List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value")));
+        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
 
         Subscription subscription = buildTestSubscription(configuration);
 
