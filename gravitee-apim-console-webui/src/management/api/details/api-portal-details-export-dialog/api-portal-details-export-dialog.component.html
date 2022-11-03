@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title class="title">Export API</h2>
+
+<mat-dialog-content class="content">
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+    <!-- Tab - Export Json -->
+    <mat-tab label="Gravitee API definition">
+      <div *ngIf="exportJsonFrom" class="content__json" [formGroup]="exportJsonFrom">
+        <mat-form-field class="content__json__select" appearance="fill">
+          <mat-label>Target APIM version</mat-label>
+          <mat-select formControlName="exportVersion" name="exportVersion">
+            <mat-option *ngFor="let option of jsonOptions" [value]="option.id">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <h5>Include options</h5>
+        <div class="content__options" formGroupName="options">
+          <mat-checkbox class="content__options__option" *ngFor="let option of jsonOptionsCheckbox" [formControlName]="option.id">
+            {{ option.label }}
+          </mat-checkbox>
+        </div>
+      </div>
+    </mat-tab>
+    <!-- Tab - Export CRD -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="content__crd__label__icon" svgIcon="gio:kubernetes"></mat-icon>
+        CRD API Definition
+      </ng-template>
+
+      <gio-banner-info
+        >Export your API Definition to a CRD format (Custom Resource Definition from Kubernetes) and start using our beta GKO to manage your
+        API declaratively.
+        <a href="https://docs.gravitee.io/apim/3.x/apim_kubernetes_operator_overview.html" target="_blank" rel="noopener noreferrer">
+          Link to documentation <mat-icon class="content__crd__link__icon" svgIcon="gio:external-link"></mat-icon>
+        </a>
+      </gio-banner-info>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="actions">
+  <button mat-flat-button [mat-dialog-close]="false">Cancel</button>
+  <button color="primary" mat-raised-button (click)="onExport()">Export</button>
+</mat-dialog-actions>

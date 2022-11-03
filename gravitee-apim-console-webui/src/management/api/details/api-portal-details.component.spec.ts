@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -26,6 +26,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
@@ -42,7 +43,7 @@ describe('ApiPortalDetailsComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
   const fakeAjsState = {
-    go: jest.fn(),
+    go: jest.fn().mockReturnValue({}),
   };
 
   let fixture: ComponentFixture<ApiPortalDetailsComponent>;
@@ -52,7 +53,7 @@ describe('ApiPortalDetailsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
+      imports: [BrowserAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
@@ -167,6 +168,31 @@ describe('ApiPortalDetailsComponent', () => {
     expect(req.request.body.execution_mode).toEqual('jupiter');
   });
 
+  it('should export api', async () => {
+    const api = fakeApi({
+      id: API_ID,
+    });
+    expectApiGetRequest(api);
+    expectCategoriesGetRequest();
+
+    // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+    await waitImageCheck();
+
+    const button = await loader.getHarness(MatButtonHarness.with({ text: /Export/ }));
+    await button.click();
+
+    await waitImageCheck();
+    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#exportApiDialog' }));
+
+    const groupCheckbox = await confirmDialog.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="groups"]' }));
+    await groupCheckbox.uncheck();
+
+    const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Export' }));
+    await confirmButton.click();
+
+    await expectExportGetRequest(API_ID);
+  });
+
   it('should duplicate api', async () => {
     const api = fakeApi({
       id: API_ID,
@@ -216,6 +242,13 @@ describe('ApiPortalDetailsComponent', () => {
 
   function expectVerifyContextPathGetRequest() {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+  }
+
+  function expectExportGetRequest(apiId: string) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/export?exclude=groups&version=default`, method: 'GET' })
+      .flush(new Blob(['a'], { type: 'text/json' }));
+    fixture.detectChanges();
   }
 });
 

@@ -83,9 +83,7 @@
           <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
             <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
-              <span class="details-card__header__right-coll__media__picture__btn__text">
-                Click here or drag an image
-              </span>
+              <span class="details-card__header__right-coll__media__picture__btn__text"> Click here or drag an image </span>
               <gio-avatar
                 class="details-card__header__right-coll__media__picture__btn__default-avatar"
                 size="114"
@@ -96,9 +94,7 @@
           <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
             <gio-form-file-picker-label>API background</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
-              <span class="details-card__header__right-coll__media__background__btn__text">
-                Click here or drag an image
-              </span>
+              <span class="details-card__header__right-coll__media__background__btn__text"> Click here or drag an image </span>
             </gio-form-file-picker-add-button>
             <gio-form-file-picker-empty>No background defined</gio-form-file-picker-empty>
           </gio-form-file-picker>
@@ -120,7 +116,7 @@
     </div>
 
     <div>
-      <button mat-button (click)="askForReview()"><mat-icon>file_upload</mat-icon> Export</button>
+      <button mat-button (click)="exportApi()"><mat-icon>file_upload</mat-icon> Export</button>
       <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="importApi()">
         <mat-icon>file_download</mat-icon> Import
       </button>

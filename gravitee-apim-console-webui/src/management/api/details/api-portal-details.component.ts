@@ -25,6 +25,10 @@ import {
   ApiPortalDetailsDuplicateDialogComponent,
   ApiPortalDetailsDuplicateDialogData,
 } from './api-portal-details-duplicate-dialog/api-portal-details-duplicate-dialog.component';
+import {
+  ApiPortalDetailsExportDialogComponent,
+  ApiPortalDetailsExportDialogData,
+} from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api } from '../../../entities/api';
@@ -277,6 +281,20 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         filter((apiDuplicated) => !!apiDuplicated),
         tap((apiDuplicated) => this.ajsState.go('management.apis.detail.portal.general', { apiId: apiDuplicated.id })),
       )
+      .subscribe();
+  }
+
+  exportApi() {
+    this.matDialog
+      .open<ApiPortalDetailsExportDialogComponent, ApiPortalDetailsExportDialogData>(ApiPortalDetailsExportDialogComponent, {
+        data: {
+          api: this.api,
+        },
+        role: 'alertdialog',
+        id: 'exportApiDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe();
   }
 
