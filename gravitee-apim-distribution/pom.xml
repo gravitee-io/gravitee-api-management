@@ -733,7 +733,7 @@
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
                 <gravitee-policy-data-logging-masking.version>2.0.1</gravitee-policy-data-logging-masking.version>
-                <gravitee-entrypoint-sse-advanced.version>2.0.0-alpha.2</gravitee-entrypoint-sse-advanced.version>
+                <gravitee-entrypoint-sse-advanced.version>2.0.0-alpha.3</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-endpoint-kafka-advanced.version>1.0.0-alpha.3</gravitee-endpoint-kafka-advanced.version>
 
                 <!-- Management API Only -->
