@@ -21,7 +21,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,11 +29,14 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTabsModule } from '@angular/material/tabs';
+import { A11yModule } from '@angular/cdk/a11y';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { ApiPortalDetailsQualityComponent } from './api-portal-details-quality/api-portal-details-quality.component';
 import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone/api-portal-details-danger-zone.component';
 import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-duplicate-dialog/api-portal-details-duplicate-dialog.component';
+import { ApiPortalDetailsExportDialogComponent } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
@@ -44,12 +47,19 @@ import { GioCircularPercentageModule } from '../../../shared/components/gio-circ
 import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
 
 @NgModule({
-  declarations: [ApiPortalDetailsComponent, ApiPortalDetailsQualityComponent, ApiPortalDetailsDangerZoneComponent, ApiPortalDetailsDuplicateDialogComponent],
+  declarations: [
+    ApiPortalDetailsComponent,
+    ApiPortalDetailsQualityComponent,
+    ApiPortalDetailsDangerZoneComponent,
+    ApiPortalDetailsDuplicateDialogComponent,
+    ApiPortalDetailsExportDialogComponent,
+  ],
   exports: [ApiPortalDetailsComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
 
+    A11yModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -61,6 +71,7 @@ import { GioApiImportDialogModule } from '../../../shared/components/gio-api-imp
     MatSlideToggleModule,
     MatCheckboxModule,
     MatTooltipModule,
+    MatTabsModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
@@ -72,6 +83,7 @@ import { GioApiImportDialogModule } from '../../../shared/components/gio-api-imp
     GioFormSlideToggleModule,
     GioCircularPercentageModule,
     GioApiImportDialogModule,
+    GioBannerModule,
   ],
 })
 export class ApiPortalDetailsModule {}

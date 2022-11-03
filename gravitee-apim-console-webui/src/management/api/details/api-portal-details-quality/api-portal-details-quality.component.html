@@ -26,11 +26,7 @@
           class="api-quality__content__list__item__green-icon"
           svgIcon="gio:check-circled-outline"
         ></mat-icon>
-        <mat-icon
-          *ngIf="!qualityMetric.value"
-          class="api-quality__content__list__item__red-icon"
-          svgIcon="gio:alert-circle"
-        ></mat-icon>
+        <mat-icon *ngIf="!qualityMetric.value" class="api-quality__content__list__item__red-icon" svgIcon="gio:alert-circle"></mat-icon>
         <span class="api-quality__content__list__item__text">{{ qualityMetricsDescription[qualityMetric.key] }}</span>
       </div>
     </div>

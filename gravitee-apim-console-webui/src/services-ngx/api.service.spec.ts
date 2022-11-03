@@ -342,6 +342,37 @@ describe('ApiService', () => {
     });
   });
 
+  describe('export', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      apiService.export(apiId, ['plans'], '2.0.0').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/export?exclude=plans&version=2.0.0`,
+        method: 'GET',
+      });
+
+      req.flush(new Blob(['a'], { type: 'text/json' }));
+    });
+  });
+
+  describe('exportCrd', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      apiService.exportCrd(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/crd`, method: 'GET' });
+
+      req.flush(new Blob(['a'], { type: 'text/yml' }));
+    });
+  });
+
   describe('duplicate', () => {
     it('should call the API', (done) => {
       const apiId = 'api#1';

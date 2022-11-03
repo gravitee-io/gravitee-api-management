@@ -171,6 +171,26 @@ export class ApiService {
       : this.http.post<Api>(`${this.constants.env.baseURL}/apis/import/swagger${params}`, payload);
   }
 
+  export(apiId: string, exclude: string[], exportVersion: string): Observable<Blob> {
+    const params: string[] = [];
+    if (exclude && exclude.length > 0) {
+      params.push(`exclude=${exclude.join(',')}`);
+    }
+    if (exportVersion) {
+      params.push(`version=${exportVersion}`);
+    }
+
+    return this.http.get(`${this.constants.env.baseURL}/apis/${apiId}/export${params ? `?${params.join('&')}` : ''}`, {
+      responseType: 'blob',
+    });
+  }
+
+  exportCrd(apiId: string): Observable<Blob> {
+    return this.http.get(`${this.constants.env.baseURL}/apis/${apiId}/crd`, {
+      responseType: 'blob',
+    });
+  }
+
   duplicate(apiId: string, config: { context_path: string; version: string; filtered_fields: any[] }): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
