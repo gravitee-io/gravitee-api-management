@@ -35,7 +35,6 @@ import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConn
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -66,8 +65,9 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
-        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
-        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
+        final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
+        wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
         Subscription subscription = buildTestSubscription(configuration);
 
@@ -75,13 +75,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // wait for callback wiremock to receive 7 requests (timeouts after 1 sec)
         interval(50, MILLISECONDS)
-            .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(anyUrl()).build()).getCount() < 7)
+            .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
             .test()
             .awaitDone(1, SECONDS)
             .assertComplete();
 
         // verify requests received by wiremock
-        wiremock.verify(7, postRequestedFor(urlPathEqualTo(WEBHOOK_URL_PATH)).withRequestBody(equalTo("Mock data")));
+        wiremock.verify(7, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("Mock data")));
 
         // close the subscription to avoid maintaining it between test methods
         subscription.setStatus("CLOSED");
@@ -92,9 +92,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
-        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
+        final String callbackPath = WEBHOOK_URL_PATH + "/with-headers";
+        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
         configuration.setHeaders(List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value")));
-        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
+        wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
         Subscription subscription = buildTestSubscription(configuration);
 
@@ -102,7 +103,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // wait for callback wiremock to receive 7 requests (timeouts after 1 sec)
         interval(50, MILLISECONDS)
-            .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(anyUrl()).build()).getCount() < 7)
+            .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
             .test()
             .awaitDone(1, SECONDS)
             .assertComplete();
@@ -110,7 +111,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         // verify requests received by wiremock
         wiremock.verify(
             7,
-            postRequestedFor(urlPathEqualTo(WEBHOOK_URL_PATH))
+            postRequestedFor(urlPathEqualTo(callbackPath))
                 .withRequestBody(equalTo("Mock data"))
                 .withHeader("Header1", equalTo("my-header-1-value"))
                 .withHeader("Header2", equalTo("my-header-2-value"))
