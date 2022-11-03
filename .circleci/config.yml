@@ -606,7 +606,7 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
+                      mvn -U --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dorg.slf4j.simpleLogger.showThreadName=true -Dplugin-modules -Dskip.validation=true -T 2C
             - run:
                   name: Save test results
                   command: |
