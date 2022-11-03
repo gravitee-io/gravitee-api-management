@@ -82,6 +82,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // verify requests received by wiremock
         wiremock.verify(7, postRequestedFor(urlPathEqualTo(WEBHOOK_URL_PATH)).withRequestBody(equalTo("Mock data")));
+
+        // close the subscription to avoid maintaining it between test methods
+        subscription.setStatus("CLOSED");
+        getBean(SubscriptionDispatcher.class).dispatch(subscription);
     }
 
     @Test
@@ -111,6 +115,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 .withHeader("Header1", equalTo("my-header-1-value"))
                 .withHeader("Header2", equalTo("my-header-2-value"))
         );
+
+        // close the subscription to avoid maintaining it between test methods
+        subscription.setStatus("CLOSED");
+        getBean(SubscriptionDispatcher.class).dispatch(subscription);
     }
 
     private Subscription buildTestSubscription(WebhookEntrypointConnectorSubscriptionConfiguration configuration)
