@@ -113,6 +113,10 @@ public class ApiSubscribersResource extends AbstractResource {
 
         Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
 
+        if (applicationIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         ApplicationQuery applicationQuery = new ApplicationQuery();
         if (exclude != null && !exclude.isEmpty()) {
             applicationQuery.setExcludeFilters(exclude);
