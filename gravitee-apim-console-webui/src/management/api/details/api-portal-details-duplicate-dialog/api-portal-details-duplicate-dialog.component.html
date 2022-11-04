@@ -37,7 +37,7 @@
       }}</mat-error>
     </mat-form-field>
   </div>
-  <h5>Options</h5>
+  <h5>Include additional data</h5>
   <div class="content__options" formGroupName="options">
     <mat-checkbox class="content__options__option" *ngFor="let option of optionsCheckbox" [formControlName]="option.id">
       {{ option.label }}

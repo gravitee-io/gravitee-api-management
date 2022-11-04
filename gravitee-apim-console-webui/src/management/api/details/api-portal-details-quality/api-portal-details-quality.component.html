@@ -17,7 +17,7 @@
 -->
 <mat-card class="api-quality">
   <h3>Quality</h3>
-  <div *ngIf="qualityMetrics" class="api-quality__content">
+  <div *ngIf="qualityMetrics; else loading" class="api-quality__content">
     <gio-circular-percentage class="api-quality__content__score" [score]="qualityMetrics.score"></gio-circular-percentage>
     <div class="api-quality__content__list">
       <div *ngFor="let qualityMetric of qualityMetrics.metrics_passed | keyvalue" class="api-quality__content__list__item">
@@ -32,3 +32,8 @@
     </div>
   </div>
 </mat-card>
+
+<ng-template #loading>
+  Loading...
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+</ng-template>

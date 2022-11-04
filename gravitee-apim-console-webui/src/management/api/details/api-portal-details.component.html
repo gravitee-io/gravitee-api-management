@@ -106,30 +106,30 @@
             <dd gioClipboardCopyWrapper [contentToCopy]="apiOwner">{{ apiOwner }}</dd>
 
             <dt>Created</dt>
-            <dd gioClipboardCopyWrapper [contentToCopy]="apiCreatedAt">{{ apiCreatedAt | date: 'medium' }}</dd>
+            <dd>{{ apiCreatedAt | date: 'medium' }}</dd>
 
             <dt>Last connection</dt>
-            <dd gioClipboardCopyWrapper [contentToCopy]="apiLastDeploymentAt">{{ apiLastDeploymentAt | date: 'medium' }}</dd>
+            <dd>{{ apiLastDeploymentAt | date: 'medium' }}</dd>
           </dl>
         </div>
       </div>
     </div>
 
     <div>
-      <button mat-button (click)="exportApi()"><mat-icon>file_upload</mat-icon> Export</button>
+      <button mat-button (click)="exportApi()"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
       <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="importApi()">
-        <mat-icon>file_download</mat-icon> Import
+        <mat-icon svgIcon="gio:download"></mat-icon> Import
       </button>
       <button *gioPermission="{ anyOf: ['api-definition-c'] }" mat-button (click)="duplicateApi()">
-        <mat-icon>content_copy</mat-icon> Duplicate
+        <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
       </button>
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="askForReview()" [disabled]="!canPromote">
-        <mat-icon>rocket_launch</mat-icon> Promote
+      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="promoteApi()" [disabled]="!canPromote">
+        <mat-icon svgIcon="gio:language"></mat-icon> Promote
       </button>
     </div>
   </mat-card>
 
-  <api-portal-details-quality *ngIf="isQualityEnabled" class="api-quality" [apiId]="apiId"></api-portal-details-quality>
+  <api-portal-details-quality *ngIf="isQualityEnabled && apiId" class="api-quality" [apiId]="apiId"></api-portal-details-quality>
 
   <api-portal-details-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-portal-details-danger-zone>
 
