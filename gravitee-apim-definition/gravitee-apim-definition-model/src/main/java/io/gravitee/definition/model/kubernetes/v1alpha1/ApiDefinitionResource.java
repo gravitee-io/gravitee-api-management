@@ -53,9 +53,39 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> PLAN_ID_FIELDS = List.of("crossId", "id", "api");
 
+    private static final String VERSION_FIELD = "version";
+
+    private static final String CONTEXT_REF_FIELD = "contextRef";
+
+    private static final String CONTEXT_NAME_FIELD = "name";
+
+    private static final String CONTEXT_NAMESPACE_FIELD = "namespace";
+
+    private static final String PROXY_FIELD = "proxy";
+
+    private static final String VIRTUAL_HOSTS_FIELD = "virtual_hosts";
+
+    private static final String VIRTUAL_HOST_PATH_FIELD = "path";
+
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
         removeUnsupportedFields();
+    }
+
+    public void setContextPath(String contextPath) {
+        ObjectNode proxy = getSpec().get(PROXY_FIELD).deepCopy();
+        ArrayNode virtualHosts = (ArrayNode) proxy.get((VIRTUAL_HOSTS_FIELD));
+        ObjectNode virtualHost = ((ObjectNode) virtualHosts.iterator().next()).put(VIRTUAL_HOST_PATH_FIELD, contextPath);
+        virtualHost.put(VIRTUAL_HOST_PATH_FIELD, contextPath);
+        getSpec().set(PROXY_FIELD, proxy);
+    }
+
+    public void setVersion(String version) {
+        getSpec().put(VERSION_FIELD, version);
+    }
+
+    public void setContextRef(String name, String namespace) {
+        getSpec().putObject(CONTEXT_REF_FIELD).put(CONTEXT_NAME_FIELD, name).put(CONTEXT_NAMESPACE_FIELD, namespace);
     }
 
     public void removeIds() {
@@ -64,8 +94,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         spec.remove(API_ID_FIELDS);
 
         if (spec.hasNonNull(PLANS_FIELD)) {
-            ArrayNode plans = (ArrayNode) spec.get(PLANS_FIELD);
-            plans.forEach(plan -> ((ObjectNode) plan).remove(PLAN_ID_FIELDS));
+            spec.get(PLANS_FIELD).forEach(plan -> ((ObjectNode) plan).remove(PLAN_ID_FIELDS));
         }
     }
 
@@ -75,13 +104,11 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         spec.remove(UNSUPPORTED_API_FIELDS);
 
         if (spec.hasNonNull(PLANS_FIELD)) {
-            ArrayNode plans = (ArrayNode) spec.get(PLANS_FIELD);
-            plans.forEach(plan -> ((ObjectNode) plan).remove(UNSUPPORTED_PLAN_FIELDS));
+            spec.get(PLANS_FIELD).forEach(plan -> ((ObjectNode) plan).remove(UNSUPPORTED_PLAN_FIELDS));
         }
 
         if (spec.hasNonNull(METADATA_FIELD)) {
-            ArrayNode metadata = (ArrayNode) spec.get(METADATA_FIELD);
-            metadata.forEach(data -> ((ObjectNode) data).remove(UNSUPPORTED_METADATA_FIELDS));
+            spec.get(METADATA_FIELD).forEach(meta -> ((ObjectNode) meta).remove(UNSUPPORTED_METADATA_FIELDS));
         }
     }
 }

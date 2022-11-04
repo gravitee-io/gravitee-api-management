@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Base64.getEncoder;
 import static javax.ws.rs.client.Entity.entity;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
@@ -33,6 +30,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.management.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.model.ApiStateEntity;
@@ -44,6 +42,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -83,6 +82,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setName(API);
+        mockApi.setVersion("1");
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         mockApi.setProxy(proxy);
@@ -440,7 +440,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldRehectReview() {
+    public void shouldRejectReview() {
         doReturn(mockApi).when(apiService).rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
         final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.REJECT).request().post(null);
 
@@ -494,5 +494,37 @@ public class ApiResourceTest extends AbstractResourceTest {
             .put(Entity.text("http://localhost:8080/api/my-api-id"));
 
         assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldReportCrdExportErrors() {
+        reset(apiDuplicatorService);
+
+        doThrow(new TechnicalManagementException("Unable to export as JSON"))
+            .when(apiExportService)
+            .exportAsCustomResourceDefinition(any(), any(), any());
+
+        final Response response = envTarget().path(API + "/crd").request().get();
+
+        assertEquals(INTERNAL_SERVER_ERROR_500, response.getStatus());
+
+        ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
+
+        assertEquals("Unable to export as JSON", errorEntity.getMessage());
+        assertEquals("unexpected", errorEntity.getTechnicalCode());
+    }
+
+    @Test
+    public void shouldTriggerCrdExportFileDownload() {
+        reset(apiDuplicatorService);
+
+        doReturn("some-yaml").when(apiExportService).exportAsCustomResourceDefinition(any(), any(), any());
+
+        final Response response = envTarget().path(API + "/crd").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        assertEquals("application/yaml", response.getHeaders().getFirst("Content-Type"));
+        assertEquals("attachment;filename=my-api-1.yml", response.getHeaders().getFirst("Content-Disposition"));
     }
 }

@@ -27,11 +27,13 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
+import io.gravitee.rest.api.management.rest.resource.param.kubernetes.v1alpha1.ApiExportParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -608,15 +610,22 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "API definition", content = @Content(mediaType = "application/yaml"))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiCRD(@QueryParam("removeIds") boolean removeIds, @QueryParam("exclude") @DefaultValue("") String exclude) {
+    public Response exportApiCRD(@Parameter @BeanParam ApiExportParam exportParams) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
-        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(
-            executionContext,
-            api,
-            removeIds,
-            exclude.split(",")
-        );
+
+        final ApiExportQuery exportQuery = ApiExportQuery
+            .builder()
+            .removeIds(exportParams.isRemoveIds())
+            .contextPath(exportParams.getContextPath())
+            .version(exportParams.getVersion())
+            .contextRefName(exportParams.getManagementContextName())
+            .contextRefNamespace(exportParams.getManagementContextNamespace())
+            .exclude(exportParams.getExclude())
+            .build();
+
+        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, apiEntity.getId(), exportQuery);
+
         return Response
             .ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "yml")))

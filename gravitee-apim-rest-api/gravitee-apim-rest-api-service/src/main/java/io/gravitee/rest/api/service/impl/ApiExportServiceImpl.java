@@ -23,6 +23,7 @@ import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
@@ -32,7 +33,9 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +56,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final PageService pageService;
     private final PlanService planService;
     private final ApiService apiService;
+    private final PathValidationService pathValidationService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
     private final PageConverter pageConverter;
@@ -63,6 +67,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         PageService pageService,
         PlanService planService,
         ApiService apiService,
+        PathValidationService pathValidationService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
         PageConverter pageConverter,
@@ -72,6 +77,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         this.pageService = pageService;
         this.planService = planService;
         this.apiService = apiService;
+        this.pathValidationService = pathValidationService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
         this.pageConverter = pageConverter;
@@ -102,28 +108,36 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     @Override
-    public String exportAsCustomResourceDefinition(
-        ExecutionContext executionContext,
-        String apiId,
-        boolean removeIds,
-        String... filteredFields
-    ) {
-        String json = exportAsJson(executionContext, apiId, "2.0.0", filteredFields);
+    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery) {
+        String json = exportAsJson(executionContext, apiId, "2.0.0", exportQuery.getExcludedFields());
         try {
             JsonNode jsonNode = objectMapper.readTree(json);
             String name = jsonNode.get("name").asText();
 
             ApiDefinitionResource apiDefinitionResource = new ApiDefinitionResource(name, (ObjectNode) jsonNode);
 
-            if (removeIds) {
+            if (exportQuery.isRemoveIds()) {
                 apiDefinitionResource.removeIds();
+            }
+
+            if (exportQuery.hasContextRef()) {
+                apiDefinitionResource.setContextRef(exportQuery.getContextRefName(), exportQuery.getContextRefNamespace());
+            }
+
+            if (exportQuery.hasContextPath()) {
+                String contextPath = pathValidationService.sanitizePath(exportQuery.getContextPath());
+                apiDefinitionResource.setContextPath(contextPath);
+            }
+
+            if (exportQuery.hasVersion()) {
+                apiDefinitionResource.setVersion(exportQuery.getVersion());
             }
 
             return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
         } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to convert API {} to CRD", apiId, e);
+            LOGGER.error(String.format("An error occurs while trying to convert API %s to CRD", apiId), e);
+            throw new TechnicalManagementException(e);
         }
-        return "";
     }
 
     private void generateAndSaveCrossId(ExecutionContext executionContext, ApiEntity api) {
