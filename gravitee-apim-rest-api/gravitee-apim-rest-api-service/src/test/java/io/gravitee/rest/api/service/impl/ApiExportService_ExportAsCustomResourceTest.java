@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.*;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +28,7 @@ import io.gravitee.definition.model.*;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.service.jackson.ser.api.Api3_7VersionSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -95,6 +98,9 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
     @Mock
     private MediaService mediaService;
 
+    @Mock
+    private PathValidationService pathValidationService;
+
     private ApiEntity apiEntity;
 
     private ApiExportServiceImpl apiExportService;
@@ -129,6 +135,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
                 pageService,
                 planService,
                 apiService,
+                pathValidationService,
                 apiConverter,
                 planConverter,
                 pageConverter,
@@ -225,19 +232,47 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+
+        when(pathValidationService.sanitizePath(anyString())).then(returnsFirstArg());
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition() throws Exception {
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, false);
+        ApiExportQuery exportQuery = ApiExportQuery.builder().build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
         String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_removingIds() throws Exception {
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, true);
+        ApiExportQuery exportQuery = ApiExportQuery.builder().removeIds(true).build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
         String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-noIds.yml");
+        Assertions.assertThat(actualExport).isEqualTo(expectedExport);
+    }
+
+    @Test
+    public void shouldConvertAsCustomResourceDefinition_settingContextRef() throws Exception {
+        ApiExportQuery exportQuery = ApiExportQuery.builder().contextRefName("apim-dev-ctx").contextRefNamespace("default").build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextRef.yml");
+        Assertions.assertThat(actualExport).isEqualTo(expectedExport);
+    }
+
+    @Test
+    public void shouldConvertAsCustomResourceDefinition_settingVersion() throws Exception {
+        ApiExportQuery exportQuery = ApiExportQuery.builder().version("1.0.0-alpha").build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-version.yml");
+        Assertions.assertThat(actualExport).isEqualTo(expectedExport);
+    }
+
+    @Test
+    public void shouldConvertAsCustomResourceDefinition_settingContextPath() throws Exception {
+        ApiExportQuery exportQuery = ApiExportQuery.builder().contextPath("/test-updated").build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextPath.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 

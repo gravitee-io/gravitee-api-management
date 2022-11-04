@@ -72,6 +72,57 @@ public class ApiDefinitionResourceTest {
         assertFalse(plan.has("api"));
     }
 
+    @Test
+    public void ShouldSetContextRef() throws Exception {
+        String contextRefName = "apim-dev-ctx";
+        String contextRefNamespace = "default";
+
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        resource.setContextRef(contextRefName, contextRefNamespace);
+
+        assertTrue(resource.getSpec().has("contextRef"));
+
+        ObjectNode contextRef = ((ObjectNode) resource.getSpec().get("contextRef"));
+
+        assertTrue(contextRef.has("name"));
+        assertTrue(contextRef.has("namespace"));
+        assertEquals(contextRefName, contextRef.get("name").asText());
+        assertEquals(contextRefNamespace, contextRef.get("namespace").asText());
+    }
+
+    @Test
+    public void ShouldSetContextPath() throws Exception {
+        String contextPath = "/new-context-path";
+
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        resource.setContextPath(contextPath);
+
+        assertTrue(resource.getSpec().has("proxy"));
+
+        ObjectNode proxy = (ObjectNode) resource.getSpec().get("proxy");
+
+        assertTrue(proxy.has("virtual_hosts"));
+
+        ArrayNode virtualHosts = (ArrayNode) proxy.get("virtual_hosts");
+        ObjectNode virtualHost = (ObjectNode) virtualHosts.iterator().next();
+
+        assertEquals(contextPath, virtualHost.get("path").asText());
+    }
+
+    @Test
+    public void ShouldSetVersion() throws Exception {
+        String version = "1.0.0-alpha";
+
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        resource.setVersion(version);
+
+        assertTrue(resource.getSpec().has("version"));
+        assertEquals(version, resource.getSpec().get("version").asText());
+    }
+
     private ObjectNode readDefinition() throws Exception {
         String path = "io/gravitee/definition/model/kubernetes/v1alpha1/api-definition.json";
         URL resource = getClass().getClassLoader().getResource(path);
