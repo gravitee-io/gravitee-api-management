@@ -54,6 +54,12 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
 
         httpClientOptions.setUseCompression(node.path("useCompression").asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION));
 
+        if (node.get("propagateClientAcceptEncoding") != null) {
+            httpClientOptions.setPropagateClientAcceptEncoding(
+                node.path("propagateClientAcceptEncoding").asBoolean(HttpClientOptions.DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING)
+            );
+        }
+
         httpClientOptions.setFollowRedirects(node.path("followRedirects").asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS));
 
         if (node.get("clearTextUpgrade") != null) {
