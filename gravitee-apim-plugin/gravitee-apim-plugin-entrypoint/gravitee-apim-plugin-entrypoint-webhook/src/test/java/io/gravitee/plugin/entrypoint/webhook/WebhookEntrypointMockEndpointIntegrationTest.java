@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/webhook-entrypoint.json" })
 class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     private static final String API_ID = "my-api";
@@ -63,6 +62,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL")
+    @DeployApi({ "/apis/webhook-entrypoint.json" })
     void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
@@ -90,6 +90,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
+    @DeployApi({ "/apis/webhook-entrypoint-2.json" })
     void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         final String callbackPath = WEBHOOK_URL_PATH + "/with-headers";
@@ -98,6 +99,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
         Subscription subscription = buildTestSubscription(configuration);
+        subscription.setApi(API_ID + "-2");
 
         getBean(SubscriptionDispatcher.class).dispatch(subscription);
 
