@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class KafkaEndpointConnectorFactoryTest {
+class KafkaEndpointConnectorFactoryTest {
 
     private KafkaEndpointConnectorFactory kafkaEndpointConnectorFactory;
 

@@ -26,28 +26,28 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BalancedStrategy extends AbstractQosStrategy {
+public class BalancedStrategy<K, V> extends AbstractQosStrategy<K, V> {
 
     public BalancedStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
         super(kafkaReceiverFactory);
     }
 
     @Override
-    public Flux<ConsumerRecord<String, byte[]>> receive(
+    public Flux<ConsumerRecord<K, V>> receive(
         final ExecutionContext executionContext,
         final KafkaEndpointConnectorConfiguration configuration,
-        final ReceiverOptions<String, byte[]> receiverOptions
+        final ReceiverOptions<K, V> receiverOptions
     ) {
-        return createReceiver(receiverOptions).receiveAutoAck().concatMap(c -> c);
+        return initReceiver(receiverOptions).receiveAutoAck().concatMap(c -> c);
     }
 
     @Override
-    public Runnable buildAckRunnable(final ConsumerRecord<String, byte[]> consumerRecord) {
+    public Runnable buildAckRunnable(final ConsumerRecord<K, V> consumerRecord) {
         return doNothing;
     }
 
     @Override
-    public String generateId(final ConsumerRecord<String, byte[]> consumerRecord) {
+    public String generateId(final ConsumerRecord<K, V> consumerRecord) {
         return null;
     }
 }

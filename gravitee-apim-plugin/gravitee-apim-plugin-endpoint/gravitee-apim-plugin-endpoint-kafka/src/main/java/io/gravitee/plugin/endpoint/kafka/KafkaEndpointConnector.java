@@ -15,9 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.kafka;
 
+import static io.gravitee.plugin.endpoint.kafka.configuration.KafkaDefaultConfiguration.RECONNECT_BACKOFF_MS;
+
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -30,6 +33,9 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.error.KafkaConnectionClosedException;
+import io.gravitee.plugin.endpoint.kafka.error.KafkaReceiverErrorTransformer;
+import io.gravitee.plugin.endpoint.kafka.error.KafkaSenderErrorTransformer;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaSenderFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
@@ -42,9 +48,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -61,6 +70,7 @@ import reactor.kafka.sender.SenderResult;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
+@Slf4j
 public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
@@ -69,8 +79,11 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_TOPICS = KAFKA_CONTEXT_ATTRIBUTE + "topics";
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
+    private static final String FAILURE_ENDPOINT_CONNECTION_CLOSED = "FAILURE_ENDPOINT_CONNECTION_CLOSED";
+    private static final String FAILURE_ENDPOINT_CONFIGURATION_INVALID = "FAILURE_ENDPOINT_CONFIGURATION_ERROR";
+    private static final String FAILURE_ENDPOINT_UNKNOWN_ERROR = "FAILURE_ENDPOINT_UNKNOWN_ERROR";
+    private static final String FAILURE_PARAMETERS_EXCEPTION = "exception";
     private static final String ENDPOINT_ID = "kafka";
-
     protected final KafkaEndpointConnectorConfiguration configuration;
     private final QosStrategyFactory qosStrategyFactory;
 
@@ -102,6 +115,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     // Set kafka producer properties
                     config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
                     config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+                    config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
                     addCustomProducerConfig(config);
                     SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
                     KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
@@ -112,18 +126,22 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                             upstream ->
                                 RxJava3Adapter
                                     .fluxToFlowable(
-                                        kafkaSender.send(
-                                            upstream.flatMap(
-                                                message ->
-                                                    Flowable
-                                                        .fromIterable(overrideTopics(topics, message))
-                                                        .map(
-                                                            topic -> SenderRecord.create(createProducerRecord(ctx, message, topic), message)
-                                                        )
+                                        kafkaSender
+                                            .send(
+                                                upstream.flatMap(
+                                                    message ->
+                                                        Flowable
+                                                            .fromIterable(overrideTopics(topics, message))
+                                                            .map(
+                                                                topic ->
+                                                                    SenderRecord.create(createProducerRecord(ctx, message, topic), message)
+                                                            )
+                                                )
                                             )
-                                        )
+                                            .transform(KafkaSenderErrorTransformer.transform(kafkaSender))
+                                            .map(SenderResult::correlationMetadata)
                                     )
-                                    .map(SenderResult::correlationMetadata)
+                                    .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
                         );
                 }
             );
@@ -171,10 +189,14 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                         InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR
                                     );
                                     final QosOptions qosOptions = entrypointAsyncConnector.qosOptions();
-                                    QosStrategy qosStrategy = qosStrategyFactory.createQosStrategy(kafkaReceiverFactory, qosOptions);
+                                    QosStrategy<String, byte[]> qosStrategy = qosStrategyFactory.createQosStrategy(
+                                        kafkaReceiverFactory,
+                                        qosOptions
+                                    );
 
                                     Map<String, Object> config = new HashMap<>();
                                     config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
+                                    config.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
                                     KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
                                     config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
 
@@ -192,44 +214,78 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                         .<String, byte[]>create(config)
                                         .subscription(getTopics(ctx));
 
-                                    return RxJava3Adapter.fluxToFlowable(
-                                        qosStrategy
-                                            .receive(ctx, configuration, receiverOptions)
-                                            .map(
-                                                consumerRecord -> {
-                                                    HttpHeaders httpHeaders = HttpHeaders.create();
-                                                    consumerRecord
-                                                        .headers()
-                                                        .forEach(
-                                                            kafkaHeader ->
-                                                                httpHeaders.add(kafkaHeader.key(), new String(kafkaHeader.value()))
-                                                        );
+                                    return RxJava3Adapter
+                                        .<Message>fluxToFlowable(
+                                            qosStrategy
+                                                .receive(ctx, configuration, receiverOptions)
+                                                .transform(KafkaReceiverErrorTransformer.transform(qosStrategy))
+                                                .map(
+                                                    consumerRecord -> {
+                                                        HttpHeaders httpHeaders = HttpHeaders.create();
+                                                        consumerRecord
+                                                            .headers()
+                                                            .forEach(
+                                                                kafkaHeader ->
+                                                                    httpHeaders.add(kafkaHeader.key(), new String(kafkaHeader.value()))
+                                                            );
 
-                                                    Map<String, Object> metadata = new HashMap<>();
-                                                    if (consumerRecord.key() != null) {
-                                                        metadata.put("key", consumerRecord.key());
+                                                        Map<String, Object> metadata = new HashMap<>();
+                                                        if (consumerRecord.key() != null) {
+                                                            metadata.put("key", consumerRecord.key());
+                                                        }
+                                                        metadata.put("topic", consumerRecord.topic());
+                                                        metadata.put("partition", consumerRecord.partition());
+                                                        metadata.put("offset", consumerRecord.offset());
+
+                                                        return DefaultMessage
+                                                            .builder()
+                                                            .id(qosStrategy.generateId(consumerRecord))
+                                                            .headers(httpHeaders)
+                                                            .content(Buffer.buffer(consumerRecord.value()))
+                                                            .metadata(metadata)
+                                                            .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord))
+                                                            .build();
                                                     }
-                                                    metadata.put("topic", consumerRecord.topic());
-                                                    metadata.put("partition", consumerRecord.partition());
-                                                    metadata.put("offset", consumerRecord.offset());
-
-                                                    return DefaultMessage
-                                                        .builder()
-                                                        .id(qosStrategy.generateId(consumerRecord))
-                                                        .headers(httpHeaders)
-                                                        .content(Buffer.buffer(consumerRecord.value()))
-                                                        .metadata(metadata)
-                                                        .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord))
-                                                        .build();
-                                                }
-                                            )
-                                    );
+                                                )
+                                        )
+                                        .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable));
                                 }
                             )
                         );
                 }
             }
         );
+    }
+
+    private Flowable<Message> interruptMessagesWith(final ExecutionContext ctx, final Throwable throwable) {
+        if (throwable instanceof KafkaConnectionClosedException) {
+            return ctx.interruptMessagesWith(
+                new ExecutionFailure(500)
+                    .message("Endpoint connection closed")
+                    .key(FAILURE_ENDPOINT_CONNECTION_CLOSED)
+                    .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
+            );
+        } else if (throwable instanceof ConfigException) {
+            return ctx.interruptMessagesWith(
+                new ExecutionFailure(500)
+                    .message("Endpoint configuration invalid")
+                    .key(FAILURE_ENDPOINT_CONFIGURATION_INVALID)
+                    .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
+            );
+        } else if (throwable instanceof KafkaException) {
+            return interruptMessagesWith(ctx, throwable.getCause());
+        } else {
+            return ctx.interruptMessagesWith(
+                new ExecutionFailure(500)
+                    .message("Endpoint unknown error")
+                    .key(FAILURE_ENDPOINT_UNKNOWN_ERROR)
+                    .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
+            );
+        }
+    }
+
+    private Flowable<Message> getMessageFlowable(final ExecutionContext ctx, final Throwable throwable) {
+        return interruptMessagesWith(ctx, throwable.getCause());
     }
 
     /**

@@ -29,7 +29,7 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoneStrategy extends AbstractQosStrategy {
+public class NoneStrategy<K, V> extends AbstractQosStrategy<K, V> {
 
     public NoneStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
         super(kafkaReceiverFactory);
@@ -41,22 +41,22 @@ public class NoneStrategy extends AbstractQosStrategy {
     }
 
     @Override
-    public Flux<ConsumerRecord<String, byte[]>> receive(
+    public Flux<ConsumerRecord<K, V>> receive(
         final ExecutionContext executionContext,
         final KafkaEndpointConnectorConfiguration configuration,
-        final ReceiverOptions<String, byte[]> receiverOptions
+        final ReceiverOptions<K, V> receiverOptions
     ) {
-        ReceiverOptions<String, byte[]> noCommitReceiverOptions = receiverOptions.commitInterval(Duration.ZERO).commitBatchSize(0);
-        return createReceiver(noCommitReceiverOptions).receive().map(receiverRecord -> receiverRecord);
+        ReceiverOptions<K, V> noCommitReceiverOptions = receiverOptions.commitInterval(Duration.ZERO).commitBatchSize(0);
+        return initReceiver(noCommitReceiverOptions).receive().map(receiverRecord -> receiverRecord);
     }
 
     @Override
-    public Runnable buildAckRunnable(final ConsumerRecord<String, byte[]> consumerRecord) {
+    public Runnable buildAckRunnable(final ConsumerRecord<K, V> consumerRecord) {
         return doNothing;
     }
 
     @Override
-    public String generateId(final ConsumerRecord<String, byte[]> consumerRecord) {
+    public String generateId(final ConsumerRecord<K, V> consumerRecord) {
         return null;
     }
 }

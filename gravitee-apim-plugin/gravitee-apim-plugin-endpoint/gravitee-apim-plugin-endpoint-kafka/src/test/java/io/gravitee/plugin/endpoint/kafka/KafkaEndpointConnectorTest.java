@@ -33,6 +33,7 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
 import io.reactivex.rxjava3.core.Completable;
@@ -40,8 +41,6 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.rxjava3.core.Vertx;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,9 +63,7 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -84,7 +81,6 @@ import reactor.kafka.receiver.ReceiverPartition;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 import reactor.kafka.sender.SenderRecord;
-import reactor.kafka.sender.SenderResult;
 import reactor.test.StepVerifier;
 
 /**
@@ -98,14 +94,13 @@ class KafkaEndpointConnectorTest {
     @Container
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
 
-    private final KafkaEndpointConnectorConfiguration configuration = new KafkaEndpointConnectorConfiguration();
-
     @Captor
     ArgumentCaptor<Flowable<Message>> messagesCaptor;
 
     @Captor
     ArgumentCaptor<FlowableTransformer<Message, Message>> messagesTransformerCaptor;
 
+    private KafkaEndpointConnectorConfiguration configuration;
     private KafkaEndpointConnector kafkaEndpointConnector;
     private String topicId;
 
@@ -124,6 +119,7 @@ class KafkaEndpointConnectorTest {
     @BeforeEach
     public void beforeEach() throws ExecutionException, InterruptedException, TimeoutException {
         topicId = UUID.randomUUID().toString();
+        configuration = new KafkaEndpointConnectorConfiguration();
         configuration.setBootstrapServers(kafka.getBootstrapServers());
         configuration.setTopics(Set.of(topicId));
         kafkaEndpointConnector = new KafkaEndpointConnector(configuration, new DefaultQosStrategyFactory());
@@ -168,8 +164,9 @@ class KafkaEndpointConnectorTest {
         TestSubscriber<Message> messageTestSubscriber = Flowable
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
             .compose(messagesTransformerCaptor.getValue())
+            .take(1)
             .test();
-        messageTestSubscriber.await();
+        messageTestSubscriber.await(10, TimeUnit.SECONDS);
         messageTestSubscriber.assertComplete();
 
         Map<String, Object> config = new HashMap<>();
@@ -215,5 +212,115 @@ class KafkaEndpointConnectorTest {
         testSubscriber.await(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
         testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
+    }
+
+    @Test
+    void shouldInterruptSubscribeWithInvalidConfiguration() {
+        configuration.getProducer().setEnabled(false);
+        configuration.getConsumer().setAutoOffsetReset("wrong");
+
+        when(ctx.interruptMessagesWith(any()))
+            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
+        kafkaEndpointConnector.connect(ctx).test().assertComplete();
+
+        verify(response).messages(messagesCaptor.capture());
+        Flowable<Message> messageFlowable = messagesCaptor.getValue();
+
+        messageFlowable
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure()).isNotNull();
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                    assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
+                    return true;
+                }
+            );
+    }
+
+    @Test
+    void shouldInterruptSubscribeWithInvalidBootstrap() throws InterruptedException {
+        configuration.setBootstrapServers("localhost:1");
+        configuration.getProducer().setEnabled(false);
+
+        when(ctx.interruptMessagesWith(any()))
+            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
+        kafkaEndpointConnector.connect(ctx).test().assertComplete();
+
+        verify(response).messages(messagesCaptor.capture());
+        TestSubscriber<Message> messageTestSubscriber = messagesCaptor.getValue().take(1).test();
+        messageTestSubscriber.await(15, TimeUnit.SECONDS);
+        messageTestSubscriber.assertError(
+            throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure()).isNotNull();
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
+                return true;
+            }
+        );
+    }
+
+    @Test
+    void shouldInterruptPublishWithInvalidConfiguration() {
+        configuration.getConsumer().setEnabled(false);
+        configuration.setBootstrapServers("****");
+
+        when(request.onMessages(any())).thenReturn(Completable.complete());
+        when(ctx.interruptMessagesWith(any()))
+            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
+
+        when(request.onMessages(any())).thenReturn(Completable.complete());
+
+        kafkaEndpointConnector.connect(ctx).test().assertComplete();
+
+        verify(request).onMessages(messagesTransformerCaptor.capture());
+        Flowable
+            .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
+            .compose(messagesTransformerCaptor.getValue())
+            .test()
+            .assertError(
+                throwable -> {
+                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                    assertThat(failureException.getExecutionFailure()).isNotNull();
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                    assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
+                    return true;
+                }
+            );
+    }
+
+    @Test
+    void shouldInterruptPublishWithInvalidBootstrap() throws InterruptedException {
+        configuration.setBootstrapServers("localhost:10");
+        configuration.getConsumer().setEnabled(false);
+        when(request.onMessages(any())).thenReturn(Completable.complete());
+
+        when(ctx.interruptMessagesWith(any()))
+            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
+
+        kafkaEndpointConnector.connect(ctx).test().assertComplete();
+        verify(request).onMessages(messagesTransformerCaptor.capture());
+        TestSubscriber<Message> messageTestSubscriber = Flowable
+            .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
+            .compose(messagesTransformerCaptor.getValue())
+            .take(1)
+            .test();
+
+        messageTestSubscriber.await(15, TimeUnit.SECONDS);
+        messageTestSubscriber.assertError(
+            throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure()).isNotNull();
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
+                return true;
+            }
+        );
     }
 }

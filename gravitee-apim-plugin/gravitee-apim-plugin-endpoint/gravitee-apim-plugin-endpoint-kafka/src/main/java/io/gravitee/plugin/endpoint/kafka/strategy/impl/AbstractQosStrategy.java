@@ -15,23 +15,31 @@
  */
 package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
+import io.gravitee.plugin.endpoint.kafka.factory.CustomConsumerFactory;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategy;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.receiver.internals.DefaultKafkaReceiver;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractQosStrategy implements QosStrategy {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Accessors(fluent = true)
+public abstract class AbstractQosStrategy<K, V> implements QosStrategy<K, V> {
 
     private final KafkaReceiverFactory kafkaReceiverFactory;
+    private DefaultKafkaReceiver<K, V> kafkaReceiver;
 
-    protected <K, V> KafkaReceiver<K, V> createReceiver(final ReceiverOptions<K, V> receiverOptions) {
-        return kafkaReceiverFactory.createReceiver(receiverOptions);
+    protected KafkaReceiver<K, V> initReceiver(final ReceiverOptions<K, V> options) {
+        kafkaReceiver = new DefaultKafkaReceiver<>(CustomConsumerFactory.INSTANCE, options);
+        return kafkaReceiver;
     }
 }

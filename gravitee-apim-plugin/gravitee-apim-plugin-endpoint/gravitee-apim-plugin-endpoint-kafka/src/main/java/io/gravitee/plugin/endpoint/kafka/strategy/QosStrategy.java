@@ -20,24 +20,27 @@ import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorCon
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
+import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOptions;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface QosStrategy {
+public interface QosStrategy<K, V> {
     Runnable doNothing = () -> {};
 
     default void addCustomConfig(final Map<String, Object> config) {}
 
-    Flux<ConsumerRecord<String, byte[]>> receive(
+    KafkaReceiver<K, V> kafkaReceiver();
+
+    Flux<ConsumerRecord<K, V>> receive(
         final ExecutionContext executionContext,
         final KafkaEndpointConnectorConfiguration configuration,
-        final ReceiverOptions<String, byte[]> receiverOptions
+        final ReceiverOptions<K, V> receiverOptions
     );
 
-    Runnable buildAckRunnable(final ConsumerRecord<String, byte[]> consumerRecord);
+    Runnable buildAckRunnable(final ConsumerRecord<K, V> consumerRecord);
 
-    String generateId(final ConsumerRecord<String, byte[]> consumerRecord);
+    String generateId(final ConsumerRecord<K, V> consumerRecord);
 }
