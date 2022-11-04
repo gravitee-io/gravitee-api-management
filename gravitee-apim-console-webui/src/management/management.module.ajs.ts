@@ -532,6 +532,7 @@ import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org
 import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
 import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
+import { CockpitService } from '../services-ngx/cockpit.service';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
@@ -838,6 +839,8 @@ graviteeManagementModule.directive('ngRoleMembers', downgradeComponent({ compone
 graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.directive('ngCockpit', downgradeComponent({ component: OrgSettingsCockpitComponent }));
+graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
+
 graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
 graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);

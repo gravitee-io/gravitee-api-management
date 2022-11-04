@@ -285,15 +285,16 @@ export enum TrustStoreType {
 }
 
 export interface HttpClientOptions {
+  clearTextUpgrade: boolean;
   idleTimeout: number;
   connectTimeout: number;
   keepAlive: boolean;
   readTimeout: number;
   pipelining: boolean;
   maxConcurrentConnections: number;
+  propagateClientAcceptEncoding: boolean;
   useCompression: boolean;
   followRedirects: boolean;
-  clearTextUpgrade: boolean;
   version: HttpVersion;
 }
 
