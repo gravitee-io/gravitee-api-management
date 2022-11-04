@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.kafka.strategy;
-
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
-import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
+package io.gravitee.plugin.endpoint.kafka.error;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface QosStrategyFactory {
-    <K, V> QosStrategy<K, V> createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions);
+public class KafkaConnectionClosedException extends RuntimeException {
+
+    public KafkaConnectionClosedException() {
+        super();
+    }
 }

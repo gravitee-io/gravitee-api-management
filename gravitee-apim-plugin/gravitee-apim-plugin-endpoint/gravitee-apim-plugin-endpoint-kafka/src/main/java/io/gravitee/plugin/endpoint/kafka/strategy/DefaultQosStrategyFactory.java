@@ -26,7 +26,7 @@ import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
  */
 public class DefaultQosStrategyFactory implements QosStrategyFactory {
 
-    public QosStrategy createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions) {
+    public <K, V> QosStrategy<K, V> createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions) {
         if (qosOptions != null && qosOptions.getQos() != null) {
             switch (qosOptions.getQos()) {
                 case NONE:
