@@ -527,7 +527,25 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public SubscriptionEntity update(final ExecutionContext executionContext, UpdateSubscriptionEntity updateSubscription) {
-        return update(executionContext, updateSubscription, null);
+        return update(executionContext, updateSubscription, null, null);
+    }
+
+    @Override
+    public SubscriptionEntity update(
+        final ExecutionContext executionContext,
+        UpdateSubscriptionEntity updateSubscription,
+        String clientId
+    ) {
+        return update(executionContext, updateSubscription, clientId, null);
+    }
+
+    @Override
+    public SubscriptionEntity update(
+        final ExecutionContext executionContext,
+        UpdateSubscriptionEntity updateSubscription,
+        Subscription.Status status
+    ) {
+        return update(executionContext, updateSubscription, null, status);
     }
 
     @Override
@@ -560,11 +578,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
-    @Override
-    public SubscriptionEntity update(
+    private SubscriptionEntity update(
         final ExecutionContext executionContext,
         UpdateSubscriptionEntity updateSubscription,
-        String clientId
+        String clientId,
+        Subscription.Status status
     ) {
         try {
             logger.debug("Update subscription {}", updateSubscription.getId());
@@ -589,6 +607,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setDaysToExpirationOnLastNotification(null);
                 if (clientId != null) {
                     subscription.setClientId(clientId);
+                }
+                if (status != null) {
+                    subscription.setStatus(status);
                 }
 
                 subscription = subscriptionRepository.update(subscription);

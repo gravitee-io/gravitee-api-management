@@ -15,13 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
+import static io.gravitee.rest.api.model.SubscriptionStatus.CLOSED;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static io.gravitee.rest.api.model.v4.plan.PlanValidationType.MANUAL;
+
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.Subscription.Status;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -29,7 +35,9 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,6 +45,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -109,6 +119,58 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @Path("apikeys")
     public ApplicationSubscriptionApiKeysResource getApiSubscriptionApiKeysResourceResource() {
         return resourceContext.getResource(ApplicationSubscriptionApiKeysResource.class);
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Update a subscription configuration",
+        description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Update a subscription configuration",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = SubscriptionEntity.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Subscription not found")
+    @ApiResponse(responseCode = "400", description = "Subscription not updatable, or bad subscription configuration format")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = UPDATE) })
+    public Response updateApplicationSubscription(
+        @Valid @NotNull UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        if (subscriptionEntity.getStatus() == CLOSED) {
+            throw new SubscriptionNotUpdatableException(subscription);
+        }
+
+        GenericPlanEntity planEntity = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
+
+        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+        updateSubscriptionEntity.setId(subscription);
+        updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+        updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+        if (updateSubscriptionConfigurationEntity.getConfiguration() != null) {
+            updateSubscriptionEntity.setConfiguration(updateSubscriptionConfigurationEntity.getConfiguration());
+        }
+        if (updateSubscriptionConfigurationEntity.getFilter() != null) {
+            updateSubscriptionEntity.setFilter(updateSubscriptionConfigurationEntity.getFilter());
+        }
+        if (updateSubscriptionConfigurationEntity.getMetadata() != null) {
+            updateSubscriptionEntity.setMetadata(updateSubscriptionConfigurationEntity.getMetadata());
+        }
+
+        Status newSubscriptionStatus = planEntity.getPlanValidation() == MANUAL ? PENDING : null;
+
+        SubscriptionEntity updatedSubscription = subscriptionService.update(
+            executionContext,
+            updateSubscriptionEntity,
+            newSubscriptionStatus
+        );
+        return Response.ok(updatedSubscription).build();
     }
 
     private Subscription convert(ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {

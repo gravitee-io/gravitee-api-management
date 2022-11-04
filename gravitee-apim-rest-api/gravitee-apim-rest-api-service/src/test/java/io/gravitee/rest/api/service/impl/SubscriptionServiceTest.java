@@ -810,6 +810,44 @@ public class SubscriptionServiceTest {
         verify(subscriptionValidationService, times(1)).validateAndSanitize(updatedSubscription);
     }
 
+    @Test
+    public void shouldUpdateSubscriptionWithClientId() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, "my-client-id");
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(argThat(s -> "my-client-id".equals(s.getClientId())));
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithStatus() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, PENDING);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(argThat(s -> s.getStatus() == PENDING));
+    }
+
     @Test(expected = SubscriptionNotFoundException.class)
     public void shouldNotCloseSubscriptionBecauseDoesNoExist() throws Exception {
         // Stub
@@ -1513,7 +1551,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void update_should_update_subscription_with_endingDate_and_set_apiKey_expiration_if_not_shared_apikey() throws Exception {
+    public void shouldUpdateSubscriptionWithEndingDateAndSetApiKeyExpirationIfNotSharedApikey() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());
@@ -1557,7 +1595,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void update_should_update_subscription_with_endingDate_and_dont_set_apiKey_expiration_if_shared_apikey() throws Exception {
+    public void shouldUpdateSubscriptionWithEndingDateAndDontSetApiKeyExpirationIfSharedApikey() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());

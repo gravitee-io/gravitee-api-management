@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -51,9 +52,11 @@ public interface SubscriptionService {
 
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
-    SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
-
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription, String clientId);
+
+    SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity updateSubscription, Subscription.Status status);
+
+    SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
 
     SubscriptionEntity process(ExecutionContext executionContext, ProcessSubscriptionEntity processSubscription, String userId);
 

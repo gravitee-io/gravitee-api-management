@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
+import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -37,7 +39,7 @@ public class IncrementalSubscriptionRefresher extends SubscriptionRefresher {
 
     private final long lastRefreshAt, nextLastRefreshAt;
 
-    private static final List<Subscription.Status> REFRESH_STATUS = Arrays.asList(Subscription.Status.ACCEPTED, CLOSED, PAUSED);
+    private static final List<Subscription.Status> REFRESH_STATUS = Arrays.asList(ACCEPTED, CLOSED, PAUSED, PENDING);
 
     public IncrementalSubscriptionRefresher(final long lastRefreshAt, final long nextLastRefreshAt, final List<String> plans) {
         this.lastRefreshAt = lastRefreshAt;
