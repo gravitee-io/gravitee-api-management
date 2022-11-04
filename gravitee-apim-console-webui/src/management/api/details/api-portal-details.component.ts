@@ -257,6 +257,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
                 apiId: this.ajsStateParams.apiId,
+                definitionVersion: this.api.gravitee,
                 policies,
               },
               role: 'alertdialog',
@@ -266,6 +267,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         ),
         filter((confirm) => confirm === true),
         tap(() => this.ngOnInit()),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
+          return EMPTY;
+        }),
       )
       .subscribe();
   }

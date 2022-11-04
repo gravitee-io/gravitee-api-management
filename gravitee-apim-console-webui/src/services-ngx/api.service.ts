@@ -191,7 +191,7 @@ export class ApiService {
     });
   }
 
-  duplicate(apiId: string, config: { context_path: string; version: string; filtered_fields: any[] }): Observable<Api> {
+  duplicate(apiId: string, config: { context_path: string; version: string; filtered_fields: string[] }): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
 
