@@ -56,6 +56,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     @Override
     public void dispatch(Subscription subscription) {
+        LOGGER.debug("Dispatching subscription id[{}] and api[{}]", subscription.getId(), subscription.getApi());
         if ("ACCEPTED".equalsIgnoreCase(subscription.getStatus())) {
             if (!actives.containsKey(subscription.getId())) {
                 Acceptor<SubscriptionAcceptor> acceptor = subscriptionAcceptorResolver.resolve(subscription);
@@ -115,6 +116,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 }
             );
         }
+        LOGGER.debug("Subscription id[{}] api[{}] properly dispatched", subscription.getId(), subscription.getApi());
     }
 
     private void disposeAll() {
