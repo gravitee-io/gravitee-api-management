@@ -16,8 +16,9 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { takeUntil, tap } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, of, Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
@@ -25,6 +26,12 @@ import { Constants } from '../../../entities/Constants';
 import { InstallationService } from '../../../services-ngx/installation.service';
 import { Installation } from '../../../entities/installation/installation';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { PolicyService } from '../../../services-ngx/policy.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import {
+  GioApiImportDialogComponent,
+  GioApiImportDialogData,
+} from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
 
 @Component({
   selector: 'api-creation-get-started',
@@ -50,6 +57,9 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     private readonly cockpitService: CockpitService,
     private readonly installationService: InstallationService,
     private readonly permissionService: GioPermissionService,
+    private readonly policyService: PolicyService,
+    private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +86,30 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   }
 
   goToApiImport(definitionVersion = '2.0.0') {
-    this.ajsState.go('management.apis.new-import', { definitionVersion });
+    this.policyService
+      .listSwaggerPolicies()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((policies) =>
+          this.matDialog
+            .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
+              data: {
+                definitionVersion,
+                policies,
+              },
+              role: 'alertdialog',
+              id: 'importApiDialog',
+            })
+            .afterClosed(),
+        ),
+        filter((apiId) => !!apiId),
+        tap((apiId) => this.ajsState.go('management.apis.detail.portal.general', { apiId })),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private getCockpitLink(installation?: Installation): string {
