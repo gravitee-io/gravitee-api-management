@@ -85,7 +85,19 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                             // Maintain state depending on subscription status
                             // + timer on end (dispose on timer)
                             // subscribe
-                            Disposable subscribe = reactorHandler.handle(context).subscribe();
+                            Disposable subscribe = reactorHandler
+                                .handle(context)
+                                .subscribe(
+                                    () -> {},
+                                    throwable -> {
+                                        LOGGER.error(
+                                            "Error occurs on subscription id[{}] api[{}]",
+                                            subscription.getId(),
+                                            subscription.getApi(),
+                                            throwable
+                                        );
+                                    }
+                                );
                             actives.put(subscription.getId(), subscribe);
                         }
                     } catch (Exception ex) {
