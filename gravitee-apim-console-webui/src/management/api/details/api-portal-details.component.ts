@@ -29,6 +29,10 @@ import {
   ApiPortalDetailsExportDialogComponent,
   ApiPortalDetailsExportDialogData,
 } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
+import {
+  ApiPortalDetailsPromoteDialogComponent,
+  ApiPortalDetailsPromoteDialogData,
+} from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api } from '../../../entities/api';
@@ -292,6 +296,20 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         },
         role: 'alertdialog',
         id: 'exportApiDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
+  }
+
+  promoteApi() {
+    this.matDialog
+      .open<ApiPortalDetailsPromoteDialogComponent, ApiPortalDetailsPromoteDialogData>(ApiPortalDetailsPromoteDialogComponent, {
+        data: {
+          api: this.api,
+        },
+        role: 'alertdialog',
+        id: 'promoteApiDialog',
       })
       .afterClosed()
       .pipe(takeUntil(this.unsubscribe$))

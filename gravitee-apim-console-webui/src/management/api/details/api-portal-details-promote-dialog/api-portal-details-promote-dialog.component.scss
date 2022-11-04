@@ -1,0 +1,26 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  width: 400px;
+  display: block;
+}
+
+.meet-cockpit {
+  &__content {
+    text-align: center;
+    &__logo {
+      padding: 32px;
+    }
+  }
+}
+
+.promote {
+  &__content {
+    &__promotion-targets {
+      width: 100%;
+      padding-bottom: 8px;
+    }
+  }
+}
