@@ -89,7 +89,7 @@ export class ApiPortalDetailsDuplicateDialogComponent implements OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('API duplicated successfully.')),
         catchError(({ error }) => {
-          this.snackBarService.error(error.message ?? 'An error occurred while duplicate the API');
+          this.snackBarService.error(error.message ?? 'An error occurred while duplicate the API.');
           return EMPTY;
         }),
       )

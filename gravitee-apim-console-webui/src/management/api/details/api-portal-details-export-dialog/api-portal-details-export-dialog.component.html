@@ -31,7 +31,7 @@
           </mat-select>
         </mat-form-field>
 
-        <h5>Include options</h5>
+        <h5>Include additional data</h5>
         <div class="content__options" formGroupName="options">
           <mat-checkbox class="content__options__option" *ngFor="let option of jsonOptionsCheckbox" [formControlName]="option.id">
             {{ option.label }}
