@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.webhook;
 
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
@@ -33,6 +34,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.net.URL;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -132,7 +134,13 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
                                     if (message.error()) {
                                         return Completable.error(new Exception(message.content().toString()));
                                     }
-                                    return sendAndDiscard(requestUri, httpClient, subscriptionConfiguration, message);
+                                    return sendAndDiscard(
+                                        requestUri,
+                                        httpClient,
+                                        subscriptionConfiguration,
+                                        message,
+                                        ctx.response().headers()
+                                    );
                                 }
                             )
                             .doFinally(httpClient::close)
@@ -152,26 +160,24 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         String requestUri,
         HttpClient httpClient,
         WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration,
-        Message message
+        Message message,
+        HttpHeaders responseHeaders
     ) {
         // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
         return httpClient
             .rxRequest(HttpMethod.POST, requestUri)
             .flatMap(
                 request -> {
+                    if (responseHeaders != null) {
+                        responseHeaders.forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                    }
                     if (message.headers() != null) {
-                        message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                        message.headers().forEach(header -> putHeaderIfAbsent(request, header.getKey(), header.getValue()));
                     }
                     if (subscriptionConfiguration.getHeaders() != null) {
                         subscriptionConfiguration
                             .getHeaders()
-                            .forEach(
-                                header -> {
-                                    if (!request.headers().contains(header.getName())) {
-                                        request.putHeader(header.getName(), header.getValue());
-                                    }
-                                }
-                            );
+                            .forEach(header -> putHeaderIfAbsent(request, header.getName(), header.getValue()));
                     }
                     if (message.content() != null) {
                         return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
@@ -184,6 +190,12 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             .ignoreElement()
             .doOnError(throwable -> log.error("An error occurred when trying to send webhook message.", throwable))
             .onErrorComplete();
+    }
+
+    private void putHeaderIfAbsent(HttpClientRequest request, String headerName, String headerValue) {
+        if (!request.headers().contains(headerName)) {
+            request.putHeader(headerName, headerValue);
+        }
     }
 
     private Completable computeSubscriptionContextAttributes(final ExecutionContext ctx) {

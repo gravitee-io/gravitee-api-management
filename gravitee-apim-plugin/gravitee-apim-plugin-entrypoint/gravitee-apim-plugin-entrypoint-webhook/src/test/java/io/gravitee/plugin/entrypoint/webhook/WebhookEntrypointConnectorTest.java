@@ -311,6 +311,55 @@ class WebhookEntrypointConnectorTest {
     }
 
     @Test
+    void shouldCallWebhookAndHandleHeadersWithPrecedence(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
+        stubFor(post("/callback").willReturn(ok()));
+
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
+        doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+
+        // Prepare the client
+        cut.handleRequest(ctx).test().assertComplete();
+
+        // Prepare response messages : 1 message with 2 headers : header1 and header2
+        final Flowable<Message> messages = Flowable.just(
+            DefaultMessage
+                .builder()
+                .content(Buffer.buffer("message1"))
+                .headers(HttpHeaders.create().set("my-header1", "XXX").set("my-header2", "YYY"))
+                .build()
+        );
+        when(response.messages()).thenReturn(messages);
+
+        // Prepare response headers : header2 and header3
+        when(response.headers()).thenReturn(HttpHeaders.create().set("my-header2", "AAA").set("my-header3", "ZZZ"));
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.await(10, TimeUnit.SECONDS);
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.await();
+
+        wmRuntimeInfo
+            .getWireMock()
+            .verifyThat(
+                1,
+                postRequestedFor(urlPathEqualTo("/callback"))
+                    .withHeader("my-header1", equalTo("XXX"))
+                    .withHeader("my-header2", equalTo("AAA"))
+                    .withHeader("my-header3", equalTo("ZZZ"))
+            );
+    }
+
+    @Test
     void shouldErrorWhenMessageFlaggedInErrorIsReceived() {
         when(response.messages()).thenReturn(Flowable.just(new DefaultMessage(MOCK_ERROR).error(true)));
         when(ctx.response()).thenReturn(response);
