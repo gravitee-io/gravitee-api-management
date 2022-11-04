@@ -18,9 +18,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { NewFile } from '@gravitee/ui-particles-angular';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
+import { Api } from '../../../entities/api';
 import { PolicyListItem } from '../../../entities/policy';
 import { ApiService } from '../../../services-ngx/api.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -33,7 +34,7 @@ export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
   apiId?: string;
   // Default to 2.0.0
-  definitionVersion?: string; 
+  definitionVersion?: string;
 };
 
 @Component({
@@ -237,7 +238,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
       throw new Error('No file or url provided');
     }
 
-    let importRequest$;
+    let importRequest$: Observable<Api>;
 
     switch (this.importType) {
       case 'WSDL':
@@ -291,8 +292,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe(() => {
-        this.dialogRef.close(true);
+      .subscribe((api) => {
+        this.dialogRef.close(api.id);
       });
   }
 

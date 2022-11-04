@@ -17,13 +17,26 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 
+import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
+
 @NgModule({
-  imports: [CommonModule, BrowserAnimationsModule, MatCardModule, MatButtonModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    BrowserAnimationsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    GioIconsModule,
+    GioApiImportDialogModule,
+  ],
   declarations: [ApiCreationGetStartedComponent],
   exports: [ApiCreationGetStartedComponent],
 })

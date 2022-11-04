@@ -18,6 +18,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 import { ApiCreationModule } from './api-creation.module';
@@ -34,6 +37,7 @@ describe('ApiCreationGetStartedComponent', () => {
   };
 
   let fixture: ComponentFixture<ApiCreationGetStartedComponent>;
+  let rootLoader: HarnessLoader;
   let component: ApiCreationGetStartedComponent;
   let httpTestingController: HttpTestingController;
 
@@ -56,12 +60,17 @@ describe('ApiCreationGetStartedComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(ApiCreationGetStartedComponent);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
 
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
   };
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 
   describe('as Admin', function () {
     beforeEach(() => {
@@ -102,10 +111,14 @@ describe('ApiCreationGetStartedComponent', () => {
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create', { definitionVersion: '2.0.0' });
     });
 
-    it('should go to api creation import', async () => {
+    it('should open api import dialog', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
       component.goToApiImport();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.new-import', { definitionVersion: '2.0.0' });
+
+      expectPoliciesSwaggerGetRequest();
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#importApiDialog' }));
+      await confirmDialog.close();
     });
   });
 
@@ -125,7 +138,7 @@ describe('ApiCreationGetStartedComponent', () => {
     });
   });
 
-  afterEach(() => {
-    httpTestingController.verify();
-  });
+  function expectPoliciesSwaggerGetRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/swagger`, method: 'GET' }).flush([]);
+  }
 });
