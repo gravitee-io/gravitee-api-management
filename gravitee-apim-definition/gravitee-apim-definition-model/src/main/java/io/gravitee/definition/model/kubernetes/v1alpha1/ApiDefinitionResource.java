@@ -49,21 +49,38 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> UNSUPPORTED_METADATA_FIELDS = List.of("apiId");
 
+    private static final List<String> API_ID_FIELDS = List.of("crossId", "id");
+
+    private static final List<String> PLAN_ID_FIELDS = List.of("crossId", "id", "api");
+
     public ApiDefinitionResource(String name, ObjectNode apiDefinition) {
         super(GIO_V1_ALPHA_1_API_DEFINITION, new ObjectMeta(name), apiDefinition);
         removeUnsupportedFields();
     }
 
-    private void removeUnsupportedFields() {
-        getSpec().remove(UNSUPPORTED_API_FIELDS);
+    public void removeIds() {
+        ObjectNode spec = getSpec();
 
-        if (getSpec().hasNonNull(PLANS_FIELD)) {
-            ArrayNode plans = (ArrayNode) getSpec().get(PLANS_FIELD);
+        spec.remove(API_ID_FIELDS);
+
+        if (spec.hasNonNull(PLANS_FIELD)) {
+            ArrayNode plans = (ArrayNode) spec.get(PLANS_FIELD);
+            plans.forEach(plan -> ((ObjectNode) plan).remove(PLAN_ID_FIELDS));
+        }
+    }
+
+    private void removeUnsupportedFields() {
+        ObjectNode spec = getSpec();
+
+        spec.remove(UNSUPPORTED_API_FIELDS);
+
+        if (spec.hasNonNull(PLANS_FIELD)) {
+            ArrayNode plans = (ArrayNode) spec.get(PLANS_FIELD);
             plans.forEach(plan -> ((ObjectNode) plan).remove(UNSUPPORTED_PLAN_FIELDS));
         }
 
-        if (getSpec().hasNonNull(METADATA_FIELD)) {
-            ArrayNode metadata = (ArrayNode) getSpec().get(METADATA_FIELD);
+        if (spec.hasNonNull(METADATA_FIELD)) {
+            ArrayNode metadata = (ArrayNode) spec.get(METADATA_FIELD);
             metadata.forEach(data -> ((ObjectNode) data).remove(UNSUPPORTED_METADATA_FIELDS));
         }
     }

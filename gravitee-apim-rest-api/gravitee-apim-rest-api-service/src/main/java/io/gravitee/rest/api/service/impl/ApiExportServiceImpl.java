@@ -102,12 +102,23 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     @Override
-    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, String... filteredFields) {
+    public String exportAsCustomResourceDefinition(
+        ExecutionContext executionContext,
+        String apiId,
+        boolean removeIds,
+        String... filteredFields
+    ) {
         String json = exportAsJson(executionContext, apiId, "2.0.0", filteredFields);
         try {
             JsonNode jsonNode = objectMapper.readTree(json);
             String name = jsonNode.get("name").asText();
+
             ApiDefinitionResource apiDefinitionResource = new ApiDefinitionResource(name, (ObjectNode) jsonNode);
+
+            if (removeIds) {
+                apiDefinitionResource.removeIds();
+            }
+
             return customResourceDefinitionMapper.toCustomResourceDefinition(apiDefinitionResource);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to convert API {} to CRD", apiId, e);

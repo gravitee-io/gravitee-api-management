@@ -55,7 +55,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -63,8 +62,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import org.glassfish.jersey.message.internal.HttpHeaderReader;
-import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -611,10 +608,15 @@ public class ApiResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "API definition", content = @Content(mediaType = "application/yaml"))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiCRD(@QueryParam("exclude") @DefaultValue("") String exclude) {
+    public Response exportApiCRD(@QueryParam("removeIds") boolean removeIds, @QueryParam("exclude") @DefaultValue("") String exclude) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
-        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, api, exclude.split(","));
+        final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(
+            executionContext,
+            api,
+            removeIds,
+            exclude.split(",")
+        );
         return Response
             .ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "yml")))

@@ -229,13 +229,19 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
     @Test
     public void shouldConvertAsCustomResourceDefinition() throws Exception {
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID);
-        String expectedExport = getExpected();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, false);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
-    private String getExpected() throws Exception {
-        String path = "io/gravitee/rest/api/management/service/export-convertAsCustomResource.yml";
+    @Test
+    public void shouldConvertAsCustomResourceDefinition_removingIds() throws Exception {
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, true);
+        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-noIds.yml");
+        Assertions.assertThat(actualExport).isEqualTo(expectedExport);
+    }
+
+    private String getExpected(String path) throws Exception {
         URL url = getClass().getClassLoader().getResource(path);
 
         assertNotNull(url);

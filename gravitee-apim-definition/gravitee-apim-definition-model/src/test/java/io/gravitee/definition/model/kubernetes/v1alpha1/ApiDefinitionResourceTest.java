@@ -54,6 +54,24 @@ public class ApiDefinitionResourceTest {
         assertFalse(meta.has("apiId"));
     }
 
+    @Test
+    public void shouldRemoveIds() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        resource.removeIds();
+
+        assertFalse(resource.getSpec().has("id"));
+        assertFalse(resource.getSpec().has("crossId"));
+
+        ArrayNode plans = (ArrayNode) resource.getSpec().get("plans");
+
+        JsonNode plan = plans.iterator().next();
+
+        assertFalse(plan.has("id"));
+        assertFalse(plan.has("crossId"));
+        assertFalse(plan.has("api"));
+    }
+
     private ObjectNode readDefinition() throws Exception {
         String path = "io/gravitee/definition/model/kubernetes/v1alpha1/api-definition.json";
         URL resource = getClass().getClassLoader().getResource(path);
