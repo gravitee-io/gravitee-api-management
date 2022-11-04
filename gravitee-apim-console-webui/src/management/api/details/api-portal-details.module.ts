@@ -31,12 +31,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { A11yModule } from '@angular/cdk/a11y';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 import { ApiPortalDetailsQualityComponent } from './api-portal-details-quality/api-portal-details-quality.component';
 import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone/api-portal-details-danger-zone.component';
 import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-duplicate-dialog/api-portal-details-duplicate-dialog.component';
 import { ApiPortalDetailsExportDialogComponent } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
+import { ApiPortalDetailsPromoteDialogComponent } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
@@ -53,6 +55,7 @@ import { GioApiImportDialogModule } from '../../../shared/components/gio-api-imp
     ApiPortalDetailsDangerZoneComponent,
     ApiPortalDetailsDuplicateDialogComponent,
     ApiPortalDetailsExportDialogComponent,
+    ApiPortalDetailsPromoteDialogComponent,
   ],
   exports: [ApiPortalDetailsComponent],
   imports: [
@@ -72,6 +75,7 @@ import { GioApiImportDialogModule } from '../../../shared/components/gio-api-imp
     MatCheckboxModule,
     MatTooltipModule,
     MatTabsModule,
+    MatProgressBarModule,
 
     GioFormFocusInvalidModule,
     GioAvatarModule,
