@@ -21,7 +21,7 @@
   [api-state]="apiCtrl.api.state"
   [api-lifecycle-state]="apiCtrl.api.lifecycle_state"
   [api-is-sync]="apiCtrl.apiIsSynchronized"
-  [api-origin]="apiCtrl.origin"
+  [api-origin]="apiCtrl.api.definition_context.origin"
 >
   <section id="banner">
     <div class="gravitee-api-banner" ng-class="{'gravitee-api-banner-min': reducedMode}" ng-if="apiCtrl.canReview()" ng-cloak="">
