@@ -155,7 +155,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
 
     @Override
     public int getOrder() {
-        return 100;
+        return 140;
     }
 
     private String findApiPrimaryOwnerRoleId(String organizationId) throws TechnicalException {

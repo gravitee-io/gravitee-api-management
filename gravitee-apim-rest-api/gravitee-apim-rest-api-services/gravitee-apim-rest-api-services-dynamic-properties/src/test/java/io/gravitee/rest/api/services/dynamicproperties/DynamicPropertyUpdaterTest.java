@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
-import static java.util.concurrent.TimeUnit.*;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Properties;
@@ -31,7 +29,6 @@ import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,7 +40,7 @@ import org.mockito.MockitoAnnotations;
  */
 public class DynamicPropertyUpdaterTest {
 
-    private static final long TIMEOUT_SECONDS = 5;
+    private static final DynamicProperty property = new DynamicProperty("my-key", "my-value");
 
     private DynamicPropertyUpdater poller;
 
@@ -84,22 +81,12 @@ public class DynamicPropertyUpdaterTest {
             );
 
         poller.handle(1L);
+        verifyNoInteractions(apiService);
     }
 
     @Test
-    public void shouldUpdateProperties() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        when(provider.get())
-            .thenReturn(
-                CompletableFuture.supplyAsync(
-                    () -> {
-                        DynamicProperty property = new DynamicProperty("my-key", "my-value");
-                        latch.countDown();
-                        return Collections.singletonList(property);
-                    }
-                )
-            );
+    public void shouldUpdateProperties() {
+        when(provider.get()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(property)));
 
         ApiEntity api = new ApiEntity();
         apiEntity.setId("api-id");
@@ -111,26 +98,14 @@ public class DynamicPropertyUpdaterTest {
 
         poller.handle(1L);
 
-        assertTrue(latch.await(TIMEOUT_SECONDS, SECONDS));
-
         verify(apiService, times(1)).update(any(), any(), any());
         verify(apiService, times(1)).deploy(any(), any(), eq("dynamic-property-updater"), any(), any());
     }
 
     @Test
-    public void shouldNotUpdatePropertyOnUpdateError() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        when(provider.get())
-            .thenReturn(
-                CompletableFuture.supplyAsync(
-                    () -> {
-                        DynamicProperty property = new DynamicProperty("my-key", "my-value");
-                        latch.countDown();
-                        return Collections.singletonList(property);
-                    }
-                )
-            );
+    public void shouldNotUpdatePropertyOnUpdateError() {
+        DynamicProperty property = new DynamicProperty("my-key", "my-value");
+        when(provider.get()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(property)));
 
         ApiEntity api = new ApiEntity();
         apiEntity.setId("api-id");
@@ -142,8 +117,6 @@ public class DynamicPropertyUpdaterTest {
             .thenThrow(new TechnicalManagementException());
 
         poller.handle(1L);
-
-        assertTrue(latch.await(TIMEOUT_SECONDS, SECONDS));
 
         verify(apiService, times(1)).update(any(), any(), any());
         verify(apiService, never()).deploy(eq(GraviteeContext.getExecutionContext()), eq("api-id"), eq(null), any(), any());

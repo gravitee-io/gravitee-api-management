@@ -35,12 +35,11 @@ import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.UserStatus;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
@@ -50,6 +49,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.converter.UserConverter;
@@ -153,9 +153,6 @@ public class UserServiceTest {
 
     @Mock
     private InvitationService invitationService;
-
-    @Mock
-    private ApiService apiService;
 
     @Mock
     private PortalNotificationService portalNotificationService;
@@ -1133,12 +1130,31 @@ public class UserServiceTest {
 
     @Test
     public void shouldNotDeleteIfAPIPO() throws TechnicalException {
-        ApiEntity apiEntity = mock(ApiEntity.class);
-        PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
-        when(apiEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
-        when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
-        when(apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false))
-            .thenReturn(Collections.singleton(apiEntity));
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                USER_NAME,
+                MembershipReferenceType.API,
+                apiPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of(new MembershipEntity()));
+
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                USER_NAME,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
 
         try {
             userService.delete(GraviteeContext.getExecutionContext(), USER_NAME);
@@ -1154,12 +1170,31 @@ public class UserServiceTest {
 
     @Test
     public void shouldNotDeleteIfApplicationPO() throws TechnicalException {
-        ApplicationListItem applicationListItem = mock(ApplicationListItem.class);
-        PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
-        when(applicationListItem.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
-        when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
-        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME)))
-            .thenReturn(Collections.singleton(applicationListItem));
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                USER_NAME,
+                MembershipReferenceType.API,
+                apiPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
+
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                USER_NAME,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of((new MembershipEntity())));
 
         try {
             userService.delete(GraviteeContext.getExecutionContext(), USER_NAME);
@@ -1179,8 +1214,7 @@ public class UserServiceTest {
         String firstName = "first";
         String lastName = "last";
         String email = "email";
-        when(apiService.findByUser(GraviteeContext.getExecutionContext(), userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId))).thenReturn(Collections.emptySet());
+
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
@@ -1191,12 +1225,47 @@ public class UserServiceTest {
         user.setEmail(email);
         when(userRepository.findById(userId)).thenReturn(of(user));
 
-        userService.delete(GraviteeContext.getExecutionContext(), userId);
+        ExecutionContext organizationContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
 
-        verify(apiService, times(1)).findByUser(GraviteeContext.getExecutionContext(), userId, null, false);
-        verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.API,
+                apiPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
+
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
+
+        userService.delete(organizationContext, userId);
+
         verify(membershipService, times(1))
-            .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, userId);
+            .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
+        verify(membershipService, times(1))
+            .getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            );
+
+        verify(membershipService, times(1)).removeMemberMemberships(organizationContext, MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(
@@ -1216,11 +1285,11 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), any());
+        verify(searchEngineService, times(1)).delete(eq(organizationContext), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
-        verify(tokenService, times(1)).revokeByUser(GraviteeContext.getExecutionContext(), userId);
+        verify(tokenService, times(1)).revokeByUser(organizationContext, userId);
     }
 
     @Test
@@ -1232,8 +1301,7 @@ public class UserServiceTest {
         String firstName = "first";
         String lastName = "last";
         String email = "email";
-        when(apiService.findByUser(GraviteeContext.getExecutionContext(), userId, null, false)).thenReturn(Collections.emptySet());
-        when(applicationService.findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId))).thenReturn(Collections.emptySet());
+
         User user = new User();
         user.setId(userId);
         user.setOrganizationId(organizationId);
@@ -1246,12 +1314,47 @@ public class UserServiceTest {
         user.setPicture("picture");
         when(userRepository.findById(userId)).thenReturn(of(user));
 
-        userService.delete(GraviteeContext.getExecutionContext(), userId);
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.API,
+                apiPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
 
-        verify(apiService, times(1)).findByUser(GraviteeContext.getExecutionContext(), userId, null, false);
-        verify(applicationService, times(1)).findByUser(eq(GraviteeContext.getExecutionContext()), eq(userId));
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            )
+        )
+            .thenReturn(Set.of());
+
+        ExecutionContext organizationContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
+
+        userService.delete(organizationContext, userId);
+
         verify(membershipService, times(1))
-            .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, userId);
+            .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
+        verify(membershipService, times(1))
+            .getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.APPLICATION,
+                appPoRole.getId()
+            );
+
+        verify(membershipService, times(1)).removeMemberMemberships(organizationContext, MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(
@@ -1273,11 +1376,11 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), any());
+        verify(searchEngineService, times(1)).delete(eq(organizationContext), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
-        verify(tokenService, times(1)).revokeByUser(GraviteeContext.getExecutionContext(), userId);
+        verify(tokenService, times(1)).revokeByUser(organizationContext, userId);
     }
 
     @Test(expected = EmailRequiredException.class)

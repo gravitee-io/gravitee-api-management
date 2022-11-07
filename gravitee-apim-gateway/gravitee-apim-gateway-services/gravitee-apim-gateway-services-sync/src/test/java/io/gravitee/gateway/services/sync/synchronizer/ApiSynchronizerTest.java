@@ -391,13 +391,20 @@ public class ApiSynchronizerTest extends TestCase {
             .thenReturn(singletonList(mockEvent));
 
         final Plan plan = new Plan();
+        plan.setId("planId");
         plan.setApi(mockApi.getId());
+        plan.setStatus(Plan.Status.PUBLISHED);
         when(planRepository.findByApis(anyList())).thenReturn(singletonList(plan));
         mockEnvironmentAndOrganization();
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager).register(new Api(mockApi));
+        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+        verify(apiManager).register(apiCaptor.capture());
+        Api verifyApi = apiCaptor.getValue();
+        assertEquals(API_ID, verifyApi.getId());
+        assertEquals(verifyApi.getDefinition().getPlan("planId").getApi(), mockApi.getId());
+
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, times(1)).findByApis(anyList());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
