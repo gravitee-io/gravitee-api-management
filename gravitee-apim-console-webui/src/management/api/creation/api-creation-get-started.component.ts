@@ -113,16 +113,12 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   }
 
   private getCockpitLink(installation?: Installation): string {
-    let cockpitURL;
-    let cockpitInstallationStatus;
-    if (installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED') {
-      cockpitURL = installation.cockpitURL;
-      cockpitInstallationStatus = 'ACCEPTED';
-    } else {
-      cockpitURL = 'https://cockpit.gravitee.io';
-      cockpitInstallationStatus = undefined;
-    }
+    let cockpitURL = installation?.cockpitURL ?? 'https://cockpit.gravitee.io';
 
-    return this.cockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_DESIGNER, cockpitInstallationStatus);
+    return this.cockpitService.addQueryParamsForAnalytics(
+      cockpitURL,
+      UtmCampaign.API_DESIGNER,
+      installation?.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED' ? 'ACCEPTED' : undefined,
+    );
   }
 }
