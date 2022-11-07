@@ -59,6 +59,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
     canDeprecate: false,
     canDelete: false,
   };
+  public isReadOnly = false;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -70,6 +71,8 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
+      this.isReadOnly = this.api.definition_context?.origin === 'kubernetes';
+
       this.dangerActions = {
         canAskForReview:
           this.constants.env?.settings?.apiReview?.enabled &&

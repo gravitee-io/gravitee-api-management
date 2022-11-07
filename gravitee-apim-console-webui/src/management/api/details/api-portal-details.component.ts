@@ -83,6 +83,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   public isQualityEnabled = false;
 
+  public isReadOnly = false;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -120,7 +122,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(([api, categories]) => {
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
 
           this.apiId = api.id;
           this.api = api;
@@ -159,43 +161,43 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             name: new FormControl(
               {
                 value: api.name,
-                disabled: isReadOnly,
+                disabled: this.isReadOnly,
               },
               [Validators.required],
             ),
             version: new FormControl(
               {
                 value: api.version,
-                disabled: isReadOnly,
+                disabled: this.isReadOnly,
               },
               [Validators.required, this.apiService.versionValidator()],
             ),
             description: new FormControl(
               {
                 value: api.description,
-                disabled: isReadOnly,
+                disabled: this.isReadOnly,
               },
               [Validators.required],
             ),
             picture: new FormControl({
               value: api.picture_url ? [api.picture_url] : [],
-              disabled: isReadOnly,
+              disabled: this.isReadOnly,
             }),
             background: new FormControl({
               value: api.background_url ? [api.background_url] : [],
-              disabled: isReadOnly,
+              disabled: this.isReadOnly,
             }),
             labels: new FormControl({
               value: api.labels,
-              disabled: isReadOnly,
+              disabled: this.isReadOnly,
             }),
             categories: new FormControl({
               value: api.categories,
-              disabled: isReadOnly,
+              disabled: this.isReadOnly,
             }),
             enableJupiter: new FormControl({
               value: api.execution_mode === 'jupiter',
-              disabled: isReadOnly,
+              disabled: this.isReadOnly,
             }),
           });
 

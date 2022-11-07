@@ -24,9 +24,13 @@
       <div *ngIf="exportJsonFrom" class="content__json" [formGroup]="exportJsonFrom">
         <mat-form-field class="content__json__select" appearance="fill">
           <mat-label>Target APIM version</mat-label>
-          <mat-select formControlName="exportVersion" name="exportVersion">
+          <mat-select #exportVersionSelect formControlName="exportVersion" name="exportVersion">
+            <mat-select-trigger *ngIf="getJsonOptions(exportVersionSelect.value) as option">
+              {{ exportVersionSelect.value || '' }} <span *ngIf="option.isDeprecated" class="gio-badge-error">Deprecated</span>
+            </mat-select-trigger>
+
             <mat-option *ngFor="let option of jsonOptions" [value]="option.id">
-              {{ option.label }}
+              {{ option.label }} <span *ngIf="option.isDeprecated" class="gio-badge-error">Deprecated</span>
             </mat-option>
           </mat-select>
         </mat-form-field>

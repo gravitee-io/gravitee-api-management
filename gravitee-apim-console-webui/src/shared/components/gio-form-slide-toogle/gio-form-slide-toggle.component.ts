@@ -24,7 +24,10 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 export class GioFormSlideToggleComponent {
   @Input() appearance: string;
 
-  @ContentChild(MatSlideToggle, { static: true }) set slideToggle(slideToggle: MatSlideToggle | null) {
+  @ContentChild(MatSlideToggle, {
+    static: false, // To work with input disabled in reactive forms
+  })
+  set slideToggle(slideToggle: MatSlideToggle | null) {
     if (slideToggle) {
       this.disabled = slideToggle.disabled;
     }
