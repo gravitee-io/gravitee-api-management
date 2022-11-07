@@ -68,7 +68,7 @@
             appearance="fill"
             class="etails-card__header__info-inputs__second-row__jupiter-field"
           >
-            <p>Enable Jupiter mode</p>
+            Enable Jupiter mode
             <mat-slide-toggle
               gioFormSlideToggle
               formControlName="enableJupiter"
@@ -90,13 +90,16 @@
                 [name]="apiName.value"
               ></gio-avatar>
             </gio-form-file-picker-add-button>
+            <gio-form-file-picker-empty>
+              <gio-avatar size="114" [name]="apiName.value"></gio-avatar>
+            </gio-form-file-picker-empty>
           </gio-form-file-picker>
           <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
             <gio-form-file-picker-label>API background</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
               <span class="details-card__header__right-coll__media__background__btn__text"> Click here or drag an image </span>
             </gio-form-file-picker-add-button>
-            <gio-form-file-picker-empty>No background defined</gio-form-file-picker-empty>
+            <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
           </gio-form-file-picker>
         </div>
 
@@ -117,13 +120,13 @@
 
     <div>
       <button mat-button (click)="exportApi()"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="importApi()">
+      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button [disabled]="isReadOnly" (click)="importApi()">
         <mat-icon svgIcon="gio:download"></mat-icon> Import
       </button>
-      <button *gioPermission="{ anyOf: ['api-definition-c'] }" mat-button (click)="duplicateApi()">
+      <button *gioPermission="{ anyOf: ['api-definition-c'] }" mat-button [disabled]="isReadOnly" (click)="duplicateApi()">
         <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
       </button>
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="promoteApi()" [disabled]="!canPromote">
+      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="promoteApi()" [disabled]="!canPromote || isReadOnly">
         <mat-icon svgIcon="gio:language"></mat-icon> Promote
       </button>
     </div>

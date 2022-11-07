@@ -113,7 +113,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   }
 
   private getCockpitLink(installation?: Installation): string {
-    let cockpitURL = installation?.cockpitURL ?? 'https://cockpit.gravitee.io';
+    const cockpitURL = installation?.cockpitURL ?? 'https://cockpit.gravitee.io';
 
     return this.cockpitService.addQueryParamsForAnalytics(
       cockpitURL,

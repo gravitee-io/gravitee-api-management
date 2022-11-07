@@ -10,6 +10,10 @@
 
     &__select {
       width: 100%;
+
+      .gio-badge-error {
+        float: right;
+      }
     }
   }
 
