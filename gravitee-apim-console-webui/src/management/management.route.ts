@@ -181,6 +181,16 @@ function managementRouterConfig($stateProvider) {
           InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then((response) => response.data),
       },
     })
+    .state('management.instances.detail.ng-environment', {
+      url: '/ng-environment',
+      component: 'instanceDetailsEnvironment',
+      data: {
+        docs: {
+          page: 'management-gateway-environment',
+        },
+        useAngularMaterial: true,
+      },
+    })
     .state('management.instances.detail.ng-monitoring', {
       url: '/ng-monitoring',
       component: 'instanceDetailsMonitoring',

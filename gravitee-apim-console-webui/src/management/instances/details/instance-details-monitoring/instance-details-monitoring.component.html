@@ -173,11 +173,9 @@
         <dt>Percent of use</dt>
         <dd>{{ monitoringData.cpu.percent_use + '%' }}</dd>
         <dt>Load average</dt>
-        <dd></dd>
-        <ng-container *ngFor="let loadAverage of monitoringData.cpu.load_average | keyvalue">
-          <dt class="gio-instance-details-monitoring__indicators__sublist">{{ loadAverage.key }}</dt>
-          <dd>{{ loadAverage.value }}</dd>
-        </ng-container>
+        <dd>
+          <div *ngFor="let loadAverage of monitoringData.cpu.load_average | keyvalue">[{{ loadAverage.key }}] {{ loadAverage.value }}</div>
+        </dd>
       </dl>
     </mat-card>
     <mat-card flex="50" data-testid="instance-monitoring_process-box">
