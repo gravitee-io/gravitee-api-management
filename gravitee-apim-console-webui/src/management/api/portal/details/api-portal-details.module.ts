@@ -40,13 +40,13 @@ import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-d
 import { ApiPortalDetailsExportDialogComponent } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 import { ApiPortalDetailsPromoteDialogComponent } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
-import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
-import { GioFormFocusInvalidModule } from '../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
-import { GioClipboardModule } from '../../../shared/components/gio-clipboard/gio-clipboard.module';
-import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
-import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
-import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
+import { GioAvatarModule } from '../../../../shared/components/gio-avatar/gio-avatar.module';
+import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
+import { GioCircularPercentageModule } from '../../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
+import { GioApiImportDialogModule } from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
 
 @NgModule({
   declarations: [

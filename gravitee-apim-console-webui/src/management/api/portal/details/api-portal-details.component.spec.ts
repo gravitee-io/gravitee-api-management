@@ -31,12 +31,12 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { Api } from '../../../entities/api';
-import { fakeApi } from '../../../entities/api/Api.fixture';
-import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
-import { Category } from '../../../entities/category/Category';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Api } from '../../../../entities/api';
+import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
+import { User } from '../../../../entities/user';
+import { Category } from '../../../../entities/category/Category';
 
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';

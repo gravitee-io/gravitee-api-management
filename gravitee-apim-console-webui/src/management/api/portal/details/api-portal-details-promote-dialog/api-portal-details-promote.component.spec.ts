@@ -26,14 +26,14 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { Category } from '@uirouter/core';
 
-import { UIRouterState, UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { User } from '../../../../entities/user';
-import { GioHttpTestingModule, CONSTANTS_TESTING } from '../../../../shared/testing';
+import { UIRouterState, UIRouterStateParams, CurrentUserService } from '../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../entities/api';
+import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { User } from '../../../../../entities/user';
+import { GioHttpTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing';
 import { ApiPortalDetailsComponent } from '../api-portal-details.component';
 import { ApiPortalDetailsModule } from '../api-portal-details.module';
-import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../entities/promotion';
+import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../../entities/promotion';
 
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';

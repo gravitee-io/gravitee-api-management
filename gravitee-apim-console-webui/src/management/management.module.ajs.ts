@@ -34,7 +34,6 @@ import GvModelDirective from '../libraries/gv-model.directive';
 import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
-import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
 import ApiMembersController from '../management/api/portal/userGroupAccess/members/members.controller';
@@ -70,9 +69,6 @@ import LoginController from '../user/login/login.controller';
 import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';
-import DialogApiImportController from '../management/api/portal/general/dialog/apiImportDialog.controller';
-import DialogApiExportController from '../management/api/portal/general/dialog/apiExportDialog.controller';
-import DialogApiDuplicateController from '../management/api/portal/general/dialog/apiDuplicateDialog.controller';
 // Navbar
 import { NavbarComponent } from '../components/navbar/navbar.component';
 // Api
@@ -83,7 +79,6 @@ import ApiCreationStep2Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
-import ApiImportComponent from '../components/import/import-api.component';
 import NewApiImportController from './api/creation/newApiImport.controller';
 import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-started.component';
 import DialogConfirmDeploymentController from '../management/api/deploy/confirmDeploymentDialog.controller';
@@ -387,7 +382,7 @@ import UserAutocompleteComponent from '../components/user-autocomplete/user-auto
 import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
 
 import DialogReviewController from './api/review/reviewDialog.controller';
-import DialogRequestForChangesController from './api/portal/general/dialog/requestForChanges.controller';
+import DialogRequestForChangesController from './api/dialog/requestForChanges.controller';
 import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
 import ApplicationSubscribeController from './application/details/subscribe/application-subscribe.controller';
 import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
@@ -545,7 +540,7 @@ import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-
 import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
-import { ApiPortalDetailsComponent } from './api/details/api-portal-details.component';
+import { ApiPortalDetailsComponent } from './api/portal/details/api-portal-details.component';
 import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
@@ -717,7 +712,6 @@ graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesControll
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
-graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
 graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
 graviteeManagementModule.controller('ApiEndpointController', ApiEndpointController);
@@ -735,9 +729,6 @@ graviteeManagementModule.controller('DialogAddMemberApiController', DialogAddMem
 graviteeManagementModule.controller('DialogTransferApiController', DialogTransferApiController);
 graviteeManagementModule.controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController);
 graviteeManagementModule.controller('UserController', UserController);
-graviteeManagementModule.controller('DialogApiImportController', DialogApiImportController);
-graviteeManagementModule.controller('DialogApiExportController', DialogApiExportController);
-graviteeManagementModule.controller('DialogApiDuplicateController', DialogApiDuplicateController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.controller('LoginController', LoginController);
 graviteeManagementModule.controller('InstancesController', InstancesController);
@@ -906,7 +897,6 @@ graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component
 graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);
 graviteeManagementModule.component('apiCreationStep4', ApiCreationStep4Component);
 graviteeManagementModule.component('apiCreationStep5', ApiCreationStep5Component);
-graviteeManagementModule.component('gvApiImport', ApiImportComponent);
 graviteeManagementModule.component('gvDashboard', DashboardComponent);
 graviteeManagementModule.component('gvDashboardFilter', DashboardFilterComponent);
 graviteeManagementModule.controller('DashboardFilterController', DashboardFilterController);

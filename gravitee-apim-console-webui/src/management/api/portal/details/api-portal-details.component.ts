@@ -34,19 +34,19 @@ import {
   ApiPortalDetailsPromoteDialogData,
 } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api } from '../../../entities/api';
-import { Category } from '../../../entities/category/Category';
-import { Constants } from '../../../entities/Constants';
-import { ApiService } from '../../../services-ngx/api.service';
-import { CategoryService } from '../../../services-ngx/category.service';
-import { PolicyService } from '../../../services-ngx/policy.service';
-import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { Api } from '../../../../entities/api';
+import { Category } from '../../../../entities/category/Category';
+import { Constants } from '../../../../entities/Constants';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { CategoryService } from '../../../../services-ngx/category.service';
+import { PolicyService } from '../../../../services-ngx/policy.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import {
   GioApiImportDialogComponent,
   GioApiImportDialogData,
-} from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+} from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-portal-details',
