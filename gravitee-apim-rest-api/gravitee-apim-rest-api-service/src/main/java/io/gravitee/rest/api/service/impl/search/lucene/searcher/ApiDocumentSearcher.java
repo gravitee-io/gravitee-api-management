@@ -25,13 +25,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.index.Term;
@@ -128,6 +122,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private Optional<BooleanQuery> buildIdsQuery(io.gravitee.rest.api.service.search.query.Query query) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
+            increaseMaxClauseCountIfNecessary(query.getIds().size());
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
             query.getIds().forEach(id -> mainQuery.add(new TermQuery(new Term(FIELD_ID, (String) id)), BooleanClause.Occur.SHOULD));
             return Optional.of(mainQuery.build());
@@ -178,7 +173,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
 
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
-
+            this.buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> apiQuery.add((Query) q, BooleanClause.Occur.MUST_NOT));
             this.buildExplicitQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
             this.buildExactMatchQuery(executionContext, query, baseFilterQuery)
                 .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
@@ -190,6 +185,32 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             logger.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
         }
+    }
+
+    private Optional<BooleanQuery> buildExcludedFilters(Map<String, Collection> excludedFilters) {
+        if (excludedFilters != null && excludedFilters.size() > 0) {
+            BooleanQuery.Builder excludedFiltersQuery = new BooleanQuery.Builder();
+            List<Query> excludedQuery = excludedFilters
+                .keySet()
+                .stream()
+                .filter(key -> !excludedFilters.get(key).isEmpty())
+                .map(
+                    key -> {
+                        Object values = excludedFilters.get(key);
+
+                        BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+                        ((Collection<?>) values).forEach(
+                                value -> booleanQuery.add(new TermQuery(new Term(key, (String) value)), BooleanClause.Occur.SHOULD)
+                            );
+                        return booleanQuery.build();
+                    }
+                )
+                .collect(Collectors.toList());
+
+            excludedQuery.forEach(query -> excludedFiltersQuery.add(query, BooleanClause.Occur.SHOULD));
+            return Optional.of(excludedFiltersQuery.build());
+        }
+        return Optional.empty();
     }
 
     private Optional<BooleanQuery> buildExplicitQuery(

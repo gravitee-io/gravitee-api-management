@@ -106,7 +106,8 @@ function apisAnalyticsRouterConfig($stateProvider) {
       },
       resolve: {
         plans: ($stateParams: StateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId),
-        applications: ($stateParams: StateParams, ApiService: ApiService) => ApiService.getSubscribers($stateParams.apiId),
+        applications: ($stateParams: StateParams, ApiService: ApiService) =>
+          ApiService.getSubscribers($stateParams.apiId, null, null, null, ['owner']),
         tenants: (TenantService: TenantService) => TenantService.list(),
       },
     })

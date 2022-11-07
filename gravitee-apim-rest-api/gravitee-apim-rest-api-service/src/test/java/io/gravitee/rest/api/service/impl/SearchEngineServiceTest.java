@@ -16,10 +16,13 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher.FIELD_API_TYPE_VALUE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.ApiPageEntity;
@@ -531,8 +534,45 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(1, 2, matches.getHits());
         assertEquals(Arrays.asList("api-1", "api-2"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindWithExcludedFilters_definitionVersion() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
+        Map<String, Collection<String>> excludedFilters = new HashMap<>();
+        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V1.getLabel(), DefinitionVersion.V4.getLabel()));
+        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder
+            .create(ApiEntity.class)
+            .setFilters(filters)
+            .setExcludedFilters(excludedFilters);
+        SearchResult matches = searchEngineService.search(
+            new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
+            apiEntityQueryBuilder.build()
+        );
+        assertNotNull(matches);
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindWithExcludedFilters_multiple() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
+        Map<String, Collection<String>> excludedFilters = new HashMap<>();
+        excludedFilters.put(FIELD_NAME, Arrays.asList("My Awesome api / 1"));
+        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V1.getLabel(), DefinitionVersion.V4.getLabel()));
+        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder
+            .create(ApiEntity.class)
+            .setFilters(filters)
+            .setExcludedFilters(excludedFilters);
+        SearchResult matches = searchEngineService.search(
+            new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
+            apiEntityQueryBuilder.build()
+        );
+        assertNotNull(matches);
+        assertEquals(0, matches.getHits());
     }
 
     @Before
@@ -567,7 +607,11 @@ public class SearchEngineServiceTest {
                 if (i % 2 == 0) {
                     // Actually we index hrid categories...
                     apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
+                    apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+                } else {
+                    apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
                 }
+
                 apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
                 searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, true, false);
             }

@@ -69,6 +69,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_TAGS_SPLIT = "tags_split";
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
+    public static final String FIELD_DEFINITION_VERSION = "definition_version";
     private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
     public static final String FIELD_ORIGIN = "origin";
 
@@ -78,6 +79,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
+
+        if (api.getDefinitionVersion() != null) {
+            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
+        }
 
         if (api.getReferenceId() != null) {
             doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));

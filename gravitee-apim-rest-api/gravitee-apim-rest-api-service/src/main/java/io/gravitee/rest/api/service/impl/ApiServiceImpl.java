@@ -27,6 +27,7 @@ import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -2098,7 +2099,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (isBlank(searchEngineQuery.getQuery())) {
             return Optional.empty();
         }
-        SearchResult matchApis = searchEngineService.search(executionContext, searchEngineQuery);
+
+        SearchResult matchApis = searchEngineService.search(executionContext, addDefaultExcludedFilters(searchEngineQuery));
         return Optional.of(matchApis.getDocuments());
     }
 
@@ -2112,12 +2114,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Map<String, Object> filters,
         Sortable sortable
     ) {
-        Query<ApiEntity> searchEngineQuery = QueryBuilder
-            .create(ApiEntity.class)
-            .setQuery(query)
-            .setSort(sortable)
-            .setFilters(filters)
-            .build();
+        Query<ApiEntity> searchEngineQuery = addDefaultExcludedFilters(
+            QueryBuilder.create(ApiEntity.class).setQuery(query).setSort(sortable).setFilters(filters).build()
+        );
         return searchEngineService.search(executionContext, searchEngineQuery);
     }
 
@@ -2721,5 +2720,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         allowedDefinitionVersion.add(DefinitionVersion.V2);
 
         return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
+    }
+
+    private Query<ApiEntity> addDefaultExcludedFilters(Query<ApiEntity> searchEngineQuery) {
+        // By default in this service, we do not care for V4 APIs.
+        searchEngineQuery.getExcludedFilters().put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V4.getLabel()));
+        return searchEngineQuery;
     }
 }

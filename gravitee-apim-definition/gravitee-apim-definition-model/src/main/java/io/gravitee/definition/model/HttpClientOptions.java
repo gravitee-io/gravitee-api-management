@@ -31,6 +31,7 @@ public class HttpClientOptions implements Serializable {
     public static boolean DEFAULT_KEEP_ALIVE = true;
     public static boolean DEFAULT_PIPELINING = false;
     public static boolean DEFAULT_USE_COMPRESSION = true;
+    public static boolean DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING = false;
     public static boolean DEFAULT_FOLLOW_REDIRECTS = false;
     public static boolean DEFAULT_CLEAR_TEXT_UPGRADE = true;
     public static ProtocolVersion DEFAULT_PROTOCOL_VERSION = ProtocolVersion.HTTP_1_1;
@@ -55,6 +56,9 @@ public class HttpClientOptions implements Serializable {
 
     @JsonProperty("useCompression")
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
+
+    @JsonProperty("propagateClientAcceptEncoding")
+    private boolean propagateClientAcceptEncoding = DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING;
 
     @JsonProperty("followRedirects")
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
@@ -119,6 +123,14 @@ public class HttpClientOptions implements Serializable {
 
     public void setUseCompression(boolean useCompression) {
         this.useCompression = useCompression;
+    }
+
+    public boolean isPropagateClientAcceptEncoding() {
+        return propagateClientAcceptEncoding;
+    }
+
+    public void setPropagateClientAcceptEncoding(boolean propagateClientAcceptEncoding) {
+        this.propagateClientAcceptEncoding = propagateClientAcceptEncoding;
     }
 
     public boolean isFollowRedirects() {
