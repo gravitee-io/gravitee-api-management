@@ -29,7 +29,7 @@ $container-padding-bottom: 48px;
 }
 
 @mixin gio-responsive-margin-container {
-  overflow: auto;
+  display: block;
   height: calc(100vh - #{$navbarHeaderHeight});
   padding-top: $container-padding-top;
   padding-bottom: $container-padding-bottom;
@@ -51,7 +51,7 @@ $container-padding-bottom: 48px;
 }
 
 @mixin gio-responsive-content-container {
-  overflow: auto;
+  display: block;
   height: calc(100vh - #{$navbarHeaderHeight});
   padding: $container-padding-top 8px $container-padding-bottom 8px;
 
@@ -62,7 +62,7 @@ $container-padding-bottom: 48px;
 }
 
 @mixin gio-full-width-content-container {
+  display: block;
   padding: 0;
-  overflow: auto;
   height: calc(100vh - 54px);
 }
