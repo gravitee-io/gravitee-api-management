@@ -1,0 +1,71 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.gio-instance-details-monitoring {
+  display: grid;
+  width: 100%;
+  grid-gap: 16px;
+
+  &__main-indicators {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    grid-gap: 1rem;
+
+    & > .mat-card > * {
+      margin-top: auto;
+    }
+
+    & gio-circular-percentage {
+      margin: auto;
+    }
+
+    &__card {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      text-align: center;
+    }
+  }
+
+  &__card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__jvm {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+
+    &__pool {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto;
+      grid-gap: 16px;
+      margin: 8px;
+
+      &__progress-bar {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        text-align: center;
+        margin-bottom: 2em;
+      }
+    }
+  }
+
+  &__indicators {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+    grid-gap: 16px;
+
+    &__sublist {
+      text-align: right;
+      color: mat.get-color-from-palette(gio.$mat-space-palette, default);
+    }
+  }
+}
