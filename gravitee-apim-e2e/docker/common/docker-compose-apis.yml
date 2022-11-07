@@ -45,7 +45,7 @@ services:
       - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:admin@localhost:8083/management/organizations/DEFAULT/user" ]
-      interval: 3s
+      interval: 10s
       timeout: 10s
       retries: 30
     networks:
