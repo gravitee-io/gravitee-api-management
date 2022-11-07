@@ -37,7 +37,7 @@ export class PromoteApiDialogController implements IOnInit {
   private hasCockpit: boolean;
 
   constructor(
-    private readonly cockpitService: CockpitService,
+    private readonly ngCockpitService: CockpitService,
     private readonly promotionService: PromotionService,
     private readonly NotificationService: NotificationService,
     private readonly $mdDialog: angular.material.IDialogService,
@@ -80,7 +80,7 @@ export class PromoteApiDialogController implements IOnInit {
           err.interceptorFuture.cancel();
           this.hasCockpit = false;
           const { cockpitURL } = err.data.parameters;
-          this.cockpitURL = this.cockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_PROMOTION);
+          this.cockpitURL = this.ngCockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_PROMOTION);
         }
       })
       .finally(() => {

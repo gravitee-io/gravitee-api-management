@@ -657,6 +657,16 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_withclientoptions_propagateClientAcceptEncoding() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        JsonNode endpointConfiguration = objectMapper().readTree(endpoint.getConfiguration());
+        assertTrue(endpointConfiguration.has("http"));
+        assertEquals(endpointConfiguration.get("http").toString(), "{\"useCompression\":false,\"propagateClientAcceptEncoding\":true}");
+    }
+
+    @Test
     public void shouldHaveADefinitionContext() throws IOException {
         Api api = load("/io/gravitee/definition/jackson/api-with-definition-context.json", Api.class);
         DefinitionContext definitionContext = api.getDefinitionContext();

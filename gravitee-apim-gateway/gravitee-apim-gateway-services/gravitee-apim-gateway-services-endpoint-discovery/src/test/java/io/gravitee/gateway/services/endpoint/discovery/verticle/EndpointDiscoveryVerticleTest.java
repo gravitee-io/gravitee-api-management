@@ -229,6 +229,7 @@ public class EndpointDiscoveryVerticleTest {
             "\"pipelining\":false," +
             "\"maxConcurrentConnections\":100," +
             "\"useCompression\":true," +
+            "\"propagateClientAcceptEncoding\":false," +
             "\"followRedirects\":false," +
             "\"clearTextUpgrade\":true," +
             "\"version\":\"HTTP_1_1\"" +
