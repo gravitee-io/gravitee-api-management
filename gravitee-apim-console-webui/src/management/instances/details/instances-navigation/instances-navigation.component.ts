@@ -23,6 +23,7 @@ interface MenuItem {
   baseRoute?: string;
   displayName: string;
   permissions?: string[];
+  testId?: string;
 }
 
 @Component({
@@ -41,11 +42,13 @@ export class InstancesNavigationComponent implements OnInit {
         displayName: 'Environment',
         targetRoute: 'management.instances.detail.environment',
         baseRoute: 'management.instances.detail.environment',
+        testId: 'management.instances.detail.environment',
       },
       {
         displayName: 'Monitoring',
         targetRoute: 'management.instances.detail.monitoring',
         baseRoute: 'management.instances.detail.monitoring',
+        testId: 'management.instances.detail.monitoring',
       },
     ];
   }
