@@ -94,6 +94,10 @@ public class ApiSubscribersResource extends AbstractResource {
 
             Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
 
+            if (applicationIds.isEmpty()) {
+                return createListResponse(executionContext, Collections.emptyList(), paginationParam);
+            }
+
             ApplicationQuery applicationQuery = new ApplicationQuery();
             applicationQuery.setIds(applicationIds);
 

@@ -65,6 +65,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        verify(mockResponse, times(1)).reason("Internal Server Error");
     }
 
     @Test
@@ -86,6 +87,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -108,6 +110,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -131,6 +134,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        verify(mockResponse, times(1)).reason("Internal Server Error");
     }
 
     @Test
@@ -158,6 +162,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
+        verify(mockResponse, times(1)).reason("Bad Gateway");
     }
 
     @Test
@@ -181,6 +186,7 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
     }
 
     @Test
@@ -204,5 +210,6 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         templateBasedFailureProcessor.execute(ctx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+        verify(mockResponse, times(1)).reason("Bad Request");
     }
 }
