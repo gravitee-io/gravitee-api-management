@@ -13,37 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@management-apis/APIsApi';
-import {
-  forManagementAsAdminUser,
-  forManagementAsApiUser,
-  forManagementAsAppUser,
-  forPortalAsAdminUser,
-  forPortalAsAppUser,
-} from '@client-conf/*';
-import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApisFaker } from '@management-fakers/ApisFaker';
-import { ApiEntity } from '@management-models/ApiEntity';
-import { ApiLifecycleState } from '@management-models/ApiLifecycleState';
-import { APIPlansApi } from '@management-apis/APIPlansApi';
-import { ApplicationApi as PortalApplicationApi } from '@portal-apis/ApplicationApi';
-import { ApplicationsApi } from '@management-apis/ApplicationsApi';
-import { ApplicationsFaker } from '@management-fakers/ApplicationsFaker';
-import fetchApi from 'node-fetch';
-import { PlansFaker } from '@management-fakers/PlansFaker';
-import { PlanValidationType } from '@management-models/PlanValidationType';
-import { PlanEntity } from '@management-models/PlanEntity';
-import { Api } from '@portal-models/Api';
-import { ApplicationEntity } from '@management-models/ApplicationEntity';
-import { PlanSecurityType } from '@management-models/PlanSecurityType';
-import { ApiApi } from '@portal-apis/ApiApi';
-import { Visibility } from '@management-models/Visibility';
+import { beforeAll, describe, expect, test } from '@jest/globals';
 import { succeed } from '@lib/jest-utils';
-import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@portal-apis/SubscriptionApi';
-import faker from '@faker-js/faker';
-import { Subscription } from '@portal-models/Subscription';
-import { APISubscriptionsApi } from '@management-apis/APISubscriptionsApi';
-import { UpdateApiEntityFromJSON } from '@management-models/UpdateApiEntity';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { forManagementAsAdminUser, forPortalAsAdminUser } from '../../../lib/utils/configuration';
+import { ApiEntity, UpdateApiEntityFromJSON } from '../../../lib/management-webclient-sdk/src/lib/models';
+import { APISubscriptionsApi } from '../../../lib/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { ApiApi } from '../../../lib/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -71,8 +48,8 @@ describe('Api subscribers tests', () => {
       api: createdApi.id,
       updateApiEntity: UpdateApiEntityFromJSON({
         ...createdApi,
-        lifecycle_state: ApiLifecycleState.PUBLISHED,
-        visibility: Visibility.PUBLIC,
+        lifecycle_state: 'PUBLISHED',
+        visibility: 'PUBLIC',
       }),
       orgId,
       envId,
