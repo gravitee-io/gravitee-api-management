@@ -225,7 +225,7 @@ class ApiAdminController {
       .show({
         controller: 'DialogRequestForChangesController',
         controllerAs: '$ctrl',
-        template: require('./portal/general/dialog/requestForChanges.dialog.html'),
+        template: require('./dialog/requestForChanges.dialog.html'),
         clickOutsideToClose: true,
       })
       .then((response) => {

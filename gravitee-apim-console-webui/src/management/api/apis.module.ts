@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 
-import { ApiPortalDetailsModule } from './details/api-portal-details.module';
+import { ApiPortalDetailsModule } from './portal/details/api-portal-details.module';
 import { ApiListModule } from './list/api-list.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';

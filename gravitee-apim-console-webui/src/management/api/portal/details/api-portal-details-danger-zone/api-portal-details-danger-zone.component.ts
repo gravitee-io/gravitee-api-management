@@ -26,11 +26,11 @@ import { StateService } from '@uirouter/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
-import { Constants } from '../../../../entities/Constants';
-import { ApiService } from '../../../../services-ngx/api.service';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../entities/api';
+import { Constants } from '../../../../../entities/Constants';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-portal-details-danger-zone',

@@ -40,17 +40,6 @@ function apisPortalRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.portal.general', {
       url: '/portal',
-      template: require('./general/apiPortal.html'),
-      controller: 'ApiPortalController',
-      controllerAs: 'portalCtrl',
-      data: {
-        docs: {
-          page: 'management-api',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.ng-general', {
-      url: '/ng-portal',
       component: 'ngApiPortalDetails',
       data: {
         useAngularMaterial: true,

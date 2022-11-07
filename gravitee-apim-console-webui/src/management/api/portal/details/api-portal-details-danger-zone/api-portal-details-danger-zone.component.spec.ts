@@ -28,11 +28,11 @@ import { SimpleChange } from '@angular/core';
 import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone.component';
 
 import { ApiPortalDetailsModule } from '../api-portal-details.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { Api } from '../../../../entities/api';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { Api } from '../../../../../entities/api';
+import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { User } from '../../../../../entities/user';
 
 describe('ApiPortalDetailsDangerZoneComponent', () => {
   const API_ID = 'apiId';
