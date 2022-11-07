@@ -25,16 +25,19 @@ export class GioCircularPercentageComponent {
   @Input()
   public score = 0;
 
+  @Input()
+  public reverseColor = false;
+
   public get percentage(): number {
     return parseInt((toNumber(this.score ?? 0) * 100).toFixed(0), 10);
   }
 
   public get colorClass(): string {
     if (this.percentage < 50) {
-      return 'bad-color';
+      return this.reverseColor ? 'good-color' : 'bad-color';
     } else if (this.percentage >= 50 && this.percentage < 80) {
       return 'medium-color';
     }
-    return 'good-color';
+    return this.reverseColor ? 'bad-color' : 'good-color';
   }
 }

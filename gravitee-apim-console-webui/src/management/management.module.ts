@@ -27,6 +27,7 @@ import { EnvironmentApplicationModule } from './application/environment-applicat
 import { ApisModule } from './api/apis.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 import { InstancesNavigationModule } from './instances/details/instances-navigation/instances-navigation.module';
+import { InstanceDetailsMonitoringModule } from './instances/details/instance-details-monitoring/instance-details-monitoring.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
@@ -46,6 +47,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     ApisModule,
     SettingsNavigationModule,
     InstancesNavigationModule,
+    InstanceDetailsMonitoringModule,
   ],
   declarations: [],
   entryComponents: [],
