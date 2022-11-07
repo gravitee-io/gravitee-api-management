@@ -66,7 +66,11 @@
   <section id="view">
     <div
       flex
-      ng-class="{'gv-sub-content-fullscreen': apiCtrl.$state.current.name.startsWith('management.apis.detail.design.flows'), 'gv-sub-content': !apiCtrl.$state.current.name.startsWith('management.apis.detail.design.flows')}"
+      ng-class="{
+        'gv-sub-content-design': apiCtrl.$state.current.name.startsWith('management.apis.detail.design.flows'),
+        'gv-sub-content-fullscreen': apiCtrl.$state.current.data.useAngularMaterial, 
+        'gv-sub-content': !apiCtrl.$state.current.data.useAngularMaterial
+      }"
       ui-view
       layout="column"
     ></div>

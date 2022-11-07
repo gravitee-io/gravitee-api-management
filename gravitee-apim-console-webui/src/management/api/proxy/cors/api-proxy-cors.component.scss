@@ -5,7 +5,7 @@
 @use '../../../../scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
 $typography: map.get(gio.$mat-theme, typography);
