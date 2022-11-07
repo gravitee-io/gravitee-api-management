@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 export interface Instance {
-  event: string;
   id: string;
+  event: string;
   hostname: string;
   ip: string;
   port: string;
@@ -23,5 +23,20 @@ export interface Instance {
   state: string;
   started_at: Date;
   last_heartbeat_at: Date;
-  operating_system_name: string;
+  stopped_at?: Date;
+  operating_system_name?: string;
+  environments?: string[];
+  environments_hrids?: string[];
+  organizations_hrids?: string[];
+  tags?: string[];
+  tenants?: string[];
+  systemProperties?: { [key: string]: string };
+  plugins?: {
+    id: string;
+    name: string;
+    description: string;
+    version: string;
+    plugin: string;
+    type: string;
+  }[];
 }
