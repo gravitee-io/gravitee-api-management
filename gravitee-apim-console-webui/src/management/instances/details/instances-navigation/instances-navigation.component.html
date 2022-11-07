@@ -19,9 +19,13 @@
   <gio-submenu class="instances-navigation__menu">
     <ng-container *ngFor="let item of this.subMenuItems">
       <gio-submenu-item *ngIf="!item.targetRoute">{{ item.displayName }}</gio-submenu-item>
-      <gio-submenu-subitem *ngIf="item.targetRoute" (click)="navigateTo(item.targetRoute)" [active]="isActive(item.baseRoute)">{{
-        item.displayName
-      }}</gio-submenu-subitem>
+      <gio-submenu-subitem
+        *ngIf="item.targetRoute"
+        (click)="navigateTo(item.targetRoute)"
+        [active]="isActive(item.baseRoute)"
+        [attr.data-testid]="item.testId"
+        >{{ item.displayName }}</gio-submenu-subitem
+      >
     </ng-container>
   </gio-submenu>
 </div>
