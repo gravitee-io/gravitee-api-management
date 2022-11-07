@@ -176,6 +176,38 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
+    public void shouldReturnValidatedListenersWithNAQos() {
+        // Given
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setQos(Qos.NA);
+        httpListener.setEntrypoints(List.of(entrypoint));
+        List<Listener> listeners = List.of(httpListener);
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.NA));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        // When
+        List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            listeners
+        );
+        // Then
+        assertThat(validatedListeners).isNotNull();
+        assertThat(validatedListeners.size()).isEqualTo(1);
+        Listener actual = validatedListeners.get(0);
+        assertThat(actual).isInstanceOf(HttpListener.class);
+        HttpListener actualHttpListener = (HttpListener) actual;
+        assertThat(actualHttpListener.getPaths().size()).isEqualTo(1);
+        Path path = actualHttpListener.getPaths().get(0);
+        assertThat(path.getHost()).isNull();
+        assertThat(path.getPath()).isEqualTo("/path/");
+    }
+
+    @Test
     public void shouldThrowMissingPathExceptionWithoutPath() {
         // Given
         HttpListener httpListener = new HttpListener();
@@ -301,25 +333,6 @@ public class ListenerValidationServiceImplTest {
                         null,
                         List.of(subscriptionListener)
                     )
-            );
-    }
-
-    @Test
-    public void shouldThrowInvalidQosExceptionWithNAQos() {
-        // Given
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("path")));
-        Entrypoint entrypoint = new Entrypoint();
-        entrypoint.setType("type");
-        entrypoint.setQos(Qos.NA);
-        httpListener.setEntrypoints(List.of(entrypoint));
-        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
-        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
-        // When
-        assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
