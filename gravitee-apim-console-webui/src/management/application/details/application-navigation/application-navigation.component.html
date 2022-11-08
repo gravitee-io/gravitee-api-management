@@ -16,7 +16,7 @@
 
 -->
 <div class="application-navigation">
-  <div class="application-navigation__title">{{ this.applicationName }}</div>
+  <div *ngIf="hasTitle" class="application-navigation__title">{{ this.applicationName }}</div>
   <gio-submenu class="application-navigation__menu">
     <ng-container *ngFor="let item of this.subMenuItems">
       <gio-submenu-item *ngIf="!item.targetRoute">{{ item.displayName }}</gio-submenu-item>
