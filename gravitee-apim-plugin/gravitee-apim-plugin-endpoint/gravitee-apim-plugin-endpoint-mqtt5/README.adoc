@@ -1,0 +1,84 @@
+= MQTT 5.x Endpoint
+
+== Description
+
+This is an _OSS_ edition for MQTT 5.x endpoint which allow subscribing or publishing messages to a MQTT 5.x broker such as HiveMQ or Mosquitto.
+
+=== Quality Of Service
+
+|===
+|QoS           |  Delivery        | Description
+|None          | Unwarranted      | Use default MQTT QoS
+|Balanced      | 0, 1 or n        | Use default MQTT QoS
+|===
+
+== Compatibility matrix
+
+|===
+|Plugin version | APIM version
+
+|1.x and upper                  | 3.20.x to latest
+|===
+
+== Endpoint identifier
+
+In order to use this _OSS_ version, you have to declare the following identifier `mqtt5` while configuring your API endpoints.
+
+== Endpoint configuration
+
+=== General configuration
+|===
+|Attributes | Default | Mandatory | Description
+
+|identifier | N/A     | No | The client identifier identifies the MQTT client that connects to an MQTT broker.
+|serverHost | N/A     | Yes | Define the host of the MQTT broker.
+|serverPort | N/A     | Yes | Define the port of the MQTT broker.
+|topic | N/A     | Yes | Refers to an UTF-8 string that the broker uses to filter messages for each connected client.
+|===
+
+=== Consumer configuration
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|enabled | false     | No | Allow enabling or disabling the consumer capability.
+|===
+
+=== Producer configuration
+|===
+|Attributes | Default | Mandatory | Description
+
+|enabled | false     | No | Allow enabling or disabling the producer capability.
+|retained | false     | No | Define if the retain flag must be set to every publish messages.
+|messageExpiryInterval | -1     | No | This interval defines the period of time that the broker stores the publish message for any matching subscribers that are not currently connected. When no message expiry interval is set, the broker must store the message for matching subscribers indefinitely. When the retained=true option is set on the PUBLISH message, this interval also defines how long a message is retained on a topic.
+|responseTopic |  N/A     | No | The response topic represents the topics on which the responses from the receivers of the message are expected.
+|===
+
+=== Examples
+
+Bellow you will find a full mqtt endpoint configuration example:
+
+```json
+{
+    "name": "default",
+    "type": "mqtt5",
+    "weight": 1,
+    "inheritConfiguration": false,
+    "configuration": {
+        "identifier": "gio-apim-identifier",
+        "serverHost": "localhost",
+        "serverPort": "1883",
+        "topic": "python/mqtt",
+        "consumer" : {
+            "enabled": true
+        },
+        "producer": {
+            "enabled": true,
+            "retained": false,
+            "messageExpiryInterval": 10,
+            "responseTopic": "python/mqtt/response"
+        }
+    }
+}
+```
+
