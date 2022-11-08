@@ -33,6 +33,8 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
 
     private static final String CACHE_NAME_BY_API_AND_CLIENT_ID = "SUBSCRIPTIONS_BY_API_AND_CLIENT_ID";
     private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
+
+    // Caches only contains active subscriptions
     private final Cache<String, Subscription> cacheByApiClientId;
     private final Cache<String, Subscription> cacheBySubscriptionId;
 
@@ -107,9 +109,15 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         if (ACCEPTED.name().equals(subscription.getStatus())) {
             cacheByApiClientId.put(key, subscription);
             cacheByApiClientId.put(keyWithoutPlan, subscription);
-        } else if (cachedSubscription != null) {
-            cacheByApiClientId.evict(key);
-            cacheByApiClientId.evict(keyWithoutPlan);
+        } else if (null != cachedSubscription) {
+            Subscription existingSubscription = cacheByApiClientId.get(key);
+            if (null != existingSubscription && cachedSubscription.getId().equals(existingSubscription.getId())) {
+                // The cache only contains active subscriptions.
+                // Here we check that the subscription is evicted when the ids match.
+                // The key is not unique in the database as for an API, a plan and an application multiple subscriptions can be open and close.
+                cacheByApiClientId.evict(key);
+                cacheByApiClientId.evict(keyWithoutPlan);
+            }
         }
     }
 
