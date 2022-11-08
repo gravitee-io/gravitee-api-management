@@ -1,0 +1,75 @@
+{
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt:configuration:MqttEndpointConnectorConfiguration",
+    "additionalProperties": false,
+    "properties": {
+        "identifier": {
+            "type": "string",
+            "title": "identifier",
+            "description": "The client identifier identifies the MQTT client that connects to an MQTT broker."
+        },
+        "serverHost": {
+            "type": "string",
+            "title": "serverHost",
+            "description": "Define the host of the MQTT broker."
+        },
+        "serverPort": {
+            "type": "integer",
+            "title": "serverPort",
+            "description": "Define the port of the MQTT broker."
+        },
+        "topic": {
+            "type": "string",
+            "title": "topic",
+            "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
+        },
+        "consumer": {
+            "type": "object",
+            "title": "Consumer configuration",
+            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Consumer",
+            "properties": {
+                "enabled": {
+                    "title": "enabled",
+                    "description": "Allow enabling or disabling the consumer capability.",
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "producer": {
+            "type": "object",
+            "title": "Producer configuration",
+            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Producer",
+            "properties": {
+                "enabled": {
+                    "title": "enabled",
+                    "description": "Allow enabling or disabling the producer capability.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "retained": {
+                    "title": "retained",
+                    "description": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "messageExpiryInterval": {
+                    "title": "messageExpiryInterval",
+                    "description": "This interval defines the period of time that the broker stores the PUBLISH message for any matching subscribers that are not currently connected. When no message expiry interval is set, the broker must store the message for matching subscribers indefinitely. When the retained=true option is set on the PUBLISH message, this interval also defines how long a message is retained on a topic.",
+                    "type": "integer",
+                    "default": -1
+                },
+                "responseTopic": {
+                    "title": "responseTopic",
+                    "description": "The response topic represents the topics on which the responses from the receivers of the message are expected.",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "serverHost",
+        "serverPort",
+        "topic"
+    ]
+}
