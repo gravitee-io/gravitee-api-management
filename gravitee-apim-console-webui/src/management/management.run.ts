@@ -249,25 +249,14 @@ function runBlock(
   // Add or remove `bootstrap, mat` class wrapper to disable it on some routes with `useAngularMaterial` flag
   $transitions.onFinish({}, function (trans) {
     const toState = trans.to();
-
     const useAngularMaterial = toState.data && toState.data.useAngularMaterial;
 
-    const htmlClass = {
-      bootstrap: !useAngularMaterial,
-      mat: useAngularMaterial,
-      'mat-typography': useAngularMaterial,
-      'mat-app-background': useAngularMaterial,
-    };
-
-    Object.entries(htmlClass).forEach(([key, toAdd]) => {
-      if (toAdd) {
-        angular.element(document.querySelector('html')).addClass(key);
-        angular.element(document.querySelector('body')).addClass(key);
-        return;
-      }
-      angular.element(document.querySelector('html')).removeClass(key);
-      angular.element(document.querySelector('body')).removeClass(key);
-    });
+    const mainContainer = angular.element(document.querySelector('.gv-sub-content'));
+    if (useAngularMaterial) {
+      mainContainer.removeClass('bootstrap');
+    } else {
+      mainContainer.addClass('bootstrap');
+    }
 
     return true;
   });
