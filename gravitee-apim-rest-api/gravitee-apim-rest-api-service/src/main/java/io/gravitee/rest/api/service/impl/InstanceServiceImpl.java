@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -54,11 +53,14 @@ public class InstanceServiceImpl implements InstanceService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceServiceImpl.class);
     private static final Pattern PROPERTY_SPLITTER = Pattern.compile(", ");
 
-    @Autowired
-    private EventService eventService;
+    private final EventService eventService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public InstanceServiceImpl(EventService eventService, ObjectMapper objectMapper) {
+        this.eventService = eventService;
+        this.objectMapper = objectMapper;
+    }
 
     @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
     private long unknownExpireAfterInSec;
@@ -218,11 +220,13 @@ public class InstanceServiceImpl implements InstanceService {
 
         if (event.getType() == EventType.GATEWAY_STARTED) {
             // If last heartbeat timestamp is < now - 5m, set as unknown state
-            Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
-            if (lastHeartbeat.isAfter(nowMinusXMinutes)) {
-                instance.setState(InstanceState.STARTED);
-            } else {
+            if (
+                instance.getLastHeartbeatAt() == null ||
+                Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime()).isBefore(nowMinusXMinutes)
+            ) {
                 instance.setState(InstanceState.UNKNOWN);
+            } else {
+                instance.setState(InstanceState.STARTED);
             }
         } else {
             instance.setState(InstanceState.STOPPED);
