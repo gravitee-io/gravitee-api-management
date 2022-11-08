@@ -532,6 +532,7 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
+import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
 
@@ -690,6 +691,7 @@ graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusD
 
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
+graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
 
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
