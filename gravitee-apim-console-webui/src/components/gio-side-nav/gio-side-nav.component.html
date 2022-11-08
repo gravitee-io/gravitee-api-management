@@ -19,6 +19,7 @@
   <gio-menu>
     <gio-menu-header>
       <gio-menu-selector
+        tabIndex="1"
         [selectedItemValue]="this.constants.org.currentEnv.id"
         selectorTitle="Environment"
         [selectorItems]="environments"
@@ -28,6 +29,7 @@
     <gio-menu-list>
       <gio-menu-item
         *ngFor="let item of mainMenuItems"
+        tabIndex="1"
         [title]="item.displayName"
         [icon]="item.icon"
         (click)="navigateTo(item.targetRoute)"
@@ -39,6 +41,7 @@
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
       <gio-menu-item
         *ngFor="let item of footerMenuItems"
+        tabIndex="1"
         [title]="item.displayName"
         [icon]="item.icon"
         (click)="navigateTo(item.targetRoute)"
