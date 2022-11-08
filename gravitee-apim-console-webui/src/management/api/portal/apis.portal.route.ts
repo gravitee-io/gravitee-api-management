@@ -48,6 +48,19 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.ng-plans', {
+      url: '/ng-plans',
+      component: 'ngApiPortalPlanList',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-plan-r'],
+        },
+        docs: {
+          page: 'management-api-plans',
+        },
+      },
+    })
     .state('management.apis.detail.portal.plan', {
       url: '/plan',
     })
