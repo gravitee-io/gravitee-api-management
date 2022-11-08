@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -34,7 +37,7 @@ export interface MenuItem {
   template: require('./api-navigation.component.html'),
   styles: [require('./api-navigation.component.scss')],
 })
-export class ApiNavigationComponent implements OnInit {
+export class ApiNavigationComponent implements OnInit, OnDestroy {
   @Input()
   public apiName: string;
   @Input()
@@ -50,15 +53,21 @@ export class ApiNavigationComponent implements OnInit {
 
   public subMenuItems: MenuItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
+  public hasTitle = true;
+  private unsubscribe$ = new Subject();
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly gioMenuService: GioMenuService,
   ) {}
 
   ngOnInit() {
+    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+      this.hasTitle = !reduced;
+    });
     this.subMenuItems.push({
       displayName: 'Design',
       targetRoute: 'management.apis.detail.design.policies',
@@ -77,6 +86,11 @@ export class ApiNavigationComponent implements OnInit {
     this.appendNotificationsSubMenu();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 
   private appendPortalSubMenu() {

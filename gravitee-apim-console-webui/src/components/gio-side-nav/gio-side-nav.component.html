@@ -28,6 +28,7 @@
     <gio-menu-list>
       <gio-menu-item
         *ngFor="let item of mainMenuItems"
+        [title]="item.displayName"
         [icon]="item.icon"
         (click)="navigateTo(item.targetRoute)"
         [active]="isActive(item.baseRoute)"
@@ -38,6 +39,7 @@
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
       <gio-menu-item
         *ngFor="let item of footerMenuItems"
+        [title]="item.displayName"
         [icon]="item.icon"
         (click)="navigateTo(item.targetRoute)"
         [active]="isActive(item.baseRoute)"

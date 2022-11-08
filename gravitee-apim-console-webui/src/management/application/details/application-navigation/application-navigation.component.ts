@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -31,14 +34,23 @@ interface MenuItem {
   template: require('./application-navigation.component.html'),
   styles: [require('./application-navigation.component.scss')],
 })
-export class ApplicationNavigationComponent implements OnInit {
+export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   @Input()
   public applicationName: string;
   public subMenuItems: MenuItem[] = [];
+  public hasTitle = true;
+  private unsubscribe$ = new Subject();
 
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService, private readonly permissionService: GioPermissionService) {}
+  constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly permissionService: GioPermissionService,
+    private readonly gioMenuService: GioMenuService,
+  ) {}
 
   ngOnInit() {
+    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+      this.hasTitle = !reduced;
+    });
     this.subMenuItems = this.filterMenuByPermission([
       {
         displayName: 'Global settings',
@@ -83,6 +95,11 @@ export class ApplicationNavigationComponent implements OnInit {
         permissions: ['application-notification-r', 'application-alert-r'],
       },
     ]);
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
