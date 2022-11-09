@@ -69,6 +69,11 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Preserve original property order for the 'keyvalue' pipe
+  originalOrder(): number {
+    return 0;
+  }
+
   humanizeDuration(timeInMillis) {
     return duration(-timeInMillis).humanize(true);
   }
