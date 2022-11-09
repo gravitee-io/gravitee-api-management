@@ -47,7 +47,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
       <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
-        <a>{{ element.name }}</a>
+        {{ element.name }}
       </td>
     </ng-container>
 
@@ -131,8 +131,23 @@
       <th mat-header-cell *matHeaderCellDef id="actions"></th>
       <td mat-cell *matCellDef="let element">
         <div class="actions__edit">
-          <button (click)="onEditActionClicked(element)" mat-icon-button aria-label="Button to edit an API" matTooltip="Edit API">
+          <button
+            *ngIf="!element.readonly"
+            (click)="onEditActionClicked(element)"
+            mat-icon-button
+            aria-label="Button to edit an API"
+            matTooltip="Edit API"
+          >
             <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            *ngIf="element.readonly"
+            (click)="onEditActionClicked(element)"
+            mat-icon-button
+            aria-label="Button to view API details"
+            matTooltip="View API details"
+          >
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
           </button>
         </div>
       </td>
