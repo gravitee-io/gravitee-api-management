@@ -13,18 +13,21 @@ $typography: map.get(gio.$mat-theme, typography);
 .details-card {
   &__header {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
     justify-content: space-between;
     align-items: stretch;
+    gap: 16px;
 
     &__info-inputs {
       flex: 1 1 auto;
 
       &__first-row {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
+        column-gap: 16px;
 
         &__name-field {
           flex: 6 1 auto;
@@ -33,7 +36,6 @@ $typography: map.get(gio.$mat-theme, typography);
         &__version-field {
           flex: 1 1 auto;
           margin-top: 0; // Remove "Default margin between two mat-form-field" automatically added by ui-particles
-          margin-left: 16px;
         }
       }
 
@@ -51,10 +53,11 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__right-coll {
-      flex: 0 0 320px;
+      @include gio-layout.large-desktop {
+        flex: 0 0 320px;
+      }
 
       &__media {
-        margin-left: 16px;
         display: flex;
 
         &__picture {
@@ -103,10 +106,16 @@ $typography: map.get(gio.$mat-theme, typography);
           }
         }
       }
+    }
 
-      &__info {
-        padding-left: 16px;
-      }
+    @include gio-layout.large-desktop {
+      flex-direction: row;
+    }
+  }
+
+  &__actions {
+    &_btn {
+      margin-right: 8px;
     }
   }
 }

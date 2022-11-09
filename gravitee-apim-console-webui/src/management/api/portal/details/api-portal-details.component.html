@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<h1>Details</h1>
+<h1>General</h1>
 
 <form *ngIf="apiDetailsForm" [formGroup]="apiDetailsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card class="details-card">
@@ -118,15 +118,33 @@
       </div>
     </div>
 
-    <div>
-      <button mat-button (click)="exportApi()"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button [disabled]="isReadOnly" (click)="importApi()">
+    <div class="details-card__actions">
+      <button mat-button class="details-card__actions_btn" (click)="exportApi()"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
+      <button
+        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        mat-button
+        class="details-card__actions_btn"
+        [disabled]="isReadOnly"
+        (click)="importApi()"
+      >
         <mat-icon svgIcon="gio:download"></mat-icon> Import
       </button>
-      <button *gioPermission="{ anyOf: ['api-definition-c'] }" mat-button [disabled]="isReadOnly" (click)="duplicateApi()">
+      <button
+        *gioPermission="{ anyOf: ['api-definition-c'] }"
+        mat-button
+        class="details-card__actions_btn"
+        [disabled]="isReadOnly"
+        (click)="duplicateApi()"
+      >
         <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
       </button>
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-button (click)="promoteApi()" [disabled]="!canPromote || isReadOnly">
+      <button
+        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        mat-button
+        class="details-card__actions_btn"
+        [disabled]="!canPromote || isReadOnly"
+        (click)="promoteApi()"
+      >
         <mat-icon svgIcon="gio:language"></mat-icon> Promote
       </button>
     </div>
