@@ -18,22 +18,34 @@
 <div class="api-navigation-title">
   <mat-icon
     *ngIf="apiState === 'STARTED'"
+    [matTooltip]="apiState"
     class="api-navigation-title__icon api-navigation-title__icon__play"
     svgIcon="gio:play-circle"
   ></mat-icon>
   <mat-icon
     *ngIf="apiState !== 'STARTED'"
+    [matTooltip]="apiState"
     class="api-navigation-title__icon api-navigation-title__icon__stop"
     svgIcon="gio:stop-circle"
   ></mat-icon>
   <mat-icon *ngIf="!apiIsSync" class="api-navigation-title__icon api-navigation-title__icon__refresh" svgIcon="gio:refresh-cw"></mat-icon>
-  <mat-icon *ngIf="apiLifecycleState === 'PUBLISHED'" class="api-navigation-title__icon" svgIcon="gio:cloud-published"></mat-icon>
-  <mat-icon *ngIf="apiLifecycleState !== 'PUBLISHED'" class="api-navigation-title__icon" svgIcon="gio:cloud-unpublished"></mat-icon>
+  <mat-icon
+    *ngIf="apiLifecycleState === 'PUBLISHED'"
+    [matTooltip]="apiLifecycleState"
+    class="api-navigation-title__icon"
+    svgIcon="gio:cloud-published"
+  ></mat-icon>
+  <mat-icon
+    *ngIf="apiLifecycleState !== 'PUBLISHED'"
+    [matTooltip]="apiLifecycleState"
+    class="api-navigation-title__icon"
+    svgIcon="gio:cloud-unpublished"
+  ></mat-icon>
   <mat-icon
     *ngIf="apiOrigin === 'kubernetes'"
     matTooltip="Kubernetes Origin"
     class="api-navigation-title__icon"
     svgIcon="gio:kubernetes"
   ></mat-icon>
-  <div class="api-navigation-title__name">{{ this.apiName }} ({{ this.apiVersion }})</div>
+  <div class="api-navigation-title__name" [matTooltip]="apiName + ' ( ' + apiVersion + ' )'">{{ apiName }} ({{ apiVersion }})</div>
 </div>
