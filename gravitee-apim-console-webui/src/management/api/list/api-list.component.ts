@@ -42,6 +42,7 @@ export type ApisTableDS = {
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
   origin: ApiOrigin;
+  readonly: boolean;
 }[];
 
 @Component({
@@ -149,7 +150,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           tags: api.tags.join(', '),
           owner: api?.owner?.displayName,
           ownerEmail: api?.owner?.email,
-          picture: api.picture,
+          picture: api.picture_url,
           state: api.state,
           lifecycleState: api.lifecycle_state,
           workflowBadge: this.getWorkflowBadge(api),
@@ -159,6 +160,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             : null,
           visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
           origin: api.definition_context.origin,
+          readonly: api.definition_context?.origin === 'kubernetes',
         }))
       : [];
   }

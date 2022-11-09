@@ -174,6 +174,7 @@ describe('ApisListComponent', () => {
           workflowState: 'REVIEW_OK',
           visibility: { label: 'PUBLIC', icon: 'public' },
           origin: 'management' as ApiOrigin,
+          readonly: false,
         };
 
         apiListComponent.onEditActionClicked(api);
