@@ -183,6 +183,42 @@ describe('ApiProxyEntrypointsComponent', () => {
       ]);
     });
 
+    it('should disable field when origin is kubernetes', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          virtual_hosts: [
+            { path: '/path-foo', host: 'host.io' },
+            { path: '/path-bar', host: 'host.io' },
+          ],
+        },
+        definition_context: { origin: 'kubernetes' },
+      });
+      expectApiGetRequest(api);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const vhTable = await loader.getHarness(MatTableHarness.with({ selector: '#virtualHostsTable' }));
+      const vhTableRows = await vhTable.getRows();
+      const [vhTableFirstRowHostCell, vhTableFirstRowPathCell, vhTableFirstRowOverrideCell, vhTableFirstRowRemoveCell] =
+        await vhTableRows[0].getCells();
+
+      const vhTableFirstRowHostInput = await vhTableFirstRowHostCell.getHarness(MatInputHarness);
+      expect(await vhTableFirstRowHostInput.isDisabled()).toEqual(true);
+
+      const vhTableFirstRowPathInput = await vhTableFirstRowPathCell.getHarness(MatInputHarness);
+      expect(await vhTableFirstRowPathInput.isDisabled()).toEqual(true);
+
+      const vhTableFirstRowOverrideCheckbox = await vhTableFirstRowOverrideCell.getHarness(MatCheckboxHarness);
+      expect(await vhTableFirstRowOverrideCheckbox.isDisabled()).toEqual(true);
+
+      const vhTableFirstRowButtons = await vhTableFirstRowRemoveCell.getAllHarnesses(MatButtonHarness);
+      expect(vhTableFirstRowButtons.length).toEqual(0);
+
+      expect((await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add virtual-host' }))).length).toEqual(0);
+    });
+
     it('should add virtual-host', async () => {
       const api = fakeApi({
         id: API_ID,
