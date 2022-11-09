@@ -16,11 +16,12 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiNavigationTitleComponent } from './api-navigation-title.component';
 
 @NgModule({
-  imports: [CommonModule, GioIconsModule],
+  imports: [CommonModule, GioIconsModule, MatTooltipModule],
   declarations: [ApiNavigationTitleComponent],
   exports: [ApiNavigationTitleComponent],
   entryComponents: [ApiNavigationTitleComponent],
