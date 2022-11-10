@@ -54,9 +54,9 @@
       <div class="failover-card__timeout" [class.disabled]="!enabled.value">
         <div class="failover-card__timeout__label">Timeout (ms)</div>
         <p class="failover-card__timeout__hint">Limits the time allowed to try another attempt.</p>
-        <mat-form-field class="failover-card__timeout__form-field" appearance="fill" [disabled]="enableChecked$ | async">
+        <mat-form-field class="failover-card__timeout__form-field" appearance="fill">
           <mat-label>Timeout</mat-label>
-          <input matInput formControlName="retryTimeout" type="number" min="1" required [disabled]="enableChecked$ | async" />
+          <input matInput formControlName="retryTimeout" type="number" min="1" required />
           <mat-hint>Must be greater than 0.</mat-hint>
           <mat-error *ngIf="retryTimeout.hasError('min')">Must be greater than 0.</mat-error>
           <mat-error *ngIf="retryTimeout.hasError('required')">Timeout is required</mat-error>
