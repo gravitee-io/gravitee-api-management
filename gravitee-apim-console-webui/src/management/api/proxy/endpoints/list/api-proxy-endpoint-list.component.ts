@@ -62,11 +62,11 @@ export class ApiProxyEndpointListComponent implements OnInit {
   }
 
   navigateToGroup(groupName: string): void {
-    this.ajsState.go('management.apis.detail.proxy.ng-group', { groupName });
+    this.ajsState.go('management.apis.detail.proxy.group', { groupName });
   }
 
   navigateToEndpoint(groupName: string, endpointName: string): void {
-    this.ajsState.go('management.apis.detail.proxy.ng-endpoint', { endpointName, groupName });
+    this.ajsState.go('management.apis.detail.proxy.endpoint', { endpointName, groupName });
   }
 
   deleteGroup(groupName: string): void {

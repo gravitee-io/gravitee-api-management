@@ -39,8 +39,6 @@ import ApiAnalyticsController from '../management/api/analytics/overview/analyti
 import ApiMembersController from '../management/api/portal/userGroupAccess/members/members.controller';
 import ApiTransferOwnershipController from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
-import ApiEndpointController from '../management/api/proxy/backend/endpoint/endpointConfiguration.controller';
-import ApiEndpointGroupController from '../management/api/proxy/backend/endpoint/group.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
 import ApiPathMappingsController from '../management/api/analytics/pathMappings/pathMappings.controller';
@@ -715,8 +713,6 @@ graviteeManagementModule.controller('ApiMembersController', ApiMembersController
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
 graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
-graviteeManagementModule.controller('ApiEndpointController', ApiEndpointController);
-graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);

@@ -15,10 +15,7 @@
  */
 import { ApiService } from '../../../services/api.service';
 import EnvironmentService from '../../../services/environment.service';
-import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import SpelService from '../../../services/spel.service';
-import TenantService from '../../../services/tenant.service';
-import ConnectorService from '../../../services/connector.service';
 
 export default apisProxyRouterConfig;
 
@@ -84,23 +81,6 @@ function apisProxyRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.proxy.endpoints', {
       url: '/endpoints',
-      template: require('./backend/endpoint/apiEndpoints.html'),
-      controller: 'ApiProxyController',
-      controllerAs: 'apiProxyCtrl',
-      resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
-      },
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-proxy-endpoints',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.ng-endpoints', {
-      url: '/ng-endpoints',
       component: 'ngApiProxyEndpointList',
       data: {
         useAngularMaterial: true,
@@ -113,24 +93,6 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.endpoint', {
-      url: '/groups/:groupName/endpoints/:endpointName',
-      template: require('./backend/endpoint/endpointConfiguration.html'),
-      controller: 'ApiEndpointController',
-      controllerAs: 'endpointCtrl',
-      resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
-        resolvedConnectors: (ConnectorService: ConnectorService) => ConnectorService.list(true),
-      },
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-proxy-endpoints',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.ng-endpoint', {
       url: '/ng-groups/:groupName/ng-endpoints/:endpointName',
       component: 'ngApiProxyGroupEndpointEdit',
       data: {
@@ -144,24 +106,6 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.group', {
-      url: '/groups/:groupName',
-      template: require('./backend/endpoint/group.html'),
-      controller: 'ApiEndpointGroupController',
-      controllerAs: 'groupCtrl',
-      resolve: {
-        resolvedServicesDiscovery: (ServiceDiscoveryService: ServiceDiscoveryService) => ServiceDiscoveryService.list(),
-        resolvedConnectors: (ConnectorService: ConnectorService) => ConnectorService.list(true),
-      },
-      data: {
-        perms: {
-          only: ['api-definition-r'],
-        },
-        docs: {
-          page: 'management-api-proxy-group',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.ng-group', {
       url: '/ng-groups/:groupName',
       component: 'ngApiProxyGroupEdit',
       data: {
