@@ -129,7 +129,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.detail.proxy.ng-endpoints', { apiId: this.apiId })),
+        tap(() => this.ajsState.go('management.apis.detail.proxy.endpoints', { apiId: this.apiId })),
       )
       .subscribe();
   }
