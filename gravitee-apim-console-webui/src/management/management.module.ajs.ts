@@ -132,7 +132,6 @@ import InstanceEnvironmentComponent from '../management/instances/details/enviro
 import InstanceMonitoringComponent from '../management/instances/details/monitoring/instance-monitoring.component';
 import InstanceMonitoringController from '../management/instances/details/monitoring/instance-monitoring.controller';
 import InstancesComponent from '../management/instances/instances.component';
-import InstanceComponent from '../management/instances/details/instance.component';
 // Analytics / widgets
 import WidgetComponent from '../components/widget/widget.component';
 import WidgetDataTableComponent from '../components/widget/table/widget-data-table.component';
@@ -879,7 +878,6 @@ graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ co
 graviteeManagementModule.directive('ngOrgSettingsAudit', downgradeComponent({ component: OrgSettingsAuditComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
-graviteeManagementModule.component('instance', InstanceComponent);
 graviteeManagementModule.component('instanceHeader', InstanceHeaderComponent);
 graviteeManagementModule.component('instanceEnvironment', InstanceEnvironmentComponent);
 graviteeManagementModule.component('instanceMonitoring', InstanceMonitoringComponent);

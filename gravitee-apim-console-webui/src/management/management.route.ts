@@ -153,7 +153,7 @@ function managementRouterConfig($stateProvider) {
     .state('management.instances.detail', {
       abstract: true,
       url: '/:instanceId',
-      component: 'instance',
+      template: '<div ui-view></div>',
       resolve: {
         instance: ($stateParams, InstancesService: InstancesService) =>
           InstancesService.get($stateParams.instanceId).then((response) => response.data),
