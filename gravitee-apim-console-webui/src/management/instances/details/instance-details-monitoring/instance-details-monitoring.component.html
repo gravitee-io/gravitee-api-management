@@ -178,8 +178,11 @@
         <dd>{{ monitoringData?.cpu?.percent_use + '%' }}</dd>
         <dt>Load average</dt>
         <dd>
-          <div *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue: originalOrder">
-            [{{ loadAverage.key }}] {{ loadAverage.value }}
+          <div class="gio-instance-details-monitoring__load-average">
+            <ng-container *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue: originalOrder">
+              <div>[{{ loadAverage.key }}]</div>
+              <div>{{ loadAverage.value }}</div>
+            </ng-container>
           </div>
         </dd>
       </dl>

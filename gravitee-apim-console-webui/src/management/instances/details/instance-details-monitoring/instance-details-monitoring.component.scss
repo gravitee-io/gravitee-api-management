@@ -69,4 +69,9 @@
       color: mat.get-color-from-palette(gio.$mat-space-palette, default);
     }
   }
+
+  &__load-average {
+    display: grid;
+    grid-template-columns: 0.3fr 0.7fr;
+  }
 }
