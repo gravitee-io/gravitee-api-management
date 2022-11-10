@@ -547,8 +547,8 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { InstancesNavigationComponent } from './instances/details/instances-navigation/instances-navigation.component';
-import { InstanceDetailsMonitoringComponent } from './instances/details/instance-details-monitoring/instance-details-monitoring.component';
-import { InstanceDetailsEnvironmentComponent } from './instances/details/instance-details-environment/instance-details-environment.component';
+import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
+import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
