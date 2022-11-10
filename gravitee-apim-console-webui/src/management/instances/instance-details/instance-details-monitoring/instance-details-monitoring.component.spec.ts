@@ -19,25 +19,33 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InstanceDetailsMonitoringComponent } from './instance-details-monitoring.component';
 import { InstanceDetailsMonitoringModule } from './instance-details-monitoring.module';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioHttpTestingModule } from '../../../../shared/testing';
 
 describe('InstanceMonitoringComponent', () => {
   let fixture: ComponentFixture<InstanceDetailsMonitoringComponent>;
+  const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
+
+  const fakeAjsState = {
+    go: jest.fn(),
+    includes: jest.fn(),
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsMonitoringModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { instanceId: 'instanceId' } }],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { instanceId } },
+        {
+          provide: UIRouterState,
+          useValue: fakeAjsState,
+        },
+      ],
     });
-  });
-
-  beforeEach(() => {
     fixture = TestBed.createComponent(InstanceDetailsMonitoringComponent);
-    fixture.detectChanges();
   });
 
-  describe('humanizeSize', () => {
+  describe('compute methods', () => {
     it.each([
       [Infinity, 1, '-'],
       [42, 1, '42.0 bytes'],
@@ -47,31 +55,27 @@ describe('InstanceMonitoringComponent', () => {
       [0, 1, '0.0 bytes'],
       [42, undefined, '42.0 bytes'],
       [42, 0, '42 bytes'],
-    ])('should convert %p bytes with precision %p into %p', (bytes, precision, result) => {
+    ])('humanizeSize | should convert %p bytes with precision %p into %p', (bytes, precision, result) => {
       expect(fixture.componentInstance.humanizeSize(bytes, precision)).toBe(result);
     });
-  });
 
-  describe('ratio', () => {
     it.each([
       [42, 1, 4200],
       [42, 0, undefined],
       [0, 42, 0],
       [115312310, 240, 48046796],
       [240, 115312310, 0],
-    ])('should compute ratio of %p on %p into %p', (val1, val2, result) => {
+    ])('ratio | should compute ratio of %p on %p into %p', (val1, val2, result) => {
       expect(fixture.componentInstance.ratio(val1, val2)).toBe(result);
     });
-  });
 
-  describe('ratioLabel', () => {
     it.each([
       [42, 1, '4200%'],
       [42, 0, '-%'],
       [0, 42, '0%'],
       [115312310, 240, '48046796%'],
       [240, 115312310, '0%'],
-    ])('should compute ratio label of %p on %p into %p', (val1, val2, result) => {
+    ])('ratioLabel | should compute ratio label of %p on %p into %p', (val1, val2, result) => {
       expect(fixture.componentInstance.ratioLabel(val1, val2)).toBe(result);
     });
   });

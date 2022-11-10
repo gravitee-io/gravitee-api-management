@@ -1,12 +1,17 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+@use 'src/scss/gio-layout' as gio-layout;
 
 .gio-instance-details-monitoring {
+  @include gio-layout.gio-responsive-content-container;
+
   display: grid;
   width: 100%;
   grid-gap: 16px;
-  padding: 0 16px;
+  padding: 16px;
+  overflow-y: auto;
+  height: 80vh;
 
   &__main-indicators {
     display: grid;
