@@ -48,7 +48,7 @@ describe('Users', () => {
     cy.contains(lastName);
     cy.contains(email)
       .parent()
-      .within(() => cy.getByDataTestId('delete-user').click());
+      .within(() => cy.getByDataTestId('delete-user').click({ force: true }));
 
     cy.get('mat-dialog-actions').within(() => {
       cy.contains('Delete').click();
@@ -79,7 +79,7 @@ describe('Users', () => {
     cy.contains(serviceAccountName);
     cy.contains(email)
       .parent()
-      .within(() => cy.getByDataTestId('delete-user').click());
+      .within(() => cy.getByDataTestId('delete-user').click({ force: true }));
 
     cy.get('mat-dialog-actions').within(() => {
       cy.contains('Delete').click();
