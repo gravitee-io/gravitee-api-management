@@ -26,6 +26,7 @@ import { InstanceDetailsEnvironmentComponent } from './instance-details-environm
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioTableOfContentsModule } from '../../../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
+import { InstanceDetailsHeaderModule } from '../instance-details-header/instance-details-header.module';
 
 @NgModule({
   declarations: [InstanceDetailsEnvironmentComponent],
@@ -39,6 +40,7 @@ import { GioTableOfContentsModule } from '../../../../shared/components/gio-tabl
     MatTableModule,
     GioTableOfContentsModule,
     MatSortModule,
+    InstanceDetailsHeaderModule,
   ],
 })
 export class InstanceDetailsEnvironmentModule {}

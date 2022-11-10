@@ -1,0 +1,16 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.gio-instance-details-header {
+  display: flex;
+  flex-direction: column;
+
+  &__navigation-tabs {
+    display: flex;
+    align-items: center;
+    padding: 8px 8px 0;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}

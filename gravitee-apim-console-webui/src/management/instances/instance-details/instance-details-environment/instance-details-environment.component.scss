@@ -3,15 +3,14 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'src/scss/gio-layout' as gio-layout;
 
-:host {
-  @include gio-layout.gio-responsive-margin-container;
-}
-
 .gio-instance-details-environment {
+  @include gio-layout.gio-responsive-margin-container;
+
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 0 16px;
+  overflow-y: auto;
+  height: 80vh;
 
   &__cards {
     display: flex;

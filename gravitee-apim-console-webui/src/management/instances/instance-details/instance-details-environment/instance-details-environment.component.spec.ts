@@ -26,7 +26,7 @@ import { InstanceDetailsEnvironmentComponent } from './instance-details-environm
 
 import { fakeInstance } from '../../../../entities/instance/instance.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 describe('InstanceDetailsEnvironmentComponent', () => {
   let fixture: ComponentFixture<InstanceDetailsEnvironmentComponent>;
@@ -35,10 +35,21 @@ describe('InstanceDetailsEnvironmentComponent', () => {
   let httpTestingController: HttpTestingController;
   const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
 
+  const fakeAjsState = {
+    go: jest.fn(),
+    includes: jest.fn(),
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsEnvironmentModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { instanceId } }],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { instanceId } },
+        {
+          provide: UIRouterState,
+          useValue: fakeAjsState,
+        },
+      ],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(InstanceDetailsEnvironmentComponent);
