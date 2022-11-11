@@ -28,8 +28,12 @@ export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string;
   displayName: string;
-  permissions?: string[];
   tabs?: MenuItem[];
+}
+
+interface GroupItem {
+  title: string;
+  items: MenuItem[];
 }
 
 @Component({
@@ -52,6 +56,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public apiOrigin: string;
 
   public subMenuItems: MenuItem[] = [];
+  public groupItems: GroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
   public hasTitle = true;
   private unsubscribe$ = new Subject();
@@ -79,11 +84,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       baseRoute: 'management.apis.detail.messages',
     });
 
-    this.appendPortalSubMenu();
-    this.appendProxySubMenu();
-    this.appendAnalyticsSubMenu();
-    this.appendAuditSubMenu();
-    this.appendNotificationsSubMenu();
+    this.appendPortalGroup();
+    this.appendProxyGroup();
+    this.appendAnalyticsGroup();
+    this.appendAuditGroup();
+    this.appendNotificationsGroup();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
   }
@@ -93,65 +98,83 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  private appendPortalSubMenu() {
-    this.subMenuItems.push({ displayName: 'Portal' });
-    this.subMenuItems.push({
-      displayName: 'General',
-      targetRoute: 'management.apis.detail.portal.general',
-      baseRoute: 'management.apis.detail.portal.general',
-    });
-    this.subMenuItems.push({
-      displayName: 'Plans',
-      tabs: [
+  private appendPortalGroup() {
+    const portalGroup: GroupItem = {
+      title: 'Portal',
+      items: [
         {
-          displayName: 'Plans',
-          targetRoute: 'management.apis.detail.portal.plans.list',
-          baseRoute: 'management.apis.detail.portal.plans',
-          permissions: ['api-plan-r'],
-        },
-        {
-          displayName: 'Subscriptions',
-          targetRoute: 'management.apis.detail.portal.subscriptions.list',
-          baseRoute: 'management.apis.detail.portal.subscriptions',
-          permissions: ['api-subscription-r'],
+          displayName: 'General',
+          targetRoute: 'management.apis.detail.portal.general',
+          baseRoute: 'management.apis.detail.portal.general',
         },
       ],
-    });
-    this.subMenuItems.push({
-      displayName: 'Documentation',
-      tabs: [
-        {
-          displayName: 'Pages',
-          targetRoute: 'management.apis.detail.portal.documentation',
-          baseRoute: 'management.apis.detail.portal.documentation',
-          permissions: ['api-documentation-r'],
-        },
-        {
-          displayName: 'Metadata',
-          targetRoute: 'management.apis.detail.portal.metadata',
-          baseRoute: 'management.apis.detail.portal.metadata',
-          permissions: ['api-metadata-r'],
-        },
-      ],
-    });
+    };
 
+    // Plans
+    const plansMenuItem: MenuItem = {
+      displayName: 'Plans',
+      tabs: [],
+    };
+    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
+      plansMenuItem.tabs.push({
+        displayName: 'Plans',
+        targetRoute: 'management.apis.detail.portal.plans.list',
+        baseRoute: 'management.apis.detail.portal.plans',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
+      plansMenuItem.tabs.push({
+        displayName: 'Subscriptions',
+        targetRoute: 'management.apis.detail.portal.subscriptions.list',
+        baseRoute: 'management.apis.detail.portal.subscriptions',
+      });
+    }
+    if (plansMenuItem.tabs.length > 0) {
+      portalGroup.items.push(plansMenuItem);
+    }
+
+    // Documentation
+    const documentationMenuItem: MenuItem = {
+      displayName: 'Documentation',
+      tabs: [],
+    };
+    if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
+      documentationMenuItem.tabs.push({
+        displayName: 'Pages',
+        targetRoute: 'management.apis.detail.portal.documentation',
+        baseRoute: 'management.apis.detail.portal.documentation',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
+      documentationMenuItem.tabs.push({
+        displayName: 'Metadata',
+        targetRoute: 'management.apis.detail.portal.metadata',
+        baseRoute: 'management.apis.detail.portal.metadata',
+      });
+    }
+    if (documentationMenuItem.tabs.length > 0) {
+      portalGroup.items.push(documentationMenuItem);
+    }
+
+    // Users
     const userAndGroupAccessMenuItems: MenuItem = {
       displayName: 'User and group access',
-      tabs: [
+      tabs: [],
+    };
+    if (this.permissionService.hasAnyMatching(['api-member-r'])) {
+      userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
           targetRoute: 'management.apis.detail.portal.members',
           baseRoute: 'management.apis.detail.portal.members',
-          permissions: ['api-member-r'],
         },
         {
           displayName: 'Groups',
           targetRoute: 'management.apis.detail.portal.groups',
           baseRoute: 'management.apis.detail.portal.groups',
-          permissions: ['api-member-r'],
         },
-      ],
-    };
+      );
+    }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
@@ -159,139 +182,205 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         baseRoute: 'management.apis.detail.portal.transferownership',
       });
     }
-    this.subMenuItems.push(userAndGroupAccessMenuItems);
+    if (userAndGroupAccessMenuItems.tabs.length > 0) {
+      portalGroup.items.push(userAndGroupAccessMenuItems);
+    }
+
+    this.groupItems.push(portalGroup);
   }
-  private appendProxySubMenu() {
-    this.subMenuItems.push({ displayName: 'Proxy' });
-    this.subMenuItems.push({
+
+  private appendProxyGroup() {
+    const proxyGroup: GroupItem = {
+      title: 'Proxy',
+      items: [],
+    };
+
+    // General
+    const generalMenuItem: MenuItem = {
       displayName: 'General',
-      tabs: [
-        {
-          displayName: 'Entrypoints',
-          targetRoute: 'management.apis.detail.proxy.ng-entrypoints',
-          baseRoute: 'management.apis.detail.proxy.ng-entrypoints',
-          permissions: ['api-definition-r', 'api-health-r'],
-        },
+      tabs: [],
+    };
+    if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
+      generalMenuItem.tabs.push({
+        displayName: 'Entrypoints',
+        targetRoute: 'management.apis.detail.proxy.ng-entrypoints',
+        baseRoute: 'management.apis.detail.proxy.ng-entrypoints',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      generalMenuItem.tabs.push(
         {
           displayName: 'CORS',
           targetRoute: 'management.apis.detail.proxy.ng-cors',
           baseRoute: 'management.apis.detail.proxy.ng-cors',
-          permissions: ['api-definition-r'],
         },
         {
           displayName: 'Deployments',
           targetRoute: 'management.apis.detail.proxy.ng-deployments',
           baseRoute: 'management.apis.detail.proxy.ng-deployments',
-          permissions: ['api-definition-r'],
         },
-        {
-          displayName: 'Response Templates',
-          targetRoute: 'management.apis.detail.proxy.ng-responsetemplates.list',
-          baseRoute: 'management.apis.detail.proxy.ng-responsetemplates',
-          permissions: ['api-response_templates-r'],
-        },
-      ],
-    });
-    this.subMenuItems.push({
+      );
+    }
+    if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
+      generalMenuItem.tabs.push({
+        displayName: 'Response Templates',
+        targetRoute: 'management.apis.detail.proxy.ng-responsetemplates.list',
+        baseRoute: 'management.apis.detail.proxy.ng-responsetemplates',
+      });
+    }
+    if (generalMenuItem.tabs.length > 0) {
+      proxyGroup.items.push(generalMenuItem);
+    }
+
+    // Backend services
+    const backendServicesMenuItem: MenuItem = {
       displayName: 'Backend services',
-      tabs: [
+      tabs: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      backendServicesMenuItem.tabs.push(
         {
           displayName: 'Endpoints',
           targetRoute: 'management.apis.detail.proxy.endpoints',
           baseRoute: 'management.apis.detail.proxy.endpoint',
-          permissions: ['api-definition-r'],
         },
         {
           displayName: 'Failover',
           targetRoute: 'management.apis.detail.proxy.failover',
           baseRoute: 'management.apis.detail.proxy.failover',
-          permissions: ['api-definition-r'],
         },
-        {
-          displayName: 'Health-check',
-          targetRoute: 'management.apis.detail.proxy.healthcheck.visualize',
-          baseRoute: 'management.apis.detail.proxy.healthcheck',
-          permissions: ['api-health-r'],
-        },
-      ],
-    });
+      );
+    }
+    if (this.permissionService.hasAnyMatching(['api-health-r'])) {
+      backendServicesMenuItem.tabs.push({
+        displayName: 'Health-check',
+        targetRoute: 'management.apis.detail.proxy.healthcheck.visualize',
+        baseRoute: 'management.apis.detail.proxy.healthcheck',
+      });
+    }
+    if (backendServicesMenuItem.tabs.length > 0) {
+      proxyGroup.items.push(backendServicesMenuItem);
+    }
+    if (proxyGroup.items.length > 0) {
+      this.groupItems.push(proxyGroup);
+    }
   }
-  private appendAnalyticsSubMenu() {
-    this.subMenuItems.push({ displayName: 'Analytics' });
-    this.subMenuItems.push({
-      displayName: 'Overview',
-      targetRoute: 'management.apis.detail.analytics.overview',
-      baseRoute: 'management.apis.detail.analytics.overview',
-      permissions: ['api-analytics-r'],
-    });
-    this.subMenuItems.push({
-      displayName: 'Logs',
-      targetRoute: 'management.apis.detail.analytics.logs.list',
-      baseRoute: 'management.apis.detail.analytics.logs',
-      permissions: ['api-log-r'],
-    });
-    this.subMenuItems.push({
-      displayName: 'Path mappings',
-      targetRoute: 'management.apis.detail.analytics.pathMappings',
-      baseRoute: 'management.apis.detail.analytics.pathMappings',
-      permissions: ['api-definition-u'],
-    });
-    this.subMenuItems.push({
-      displayName: 'Alerts',
-      targetRoute: 'management.apis.detail.analytics.alerts',
-      baseRoute: 'management.apis.detail.analytics.alerts',
-      permissions: ['api-alert-r'],
-    });
-  }
-  private appendAuditSubMenu() {
-    this.subMenuItems.push({ displayName: 'Audit' });
-    this.subMenuItems.push({
-      displayName: 'Audit',
-      targetRoute: 'management.apis.detail.audit.general',
-      baseRoute: 'management.apis.detail.audit.general',
-      permissions: ['api-audit-r'],
-    });
-    this.subMenuItems.push({
-      displayName: 'History',
-      targetRoute: 'management.apis.detail.audit.history',
-      baseRoute: 'management.apis.detail.audit.history',
-      permissions: ['api-event-r'],
-    });
-    this.subMenuItems.push({
-      displayName: 'Events',
-      targetRoute: 'management.apis.detail.audit.events',
-      baseRoute: 'management.apis.detail.audit.events',
-      permissions: ['api-event-u'],
-    });
-  }
-  private appendNotificationsSubMenu() {
-    this.subMenuItems.push({ displayName: 'Notifications' });
-    this.subMenuItems.push({
-      displayName: 'Notifications',
-      targetRoute: 'management.apis.detail.notifications',
-      baseRoute: 'management.apis.detail.notifications',
-      permissions: ['api-notification-r'],
-    });
 
-    if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
-      this.subMenuItems.push({
+  private appendAnalyticsGroup() {
+    const analyticsGroup: GroupItem = {
+      title: 'Analytics',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Overview',
+        targetRoute: 'management.apis.detail.analytics.overview',
+        baseRoute: 'management.apis.detail.analytics.overview',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-log-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Logs',
+        targetRoute: 'management.apis.detail.analytics.logs.list',
+        baseRoute: 'management.apis.detail.analytics.logs',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
+      analyticsGroup.items.push({
+        displayName: 'Path mappings',
+        targetRoute: 'management.apis.detail.analytics.pathMappings',
+        baseRoute: 'management.apis.detail.analytics.pathMappings',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Alerts',
+        targetRoute: 'management.apis.detail.analytics.alerts',
+        baseRoute: 'management.apis.detail.analytics.alerts',
+      });
+    }
+    if (analyticsGroup.items.length > 0) {
+      this.groupItems.push(analyticsGroup);
+    }
+  }
+
+  private appendAuditGroup() {
+    const auditGroup: GroupItem = {
+      title: 'Audit',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+      auditGroup.items.push({
+        displayName: 'Audit',
+        targetRoute: 'management.apis.detail.audit.general',
+        baseRoute: 'management.apis.detail.audit.general',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
+      auditGroup.items.push({
+        displayName: 'History',
+        targetRoute: 'management.apis.detail.audit.history',
+        baseRoute: 'management.apis.detail.audit.history',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-event-u'])) {
+      auditGroup.items.push({
+        displayName: 'Events',
+        targetRoute: 'management.apis.detail.audit.events',
+        baseRoute: 'management.apis.detail.audit.events',
+      });
+    }
+
+    if (auditGroup.items.length > 0) {
+      this.groupItems.push(auditGroup);
+    }
+  }
+  private appendNotificationsGroup() {
+    const notificationsGroup: GroupItem = {
+      title: 'Notifications',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
+      notificationsGroup.items.push({
+        displayName: 'Notifications',
+        targetRoute: 'management.apis.detail.notifications',
+        baseRoute: 'management.apis.detail.notifications',
+      });
+    }
+
+    if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      notificationsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.alerts.list',
         baseRoute: 'management.apis.detail.alerts',
-        permissions: ['api-alert-r'],
       });
     }
-  }
 
-  filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    if (menuItems) {
-      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    if (notificationsGroup.items.length > 0) {
+      this.groupItems.push(notificationsGroup);
     }
-    return [];
   }
 
   private findMenuItemWithTabs(route?: string): MenuItem {
-    return this.subMenuItems
+    let item: MenuItem = this.findActiveMenuItem(this.subMenuItems, route);
+    if (item) {
+      return item;
+    }
+
+    for (const groupItem of this.groupItems) {
+      item = this.findActiveMenuItem(groupItem.items, route);
+      if (item) {
+        return item;
+      }
+    }
+  }
+
+  private findActiveMenuItem(items: MenuItem[], route: string) {
+    return items
       .filter((item) => item.tabs)
       .find((item) => {
         if (route) {
