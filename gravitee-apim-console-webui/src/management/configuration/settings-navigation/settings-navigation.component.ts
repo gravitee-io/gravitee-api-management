@@ -27,13 +27,18 @@ interface MenuItem {
   permissions?: string[];
 }
 
+interface GroupItem {
+  title: string;
+  items: MenuItem[];
+}
+
 @Component({
   selector: 'settings-navigation',
   template: require('./settings-navigation.component.html'),
   styles: [require('./settings-navigation.component.scss')],
 })
 export class SettingsNavigationComponent implements OnInit {
-  public subMenuItems: MenuItem[] = [];
+  public groupItems: GroupItem[] = [];
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -42,136 +47,150 @@ export class SettingsNavigationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.subMenuItems = [
-      { displayName: 'Portal' },
+    this.groupItems = [
       {
-        displayName: 'Analytics',
-        targetRoute: 'management.settings.analytics.list',
-        baseRoute: 'management.settings.analytics',
-        permissions: ['environment-settings-r'],
+        title: 'Portal',
+        items: [
+          {
+            displayName: 'Analytics',
+            targetRoute: 'management.settings.analytics.list',
+            baseRoute: 'management.settings.analytics',
+            permissions: ['environment-settings-r'],
+          },
+          {
+            displayName: 'API Portal Information',
+            targetRoute: 'management.settings.apiPortalHeader',
+            baseRoute: 'management.settings.apiPortalHeader',
+            permissions: ['environment-api_header-r'],
+          },
+          {
+            displayName: 'API Quality',
+            targetRoute: 'management.settings.apiQuality.list',
+            baseRoute: 'management.settings.apiQuality',
+            permissions: ['environment-settings-r'],
+          },
+          {
+            displayName: 'Authentication',
+            targetRoute: 'management.settings.environment.identityproviders',
+            baseRoute: 'management.settings.environment.identityproviders',
+            permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
+          },
+          {
+            displayName: 'Categories',
+            targetRoute: 'management.settings.categories.list',
+            baseRoute: 'management.settings.categories',
+            permissions: ['environment-category-r'],
+          },
+          {
+            displayName: 'Client Registration',
+            targetRoute: 'management.settings.clientregistrationproviders.list',
+            baseRoute: 'management.settings.clientregistrationproviders',
+            permissions: ['environment-client_registration_provider-r'],
+          },
+          {
+            displayName: 'Documentation',
+            targetRoute: 'management.settings.documentation.list',
+            baseRoute: 'management.settings.documentation',
+            permissions: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+          },
+          {
+            displayName: 'Metadata',
+            targetRoute: 'management.settings.metadata',
+            baseRoute: 'management.settings.metadata',
+            permissions: ['environment-metadata-r'],
+          },
+          {
+            displayName: 'Settings',
+            targetRoute: 'management.settings.portal',
+            baseRoute: 'management.settings.portal',
+            permissions: ['environment-settings-r'],
+          },
+          {
+            displayName: 'Theme',
+            targetRoute: 'management.settings.theme',
+            baseRoute: 'management.settings.theme',
+            permissions: ['environment-theme-r'],
+          },
+          {
+            displayName: 'Top APIs',
+            targetRoute: 'management.settings.top-apis',
+            baseRoute: 'management.settings.top-apis',
+            permissions: ['environment-top_apis-r'],
+          },
+        ],
       },
       {
-        displayName: 'API Portal Information',
-        targetRoute: 'management.settings.apiPortalHeader',
-        baseRoute: 'management.settings.apiPortalHeader',
-        permissions: ['environment-api_header-r'],
+        title: 'Gateway',
+        items: [
+          {
+            displayName: 'API Logging',
+            targetRoute: 'management.settings.api_logging',
+            baseRoute: 'management.settings.api_logging',
+            permissions: ['environment-settings-r'],
+          },
+          {
+            displayName: 'Dictionaries',
+            targetRoute: 'management.settings.dictionaries.list',
+            baseRoute: 'management.settings.dictionaries',
+            permissions: ['environment-dictionary-r'],
+          },
+          {
+            displayName: 'Sharding Tags',
+            targetRoute: 'management.settings.tags',
+            baseRoute: 'management.settings.tags',
+            permissions: ['environment-tag-c', 'environment-tag-u', 'environment-tag-d'],
+          },
+          {
+            displayName: 'Tenants',
+            targetRoute: 'management.settings.tenants',
+            baseRoute: 'management.settings.tenants',
+            permissions: ['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d'],
+          },
+        ],
       },
       {
-        displayName: 'API Quality',
-        targetRoute: 'management.settings.apiQuality.list',
-        baseRoute: 'management.settings.apiQuality',
-        permissions: ['environment-settings-r'],
-      },
-      {
-        displayName: 'Authentication',
-        targetRoute: 'management.settings.environment.identityproviders',
-        baseRoute: 'management.settings.environment.identityproviders',
-        permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
-      },
-      {
-        displayName: 'Categories',
-        targetRoute: 'management.settings.categories.list',
-        baseRoute: 'management.settings.categories',
-        permissions: ['environment-category-r'],
-      },
-      {
-        displayName: 'Client Registration',
-        targetRoute: 'management.settings.clientregistrationproviders.list',
-        baseRoute: 'management.settings.clientregistrationproviders',
-        permissions: ['environment-client_registration_provider-r'],
-      },
-      {
-        displayName: 'Documentation',
-        targetRoute: 'management.settings.documentation.list',
-        baseRoute: 'management.settings.documentation',
-        permissions: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
-      },
-      {
-        displayName: 'Metadata',
-        targetRoute: 'management.settings.metadata',
-        baseRoute: 'management.settings.metadata',
-        permissions: ['environment-metadata-r'],
-      },
-      {
-        displayName: 'Settings',
-        targetRoute: 'management.settings.portal',
-        baseRoute: 'management.settings.portal',
-        permissions: ['environment-settings-r'],
-      },
-      {
-        displayName: 'Theme',
-        targetRoute: 'management.settings.theme',
-        baseRoute: 'management.settings.theme',
-        permissions: ['environment-theme-r'],
-      },
-      {
-        displayName: 'Top APIs',
-        targetRoute: 'management.settings.top-apis',
-        baseRoute: 'management.settings.top-apis',
-        permissions: ['environment-top_apis-r'],
-      },
-      { displayName: 'Gateway' },
-      {
-        displayName: 'API Logging',
-        targetRoute: 'management.settings.api_logging',
-        baseRoute: 'management.settings.api_logging',
-        permissions: ['environment-settings-r'],
-      },
-      {
-        displayName: 'Dictionaries',
-        targetRoute: 'management.settings.dictionaries.list',
-        baseRoute: 'management.settings.dictionaries',
-        permissions: ['environment-dictionary-r'],
-      },
-      {
-        displayName: 'Sharding Tags',
-        targetRoute: 'management.settings.tags',
-        baseRoute: 'management.settings.tags',
-        permissions: ['environment-tag-c', 'environment-tag-u', 'environment-tag-d'],
-      },
-      {
-        displayName: 'Tenants',
-        targetRoute: 'management.settings.tenants',
-        baseRoute: 'management.settings.tenants',
-        permissions: ['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d'],
-      },
-      { displayName: 'User Management' },
-      {
-        displayName: 'User Fields',
-        targetRoute: 'management.settings.customUserFields',
-        baseRoute: 'management.settings.customUserFields',
-        permissions: ['organization-custom_user_fields-r'],
-      },
-      {
-        displayName: 'Groups',
-        targetRoute: 'management.settings.groups.list',
-        baseRoute: 'management.settings.groups',
-        permissions: ['environment-group-r'],
-      },
-      { displayName: 'Notifications' },
-      {
-        displayName: 'Notifications',
-        targetRoute: 'management.settings.notifications',
-        baseRoute: 'management.settings.notifications',
-        permissions: ['environment-notification-r'],
+        title: 'User Management',
+        items: [
+          {
+            displayName: 'User Fields',
+            targetRoute: 'management.settings.customUserFields',
+            baseRoute: 'management.settings.customUserFields',
+            permissions: ['organization-custom_user_fields-r'],
+          },
+          {
+            displayName: 'Groups',
+            targetRoute: 'management.settings.groups.list',
+            baseRoute: 'management.settings.groups',
+            permissions: ['environment-group-r'],
+          },
+        ],
       },
     ];
 
+    const notificationGroupItem: GroupItem = {
+      title: 'Notifications',
+      items: [
+        {
+          displayName: 'Notifications',
+          targetRoute: 'management.settings.notifications',
+          baseRoute: 'management.settings.notifications',
+          permissions: ['environment-notification-r'],
+        },
+      ],
+    };
     if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
-      this.subMenuItems.push({
+      notificationGroupItem.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.settings.alerts.list',
         baseRoute: 'management.settings.alerts',
         permissions: ['environment-alert-r'],
       });
     }
-  }
+    this.groupItems.push(notificationGroupItem);
 
-  filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    if (menuItems) {
-      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
-    }
-    return [];
+    this.groupItems.forEach((groupItem) => {
+      groupItem.items = groupItem.items.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    });
   }
 
   navigateTo(route: string) {

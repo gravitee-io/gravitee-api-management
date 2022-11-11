@@ -21,4 +21,8 @@
   flex-direction: column;
   height: calc(100vh - 54px);
   overflow-y: scroll;
+
+  &__submenu {
+    flex-grow: 1;
+  }
 }

@@ -247,11 +247,10 @@ function runBlock(
   };
 
   // Add or remove `bootstrap, mat` class wrapper to disable it on some routes with `useAngularMaterial` flag
-  $transitions.onFinish({}, function (trans) {
+  $transitions.onSuccess({}, function (trans) {
     const toState = trans.to();
     const useAngularMaterial = toState.data && toState.data.useAngularMaterial;
-
-    const mainContainer = angular.element(document.querySelector('.gv-sub-content'));
+    const mainContainer = angular.element(document.querySelector('.gv-main-container, .gravitee-no-sidenav-container'));
     if (useAngularMaterial) {
       mainContainer.removeClass('bootstrap');
     } else {

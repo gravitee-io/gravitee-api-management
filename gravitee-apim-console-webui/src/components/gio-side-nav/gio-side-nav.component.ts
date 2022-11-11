@@ -64,7 +64,7 @@ export class GioSideNavComponent implements OnInit {
   private buildMainMenuItems(): MenuItem[] {
     return this.filterMenuByPermission([
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
-      { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'Apis' },
+      { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'APIs' },
       {
         icon: 'gio:multi-window',
         targetRoute: 'management.applications.list',
