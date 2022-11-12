@@ -25,7 +25,6 @@ import { InstanceDetailsMonitoringComponent } from './instance-details-monitorin
 
 import { GioCircularPercentageModule } from '../../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
-import { InstanceDetailsHeaderModule } from '../instance-details-header/instance-details-header.module';
 
 @NgModule({
   declarations: [InstanceDetailsMonitoringComponent],
@@ -38,7 +37,6 @@ import { InstanceDetailsHeaderModule } from '../instance-details-header/instance
     GioClipboardModule,
     GioIconsModule,
     GioCircularPercentageModule,
-    InstanceDetailsHeaderModule,
   ],
 })
 export class InstanceDetailsMonitoringModule {}
