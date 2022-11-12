@@ -1,26 +1,3 @@
-.gravitee-instances-container {
-  margin: 20px;
-}
-
-.gravitee-instances-content {
-  border: 1px solid silver;
-  margin-bottom: 20px;
-}
-
-.gravitee-instances-table-title {
-  background-color: var(--gv-theme-color-darker);
-  color: var(--gv-theme-font-color-light);
-  fill: var(--gv-theme-font-color-light);
-  height: 35px;
-  padding: 0 5px 5px 5px;
-}
-
-.gravitee-instances-table-search {
-  top: 1px;
-  position: relative;
-  height: 100%;
-}
-
 .gravitee-instances-started {
   color: #429f46 !important;
   text-transform: capitalize;
@@ -29,29 +6,6 @@
 .gravitee-instances-stopped {
   color: red !important;
   text-transform: capitalize;
-}
-
-.gravitee-monitoring-icon-title {
-  top: 22px;
-  margin-right: 10px;
-}
-
-.gravitee-monitoring-gauge {
-  position: relative;
-  width: 80%;
-  padding-bottom: 30px;
-}
-
-.gravitee-monitoring-indicator-value {
-  font-size: 30px;
-  line-height: 30px;
-  color: #1f77b4;
-}
-
-.gravitee-pie-chart-title {
-  color: #1f77b4;
-  font-size: 15px;
-  padding-top: 50px;
 }
 
 .gravitee-instances-box {
@@ -102,26 +56,4 @@
   .api-box-footer {
     color: #cdcdcd;
   }
-}
-
-.gravitee-instances-detail {
-  display: flex;
-  flex-direction: row;
-  height: calc(100vh - 54px);
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    width: 100%;
-
-    &__view {
-      overflow-y: auto;
-    }
-  }
-}
-
-.gio-instance-details {
-  display: flex;
-  flex-direction: column;
 }

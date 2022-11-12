@@ -186,10 +186,10 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
 
   private getClassFromState(state: string): string {
     if (state === 'STARTED') {
-      return 'gravitee-instances-started';
+      return 'gio-instance-details-environment__started';
     }
     if (state === 'STOPPED') {
-      return 'gravitee-instances-stopped';
+      return 'gio-instance-details-environment__stopped';
     }
   }
 

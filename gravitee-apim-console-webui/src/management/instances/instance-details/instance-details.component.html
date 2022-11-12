@@ -15,16 +15,7 @@
     limitations under the License.
 
 -->
-<div class="instances-navigation">
-  <gio-submenu class="instances-navigation__menu">
-    <ng-container *ngFor="let item of this.subMenuItems">
-      <gio-submenu-item
-        *ngIf="item.targetRoute"
-        (click)="navigateTo(item.targetRoute)"
-        [active]="isActive(item.baseRoute)"
-        [attr.data-testid]="item.testId"
-        >{{ item.displayName }}</gio-submenu-item
-      >
-    </ng-container>
-  </gio-submenu>
+<div class="gio-instance-details">
+  <instance-details-header [instance]="instance"></instance-details-header>
+  <div ui-view class="instances-detail__content"></div>
 </div>

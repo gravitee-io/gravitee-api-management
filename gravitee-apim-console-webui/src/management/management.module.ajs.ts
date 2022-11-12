@@ -126,11 +126,6 @@ import DialogTransferApplicationController from './application/details/members/t
 // Instances
 import InstancesService from '../services/instances.service';
 import InstancesController from '../management/instances/instances.controller';
-import InstanceHeaderComponent from '../management/instances/details/header/instance-header.component';
-import InstanceEnvironmentController from '../management/instances/details/environment/instance-environment.controller';
-import InstanceEnvironmentComponent from '../management/instances/details/environment/instance-environment.component';
-import InstanceMonitoringComponent from '../management/instances/details/monitoring/instance-monitoring.component';
-import InstanceMonitoringController from '../management/instances/details/monitoring/instance-monitoring.controller';
 import InstancesComponent from '../management/instances/instances.component';
 // Analytics / widgets
 import WidgetComponent from '../components/widget/widget.component';
@@ -545,9 +540,6 @@ import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.com
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
-import { InstancesNavigationComponent } from './instances/details/instances-navigation/instances-navigation.component';
-import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
-import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -670,7 +662,6 @@ graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component:
 graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
 graviteeManagementModule.directive('apiNavigation', downgradeComponent({ component: ApiNavigationComponent }));
-graviteeManagementModule.directive('instancesNavigation', downgradeComponent({ component: InstancesNavigationComponent }));
 
 // Apis
 graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
@@ -728,8 +719,6 @@ graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.controller('LoginController', LoginController);
 graviteeManagementModule.controller('InstancesController', InstancesController);
-graviteeManagementModule.controller('InstanceEnvironmentController', InstanceEnvironmentController);
-graviteeManagementModule.controller('InstanceMonitoringController', InstanceMonitoringController);
 graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
 graviteeManagementModule.controller('DashboardController', DashboardController);
 graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
@@ -878,11 +867,6 @@ graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ co
 graviteeManagementModule.directive('ngOrgSettingsAudit', downgradeComponent({ component: OrgSettingsAuditComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
-graviteeManagementModule.component('instanceHeader', InstanceHeaderComponent);
-graviteeManagementModule.component('instanceEnvironment', InstanceEnvironmentComponent);
-graviteeManagementModule.component('instanceMonitoring', InstanceMonitoringComponent);
-graviteeManagementModule.directive('instanceDetailsMonitoring', downgradeComponent({ component: InstanceDetailsMonitoringComponent }));
-graviteeManagementModule.directive('instanceDetailsEnvironment', downgradeComponent({ component: InstanceDetailsEnvironmentComponent }));
 
 graviteeManagementModule.component('apiCreation', ApiCreationComponent);
 graviteeManagementModule.controller('ApiCreationController', ApiCreationController);

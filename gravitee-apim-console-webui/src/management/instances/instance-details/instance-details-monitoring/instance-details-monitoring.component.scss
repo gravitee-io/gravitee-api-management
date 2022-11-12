@@ -32,6 +32,12 @@
       flex-direction: column;
       justify-content: flex-end;
       text-align: center;
+
+      &__value {
+        font-size: 30px;
+        line-height: 30px;
+        color: #1f77b4;
+      }
     }
   }
 

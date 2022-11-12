@@ -150,57 +150,8 @@ function managementRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.instances.detail', {
-      abstract: true,
-      url: '/:instanceId',
-      template: '<div ui-view></div>',
-      resolve: {
-        instance: ($stateParams, InstancesService: InstancesService) =>
-          InstancesService.get($stateParams.instanceId).then((response) => response.data),
-      },
-    })
-    .state('management.instances.detail.environment', {
-      url: '/environment',
-      component: 'instanceEnvironment',
-      data: {
-        docs: {
-          page: 'management-gateway-environment',
-        },
-      },
-    })
-    .state('management.instances.detail.monitoring', {
-      url: '/monitoring',
-      component: 'instanceMonitoring',
-      data: {
-        docs: {
-          page: 'management-gateway-monitoring',
-        },
-      },
-      resolve: {
-        monitoringData: ($stateParams, InstancesService: InstancesService, instance: any) =>
-          InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then((response) => response.data),
-      },
-    })
-    .state('management.instances.detail.ng-environment', {
-      url: '/ng-environment',
-      component: 'instanceDetailsEnvironment',
-      data: {
-        docs: {
-          page: 'management-gateway-environment',
-        },
-        useAngularMaterial: true,
-      },
-    })
-    .state('management.instances.detail.ng-monitoring', {
-      url: '/ng-monitoring',
-      component: 'instanceDetailsMonitoring',
-      data: {
-        docs: {
-          page: 'management-gateway-monitoring',
-        },
-        useAngularMaterial: true,
-      },
-    })
+    // 'management.instances.detail' has been moved to src/management/instances/instance-details/instance-details.module.ts
+
     .state('management.logs', {
       url: '/logs?from&to&q&page&size',
       component: 'platformLogs',
