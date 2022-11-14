@@ -1,9 +1,14 @@
-.tab-body-wrapper {
-  margin: 8px;
-  padding: 0 40px;
-  overflow: hidden;
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'src/scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
 }
 
-gio-save-bar.save-bar {
-  bottom: 16px;
+.tab-body-wrapper {
+  margin-top: 8px;
 }
