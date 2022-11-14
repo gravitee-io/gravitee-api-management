@@ -740,9 +740,9 @@
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
                 <gravitee-policy-data-logging-masking.version>2.0.1</gravitee-policy-data-logging-masking.version>
-                <gravitee-entrypoint-sse-advanced.version>1.0.0</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-entrypoint-sse-advanced.version>2.0.0-alpha.3</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-endpoint-kafka-advanced.version>1.0.0-alpha.4</gravitee-endpoint-kafka-advanced.version>
+                <gravitee-endpoint-mqtt5-advanced.version>1.0.0-alpha.1</gravitee-endpoint-mqtt5-advanced.version>
 
                 <!-- Management API Only -->
                 <!-- Gateway Only -->
@@ -772,6 +772,14 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+                <!-- TODO Uncomment when mqtt5 alpha is released -->
+                <!--                <dependency>-->
+                <!--                    <groupId>com.graviteesource.endpoint</groupId>-->
+                <!--                    <artifactId>gravitee-endpoint-mqtt5-advanced</artifactId>-->
+                <!--                    <version>${gravitee-endpoint-mqtt5-advanced.version}</version>-->
+                <!--                    <type>zip</type>-->
+                <!--                    <scope>runtime</scope>-->
+                <!--                </dependency>-->
                 <!-- Policies -->
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>

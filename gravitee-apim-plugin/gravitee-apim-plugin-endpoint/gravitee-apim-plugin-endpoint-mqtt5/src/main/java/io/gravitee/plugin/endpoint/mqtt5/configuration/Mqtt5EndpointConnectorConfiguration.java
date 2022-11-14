@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,13 +31,16 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
     private String identifier;
     private String serverHost;
     private Integer serverPort;
     private String topic;
+
+    @Builder.Default
+    private Integer reconnectAttempts = 3;
 
     @Builder.Default
     private Consumer consumer = new Consumer();
@@ -48,7 +52,7 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
     @AllArgsConstructor
     @Getter
     @Setter
-    @Builder
+    @SuperBuilder
     public static class Consumer {
 
         @Builder.Default
@@ -59,7 +63,7 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
     @AllArgsConstructor
     @Getter
     @Setter
-    @Builder
+    @SuperBuilder
     public static class Producer {
 
         @Builder.Default
@@ -67,9 +71,6 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
 
         @Builder.Default
         private boolean retained = false;
-
-        @Builder.Default
-        private long messageExpiryInterval = -1;
 
         private String responseTopic;
     }

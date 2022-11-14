@@ -62,38 +62,38 @@ public class Mqtt5EndpointConnectorFactoryTest {
             "{\"identifier\":\"identifier\",\"serverHost\":\"localhost\",\"serverPort\":\"1234\",\"topic\":\"test/topic\", \"consumer\":{}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
-        assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getIdentifier()).isEqualTo("identifier");
-        assertThat(connector.configuration.getServerHost()).isEqualTo("localhost");
-        assertThat(connector.configuration.getServerPort()).isEqualTo(1234);
-        assertThat(connector.configuration.getTopic()).isEqualTo("test/topic");
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getConsumer().isEnabled()).isTrue();
-        assertThat(connector.configuration.getProducer()).isNotNull();
-        assertThat(connector.configuration.getProducer().isEnabled()).isTrue();
+        assertThat(connector.configuration()).isNotNull();
+        assertThat(connector.configuration().getIdentifier()).isEqualTo("identifier");
+        assertThat(connector.configuration().getServerHost()).isEqualTo("localhost");
+        assertThat(connector.configuration().getServerPort()).isEqualTo(1234);
+        assertThat(connector.configuration().getTopic()).isEqualTo("test/topic");
+        assertThat(connector.configuration().getConsumer()).isNotNull();
+        assertThat(connector.configuration().getConsumer().isEnabled()).isTrue();
+        assertThat(connector.configuration().getProducer()).isNotNull();
+        assertThat(connector.configuration().getProducer().isEnabled()).isTrue();
     }
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector("{}");
         assertThat(connector).isNotNull();
-        assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getIdentifier()).isNull();
-        assertThat(connector.configuration.getServerHost()).isNull();
-        assertThat(connector.configuration.getServerPort()).isNull();
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getProducer()).isNotNull();
+        assertThat(connector.configuration()).isNotNull();
+        assertThat(connector.configuration().getIdentifier()).isNull();
+        assertThat(connector.configuration().getServerHost()).isNull();
+        assertThat(connector.configuration().getServerPort()).isNull();
+        assertThat(connector.configuration().getConsumer()).isNotNull();
+        assertThat(connector.configuration().getProducer()).isNotNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(null);
         assertThat(connector).isNotNull();
-        assertThat(connector.configuration).isNotNull();
-        assertThat(connector.configuration.getIdentifier()).isNull();
-        assertThat(connector.configuration.getServerHost()).isNull();
-        assertThat(connector.configuration.getServerPort()).isNull();
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getProducer()).isNotNull();
+        assertThat(connector.configuration()).isNotNull();
+        assertThat(connector.configuration().getIdentifier()).isNull();
+        assertThat(connector.configuration().getServerHost()).isNull();
+        assertThat(connector.configuration().getServerPort()).isNull();
+        assertThat(connector.configuration().getConsumer()).isNotNull();
+        assertThat(connector.configuration().getProducer()).isNotNull();
     }
 }
