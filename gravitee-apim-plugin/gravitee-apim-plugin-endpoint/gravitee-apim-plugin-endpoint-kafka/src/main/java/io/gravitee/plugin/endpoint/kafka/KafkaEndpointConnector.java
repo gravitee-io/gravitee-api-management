@@ -110,36 +110,43 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     @Override
     protected Completable publish(final ExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
-            return Completable.defer(() -> {
-                Map<String, Object> config = new HashMap<>();
-                config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-                // Set kafka producer properties
-                config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-                config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-                config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
-                addCustomProducerConfig(config);
-                SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
-                KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
-                Set<String> topics = getTopics(ctx);
-                return ctx
-                    .request()
-                    .onMessages(upstream ->
-                        RxJava3Adapter
-                            .fluxToFlowable(
-                                kafkaSender
-                                    .send(
-                                        upstream.flatMap(message ->
-                                            Flowable
-                                                .fromIterable(overrideTopics(topics, message))
-                                                .map(topic -> SenderRecord.create(createProducerRecord(ctx, message, topic), message))
-                                        )
+            return Completable.defer(
+                () -> {
+                    Map<String, Object> config = new HashMap<>();
+                    config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
+                    // Set kafka producer properties
+                    config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+                    config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+                    config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
+                    addCustomProducerConfig(config);
+                    SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
+                    KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
+                    Set<String> topics = getTopics(ctx);
+                    return ctx
+                        .request()
+                        .onMessages(
+                            upstream ->
+                                RxJava3Adapter
+                                    .fluxToFlowable(
+                                        kafkaSender
+                                            .send(
+                                                upstream.flatMap(
+                                                    message ->
+                                                        Flowable
+                                                            .fromIterable(overrideTopics(topics, message))
+                                                            .map(
+                                                                topic ->
+                                                                    SenderRecord.create(createProducerRecord(ctx, message, topic), message)
+                                                            )
+                                                )
+                                            )
+                                            .transform(KafkaSenderErrorTransformer.transform(kafkaSender))
+                                            .map(SenderResult::correlationMetadata)
                                     )
-                                    .transform(KafkaSenderErrorTransformer.transform(kafkaSender))
-                                    .map(SenderResult::correlationMetadata)
-                            )
-                            .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
-                    );
-            });
+                                    .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
+                        );
+                }
+            );
         } else {
             return Completable.complete();
         }
@@ -162,8 +169,9 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
         if (message.headers() != null) {
             message
                 .headers()
-                .forEach(headerEntry ->
-                    producerRecord.headers().add(headerEntry.getKey(), headerEntry.getValue().getBytes(StandardCharsets.UTF_8))
+                .forEach(
+                    headerEntry ->
+                        producerRecord.headers().add(headerEntry.getKey(), headerEntry.getValue().getBytes(StandardCharsets.UTF_8))
                 );
         }
         return producerRecord;
@@ -171,76 +179,84 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
     @Override
     protected Completable subscribe(final ExecutionContext ctx) {
-        return Completable.fromRunnable(() -> {
-            if (configuration.getConsumer().isEnabled()) {
-                ctx
-                    .response()
-                    .messages(
-                        Flowable.defer(() -> {
-                            final EntrypointAsyncConnector entrypointAsyncConnector = ctx.getInternalAttribute(
-                                InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR
-                            );
-                            final QosOptions qosOptions = entrypointAsyncConnector.qosOptions();
-                            QosStrategy<String, byte[]> qosStrategy = qosStrategyFactory.createQosStrategy(
-                                kafkaReceiverFactory,
-                                qosOptions
-                            );
+        return Completable.fromRunnable(
+            () -> {
+                if (configuration.getConsumer().isEnabled()) {
+                    ctx
+                        .response()
+                        .messages(
+                            Flowable.defer(
+                                () -> {
+                                    final EntrypointAsyncConnector entrypointAsyncConnector = ctx.getInternalAttribute(
+                                        InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR
+                                    );
+                                    final QosOptions qosOptions = entrypointAsyncConnector.qosOptions();
+                                    QosStrategy<String, byte[]> qosStrategy = qosStrategyFactory.createQosStrategy(
+                                        kafkaReceiverFactory,
+                                        qosOptions
+                                    );
 
-                            Map<String, Object> config = new HashMap<>();
-                            config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-                            config.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
-                            KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
-                            config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
+                                    Map<String, Object> config = new HashMap<>();
+                                    config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
+                                    config.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
+                                    KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
+                                    config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
 
-                            // Set kafka consumer properties
-                            config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-                            config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+                                    // Set kafka consumer properties
+                                    config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+                                    config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 
-                            String groupId = getGroupId(ctx);
-                            config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+                                    String groupId = getGroupId(ctx);
+                                    config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
-                            addCustomConsumerConfig(config);
-                            qosStrategy.addCustomConfig(config);
+                                    addCustomConsumerConfig(config);
+                                    qosStrategy.addCustomConfig(config);
 
-                            ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
-                                .<String, byte[]>create(config)
-                                .subscription(getTopics(ctx));
+                                    ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
+                                        .<String, byte[]>create(config)
+                                        .subscription(getTopics(ctx));
 
-                            return RxJava3Adapter
-                                .<Message>fluxToFlowable(
-                                    qosStrategy
-                                        .receive(ctx, configuration, receiverOptions)
-                                        .transform(KafkaReceiverErrorTransformer.transform(qosStrategy))
-                                        .map(consumerRecord -> {
-                                            HttpHeaders httpHeaders = HttpHeaders.create();
-                                            consumerRecord
-                                                .headers()
-                                                .forEach(kafkaHeader -> httpHeaders.add(kafkaHeader.key(), new String(kafkaHeader.value()))
-                                                );
+                                    return RxJava3Adapter
+                                        .<Message>fluxToFlowable(
+                                            qosStrategy
+                                                .receive(ctx, configuration, receiverOptions)
+                                                .transform(KafkaReceiverErrorTransformer.transform(qosStrategy))
+                                                .map(
+                                                    consumerRecord -> {
+                                                        HttpHeaders httpHeaders = HttpHeaders.create();
+                                                        consumerRecord
+                                                            .headers()
+                                                            .forEach(
+                                                                kafkaHeader ->
+                                                                    httpHeaders.add(kafkaHeader.key(), new String(kafkaHeader.value()))
+                                                            );
 
-                                            Map<String, Object> metadata = new HashMap<>();
-                                            if (consumerRecord.key() != null) {
-                                                metadata.put("key", consumerRecord.key());
-                                            }
-                                            metadata.put("topic", consumerRecord.topic());
-                                            metadata.put("partition", consumerRecord.partition());
-                                            metadata.put("offset", consumerRecord.offset());
+                                                        Map<String, Object> metadata = new HashMap<>();
+                                                        if (consumerRecord.key() != null) {
+                                                            metadata.put("key", consumerRecord.key());
+                                                        }
+                                                        metadata.put("topic", consumerRecord.topic());
+                                                        metadata.put("partition", consumerRecord.partition());
+                                                        metadata.put("offset", consumerRecord.offset());
 
-                                            return DefaultMessage
-                                                .builder()
-                                                .id(qosStrategy.generateId(consumerRecord))
-                                                .headers(httpHeaders)
-                                                .content(Buffer.buffer(consumerRecord.value()))
-                                                .metadata(metadata)
-                                                .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord))
-                                                .build();
-                                        })
-                                )
-                                .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable));
-                        })
-                    );
+                                                        return DefaultMessage
+                                                            .builder()
+                                                            .id(qosStrategy.generateId(consumerRecord))
+                                                            .headers(httpHeaders)
+                                                            .content(Buffer.buffer(consumerRecord.value()))
+                                                            .metadata(metadata)
+                                                            .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord))
+                                                            .build();
+                                                    }
+                                                )
+                                        )
+                                        .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable));
+                                }
+                            )
+                        );
+                }
             }
-        });
+        );
     }
 
     private Flowable<Message> interruptMessagesWith(final ExecutionContext ctx, final Throwable throwable) {

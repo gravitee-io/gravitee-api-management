@@ -47,6 +47,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,7 +64,6 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     static final String MQTT5_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "mqtt5.";
     static final String CONTEXT_ATTRIBUTE_MQTT5_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "topic";
     static final String CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "responseTopic";
-    static final String CONTEXT_ATTRIBUTE_MQTT5_IDENTIFIER = MQTT5_CONTEXT_ATTRIBUTE + "identifier";
     private static final String FAILURE_ENDPOINT_CONNECTION_FAILED = "FAILURE_ENDPOINT_CONNECTION_FAILED";
     private static final String FAILURE_ENDPOINT_CONNECTION_CLOSED = "FAILURE_ENDPOINT_CONNECTION_CLOSED";
     private static final String FAILURE_ENDPOINT_UNKNOWN_ERROR = "FAILURE_ENDPOINT_UNKNOWN_ERROR";
@@ -100,7 +100,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                         .messages(
                             Flowable.defer(
                                 () -> {
-                                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).buildRx();
+                                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).identifier(generateSubscriberIdentifier()).buildRx();
                                     String topic = getTopic(ctx);
                                     return RxJavaBridge
                                         .toV3Flowable(
@@ -119,6 +119,10 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                 }
             }
         );
+    }
+
+    private String generateSubscriberIdentifier() {
+        return "gio-apim-subscriber-" + UUID.randomUUID().toString().split("-")[0];
     }
 
     protected Message transform(final Mqtt5Publish mqttPublish) {
@@ -149,7 +153,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         if (configuration.getProducer().isEnabled()) {
             return Completable.defer(
                 () -> {
-                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).buildRx();
+                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).identifier(generatePublisherIdentifier()).buildRx();
                     String topic = getTopic(ctx);
                     String responseTopic = getResponseTopic(ctx);
                     return ctx
@@ -191,6 +195,10 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         }
     }
 
+    private String generatePublisherIdentifier() {
+        return "gio-apim-publisher-" + UUID.randomUUID().toString().split("-")[0];
+    }
+
     protected Mqtt5SubscribeBuilder.Publishes.Start.Complete<FlowableWithSingle<Mqtt5Publish, Mqtt5SubAck>> prepareMqtt5Subscribe(
         final ExecutionContext ctx,
         final Mqtt5RxClient rxClient,
@@ -206,7 +214,6 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     protected Mqtt5ClientBuilder prepareMqtt5Client(final ExecutionContext ctx) {
         return Mqtt5Client
             .builder()
-            .identifier(getIdentifier(ctx))
             .serverHost(configuration.getServerHost())
             .serverPort(configuration.getServerPort())
             .automaticReconnectWithDefaultConfig()
@@ -241,18 +248,6 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
             builder = finalBuilder.userProperties().applyUserProperties();
         }
         return builder;
-    }
-
-    private String getIdentifier(ExecutionContext ctx) {
-        String identifier = ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_IDENTIFIER);
-        if (identifier == null || identifier.isEmpty()) {
-            identifier = configuration.getIdentifier();
-            if (identifier == null) {
-                identifier = ctx.request().transactionId();
-                ctx.setAttribute(CONTEXT_ATTRIBUTE_MQTT5_IDENTIFIER, identifier);
-            }
-        }
-        return identifier;
     }
 
     private String getTopic(final ExecutionContext ctx) {

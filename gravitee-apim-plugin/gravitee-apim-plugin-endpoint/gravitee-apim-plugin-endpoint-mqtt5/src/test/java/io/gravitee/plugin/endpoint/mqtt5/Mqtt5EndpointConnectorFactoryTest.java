@@ -59,11 +59,10 @@ public class Mqtt5EndpointConnectorFactoryTest {
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(
-            "{\"identifier\":\"identifier\",\"serverHost\":\"localhost\",\"serverPort\":\"1234\",\"topic\":\"test/topic\", \"consumer\":{}, \"producer\":{}}"
+            "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\",\"topic\":\"test/topic\", \"consumer\":{}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
-        assertThat(connector.configuration().getIdentifier()).isEqualTo("identifier");
         assertThat(connector.configuration().getServerHost()).isEqualTo("localhost");
         assertThat(connector.configuration().getServerPort()).isEqualTo(1234);
         assertThat(connector.configuration().getTopic()).isEqualTo("test/topic");
@@ -78,7 +77,6 @@ public class Mqtt5EndpointConnectorFactoryTest {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector("{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
-        assertThat(connector.configuration().getIdentifier()).isNull();
         assertThat(connector.configuration().getServerHost()).isNull();
         assertThat(connector.configuration().getServerPort()).isNull();
         assertThat(connector.configuration().getConsumer()).isNotNull();
@@ -90,7 +88,6 @@ public class Mqtt5EndpointConnectorFactoryTest {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
-        assertThat(connector.configuration().getIdentifier()).isNull();
         assertThat(connector.configuration().getServerHost()).isNull();
         assertThat(connector.configuration().getServerPort()).isNull();
         assertThat(connector.configuration().getConsumer()).isNotNull();

@@ -3,11 +3,6 @@
     "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt:configuration:MqttEndpointConnectorConfiguration",
     "additionalProperties": false,
     "properties": {
-        "identifier": {
-            "type": "string",
-            "title": "identifier",
-            "description": "The client identifier identifies the MQTT client that connects to an MQTT broker."
-        },
         "serverHost": {
             "type": "string",
             "title": "serverHost",
