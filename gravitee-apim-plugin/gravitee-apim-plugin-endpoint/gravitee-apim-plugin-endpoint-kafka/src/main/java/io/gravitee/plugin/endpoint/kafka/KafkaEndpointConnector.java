@@ -54,6 +54,8 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.errors.SaslAuthenticationException;
+import org.apache.kafka.common.errors.SslAuthenticationException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -80,7 +82,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
     private static final String FAILURE_ENDPOINT_CONNECTION_CLOSED = "FAILURE_ENDPOINT_CONNECTION_CLOSED";
-    private static final String FAILURE_ENDPOINT_CONFIGURATION_INVALID = "FAILURE_ENDPOINT_CONFIGURATION_ERROR";
+    private static final String FAILURE_ENDPOINT_CONFIGURATION_INVALID = "FAILURE_ENDPOINT_CONFIGURATION_INVALID";
     private static final String FAILURE_ENDPOINT_UNKNOWN_ERROR = "FAILURE_ENDPOINT_UNKNOWN_ERROR";
     private static final String FAILURE_PARAMETERS_EXCEPTION = "exception";
     private static final String ENDPOINT_ID = "kafka";
@@ -265,14 +267,18 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     .key(FAILURE_ENDPOINT_CONNECTION_CLOSED)
                     .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
             );
-        } else if (throwable instanceof ConfigException) {
+        } else if (
+            throwable instanceof ConfigException ||
+            throwable instanceof SaslAuthenticationException ||
+            throwable instanceof SslAuthenticationException
+        ) {
             return ctx.interruptMessagesWith(
                 new ExecutionFailure(500)
                     .message("Endpoint configuration invalid")
                     .key(FAILURE_ENDPOINT_CONFIGURATION_INVALID)
                     .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
             );
-        } else if (throwable instanceof KafkaException) {
+        } else if (throwable instanceof KafkaException || throwable.getCause() != null) {
             return interruptMessagesWith(ctx, throwable.getCause());
         } else {
             return ctx.interruptMessagesWith(
@@ -336,8 +342,10 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
             key = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY);
             if (key == null) {
                 key = message.id();
-                ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY, key);
             }
+        }
+        if (key != null) {
+            message.attribute(CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY, key);
         }
         return key;
     }
