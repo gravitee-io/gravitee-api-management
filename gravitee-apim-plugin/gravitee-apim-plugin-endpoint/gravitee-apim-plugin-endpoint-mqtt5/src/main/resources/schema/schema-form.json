@@ -23,6 +23,14 @@
             "title": "topic",
             "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
         },
+        "reconnectAttempts": {
+            "type": "integer",
+            "title": "reconnectAttempts",
+            "description": "Number of reconnect attempts after any kind of disconnection.",
+            "default": 3,
+            "minimum": 0,
+            "maximum": 10
+        },
         "consumer": {
             "type": "object",
             "title": "Consumer configuration",
@@ -52,12 +60,6 @@
                     "description": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message.",
                     "type": "boolean",
                     "default": false
-                },
-                "messageExpiryInterval": {
-                    "title": "messageExpiryInterval",
-                    "description": "This interval defines the period of time that the broker stores the PUBLISH message for any matching subscribers that are not currently connected. When no message expiry interval is set, the broker must store the message for matching subscribers indefinitely. When the retained=true option is set on the PUBLISH message, this interval also defines how long a message is retained on a topic.",
-                    "type": "integer",
-                    "default": -1
                 },
                 "responseTopic": {
                     "title": "responseTopic",

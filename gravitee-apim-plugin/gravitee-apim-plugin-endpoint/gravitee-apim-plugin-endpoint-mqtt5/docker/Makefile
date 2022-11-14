@@ -18,7 +18,7 @@ makefile := $(MAKEFILE_LIST)
 # -----------------------------------------------------------------------------
 
 help: ## Print this message
-	@echo "\033[0;36m Will run by default with 'master-latest' images coming from 'graviteeio.azurecr.io' registry, but you can pass version with: \033[0mmake \033[0;33mall | kafka \033[0m \033[0mAPIM_VERSION=\033[0;33m{version} \036 APIM_REGISTRY=\033[0;33m{registry} \036"
+	@echo "\033[0;36m Will run by default with 'master-latest' images coming from 'graviteeio.azurecr.io' registry, but you can pass version with: \033[0mmake \033[0;33mall | hivemq \033[0m \033[0mAPIM_VERSION=\033[0;33m{version} \036 APIM_REGISTRY=\033[0;33m{registry} \036"
 	@echo "\033[0;36m Example: \033[0mmake \033[0;33mall\033[0m \033[0mAPIM_VERSION=\033[0;33m3.20.0 \033[0mAPIM_REGISTRY=\033[0;33mhub.docker.com \033[0m"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(makefile) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-35s\033[0m %s\n", $$1, $$2}'
 

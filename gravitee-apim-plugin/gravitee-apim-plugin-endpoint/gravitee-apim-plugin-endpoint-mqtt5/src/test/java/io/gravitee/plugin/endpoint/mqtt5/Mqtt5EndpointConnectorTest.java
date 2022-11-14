@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.mqtt5;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.CONTEXT_ATTRIBUTE_MQTT5_TOPIC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -36,12 +37,15 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
-import io.reactivex.Flowable;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,7 +155,7 @@ public class Mqtt5EndpointConnectorTest {
                 mqtt5ConnAck ->
                     client
                         .publish(
-                            Flowable.just(
+                            io.reactivex.Flowable.just(
                                 Mqtt5Publish
                                     .builder()
                                     .topic(configuration.getTopic())
@@ -172,6 +176,31 @@ public class Mqtt5EndpointConnectorTest {
         testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
 
         client.disconnect().subscribe();
+    }
+
+    @Test
+    void shouldInterruptConsumeWithInvalidHostAndPort() throws InterruptedException {
+        configuration.setServerHost("localhost");
+        configuration.setServerPort(1);
+        configuration.getProducer().setEnabled(false);
+
+        when(ctx.interruptMessagesWith(any()))
+            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
+        mqtt5EndpointConnector.connect(ctx).test().assertComplete();
+
+        verify(response).messages(messagesCaptor.capture());
+        io.reactivex.rxjava3.subscribers.TestSubscriber<Message> messageTestSubscriber = messagesCaptor.getValue().test();
+        messageTestSubscriber.await(15, TimeUnit.SECONDS);
+        messageTestSubscriber.assertError(
+            throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure()).isNotNull();
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection failed");
+                return true;
+            }
+        );
     }
 
     @Test
@@ -210,6 +239,112 @@ public class Mqtt5EndpointConnectorTest {
         verify(request).onMessages(messagesTransformerCaptor.capture());
         io.reactivex.rxjava3.subscribers.TestSubscriber<Message> messageTestSubscriber = io.reactivex.rxjava3.core.Flowable
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
+            .compose(messagesTransformerCaptor.getValue())
+            .take(1)
+            .test();
+        messageTestSubscriber.await(10, TimeUnit.SECONDS);
+        messageTestSubscriber.assertComplete();
+
+        testSubscriber.await(10, TimeUnit.SECONDS);
+        testSubscriber.assertValueCount(1);
+        client.disconnect().blockingAwait();
+    }
+
+    @Test
+    void shouldPublishRequestMessagesOnCtxOverriddenTopic() throws InterruptedException {
+        configuration.getConsumer().setEnabled(false);
+        when(request.onMessages(any())).thenReturn(Completable.complete());
+        String overriddenTopic = "overriddenTopic";
+
+        Mqtt5RxClient client = Mqtt5Client
+            .builder()
+            .identifier("subscriber")
+            .serverHost(mqtt.getHost())
+            .serverPort(mqtt.getMqttPort())
+            .buildRx();
+
+        TestSubscriber<Mqtt5Publish> testSubscriber = client
+            .connect()
+            .flatMapPublisher(
+                mqtt5ConnAck ->
+                    client
+                        .subscribePublishesWith()
+                        .addSubscription()
+                        .topicFilter(overriddenTopic)
+                        .qos(MqttQos.AT_LEAST_ONCE)
+                        .noLocal(false)
+                        .applySubscription()
+                        .applySubscribe()
+            )
+            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
+            .take(1)
+            .test();
+
+        when(ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_TOPIC)).thenReturn(overriddenTopic);
+        TestObserver<Void> testObserver = mqtt5EndpointConnector.connect(ctx).test();
+        testObserver.await(10, TimeUnit.SECONDS);
+        testObserver.assertComplete();
+
+        verify(request).onMessages(messagesTransformerCaptor.capture());
+        io.reactivex.rxjava3.subscribers.TestSubscriber<Message> messageTestSubscriber = io.reactivex.rxjava3.core.Flowable
+            .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
+            .compose(messagesTransformerCaptor.getValue())
+            .take(1)
+            .test();
+        messageTestSubscriber.await(10, TimeUnit.SECONDS);
+        messageTestSubscriber.assertComplete();
+
+        testSubscriber.await(10, TimeUnit.SECONDS);
+        testSubscriber.assertValueCount(1);
+        client.disconnect().blockingAwait();
+    }
+
+    @Test
+    void shouldPublishRequestMessagesOnMessageOverriddenTopic() throws InterruptedException {
+        configuration.getConsumer().setEnabled(false);
+        when(request.onMessages(any())).thenReturn(Completable.complete());
+        String messageOverriddenTopic = "messageOverriddenTopic";
+
+        Mqtt5RxClient client = Mqtt5Client
+            .builder()
+            .identifier("subscriber")
+            .serverHost(mqtt.getHost())
+            .serverPort(mqtt.getMqttPort())
+            .buildRx();
+
+        TestSubscriber<Mqtt5Publish> testSubscriber = client
+            .connect()
+            .flatMapPublisher(
+                mqtt5ConnAck ->
+                    client
+                        .subscribePublishesWith()
+                        .addSubscription()
+                        .topicFilter(messageOverriddenTopic)
+                        .qos(MqttQos.AT_LEAST_ONCE)
+                        .noLocal(false)
+                        .applySubscription()
+                        .applySubscribe()
+            )
+            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
+            .take(1)
+            .test();
+
+        TestObserver<Void> testObserver = mqtt5EndpointConnector.connect(ctx).test();
+        testObserver.await(10, TimeUnit.SECONDS);
+        testObserver.assertComplete();
+
+        verify(request).onMessages(messagesTransformerCaptor.capture());
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(CONTEXT_ATTRIBUTE_MQTT5_TOPIC, "messageOverriddenTopic");
+        io.reactivex.rxjava3.subscribers.TestSubscriber<Message> messageTestSubscriber = io.reactivex.rxjava3.core.Flowable
+            .just(
+                DefaultMessage
+                    .builder()
+                    .headers(HttpHeaders.create().add("key", "value"))
+                    .content(Buffer.buffer("message"))
+                    .attributes(attributes)
+                    .build()
+            )
             .compose(messagesTransformerCaptor.getValue())
             .take(1)
             .test();
