@@ -103,7 +103,6 @@ public class Mqtt5EndpointConnectorTest {
     public void test() {
         configuration.setServerHost(mqtt.getHost());
         configuration.setServerPort(mqtt.getMqttPort());
-        configuration.setIdentifier("gio-gw");
         configuration.setTopic("test/topic");
         configuration.getProducer().setRetained(true);
 

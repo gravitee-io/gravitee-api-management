@@ -34,7 +34,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
-    private String identifier;
     private String serverHost;
     private Integer serverPort;
     private String topic;
