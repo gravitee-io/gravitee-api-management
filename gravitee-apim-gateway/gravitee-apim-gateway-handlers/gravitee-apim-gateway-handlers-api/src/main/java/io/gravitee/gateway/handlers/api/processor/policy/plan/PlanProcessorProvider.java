@@ -32,7 +32,7 @@ public abstract class PlanProcessorProvider extends AbstractPolicyChainProvider 
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        if (context.getAttribute("skip-security-chain") == null) {
+        if (context.getAttribute(ExecutionContext.ATTR_SECURITY_SKIP) == null) {
             // Store information about the resolved plan (according to the incoming request)
             String plan = (String) context.getAttribute(ExecutionContext.ATTR_PLAN);
             String application = (String) context.getAttribute(ExecutionContext.ATTR_APPLICATION);

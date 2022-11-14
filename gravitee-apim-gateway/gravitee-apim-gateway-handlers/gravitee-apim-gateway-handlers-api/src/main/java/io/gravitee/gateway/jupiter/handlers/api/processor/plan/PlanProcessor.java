@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
@@ -52,7 +53,7 @@ public class PlanProcessor implements Processor {
             () -> {
                 final Metrics metrics = ctx.request().metrics();
 
-                if (Objects.equals(true, ctx.getAttribute(ContextAttributes.ATTR_SKIP_SECURITY_CHAIN))) {
+                if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                     final String remoteAddress = ctx.request().remoteAddress();
 
                     // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).

@@ -20,7 +20,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -36,9 +36,8 @@ import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageCondi
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.AsyncReactorFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiMessageProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
@@ -175,7 +174,7 @@ public class ApiHandlerConfiguration {
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -188,7 +187,7 @@ public class ApiHandlerConfiguration {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            httpRequestTimeoutConfiguration
+            requestTimeoutConfiguration
         );
     }
 
@@ -212,11 +211,6 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ApiMessageProcessorChainFactory apiMessageProcessorChainFactory() {
-        return new ApiMessageProcessorChainFactory();
-    }
-
-    @Bean
     public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
         PolicyFactory policyFactory,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
@@ -224,11 +218,11 @@ public class ApiHandlerConfiguration {
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
-        ApiMessageProcessorChainFactory apiMessageProcessorChainFactory,
         io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        FlowResolverFactory v4FlowResolverFactory
+        FlowResolverFactory v4FlowResolverFactory,
+        RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
-        return new AsyncReactorFactory(
+        return new DefaultApiReactorFactory(
             applicationContext,
             configuration,
             node,
@@ -238,9 +232,9 @@ public class ApiHandlerConfiguration {
             platformPolicyChainFactory,
             organizationManager,
             v4ApiProcessorChainFactory,
-            apiMessageProcessorChainFactory,
             flowResolverFactory,
-            v4FlowResolverFactory
+            v4FlowResolverFactory,
+            requestTimeoutConfiguration
         );
     }
 }

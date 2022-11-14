@@ -49,6 +49,8 @@ public class Endpoint implements Serializable {
     @NotBlank
     private String type;
 
+    private boolean secondary;
+
     private int weight = DEFAULT_WEIGHT;
 
     private boolean inheritConfiguration;

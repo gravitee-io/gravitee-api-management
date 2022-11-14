@@ -22,23 +22,31 @@ import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class DefaultEndpointConnectorPluginManagerTest {
 
-    private EndpointConnectorPluginManager endpointConnectorPluginManager;
+    @Mock
+    private DeploymentContext deploymentContext;
+
+    private EndpointConnectorPluginManager cut;
 
     @BeforeEach
     public void beforeEach() {
-        endpointConnectorPluginManager =
+        cut =
             new DefaultEndpointConnectorPluginManager(
                 new DefaultEndpointConnectorClassLoaderFactory(),
                 new ConnectorHelper(null, new ObjectMapper())
@@ -52,10 +60,10 @@ class DefaultEndpointConnectorPluginManagerTest {
             FakeEndpointConnectorFactory.class,
             null
         );
-        endpointConnectorPluginManager.register(endpointPlugin);
-        final EndpointConnectorFactory<FakeEndpointConnector> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        cut.register(endpointPlugin);
+        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
-        final EndpointConnector fakeConnector = fake.createConnector(null);
+        final EndpointConnector fakeConnector = fake.createConnector(deploymentContext, null);
         assertThat(fakeConnector).isNotNull();
     }
 
@@ -66,17 +74,17 @@ class DefaultEndpointConnectorPluginManagerTest {
             FakeEndpointConnectorFactory.class,
             EndpointConnectorConfiguration.class
         );
-        endpointConnectorPluginManager.register(endpointPlugin);
-        final EndpointConnectorFactory<FakeEndpointConnector> fake = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        cut.register(endpointPlugin);
+        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById("fake-endpoint");
         assertThat(fake).isNotNull();
-        final FakeEndpointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
+        final FakeEndpointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
         assertThat(fakeConnector.getConfiguration().getInfo()).isEqualTo("test");
     }
 
     @Test
     public void shouldNotRetrieveUnRegisterPlugin() {
-        final EndpointConnector factoryById = endpointConnectorPluginManager.getFactoryById("fake-endpoint");
+        final EndpointConnector factoryById = cut.getFactoryById("fake-endpoint");
         assertThat(factoryById).isNull();
     }
 }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import java.util.Set;
 import lombok.NoArgsConstructor;
@@ -33,7 +34,7 @@ import lombok.NoArgsConstructor;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
-public class FakeEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+public class FakeEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<FakeEntrypointConnector> {
 
     @Override
     public ApiType supportedApi() {
@@ -51,7 +52,7 @@ public class FakeEntrypointConnectorFactory implements EntrypointAsyncConnectorF
     }
 
     @Override
-    public FakeEntrypointConnector createConnector(final Qos qos, final String configuration) {
+    public FakeEntrypointConnector createConnector(final DeploymentContext deploymentContext, final Qos qos, final String configuration) {
         FakeEntrypointConnector.FakeEntrypointConnectorBuilder builder = FakeEntrypointConnector.builder();
         if (configuration != null) {
             try {

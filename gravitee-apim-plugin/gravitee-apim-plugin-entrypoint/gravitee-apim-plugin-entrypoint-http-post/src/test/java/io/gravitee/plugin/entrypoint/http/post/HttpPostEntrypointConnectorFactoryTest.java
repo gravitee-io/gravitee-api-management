@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultDeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,13 +53,21 @@ class HttpPostEntrypointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  " })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
-        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
+        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(
+            new DefaultDeploymentContext(),
+            Qos.NONE,
+            configuration
+        );
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(Qos.NONE, null);
+        HttpPostEntrypointConnector connector = httpPostEntrypointConnectorFactory.createConnector(
+            new DefaultDeploymentContext(),
+            Qos.NONE,
+            null
+        );
         assertThat(connector).isNotNull();
     }
 }

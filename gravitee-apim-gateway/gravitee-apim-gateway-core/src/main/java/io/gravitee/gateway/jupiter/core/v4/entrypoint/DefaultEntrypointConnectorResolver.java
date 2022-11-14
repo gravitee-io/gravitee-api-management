@@ -23,7 +23,9 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -45,34 +47,41 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     private static final Logger log = LoggerFactory.getLogger(DefaultEntrypointConnectorResolver.class);
     private final List<EntrypointConnector> entrypointConnectors;
 
-    public DefaultEntrypointConnectorResolver(final Api api, final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
+    public DefaultEntrypointConnectorResolver(
+        final Api api,
+        final DeploymentContext deploymentContext,
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager
+    ) {
         entrypointConnectors =
             api
                 .getListeners()
                 .stream()
                 .flatMap(listener -> listener.getEntrypoints().stream())
-                .map(entrypoint -> this.<EntrypointConnector>createConnector(entrypointConnectorPluginManager, entrypoint))
+                .map(
+                    entrypoint -> this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
+                )
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
                 .collect(Collectors.toList());
     }
 
     private <T extends EntrypointConnector> T createConnector(
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        Entrypoint entrypoint
+        final DeploymentContext deploymentContext,
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        final Entrypoint entrypoint
     ) {
         EntrypointConnectorFactory<?> connectorFactory = entrypointConnectorPluginManager.getFactoryById(entrypoint.getType());
 
         if (connectorFactory != null) {
             if (connectorFactory.supportedApi() == ApiType.ASYNC) {
-                EntrypointAsyncConnectorFactory entrypointAsyncConnectorFactory = (EntrypointAsyncConnectorFactory) connectorFactory;
+                EntrypointAsyncConnectorFactory<EntrypointAsyncConnector> entrypointAsyncConnectorFactory = (EntrypointAsyncConnectorFactory<EntrypointAsyncConnector>) connectorFactory;
                 Qos qos = Qos.BALANCED;
                 if (entrypoint.getQos() != null) {
                     qos = Qos.fromLabel(entrypoint.getQos().getLabel());
                 }
-                return (T) entrypointAsyncConnectorFactory.createConnector(qos, entrypoint.getConfiguration());
+                return (T) entrypointAsyncConnectorFactory.createConnector(deploymentContext, qos, entrypoint.getConfiguration());
             }
-            return (T) connectorFactory.createConnector(entrypoint.getConfiguration());
+            return (T) connectorFactory.createConnector(deploymentContext, entrypoint.getConfiguration());
         }
         return null;
     }

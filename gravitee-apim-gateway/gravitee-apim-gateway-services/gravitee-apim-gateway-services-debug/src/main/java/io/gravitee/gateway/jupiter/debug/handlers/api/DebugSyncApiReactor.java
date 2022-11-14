@@ -20,7 +20,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
@@ -54,7 +54,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         super(
             api,
@@ -68,7 +68,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             groupLifecycleManager,
             configuration,
             node,
-            httpRequestTimeoutConfiguration
+            requestTimeoutConfiguration
         );
         invokerHooks.add(new DebugInvokerHook());
     }

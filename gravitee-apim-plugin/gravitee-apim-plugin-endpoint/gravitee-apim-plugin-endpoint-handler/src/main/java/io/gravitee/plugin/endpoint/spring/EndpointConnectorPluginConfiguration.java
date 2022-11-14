@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class EndpointConnectorPluginConfiguration {
 
     @Bean
-    public ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> endpointPluginManager(
+    public DefaultEndpointConnectorPluginManager endpointPluginManager(
         final EndpointConnectorClassLoaderFactory endpointConnectorClassLoaderFactory,
         final ConnectorHelper connectorHelper
     ) {

@@ -1,0 +1,200 @@
+= Http Proxy Endpoint
+
+== Description
+
+The *Http Proxy Endpoint Connector* can be used to expose and proxy a regular http based api (rest api, soap, ...).
+
+This endpoint works at *request and response* level and does not allow dealing with Event Native. It is exclusively compatible with entrypoints working at request and response level such as _Http Proxy Entrypoint Connector_.
+
+== Compatibility matrix
+
+|===
+|Plugin version | APIM version
+
+|1.x and upper                  | 3.20.x to latest
+|===
+
+== Endpoint identifier
+
+In order to use this endpoint, you'll have to declare the following identifier `http-proxy` while configuring your API endpoints.
+
+== Endpoint configuration
+
+=== General configuration
+
+Bellow you will find the common options related to endpoint configuration which are not specific to the `http-proxy` endpoint connector (eg: common to all endpoints). All the specific configurations are located under the `configuration` attribute.
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|name | N/A     | Yes | A human-readable name for the endpoint.
+|type | N/A     | Yes | Defines the type of endpoint connector to configure. Here `http-proxy`.
+|weight | 1     | Yes | Defines the weight of this endpoint. The weight can be useful when applying a load balancing strategy to select an endpoint among all the endpoints in a group.
+|inheritConfiguration | false     | Yes | Indicates if the configuration is inherited from the configuration defined at the group level or not. When inherited, the endpoint configuration is ignored and the one defined at group level is taken. If not, the endpoint connector will be configured using the provided configuration.
+|secondary | false     | Yes |  A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary endpoints are marked as "DOWN" by health-check service.
+|configuration | N/A     | Yes | The specific configuration of the `http-proxy` endpoint connector (see bellow).
+|===
+
+=== Http proxy connector configuration
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|target | N/A     | Yes | The target url to use to contact the backend (ex: https://api.gravitee.io/echo).
+|headers | N/A     | No | An optional list of headers to add before sending the request to the backend. Header's value support EL expression that are evaluated at Api deployment (not request time!) and support a subset of expressions (api properties, dictionary, node). All headers defined here take precedence over headers defined at request time (override).
+|http | N/A     | No | The configuration related to http (pool, timeout, ...). See bellow for details.
+|proxy | N/A     | No | The configuration related to the configuration of proxy (http or tcp proxy). See bellow for details.
+|ssl | N/A     | No | The configuration related to ssl. See bellow for details.
+
+|===
+
+=== Http options
+
+The http proxy connector comes with default values regarding the connection pool and the different timeout. They are all overridable depending on the need. Each configured endpoint will have its own instance of endpoint connector with its dedicated connection pool and properties.
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|keepAlive | true     | Yes | Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+|followRedirects | false     | Yes | When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.
+|readTimeout | 10000     | Yes | Maximum time given to the backend to complete the request (including response) in milliseconds.
+|idleTimeout | 60000     | Yes | Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the eventual associated resources.
+|connectTimeout | 5000     | Yes | Maximum time to connect to the backend in milliseconds.
+|propagateClientAcceptEncoding | false     | Yes | Propagate client Accept-Encoding header (no decompression if any). The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. <b>DO NOT</b> activate this option if you plan to play with body responses.
+|useCompression | true     | Yes | Enable compression (gzip, deflate). The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.
+|maxConcurrentConnections | 20     | Yes | Maximum pool size for connections. It basically represents the maximum number of concurrent requests at a time.
+|version | HTTP_1     | Yes | The http version to use.
+|clearTextUpgrade | true     | No | Allows h2c Clear Text Upgrade. If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge).
+|pipelining | false     | No | Enable HTTP pipelining. When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
+|connectTimeout | 3000     | Yes | Maximum time to connect to the backend in milliseconds.
+
+|===
+
+Here are some considerations regarding connection pool and timeouts:
+
+ * Choose the lowest read timeout value that fits your requirements to ensure it fails fast when backend slow down.
+ * Use `HTTP/2` protocol when possible as it is recognized to be faster than `HTTP/1.1`
+ * Minimize the number of connections in the pool depending on your expectations. Maintaining too many opened connections can be ineffective and slow down you backend.
+
+=== Proxy options
+
+The proxy options allows to configure the use of an http or tcp proxy. Large companies often use a global enterprise proxy to control traffic going outside the company's network (eg: internet traffic). Proxy options allows to indicate the connector to configure a proxy server to pass through.
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|enabled | false     | No | Indicates to use the specified http proxy configuration when contacting the backend target.
+|type | HTTP     | No | The type of proxy (could be `HTTP`, `SOCKS4` or `SOCKS5`)
+|useSystemProxy | false     | No | Indicates if the system proxy configured globally must be used or not. If enabled, it avoids specifying proxy configuration by yourself at endpoint level.
+|host | N/A     | No | The proxy host.
+|port | N/A     | No | The proxy port.
+|username | N/A     | No | The optional proxy username to use in case the proxy requires authentication.
+|password | N/A     | No | The optional proxy password to use in case the proxy requires authentication.
+
+|===
+
+=== SSL options
+
+When configuring the endpoint, you may want to contact a secured target (https). Sometimes, the certificate exposed by the backend requires a particular configuration in order to be trusted. Other times, the backend requires a client certificate (aka: mtls for Mutual TLS). Here are what truststore and keystore refer to:
+
+ * truststore: what is required to validate the server's certificate
+ * keystore: what is required for mtls (eg: client certificate)
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|hostnameVerifier | true    | No | Verify host. When enabled, the certificate of the backend server will be validated against the targeted host to verify they match together.
+|trustAll | false     | No | Trust all. Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.
+|useSystemProxy | false     | No | Indicates if the system proxy configured globally must be used or not. If enabled, it avoid to specified http proxy configuration by yourself.
+|trustStore | N/A     | No | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
+|keystore | N/A     | No | Configuration for Mutual TLS. The keystore is used to select the client certificate to send to the backend server when connecting. See bellow for details.
+
+|===
+
+Here are the attributes for configuring the truststore options (eg: backend certificate validation).
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|type | true    | Yes | The type of the specified truststore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
+|password | N/A     | No | The password to use when the truststore is protected.
+|path | N/A     | No | The path to the truststore file on the server. Use content to provide the truststore by yourself.
+|content | N/A     | No | Configuration for the truststore. The truststore is used to validate the server's certificate. See bellow for details.
+
+|===
+
+Here are the attributes for configuring the keystore options (client certificate, Mutual TLS).
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|type | true    | Yes | The type of the specified keystore. Could be `PKCS12` (recommended as it is an industry standard), `JKS` (not recommended, deprecated) or `PEM`.
+|password | N/A     | No | The password to use when the keystore is protected.
+|path | N/A     | No | The path to the keystore file on the server. Use content to provide the keystore by yourself.
+|content | N/A     | No | Configuration for the keystore. The truststore is used to validate the server's certificate. See bellow for details.
+
+|===
+
+=== Examples
+
+Bellow you will find a full `http-proxy` endpoint configuration example:
+
+```json
+{
+    "name": "default",
+    "type": "http-proxy",
+    "weight": 1,
+    "inheritConfiguration": false,
+    "secondary": false,
+    "configuration": {
+        "target": "https://localhost:8082/echo?foo=bar",
+        "headers": [
+            {
+                "name": "X-Header1",
+                "value": "Value1"
+            },
+            {
+                "name": "X-Header1",
+                "value": "Value1"
+            }
+        ],
+        "http": {
+            "keepAlive": true,
+            "followRedirects": false,
+            "readTimeout": 10000,
+            "idleTimeout": 60000,
+            "connectTimeout": 5000,
+            "propagateClientAcceptEncoding": false,
+            "useCompression": true,
+            "maxConcurrentConnections": 100,
+            "version": "HTTP_1_1",
+            "pipelining": false,
+            "clearTextUpgrade": true
+        },
+        "proxy": {
+            "enabled": false,
+            "useSystemProxy": false,
+            "host": "localhost",
+            "port": 8080,
+            "username": "user",
+            "password": "pwd",
+            "type": "HTTP"
+        },
+        "ssl": {
+            "keyStore": {
+                "type": "PKC12",
+                "content": "MIIG/gIBA....",
+                "password": "keystore-secret"
+            },
+            "hostnameVerifier": true,
+            "trustStore": {
+                "type": "PKCS12",
+                "content": "MIIG/gIBA....",
+                "password": "truststore-secret"
+            },
+            "trustAll": false
+        }
+    }
+}
+```
+

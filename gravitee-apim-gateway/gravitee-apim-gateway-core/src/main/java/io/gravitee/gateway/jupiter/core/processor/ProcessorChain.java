@@ -44,6 +44,12 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         this.processors = processors != null ? Flowable.fromIterable(processors) : Flowable.empty();
     }
 
+    public ProcessorChain(final String id, final List<Processor> processors, final List<ProcessorHook> hooks) {
+        this.id = id;
+        this.processors = processors != null ? Flowable.fromIterable(processors) : Flowable.empty();
+        this.addHooks(hooks);
+    }
+
     @Override
     public void addHooks(List<ProcessorHook> hooks) {
         if (this.processorHooks == null) {

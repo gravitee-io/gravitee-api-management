@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.endpoint;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -33,6 +34,7 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.internal.DefaultEndpointConnectorPluginManager;
 import java.util.ArrayList;
@@ -69,6 +71,9 @@ class DefaultEndpointConnectorResolverTest {
     @Mock
     private EndpointConnectorFactory connectorFactory;
 
+    @Mock
+    private DeploymentContext deploymentContext;
+
     @BeforeEach
     void init() {
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
@@ -85,9 +90,9 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
@@ -106,16 +111,16 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector)
             .thenReturn(mock(EndpointConnector.class))
             .thenReturn(mock(EndpointConnector.class));
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
-        verify(connectorFactory, times(3)).createConnector(ENDPOINT_CONFIG);
+        verify(connectorFactory, times(3)).createConnector(deploymentContext, ENDPOINT_CONFIG);
     }
 
     @Test
@@ -129,16 +134,16 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector)
             .thenReturn(mock(EndpointConnector.class))
             .thenReturn(mock(EndpointConnector.class));
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertSame(endpointConnector, resolvedEndpointConnector);
-        verify(connectorFactory, times(3)).createConnector(ENDPOINT_CONFIG);
+        verify(connectorFactory, times(3)).createConnector(deploymentContext, ENDPOINT_CONFIG);
     }
 
     @Test
@@ -149,9 +154,9 @@ class DefaultEndpointConnectorResolverTest {
         when(endpointConnector.supportedApi()).thenReturn(ApiType.SYNC); // Not supporting the same type.
         lenient().when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE); // --> mock in lenient as filtering order could change.
 
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEndpointConnector);
@@ -164,9 +169,9 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH)); // Not supporting the SUBSCRIBE mode.
         when(endpointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG)).thenReturn(endpointConnector);
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(endpointConnector);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         final EndpointConnector resolvedEndpointConnector = cut.resolve(ctx);
 
         assertNull(resolvedEndpointConnector);
@@ -184,14 +189,14 @@ class DefaultEndpointConnectorResolverTest {
         api.getEndpointGroups().get(0).getEndpoints().add(endpoint2);
         api.getEndpointGroups().get(0).getEndpoints().add(endpoint3);
 
-        when(connectorFactory.createConnector(any())).thenReturn(mock(EndpointConnector.class));
+        when(connectorFactory.createConnector(eq(deploymentContext), any())).thenReturn(mock(EndpointConnector.class));
 
-        new DefaultEndpointConnectorResolver(api, pluginManager).resolve(ctx);
+        new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager).resolve(ctx);
 
         // 2 connector has been created with endpoint configuration
-        verify(connectorFactory, times(2)).createConnector(ENDPOINT_CONFIG);
+        verify(connectorFactory, times(2)).createConnector(deploymentContext, ENDPOINT_CONFIG);
         // 1 connector has been created with endpoint group configuration, cause endpoint2 inherits group configuration
-        verify(connectorFactory, times(1)).createConnector(ENDPOINT_GROUP_CONFIG);
+        verify(connectorFactory, times(1)).createConnector(deploymentContext, ENDPOINT_GROUP_CONFIG);
     }
 
     @Test
@@ -206,12 +211,12 @@ class DefaultEndpointConnectorResolverTest {
         final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
         final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
 
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector1)
             .thenReturn(endpointConnector2)
             .thenReturn(endpointConnector3);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         cut.preStop();
 
         verify(endpointConnector1).preStop();
@@ -233,12 +238,12 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
 
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector1)
             .thenReturn(endpointConnector2)
             .thenReturn(endpointConnector3);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         cut.preStop();
 
         verify(endpointConnector1).preStop();
@@ -258,12 +263,12 @@ class DefaultEndpointConnectorResolverTest {
         final EndpointConnector endpointConnector2 = mock(EndpointConnector.class);
         final EndpointConnector endpointConnector3 = mock(EndpointConnector.class);
 
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector1)
             .thenReturn(endpointConnector2)
             .thenReturn(endpointConnector3);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         cut.stop();
 
         verify(endpointConnector1).stop();
@@ -285,12 +290,12 @@ class DefaultEndpointConnectorResolverTest {
 
         when(endpointConnector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
 
-        when(connectorFactory.createConnector(ENDPOINT_CONFIG))
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG))
             .thenReturn(endpointConnector1)
             .thenReturn(endpointConnector2)
             .thenReturn(endpointConnector3);
 
-        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, pluginManager);
+        final DefaultEndpointConnectorResolver cut = new DefaultEndpointConnectorResolver(api, deploymentContext, pluginManager);
         cut.stop();
 
         verify(endpointConnector1).stop();

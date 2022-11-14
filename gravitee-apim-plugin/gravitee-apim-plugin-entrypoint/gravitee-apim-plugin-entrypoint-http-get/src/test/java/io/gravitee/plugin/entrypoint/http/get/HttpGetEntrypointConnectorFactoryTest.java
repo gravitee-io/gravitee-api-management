@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultDeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,13 +54,21 @@ class HttpGetEntrypointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  " })
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
-        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
+        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(
+            new DefaultDeploymentContext(),
+            Qos.NONE,
+            configuration
+        );
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(Qos.NONE, null);
+        HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(
+            new DefaultDeploymentContext(),
+            Qos.NONE,
+            null
+        );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessagesLimitCount()).isEqualTo(500);

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.env;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -61,10 +60,7 @@ class TimeoutConfigurationTest {
     @DisplayName("Should use http.requestTimeout from configuration when greater than 0")
     void shouldConfigureTimeoutWhenGreaterThan0(boolean isJupiterEnabled) {
         assertThat(cut.httpRequestTimeoutConfiguration(30L, 10, isJupiterEnabled))
-            .extracting(
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
-            )
+            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
             .containsExactly(30L, 10L);
     }
 
@@ -72,13 +68,10 @@ class TimeoutConfigurationTest {
     @ValueSource(longs = { -10L, 0, 30L })
     @DisplayName("Should use http.requestTimeout from configuration when set in Jupiter mode and warn if less than 0")
     void shouldUseConfiguredTimeoutInJupiterMode(long timeout) {
-        final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
 
         assertThat(result)
-            .extracting(
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
-            )
+            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
             .containsExactly(timeout, 10L);
 
         if (timeout <= 0) {
@@ -98,13 +91,10 @@ class TimeoutConfigurationTest {
     @NullSource
     @DisplayName("Should use default 30_000ms timeout when unset in Jupiter mode and warn")
     void shouldUseDefaultTimeoutInJupiterModeWhenUnset(Long timeout) {
-        final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
 
         assertThat(result)
-            .extracting(
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
-            )
+            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
             .containsExactly(30_000L, 10L);
 
         final List<ILoggingEvent> logList = listAppender.list;
@@ -120,13 +110,10 @@ class TimeoutConfigurationTest {
     @NullSource
     @DisplayName("Should just warn when configured one is unset, 0 or less in V3 mode")
     void shouldDoNothingInV3Mode(Long timeout) {
-        final HttpRequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 5L, false);
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 5L, false);
 
         assertThat(result)
-            .extracting(
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeout,
-                HttpRequestTimeoutConfiguration::getHttpRequestTimeoutGraceDelay
-            )
+            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
             .containsExactly(0L, 5L);
 
         final List<ILoggingEvent> logList = listAppender.list;

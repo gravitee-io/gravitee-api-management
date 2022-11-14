@@ -43,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -69,6 +70,9 @@ class WebSocketEntrypointConnectorTest {
 
     @Mock
     private WebSocket webSocket;
+
+    @Captor
+    private ArgumentCaptor<Flowable<Buffer>> chunkCaptor;
 
     private WebSocketEntrypointConnector cut;
 
@@ -187,6 +191,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message1")));
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message2")));
         verify(webSocket).write(argThat(buffer -> buffer.toString().equals("Response message3")));
@@ -210,6 +218,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket, times(3)).write(any(Buffer.class));
         verify(webSocket).close(NORMAL_CLOSURE.code(), NORMAL_CLOSURE.reasonText());
         verifyNoMoreInteractions(webSocket);
@@ -228,6 +240,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket, never()).write(any(Buffer.class));
         verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
         verifyNoMoreInteractions(webSocket);
@@ -246,6 +262,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket, never()).write(any(Buffer.class));
         verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
         verifyNoMoreInteractions(webSocket);
@@ -264,6 +284,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket, never()).write(any(Buffer.class));
         verify(webSocket).close(SERVER_ERROR.code(), SERVER_ERROR.reasonText());
         verifyNoMoreInteractions(webSocket);
@@ -281,6 +305,10 @@ class WebSocketEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
 
         obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        chunkCaptor.getValue().test().assertComplete();
+
         verify(webSocket, never()).write(any(Buffer.class));
         verify(webSocket).close(NORMAL_CLOSURE.code(), NORMAL_CLOSURE.reasonText());
 
@@ -304,7 +332,12 @@ class WebSocketEntrypointConnectorTest {
         when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.assertNotComplete();
+
+        obs.assertNoValues();
+
+        verify(response).chunks(chunkCaptor.capture());
+        final TestSubscriber<Buffer> chunkObs = chunkCaptor.getValue().test();
+        chunkObs.assertNotComplete();
 
         // Advance time by 2 seconds should produce 2 messages en request and 2 on response.
         testScheduler.advanceTimeBy(2000, TimeUnit.MILLISECONDS);
@@ -314,7 +347,7 @@ class WebSocketEntrypointConnectorTest {
         cut.preStop();
 
         // Should have completed.
-        obs.assertComplete();
+        chunkObs.assertComplete();
         verify(webSocket, times(2)).write(any(Buffer.class));
         verify(webSocket).close(TRY_AGAIN_LATER.code(), TRY_AGAIN_LATER.reasonText());
         verifyNoMoreInteractions(webSocket);

@@ -21,14 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.IdGenerator;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
-import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
@@ -120,7 +118,7 @@ class DefaultHttpRequestDispatcherTest {
     private ComponentProvider globalComponentProvider;
 
     @Mock
-    private HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
+    private RequestTimeoutConfiguration requestTimeoutConfiguration;
 
     private DefaultHttpRequestDispatcher cut;
 
@@ -154,8 +152,8 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
         lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
         lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
-        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(0L);
-        lenient().when(httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay()).thenReturn(10L);
+        lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
+        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
 
         cut =
             new DefaultHttpRequestDispatcher(
@@ -168,7 +166,7 @@ class DefaultHttpRequestDispatcherTest {
                 platformProcessorChainFactory,
                 notFoundProcessorChainFactory,
                 false,
-                httpRequestTimeoutConfiguration,
+                requestTimeoutConfiguration,
                 vertx
             );
         //TODO: to check: is this needed ?
@@ -249,7 +247,7 @@ class DefaultHttpRequestDispatcherTest {
         long timeout = 57;
 
         doReturn(vertxTimerId).when(vertx).setTimer(anyLong(), any());
-        when(httpRequestTimeoutConfiguration.getHttpRequestTimeout()).thenReturn(timeout);
+        when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(timeout);
 
         final ReactorHandler apiReactor = mock(ReactorHandler.class);
 

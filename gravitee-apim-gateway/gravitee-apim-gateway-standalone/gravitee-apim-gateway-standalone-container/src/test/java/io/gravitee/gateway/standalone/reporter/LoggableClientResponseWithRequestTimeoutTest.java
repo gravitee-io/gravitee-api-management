@@ -24,6 +24,10 @@ import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.vertx.rxjava3.RxHelper;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpResponse;
@@ -69,11 +73,11 @@ public class LoggableClientResponseWithRequestTimeoutTest extends AbstractWiremo
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        assertTrue("Reporter should have been called for Metric reportable", latchMetric.await(2, TimeUnit.SECONDS));
-        assertTrue("Reporter should have been called for Log reportable", latchLog.await(100, TimeUnit.MILLISECONDS));
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
+
+        assertTrue("Reporter should have been called for Metric reportable", latchMetric.await(2, TimeUnit.SECONDS));
+        assertTrue("Reporter should have been called for Log reportable", latchLog.await(100, TimeUnit.MILLISECONDS));
     }
 }

@@ -19,13 +19,13 @@ import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.Collections;
 import java.util.HashSet;

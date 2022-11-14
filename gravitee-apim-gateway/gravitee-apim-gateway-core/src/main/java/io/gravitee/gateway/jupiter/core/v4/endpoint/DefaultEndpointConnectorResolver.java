@@ -25,14 +25,10 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +43,11 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
     private static final Logger log = LoggerFactory.getLogger(DefaultEndpointConnectorResolver.class);
     private final Map<EndpointGroup, List<EndpointConnector>> connectorsByGroup;
 
-    public DefaultEndpointConnectorResolver(final Api api, final EndpointConnectorPluginManager endpointConnectorPluginManager) {
+    public DefaultEndpointConnectorResolver(
+        final Api api,
+        final DeploymentContext deploymentContext,
+        final EndpointConnectorPluginManager endpointConnectorPluginManager
+    ) {
         connectorsByGroup =
             api
                 .getEndpointGroups()
@@ -62,7 +62,9 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
                                     String configuration = getEndpointConfiguration(endpointGroup, endpoint);
                                     return Map.entry(
                                         endpointGroup,
-                                        endpointConnectorPluginManager.getFactoryById(endpoint.getType()).createConnector(configuration)
+                                        endpointConnectorPluginManager
+                                            .getFactoryById(endpoint.getType())
+                                            .createConnector(deploymentContext, configuration)
                                     );
                                 }
                             )

@@ -15,8 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.policy.adapter.context;
 
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.Request;
@@ -26,6 +25,7 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -91,31 +91,79 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
 
     @Override
     public void setAttribute(String name, Object value) {
-        if (ATTR_FAILURE_ATTRIBUTE.equals(name) && value instanceof ProcessorFailure) {
-            ProcessorFailure processorFailure = (ProcessorFailure) value;
-            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, new ProcessFailureAdapter(processorFailure).toExecutionFailure());
-        } else {
-            ctx.setAttribute(name, value);
+        switch (name) {
+            case ATTR_FAILURE_ATTRIBUTE:
+                ProcessorFailure processorFailure = (ProcessorFailure) value;
+                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, new ProcessFailureAdapter(processorFailure).toExecutionFailure());
+                break;
+            case ATTR_INVOKER:
+                ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, value);
+                break;
+            case ATTR_INVOKER_SKIP:
+                ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP, value);
+                break;
+            case ATTR_SECURITY_SKIP:
+                ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, value);
+                break;
         }
+
+        ctx.setAttribute(name, value);
     }
 
     @Override
     public void removeAttribute(String name) {
-        if (ATTR_FAILURE_ATTRIBUTE.equals(name)) {
-            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
-        } else {
-            ctx.removeAttribute(name);
+        switch (name) {
+            case ATTR_FAILURE_ATTRIBUTE:
+                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+                break;
+            case ATTR_INVOKER:
+                ctx.removeInternalAttribute(ATTR_INTERNAL_INVOKER);
+                break;
+            case ATTR_INVOKER_SKIP:
+                ctx.removeInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP);
+                break;
+            case ATTR_SECURITY_SKIP:
+                ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP);
+                break;
         }
+
+        ctx.removeAttribute(name);
     }
 
     @Override
     public Object getAttribute(String name) {
-        if (ATTR_FAILURE_ATTRIBUTE.equals(name)) {
-            ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
-            return new ProcessFailureAdapter(executionFailure);
-        } else {
-            return ctx.getAttribute(name);
+        final Object attribute = ctx.getAttribute(name);
+
+        switch (name) {
+            case ATTR_FAILURE_ATTRIBUTE:
+                if (attribute == null) {
+                    final ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+                    if (executionFailure != null) {
+                        return new ProcessFailureAdapter(executionFailure);
+                    }
+                }
+                break;
+            case ATTR_INVOKER:
+                if (attribute == null) {
+                    final Invoker invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
+                    if (invoker instanceof io.gravitee.gateway.api.Invoker) {
+                        return invoker;
+                    }
+                }
+                break;
+            case ATTR_INVOKER_SKIP:
+                if (attribute == null) {
+                    return ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP);
+                }
+                break;
+            case ATTR_SECURITY_SKIP:
+                if (attribute == null) {
+                    return ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP);
+                }
+                break;
         }
+
+        return attribute;
     }
 
     @Override

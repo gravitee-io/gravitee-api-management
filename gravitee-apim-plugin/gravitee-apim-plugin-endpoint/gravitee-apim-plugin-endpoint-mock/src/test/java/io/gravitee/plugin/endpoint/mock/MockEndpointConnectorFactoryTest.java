@@ -21,44 +21,52 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class MockEndpointConnectorFactoryTest {
 
-    private MockEndpointConnectorFactory mockEndpointConnectorFactory;
+    @Mock
+    private DeploymentContext deploymentContext;
+
+    private MockEndpointConnectorFactory cut;
 
     @BeforeEach
     void beforeEach() {
-        mockEndpointConnectorFactory = new MockEndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
+        cut = new MockEndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
     }
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(mockEndpointConnectorFactory.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
     }
 
     @Test
     void shouldSupportSubscribeMode() {
-        assertThat(mockEndpointConnectorFactory.supportedModes()).contains(ConnectorMode.SUBSCRIBE);
+        assertThat(cut.supportedModes()).contains(ConnectorMode.SUBSCRIBE);
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(configuration);
+        MockEndpointConnector connector = cut.createConnector(deploymentContext, configuration);
         assertThat(connector).isNull();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "{}", "{\"messageContent\":\"my message content\"}" })
     void shouldCreateConnectorWithRightConfiguration(String configuration) {
-        MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(configuration);
+        MockEndpointConnector connector = cut.createConnector(deploymentContext, configuration);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessageContent()).isNotNull();
@@ -67,7 +75,7 @@ class MockEndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        MockEndpointConnector connector = mockEndpointConnectorFactory.createConnector(null);
+        MockEndpointConnector connector = cut.createConnector(deploymentContext, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessageContent()).isNotNull();

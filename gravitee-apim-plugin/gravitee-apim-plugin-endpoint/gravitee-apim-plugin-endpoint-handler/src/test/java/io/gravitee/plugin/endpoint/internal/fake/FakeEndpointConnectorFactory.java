@@ -28,13 +28,14 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncCon
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import java.util.Set;
 
 /**
  * @author GraviteeSource Team
  */
-public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
+public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFactory<FakeEndpointConnector> {
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -42,7 +43,7 @@ public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     }
 
     @Override
-    public EndpointAsyncConnector createConnector(final String configuration) {
+    public FakeEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         FakeEndpointConnector.FakeEndpointConnectorBuilder builder = FakeEndpointConnector.builder();
         if (configuration != null) {
             try {

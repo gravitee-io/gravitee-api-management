@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.configuration.Configuration;
@@ -60,7 +60,7 @@ public class ApiReactorHandlerFactoryTest {
                 null,
                 null,
                 null,
-                new HttpRequestTimeoutConfiguration(2000L, 10L)
+                new RequestTimeoutConfiguration(2000L, 10L)
             );
     }
 

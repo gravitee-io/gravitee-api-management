@@ -20,6 +20,7 @@ import static io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnecto
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @AllArgsConstructor
 @Slf4j
-public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<HttpPostEntrypointConnector> {
 
     private ConnectorHelper connectorHelper;
 
@@ -48,7 +49,11 @@ public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnec
     }
 
     @Override
-    public HttpPostEntrypointConnector createConnector(final Qos qos, final String configuration) {
+    public HttpPostEntrypointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final Qos qos,
+        final String configuration
+    ) {
         try {
             return new HttpPostEntrypointConnector(
                 connectorHelper.readConfiguration(HttpPostEntrypointConnectorConfiguration.class, configuration)

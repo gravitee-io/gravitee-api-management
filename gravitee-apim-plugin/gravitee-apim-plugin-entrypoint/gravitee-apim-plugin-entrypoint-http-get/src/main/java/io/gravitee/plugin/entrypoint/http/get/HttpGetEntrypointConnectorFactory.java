@@ -20,6 +20,7 @@ import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<HttpGetEntrypointConnector> {
 
     private ConnectorHelper connectorHelper;
 
@@ -48,7 +49,7 @@ public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnect
     }
 
     @Override
-    public HttpGetEntrypointConnector createConnector(final Qos qos, final String configuration) {
+    public HttpGetEntrypointConnector createConnector(DeploymentContext deploymentContext, final Qos qos, final String configuration) {
         try {
             return new HttpGetEntrypointConnector(
                 qos,
