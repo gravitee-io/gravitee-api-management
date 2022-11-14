@@ -13,20 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
+
+import '@gravitee/ui-components/wc/gv-cron-editor';
+import { HealthCheck } from '../../../../../entities/health-check';
 
 @Component({
   selector: 'api-proxy-health-check',
   template: require('./api-proxy-health-check.component.html'),
   styles: [require('./api-proxy-health-check.component.scss')],
 })
-export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
+export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
+  public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck): FormGroup => {
+    return new FormGroup({
+      enabled: new FormControl(true),
+      schedule: new FormControl(healthCheck?.schedule ?? undefined),
+      method: new FormControl('', [Validators.required]),
+      path: new FormControl('', [Validators.required]),
+      body: new FormControl(),
+      headers: new FormControl([]),
+      fromRoot: new FormControl(),
+    });
+  };
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  @Input()
+  // Should be init by static NewHealthCheckForm method
+  public healthCheckForm: FormGroup;
 
-  ngOnInit(): void {}
+  public isDisabled$: Observable<boolean>;
+
+  public httpMethods = ['GET', 'POST', 'PUT'];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.healthCheckForm && this.healthCheckForm) {
+      const controlKeys = ['schedule', 'method', 'path', 'body', 'fromRoot', 'headers'];
+      this.healthCheckForm
+        .get('enabled')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
+        .subscribe((checked) => {
+          controlKeys.forEach((k) => {
+            return checked ? this.healthCheckForm.get(k).enable() : this.healthCheckForm.get(k).disable();
+          });
+        });
+      this.isDisabled$ = this.healthCheckForm.get('enabled').valueChanges.pipe(
+        takeUntil(this.unsubscribe$),
+        startWith(this.healthCheckForm.get('enabled').value),
+        map((checked) => !checked),
+      );
+    }
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);

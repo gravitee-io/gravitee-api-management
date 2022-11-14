@@ -15,4 +15,95 @@
     limitations under the License.
 
 -->
-<h1>Health Check</h1>
+<mat-card *ngIf="healthCheckForm" [formGroup]="healthCheckForm">
+  <mat-card-content class="health-check-card">
+    <!-- Enable health-check -->
+    <gio-form-slide-toggle class="health-check-card__enable-toggle">
+      <gio-form-label>Enable health-check</gio-form-label>
+      // TODO conditional <br />
+      By enabling health-check, all non-backup endpoints will be checked except if health-check is disabled at endpoint level.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="enabled"
+        aria-label="Health-check enable toggle"
+        name="enableHealthCheck"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <mat-divider></mat-divider>
+
+    <div [class.disabled]="isDisabled$ | async">
+      <!-- Trigger -->
+      <h3>Trigger</h3>
+      <div class="health-check-card__trigger">
+        <gv-cron-editor required formControlName="schedule" ngDefaultControl label="Schedule"></gv-cron-editor>
+        <div class="health-check-card__trigger__hint">A cron expression to schedule the health check</div>
+      </div>
+      <!-- Request -->
+      <h3>Request</h3>
+      <div class="health-check-card__request">
+        <!-- Request HTTP Method -->
+        <mat-form-field class="health-check-card__request__methods__form-field" appearance="fill">
+          <mat-label>HTTP Method</mat-label>
+          <mat-select formControlName="method" required>
+            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="healthCheckForm.get('method').hasError('required')">HTTP Method is required.</mat-error>
+        </mat-form-field>
+
+        <!-- Request HTTP Method -->
+        <mat-form-field class="health-check-card__request__path__form-field" appearance="fill">
+          <mat-label>Path</mat-label>
+          <input type="text" aria-label="Endpoint target input" matInput formControlName="path" required />
+          <mat-hint>Additional path added to the endpoint target.</mat-hint>
+          <mat-error *ngIf="healthCheckForm.get('path').hasError('required')">Path is required.</mat-error>
+        </mat-form-field>
+
+        <!-- Request fromRoot -->
+        <gio-form-slide-toggle appearance="fill" class="health-check-card__request__fromRoot__toggle">
+          <gio-form-label>From root path ('/')</gio-form-label>
+          <span class="mat-caption">
+            When "from root" is enabled, the path is appended to the root path ('/') of the endpoint without any additional path configured
+            at the endpoint level.
+          </span>
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="fromRoot"
+            aria-label="From root path enable toggle"
+            name="fromRootCheck"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <!-- Request HTTP Body -->
+        <mat-form-field
+          *ngIf="healthCheckForm.get('method').value === 'POST' || healthCheckForm.get('method').value === 'PUT'"
+          class="health-check-card__request__body__form-field"
+          appearance="fill"
+        >
+          <mat-label>Body</mat-label>
+          <textarea
+            aria-label="Endpoint target input"
+            matInput
+            formControlName="body"
+            rows="5"
+            maxlength="1000"
+            placeholder="HTTP Body"
+          ></textarea>
+          <mat-hint>Make sure to add Content-Type header for POST/PUT HTTP method.</mat-hint>
+        </mat-form-field>
+
+        <!-- Request HTTP Headers -->
+        <div class="health-check-card__request__http-headers">
+          <div class="health-check-card__request__http-headers__label">HTTP Headers</div>
+          <gio-form-headers class="health-check-card__request__http-headers__form-field" formControlName="headers"></gio-form-headers>
+          <div class="health-check-card__request__http-headers__hint">
+            Header value support EL (e.g: &#123; #dictionaries['my-dictionary']['my-property'] &#125;)
+          </div>
+        </div>
+      </div>
+      <!-- Assertions -->
+      <h3>Assertions</h3>
+      <div class="assertions"></div>
+    </div>
+  </mat-card-content>
+</mat-card>
