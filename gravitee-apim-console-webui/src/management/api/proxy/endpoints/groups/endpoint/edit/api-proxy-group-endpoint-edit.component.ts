@@ -32,6 +32,7 @@ import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
 import { ConfigurationEvent } from '../../api-proxy-groups.model';
 import { GioPermissionService } from '../../../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiProxyHealthCheckComponent } from '../../../../components/health-check/api-proxy-health-check.component';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -51,6 +52,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   public endpointForm: FormGroup;
   public generalForm: FormGroup;
   public configurationForm: FormGroup;
+  public healthCheckForm: FormGroup;
   public endpoint: ProxyGroupEndpoint;
   public initialEndpointFormValue: unknown;
   public tenants: Tenant[];
@@ -181,9 +183,12 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
     });
 
+    this.healthCheckForm = ApiProxyHealthCheckComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck);
+
     this.endpointForm = this.formBuilder.group({
       general: this.generalForm,
       configuration: this.configurationForm,
+      healthCheckForm: this.healthCheckForm,
     });
 
     this.initialEndpointFormValue = this.endpointForm.getRawValue();
