@@ -5,7 +5,9 @@
     "callbackUrl": {
       "type": "string",
       "title": "The callback URL called by the entrypoint on a message",
-      "description": "The callback URL called by the entrypoint on a message"
+      "description": "The callback URL called by the entrypoint on a message",
+      "minLength": 1,
+      "pattern" : "^(http|https)://"
     },
     "headers": {
       "type": "array",
