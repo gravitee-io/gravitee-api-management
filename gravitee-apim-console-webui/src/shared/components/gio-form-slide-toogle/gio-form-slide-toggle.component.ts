@@ -13,25 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ContentChild, Input } from '@angular/core';
+import { AfterContentInit, Component, ContentChild, Input, OnDestroy } from '@angular/core';
+import { NgControl } from '@angular/forms';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'gio-form-slide-toggle',
   template: require('./gio-form-slide-toggle.component.html'),
   styles: [require('./gio-form-slide-toggle.component.scss')],
 })
-export class GioFormSlideToggleComponent {
+export class GioFormSlideToggleComponent implements AfterContentInit, OnDestroy {
+  private unsubscribe$: Subject<void> = new Subject<void>();
+
   @Input() appearance: string;
 
   @ContentChild(MatSlideToggle, {
-    static: false, // To work with input disabled in reactive forms
+    static: false,
   })
-  set slideToggle(slideToggle: MatSlideToggle | null) {
-    if (slideToggle) {
-      this.disabled = slideToggle.disabled;
+  innerMatSlideToggle: MatSlideToggle | null;
+
+  @ContentChild(NgControl, {
+    static: false,
+  })
+  innerFormControlName: NgControl | null;
+
+  disabled = false;
+
+  ngAfterContentInit(): void {
+    let observeDisabled: Observable<boolean> = undefined;
+
+    // Check if disabled is delegated to inner FormControlName
+    if (this.innerFormControlName) {
+      observeDisabled = this.innerFormControlName.statusChanges.pipe(
+        map(() => this.innerFormControlName.disabled),
+        startWith(this.innerFormControlName.disabled),
+      );
+    }
+    // If not, check state of inner MatSlideToggle
+    else if (this.innerMatSlideToggle) {
+      observeDisabled = this.innerMatSlideToggle.change.pipe(
+        map((event) => event.source.disabled),
+        startWith(this.innerMatSlideToggle.disabled),
+      );
+    }
+
+    if (observeDisabled) {
+      observeDisabled.pipe(takeUntil(this.unsubscribe$)).subscribe((disabled) => {
+        this.disabled = disabled;
+      });
     }
   }
 
-  disabled = false;
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
 }
