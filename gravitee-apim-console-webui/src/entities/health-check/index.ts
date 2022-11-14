@@ -13,22 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { HealthCheck } from '../health-check';
-
-export interface DynamicPropertyService {
-  enabled?: boolean;
-  provider?: 'HTTP';
-  configuration?: unknown;
-  schedule?: string;
-}
-
-export interface Services {
-  discovery?: {
-    enabled?: boolean;
-    provider?: string;
-    configuration?: unknown;
-  };
-  'health-check'?: HealthCheck;
-  'dynamic-property'?: DynamicPropertyService;
-}
+export * from './HealthCheck';

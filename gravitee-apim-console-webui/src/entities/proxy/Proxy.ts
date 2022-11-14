@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HealthCheck } from '../health-check';
 import { Services } from '../services';
 
 export interface Proxy {
@@ -53,7 +54,7 @@ export interface ProxyGroupEndpoint extends ProxyConfiguration {
   tenants?: string[];
   type?: string;
   inherit?: boolean;
-  healthcheck?: ProxyGroupEndpointHealthCheck;
+  healthcheck?: HealthCheck;
 }
 
 export enum ProxyGroupLoadBalancerEnum {
@@ -124,26 +125,4 @@ export interface ProxyLogging {
   scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
   content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
   condition?: string;
-}
-
-export interface ProxyGroupEndpointHealthCheck {
-  enabled: boolean;
-  inherit: boolean;
-  schedule: string;
-  steps: ProxyGroupEndpointHealthCheckStep[];
-}
-
-export interface ProxyGroupEndpointHealthCheckStep {
-  request: ProxyGroupEndpointHealthCheckStepRequest;
-  response: ProxyGroupEndpointHealthCheckStepResponse;
-}
-
-export interface ProxyGroupEndpointHealthCheckStepRequest {
-  headers: Record<string, string>;
-  method: string;
-  path: string;
-}
-
-export interface ProxyGroupEndpointHealthCheckStepResponse {
-  assertions: string[];
 }
