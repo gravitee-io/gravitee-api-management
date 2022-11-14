@@ -77,7 +77,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
         return Completable.defer(
             () -> {
                 if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return Completable.complete();
+                    return chunks().ignoreElements();
                 }
 
                 if (!opened()) {

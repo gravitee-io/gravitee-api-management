@@ -28,6 +28,7 @@ public class LogProxyRequest extends LogRequest {
 
     public LogProxyRequest(LoggingContext loggingContext, HttpRequest request) {
         super(loggingContext, request);
+        this.setUri("");
         request.chunks(
             request.chunks().doOnSubscribe(s -> this.setUri(request.metrics().getEndpoint() != null ? request.metrics().getEndpoint() : ""))
         );

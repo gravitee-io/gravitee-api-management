@@ -18,19 +18,19 @@ package io.gravitee.gateway.jupiter.handlers.api;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -80,8 +80,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
-    protected static final String ATTR_INVOKER_SKIP = "invoker.skip";
-
     private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
@@ -95,11 +93,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final FlowChain platformFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
-    protected final ProcessorChain apiPreProcessorChain;
-    protected final ProcessorChain apiPostProcessorChain;
-    protected final ProcessorChain apiErrorProcessorChain;
+    private final ProcessorChain beforeHandleProcessors;
+    private final ProcessorChain afterHandleProcessors;
+    protected final ProcessorChain beforeApiFlowsProcessors;
+    protected final ProcessorChain afterApiFlowsProcessors;
+    protected final ProcessorChain onErrorProcessors;
     protected final Node node;
-    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
+    private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final boolean tracingEnabled;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
     private final long pendingRequestsTimeout;
@@ -118,7 +118,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -127,11 +127,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.resourceLifecycleManager = resourceLifecycleManager;
         this.policyManager = policyManager;
         this.groupLifecycleManager = groupLifecycleManager;
-        this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
+        this.requestTimeoutConfiguration = requestTimeoutConfiguration;
 
-        this.apiPreProcessorChain = apiProcessorChainFactory.preProcessorChain(api);
-        this.apiPostProcessorChain = apiProcessorChainFactory.postProcessorChain(api);
-        this.apiErrorProcessorChain = apiProcessorChainFactory.errorProcessorChain(api);
+        this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
+        this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
+        this.beforeApiFlowsProcessors = apiProcessorChainFactory.beforeApiExecution(api);
+        this.afterApiFlowsProcessors = apiProcessorChainFactory.afterApiExecution(api);
+        this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
         this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
         this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
@@ -144,11 +146,6 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
-    }
-
-    @Override
-    public ApiType apiType() {
-        return ApiType.SYNC;
     }
 
     @Override
@@ -168,9 +165,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
         ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, defaultInvoker);
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
+        ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
     }
 
@@ -189,13 +186,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable handleRequest(final MutableExecutionContext ctx) {
-        // Execute platform flow chain.
-        return platformFlowChain
-            .execute(ctx, REQUEST)
+        // Setup all processors before handling the request (ex: logging).
+        return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
+            // Execute platform flow chain
+            .andThen(platformFlowChain.execute(ctx, REQUEST))
             // Execute security chain.
             .andThen(securityChain.execute(ctx))
-            // Execute pre api processor chain
-            .andThen(executeProcessorsChain(ctx, apiPreProcessorChain, REQUEST))
+            // Execute before flows processors
+            .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.
@@ -203,14 +201,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // Execute response flows (api plan, api, platform).
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
             .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
-            // Execute post api processor chain
-            .andThen(executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE))
+            // Execute after flows processors
+            .andThen(executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE))
             .onErrorResumeNext(error -> processThrowable(ctx, error))
             .compose(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed
             .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
+            .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
             // Finally, end the response.
             .andThen(endResponse(ctx));
     }
@@ -224,7 +223,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
-    private Completable executeProcessorsChain(
+    private Completable executeProcessorChain(
         final MutableExecutionContext ctx,
         final ProcessorChain processorChain,
         final ExecutionPhase phase
@@ -256,7 +255,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(
                 () -> {
-                    if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
+                    if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
                         Invoker invoker = getInvoker(ctx);
 
                         if (invoker != null) {
@@ -279,7 +278,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return the current invoker in the expected type.
      */
     private Invoker getInvoker(HttpExecutionContext ctx) {
-        final Object invoker = ctx.getAttribute(ContextAttributes.ATTR_INVOKER);
+        final Object invoker = ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER);
 
         if (invoker == null) {
             return null;
@@ -298,22 +297,22 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private Completable timeout(final Completable upstream, MutableExecutionContext ctx) {
         // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
-        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() <= 0) {
+        if (requestTimeoutConfiguration.getRequestTimeout() <= 0) {
             return upstream;
         }
         return Completable.defer(
             () ->
                 upstream.timeout(
                     Math.max(
-                        httpRequestTimeoutConfiguration.getHttpRequestTimeoutGraceDelay(),
-                        httpRequestTimeoutConfiguration.getHttpRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                        requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
                     ),
                     TimeUnit.MILLISECONDS,
                     ctx
                         .interruptWith(
                             new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
                         )
-                        .onErrorResumeNext(error -> executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE))
+                        .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
                 )
         );
     }
@@ -328,14 +327,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private Completable processThrowable(final MutableExecutionContext ctx, final Throwable throwable) {
         if (InterruptionHelper.isInterruption(throwable)) {
             // In case of any interruption without failure, execute api post processor chain and resume the execution
-            return executeProcessorsChain(ctx, apiPostProcessorChain, RESPONSE);
+            return executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE);
         } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
             // In case of any interruption with execution failure, execute api error processor chain and resume the execution
-            return executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE);
+            return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
             // In case of any error exception, log original exception, execute api error processor chain and resume the execution
             log.error("Unexpected error while handling request", throwable);
-            return executeProcessorsChain(ctx, apiErrorProcessorChain, RESPONSE);
+            return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
     }
 

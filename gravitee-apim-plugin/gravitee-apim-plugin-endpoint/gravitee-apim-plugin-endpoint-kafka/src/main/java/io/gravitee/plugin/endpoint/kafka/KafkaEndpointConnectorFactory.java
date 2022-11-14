@@ -20,7 +20,9 @@ import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
@@ -34,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
-public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
+public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory<KafkaEndpointConnector> {
 
     private final ConnectorHelper connectorHelper;
     private final QosStrategyFactory qosStrategyFactory;
@@ -55,7 +57,7 @@ public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFact
     }
 
     @Override
-    public KafkaEndpointConnector createConnector(final String configuration) {
+    public KafkaEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
             return new KafkaEndpointConnector(
                 connectorHelper.readConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),

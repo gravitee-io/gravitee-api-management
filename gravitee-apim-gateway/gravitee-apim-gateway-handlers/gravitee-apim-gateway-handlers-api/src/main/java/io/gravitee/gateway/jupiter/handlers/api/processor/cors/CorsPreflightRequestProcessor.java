@@ -23,6 +23,7 @@ import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.GenericResponse;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Arrays;
@@ -62,8 +63,8 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                     if (!cors.isRunPolicies()) {
                         return ctx.interrupt();
                     } else {
-                        ctx.setAttribute("skip-security-chain", true);
-                        ctx.setAttribute(ContextAttributes.ATTR_INVOKER, new CorsPreflightInvoker());
+                        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP, true);
+                        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER, new CorsPreflightInvoker());
                         return Completable.complete();
                     }
                 }

@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.mqtt5;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
@@ -46,7 +47,7 @@ public class Mqtt5EndpointConnectorFactory implements EndpointAsyncConnectorFact
     }
 
     @Override
-    public Mqtt5EndpointConnector createConnector(final String configuration) {
+    public Mqtt5EndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
             return new Mqtt5EndpointConnector(connectorHelper.readConfiguration(Mqtt5EndpointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {

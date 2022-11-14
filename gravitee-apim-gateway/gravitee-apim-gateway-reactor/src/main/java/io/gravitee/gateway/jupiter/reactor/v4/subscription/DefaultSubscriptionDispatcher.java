@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_LISTENER_TYPE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
@@ -78,7 +79,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                             context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
 
                             // Skip the security chain (currently requires to be an attribute as long as we support v3).
-                            context.setAttribute(ContextAttributes.ATTR_SKIP_SECURITY_CHAIN, true);
+                            context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
 
                             context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
 

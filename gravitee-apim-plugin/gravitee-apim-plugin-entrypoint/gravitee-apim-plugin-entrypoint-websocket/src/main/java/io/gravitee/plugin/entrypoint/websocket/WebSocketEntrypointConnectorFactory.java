@@ -20,6 +20,7 @@ import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnect
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import java.util.Set;
@@ -32,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory {
+public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<WebSocketEntrypointConnector> {
 
     private final ConnectorHelper connectorHelper;
 
@@ -47,7 +48,11 @@ public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConne
     }
 
     @Override
-    public WebSocketEntrypointConnector createConnector(final Qos qos, final String configuration) {
+    public WebSocketEntrypointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final Qos qos,
+        final String configuration
+    ) {
         try {
             return new WebSocketEntrypointConnector(
                 qos,

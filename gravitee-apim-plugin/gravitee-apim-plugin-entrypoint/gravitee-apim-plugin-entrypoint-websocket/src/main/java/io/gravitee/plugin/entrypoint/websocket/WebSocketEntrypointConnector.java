@@ -17,6 +17,7 @@ package io.gravitee.plugin.entrypoint.websocket;
 
 import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.*;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
@@ -106,10 +107,7 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable
-            .defer(() -> Completable.mergeArray(ctx.request().messages().ignoreElements(), processResponseMessages(ctx)))
-            .andThen(Completable.defer(() -> close(ctx, NORMAL_CLOSURE)))
-            .onErrorResumeNext(t -> close(ctx, t));
+        return Completable.fromRunnable(() -> ctx.response().chunks(processResponseMessages(ctx))).onErrorResumeNext(t -> close(ctx, t));
     }
 
     @Override
@@ -126,27 +124,35 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
         }
     }
 
-    private Completable processResponseMessages(ExecutionContext ctx) {
+    private Flowable<Buffer> processResponseMessages(ExecutionContext ctx) {
+        final Completable completable;
+
         if (configuration.getSubscriber().isEnabled()) {
-            return ctx
-                .response()
-                .messages()
-                .compose(applyStopHook())
-                .flatMapCompletable(
-                    message -> {
-                        if (!message.error()) {
-                            return ctx.request().webSocket().write(message.content());
-                        } else {
-                            if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
-                                return Completable.error(new WebSocketException(TRY_AGAIN_LATER, TRY_AGAIN_LATER.reasonText()));
+            completable =
+                Completable.mergeArray(
+                    ctx.request().messages().ignoreElements(),
+                    ctx
+                        .response()
+                        .messages()
+                        .compose(applyStopHook())
+                        .flatMapCompletable(
+                            message -> {
+                                if (!message.error()) {
+                                    return ctx.request().webSocket().write(message.content());
+                                } else {
+                                    if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
+                                        return Completable.error(new WebSocketException(TRY_AGAIN_LATER, TRY_AGAIN_LATER.reasonText()));
+                                    }
+                                    return Completable.error(new WebSocketException(SERVER_ERROR, message.content().toString()));
+                                }
                             }
-                            return Completable.error(new WebSocketException(SERVER_ERROR, message.content().toString()));
-                        }
-                    }
+                        )
                 );
         } else {
-            return Completable.complete();
+            completable = ctx.request().messages().ignoreElements();
         }
+
+        return completable.andThen(Completable.defer(() -> close(ctx, NORMAL_CLOSURE))).onErrorResumeNext(t -> close(ctx, t)).toFlowable();
     }
 
     private Completable close(ExecutionContext ctx, Throwable e) {

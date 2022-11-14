@@ -19,7 +19,9 @@ import static io.gravitee.plugin.endpoint.mock.MockEndpointConnector.SUPPORTED_Q
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
@@ -32,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
-public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFactory {
+public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFactory<MockEndpointConnector> {
 
     private ConnectorHelper connectorHelper;
 
@@ -47,7 +49,7 @@ public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     }
 
     @Override
-    public MockEndpointConnector createConnector(final String configuration) {
+    public MockEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
             return new MockEndpointConnector(connectorHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {

@@ -233,4 +233,8 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
             set(entry.getKey(), entry.getValue());
         }
     }
+
+    public MultiMap getDelegate() {
+        return headers;
+    }
 }

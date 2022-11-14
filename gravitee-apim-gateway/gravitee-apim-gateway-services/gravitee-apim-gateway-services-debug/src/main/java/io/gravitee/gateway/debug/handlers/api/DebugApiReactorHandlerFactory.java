@@ -23,7 +23,7 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
@@ -69,7 +69,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory,
-        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         super(
             applicationContext,
@@ -82,7 +82,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            httpRequestTimeoutConfiguration
+            requestTimeoutConfiguration
         );
     }
 
@@ -145,7 +145,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         final GroupLifecycleManager groupLifecycleManager,
         final Configuration configuration,
         final Node node,
-        final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         return new DebugSyncApiReactor(
             api,
@@ -159,7 +159,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             groupLifecycleManager,
             configuration,
             node,
-            httpRequestTimeoutConfiguration
+            requestTimeoutConfiguration
         );
     }
 }

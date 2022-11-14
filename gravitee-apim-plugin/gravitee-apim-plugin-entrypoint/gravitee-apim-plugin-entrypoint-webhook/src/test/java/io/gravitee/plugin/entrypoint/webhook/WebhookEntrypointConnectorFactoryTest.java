@@ -21,17 +21,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class WebhookEntrypointConnectorFactoryTest {
+
+    @Mock
+    private DeploymentContext deploymentContext;
 
     private WebhookEntrypointConnectorFactory webhookEntrypointConnectorFactory;
 
@@ -59,20 +67,24 @@ class WebhookEntrypointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(
+            deploymentContext,
+            Qos.NONE,
+            configuration
+        );
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, "{}");
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(Qos.NONE, null);
+        WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
     }

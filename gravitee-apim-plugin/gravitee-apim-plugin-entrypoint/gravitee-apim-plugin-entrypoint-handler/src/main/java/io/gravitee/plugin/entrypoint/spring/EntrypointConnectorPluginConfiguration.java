@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 public class EntrypointConnectorPluginConfiguration {
 
     @Bean
-    public ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> entrypointPluginManager(
+    public DefaultEntrypointConnectorPluginManager entrypointPluginManager(
         final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory,
         final ConnectorHelper connectorHelper
     ) {

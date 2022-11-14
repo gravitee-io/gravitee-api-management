@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.Logging;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
@@ -59,7 +60,17 @@ public class ApiProcessorChainFactory {
         }
     }
 
-    public ProcessorChain preProcessorChain(final Api api) {
+    public ProcessorChain beforeHandle(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
+
+        if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
+            processors.add(LogRequestProcessor.instance());
+        }
+
+        return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
+    }
+
+    public ProcessorChain beforeApiExecution(final Api api) {
         List<Processor> preProcessorList = new ArrayList<>();
 
         Cors cors = api.getDefinition().getProxy().getCors();
@@ -72,16 +83,20 @@ public class ApiProcessorChainFactory {
 
         preProcessorList.add(PlanProcessor.instance());
 
-        if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
-            preProcessorList.add(LogRequestProcessor.instance());
-        }
-
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-pre-api", preProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-api-execution", preProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
     }
 
-    public ProcessorChain postProcessorChain(final Api api) {
+    public ProcessorChain afterApiExecution(final Api api) {
+        List<Processor> postProcessorList = getAfterApiExecutionProcessors(api);
+
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-after-api-execution", postProcessorList);
+        processorChain.addHooks(processorHooks);
+        return processorChain;
+    }
+
+    private List<Processor> getAfterApiExecutionProcessors(Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
         postProcessorList.add(new ShutdownProcessor(node));
 
@@ -94,25 +109,11 @@ public class ApiProcessorChainFactory {
             postProcessorList.add(PathMappingProcessor.instance());
         }
 
-        if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
-            postProcessorList.add(LogResponseProcessor.instance());
-        }
-
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-post-api", postProcessorList);
-        processorChain.addHooks(processorHooks);
-        return processorChain;
+        return postProcessorList;
     }
 
-    public ProcessorChain errorProcessorChain(final Api api) {
-        List<Processor> errorProcessorList = new ArrayList<>();
-        Cors cors = api.getDefinition().getProxy().getCors();
-        if (cors != null && cors.isEnabled()) {
-            errorProcessorList.add(CorsSimpleRequestProcessor.instance());
-        }
-        Map<String, Pattern> pathMappings = api.getDefinition().getPathMappings();
-        if (pathMappings != null && !pathMappings.isEmpty()) {
-            errorProcessorList.add(PathMappingProcessor.instance());
-        }
+    public ProcessorChain onError(final Api api) {
+        List<Processor> errorProcessorList = new ArrayList<>(getAfterApiExecutionProcessors(api));
 
         if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
             errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
@@ -120,12 +121,18 @@ public class ApiProcessorChainFactory {
             errorProcessorList.add(SimpleFailureProcessor.instance());
         }
 
-        if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
-            errorProcessorList.add(LogResponseProcessor.instance());
-        }
-
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-error-api", errorProcessorList);
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-api-error", errorProcessorList);
         processorChain.addHooks(processorHooks);
         return processorChain;
+    }
+
+    public ProcessorChain afterHandle(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
+
+        if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
+            processors.add(LogResponseProcessor.instance());
+        }
+
+        return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
     }
 }

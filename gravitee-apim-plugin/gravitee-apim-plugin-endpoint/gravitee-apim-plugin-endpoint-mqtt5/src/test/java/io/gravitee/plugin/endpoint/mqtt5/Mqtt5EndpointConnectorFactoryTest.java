@@ -16,11 +16,13 @@
 package io.gravitee.plugin.endpoint.mqtt5;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,9 +35,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class Mqtt5EndpointConnectorFactoryTest {
 
     private Mqtt5EndpointConnectorFactory mqtt5EndpointConnectorFactory;
+    private DeploymentContext deploymentContext;
 
     @BeforeEach
     void beforeEach() {
+        deploymentContext = mock(DeploymentContext.class);
         mqtt5EndpointConnectorFactory = new Mqtt5EndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
     }
 
@@ -52,13 +56,14 @@ public class Mqtt5EndpointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(configuration);
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(
+            deploymentContext,
             "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\",\"topic\":\"test/topic\", \"consumer\":{}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
@@ -74,7 +79,7 @@ public class Mqtt5EndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector("{}");
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isNull();
@@ -85,7 +90,7 @@ public class Mqtt5EndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(null);
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isNull();

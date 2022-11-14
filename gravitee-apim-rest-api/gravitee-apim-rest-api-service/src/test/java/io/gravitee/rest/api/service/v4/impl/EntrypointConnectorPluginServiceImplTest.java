@@ -27,6 +27,7 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
@@ -207,7 +208,7 @@ public class EntrypointConnectorPluginServiceImplTest {
         }
 
         @Override
-        public Connector createConnector(String s) {
+        public Connector createConnector(DeploymentContext deploymentContext, String s) {
             return null;
         }
     }

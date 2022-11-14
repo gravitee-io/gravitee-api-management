@@ -34,7 +34,7 @@ public class TimeoutConfiguration {
     public static final Logger log = LoggerFactory.getLogger(TimeoutConfiguration.class);
 
     @Bean
-    public HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration(
+    public RequestTimeoutConfiguration httpRequestTimeoutConfiguration(
         @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
         @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
         @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}") boolean isJupiterEnabled
@@ -56,6 +56,6 @@ public class TimeoutConfiguration {
                 httpRequestTimeout = 0L;
             }
         }
-        return new HttpRequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);
+        return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);
     }
 }

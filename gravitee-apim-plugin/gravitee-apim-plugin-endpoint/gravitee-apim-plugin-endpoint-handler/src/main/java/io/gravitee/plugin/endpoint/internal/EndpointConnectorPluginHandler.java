@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<EndpointConnectorPlugin<?, ?>> {
 
     @Autowired
-    private ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> endpointPluginManager;
+    private DefaultEndpointConnectorPluginManager endpointPluginManager;
 
     @Override
     public boolean canHandle(final Plugin plugin) {

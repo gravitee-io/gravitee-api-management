@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
@@ -43,6 +44,9 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Mock
     private ConnectorHelper connectorHelper;
+
+    @Mock
+    private DeploymentContext deploymentContext;
 
     private WebSocketEntrypointConnectorFactory cut;
 
@@ -71,7 +75,7 @@ class WebSocketEntrypointConnectorFactoryTest {
         when(connectorHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
             .thenReturn(new WebSocketEntrypointConnectorConfiguration());
 
-        final WebSocketEntrypointConnector connector = cut.createConnector(Qos.NONE, CONNECTOR_CONFIGURATION);
+        final WebSocketEntrypointConnector connector = cut.createConnector(deploymentContext, Qos.NONE, CONNECTOR_CONFIGURATION);
 
         assertThat(connector).isNotNull();
     }
@@ -81,7 +85,7 @@ class WebSocketEntrypointConnectorFactoryTest {
         when(connectorHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
             .thenThrow(new RuntimeException(MOCK_EXCEPTION));
 
-        final WebSocketEntrypointConnector connector = cut.createConnector(Qos.NONE, CONNECTOR_CONFIGURATION);
+        final WebSocketEntrypointConnector connector = cut.createConnector(deploymentContext, Qos.NONE, CONNECTOR_CONFIGURATION);
 
         assertThat(connector).isNull();
     }

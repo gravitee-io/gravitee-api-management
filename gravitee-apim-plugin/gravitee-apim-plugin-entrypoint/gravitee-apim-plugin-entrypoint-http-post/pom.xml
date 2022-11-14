@@ -67,10 +67,11 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-buffer</artifactId>
+            <artifactId>gravitee-apim-gateway-tests-sdk</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

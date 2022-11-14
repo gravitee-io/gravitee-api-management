@@ -16,7 +16,7 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.plan;
 
 import static io.gravitee.gateway.api.ExecutionContext.*;
-import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SKIP_SECURITY_CHAIN;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +45,7 @@ class PlanProcessorTest extends AbstractProcessorTest {
 
     @Test
     void shouldSetMetricsWhenSecurityChainIsNotSkipped() {
-        ctx.setAttribute(ATTR_SKIP_SECURITY_CHAIN, null);
+        ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, null);
         ctx.setAttribute(ATTR_PLAN, PLAN_ID);
         ctx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
         ctx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
@@ -60,7 +60,7 @@ class PlanProcessorTest extends AbstractProcessorTest {
 
     @Test
     void shouldSetMetricsUnknownApplicationWhenSecurityChainIsSkipped() {
-        ctx.setAttribute(ATTR_SKIP_SECURITY_CHAIN, true);
+        ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
         when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();

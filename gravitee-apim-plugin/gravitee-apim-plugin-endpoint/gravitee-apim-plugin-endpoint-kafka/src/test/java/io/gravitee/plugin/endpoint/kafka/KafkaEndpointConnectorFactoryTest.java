@@ -16,11 +16,13 @@
 package io.gravitee.plugin.endpoint.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +36,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 class KafkaEndpointConnectorFactoryTest {
 
     private KafkaEndpointConnectorFactory kafkaEndpointConnectorFactory;
+    private DeploymentContext deploymentContext;
 
     @BeforeEach
     void beforeEach() {
+        deploymentContext = mock(DeploymentContext.class);
         kafkaEndpointConnectorFactory = new KafkaEndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
     }
 
@@ -53,13 +57,14 @@ class KafkaEndpointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(configuration);
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
         KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(
+            deploymentContext,
             "{\"bootstrapServers\":\"localhost:8082\",\"topics\":[\"topic\"], \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
@@ -75,7 +80,7 @@ class KafkaEndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector("{}");
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isNull();
@@ -85,7 +90,7 @@ class KafkaEndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(null);
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isNull();

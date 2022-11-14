@@ -16,6 +16,8 @@
 package io.gravitee.definition.model.v4.resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
@@ -46,8 +48,20 @@ public class Resource implements Serializable {
     @NotBlank
     private String type;
 
-    @JsonProperty(required = true)
+    @Schema(implementation = Object.class, required = true)
+    @JsonRawValue
     private String configuration;
 
     private boolean enabled = true;
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setConfiguration(final String configuration) {
+        this.configuration = configuration;
+    }
 }

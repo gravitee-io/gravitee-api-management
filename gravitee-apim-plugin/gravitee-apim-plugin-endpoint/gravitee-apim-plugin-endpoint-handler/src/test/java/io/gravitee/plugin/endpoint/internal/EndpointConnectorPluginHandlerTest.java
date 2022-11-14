@@ -24,10 +24,13 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -37,34 +40,40 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class EndpointConnectorPluginHandlerTest {
 
     @Mock
-    private EndpointConnectorPluginManager mockEndpointConnectorPluginManager;
+    private DefaultEndpointConnectorPluginManager mockEndpointConnectorPluginManager;
 
     @InjectMocks
-    private EndpointConnectorPluginHandler endpointPluginHandler = new EndpointConnectorPluginHandler();
+    private EndpointConnectorPluginHandler cut;
 
-    @Test
-    public void shouldBeEndpointType() {
-        assertThat(endpointPluginHandler.type()).isEqualTo(EndpointConnectorPlugin.PLUGIN_TYPE);
+    @BeforeEach
+    void init() {
+        cut = new EndpointConnectorPluginHandler();
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void shouldHandleEndpoint() {
-        boolean canHandle = endpointPluginHandler.canHandle(new FakeEndpointConnectorPlugin());
+    void shouldBeEndpointType() {
+        assertThat(cut.type()).isEqualTo(EndpointConnectorPlugin.PLUGIN_TYPE);
+    }
+
+    @Test
+    void shouldHandleEndpoint() {
+        boolean canHandle = cut.canHandle(new FakeEndpointConnectorPlugin());
         assertThat(canHandle).isTrue();
     }
 
     @Test
-    public void shouldNotHandleEndpoint() {
+    void shouldNotHandleEndpoint() {
         Plugin mockPlugin = mock(Plugin.class);
         when(mockPlugin.type()).thenReturn("bad");
-        boolean canHandle = endpointPluginHandler.canHandle(mockPlugin);
+        boolean canHandle = cut.canHandle(mockPlugin);
         assertThat(canHandle).isFalse();
     }
 
     @Test
-    public void shouldHandleNewPlugin() {
+    void shouldHandleNewPlugin() {
         FakeEndpointConnectorPlugin plugin = new FakeEndpointConnectorPlugin();
-        endpointPluginHandler.handle(plugin, FakeEndpointConnectorFactory.class);
+        cut.handle(plugin, FakeEndpointConnectorFactory.class);
         verify(mockEndpointConnectorPluginManager).register(any(EndpointConnectorPlugin.class));
     }
 }

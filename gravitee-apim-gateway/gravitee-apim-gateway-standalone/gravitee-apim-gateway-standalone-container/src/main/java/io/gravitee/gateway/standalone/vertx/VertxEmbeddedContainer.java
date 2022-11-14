@@ -68,7 +68,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         instances = (instances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : instances;
         logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
 
-        DeploymentOptions options = new DeploymentOptions().setInstances(instances);
+        final DeploymentOptions options = new DeploymentOptions().setInstances(instances);
         final String verticleName;
 
         if (jupiterMode) {

@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
@@ -49,6 +49,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.rxjava3.core.http.HttpHeaders;
@@ -82,7 +83,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
     private final PlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
-    private final HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration;
+    private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final Vertx vertx;
     private final List<ChainHook> processorChainHooks;
     private final ComponentProvider globalComponentProvider;
@@ -97,7 +98,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         PlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
-        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration,
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
         Vertx vertx
     ) {
         this.gatewayConfiguration = gatewayConfiguration;
@@ -108,7 +109,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         this.responseProcessorChainFactory = responseProcessorChainFactory;
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
-        this.httpRequestTimeoutConfiguration = httpRequestTimeoutConfiguration;
+        this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.vertx = vertx;
 
         this.processorChainHooks = new ArrayList<>();
@@ -157,23 +158,23 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     mutableCtx,
                     ExecutionPhase.REQUEST
                 )
-                .andThen(
-                    Completable.defer(
-                        () -> {
-                            // Jupiter execution mode.
-                            ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                            return handleJupiterRequest(mutableCtx, httpAcceptor)
-                                .andThen(
-                                    HookHelper.hook(
-                                        () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                                        postProcessorChain.getId(),
-                                        processorChainHooks,
-                                        mutableCtx,
-                                        ExecutionPhase.RESPONSE
-                                    )
-                                );
-                        }
-                    )
+                .andThen(Completable.defer(() -> handleJupiterRequest(mutableCtx, httpAcceptor)))
+                .doFinally(
+                    () -> {
+                        // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
+                        ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+                        HookHelper
+                            .hook(
+                                () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                                postProcessorChain.getId(),
+                                processorChainHooks,
+                                mutableCtx,
+                                ExecutionPhase.RESPONSE
+                            )
+                            .subscribeOn(Schedulers.computation())
+                            .onErrorComplete()
+                            .subscribe();
+                    }
                 );
         }
         // V3 execution mode.
@@ -305,9 +306,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     ) {
         SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.createResponse());
 
-        if (httpRequestTimeoutConfiguration.getHttpRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
+        if (requestTimeoutConfiguration.getRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
             final long vertxTimerId = vertx.setTimer(
-                httpRequestTimeoutConfiguration.getHttpRequestTimeout(),
+                requestTimeoutConfiguration.getRequestTimeout(),
                 event -> {
                     if (!httpServerRequest.response().ended()) {
                         final Handler<Long> handler = request.timeoutHandler();

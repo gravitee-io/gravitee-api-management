@@ -37,5 +37,6 @@
         <module>gravitee-apim-plugin-endpoint-kafka</module>
         <module>gravitee-apim-plugin-endpoint-mqtt5</module>
         <module>gravitee-apim-plugin-endpoint-mock</module>
+        <module>gravitee-apim-plugin-endpoint-http-proxy</module>
     </modules>
 </project>

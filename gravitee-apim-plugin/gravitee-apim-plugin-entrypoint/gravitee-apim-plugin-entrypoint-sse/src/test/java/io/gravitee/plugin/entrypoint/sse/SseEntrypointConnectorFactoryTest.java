@@ -21,19 +21,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class SseEntrypointConnectorFactoryTest {
 
     private SseEntrypointConnectorFactory sseEntrypointConnectorFactory;
+
+    @Mock
+    private DeploymentContext deploymentContext;
 
     @BeforeEach
     void beforeEach() {
@@ -58,13 +66,13 @@ class SseEntrypointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        SseEntrypointConnector connector = sseEntrypointConnectorFactory.createConnector(Qos.NONE, configuration);
+        SseEntrypointConnector connector = sseEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, configuration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        SseEntrypointConnector connector = sseEntrypointConnectorFactory.createConnector(Qos.NONE, null);
+        SseEntrypointConnector connector = sseEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, null);
         assertThat(connector).isNotNull();
     }
 }

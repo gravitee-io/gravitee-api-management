@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.security;
 
-import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SKIP_SECURITY_CHAIN;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,7 +30,6 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
-import io.gravitee.gateway.jupiter.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -127,7 +126,7 @@ class SecurityChainTest {
         when(policy1.order()).thenReturn(0);
         when(policy2.order()).thenReturn(1);
 
-        when(ctx.getAttribute(ATTR_SKIP_SECURITY_CHAIN)).thenReturn(true);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).thenReturn(true);
 
         final SecurityChain cut = new SecurityChain(api, policyManager, ExecutionPhase.REQUEST);
         final TestObserver<Void> obs = cut.execute(ctx).test();

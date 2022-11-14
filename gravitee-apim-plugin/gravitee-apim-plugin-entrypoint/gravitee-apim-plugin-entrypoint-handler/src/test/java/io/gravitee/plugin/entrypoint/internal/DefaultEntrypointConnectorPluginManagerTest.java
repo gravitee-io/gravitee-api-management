@@ -22,6 +22,7 @@ import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnector;
 import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorFactory;
@@ -29,20 +30,27 @@ import io.gravitee.plugin.entrypoint.internal.fake.FakeEntrypointConnectorPlugin
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 class DefaultEntrypointConnectorPluginManagerTest {
 
     private static final String FAKE_ENTRYPOINT = "fake-entrypoint";
 
-    private EntrypointConnectorPluginManager entrypointConnectorPluginManager;
+    @Mock
+    private DeploymentContext deploymentContext;
+
+    private EntrypointConnectorPluginManager cut;
 
     @BeforeEach
     public void beforeEach() {
-        entrypointConnectorPluginManager =
+        cut =
             new DefaultEntrypointConnectorPluginManager(
                 new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
                 new ConnectorHelper(null, new ObjectMapper())
@@ -56,10 +64,10 @@ class DefaultEntrypointConnectorPluginManagerTest {
             FakeEntrypointConnectorFactory.class,
             null
         );
-        entrypointConnectorPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
+        cut.register(entrypointPlugin);
+        EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
-        EntrypointConnector fakeConnector = fake.createConnector(null);
+        EntrypointConnector fakeConnector = fake.createConnector(deploymentContext, null);
         assertThat(fakeConnector).isNotNull();
     }
 
@@ -70,10 +78,10 @@ class DefaultEntrypointConnectorPluginManagerTest {
             FakeEntrypointConnectorFactory.class,
             EntrypointConnectorConfiguration.class
         );
-        entrypointConnectorPluginManager.register(entrypointPlugin);
-        EntrypointConnectorFactory<?> fake = entrypointConnectorPluginManager.getFactoryById("fake-entrypoint");
+        cut.register(entrypointPlugin);
+        EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
-        EntrypointConnector fakeConnector = fake.createConnector("{\"info\":\"test\"}");
+        EntrypointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}");
         assertThat(fakeConnector).isNotNull();
         assertThat(fakeConnector).isInstanceOf(FakeEntrypointConnector.class);
         FakeEntrypointConnector fakeEntrypointConnector = (FakeEntrypointConnector) fakeConnector;
@@ -82,21 +90,21 @@ class DefaultEntrypointConnectorPluginManagerTest {
 
     @Test
     void shouldNotRetrieveUnRegisterPlugin() {
-        final EntrypointConnector factoryById = entrypointConnectorPluginManager.getFactoryById("fake-endpoint");
+        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
         assertThat(factoryById).isNull();
     }
 
     @Test
     void shouldNotFindSubscriptionSchemaFile() throws IOException {
-        entrypointConnectorPluginManager.register(new FakeEntrypointConnectorPlugin(true));
-        final String schema = entrypointConnectorPluginManager.getSubscriptionSchema(FAKE_ENTRYPOINT);
+        cut.register(new FakeEntrypointConnectorPlugin(true));
+        final String schema = cut.getSubscriptionSchema(FAKE_ENTRYPOINT);
         assertThat(schema).isNull();
     }
 
     @Test
     void shouldGetFirstSubscriptionSchemaFile() throws IOException {
-        entrypointConnectorPluginManager.register(new FakeEntrypointConnectorPlugin());
-        final String schema = entrypointConnectorPluginManager.getSubscriptionSchema(FAKE_ENTRYPOINT);
+        cut.register(new FakeEntrypointConnectorPlugin());
+        final String schema = cut.getSubscriptionSchema(FAKE_ENTRYPOINT);
         assertThat(schema).isEqualTo("{\n  \"schema\": \"subscription\"\n}");
     }
 }

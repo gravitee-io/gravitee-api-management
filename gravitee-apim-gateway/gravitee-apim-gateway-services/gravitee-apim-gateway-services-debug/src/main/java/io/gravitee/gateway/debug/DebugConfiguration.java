@@ -29,12 +29,11 @@ import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFa
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.env.HttpRequestTimeoutConfiguration;
+import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.jupiter.debug.DebugReactorEventListener;
 import io.gravitee.gateway.jupiter.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.jupiter.debug.policy.condition.DebugExpressionLanguageConditionFilter;
@@ -62,7 +61,6 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -275,7 +273,7 @@ public class DebugConfiguration {
         @Qualifier("debugPlatformProcessorChainFactory") PlatformProcessorChainFactory debugPlatformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
-        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration,
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
         Vertx vertx
     ) {
         return new DebugHttpRequestDispatcher(
@@ -288,7 +286,7 @@ public class DebugConfiguration {
             debugPlatformProcessorChainFactory,
             notFoundProcessorChainFactory,
             tracingEnabled,
-            httpRequestTimeoutConfiguration,
+            requestTimeoutConfiguration,
             vertx
         );
     }
@@ -343,7 +341,7 @@ public class DebugConfiguration {
         @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
         FlowResolverFactory flowResolverFactory,
-        HttpRequestTimeoutConfiguration httpRequestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         return new DebugApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -356,7 +354,7 @@ public class DebugConfiguration {
             policyChainProviderLoader,
             apiProcessorChainFactory,
             flowResolverFactory,
-            httpRequestTimeoutConfiguration
+            requestTimeoutConfiguration
         );
     }
 

@@ -281,4 +281,9 @@ public class VertxHttpHeadersTest {
         assertThat(cut.getAll(FIRST_HEADER)).hasSize(1).containsExactly("new-value");
         assertThat(defaultHttpHeaders.getAll(FIRST_HEADER)).hasSize(1).containsExactly("new-value");
     }
+
+    @Test
+    public void shouldGetDelegate() {
+        assertThat(cut.getDelegate()).isNotNull();
+    }
 }

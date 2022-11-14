@@ -1,0 +1,36 @@
+= Http Proxy Entrypoint
+
+== Description
+
+The *Http Proxy Entrypoint Connector* can be used to expose and proxy a regular http based api (rest api, soap, ...).
+
+This entrypoint works at *request and response* level and does not allow dealing with Event Native and can only be used with endpoints working at request and response level such as _Http Proxy Endpoint Connector_.
+
+== Compatibility matrix
+
+|===
+|Plugin version | APIM version
+
+|1.x and upper                  | 3.20.x to latest
+|===
+
+== Entrypoint identifier
+
+In order to use this entrypoint, you have to declare the following identifier `http-proxy` while configuring your API entrypoints.
+
+== Entrypoint configuration
+
+=== General configuration
+
+The Http Proxy Entrypoint Connector requires no particular configuration.
+
+=== Examples
+
+Bellow you will find a full `http-proxy` entrypoint configuration example:
+
+```json
+{
+    "type": "http-proxy"
+}
+```
+

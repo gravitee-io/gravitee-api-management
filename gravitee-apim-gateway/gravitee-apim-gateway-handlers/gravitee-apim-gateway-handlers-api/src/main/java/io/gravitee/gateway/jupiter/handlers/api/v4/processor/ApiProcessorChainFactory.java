@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
+import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
@@ -34,6 +35,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappin
 import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -55,93 +58,154 @@ public class ApiProcessorChainFactory {
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.node = node;
+
+        boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
+        if (tracing) {
+            processorHooks.add(new TracingHook("processor"));
+        }
     }
 
-    public ProcessorChain preProcessorChain(final Api api) {
-        List<Processor> preProcessorList = new ArrayList<>();
-        Optional<HttpListener> httpListenerOpt = getHttpListener(api);
-        if (httpListenerOpt.isPresent()) {
-            HttpListener httpListener = httpListenerOpt.get();
-            Cors cors = httpListener.getCors();
-            if (cors != null && cors.isEnabled()) {
-                preProcessorList.add(CorsPreflightRequestProcessor.instance());
-            }
-            if (overrideXForwardedPrefix) {
-                preProcessorList.add(XForwardedPrefixProcessor.instance());
-            }
+    /**
+     * Return the chain of processors to execute prior the security chain.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain beforeHandle(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
 
-            preProcessorList.add(PlanProcessor.instance());
+        getHttpListener(api)
+            .ifPresent(
+                httpListener -> {
+                    final Logging logging = httpListener.getLogging();
+                    if (LoggingUtils.getLoggingContext(logging) != null) {
+                        processors.add(LogRequestProcessor.instance());
+                    }
+                }
+            );
 
-            Logging logging = httpListener.getLogging();
-            if (LoggingUtils.getLoggingContext(logging) != null) {
-                preProcessorList.add(LogRequestProcessor.instance());
-            }
-        }
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-pre-api", preProcessorList);
-        processorChain.addHooks(processorHooks);
-        return processorChain;
+        return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
     }
 
-    public ProcessorChain postProcessorChain(final Api api) {
-        List<Processor> postProcessorList = new ArrayList<>();
-        postProcessorList.add(new ShutdownProcessor(node));
+    /**
+     * Return the chain of processors to execute before executing all the apis flows.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain beforeApiExecution(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
 
-        Optional<HttpListener> httpListenerOpt = getHttpListener(api);
-        if (httpListenerOpt.isPresent()) {
-            HttpListener httpListener = httpListenerOpt.get();
-            Cors cors = httpListener.getCors();
-            if (cors != null && cors.isEnabled()) {
-                postProcessorList.add(CorsSimpleRequestProcessor.instance());
-            }
-            Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
-            if (pathMappings != null && !pathMappings.isEmpty()) {
-                postProcessorList.add(PathMappingProcessor.instance());
-            }
+        getHttpListener(api)
+            .ifPresent(
+                httpListener -> {
+                    final Cors cors = httpListener.getCors();
 
-            Logging logging = httpListener.getLogging();
-            if (LoggingUtils.getLoggingContext(logging) != null) {
-                postProcessorList.add(LogResponseProcessor.instance());
-            }
-        }
+                    if (cors != null && cors.isEnabled()) {
+                        processors.add(CorsPreflightRequestProcessor.instance());
+                    }
 
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-post-api", postProcessorList);
-        processorChain.addHooks(processorHooks);
-        return processorChain;
+                    if (overrideXForwardedPrefix) {
+                        processors.add(XForwardedPrefixProcessor.instance());
+                    }
+
+                    processors.add(PlanProcessor.instance());
+                }
+            );
+
+        return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
     }
 
-    public ProcessorChain errorProcessorChain(final Api api) {
-        List<Processor> errorProcessorList = new ArrayList<>();
+    /**
+     * Return the chain of processors to execute after the execution of the apis flows without error.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain afterApiExecution(final Api api) {
+        final List<Processor> processors = getAfterApiExecutionProcessors(api);
 
-        Optional<HttpListener> httpListenerOpt = getHttpListener(api);
-        if (httpListenerOpt.isPresent()) {
-            HttpListener httpListener = httpListenerOpt.get();
-            Cors cors = httpListener.getCors();
-            if (cors != null && cors.isEnabled()) {
-                errorProcessorList.add(CorsSimpleRequestProcessor.instance());
-            }
-            Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
-            if (pathMappings != null && !pathMappings.isEmpty()) {
-                errorProcessorList.add(PathMappingProcessor.instance());
-            }
-        }
+        return new ProcessorChain("processor-chain-after-api-execution", processors, processorHooks);
+    }
+
+    private List<Processor> getAfterApiExecutionProcessors(Api api) {
+        final List<Processor> processors = new ArrayList<>();
+
+        processors.add(new ShutdownProcessor(node));
+
+        getHttpListener(api)
+            .ifPresent(
+                httpListener -> {
+                    final Cors cors = httpListener.getCors();
+                    if (cors != null && cors.isEnabled()) {
+                        processors.add(CorsSimpleRequestProcessor.instance());
+                    }
+
+                    final Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
+                    if (pathMappings != null && !pathMappings.isEmpty()) {
+                        processors.add(PathMappingProcessor.instance());
+                    }
+                }
+            );
+        return processors;
+    }
+
+    public ProcessorChain onMessage(final Api api) {
+        List<Processor> processors = new ArrayList<>();
 
         if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
-            errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
+            processors.add(ResponseTemplateBasedFailureMessageProcessor.instance());
         } else {
-            errorProcessorList.add(SimpleFailureProcessor.instance());
+            processors.add(SimpleFailureMessageProcessor.instance());
         }
 
-        if (httpListenerOpt.isPresent()) {
-            HttpListener httpListener = httpListenerOpt.get();
+        return new ProcessorChain("processor-chain-api-message", processors);
+    }
 
-            Logging logging = httpListener.getLogging();
-            if (LoggingUtils.getLoggingContext(logging) != null) {
-                errorProcessorList.add(LogResponseProcessor.instance());
-            }
+    /**
+     * Return the chain of processors to execute in case of error during the api execution.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain onError(final Api api) {
+        // On error processor chain contains the after api execution processors.
+        List<Processor> processors = new ArrayList<>(getAfterApiExecutionProcessors(api));
+
+        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
+            processors.add(ResponseTemplateBasedFailureProcessor.instance());
+        } else {
+            processors.add(SimpleFailureProcessor.instance());
         }
-        ProcessorChain processorChain = new ProcessorChain("processor-chain-error-api", errorProcessorList);
-        processorChain.addHooks(processorHooks);
-        return processorChain;
+
+        return new ProcessorChain("processor-chain-api-error", processors, processorHooks);
+    }
+
+    /**
+     * Return the chain of processors to execute after request handling.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain afterHandle(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
+
+        getHttpListener(api)
+            .ifPresent(
+                httpListener -> {
+                    final Logging logging = httpListener.getLogging();
+                    if (LoggingUtils.getLoggingContext(logging) != null) {
+                        processors.add(LogResponseProcessor.instance());
+                    }
+                }
+            );
+
+        return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
     }
 
     private Optional<HttpListener> getHttpListener(final Api api) {

@@ -26,8 +26,6 @@ import io.reactivex.rxjava3.core.Completable;
  * @author GraviteeSource Team
  */
 public interface ApiReactor extends ReactorHandler {
-    ApiType apiType();
-
     Completable handle(final MutableExecutionContext ctx);
 
     default void handle(io.gravitee.gateway.api.ExecutionContext context, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
