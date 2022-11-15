@@ -22,12 +22,6 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
   'ngInject';
   $stateProvider
     .state('root', {
-      abstract: true,
-      template:
-        "<div layout='row' style='height: 100%'>" +
-        "<div ui-view='sidenav' class='gravitee-sidenav'></div>" +
-        "<md-content ui-view layout='column' flex class='md-content'></md-content>" +
-        '</div>',
       resolve: {
         graviteeUser: (UserService: UserService) => UserService.current(),
       },
@@ -35,32 +29,28 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
     .state('withoutSidenav', {
       parent: 'root',
       abstract: true,
-      views: {
-        '': {
-          template:
-            '<div layout="row">' +
-            '<div class="gv-main-container" ui-view layout="column" flex></div>' +
-            '<gv-contextual-doc></gv-contextual-doc>' +
-            '</div>',
-        },
-      },
+      template:
+        "<div class='gio-root'>" +
+        '<gio-top-nav></gio-top-nav>' +
+        "<div class='gio-main-page'>" +
+        "<div ui-view class='gio-main-page__content'></div>" +
+        '<gv-contextual-doc></gv-contextual-doc>' +
+        '</div>' +
+        '</div>',
     })
     .state('withSidenav', {
       parent: 'root',
       abstract: true,
       url: '/environments/:environmentId',
-      views: {
-        sidenav: {
-          component: 'gioSideNav',
-        },
-        '': {
-          template:
-            '<div layout="row" style="min-height: calc(100vh - 54px); overflow: auto;">' +
-            '<div class="gv-main-container" ui-view flex></div>' +
-            '<gv-contextual-doc></gv-contextual-doc>' +
-            '</div>',
-        },
-      },
+      template:
+        "<div class='gio-root'>" +
+        '<gio-top-nav></gio-top-nav>' +
+        "<div class='gio-main-page'>" +
+        '<gio-side-nav></gio-side-nav>' +
+        "<div ui-view class='gio-main-page__content'></div>" +
+        '<gv-contextual-doc></gv-contextual-doc>' +
+        '</div>' +
+        '</div>',
     })
     .state('user', {
       url: '/user',
