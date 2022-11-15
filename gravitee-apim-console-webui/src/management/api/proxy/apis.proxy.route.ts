@@ -174,19 +174,15 @@ function apisProxyRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.proxy.healthcheck.configure', {
       url: '/configure',
-      template: require('./backend/healthcheck/healthcheck-configure.html'),
-      controller: 'ApiHealthCheckConfigureController',
-      controllerAs: 'healthCheckCtrl',
+      component: 'ngApiProxyHealthCheck',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-health-c'],
         },
         docs: {
           page: 'management-api-health-check-configure',
         },
-      },
-      resolve: {
-        resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
     .state('management.apis.detail.proxy.healthcheck.log', {

@@ -29,23 +29,57 @@ import { HealthCheck } from '../../../../../entities/health-check';
 export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck): FormGroup => {
+  public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck, isReadOnly = true): FormGroup => {
+    const healthCheckStep = healthCheck?.steps?.length > 0 ? healthCheck.steps[0] : undefined;
+
     return new FormGroup({
-      enabled: new FormControl(healthCheck?.enabled ?? false),
+      enabled: new FormControl({
+        value: healthCheck?.enabled ?? false,
+        disabled: isReadOnly,
+      }),
       // Trigger
-      schedule: new FormControl(healthCheck?.schedule ?? undefined),
+      schedule: new FormControl({
+        value: healthCheck?.schedule ?? undefined,
+        disabled: isReadOnly,
+      }),
       // Request
-      method: new FormControl(healthCheck?.steps[0]?.request?.method, [Validators.required]),
-      path: new FormControl(healthCheck?.steps[0]?.request?.path, [Validators.required]),
-      body: new FormControl(healthCheck?.steps[0]?.request?.body),
-      headers: new FormControl(
-        [...(healthCheck?.steps[0]?.request?.headers ?? [])].map((header) => ({ key: header.name, value: header.value })),
+      method: new FormControl(
+        {
+          value: healthCheckStep?.request?.method,
+          disabled: isReadOnly,
+        },
+        [Validators.required],
       ),
-      fromRoot: new FormControl(healthCheck?.steps[0]?.request?.fromRoot),
+      path: new FormControl(
+        {
+          value: healthCheckStep?.request?.path,
+          disabled: isReadOnly,
+        },
+        [Validators.required],
+      ),
+      body: new FormControl({
+        value: healthCheckStep?.request?.body,
+        disabled: isReadOnly,
+      }),
+      headers: new FormControl({
+        value: [...(healthCheckStep?.request?.headers ?? [])].map((header) => ({ key: header.name, value: header.value })),
+        disabled: isReadOnly,
+      }),
+      fromRoot: new FormControl({
+        value: healthCheckStep?.request?.fromRoot,
+        disabled: isReadOnly,
+      }),
       // Assertions
       assertions: new FormArray(
-        [...(healthCheck?.steps[0]?.response?.assertions ?? ['#response.status == 200'])].map(
-          (assertion) => new FormControl(assertion, [Validators.required]),
+        [...(healthCheckStep?.response?.assertions ?? ['#response.status == 200'])].map(
+          (assertion) =>
+            new FormControl(
+              {
+                value: assertion,
+                disabled: isReadOnly,
+              },
+              [Validators.required],
+            ),
         ),
         [Validators.required],
       ),
@@ -88,14 +122,16 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         .get('enabled')
         .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
         .subscribe((checked) => {
+          const enableAll = this.healthCheckForm.get('enabled').enabled && checked;
+
           controlKeys.forEach((k) => {
-            return checked ? this.healthCheckForm.get(k).enable() : this.healthCheckForm.get(k).disable();
+            return enableAll ? this.healthCheckForm.get(k).enable() : this.healthCheckForm.get(k).disable();
           });
         });
       this.isDisabled$ = this.healthCheckForm.get('enabled').valueChanges.pipe(
         takeUntil(this.unsubscribe$),
         startWith(this.healthCheckForm.get('enabled').value),
-        map((checked) => !checked),
+        map((checked) => !checked || this.healthCheckForm.get('enabled').disabled),
       );
     }
   }

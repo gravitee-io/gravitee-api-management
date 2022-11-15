@@ -250,6 +250,7 @@ import ApiHealthCheckController from '../management/api/proxy/backend/healthchec
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 import ApiHealthCheckLogController from '../management/api/proxy/backend/healthcheck/healthcheck-log.controller';
 import HealthCheckMetricComponent from '../components/healthcheckmetric/healthcheck-metric.component';
+
 // Ticket
 import TicketService from '../services/ticket.service';
 import SupportTicketController from '../management/support/ticket.controller';
@@ -540,6 +541,7 @@ import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.com
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
+import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -980,6 +982,7 @@ graviteeManagementModule.controller('ContextualDocController', ContextualDocCont
 
 // Healthcheck
 graviteeManagementModule.controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController);
+graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({ component: ApiProxyHealthCheckComponent }));
 graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
