@@ -24,6 +24,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
 import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
@@ -75,8 +76,10 @@ describe('ApiProxyHealthCheckComponent', () => {
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
 
+    // Trigger
     expect(component.healthCheckForm.get('schedule').disabled).toEqual(true);
 
+    // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
     expect(await allowMethodsInput.isDisabled()).toEqual(true);
 
@@ -92,6 +95,13 @@ describe('ApiProxyHealthCheckComponent', () => {
     const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
     expect(await headersInput.isDisabled()).toEqual(true);
 
+    // Assertion
+    const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
+    expect(await addAssertionButton.isDisabled()).toEqual(true);
+
+    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    expect(await assertion.isDisabled()).toEqual(true);
+
     expect(component.healthCheckForm.value).toEqual({
       enabled: false,
     });
@@ -103,9 +113,11 @@ describe('ApiProxyHealthCheckComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
     await enabledSlideToggle.check();
 
+    // Trigger
     component.healthCheckForm.get('schedule').setValue('* * * * *');
     expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
 
+    // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
     expect(await allowMethodsInput.isDisabled()).toEqual(false);
     await allowMethodsInput.clickOptions({ text: 'POST' });
@@ -126,14 +138,32 @@ describe('ApiProxyHealthCheckComponent', () => {
     expect(await headersInput.isDisabled()).toEqual(false);
     await headersInput.addHeader({ key: 'X-Test', value: 'test' });
 
-    expect(component.healthCheckForm.value).toEqual({
+    // Assertion
+    // add assertion button
+    const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
+    expect(await addAssertionButton.isDisabled()).toEqual(false);
+    await addAssertionButton.click();
+
+    const assertion_1 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="1"]' }));
+    await assertion_1.setValue('new assertion');
+
+    expect(ApiProxyHealthCheckComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual({
       enabled: true,
       schedule: '* * * * *',
-      method: 'POST',
-      path: '/test',
-      body: 'The body',
-      headers: [{ key: 'X-Test', value: 'test' }],
-      fromRoot: true,
+      steps: [
+        {
+          request: {
+            method: 'POST',
+            path: '/test',
+            body: 'The body',
+            headers: [{ name: 'X-Test', value: 'test' }],
+            fromRoot: true,
+          },
+          response: {
+            assertions: ['#response.status == 200', 'new assertion'],
+          },
+        },
+      ],
     });
   });
 });

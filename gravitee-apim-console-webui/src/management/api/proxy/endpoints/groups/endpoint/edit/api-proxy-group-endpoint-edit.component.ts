@@ -118,6 +118,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
               ...this.updatedConfiguration,
               inherit: this.configurationForm.getRawValue().inherit,
             },
+            ApiProxyHealthCheckComponent.HealthCheckFromFormGroup(this.healthCheckForm),
           );
 
           endpointIndex !== -1
