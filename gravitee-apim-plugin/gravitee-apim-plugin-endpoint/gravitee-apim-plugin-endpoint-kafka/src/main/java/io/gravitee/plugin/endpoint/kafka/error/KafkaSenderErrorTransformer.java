@@ -19,15 +19,12 @@ import static io.gravitee.plugin.endpoint.kafka.configuration.KafkaDefaultConfig
 import static io.gravitee.plugin.endpoint.kafka.configuration.KafkaDefaultConfiguration.RECONNECT_BACKOFF_MS;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.Metric;
-import org.apache.kafka.common.MetricName;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -52,7 +49,9 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
             Sinks.Many<SenderResult<T>> kafkaErrorSink = Sinks.many().unicast().onBackpressureError();
             return consumerRecordFlux
                 .zipWith(storeProduceReference(kafkaSender, producerRef), (r, o) -> r)
-                .mergeWith(kafkaErrorSink.asFlux())
+                .materialize()
+                .mergeWith(kafkaErrorSink.asFlux().materialize())
+                .<SenderResult<T>>dematerialize()
                 .doOnSubscribe(subscription -> handleKafkaDisconnection(producerRef, kafkaErrorSink))
                 .doOnError(throwable -> kafkaSender.close());
         };

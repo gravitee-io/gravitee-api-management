@@ -164,7 +164,6 @@ class KafkaEndpointConnectorTest {
         TestSubscriber<Message> messageTestSubscriber = Flowable
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
             .compose(messagesTransformerCaptor.getValue())
-            .take(1)
             .test();
         messageTestSubscriber.await(10, TimeUnit.SECONDS);
         messageTestSubscriber.assertComplete();
@@ -308,7 +307,6 @@ class KafkaEndpointConnectorTest {
         TestSubscriber<Message> messageTestSubscriber = Flowable
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
             .compose(messagesTransformerCaptor.getValue())
-            .take(1)
             .test();
 
         messageTestSubscriber.await(15, TimeUnit.SECONDS);
