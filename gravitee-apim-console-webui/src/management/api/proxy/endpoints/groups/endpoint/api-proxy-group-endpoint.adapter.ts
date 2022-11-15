@@ -18,15 +18,18 @@ import { EndpointGeneralData } from './edit/general/api-proxy-group-endpoint-edi
 import { EndpointConfigurationData } from './edit/configuration/api-proxy-group-endpoint-edit-configuration.model';
 
 import { ProxyGroupEndpoint } from '../../../../../../entities/proxy';
+import { HealthCheck } from '../../../../../../entities/health-check';
 
 export const toProxyGroupEndpoint = (
   endpoint: ProxyGroupEndpoint,
   generalData: EndpointGeneralData,
   configurationData: EndpointConfigurationData,
+  healthCheck: HealthCheck,
 ): ProxyGroupEndpoint => {
-  let updatedEndpoint = {
+  let updatedEndpoint: ProxyGroupEndpoint = {
     ...endpoint,
     ...generalData,
+    healthcheck: healthCheck,
   };
 
   if (!configurationData.inherit) {

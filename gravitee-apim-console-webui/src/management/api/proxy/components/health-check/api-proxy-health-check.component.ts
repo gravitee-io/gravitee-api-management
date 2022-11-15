@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
@@ -27,19 +27,44 @@ import { HealthCheck } from '../../../../../entities/health-check';
   styles: [require('./api-proxy-health-check.component.scss')],
 })
 export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
   public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck): FormGroup => {
     return new FormGroup({
-      enabled: new FormControl(true),
+      enabled: new FormControl(false),
+      // Trigger
       schedule: new FormControl(healthCheck?.schedule ?? undefined),
+      // Request
       method: new FormControl('', [Validators.required]),
       path: new FormControl('', [Validators.required]),
       body: new FormControl(),
       headers: new FormControl([]),
       fromRoot: new FormControl(),
+      // Assertions
+      assertions: new FormArray([new FormControl('#response.status == 200', [Validators.required])], [Validators.required]),
     });
   };
 
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup): HealthCheck {
+    return {
+      enabled: healthCheckForm.get('enabled').value,
+      schedule: healthCheckForm.get('schedule').value,
+      steps: [
+        {
+          request: {
+            method: healthCheckForm.get('method').value,
+            path: healthCheckForm.get('path').value,
+            body: healthCheckForm.get('body').value,
+            headers: [...healthCheckForm.get('headers').value].map((h) => ({ name: h.key, value: h.value })),
+            fromRoot: healthCheckForm.get('fromRoot').value,
+          },
+          response: {
+            assertions: healthCheckForm.get('assertions').value,
+          },
+        },
+      ],
+    };
+  }
 
   @Input()
   // Should be init by static NewHealthCheckForm method
@@ -51,7 +76,7 @@ export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.healthCheckForm && this.healthCheckForm) {
-      const controlKeys = ['schedule', 'method', 'path', 'body', 'fromRoot', 'headers'];
+      const controlKeys = ['schedule', 'method', 'path', 'body', 'fromRoot', 'headers', 'assertions'];
       this.healthCheckForm
         .get('enabled')
         .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
@@ -71,5 +96,21 @@ export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  addAssertion() {
+    const assertions = this.healthCheckForm.get('assertions') as FormArray;
+
+    const assertionControl = new FormControl('', [Validators.required]);
+    assertionControl.markAsTouched();
+
+    assertions.push(assertionControl);
+    this.healthCheckForm.markAsDirty();
+  }
+
+  removeAssertion(index: number) {
+    const assertions = this.healthCheckForm.get('assertions') as FormArray;
+    assertions.removeAt(index);
+    this.healthCheckForm.markAsDirty();
   }
 }

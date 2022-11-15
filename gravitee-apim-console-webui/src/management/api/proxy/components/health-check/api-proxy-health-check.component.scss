@@ -47,6 +47,28 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__assertions {
     padding-left: 8px;
+
+    &__banner {
+      margin-bottom: 16px;
+    }
+
+    &__assertion {
+      display: flex;
+      margin-bottom: 8px;
+
+      &__form-field {
+        flex: 1 1 auto;
+        margin-right: 8px;
+      }
+
+      &__remove-button {
+        margin-top: 8px;
+      }
+    }
+
+    &__add {
+      padding-top: 8px;
+    }
   }
 
   .disabled {

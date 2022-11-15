@@ -23,7 +23,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioFormHeadersModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatButtonModule } from '@angular/material/button';
 
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
 
@@ -42,10 +43,13 @@ import { GioFormSlideToggleModule } from '../../../../../shared/components/gio-f
     MatSlideToggleModule,
     MatSelectModule,
     MatInputModule,
+    MatButtonModule,
 
     GioSaveBarModule,
     GioFormSlideToggleModule,
     GioFormHeadersModule,
+    GioBannerModule,
+    GioIconsModule,
   ],
 })
 export class ApiProxyHealthCheckModule {}

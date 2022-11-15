@@ -51,7 +51,7 @@
           <mat-error *ngIf="healthCheckForm.get('method').hasError('required')">HTTP Method is required.</mat-error>
         </mat-form-field>
 
-        <!-- Request HTTP Method -->
+        <!-- Request Path -->
         <mat-form-field class="health-check-card__request__path__form-field" appearance="fill">
           <mat-label>Path</mat-label>
           <input type="text" aria-label="Endpoint target input" matInput formControlName="path" required />
@@ -103,7 +103,43 @@
       </div>
       <!-- Assertions -->
       <h3>Assertions</h3>
-      <div class="assertions"></div>
+
+      <div class="health-check-card__assertions" formArrayName="assertions">
+        <gio-banner-info *ngIf="!(isDisabled$ | async)" class="health-check-card__assertions__banner">
+          How to write assertion
+          <span gioBannerBody>
+            Example 1: Check the status of the HTTP response : <code>#response.status == 200</code><br />
+            Example 2: Check the JSON content of the response <code>#jsonPath(#response.content, '$.status') == 'green'</code><br />
+          </span>
+        </gio-banner-info>
+        <div
+          *ngFor="let option of healthCheckForm.get('assertions').controls; let i = index"
+          class="health-check-card__assertions__assertion"
+        >
+          <mat-form-field class="health-check-card__assertions__assertion__form-field" appearance="fill">
+            <mat-label>Assertion #{{ i }}</mat-label>
+            <input type="text" aria-label="Assertion #{{ i }} input" matInput [formControlName]="i" required />
+            <mat-error *ngIf="healthCheckForm.get('assertions').at(i).hasError('required')">Assertion is required.</mat-error>
+          </mat-form-field>
+          <button
+            mat-icon-button
+            class="health-check-card__assertions__assertion__remove-button"
+            type="button"
+            [disabled]="healthCheckForm.get('assertions').length === 1"
+            (click)="removeAssertion(i)"
+            matTooltip="Remove assertion"
+            aria-label="Remove assertion"
+          >
+            <mat-icon svgIcon="gio:cancel"></mat-icon>
+          </button>
+        </div>
+
+        <div class="health-check-card__assertions__add">
+          <button mat-raised-button type="button" [disabled]="isDisabled$ | async" (click)="addAssertion()">
+            <mat-icon svgIcon="gio:plus"></mat-icon> Add assertion
+          </button>
+        </div>
+      </div>
     </div>
   </mat-card-content>
 </mat-card>
