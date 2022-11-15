@@ -166,4 +166,70 @@ describe('ApiProxyHealthCheckComponent', () => {
       ],
     });
   });
+
+  it('should display configured Health Check', async () => {
+    const healthCheck: ApiProxyHealthCheckModule = {
+      enabled: true,
+      schedule: '* * * * *',
+      steps: [
+        {
+          request: {
+            method: 'PUT',
+            path: '/test',
+            body: 'The body',
+            headers: [{ name: 'X-Test', value: 'test' }],
+            fromRoot: true,
+          },
+          response: {
+            assertions: ['#response.status == 400'],
+          },
+        },
+      ],
+    };
+
+    component.healthCheckForm = ApiProxyHealthCheckComponent.NewHealthCheckFormGroup(healthCheck);
+    fixture.detectChanges();
+    component.ngOnChanges({ healthCheckForm: {} } as any);
+    fixture.detectChanges();
+
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isChecked()).toEqual(true);
+
+    // Trigger
+    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
+    expect(component.healthCheckForm.get('schedule').value).toEqual('* * * * *');
+
+    // Request
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(false);
+    expect(await allowMethodsInput.getValueText()).toEqual('PUT');
+
+    const pathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="path"]' }));
+    expect(await pathInput.isDisabled()).toEqual(false);
+    expect(await pathInput.getValue()).toEqual('/test');
+
+    const fromRootSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="fromRoot"]' }));
+    expect(await fromRootSlideToggle.isDisabled()).toEqual(false);
+    expect(await fromRootSlideToggle.isChecked()).toEqual(true);
+
+    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    expect(await bodyInput.isDisabled()).toEqual(false);
+    expect(await bodyInput.getValue()).toEqual('The body');
+
+    const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+    expect(await headersInput.isDisabled()).toEqual(false);
+    const headerRow1 = (await headersInput.getHeaderRows())[0];
+    expect(await headerRow1.keyInput.getValue()).toEqual('X-Test');
+    expect(await headerRow1.valueInput.getValue()).toEqual('test');
+
+    // Assertion
+    const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
+    expect(await addAssertionButton.isDisabled()).toEqual(false);
+
+    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    expect(await assertion.isDisabled()).toEqual(false);
+    expect(await assertion.getValue()).toEqual('#response.status == 400');
+
+    expect(ApiProxyHealthCheckComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual(healthCheck);
+  });
 });
