@@ -32,6 +32,7 @@
       *ngFor="let menuItem of this.tabMenuItems"
       (click)="navigateTo(menuItem.targetRoute)"
       [active]="isActive(menuItem.baseRoute)"
+      [attr.data-testid]="menuItem.testId"
       class="gio-instance-details-header__navigation-tabs__link"
       >{{ menuItem.displayName }}</a
     >
