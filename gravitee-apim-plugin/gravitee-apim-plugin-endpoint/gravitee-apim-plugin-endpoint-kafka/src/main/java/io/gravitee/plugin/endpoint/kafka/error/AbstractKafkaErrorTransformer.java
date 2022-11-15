@@ -33,18 +33,23 @@ public abstract class AbstractKafkaErrorTransformer {
         final Sinks.Many<T> kafkaErrorSink,
         final Map<MetricName, ? extends Metric> metrics
     ) {
-        metrics
-            .values()
-            .stream()
-            .filter(metric -> metric.metricName().name().equals("connection-close-total") && metric.metricValue() != null)
-            .map(metric -> Double.parseDouble(metric.metricValue().toString()))
-            .filter(connectionCloseTotal -> connectionCloseTotal > 0)
-            .findFirst()
-            .ifPresent(
-                metric -> {
-                    kafkaErrorSink.tryEmitError(new KafkaConnectionClosedException());
-                    throw new KafkaConnectionClosedException();
+        Double connectionCount = null;
+        Double connectionCloseTotal = null;
+        for (Metric metric : metrics.values()) {
+            if (metric.metricValue() != null) {
+                if (metric.metricName().name().equals("connection-count")) {
+                    connectionCount = Double.parseDouble(metric.metricValue().toString());
+                } else if (metric.metricName().name().equals("connection-close-total")) {
+                    connectionCloseTotal = Double.parseDouble(metric.metricValue().toString());
                 }
-            );
+                if (connectionCount != null && connectionCloseTotal != null) {
+                    break;
+                }
+            }
+        }
+        if (connectionCloseTotal != null && connectionCloseTotal > 0 && connectionCount != null && connectionCount == 0) {
+            kafkaErrorSink.tryEmitError(new KafkaConnectionClosedException());
+            throw new KafkaConnectionClosedException();
+        }
     }
 }

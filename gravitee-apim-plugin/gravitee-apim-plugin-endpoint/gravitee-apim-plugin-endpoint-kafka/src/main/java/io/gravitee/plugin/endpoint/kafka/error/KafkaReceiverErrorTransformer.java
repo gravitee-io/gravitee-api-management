@@ -51,7 +51,9 @@ public class KafkaReceiverErrorTransformer extends AbstractKafkaErrorTransformer
             Sinks.Many<ConsumerRecord<K, V>> kafkaErrorSink = Sinks.many().unicast().onBackpressureError();
             return consumerRecordFlux
                 .zipWith(storeConsumerReference(qosStrategy, consumerRef), (c, o) -> c)
-                .mergeWith(kafkaErrorSink.asFlux())
+                .materialize()
+                .mergeWith(kafkaErrorSink.asFlux().materialize())
+                .<ConsumerRecord<K, V>>dematerialize()
                 .doOnSubscribe(subscription -> handleKafkaDisconnection(consumerRef, kafkaErrorSink));
         };
     }
