@@ -34,6 +34,7 @@ import { ManagementModule } from './management/management.module';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module';
+import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
 
 @NgModule({
   imports: [
@@ -52,6 +53,7 @@ import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module'
     ManagementModule,
     GioPendoModule.forRoot(),
     GioSideNavModule,
+    GioTopNavModule,
   ],
   providers: [
     httpInterceptorProviders,

@@ -29,7 +29,6 @@
 @import 'components/identityPicture/identityPicture';
 @import 'components/image/image';
 @import 'components/error/error';
-@import 'components/navbar/navbar';
 @import 'components/newsletter-subcription/newsletter-reminder';
 @import 'components/notifications/notifications';
 @import 'components/quick-time-range/quick-time-range';
@@ -49,7 +48,6 @@
 @import 'management/datatable';
 @import 'management/forms';
 @import 'management/instances/instances';
-@import 'management/portalnotifications/portalnotifications';
 @import 'management/stepper';
 @import 'management/submenu';
 @import 'management/tasks/tasks';
@@ -87,6 +85,25 @@ body {
   @include material-layout-compatibility();
 
   @import './scss/gio-global-style';
+
+  .gio-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .gio-main-page {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    &__content {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      overflow: auto;
+    }
+  }
 }
 
 :where(.bootstrap) {
