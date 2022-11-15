@@ -290,10 +290,6 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
         }
     }
 
-    private Flowable<Message> getMessageFlowable(final ExecutionContext ctx, final Throwable throwable) {
-        return interruptMessagesWith(ctx, throwable.getCause());
-    }
-
     /**
      * This method could be overridden to add custom configuration for consumer client
      * @param config
