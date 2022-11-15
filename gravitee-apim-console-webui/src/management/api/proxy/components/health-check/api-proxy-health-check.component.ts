@@ -31,17 +31,24 @@ export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
 
   public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck): FormGroup => {
     return new FormGroup({
-      enabled: new FormControl(false),
+      enabled: new FormControl(healthCheck?.enabled ?? false),
       // Trigger
       schedule: new FormControl(healthCheck?.schedule ?? undefined),
       // Request
-      method: new FormControl('', [Validators.required]),
-      path: new FormControl('', [Validators.required]),
-      body: new FormControl(),
-      headers: new FormControl([]),
-      fromRoot: new FormControl(),
+      method: new FormControl(healthCheck?.steps[0]?.request?.method, [Validators.required]),
+      path: new FormControl(healthCheck?.steps[0]?.request?.path, [Validators.required]),
+      body: new FormControl(healthCheck?.steps[0]?.request?.body),
+      headers: new FormControl(
+        [...(healthCheck?.steps[0]?.request?.headers ?? [])].map((header) => ({ key: header.name, value: header.value })),
+      ),
+      fromRoot: new FormControl(healthCheck?.steps[0]?.request?.fromRoot),
       // Assertions
-      assertions: new FormArray([new FormControl('#response.status == 200', [Validators.required])], [Validators.required]),
+      assertions: new FormArray(
+        [...(healthCheck?.steps[0]?.response?.assertions ?? ['#response.status == 200'])].map(
+          (assertion) => new FormControl(assertion, [Validators.required]),
+        ),
+        [Validators.required],
+      ),
     });
   };
 
