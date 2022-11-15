@@ -184,7 +184,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
     });
 
-    this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck);
+    this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck, this.isReadOnly);
 
     this.endpointForm = this.formBuilder.group({
       general: this.generalForm,

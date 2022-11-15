@@ -32,6 +32,7 @@ import { ApiProxyHealthCheckFormModule } from './api-proxy-health-check-form.mod
 import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { HealthCheck } from '../../../../../entities/health-check';
 
 describe('ApiProxyHealthCheckFormComponent', () => {
   const currentUser = new User();
@@ -62,17 +63,21 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
 
-    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup();
+  const initHealthCheckFormComponent = (healthCheck?: HealthCheck, isReadOnly = false) => {
+    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(healthCheck, isReadOnly);
     component.ngOnChanges({ healthCheckForm: {} } as any);
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   it('should be disabled by default', async () => {
+    initHealthCheckFormComponent();
+
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
 
@@ -108,6 +113,8 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   it('should add health check', async () => {
+    initHealthCheckFormComponent();
+
     // Enable health check
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
@@ -168,7 +175,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   it('should display configured Health Check', async () => {
-    const healthCheck: ApiProxyHealthCheckFormModule = {
+    const healthCheck: HealthCheck = {
       enabled: true,
       schedule: '* * * * *',
       steps: [
@@ -186,11 +193,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
         },
       ],
     };
-
-    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(healthCheck);
-    fixture.detectChanges();
-    component.ngOnChanges({ healthCheckForm: {} } as any);
-    fixture.detectChanges();
+    initHealthCheckFormComponent(healthCheck);
 
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
     expect(await enabledSlideToggle.isChecked()).toEqual(true);
@@ -231,5 +234,40 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion.getValue()).toEqual('#response.status == 400');
 
     expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual(healthCheck);
+  });
+
+  it('should be readonly', async () => {
+    initHealthCheckFormComponent(undefined, true);
+
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isDisabled()).toEqual(true);
+
+    // Trigger
+    expect(component.healthCheckForm.get('schedule').disabled).toEqual(true);
+
+    // Request
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(true);
+
+    const pathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="path"]' }));
+    expect(await pathInput.isDisabled()).toEqual(true);
+
+    const fromRootSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="fromRoot"]' }));
+    expect(await fromRootSlideToggle.isDisabled()).toEqual(true);
+
+    // Not body, method is not selected
+    expect(await (await loader.getAllHarnesses(MatInputHarness.with({ selector: '[formControlName="body"]' }))).length).toEqual(0);
+
+    const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+    expect(await headersInput.isDisabled()).toEqual(true);
+
+    // Assertion
+    const addAssertionButton = await loader.getHarness(MatButtonHarness.with({ text: /Add assertion/ }));
+    expect(await addAssertionButton.isDisabled()).toEqual(true);
+
+    const assertion = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    expect(await assertion.isDisabled()).toEqual(true);
+
+    expect(component.healthCheckForm.value.enabled).toEqual(false);
   });
 });
