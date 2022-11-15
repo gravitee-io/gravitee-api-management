@@ -35,7 +35,7 @@ import { ApiProxyGroupEndpointConfigurationComponent } from './edit/configuratio
 import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioFormSlideToggleModule } from '../../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
-import { ApiProxyHealthCheckModule } from '../../../components/health-check/api-proxy-health-check.module';
+import { ApiProxyHealthCheckFormModule } from '../../../components/health-check-form/api-proxy-health-check-form.module';
 
 @NgModule({
   declarations: [
@@ -48,7 +48,7 @@ import { ApiProxyHealthCheckModule } from '../../../components/health-check/api-
     CommonModule,
     ReactiveFormsModule,
 
-    ApiProxyHealthCheckModule,
+    ApiProxyHealthCheckFormModule,
 
     MatCardModule,
     MatTabsModule,
