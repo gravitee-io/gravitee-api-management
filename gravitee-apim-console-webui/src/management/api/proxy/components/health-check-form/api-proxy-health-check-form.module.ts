@@ -26,13 +26,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GioBannerModule, GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
-import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
+import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
 
 import { GioFormSlideToggleModule } from '../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
-  declarations: [ApiProxyHealthCheckComponent],
-  exports: [ApiProxyHealthCheckComponent],
+  declarations: [ApiProxyHealthCheckFormComponent],
+  exports: [ApiProxyHealthCheckFormComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -52,4 +52,4 @@ import { GioFormSlideToggleModule } from '../../../../../shared/components/gio-f
     GioIconsModule,
   ],
 })
-export class ApiProxyHealthCheckModule {}
+export class ApiProxyHealthCheckFormModule {}

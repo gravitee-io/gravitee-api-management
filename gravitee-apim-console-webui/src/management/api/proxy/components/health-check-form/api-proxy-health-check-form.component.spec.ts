@@ -26,25 +26,25 @@ import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
-import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
+import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
+import { ApiProxyHealthCheckFormModule } from './api-proxy-health-check-form.module';
 
 import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
 
-describe('ApiProxyHealthCheckComponent', () => {
+describe('ApiProxyHealthCheckFormComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
 
-  let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
+  let fixture: ComponentFixture<ApiProxyHealthCheckFormComponent>;
   let loader: HarnessLoader;
-  let component: ApiProxyHealthCheckComponent;
+  let component: ApiProxyHealthCheckFormComponent;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckFormModule, MatIconTestingModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -54,7 +54,7 @@ describe('ApiProxyHealthCheckComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyHealthCheckComponent);
+    fixture = TestBed.createComponent(ApiProxyHealthCheckFormComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
@@ -63,7 +63,7 @@ describe('ApiProxyHealthCheckComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    component.healthCheckForm = ApiProxyHealthCheckComponent.NewHealthCheckFormGroup();
+    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup();
     component.ngOnChanges({ healthCheckForm: {} } as any);
     fixture.detectChanges();
   });
@@ -147,7 +147,7 @@ describe('ApiProxyHealthCheckComponent', () => {
     const assertion_1 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="1"]' }));
     await assertion_1.setValue('new assertion');
 
-    expect(ApiProxyHealthCheckComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual({
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual({
       enabled: true,
       schedule: '* * * * *',
       steps: [
@@ -168,7 +168,7 @@ describe('ApiProxyHealthCheckComponent', () => {
   });
 
   it('should display configured Health Check', async () => {
-    const healthCheck: ApiProxyHealthCheckModule = {
+    const healthCheck: ApiProxyHealthCheckFormModule = {
       enabled: true,
       schedule: '* * * * *',
       steps: [
@@ -187,7 +187,7 @@ describe('ApiProxyHealthCheckComponent', () => {
       ],
     };
 
-    component.healthCheckForm = ApiProxyHealthCheckComponent.NewHealthCheckFormGroup(healthCheck);
+    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(healthCheck);
     fixture.detectChanges();
     component.ngOnChanges({ healthCheckForm: {} } as any);
     fixture.detectChanges();
@@ -230,6 +230,6 @@ describe('ApiProxyHealthCheckComponent', () => {
     expect(await assertion.isDisabled()).toEqual(false);
     expect(await assertion.getValue()).toEqual('#response.status == 400');
 
-    expect(ApiProxyHealthCheckComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual(healthCheck);
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual(healthCheck);
   });
 });

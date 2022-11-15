@@ -22,11 +22,11 @@ import '@gravitee/ui-components/wc/gv-cron-editor';
 import { HealthCheck } from '../../../../../entities/health-check';
 
 @Component({
-  selector: 'api-proxy-health-check',
-  template: require('./api-proxy-health-check.component.html'),
-  styles: [require('./api-proxy-health-check.component.scss')],
+  selector: 'api-proxy-health-check-form',
+  template: require('./api-proxy-health-check-form.component.html'),
+  styles: [require('./api-proxy-health-check-form.component.scss')],
 })
-export class ApiProxyHealthCheckComponent implements OnChanges, OnDestroy {
+export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck): FormGroup => {
