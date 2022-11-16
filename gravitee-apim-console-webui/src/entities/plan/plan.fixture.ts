@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isFunction } from 'lodash';
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { ApiPlan } from '../api';
 
-import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
+export function fakePlan(modifier?: Partial<ApiPlan> | ((baseApi: ApiPlan) => ApiPlan)): ApiPlan {
+  const base: ApiPlan = {
+    id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
+    name: 'Free Spaceshuttle',
+    security: 'KEY_LESS',
+    securityDefinition: '{}',
+    paths: {},
+    flows: [],
+    status: 'PUBLISHED',
+    api: 'api#1',
+  };
 
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
 
-@NgModule({
-  declarations: [ApiPortalPlanListComponent],
-  exports: [ApiPortalPlanListComponent],
-  imports: [CommonModule, GioTableWrapperModule, MatTableModule],
-})
-export class ApiPortalPlansModule {}
+  return {
+    ...base,
+    ...modifier,
+  };
+}

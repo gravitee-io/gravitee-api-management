@@ -13,11 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
+
+import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { PlanService } from '../../../../../services-ngx/plan.service';
+import { PagedResult } from '../../../../../entities/pagedResult';
+import { Api, ApiPlan } from '../../../../../entities/api';
+
+export type PlansTableDS = {
+  id: string;
+  name: string;
+  security: string;
+  status: string;
+}[];
 
 @Component({
   selector: 'api-portal-plan-list',
   template: require('./api-portal-plan-list.component.html'),
   styles: [require('./api-portal-plan-list.component.scss')],
 })
-export class ApiPortalPlanListComponent {}
+export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public displayedColumns = ['name', 'security', 'status', 'tags', 'actions'];
+  public plansTableDS: PlansTableDS = [];
+  public isLoadingData = true;
+
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly plansService: PlanService) {}
+
+  public ngOnInit(): void {
+    this.plansService
+      .getApiPlans(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((plans) => {
+          this.plansTableDS = this.toPlansTableDS(plans);
+          this.isLoadingData = false;
+        }),
+        catchError(() => of(new PagedResult<Api>())),
+      )
+      .subscribe();
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  private toPlansTableDS(plans: ApiPlan[]): PlansTableDS {
+    return !!plans && plans.length > 0
+      ? plans.map((plan) => ({
+          id: plan.id,
+          name: plan.name,
+          security: plan.security,
+          status: plan.status,
+          tags: plan.tags?.join(', '),
+        }))
+      : [];
+  }
+}
