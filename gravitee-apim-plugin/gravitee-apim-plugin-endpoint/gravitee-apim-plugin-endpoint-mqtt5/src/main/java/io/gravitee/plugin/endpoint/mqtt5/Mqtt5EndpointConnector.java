@@ -62,8 +62,11 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     public static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED);
     static final String MQTT5_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "mqtt5.";
+    static final String CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID = MQTT5_CONTEXT_ATTRIBUTE + "clientId";
     static final String CONTEXT_ATTRIBUTE_MQTT5_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "topic";
     static final String CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "responseTopic";
+    static final String MQTT5_INTERNAL_CONTEXT_ATTRIBUTE = "mqtt5.";
+    public static final String INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT = MQTT5_INTERNAL_CONTEXT_ATTRIBUTE + "mqttClient";
     private static final String FAILURE_ENDPOINT_CONNECTION_FAILED = "FAILURE_ENDPOINT_CONNECTION_FAILED";
     private static final String FAILURE_ENDPOINT_CONNECTION_CLOSED = "FAILURE_ENDPOINT_CONNECTION_CLOSED";
     private static final String FAILURE_ENDPOINT_UNKNOWN_ERROR = "FAILURE_ENDPOINT_UNKNOWN_ERROR";
@@ -91,6 +94,24 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
+    public Completable connect(final ExecutionContext ctx) {
+        return Completable
+            .defer(
+                () -> {
+                    Mqtt5RxClient mqtt5RxClient = prepareMqtt5Client(ctx).identifier(mqtt5ClientIdentifier(ctx)).buildRx();
+                    return RxJavaBridge.toV3Completable(
+                        mqtt5RxClient
+                            .connect(prepareMqttConnect(ctx).build())
+                            .doOnSuccess(mqtt5ConnAck -> ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT, mqtt5RxClient))
+                            .ignoreElement()
+                    );
+                }
+            )
+            .andThen(super.connect(ctx))
+            .onErrorResumeNext(throwable -> interruptWith(ctx, throwable));
+    }
+
+    @Override
     protected Completable subscribe(ExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
@@ -100,29 +121,20 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                         .messages(
                             Flowable.defer(
                                 () -> {
-                                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).identifier(generateSubscriberIdentifier()).buildRx();
+                                    Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
                                     String topic = getTopic(ctx);
                                     return RxJavaBridge
                                         .toV3Flowable(
-                                            rxClient
-                                                .connect(prepareMqttConnect().build())
-                                                .flatMapPublisher(
-                                                    mqttConnAck ->
-                                                        prepareMqtt5Subscribe(ctx, rxClient, topic).applySubscribe().map(this::transform)
-                                                )
+                                            prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic).applySubscribe().map(this::transform)
                                         )
-                                        .doFinally(() -> closeClient(rxClient))
-                                        .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable));
+                                        .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
+                                        .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe());
                                 }
                             )
                         );
                 }
             }
         );
-    }
-
-    private String generateSubscriberIdentifier() {
-        return "gio-apim-subscriber-" + UUID.randomUUID().toString().split("-")[0];
     }
 
     protected Message transform(final Mqtt5Publish mqttPublish) {
@@ -153,7 +165,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         if (configuration.getProducer().isEnabled()) {
             return Completable.defer(
                 () -> {
-                    Mqtt5RxClient rxClient = prepareMqtt5Client(ctx).identifier(generatePublisherIdentifier()).buildRx();
+                    Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
                     String topic = getTopic(ctx);
                     String responseTopic = getResponseTopic(ctx);
                     return ctx
@@ -162,31 +174,23 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                             upstream ->
                                 RxJavaBridge
                                     .toV3Flowable(
-                                        rxClient
-                                            .connect(prepareMqttConnect().build())
-                                            .flatMapPublisher(
-                                                mqttConnAckMessage ->
-                                                    rxClient
-                                                        .publish(
-                                                            RxJavaBridge.toV2Flowable(
-                                                                upstream.map(
-                                                                    message ->
-                                                                        prepareMqtt5Publish(ctx, topic, responseTopic, message).build()
-                                                                )
-                                                            )
-                                                        )
-                                                        .flatMapMaybe(
-                                                            mqtt5PublishResult -> {
-                                                                if (mqtt5PublishResult.getError().isPresent()) {
-                                                                    return Maybe.error(mqtt5PublishResult.getError().get());
-                                                                }
-                                                                return Maybe.<Message>empty();
-                                                            }
-                                                        )
+                                        mqtt5RxClient
+                                            .publish(
+                                                RxJavaBridge.toV2Flowable(
+                                                    upstream.map(message -> prepareMqtt5Publish(ctx, topic, responseTopic, message).build())
+                                                )
+                                            )
+                                            .flatMapMaybe(
+                                                mqtt5PublishResult -> {
+                                                    if (mqtt5PublishResult.getError().isPresent()) {
+                                                        return Maybe.error(mqtt5PublishResult.getError().get());
+                                                    }
+                                                    return Maybe.<Message>empty();
+                                                }
                                             )
                                     )
-                                    .doFinally(() -> closeClient(rxClient))
                                     .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
+                                    .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe())
                         );
                 }
             );
@@ -195,20 +199,12 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         }
     }
 
-    private String generatePublisherIdentifier() {
-        return "gio-apim-publisher-" + UUID.randomUUID().toString().split("-")[0];
-    }
-
     protected Mqtt5SubscribeBuilder.Publishes.Start.Complete<FlowableWithSingle<Mqtt5Publish, Mqtt5SubAck>> prepareMqtt5Subscribe(
         final ExecutionContext ctx,
         final Mqtt5RxClient rxClient,
         final String topic
     ) {
         return rxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS);
-    }
-
-    protected MqttConnectBuilder.Default prepareMqttConnect() {
-        return MqttConnect.DEFAULT.extend();
     }
 
     protected Mqtt5ClientBuilder prepareMqtt5Client(final ExecutionContext ctx) {
@@ -224,6 +220,24 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                     }
                 }
             );
+    }
+
+    protected MqttConnectBuilder.Default prepareMqttConnect(final ExecutionContext ctx) {
+        return MqttConnect.DEFAULT.extend();
+    }
+
+    private String mqtt5ClientIdentifier(final ExecutionContext ctx) {
+        String clientId = ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID);
+
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = ctx.request().clientIdentifier();
+            if (clientId == null) {
+                clientId = UUID.randomUUID().toString();
+            }
+            ctx.setAttribute(CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID, clientId);
+        }
+
+        return "gio-apim-client-" + clientId;
     }
 
     protected Mqtt5PublishBuilder.Complete prepareMqtt5Publish(
@@ -285,19 +299,30 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         return returnedConfiguration;
     }
 
-    private Flowable<Message> interruptMessagesWith(final ExecutionContext ctx, final Throwable throwable) {
+    private Completable interruptWith(final ExecutionContext ctx, final Throwable throwable) {
         if (
             throwable instanceof ConnectionFailedException ||
             throwable instanceof Mqtt5ConnAckException ||
             throwable instanceof Mqtt5AuthException
         ) {
-            return ctx.interruptMessagesWith(
+            return ctx.interruptWith(
                 new ExecutionFailure(500)
                     .message("Endpoint connection failed")
                     .key(FAILURE_ENDPOINT_CONNECTION_FAILED)
                     .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
             );
-        } else if (throwable instanceof Mqtt5DisconnectException) {
+        } else {
+            return ctx.interruptWith(
+                new ExecutionFailure(500)
+                    .message("Endpoint unknown error")
+                    .key(FAILURE_ENDPOINT_UNKNOWN_ERROR)
+                    .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
+            );
+        }
+    }
+
+    private Flowable<Message> interruptMessagesWith(final ExecutionContext ctx, final Throwable throwable) {
+        if (throwable instanceof Mqtt5DisconnectException) {
             return ctx.interruptMessagesWith(
                 new ExecutionFailure(500)
                     .message("Endpoint connection closed")
@@ -312,9 +337,5 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                     .parameters(Map.of(FAILURE_PARAMETERS_EXCEPTION, throwable))
             );
         }
-    }
-
-    private void closeClient(final Mqtt5RxClient client) {
-        client.disconnect().onErrorComplete().subscribe();
     }
 }

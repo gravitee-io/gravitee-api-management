@@ -52,7 +52,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldCompleteWithDefaultHeadersWhenCorsEnabledAndValidRequest() {
         spyRequestHeaders.set(ORIGIN, "origin");
-        corsSimpleRequestProcessor.execute(ctx).test().assertResult();
+        corsSimpleRequestProcessor.execute(spyCtx).test().assertResult();
         verify(mockResponse, times(1)).headers();
         verify(spyResponseHeaders, times(1)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
@@ -62,7 +62,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
     public void shouldCompleteWithClientCredentialsHeaderWhenCorsEnabledAndValidRequest() {
         api.getProxy().getCors().setAccessControlAllowCredentials(true);
         spyRequestHeaders.set(ORIGIN, "origin");
-        corsSimpleRequestProcessor.execute(ctx).test().assertResult();
+        corsSimpleRequestProcessor.execute(spyCtx).test().assertResult();
         verify(mockResponse, times(2)).headers();
         verify(spyResponseHeaders, times(2)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
@@ -71,7 +71,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldCompleteAndRemoveCorsHeadersWhenCorsEnableButNoOrigin() {
-        corsSimpleRequestProcessor.execute(ctx).test().assertResult();
+        corsSimpleRequestProcessor.execute(spyCtx).test().assertResult();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isFalse();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isFalse();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS)).isFalse();
@@ -84,7 +84,7 @@ class CorsSimpleRequestProcessorTest extends AbstractProcessorTest {
     public void shouldCompleteAndRemoveCorsHeadersWhenCorsEnableButOriginNotAllowed() {
         api.getProxy().getCors().setAccessControlAllowOrigin(Set.of("origin_allowed"));
         spyRequestHeaders.set(ORIGIN, "origin_not_allowed");
-        corsSimpleRequestProcessor.execute(ctx).test().assertResult();
+        corsSimpleRequestProcessor.execute(spyCtx).test().assertResult();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isFalse();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isFalse();
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS)).isFalse();

@@ -50,15 +50,17 @@ public class SubscriptionRequest implements MutableRequest {
 
     private final long timestamp;
     private final String id;
-    private String transactionId;
     private final HttpHeaders headers;
     private final Metrics metrics;
     private final LinkedMultiValueMap<String, String> parameters;
     private final LinkedMultiValueMap<String, String> pathParameters;
+    private String transactionId;
+    private String clientIdentifier;
 
     public SubscriptionRequest(Subscription subscription) {
         this.id = subscription.getId();
         this.transactionId = subscription.getId();
+        this.clientIdentifier = subscription.getId();
         this.timestamp = System.currentTimeMillis();
         this.headers = HttpHeaders.create();
         this.metrics = Metrics.on(timestamp).build();
@@ -83,6 +85,12 @@ public class SubscriptionRequest implements MutableRequest {
     }
 
     @Override
+    public MutableRequest clientIdentifier(String clientIdentifier) {
+        this.clientIdentifier = clientIdentifier;
+        return this;
+    }
+
+    @Override
     public MutableRequest remoteAddress(String remoteAddress) {
         return this;
     }
@@ -95,6 +103,11 @@ public class SubscriptionRequest implements MutableRequest {
     @Override
     public String transactionId() {
         return this.transactionId;
+    }
+
+    @Override
+    public String clientIdentifier() {
+        return this.clientIdentifier;
     }
 
     @Override

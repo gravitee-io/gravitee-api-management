@@ -43,6 +43,7 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     protected String pathInfo;
     protected String id;
     protected String transactionId;
+    protected String clientIdentifier;
     protected String remoteAddress;
     protected String localAddress;
     protected MultiValueMap<String, String> queryParameters = null;
@@ -82,6 +83,17 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     @Override
     public AbstractVertxServerRequest transactionId(String transactionId) {
         this.transactionId = transactionId;
+        return this;
+    }
+
+    @Override
+    public String clientIdentifier() {
+        return this.clientIdentifier;
+    }
+
+    @Override
+    public AbstractVertxServerRequest clientIdentifier(String clientIdentifier) {
+        this.clientIdentifier = clientIdentifier;
         return this;
     }
 

@@ -60,9 +60,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
         verify(mockResponse, times(1)).reason("Internal Server Error");
@@ -82,9 +82,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");
@@ -105,9 +105,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         // Set failure
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");
@@ -129,9 +129,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
         verify(mockResponse, times(1)).reason("Internal Server Error");
@@ -157,9 +157,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_GATEWAY_502);
         verify(mockResponse, times(1)).reason("Bad Gateway");
@@ -181,9 +181,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");
@@ -205,9 +205,9 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
-        templateBasedFailureProcessor.execute(ctx).test().assertResult();
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");

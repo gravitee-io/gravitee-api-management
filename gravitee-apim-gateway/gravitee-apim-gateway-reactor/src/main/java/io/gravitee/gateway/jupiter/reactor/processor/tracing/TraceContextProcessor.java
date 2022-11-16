@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.processor.transaction;
+package io.gravitee.gateway.jupiter.reactor.processor.tracing;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;

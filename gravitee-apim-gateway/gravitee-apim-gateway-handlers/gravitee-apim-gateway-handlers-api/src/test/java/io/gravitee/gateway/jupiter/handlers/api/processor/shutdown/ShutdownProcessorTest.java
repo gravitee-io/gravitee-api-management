@@ -51,7 +51,7 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldDoNothingWhenNodeStateIsStarted() {
         lenient().when(mockNode.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
-        shutdownProcessor.execute(ctx).test().assertResult();
+        shutdownProcessor.execute(spyCtx).test().assertResult();
         Mockito.verifyNoInteractions(mockRequest);
         Mockito.verifyNoInteractions(mockResponse);
     }
@@ -61,7 +61,7 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp2(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_2);
-        shutdownProcessor.execute(ctx).test().assertResult();
+        shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
         AssertionsForClassTypes
             .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
@@ -73,7 +73,7 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp10(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_0);
-        shutdownProcessor.execute(ctx).test().assertResult();
+        shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
         AssertionsForClassTypes
             .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
@@ -85,7 +85,7 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp11(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-        shutdownProcessor.execute(ctx).test().assertResult();
+        shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
         AssertionsForClassTypes
             .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
