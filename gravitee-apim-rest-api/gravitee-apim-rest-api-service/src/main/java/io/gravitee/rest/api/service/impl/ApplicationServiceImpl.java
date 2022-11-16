@@ -159,13 +159,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return Collections.emptySet();
             }
 
-            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
                 .ids(applicationIds.toArray(new String[0]))
-                .environmentIds(executionContext.getEnvironmentId())
-                .status(ApplicationStatus.ACTIVE)
-                .build();
+                .status(ApplicationStatus.ACTIVE);
 
-            Page<Application> applications = applicationRepository.search(criteria, null);
+            if (executionContext.hasEnvironmentId()) {
+                criteriaBuilder.environmentIds(executionContext.getEnvironmentId());
+            }
+
+            Page<Application> applications = applicationRepository.search(criteriaBuilder.build(), null);
 
             if (applications.getContent().isEmpty()) {
                 return emptySet();
