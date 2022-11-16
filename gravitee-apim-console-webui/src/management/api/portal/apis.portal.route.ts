@@ -61,6 +61,25 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.ng-plans.list', {
+      url: '?status',
+      component: 'ngApiPortalPlanList',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-plan-r'],
+        },
+        docs: {
+          page: 'management-api-plans',
+        },
+      },
+      params: {
+        status: {
+          type: 'string',
+          dynamic: true,
+        },
+      },
+    })
     .state('management.apis.detail.portal.plan', {
       url: '/plan',
     })

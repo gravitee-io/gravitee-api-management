@@ -17,14 +17,15 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
-
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   declarations: [ApiPortalPlanListComponent],
   exports: [ApiPortalPlanListComponent],
-  imports: [CommonModule, GioTableWrapperModule, MatTableModule],
+  imports: [CommonModule, MatButtonModule, MatTableModule, MatTooltipModule, MatButtonToggleModule],
 })
 export class ApiPortalPlansModule {}

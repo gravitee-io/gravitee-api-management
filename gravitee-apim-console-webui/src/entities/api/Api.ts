@@ -90,6 +90,8 @@ export interface ApiRulePolicy {
   configuration?: string;
 }
 
+export const API_PLAN_STATUS = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'] as const;
+export type ApiPlanStatus = typeof API_PLAN_STATUS[number];
 export interface ApiPlan {
   id: string;
   name?: string;
@@ -100,7 +102,7 @@ export interface ApiPlan {
   selectionRule?: string;
   flows?: Flow[];
   tags?: string[];
-  status?: string;
+  status?: ApiPlanStatus;
 }
 
 export interface ApiPrimaryOwner {

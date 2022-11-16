@@ -19,17 +19,19 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
 import { ApiPortalPlansModule } from '../api-portal-plans.module';
 import { ApiPlan } from '../../../../../entities/api';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { fakePlan } from '../../../../../entities/plan/plan.fixture';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
+  const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiPortalPlanListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -42,7 +44,10 @@ describe('ApiPortalPlanListComponent', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule],
-        providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+          { provide: UIRouterState, useValue: fakeUiRouter },
+        ],
       }).compileComponents();
 
       fixture = TestBed.createComponent(ApiPortalPlanListComponent);
@@ -82,6 +87,19 @@ describe('ApiPortalPlanListComponent', () => {
       ]);
       expect(rowCells).toEqual([['Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
     }));
+
+    it('should search closed plan on click', fakeAsync(async () => {
+      const goldPlan = fakePlan({ name: 'gold plan ⭐️' });
+      await initComponent([goldPlan]);
+
+      await loader.getHarness(MatButtonToggleHarness.with({ text: 'CLOSED' })).then((btn) => btn.toggle());
+
+      const closedPlan = fakePlan({ name: 'closed plan 🚪', status: 'CLOSED' });
+      expectApiPlansListRequest([closedPlan], 'CLOSED');
+
+      const { rowCells } = await computePlansTableCells();
+      expect(rowCells).toEqual([['closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
+    }));
   });
 
   async function initComponent(plans: ApiPlan[]) {
@@ -102,9 +120,9 @@ describe('ApiPortalPlanListComponent', () => {
   }
 
   function expectApiPlansListRequest(plans: ApiPlan[] = [], status?: string, security?: string) {
-    const url = `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${
-      status ? `status=${status}` : 'status=staging,published,closed,deprecated'
-    }${security ? `security=${security}` : ''}`;
+    const url = `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${status}` : 'status=PUBLISHED'}${
+      security ? `security=${security}` : ''
+    }`;
     httpTestingController.expectOne(url, 'GET').flush(plans);
     httpTestingController.verify();
   }

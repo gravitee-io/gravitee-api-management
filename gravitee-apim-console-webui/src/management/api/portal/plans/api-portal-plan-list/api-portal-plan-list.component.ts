@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { catchError, takeUntil, tap } from "rxjs/operators";
+import { EMPTY, Subject } from 'rxjs';
+import { StateService } from "@uirouter/core";
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { PlanService } from '../../../../../services-ngx/plan.service';
-import { PagedResult } from '../../../../../entities/pagedResult';
-import { Api, ApiPlan } from '../../../../../entities/api';
+import { UIRouterState, UIRouterStateParams } from "../../../../../ajs-upgraded-providers";
+import { PlanService } from "../../../../../services-ngx/plan.service";
+import { API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
+import { SnackBarService } from "../../../../../services-ngx/snack-bar.service";
 
 export type PlansTableDS = {
   id: string;
@@ -39,26 +40,40 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['name', 'security', 'status', 'tags', 'actions'];
   public plansTableDS: PlansTableDS = [];
   public isLoadingData = true;
+  public apiPlanStatus = API_PLAN_STATUS;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly plansService: PlanService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly plansService: PlanService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit(): void {
-    this.plansService
-      .getApiPlans(this.ajsStateParams.apiId)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap((plans) => {
-          this.plansTableDS = this.toPlansTableDS(plans);
-          this.isLoadingData = false;
-        }),
-        catchError(() => of(new PagedResult<Api>())),
-      )
-      .subscribe();
+    this.searchPlansByStatus(this.ajsStateParams.status ?? 'PUBLISHED');
   }
 
   public ngOnDestroy(): void {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  public searchPlansByStatus(status: ApiPlanStatus): void {
+    this.plansService
+      .getApiPlans(this.ajsStateParams.apiId, status)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((plans) => {
+          this.ajsState.go('.', { status }, { notify: false });
+          this.plansTableDS = this.toPlansTableDS(plans);
+          this.isLoadingData = false;
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private toPlansTableDS(plans: ApiPlan[]): PlansTableDS {
