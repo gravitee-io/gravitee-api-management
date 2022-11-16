@@ -31,13 +31,30 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.io.ByteArrayOutputStream;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -45,6 +62,8 @@ import javax.ws.rs.core.*;
  */
 @Api(tags = { "Categories" })
 public class CategoryResource extends AbstractCategoryResource {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CategoryResource.class);
 
     @Inject
     private CategoryService categoryService;
@@ -141,7 +160,8 @@ public class CategoryResource extends AbstractCategoryResource {
             ImageUtils.verify(category.getPicture());
             ImageUtils.verify(category.getBackground());
         } catch (InvalidImageException e) {
-            throw new BadRequestException("Invalid image format");
+            LOGGER.warn("Invalid image format", e);
+            throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
         CategoryEntity categoryEntity = categoryService.update(categoryId, category);
