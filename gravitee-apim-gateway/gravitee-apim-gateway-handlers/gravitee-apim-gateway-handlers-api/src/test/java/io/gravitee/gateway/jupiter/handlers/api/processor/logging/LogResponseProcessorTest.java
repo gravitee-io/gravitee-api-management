@@ -43,9 +43,9 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldNotLogWhenNoLog() {
         when(mockMetrics.getLog()).thenReturn(null);
-        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
+        spyCtx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
     }
 
@@ -55,9 +55,9 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
 
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.clientMode()).thenReturn(false);
-        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
+        spyCtx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         assertNull(log.getClientResponse());
@@ -68,9 +68,9 @@ class LogResponseProcessorTest extends AbstractProcessorTest {
         final Log log = new Log(System.currentTimeMillis());
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.clientMode()).thenReturn(true);
-        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
+        spyCtx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         assertNotNull(log.getClientResponse());

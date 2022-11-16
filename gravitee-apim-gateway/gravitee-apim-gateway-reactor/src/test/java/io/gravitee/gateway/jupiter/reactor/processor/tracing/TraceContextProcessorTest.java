@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.processor.transaction;
+package io.gravitee.gateway.jupiter.reactor.processor.tracing;
 
-import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TraceContextProcessor.HEADER_TRACE_PARENT;
-import static io.gravitee.gateway.jupiter.reactor.processor.transaction.TraceContextProcessor.HEADER_TRACE_STATE;
+import static io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor.HEADER_TRACE_PARENT;
+import static io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor.HEADER_TRACE_STATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
+import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;

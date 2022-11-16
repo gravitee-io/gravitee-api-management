@@ -16,9 +16,12 @@
 package io.gravitee.plugin.endpoint.mqtt5;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID;
 import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.CONTEXT_ATTRIBUTE_MQTT5_TOPIC;
+import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,15 +72,12 @@ import org.testcontainers.utility.DockerImageName;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
-public class Mqtt5EndpointConnectorTest {
+class Mqtt5EndpointConnectorTest {
 
     @Container
     private static final HiveMQContainer mqtt = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
     private final Mqtt5EndpointConnectorConfiguration configuration = new Mqtt5EndpointConnectorConfiguration();
-
-    @Captor
-    ArgumentCaptor<Flowable<Message>> messagesCaptor;
 
     @Captor
     ArgumentCaptor<io.reactivex.rxjava3.core.Flowable<Message>> messagesConsumerCaptor;
@@ -112,6 +112,16 @@ public class Mqtt5EndpointConnectorTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        lenient().when(ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID)).thenReturn(null);
+        lenient()
+            .doAnswer(
+                invocation -> {
+                    lenient().when(ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT)).thenReturn(invocation.getArgument(1));
+                    return null;
+                }
+            )
+            .when(ctx)
+            .setInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT), any());
     }
 
     @Test
@@ -183,14 +193,12 @@ public class Mqtt5EndpointConnectorTest {
         configuration.setServerPort(1);
         configuration.getProducer().setEnabled(false);
 
-        when(ctx.interruptMessagesWith(any()))
-            .thenAnswer(invocation -> Flowable.defer(() -> Flowable.error(new InterruptionFailureException(invocation.getArgument(0)))));
-        mqtt5EndpointConnector.connect(ctx).test().assertComplete();
+        when(ctx.interruptWith(any()))
+            .thenAnswer(invocation -> Completable.error(new InterruptionFailureException(invocation.getArgument(0))));
+        TestObserver<Void> testObserver = mqtt5EndpointConnector.connect(ctx).test();
 
-        verify(response).messages(messagesCaptor.capture());
-        io.reactivex.rxjava3.subscribers.TestSubscriber<Message> messageTestSubscriber = messagesCaptor.getValue().test();
-        messageTestSubscriber.await(15, TimeUnit.SECONDS);
-        messageTestSubscriber.assertError(
+        testObserver.await(10, TimeUnit.SECONDS);
+        testObserver.assertError(
             throwable -> {
                 assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
                 InterruptionFailureException failureException = (InterruptionFailureException) throwable;

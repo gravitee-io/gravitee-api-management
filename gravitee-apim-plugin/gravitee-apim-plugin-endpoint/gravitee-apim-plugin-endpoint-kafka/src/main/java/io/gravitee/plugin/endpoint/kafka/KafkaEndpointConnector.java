@@ -302,7 +302,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
         String groupId = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID);
 
         if (groupId == null || groupId.isEmpty()) {
-            groupId = ctx.request().transactionId();
+            groupId = ctx.request().clientIdentifier();
             if (groupId == null) {
                 groupId = UUID.randomUUID().toString();
             }

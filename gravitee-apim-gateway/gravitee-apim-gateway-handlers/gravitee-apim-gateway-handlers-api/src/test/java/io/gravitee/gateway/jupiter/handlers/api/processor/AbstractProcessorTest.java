@@ -54,7 +54,7 @@ public class AbstractProcessorTest {
 
     protected HttpHeaders spyResponseHeaders;
 
-    protected DefaultExecutionContext ctx;
+    protected DefaultExecutionContext spyCtx;
     protected CustomComponentProvider componentProvider;
 
     @BeforeEach
@@ -67,8 +67,8 @@ public class AbstractProcessorTest {
         api = new Api();
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, api);
-        ctx = new DefaultExecutionContext(mockRequest, mockResponse);
-        ctx.componentProvider(componentProvider);
+        spyCtx = spy(new DefaultExecutionContext(mockRequest, mockResponse));
+        spyCtx.componentProvider(componentProvider);
 
         lenient().when(mockResponse.chunks()).thenReturn(Flowable.empty());
     }

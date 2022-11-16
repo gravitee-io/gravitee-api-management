@@ -48,6 +48,13 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
     MutableRequest transactionId(final String id);
 
     /**
+     * Allow setting client identifier.
+     *
+     * @return {@link MutableRequest}.
+     */
+    MutableRequest clientIdentifier(final String id);
+
+    /**
      * Allow overriding remote adresse
      *
      * @return {@link MutableRequest}.

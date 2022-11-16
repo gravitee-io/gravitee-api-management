@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.processor;
 
+import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -33,8 +34,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPref
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
@@ -70,6 +71,8 @@ class ApiProcessorChainFactoryTest {
     public void beforeEach() {
         when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
+        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
+            .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
     }
 
@@ -149,9 +152,9 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(3)
+            .assertValueCount(2)
             .assertValueAt(0, processor -> processor instanceof CorsPreflightRequestProcessor)
-            .assertValueAt(1, processor -> processor instanceof PlanProcessor);
+            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -166,7 +169,7 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(2).assertValueAt(0, processor -> processor instanceof PlanProcessor);
+        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -184,9 +187,9 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(3)
+            .assertValueCount(2)
             .assertValueAt(0, processor -> processor instanceof XForwardedPrefixProcessor)
-            .assertValueAt(1, processor -> processor instanceof PlanProcessor);
+            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test

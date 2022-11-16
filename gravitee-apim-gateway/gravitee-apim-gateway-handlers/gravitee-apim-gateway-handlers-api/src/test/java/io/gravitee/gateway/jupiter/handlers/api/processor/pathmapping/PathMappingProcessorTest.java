@@ -42,14 +42,14 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldNotAddMappedPathWithEmptyMapping() {
         api.setPathMappings(Map.of());
-        pathMappingProcessor.execute(ctx).test().assertResult();
+        pathMappingProcessor.execute(spyCtx).test().assertResult();
         verifyNoInteractions(mockMetrics);
     }
 
     @Test
     public void shouldAddMappedPathWithMapping() {
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/")));
-        pathMappingProcessor.execute(ctx).test().assertResult();
+        pathMappingProcessor.execute(spyCtx).test().assertResult();
         verify(mockMetrics).setMappedPath(PATH_INFO);
     }
 
@@ -57,7 +57,7 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     public void shouldAddShortestMappedPathWithTwoMapping() {
         String shorterPath = "/path";
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/"), shorterPath, Pattern.compile("/path.*")));
-        pathMappingProcessor.execute(ctx).test().assertResult();
+        pathMappingProcessor.execute(spyCtx).test().assertResult();
         verify(mockMetrics).setMappedPath(shorterPath);
     }
 
@@ -65,7 +65,7 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     public void shouldNotAddMappedPathWithMappingButEmptyPathInfo() {
         when(mockRequest.pathInfo()).thenReturn("");
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/")));
-        pathMappingProcessor.execute(ctx).test().assertResult();
+        pathMappingProcessor.execute(spyCtx).test().assertResult();
         verifyNoInteractions(mockMetrics);
     }
 }

@@ -23,7 +23,7 @@ import io.gravitee.gateway.jupiter.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.transaction.TraceContextProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;

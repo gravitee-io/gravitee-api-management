@@ -15,8 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor;
 
+import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
+
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Logging;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
@@ -31,8 +32,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPref
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -47,11 +48,15 @@ import java.util.regex.Pattern;
 public class ApiProcessorChainFactory {
 
     private final boolean overrideXForwardedPrefix;
+    private final String clientIdentifierHeader;
     private final Node node;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
+        this.clientIdentifierHeader =
+            configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
+
         this.node = node;
 
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
@@ -81,7 +86,7 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
         }
 
-        preProcessorList.add(PlanProcessor.instance());
+        preProcessorList.add(SubscriptionProcessor.instance(clientIdentifierHeader));
 
         ProcessorChain processorChain = new ProcessorChain("processor-chain-before-api-execution", preProcessorList);
         processorChain.addHooks(processorHooks);
