@@ -246,9 +246,9 @@ import '../components/documentation/documentation.module';
 // Healthcheck
 import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
 import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
-import ApiHealthCheckController from '../management/api/proxy/backend/healthcheck/healthcheck.controller';
+import ApiHealthCheckController from '../management/api/proxy/health-check-dashboard/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
-import ApiHealthCheckLogController from '../management/api/proxy/backend/healthcheck/healthcheck-log.controller';
+import ApiHealthCheckLogController from '../management/api/proxy/health-check-dashboard/healthcheck-log.controller';
 import HealthCheckMetricComponent from '../components/healthcheckmetric/healthcheck-metric.component';
 
 // Ticket

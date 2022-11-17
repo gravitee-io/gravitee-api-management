@@ -185,7 +185,7 @@ class ApiHealthCheckConfigureController {
 
   backToHealthcheck() {
     const query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
-    this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {
+    this.$state.go('management.apis.detail.proxy.healthCheckDashboard.visualize', {
       page: query.page,
       size: query.size,
       from: query.from,

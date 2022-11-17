@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<h1>Health-check</h1>
+<h1>
+  Health-check
+  <button class="go-to-dashboard" mat-raised-button type="button" (click)="gotToHealthCheckDashboard()">
+    Go to Health-check dashboard
+  </button>
+</h1>
+
 <p>
   Health check configuration let you enable or disable health check service, set a frequency rate, choose an health relative path and
   provide some assertions to control endpoint API's health.

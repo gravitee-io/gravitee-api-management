@@ -6,7 +6,7 @@
 @import 'design/policies/policy';
 @import 'design/properties/properties';
 @import 'design/resources/resources';
-@import 'proxy/backend/healthcheck/healthcheck';
+@import 'proxy/health-check-dashboard/healthcheck';
 @import 'portal/plans/apiPlans';
 @import 'portal/subscriptions/subscriptions';
 @import 'portal/apis.portal.route';
