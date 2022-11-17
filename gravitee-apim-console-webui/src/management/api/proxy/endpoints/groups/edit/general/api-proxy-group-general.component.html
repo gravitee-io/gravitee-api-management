@@ -37,10 +37,10 @@
       </p>
       <mat-form-field class="card__group-lb__form-field" appearance="fill">
         <mat-label>Load balancing algorithm</mat-label>
-        <mat-select aria-label="Load balancing algorithm" formControlName="lb" required>
+        <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
           <mat-option *ngFor="let lb of loadBalancingValues | keyvalue" [value]="lb.value">{{ lb.value }}</mat-option>
         </mat-select>
-        <mat-error *ngIf="generalForm.get('lb').hasError('required')"> Load balancing algorithm is required. </mat-error>
+        <mat-error *ngIf="generalForm.get('loadBalancerType').hasError('required')"> Load balancing algorithm is required. </mat-error>
       </mat-form-field>
     </div>
   </mat-card>

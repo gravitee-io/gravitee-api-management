@@ -206,7 +206,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           ),
         ],
       ],
-      lb: [{ value: this.group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      loadBalancerType: [{ value: this.group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
