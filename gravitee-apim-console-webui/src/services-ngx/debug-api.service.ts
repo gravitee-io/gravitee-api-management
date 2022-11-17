@@ -37,10 +37,10 @@ export class DebugApiService {
     },
   ): Observable<Event> {
     // clean endpoint http proxy
-    // eslint:disable-next-line:@typescript-eslint/ban-ts-comment
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     if (api.proxy && api.proxy.endpoints) {
-      // eslint:disable-next-line:@typescript-eslint/ban-ts-comment
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       api.proxy.endpoints.forEach((endpoint) => {
         if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
