@@ -203,29 +203,29 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       generalMenuItem.tabs.push({
         displayName: 'Entrypoints',
-        targetRoute: 'management.apis.detail.proxy.ng-entrypoints',
-        baseRoute: 'management.apis.detail.proxy.ng-entrypoints',
+        targetRoute: 'management.apis.detail.proxy.entrypoints',
+        baseRoute: 'management.apis.detail.proxy.entrypoints',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       generalMenuItem.tabs.push(
         {
           displayName: 'CORS',
-          targetRoute: 'management.apis.detail.proxy.ng-cors',
-          baseRoute: 'management.apis.detail.proxy.ng-cors',
+          targetRoute: 'management.apis.detail.proxy.cors',
+          baseRoute: 'management.apis.detail.proxy.cors',
         },
         {
           displayName: 'Deployments',
-          targetRoute: 'management.apis.detail.proxy.ng-deployments',
-          baseRoute: 'management.apis.detail.proxy.ng-deployments',
+          targetRoute: 'management.apis.detail.proxy.deployments',
+          baseRoute: 'management.apis.detail.proxy.deployments',
         },
       );
     }
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       generalMenuItem.tabs.push({
         displayName: 'Response Templates',
-        targetRoute: 'management.apis.detail.proxy.ng-responsetemplates.list',
-        baseRoute: 'management.apis.detail.proxy.ng-responsetemplates',
+        targetRoute: 'management.apis.detail.proxy.responsetemplates.list',
+        baseRoute: 'management.apis.detail.proxy.responsetemplates',
       });
     }
     if (generalMenuItem.tabs.length > 0) {
