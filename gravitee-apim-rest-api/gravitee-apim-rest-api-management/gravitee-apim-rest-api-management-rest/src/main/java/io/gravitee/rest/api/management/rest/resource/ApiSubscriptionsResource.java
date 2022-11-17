@@ -173,7 +173,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
 
         if (newSubscriptionConfigurationEntity != null) {
-            newSubscriptionEntity.setFilter(newSubscriptionConfigurationEntity.getFilter());
             newSubscriptionEntity.setConfiguration(newSubscriptionConfigurationEntity.getConfiguration());
             newSubscriptionEntity.setMetadata(newSubscriptionConfigurationEntity.getMetadata());
         }
@@ -268,6 +267,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 userService.findById(executionContext, subscriptionEntity.getSubscribedBy()).getDisplayName()
             )
         );
+        subscription.setMetadata(subscriptionEntity.getMetadata());
 
         GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));

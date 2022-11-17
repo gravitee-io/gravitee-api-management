@@ -192,6 +192,9 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
         if (templateEngine == null) {
             templateEngine = TemplateEngine.templateEngine();
             prepareTemplateEngine(templateEngine);
+            if (templateVariableProviders != null) {
+                templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(this));
+            }
         }
 
         return templateEngine;
@@ -201,9 +204,10 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     public TemplateEngine getTemplateEngine(Message message) {
         final TemplateEngine engine = TemplateEngine.templateEngine();
         prepareTemplateEngine(engine);
-
+        if (templateVariableProviders != null) {
+            templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(engine.getTemplateContext()));
+        }
         engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_MESSAGE, new EvaluableMessage(message));
-
         return engine;
     }
 
@@ -216,10 +220,6 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
         templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST, evaluableReq);
         templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResp);
         templateContext.setVariable(HttpExecutionContext.TEMPLATE_ATTRIBUTE_CONTEXT, evaluableCtx);
-
-        if (templateVariableProviders != null) {
-            templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide((ExecutionContext) this));
-        }
     }
 
     private EvaluableRequest getEvaluableRequest() {

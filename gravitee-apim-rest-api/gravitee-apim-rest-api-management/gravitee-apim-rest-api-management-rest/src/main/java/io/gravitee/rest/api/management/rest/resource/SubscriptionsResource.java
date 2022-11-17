@@ -87,6 +87,7 @@ public class SubscriptionsResource {
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
+        subscription.setMetadata(subscriptionEntity.getMetadata());
 
         ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(

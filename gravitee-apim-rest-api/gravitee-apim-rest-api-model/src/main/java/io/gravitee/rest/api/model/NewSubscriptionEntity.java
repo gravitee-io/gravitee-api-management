@@ -36,8 +36,6 @@ public class NewSubscriptionEntity {
     private PageEntity.PageRevisionId generalConditionsContentRevision;
     private Boolean generalConditionsAccepted;
 
-    private String filter;
-
     private String configuration;
 
     private Map<String, String> metadata;

@@ -20,6 +20,7 @@ import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_APP
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_PLAN;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -161,11 +162,12 @@ public class SecurityPlan {
                         if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
                             ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                             ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
+                            ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                             return TRUE;
                         }
                     }
                     return FALSE;
-                } catch (Throwable t) {
+                } catch (Exception t) {
                     log.warn("An error occurred during subscription validation", t);
                     return FALSE;
                 }

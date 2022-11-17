@@ -70,7 +70,6 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
             subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
         }
         subscription.setConfiguration(subscriptionModel.getConfiguration());
-        subscription.setFilter(subscriptionModel.getFilter());
         subscription.setMetadata(subscriptionModel.getMetadata());
         return subscription;
     }

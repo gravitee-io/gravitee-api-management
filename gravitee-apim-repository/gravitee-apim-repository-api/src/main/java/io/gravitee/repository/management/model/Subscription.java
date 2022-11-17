@@ -25,103 +25,69 @@ import java.util.Map;
  */
 public class Subscription implements Serializable {
 
-    public enum AuditEvent implements Audit.ApiAuditEvent {
-        SUBSCRIPTION_CREATED,
-        SUBSCRIPTION_UPDATED,
-        SUBSCRIPTION_DELETED,
-        SUBSCRIPTION_CLOSED,
-        SUBSCRIPTION_PAUSED,
-        SUBSCRIPTION_RESUMED,
-    }
-
     /**
      * Subscription ID.
      */
     private String id;
-
     /**
      * The subscribed {@link Api}.
      */
     private String api;
-
     /**
      * The subscribed {@link Plan}.
      */
     private String plan;
-
     /**
      * The application linked to the subscription
      */
     private String application;
-
     /**
      * The clientId linked to the subscription
      */
     private String clientId;
-
     /**
      * Vhen the subscription have been processed.
      */
     private Date processedAt;
-
     /**
      * Give a request message to the api owner why a user want to subscribe
      */
     private String request;
-
     /**
      * Give a reason to the developer if the subscription is accepted or not.
      */
     private String reason;
-
     private Status status;
-
     /**
      * The username of the user who has processed the subscription
      * <code>null</code> if the subscription is relative to an automatic plan.
      */
     private String processedBy;
-
     /**
      * The username of the user who has subscribed to the plan.
      */
     private String subscribedBy;
-
     private Date startingAt;
-
     private Date endingAt;
-
     /**
      * Subscription creation date
      */
     private Date createdAt;
-
     /**
      * Subscription last update date
      */
     private Date updatedAt;
-
     private Date closedAt;
-
     private Date pausedAt;
-
     private Integer generalConditionsContentRevision;
-
     private String generalConditionsContentPageId;
-
     private Boolean generalConditionsAccepted;
-
     /**
      * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
-
-    private String filter;
-
     private String configuration;
-
     private Map<String, String> metadata;
-
     private Type type = Type.STANDARD;
 
     public Subscription() {}
@@ -146,7 +112,6 @@ public class Subscription implements Serializable {
         this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
         this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
-        this.filter = cloned.filter;
         this.configuration = cloned.configuration;
         this.metadata = cloned.metadata;
         this.type = cloned.type;
@@ -320,14 +285,6 @@ public class Subscription implements Serializable {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
     public String getConfiguration() {
         return configuration;
     }
@@ -365,6 +322,15 @@ public class Subscription implements Serializable {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    public enum AuditEvent implements Audit.ApiAuditEvent {
+        SUBSCRIPTION_CREATED,
+        SUBSCRIPTION_UPDATED,
+        SUBSCRIPTION_DELETED,
+        SUBSCRIPTION_CLOSED,
+        SUBSCRIPTION_PAUSED,
+        SUBSCRIPTION_RESUMED,
     }
 
     public enum Status {
