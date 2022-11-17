@@ -15,9 +15,13 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.jupiter.api.ApiType.ASYNC;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
@@ -37,7 +41,11 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.*;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.GenericRequest;
+import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -85,13 +93,13 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultApiReactor.class);
-    static final int STOP_UNTIL_INTERVAL_PERIOD_MS = 100;
+    public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
     protected static final String REQUEST_TIMEOUT_KEY = "REQUEST_TIMEOUT";
     protected static final String SERVICES_TRACING_ENABLED_PROPERTY = "services.tracing.enabled";
-    public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
-
+    static final int STOP_UNTIL_INTERVAL_PERIOD_MS = 100;
+    private static final Logger log = LoggerFactory.getLogger(DefaultApiReactor.class);
     protected final List<ChainHook> processorChainHooks;
+    protected final List<InvokerHook> invokerHooks;
     private final Api api;
     private final ComponentProvider componentProvider;
     private final List<TemplateVariableProvider> ctxTemplateVariableProviders;
@@ -108,15 +116,14 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain platformFlowChain;
     private final FlowChain apiPlanFlowChain;
     private final FlowChain apiFlowChain;
-    private LoggingContext loggingContext;
-    private SecurityChain securityChain;
     private final Node node;
     private final boolean tracingEnabled;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
-    private Lifecycle.State lifecycleState;
     private final long pendingRequestsTimeout;
     private final AtomicLong pendingRequests = new AtomicLong(0);
-    protected final List<InvokerHook> invokerHooks;
+    private LoggingContext loggingContext;
+    private SecurityChain securityChain;
+    private Lifecycle.State lifecycleState;
     private final boolean isEventNative;
 
     public DefaultApiReactor(

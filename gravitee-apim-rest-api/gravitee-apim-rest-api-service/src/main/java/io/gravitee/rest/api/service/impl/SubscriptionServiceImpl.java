@@ -439,7 +439,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setRequest(newSubscriptionEntity.getRequest());
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
             subscription.setClientId(clientId);
-            subscription.setFilter(newSubscriptionEntity.getFilter());
             subscription.setMetadata(newSubscriptionEntity.getMetadata());
             subscription.setConfiguration(newSubscriptionEntity.getConfiguration());
             String apiId = genericPlanEntity.getApiId();
@@ -580,7 +579,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 Subscription previousSubscription = new Subscription(subscription);
                 subscription.setConfiguration(updateSubscription.getConfiguration());
-                subscription.setFilter(updateSubscription.getFilter());
                 subscription.setMetadata(updateSubscription.getMetadata());
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
@@ -1506,7 +1504,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setClientId(subscription.getClientId());
         entity.setPausedAt(subscription.getPausedAt());
         entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
-        entity.setFilter(subscription.getFilter());
         entity.setConfiguration(subscription.getConfiguration());
         entity.setMetadata(subscription.getMetadata());
 

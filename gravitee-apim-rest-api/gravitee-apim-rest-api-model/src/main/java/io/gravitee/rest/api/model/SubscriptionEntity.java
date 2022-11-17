@@ -85,8 +85,6 @@ public class SubscriptionEntity {
      */
     private Integer daysToExpirationOnLastNotification;
 
-    private String filter;
-
     private String configuration;
 
     private Map<String, String> metadata;
@@ -249,14 +247,6 @@ public class SubscriptionEntity {
 
     public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
     }
 
     public String getConfiguration() {

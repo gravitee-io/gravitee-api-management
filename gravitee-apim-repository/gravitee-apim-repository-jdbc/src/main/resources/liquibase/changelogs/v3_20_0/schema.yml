@@ -27,3 +27,15 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}flow_steps
             columnName: condition
             newDataType: nvarchar(256)
+        # ################
+        # Subscriptions Changes
+        # ################
+        - dropColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columnName:  filter
+        - createTable:
+            tableName: ${gravitee_prefix}subscriptions_metadata
+            columns:
+              - column: {name: subscription_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: k, type: nvarchar(128), constraints: { nullable: false } }
+              - column: {name: v, type: nvarchar(4000), constraints: { nullable: false } }

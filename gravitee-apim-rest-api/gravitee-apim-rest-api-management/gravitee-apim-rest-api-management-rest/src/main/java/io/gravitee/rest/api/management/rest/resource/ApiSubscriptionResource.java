@@ -252,6 +252,7 @@ public class ApiSubscriptionResource extends AbstractResource {
             )
         );
         subscription.setClientId(subscriptionEntity.getClientId());
+        subscription.setMetadata(subscriptionEntity.getMetadata());
 
         PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
