@@ -30,13 +30,14 @@ import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
 
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Api } from '../../../../entities/api';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 
 describe('ApiProxyHealthCheckComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-health-c'];
+  const fakeUiRouter = { go: jest.fn() };
   const API_ID = 'my-api';
 
   let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
@@ -50,6 +51,7 @@ describe('ApiProxyHealthCheckComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: UIRouterState, useValue: fakeUiRouter },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

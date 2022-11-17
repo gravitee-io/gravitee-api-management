@@ -18,8 +18,8 @@ import { IQService, IRootScopeService, IScope } from 'angular';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-import { ApiService, LogsQuery } from '../../../../../services/api.service';
-import UserService from '../../../../../services/user.service';
+import { ApiService, LogsQuery } from '../../../../services/api.service';
+import UserService from '../../../../services/user.service';
 
 class ApiHealthCheckController {
   public chartData: any;
@@ -244,7 +244,7 @@ class ApiHealthCheckController {
   }
 
   viewLog(log) {
-    this.$state.go('management.apis.detail.proxy.healthcheck.log', log);
+    this.$state.go('management.apis.detail.proxy.healthCheckDashboard.log', log);
   }
 
   displayGatewayHC() {

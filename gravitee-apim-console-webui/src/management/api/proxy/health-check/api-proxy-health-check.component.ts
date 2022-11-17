@@ -15,10 +15,11 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { StateService } from '@uirouter/angular';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -38,6 +39,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -84,5 +86,9 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         tap(() => this.ngOnInit()),
       )
       .subscribe();
+  }
+
+  gotToHealthCheckDashboard() {
+    this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard.visualize');
   }
 }

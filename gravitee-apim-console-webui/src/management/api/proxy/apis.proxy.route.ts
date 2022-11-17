@@ -135,14 +135,14 @@ function apisProxyRouterConfig($stateProvider) {
         resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
-    .state('management.apis.detail.proxy.healthcheck', {
+    .state('management.apis.detail.proxy.healthCheckDashboard', {
       abstract: true,
-      url: '/healthcheck',
-      template: require('./backend/healthcheck/healthcheck.html'),
+      url: '/healthcheck-dashboard',
+      template: require('./health-check-dashboard/healthcheck.html'),
     })
-    .state('management.apis.detail.proxy.healthcheck.visualize', {
+    .state('management.apis.detail.proxy.healthCheckDashboard.visualize', {
       url: '?from&to&page&size',
-      template: require('./backend/healthcheck/healthcheck-visualize.html'),
+      template: require('./health-check-dashboard/healthcheck-visualize.html'),
       controller: 'ApiHealthCheckController',
       controllerAs: 'healthCheckCtrl',
       data: {
@@ -172,22 +172,9 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.healthcheck.configure', {
-      url: '/configure',
-      component: 'ngApiProxyHealthCheck',
-      data: {
-        useAngularMaterial: true,
-        perms: {
-          only: ['api-health-c'],
-        },
-        docs: {
-          page: 'management-api-health-check-configure',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.healthcheck.log', {
+    .state('management.apis.detail.proxy.healthCheckDashboard.log', {
       url: '/logs/:log',
-      template: require('./backend/healthcheck/healthcheck-log.html'),
+      template: require('./health-check-dashboard/healthcheck-log.html'),
       controller: 'ApiHealthCheckLogController',
       controllerAs: 'healthCheckLogCtrl',
       resolve: {
@@ -196,6 +183,19 @@ function apisProxyRouterConfig($stateProvider) {
       data: {
         perms: {
           only: ['api-health-r'],
+        },
+      },
+    })
+    .state('management.apis.detail.proxy.healthcheck', {
+      url: '/healthcheck',
+      component: 'ngApiProxyHealthCheck',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-health-c'],
+        },
+        docs: {
+          page: 'management-api-health-check-configure',
         },
       },
     })

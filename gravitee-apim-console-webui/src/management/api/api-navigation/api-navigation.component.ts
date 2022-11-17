@@ -243,7 +243,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         {
           displayName: 'Endpoints',
           targetRoute: 'management.apis.detail.proxy.endpoints',
-          baseRoute: 'management.apis.detail.proxy.endpoint',
+          baseRoute: 'management.apis.detail.proxy.endpoints',
         },
         {
           displayName: 'Failover',
@@ -255,13 +255,23 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesMenuItem.tabs.push({
         displayName: 'Health-check',
-        targetRoute: 'management.apis.detail.proxy.healthcheck.visualize',
+        targetRoute: 'management.apis.detail.proxy.healthcheck',
         baseRoute: 'management.apis.detail.proxy.healthcheck',
       });
     }
     if (backendServicesMenuItem.tabs.length > 0) {
       proxyGroup.items.push(backendServicesMenuItem);
     }
+
+    // Health-check dashboard
+    if (this.permissionService.hasAnyMatching(['api-health-r'])) {
+      proxyGroup.items.push({
+        displayName: 'Health-check dashboard',
+        baseRoute: 'management.apis.detail.proxy.healthCheckDashboard.visualize',
+        targetRoute: 'management.apis.detail.proxy.healthCheckDashboard.visualize',
+      });
+    }
+
     if (proxyGroup.items.length > 0) {
       this.groupItems.push(proxyGroup);
     }
