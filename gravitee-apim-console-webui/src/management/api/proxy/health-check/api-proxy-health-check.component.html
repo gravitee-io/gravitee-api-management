@@ -28,5 +28,5 @@
 <form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid>
   <api-proxy-health-check-form [healthCheckForm]="healthCheckForm"></api-proxy-health-check-form>
 
-  <gio-save-bar [form]="healthCheckForm" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+  <gio-save-bar [form]="healthCheckForm" (resetClicked)="ngOnInit()" (submitted)="onSubmit()"></gio-save-bar>
 </form>
