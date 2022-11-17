@@ -15,10 +15,11 @@
  */
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
-
+import { omit } from 'lodash';
 import '@gravitee/ui-components/wc/gv-cron-editor';
+
 import { HealthCheck } from '../../../../../entities/health-check';
 
 @Component({
@@ -35,6 +36,10 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     return new FormGroup({
       enabled: new FormControl({
         value: healthCheck?.enabled ?? false,
+        disabled: isReadOnly,
+      }),
+      inherit: new FormControl({
+        value: healthCheck?.inherit ?? false,
         disabled: isReadOnly,
       }),
       // Trigger
@@ -87,9 +92,17 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   };
 
   public static HealthCheckFromFormGroup(healthCheckForm: FormGroup): HealthCheck {
+    if (healthCheckForm.get('enabled').value && healthCheckForm.get('inherit').value) {
+      return {
+        enabled: true,
+        inherit: true,
+      };
+    }
+
     return {
       enabled: healthCheckForm.get('enabled').value,
       schedule: healthCheckForm.get('schedule').value,
+      inherit: healthCheckForm.get('inherit').value,
       steps: [
         {
           request: {
@@ -111,6 +124,11 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   // Should be init by static NewHealthCheckForm method
   public healthCheckForm: FormGroup;
 
+  @Input()
+  // If provided, the inherit option is enabled
+  public inheritHealthCheck?: HealthCheck;
+  private healthCheckFormInitialValue: unknown;
+
   public isDisabled$: Observable<boolean>;
 
   public httpMethods = ['GET', 'POST', 'PUT'];
@@ -118,21 +136,51 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.healthCheckForm && this.healthCheckForm) {
       const controlKeys = ['schedule', 'method', 'path', 'body', 'fromRoot', 'headers', 'assertions'];
-      this.healthCheckForm
-        .get('enabled')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
-        .subscribe((checked) => {
-          const enableAll = this.healthCheckForm.get('enabled').enabled && checked;
 
-          controlKeys.forEach((k) => {
-            return enableAll ? this.healthCheckForm.get(k).enable() : this.healthCheckForm.get(k).disable();
-          });
-        });
-      this.isDisabled$ = this.healthCheckForm.get('enabled').valueChanges.pipe(
+      this.isDisabled$ = combineLatest([
+        this.healthCheckForm.get('enabled').valueChanges.pipe(startWith(this.healthCheckForm.get('enabled').value)),
+        this.healthCheckForm.get('inherit').valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value)),
+      ]).pipe(
         takeUntil(this.unsubscribe$),
-        startWith(this.healthCheckForm.get('enabled').value),
-        map((checked) => !checked || this.healthCheckForm.get('enabled').disabled),
+        map(([enabledChecked, inheritChecked]) => this.healthCheckForm.get('enabled').disabled || !enabledChecked || inheritChecked),
       );
+
+      this.isDisabled$.subscribe((disableAll) => {
+        if (this.inheritHealthCheck) {
+          // If inherit health check is enable ony if :
+          // - the health check is enabled
+          // - the inherit health check is enabled
+          this.healthCheckForm.get('enabled').value && this.inheritHealthCheck.enabled
+            ? this.healthCheckForm.get('inherit').enable({ emitEvent: false })
+            : this.healthCheckForm.get('inherit').disable({ emitEvent: false });
+        }
+
+        controlKeys.forEach((k) => {
+          return disableAll
+            ? this.healthCheckForm.get(k).disable({ emitEvent: false })
+            : this.healthCheckForm.get(k).enable({ emitEvent: false });
+        });
+      });
+    }
+
+    if (changes.inheritHealthCheck && this.inheritHealthCheck) {
+      this.healthCheckForm
+        .get('inherit')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$))
+        .subscribe((checked) => {
+          // Save or restore previous health check value.
+          if (checked) {
+            this.healthCheckFormInitialValue = omit(this.healthCheckForm.getRawValue(), ['inherit', 'enabled']);
+
+            const inheritHealthCheckFormValue = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
+              this.inheritHealthCheck,
+            ).getRawValue();
+
+            this.healthCheckForm.patchValue(omit(inheritHealthCheckFormValue, ['inherit', 'enabled']));
+          } else {
+            this.healthCheckForm.patchValue(this.healthCheckFormInitialValue);
+          }
+        });
     }
   }
 

@@ -6,10 +6,9 @@ $foreground: map.get(gio.$mat-theme, foreground);
 $typography: map.get(gio.$mat-theme, typography);
 
 .health-check-card {
-  &__enable-toggle {
+  &__enable-toggle,
+  &__inherit-toggle {
     width: 100%;
-    padding-bottom: 16px;
-    padding-top: 8px;
   }
 
   &__trigger {
