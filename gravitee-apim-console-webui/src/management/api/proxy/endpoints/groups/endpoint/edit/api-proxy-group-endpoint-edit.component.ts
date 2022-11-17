@@ -17,8 +17,9 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { StateService } from '@uirouter/core';
 
-import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
 import { ApiService } from '../../../../../../../services-ngx/api.service';
 import { Api } from '../../../../../../../entities/api';
@@ -61,6 +62,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly connectorService: ConnectorService,
@@ -132,6 +134,18 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        tap(() =>
+          // Redirect to same page with last endpoint name
+          this.ajsState.go(
+            'management.apis.detail.proxy.endpoint',
+            {
+              apiId: this.apiId,
+              groupName: this.ajsStateParams.groupName,
+              endpointName: this.generalForm.getRawValue().name,
+            },
+            { reload: true },
+          ),
+        ),
         tap(() => this.ngOnInit()),
       )
       .subscribe();
