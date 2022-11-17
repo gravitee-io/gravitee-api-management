@@ -143,7 +143,7 @@ describe('ApiProxyGroupEditComponent', () => {
           {
             name: newGroupName,
             endpoints: [],
-            load_balancing: { type: undefined }, // Todo: fix me
+            load_balancing: { type: 'ROUND_ROBIN' },
             services: {
               discovery: {
                 enabled: false,
@@ -185,7 +185,7 @@ describe('ApiProxyGroupEditComponent', () => {
           {
             name: DEFAULT_GROUP_NAME,
             endpoints: [],
-            load_balancing: { type: undefined }, // Todo: fix me load_balancing: { type: newLbType },
+            load_balancing: { type: 'RANDOM' }, // Todo: fix me load_balancing: { type: newLbType },
             services: {
               discovery: {
                 enabled: false,
@@ -446,7 +446,7 @@ describe('ApiProxyGroupEditComponent', () => {
         },
         {
           load_balancing: {
-            type: undefined,
+            type: 'RANDOM',
           },
           name: newGroupName,
           services: {

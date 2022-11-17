@@ -20,7 +20,7 @@ import { ProxyConfiguration, ProxyGroup, ProxyGroupLoadBalancerType } from '../.
 
 export const toProxyGroup = (
   group: ProxyGroup,
-  generalData: { name: string; type: ProxyGroupLoadBalancerType },
+  generalData: { name: string; loadBalancerType: ProxyGroupLoadBalancerType },
   configuration: ProxyConfiguration,
   serviceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration,
 ): ProxyGroup => {
@@ -28,7 +28,7 @@ export const toProxyGroup = (
     ...group,
     name: generalData.name,
     load_balancing: {
-      type: generalData.type,
+      type: generalData.loadBalancerType,
     },
   };
 
