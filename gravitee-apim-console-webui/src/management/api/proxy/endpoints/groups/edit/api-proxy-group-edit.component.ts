@@ -130,7 +130,14 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.detail.proxy.endpoints', { apiId: this.apiId })),
+        tap(() =>
+          // Redirect to same page with last group name
+          this.ajsState.go(
+            'management.apis.detail.proxy.group',
+            { apiId: this.apiId, groupName: this.generalForm.get('name').value },
+            { reload: true },
+          ),
+        ),
       )
       .subscribe();
   }

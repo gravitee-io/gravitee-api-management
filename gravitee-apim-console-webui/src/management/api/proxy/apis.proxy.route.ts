@@ -27,7 +27,7 @@ function apisProxyRouterConfig($stateProvider) {
         resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent(),
       },
     })
-    .state('management.apis.detail.proxy.ng-entrypoints', {
+    .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
       component: 'ngApiProxyEntrypoints',
       data: {
@@ -40,7 +40,7 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-cors', {
+    .state('management.apis.detail.proxy.cors', {
       url: '/cors',
       component: 'ngApiProxyCors',
       data: {
@@ -53,7 +53,7 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-deployments', {
+    .state('management.apis.detail.proxy.deployments', {
       url: '/deployments',
       component: 'ngApiProxyDeployments',
       data: {
@@ -93,7 +93,7 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.endpoint', {
-      url: '/ng-groups/:groupName/ng-endpoints/:endpointName',
+      url: '/groups/:groupName/endpoints/:endpointName',
       component: 'ngApiProxyGroupEndpointEdit',
       data: {
         useAngularMaterial: true,
@@ -106,7 +106,7 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.group', {
-      url: '/ng-groups/:groupName',
+      url: '/groups/:groupName',
       component: 'ngApiProxyGroupEdit',
       data: {
         useAngularMaterial: true,
@@ -213,11 +213,11 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplates', {
+    .state('management.apis.detail.proxy.responsetemplates', {
       abstract: true,
       url: '/responsetemplates',
     })
-    .state('management.apis.detail.proxy.ng-responsetemplates.list', {
+    .state('management.apis.detail.proxy.responsetemplates.list', {
       url: '',
       component: 'ngApiProxyResponseTemplatesList',
       data: {
@@ -230,7 +230,7 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplates.new', {
+    .state('management.apis.detail.proxy.responsetemplates.new', {
       url: '/',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
@@ -243,7 +243,7 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.ng-responsetemplates.edit', {
+    .state('management.apis.detail.proxy.responsetemplates.edit', {
       url: '/:responseTemplateId',
       component: 'ngApiProxyResponseTemplatesEdit',
       data: {
