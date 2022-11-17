@@ -52,7 +52,7 @@
         <!-- Request Path -->
         <mat-form-field class="health-check-card__request__path__form-field" appearance="fill">
           <mat-label>Path</mat-label>
-          <input type="text" aria-label="Endpoint target input" matInput formControlName="path" required />
+          <input type="text" matInput formControlName="path" required />
           <mat-hint>Additional path added to the endpoint target.</mat-hint>
           <mat-error *ngIf="healthCheckForm.get('path').hasError('required')">Path is required.</mat-error>
         </mat-form-field>
@@ -116,7 +116,7 @@
         >
           <mat-form-field class="health-check-card__assertions__assertion__form-field" appearance="fill">
             <mat-label>Assertion #{{ i }}</mat-label>
-            <input type="text" aria-label="Assertion #{{ i }} input" matInput [formControlName]="i" required />
+            <input type="text" matInput [formControlName]="i" required />
             <mat-error *ngIf="healthCheckForm.get('assertions').at(i).hasError('required')">Assertion is required.</mat-error>
           </mat-form-field>
           <button
