@@ -168,25 +168,35 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         await gioSaveBar.clickSubmit();
 
         expectApiGetRequest(api);
-        expectApiPutRequest({
-          ...api,
-          proxy: {
-            groups: [
-              {
-                name: 'default-group',
-                endpoints: [
-                  {
-                    name: newEndpointName,
-                    target: 'https://api.le-systeme-solaire.net/rest/',
-                    weight: 1,
-                    backup: false,
-                    type: 'HTTP',
-                    inherit: true,
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        expect(req.request.body.proxy).toStrictEqual({
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: newEndpointName,
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: true,
+                  tenants: null,
+                  healthcheck: {
+                    enabled: false,
                   },
-                ],
-              },
-            ],
-          },
+                },
+                {
+                  backup: false,
+                  inherit: true,
+                  name: 'endpoint#2',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  type: 'HTTP',
+                  weight: 1,
+                },
+              ],
+            },
+          ],
         });
       });
 
@@ -223,25 +233,40 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         await gioSaveBar.clickSubmit();
 
         expectApiGetRequest(api);
-        expectApiPutRequest({
-          ...api,
-          proxy: {
-            groups: [
-              {
-                name: 'default-group',
-                endpoints: [
-                  {
-                    name: 'default',
-                    target: 'https://api.le-systeme-solaire.net/rest/',
-                    weight: 1,
-                    backup: false,
-                    type: 'HTTP',
-                    inherit: false,
+
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        expect(req.request.body.proxy).toStrictEqual({
+          groups: [
+            {
+              name: 'default-group',
+              endpoints: [
+                {
+                  name: 'endpoint#1',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  tenants: null,
+                  weight: 1,
+                  backup: false,
+                  type: 'HTTP',
+                  inherit: false,
+                  headers: undefined,
+                  http: undefined,
+                  proxy: undefined,
+                  ssl: undefined,
+                  healthcheck: {
+                    enabled: false,
                   },
-                ],
-              },
-            ],
-          },
+                },
+                {
+                  backup: false,
+                  inherit: true,
+                  name: 'endpoint#2',
+                  target: 'https://api.le-systeme-solaire.net/rest/',
+                  type: 'HTTP',
+                  weight: 1,
+                },
+              ],
+            },
+          ],
         });
       });
 
@@ -340,33 +365,35 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       await saveBar.clickSubmit();
 
       expectApiGetRequest(api);
-      expectApiPutRequest({
-        ...api,
-        proxy: {
-          groups: [
-            {
-              name: 'default-group',
-              endpoints: [
-                {
-                  name: 'default',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: false,
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+      expect(req.request.body.proxy).toStrictEqual({
+        groups: [
+          {
+            name: 'default-group',
+            endpoints: [
+              {
+                name: 'default',
+                target: 'https://api.le-systeme-solaire.net/rest/',
+                weight: 1,
+                backup: false,
+                type: 'HTTP',
+                inherit: false,
+              },
+              {
+                name: 'endpoint#3',
+                target: 'https//dummy.com',
+                tenants: null,
+                weight: 42,
+                backup: false,
+                type: 'http',
+                inherit: true,
+                healthcheck: {
+                  enabled: false,
                 },
-                {
-                  name: 'endpoint#3',
-                  target: 'https//dummy.com',
-                  weight: 42,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: false,
-                },
-              ],
-            },
-          ],
-        },
+              },
+            ],
+          },
+        ],
       });
     });
   });
@@ -470,11 +497,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
   function expectTenantsRequest() {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants`, method: 'GET' }).flush(tenants);
-    fixture.detectChanges();
-  }
-
-  function expectApiPutRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
 });

@@ -17,9 +17,8 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { StateService } from '@uirouter/core';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
 import { ApiService } from '../../../../../../../services-ngx/api.service';
 import { Api } from '../../../../../../../entities/api';
@@ -62,7 +61,6 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly connectorService: ConnectorService,
@@ -134,7 +132,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.detail.proxy.endpoints', { apiId: this.apiId })),
+        tap(() => this.ngOnInit()),
       )
       .subscribe();
   }

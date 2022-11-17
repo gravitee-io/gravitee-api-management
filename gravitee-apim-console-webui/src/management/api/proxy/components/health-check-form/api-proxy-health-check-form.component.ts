@@ -92,6 +92,12 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   };
 
   public static HealthCheckFromFormGroup(healthCheckForm: FormGroup): HealthCheck {
+    if (!healthCheckForm.get('enabled').value) {
+      return {
+        enabled: false,
+      };
+    }
+
     if (healthCheckForm.get('enabled').value && healthCheckForm.get('inherit').value) {
       return {
         enabled: true,
