@@ -5,6 +5,99 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/614?closed=1[APIM - 3.15.18 (2022-11-18)]
+
+=== Bug fixes
+
+*_General_*
+
+- SpEL in endpoint isn't evaluated https://github.com/gravitee-io/issues/issues/8639[#8639]
+
+*_Management_*
+
+- Error when accessing gateway instance info https://github.com/gravitee-io/issues/issues/8635[#8635]
+- Max clause count set to 1024 error when searching for apis https://github.com/gravitee-io/issues/issues/8568[#8568]
+
+*_Gateway_*
+
+- Health check not properly reported as unhealthy if timeout occurs when reaching the backend https://github.com/gravitee-io/issues/issues/8510[#8510]
+
+
+== https://github.com/gravitee-io/issues/milestone/610?closed=1[APIM - 3.15.17 (2022-11-07)]
+
+=== Bug fixes
+
+*_General_*
+
+- Regex quantifier wrongly interpreted causing matching issues https://github.com/gravitee-io/issues/issues/8367[#8367]
+- Allow nested EL expressions https://github.com/gravitee-io/issues/issues/8564[#8564]
+
+*_Management_*
+
+- API primary owner is mandatory, and always set https://github.com/gravitee-io/issues/issues/8162[#8162]
+- Restore plan selection behavior with multi OAuth plans without selection rule https://github.com/gravitee-io/issues/issues/8460[#8460]
+- Issue when trying to promote API through Cockpit https://github.com/gravitee-io/issues/issues/8598[#8598]
+
+*_Gateway_*
+
+- Dedicated implementation for hybrid deployment standalone mode https://github.com/gravitee-io/issues/issues/8482[#8482]
+- Plan selector should throw 401 on wrong API-Key even if a keyless plan is available https://github.com/gravitee-io/issues/issues/8452[#8452]
+- Accept-Encoding headers should not be deleted from the gateway https://github.com/gravitee-io/issues/issues/7935[#7935]
+
+*_Policy_*
+- [Cache] Query parameters should be part of the default cache key https://github.com/gravitee-io/issues/issues/8366[#8366]
+
+
+=== Features
+
+*_Management_*
+
+- Possibility to override the default background image of the APIM Developer Portal from the theme customisation page
+
+
+=== Improvements
+
+*_General_*
+
+- Support Inline lists in Expression Language https://github.com/gravitee-io/issues/issues/7894[#7894]
+- Clearly explain how to have the Portal on a dynamic base url https://github.com/gravitee-io/issues/issues/8518[#8518]. +
+More information https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#console_with_a_custom_base_url[here]
+
+
+== https://github.com/gravitee-io/issues/milestone/610?closed=1[APIM - 3.18.12 (2022-11-04)]
+
+=== Bug fixes
+
+*_Management_*
+
+- Max clause count set to 1024 error when searching for apis https://github.com/gravitee-io/issues/issues/8568[#8568]
+- Error when trying get the subscribers to an api https://github.com/gravitee-io/issues/issues/8567[#8567]
+- Issue when trying to promote API through Cockpit https://github.com/gravitee-io/issues/issues/8598[#8598]
+
+*_Gateway_*
+
+- Accept-Encoding headers should not be deleted from the gateway https://github.com/gravitee-io/issues/issues/7935[#7935]
+- Incorrect Status Code description when using Response Template https://github.com/gravitee-io/issues/issues/8613[#8613]
+
+
+*_Policy_*
+
+- [Cache] Query parameters should be part of the default cache key https://github.com/gravitee-io/issues/issues/8366[#8366]
+
+=== Features
+
+*_Management_*
+
+- Possibility to override the default background image of the APIM Developer Portal from the theme customisation page
+
+=== Improvements
+
+*_General_*
+
+- Clearly explain how to have the Portal on a dynamic base url https://github.com/gravitee-io/issues/issues/8518[#8518]. +
+More information https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#console_with_a_custom_base_url[here]
+
+
 == https://github.com/gravitee-io/issues/milestone/607?closed=1[APIM - 3.19.1 (2022-10-21)]
 
 === Bug fixes
@@ -119,7 +212,7 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 
 *_General_*
 
-- Support Inline lists https://github.com/gravitee-io/issues/issues/7894[#7894]
+- Support Inline lists in Expression Language  https://github.com/gravitee-io/issues/issues/7894[#7894]
 
 
 
