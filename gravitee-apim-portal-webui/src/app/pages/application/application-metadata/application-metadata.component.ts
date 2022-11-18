@@ -155,7 +155,6 @@ export class ApplicationMetadataComponent implements OnInit {
       label: nameLabel,
       type: (item) => (this._isAddFormLine(item) ? 'gv-input' : 'div'),
       attributes: {
-        placeholder: 'Nom de la donnée',
         required: true,
         innerText: (item) => (this._isAddFormLine(item) ? '' : item.name),
         'ongv-input:input': this._onInput.bind(this),
