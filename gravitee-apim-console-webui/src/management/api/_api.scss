@@ -141,6 +141,11 @@
   opacity: 0.5;
   padding: 30px;
 }
+.top-api-banner {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+}
 
 .gravitee-api-banner {
   position: relative;

@@ -16,13 +16,12 @@
 @use 'sass:map';
 
 .settings-navigation {
+  height: 100%;
   display: flex;
-  justify-content: flex-start;
   flex-direction: column;
-  height: calc(100vh - 54px);
-  overflow-y: scroll;
 
   &__submenu {
-    flex-grow: 1;
+    z-index: 70;
+    flex: 1 1 auto;
   }
 }

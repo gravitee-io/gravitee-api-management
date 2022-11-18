@@ -24,9 +24,9 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
     .state('root', {
       abstract: true,
       template:
-        "<div layout='row'>" +
+        "<div layout='row' style='height: 100%'>" +
         "<div ui-view='sidenav' class='gravitee-sidenav'></div>" +
-        "<md-content ui-view layout='column' flex style='height: 100vh' class='md-content'></md-content>" +
+        "<md-content ui-view layout='column' flex class='md-content'></md-content>" +
         '</div>',
       resolve: {
         graviteeUser: (UserService: UserService) => UserService.current(),
@@ -38,7 +38,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       views: {
         '': {
           template:
-            '<div flex layout="row">' +
+            '<div layout="row">' +
             '<div class="gv-main-container" ui-view layout="column" flex></div>' +
             '<gv-contextual-doc></gv-contextual-doc>' +
             '</div>',
@@ -55,8 +55,8 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         },
         '': {
           template:
-            '<div flex layout="row">' +
-            '<div class="gv-main-container" ui-view layout="column" flex></div>' +
+            '<div layout="row" style="min-height: calc(100vh - 54px); overflow: auto;">' +
+            '<div class="gv-main-container" ui-view flex></div>' +
             '<gv-contextual-doc></gv-contextual-doc>' +
             '</div>',
         },

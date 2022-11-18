@@ -31,6 +31,7 @@ function applicationsConfig($stateProvider) {
   $stateProvider
     .state('management.applications', {
       abstract: true,
+      template: '<div flex layout="column" ui-view></div>',
       url: '/applications',
     })
     .state('management.applications.list', {
@@ -88,7 +89,11 @@ function applicationsConfig($stateProvider) {
     .state('management.applications.application', {
       abstract: true,
       url: '/:applicationId',
-      component: 'application',
+      template: require('./details/application.html'),
+      controller: function (application) {
+        this.application = application;
+      },
+      controllerAs: '$ctrl',
       resolve: {
         application: (
           $stateParams: StateParams,

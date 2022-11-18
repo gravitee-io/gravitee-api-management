@@ -18,11 +18,9 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 .application-navigation {
+  height: 100%;
   display: flex;
-  justify-content: flex-start;
   flex-direction: column;
-  height: calc(100vh - 54px);
-  overflow-y: auto;
 
   &__title {
     width: 266px;
@@ -36,7 +34,6 @@
 
   &__menu {
     z-index: 70;
-    height: 100%;
-    overflow-y: auto;
+    flex: 1 1 auto;
   }
 }

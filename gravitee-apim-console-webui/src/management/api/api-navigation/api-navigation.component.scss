@@ -17,33 +17,32 @@
 @use 'node_modules/@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
+:host {
+  height: 100%;
+}
+
 .api-navigation {
   display: flex;
   justify-content: flex-start;
+  height: 100%;
 
   &__menu {
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    min-height: calc(100vh - 54px);
   }
 
   &__submenu {
     z-index: 70;
-    display: flex;
-    flex-grow: 1;
+    height: 100%;
   }
 
   &__content {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    min-height: calc(100vh - 54px);
-    overflow-y: hidden;
+    flex: 1 1 auto;
 
     &__view {
       height: 100%;
-      overflow-y: auto;
     }
   }
 }

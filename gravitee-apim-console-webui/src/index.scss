@@ -552,15 +552,6 @@ body {
     height: $graviteeHeader;
   }
 
-  .md-content {
-    padding-top: $navbarHeaderHeight;
-  }
-
-  .gv-main-container {
-    height: calc(100vh - #{$navbarHeaderHeight});
-    background-color: var(--gv-theme-neutral-color-lighter);
-  }
-
   .gv-button-toggled {
     background-color: rgba(158, 158, 158, 0.2);
   }

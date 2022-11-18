@@ -17,6 +17,11 @@
 
 .gio-side-nav {
   height: 100%;
-  padding-top: 54px;
+  display: flex;
+  flex-direction: column;
   z-index: 1;
+
+  &__menu {
+    flex: 1 1 auto;
+  }
 }

@@ -107,7 +107,6 @@ import ApplicationCreationStep2Controller from './application/creation/steps/app
 import ApplicationCreationStep3Component from './application/creation/steps/application-creation-step3.component';
 import ApplicationCreationStep4Component from './application/creation/steps/application-creation-step4.component';
 
-import ApplicationComponent from './application/details/application.component';
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
 import ApplicationGeneralComponent from './application/details/general/application-general.component';
@@ -906,7 +905,6 @@ graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
 
 graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
-graviteeManagementModule.component('application', ApplicationComponent);
 
 graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
