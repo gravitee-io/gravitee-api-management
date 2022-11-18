@@ -243,8 +243,6 @@ import NotificationTemplatesService from '../services/notificationTemplates.serv
 import '../components/documentation/documentation.module';
 
 // Healthcheck
-import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
-import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiHealthCheckController from '../management/api/proxy/health-check-dashboard/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 import ApiHealthCheckLogController from '../management/api/proxy/health-check-dashboard/healthcheck-log.controller';
@@ -704,7 +702,6 @@ graviteeManagementModule.controller('ApiMembersController', ApiMembersController
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
 graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
-graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
@@ -979,7 +976,6 @@ graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
 graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
 // Healthcheck
-graviteeManagementModule.controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController);
 graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({ component: ApiProxyHealthCheckComponent }));
 graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);

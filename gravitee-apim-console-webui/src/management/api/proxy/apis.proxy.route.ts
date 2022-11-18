@@ -15,7 +15,6 @@
  */
 import { ApiService } from '../../../services/api.service';
 import EnvironmentService from '../../../services/environment.service';
-import SpelService from '../../../services/spel.service';
 
 export default apisProxyRouterConfig;
 
@@ -116,23 +115,6 @@ function apisProxyRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-proxy-group',
         },
-      },
-    })
-    .state('management.apis.detail.proxy.endpointhc', {
-      url: '/groups/:groupName/endpoints/:endpointName/healthcheck',
-      template: require('./backend/healthcheck/healthcheck-configure.html'),
-      controller: 'ApiHealthCheckConfigureController',
-      controllerAs: 'healthCheckCtrl',
-      data: {
-        perms: {
-          only: ['api-health-c'],
-        },
-        docs: {
-          page: 'management-api-health-check',
-        },
-      },
-      resolve: {
-        resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
     .state('management.apis.detail.proxy.healthCheckDashboard', {
