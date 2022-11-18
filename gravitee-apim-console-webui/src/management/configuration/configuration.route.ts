@@ -43,8 +43,9 @@ function configurationRouterConfig($stateProvider: StateProvider) {
   'ngInject';
   $stateProvider
     .state('management.settings', {
+      abstract: true,
       url: '/settings',
-      component: 'settings',
+      template: require('./settings.html'),
       data: {
         perms: {
           only: [
