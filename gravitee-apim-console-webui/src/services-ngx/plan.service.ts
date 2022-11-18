@@ -17,10 +17,13 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { IScope } from 'angular';
+import { tap } from 'rxjs/operators';
+
+import { ApiService } from './api.service';
 
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
-import { ApiPlan } from '../entities/api';
+import { Api, ApiPlan } from '../entities/api';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +33,7 @@ export class PlanService {
     private readonly http: HttpClient,
     @Inject('Constants') private readonly constants: Constants,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
+    private readonly apiService: ApiService,
   ) {}
 
   public getApiPlans(apiId: string, status?: string, security?: string): Observable<ApiPlan[]> {
@@ -44,5 +48,14 @@ export class PlanService {
     }
 
     return this.http.get<ApiPlan[]>(`${this.constants.env.baseURL}/apis/${apiId}/plans`, { params });
+  }
+
+  public updatePlan(api: Api, plan: ApiPlan): Observable<ApiPlan> {
+    return this.http.put<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
+      tap((plan) => {
+        this.apiService.syncV2Api(api);
+        return plan;
+      }),
+    );
   }
 }

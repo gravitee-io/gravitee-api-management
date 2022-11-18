@@ -19,21 +19,38 @@
   <h1>Plans</h1>
 </div>
 
-<mat-button-toggle-group class="plans__filters" aria-label="Plan status filters">
+<mat-button-toggle-group class="plans__filters" aria-label="Plan status filters" [value]="status">
   <mat-button-toggle
     *ngFor="let planStatus of apiPlanStatus"
     [attr.aria-label]="'Filter on' + planStatus + 'plans'"
     [matTooltip]="'Filter on' + planStatus + 'plans'"
+    [value]="planStatus"
     (click)="searchPlansByStatus(planStatus)"
   >
     {{ planStatus }}
   </mat-button-toggle>
 </mat-button-toggle-group>
-<table mat-table class="plans__table" [dataSource]="plansTableDS" id="plansTable" aria-label="Plans table">
+<table
+  mat-table
+  class="plans__table"
+  id="plansTable"
+  aria-label="Plans table"
+  cdkDropList
+  (cdkDropListDropped)="dropRow($event)"
+  [cdkDropListData]="plansTableDS"
+  [dataSource]="plansTableDS"
+>
+  <!-- Display Drag icon Column -->
+  <ng-container matColumnDef="drag-icon">
+    <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
+    <td mat-cell *matCellDef="let element" class="plans__table__drag-icon">
+      <mat-icon>drag_indicator</mat-icon>
+    </td>
+  </ng-container>
   <!-- Display Name Column -->
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-    <td mat-cell *matCellDef="let element">
+    <td mat-cell *matCellDef="let element" class="plans__table__name">
       {{ element.name }}
     </td>
   </ng-container>
@@ -57,10 +74,10 @@
   </ng-container>
 
   <!-- Display Tags Column -->
-  <ng-container matColumnDef="tags">
-    <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
+  <ng-container matColumnDef="deploy-on">
+    <th mat-header-cell *matHeaderCellDef id="deploy-on">Deploy on</th>
     <td mat-cell *matCellDef="let element">
-      <a>{{ element.tags }}</a>
+      <a>{{ element.tags?.join(', ') }}</a>
     </td>
   </ng-container>
 
@@ -71,7 +88,7 @@
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  <tr mat-row cdkDrag [cdkDragData]="row" *matRowDef="let row; columns: displayedColumns"></tr>
 
   <!-- Row shown when there is no data -->
   <tr class="mat-row" *matNoDataRow>

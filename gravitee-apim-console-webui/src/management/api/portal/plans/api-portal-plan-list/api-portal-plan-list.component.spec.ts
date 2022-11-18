@@ -24,48 +24,53 @@ import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing'
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
 import { ApiPortalPlansModule } from '../api-portal-plans.module';
-import { ApiPlan } from '../../../../../entities/api';
+import { Api, ApiPlan } from '../../../../../entities/api';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { fakePlan } from '../../../../../entities/plan/plan.fixture';
+import { fakeApi } from '../../../../../entities/api/Api.fixture';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
+  const api = fakeApi({ id: API_ID });
   const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiPortalPlanListComponent>;
+  let component: ApiPortalPlanListComponent;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterState, useValue: fakeUiRouter },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ApiPortalPlanListComponent);
+    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('plansTable tests', () => {
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule],
-        providers: [
-          { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-          { provide: UIRouterState, useValue: fakeUiRouter },
-        ],
-      }).compileComponents();
-
-      fixture = TestBed.createComponent(ApiPortalPlanListComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
-      fixture.detectChanges();
-    });
-
     it('should display an empty table', fakeAsync(async () => {
       await initComponent([]);
 
       const { headerCells, rowCells } = await computePlansTableCells();
       expect(headerCells).toEqual([
         {
-          actions: '',
+          'drag-icon': '',
           name: 'Name',
           security: 'Security',
           status: 'Status',
-          tags: 'Tags',
+          'deploy-on': 'Deploy on',
+          actions: '',
         },
       ]);
       expect(rowCells).toEqual([['There is no plan (yet).']]);
@@ -78,14 +83,15 @@ describe('ApiPortalPlanListComponent', () => {
       const { headerCells, rowCells } = await computePlansTableCells();
       expect(headerCells).toEqual([
         {
-          actions: '',
+          'drag-icon': '',
           name: 'Name',
           security: 'Security',
           status: 'Status',
-          tags: 'Tags',
+          'deploy-on': 'Deploy on',
+          actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
+      expect(rowCells).toEqual([['drag_indicator', 'Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
     }));
 
     it('should search closed plan on click', fakeAsync(async () => {
@@ -98,12 +104,41 @@ describe('ApiPortalPlanListComponent', () => {
       expectApiPlansListRequest([closedPlan], 'CLOSED');
 
       const { rowCells } = await computePlansTableCells();
-      expect(rowCells).toEqual([['closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
+      expect(rowCells).toEqual([['drag_indicator', 'closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
     }));
+
+    it('should search and not find any plan', fakeAsync(async () => {
+      await initComponent([fakePlan()]);
+
+      await loader.getHarness(MatButtonToggleHarness.with({ text: 'STAGING' })).then((btn) => btn.toggle());
+
+      expectApiPlansListRequest([], 'STAGING');
+
+      const { rowCells } = await computePlansTableCells();
+      expect(rowCells).toEqual([['There is no plan (yet).']]);
+    }));
+  });
+
+  describe('drop tests', () => {
+    it('should drop a plan and update his order', async () => {
+      const plan1 = fakePlan({ name: 'Plan 1️⃣', order: 1 });
+      const plan2 = fakePlan({ name: 'Plan 2️⃣', order: 2 });
+      await initComponent([plan1, plan2]);
+
+      component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
+
+      expectApiPlansPutRequest({ ...plan2, order: 1 });
+      expectApiGetRequest(api);
+      expectApiPlansListRequest([
+        { ...plan2, order: 1 },
+        { ...plan1, order: 2 },
+      ]);
+    });
   });
 
   async function initComponent(plans: ApiPlan[]) {
     expectApiPlansListRequest(plans);
+    expectApiGetRequest(api);
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
   }
@@ -120,10 +155,26 @@ describe('ApiPortalPlanListComponent', () => {
   }
 
   function expectApiPlansListRequest(plans: ApiPlan[] = [], status?: string, security?: string) {
-    const url = `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${status}` : 'status=PUBLISHED'}${
-      security ? `security=${security}` : ''
-    }`;
-    httpTestingController.expectOne(url, 'GET').flush(plans);
-    httpTestingController.verify();
+    httpTestingController
+      .expectOne(
+        `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${status}` : 'status=PUBLISHED'}${
+          security ? `security=${security}` : ''
+        }`,
+        'GET',
+      )
+      .flush(plans);
+    fixture.detectChanges();
+  }
+
+  function expectApiPlansPutRequest(plan: ApiPlan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
+    expect(req.request.body).toEqual(plan);
+    req.flush(plan);
+    fixture.detectChanges();
+  }
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
   }
 });

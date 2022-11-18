@@ -18,18 +18,43 @@ $foreground: map.get(gio.$mat-theme, foreground);
     width: 100%;
     @include mat.elevation(3); // default elevation
 
+    #drag-icon {
+      cursor: move;
+      width: 10%;
+    }
+
+    &__drag-icon {
+      cursor: move;
+    }
+
     #name {
       width: 30%;
     }
 
-    #status,
-    #security {
-      width: 15%;
+    &__name {
+      cursor: pointer;
     }
 
-    #tags,
+    #status,
+    #security {
+      width: 10%;
+    }
+
+    #deploy-on,
     #actions {
       width: 20%;
     }
   }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  display: table;
+  vertical-align: middle;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
 }

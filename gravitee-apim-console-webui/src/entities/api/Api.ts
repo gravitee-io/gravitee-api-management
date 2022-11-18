@@ -103,6 +103,7 @@ export interface ApiPlan {
   flows?: Flow[];
   tags?: string[];
   status?: ApiPlanStatus;
+  order?: number;
 }
 
 export interface ApiPrimaryOwner {

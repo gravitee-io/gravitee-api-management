@@ -21,6 +21,7 @@ import { PlanService } from './plan.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakePlan } from '../entities/plan/plan.fixture';
+import { fakeApi } from '../entities/api/Api.fixture';
 
 describe('PlanService', () => {
   let httpTestingController: HttpTestingController;
@@ -91,6 +92,25 @@ describe('PlanService', () => {
       });
 
       req.flush(fakePlans);
+    });
+  });
+
+  describe('updatePlan', () => {
+    it('should update api plans', (done) => {
+      const api = fakeApi();
+      const plan = fakePlan();
+
+      planService.updatePlan(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans/${plan.id}`,
+      });
+      expect(req.request.body).toEqual(plan);
+      req.flush(plan);
     });
   });
 });

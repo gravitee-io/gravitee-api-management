@@ -20,12 +20,14 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
 
 @NgModule({
   declarations: [ApiPortalPlanListComponent],
   exports: [ApiPortalPlanListComponent],
-  imports: [CommonModule, MatButtonModule, MatTableModule, MatTooltipModule, MatButtonToggleModule],
+  imports: [CommonModule, DragDropModule, MatButtonModule, MatTableModule, MatTooltipModule, MatButtonToggleModule, GioIconsModule],
 })
 export class ApiPortalPlansModule {}

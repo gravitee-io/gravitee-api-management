@@ -245,4 +245,16 @@ export class ApiService {
       return version.length > 32 ? { version: 'Maximum length is 32 characters.' } : null;
     };
   }
+
+  public syncV2Api(api: Api): Observable<boolean> {
+    if (api && api.gravitee === '2.0.0') {
+      return this.get(api.id).pipe(
+        map((api) => {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
+          return true;
+        }),
+      );
+    }
+    return of(false);
+  }
 }

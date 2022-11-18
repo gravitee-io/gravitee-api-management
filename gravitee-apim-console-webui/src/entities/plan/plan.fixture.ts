@@ -27,6 +27,7 @@ export function fakePlan(modifier?: Partial<ApiPlan> | ((baseApi: ApiPlan) => Ap
     flows: [],
     status: 'PUBLISHED',
     api: 'api#1',
+    order: 0,
   };
 
   if (isFunction(modifier)) {
