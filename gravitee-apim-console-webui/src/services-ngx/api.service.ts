@@ -247,7 +247,7 @@ export class ApiService {
   }
 
   public syncV2Api(api: Api): Observable<boolean> {
-    if (api && api.gravitee === '2.0.0') {
+    if (this.isV2Api(api)) {
       return this.get(api.id).pipe(
         map((api) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
@@ -256,5 +256,9 @@ export class ApiService {
       );
     }
     return of(false);
+  }
+
+  public isV2Api(api: Api): boolean {
+    return api && api.gravitee === '2.0.0';
   }
 }
