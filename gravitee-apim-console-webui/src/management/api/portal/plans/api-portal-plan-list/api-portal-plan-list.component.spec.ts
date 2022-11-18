@@ -17,23 +17,28 @@ import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { MatCellHarness, MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
 import { ApiPortalPlansModule } from '../api-portal-plans.module';
 import { Api, ApiPlan } from '../../../../../entities/api';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { fakePlan } from '../../../../../entities/plan/plan.fixture';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { User as DeprecatedUser } from '../../../../../entities/user';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
-  const api = fakeApi({ id: API_ID });
+  const anAPi = fakeApi({ id: API_ID });
   const fakeUiRouter = { go: jest.fn() };
+  const currentUser = new DeprecatedUser();
+  currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
+
   let fixture: ComponentFixture<ApiPortalPlanListComponent>;
   let component: ApiPortalPlanListComponent;
   let loader: HarnessLoader;
@@ -43,15 +48,10 @@ describe('ApiPortalPlanListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(ApiPortalPlanListComponent);
-    component = fixture.componentInstance;
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -128,7 +128,7 @@ describe('ApiPortalPlanListComponent', () => {
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
       expectApiPlansPutRequest({ ...plan2, order: 1 });
-      expectApiGetRequest(api);
+      expectApiGetRequest(anAPi);
       expectApiPlansListRequest([
         { ...plan2, order: 1 },
         { ...plan1, order: 2 },
@@ -136,9 +136,65 @@ describe('ApiPortalPlanListComponent', () => {
     });
   });
 
-  async function initComponent(plans: ApiPlan[]) {
+  describe('actions tests', () => {
+    it('should navigate to edit when click on the action button', async () => {
+      const plan = fakePlan();
+      await initComponent([plan]);
+      fakeUiRouter.go.mockReset();
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
+
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+    });
+
+    it('should navigate to edit when click on the name', async () => {
+      const plan = fakePlan();
+      await initComponent([plan]);
+      fakeUiRouter.go.mockReset();
+
+      await loader
+        .getHarness(MatCellHarness.with({ text: plan.name }))
+        .then((btn) => btn.host())
+        .then((host) => host.click());
+
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+    });
+
+    it('should navigate to design when click on the design button', async () => {
+      const plan = fakePlan();
+      await initComponent([plan]);
+      fakeUiRouter.go.mockReset();
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Design the plan"]' })).then((btn) => btn.click());
+
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.design.flowsNg', { apiId: API_ID, flows: `${plan.id}_0` });
+    });
+  });
+
+  describe('kubernetes api tests', () => {
+    it('should access plan in read only', async () => {
+      const kubernetesApi = fakeApi({ id: API_ID, definition_context: { origin: 'kubernetes' } });
+      const plan = fakePlan({ api: API_ID });
+      await initComponent([plan], kubernetesApi);
+
+      expect(component.isReadOnly).toBe(true);
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
+
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+    });
+  });
+
+  async function initComponent(plans: ApiPlan[], api: Api = anAPi) {
+    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id } }).compileComponents();
+    fixture = TestBed.createComponent(ApiPortalPlanListComponent);
+    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
     expectApiPlansListRequest(plans);
     expectApiGetRequest(api);
+
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
   }
@@ -174,7 +230,7 @@ describe('ApiPortalPlanListComponent', () => {
   }
 
   function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });

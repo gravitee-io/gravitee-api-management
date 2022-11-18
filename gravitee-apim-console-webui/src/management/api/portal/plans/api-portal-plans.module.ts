@@ -25,9 +25,20 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
 
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+
 @NgModule({
   declarations: [ApiPortalPlanListComponent],
   exports: [ApiPortalPlanListComponent],
-  imports: [CommonModule, DragDropModule, MatButtonModule, MatTableModule, MatTooltipModule, MatButtonToggleModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    DragDropModule,
+    MatButtonModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatButtonToggleModule,
+    GioIconsModule,
+    GioPermissionModule,
+  ],
 })
 export class ApiPortalPlansModule {}

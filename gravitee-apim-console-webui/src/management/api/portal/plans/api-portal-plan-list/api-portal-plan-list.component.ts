@@ -25,6 +25,7 @@ import { PlanService } from "../../../../../services-ngx/plan.service";
 import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
 import { ApiService } from "../../../../../services-ngx/api.service";
 import { SnackBarService } from "../../../../../services-ngx/snack-bar.service";
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -39,12 +40,15 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public isLoadingData = true;
   public apiPlanStatus = API_PLAN_STATUS;
   public status: ApiPlanStatus;
+  public isReadOnly = false;
+  public isV2Api: boolean;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly plansService: PlanService,
     private readonly apiService: ApiService,
+    private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
@@ -99,9 +103,20 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  public navigateToPlan(planId: string): void {
+    this.ajsState.go('management.apis.detail.portal.plans.plan', { planId });
+  }
+
+  public designPlan(planId: string): void {
+    this.ajsState.go('management.apis.detail.design.flowsNg', { apiId: this.api.id, flows: `${planId}_0` });
+  }
+
   private onInit(api, plans) {
     this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
     this.api = api;
+    this.isV2Api = this.apiService.isV2Api(api);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
+
     this.plansTableDS = orderBy(plans, 'order', 'asc');
     this.isLoadingData = false;
   }

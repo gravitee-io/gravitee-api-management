@@ -19,7 +19,6 @@ $foreground: map.get(gio.$mat-theme, foreground);
     @include mat.elevation(3); // default elevation
 
     #drag-icon {
-      cursor: move;
       width: 10%;
     }
 
@@ -40,9 +39,18 @@ $foreground: map.get(gio.$mat-theme, foreground);
       width: 10%;
     }
 
-    #deploy-on,
+    #deploy-on {
+      width: 15%;
+    }
+
     #actions {
-      width: 20%;
+      width: 25%;
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
     }
   }
 }
