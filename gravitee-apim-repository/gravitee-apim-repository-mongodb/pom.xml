@@ -33,10 +33,10 @@
 	<properties>
         <!--
             According to https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#compatibility.matrix
-            spring data 3.2.x is compatible with mongo driver 4.1.x
+            spring data 3.3.x is compatible with mongo driver 4.4.x
         -->
-        <mongo.version>4.1.2</mongo.version>
-        <spring.data.mongodb.version>3.2.3</spring.data.mongodb.version>
+        <mongo.version>4.4.2</mongo.version>
+        <spring.data.mongodb.version>3.3.10</spring.data.mongodb.version>
         <jna.version>5.11.0</jna.version>
     </properties>
 
