@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
-import { catchError, takeUntil, tap } from "rxjs/operators";
-import { EMPTY, Subject } from 'rxjs';
+import { catchError, map, takeUntil, tap } from "rxjs/operators";
+import { combineLatest, EMPTY, Subject } from "rxjs";
 import { StateService } from "@uirouter/core";
+import { CdkDragDrop } from "@angular/cdk/drag-drop";
+import { orderBy } from "lodash";
 
 import { UIRouterState, UIRouterStateParams } from "../../../../../ajs-upgraded-providers";
 import { PlanService } from "../../../../../services-ngx/plan.service";
-import { API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
+import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
+import { ApiService } from "../../../../../services-ngx/api.service";
 import { SnackBarService } from "../../../../../services-ngx/snack-bar.service";
-
-export type PlansTableDS = {
-  id: string;
-  name: string;
-  security: string;
-  status: string;
-}[];
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -37,36 +33,29 @@ export type PlansTableDS = {
 })
 export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public displayedColumns = ['name', 'security', 'status', 'tags', 'actions'];
-  public plansTableDS: PlansTableDS = [];
+  private api: Api;
+  public displayedColumns = ['drag-icon', 'name', 'security', 'status', 'deploy-on', 'actions'];
+  public plansTableDS: ApiPlan[] = [];
   public isLoadingData = true;
   public apiPlanStatus = API_PLAN_STATUS;
+  public status: ApiPlanStatus;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly plansService: PlanService,
+    private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   public ngOnInit(): void {
-    this.searchPlansByStatus(this.ajsStateParams.status ?? 'PUBLISHED');
-  }
+    this.status = this.ajsStateParams.status ?? 'PUBLISHED';
 
-  public ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  public searchPlansByStatus(status: ApiPlanStatus): void {
-    this.plansService
-      .getApiPlans(this.ajsStateParams.apiId, status)
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.plansService.getApiPlans(this.ajsStateParams.apiId, this.status)])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((plans) => {
-          this.ajsState.go('.', { status }, { notify: false });
-          this.plansTableDS = this.toPlansTableDS(plans);
-          this.isLoadingData = false;
+        tap(([api, plans]) => {
+          this.onInit(api, plans);
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -76,15 +65,44 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private toPlansTableDS(plans: ApiPlan[]): PlansTableDS {
-    return !!plans && plans.length > 0
-      ? plans.map((plan) => ({
-          id: plan.id,
-          name: plan.name,
-          security: plan.security,
-          status: plan.status,
-          tags: plan.tags?.join(', '),
-        }))
-      : [];
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  public searchPlansByStatus(status: ApiPlanStatus): void {
+    this.status = status;
+
+    this.plansService
+      .getApiPlans(this.ajsStateParams.apiId, status)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((plans) => this.onInit(this.api, plans)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  public dropRow({ previousIndex, currentIndex }: CdkDragDrop<ApiPlan[], any>) {
+    const movedPlan = this.plansTableDS[previousIndex];
+    movedPlan.order = currentIndex + 1;
+
+    this.plansService
+      .updatePlan(this.api, movedPlan)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        map(() => this.ngOnInit()),
+      )
+      .subscribe();
+  }
+
+  private onInit(api, plans) {
+    this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
+    this.api = api;
+    this.plansTableDS = orderBy(plans, 'order', 'asc');
+    this.isLoadingData = false;
   }
 }
