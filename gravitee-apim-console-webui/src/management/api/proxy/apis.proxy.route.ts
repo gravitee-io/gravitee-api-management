@@ -181,20 +181,6 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.discovery', {
-      url: '/discovery',
-      template: require('./backend/discovery/discovery.html'),
-      controller: 'ApiDiscoveryController',
-      controllerAs: 'discoveryCtrl',
-      data: {
-        perms: {
-          only: ['api-discovery-c'],
-        },
-        docs: {
-          page: 'management-api-discovery',
-        },
-      },
-    })
     .state('management.apis.detail.proxy.responsetemplates', {
       abstract: true,
       url: '/responsetemplates',
