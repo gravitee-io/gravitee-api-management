@@ -18,8 +18,9 @@ import { StateService } from '@uirouter/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { IScope } from 'angular';
 
-import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
@@ -67,6 +68,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly gioMenuService: GioMenuService,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
   ngOnInit() {
@@ -91,6 +93,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.appendNotificationsGroup();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
+
+    this.ajsRootScope.$on('$locationChangeStart', () => {
+      this.selectedItemWithTabs = this.findMenuItemWithTabs();
+    });
   }
 
   ngOnDestroy(): void {
@@ -375,33 +381,25 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
-  private findMenuItemWithTabs(route?: string): MenuItem {
-    let item: MenuItem = this.findActiveMenuItem(this.subMenuItems, route);
+  private findMenuItemWithTabs(): MenuItem {
+    let item: MenuItem = this.findActiveMenuItem(this.subMenuItems);
     if (item) {
       return item;
     }
 
     for (const groupItem of this.groupItems) {
-      item = this.findActiveMenuItem(groupItem.items, route);
+      item = this.findActiveMenuItem(groupItem.items);
       if (item) {
         return item;
       }
     }
   }
 
-  private findActiveMenuItem(items: MenuItem[], route: string) {
-    return items
-      .filter((item) => item.tabs)
-      .find((item) => {
-        if (route) {
-          return item.tabs.some((tab) => tab.targetRoute === route);
-        }
-        return this.isTabActive(item.tabs);
-      });
+  private findActiveMenuItem(items: MenuItem[]) {
+    return items.filter((item) => item.tabs).find((item) => this.isTabActive(item.tabs));
   }
 
   navigateTo(route: string) {
-    this.selectedItemWithTabs = this.findMenuItemWithTabs(route);
     this.ajsState.go(route);
   }
 
