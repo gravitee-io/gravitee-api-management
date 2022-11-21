@@ -140,7 +140,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   public httpMethods = ['GET', 'POST', 'PUT'];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.healthCheckForm && this.healthCheckForm) {
+    if ((changes.healthCheckForm || changes.inheritHealthCheck) && this.healthCheckForm) {
       const controlKeys = ['schedule', 'method', 'path', 'body', 'fromRoot', 'headers', 'assertions'];
 
       this.isDisabled$ = combineLatest([
@@ -153,10 +153,11 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
 
       this.isDisabled$.subscribe((disableAll) => {
         if (this.inheritHealthCheck) {
-          // If inherit health check is enable ony if :
-          // - the health check is enabled
+          // inherit health check is enable ony if :
+          // - the health check `enabled` field is not disabled
+          // - the health check `enabled` field is checked
           // - the inherit health check is enabled
-          this.healthCheckForm.get('enabled').value && this.inheritHealthCheck.enabled
+          this.healthCheckForm.get('enabled').enabled && this.healthCheckForm.get('enabled').value && this.inheritHealthCheck.enabled
             ? this.healthCheckForm.get('inherit').enable({ emitEvent: false })
             : this.healthCheckForm.get('inherit').disable({ emitEvent: false });
         }
