@@ -21,7 +21,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
 
@@ -34,11 +36,14 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     CommonModule,
     DragDropModule,
     MatButtonModule,
+    MatDialogModule,
+    MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatButtonToggleModule,
     GioIconsModule,
     GioPermissionModule,
+    GioSaveBarModule,
   ],
 })
 export class ApiPortalPlansModule {}
