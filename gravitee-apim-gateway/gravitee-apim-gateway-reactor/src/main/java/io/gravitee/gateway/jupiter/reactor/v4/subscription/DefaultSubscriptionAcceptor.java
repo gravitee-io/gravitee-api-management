@@ -24,13 +24,16 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
  */
 public class DefaultSubscriptionAcceptor implements SubscriptionAcceptor {
 
-    private final ReactorHandler reactor;
-
     private final String apiId;
+    private ReactorHandler reactor;
 
     public DefaultSubscriptionAcceptor(final ReactorHandler reactor, final String apiId) {
         this.reactor = reactor;
         this.apiId = apiId;
+    }
+
+    public DefaultSubscriptionAcceptor(final String apiId) {
+        this(null, apiId);
     }
 
     @Override
@@ -46,6 +49,10 @@ public class DefaultSubscriptionAcceptor implements SubscriptionAcceptor {
     @Override
     public ReactorHandler reactor() {
         return reactor;
+    }
+
+    public void reactor(ReactorHandler reactor) {
+        this.reactor = reactor;
     }
 
     @Override

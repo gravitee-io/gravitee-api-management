@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import java.awt.print.Book;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private final Map<Reactable, List<ReactableAcceptors>> handlers = new ConcurrentHashMap<>();
 
     private final Map<Class<? extends Acceptor<?>>, List<? extends Acceptor<?>>> acceptors = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsMapping = new ConcurrentHashMap<>();
 
     public DefaultReactorHandlerRegistry(final ReactorFactoryManager reactorFactoryManager) {
         this.reactorFactoryManager = reactorFactoryManager;
@@ -188,8 +190,6 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         return acceptorsType;
     }
 
-    private Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsMapping = new ConcurrentHashMap<>();
-
     private Class<? extends Acceptor<?>> resolve(Class<? extends Acceptor> acceptor) {
         return acceptorsMapping.computeIfAbsent(
             (Class<? extends Acceptor<?>>) acceptor,
@@ -206,21 +206,21 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         );
     }
 
-    private void addAcceptors(List<? extends Acceptor> newAcceptors) {
+    private void addAcceptors(List<? extends Acceptor<?>> newAcceptors) {
         if (!newAcceptors.isEmpty()) {
             synchronized (this) {
-                Class<? extends Acceptor<?>> acceptorType = resolve(newAcceptors.get(0).getClass());
-
-                List registeredAcceptors = acceptors.get(acceptorType);
-
-                if (registeredAcceptors == null) {
-                    registeredAcceptors = new ArrayList<>();
-                }
-
-                registeredAcceptors.addAll(newAcceptors);
-                Collections.sort(registeredAcceptors);
-
-                acceptors.put(acceptorType, registeredAcceptors);
+                newAcceptors.forEach(
+                    acceptor -> {
+                        Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
+                        List registeredAcceptors = acceptors.get(acceptorType);
+                        if (registeredAcceptors == null) {
+                            registeredAcceptors = new ArrayList<>();
+                        }
+                        registeredAcceptors.add(acceptor);
+                        Collections.sort(registeredAcceptors);
+                        acceptors.put(acceptorType, registeredAcceptors);
+                    }
+                );
             }
         }
     }
