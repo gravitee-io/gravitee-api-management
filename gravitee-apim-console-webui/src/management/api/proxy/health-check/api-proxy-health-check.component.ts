@@ -51,7 +51,8 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((api) => {
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']);
+          const isReadOnly =
+            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definition_context?.origin === 'kubernetes';
 
           this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services['health-check'], isReadOnly);
         }),
