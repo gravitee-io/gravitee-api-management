@@ -15,6 +15,7 @@
  */
 import { Component, Inject, Input } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { castArray } from 'lodash';
 
 import { MenuItem } from '../api-navigation.component';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
@@ -34,7 +35,7 @@ export class ApiNavigationTabsComponent {
     this.ajsState.go(route);
   }
 
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
+  isActive(baseRoute: MenuItem['baseRoute']): boolean {
+    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 }

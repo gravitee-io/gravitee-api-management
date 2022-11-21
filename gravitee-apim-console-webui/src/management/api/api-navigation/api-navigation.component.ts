@@ -19,6 +19,7 @@ import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IScope } from 'angular';
+import { castArray, flatMap } from 'lodash';
 
 import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -27,7 +28,7 @@ import { Constants } from '../../../entities/Constants';
 
 export interface MenuItem {
   targetRoute?: string;
-  baseRoute?: string;
+  baseRoute?: string | string[];
   displayName: string;
   tabs?: MenuItem[];
 }
@@ -249,7 +250,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         {
           displayName: 'Endpoints',
           targetRoute: 'management.apis.detail.proxy.endpoints',
-          baseRoute: 'management.apis.detail.proxy.endpoints',
+          baseRoute: ['management.apis.detail.proxy.endpoints', 'management.apis.detail.proxy.endpoint'],
         },
         {
           displayName: 'Failover',
@@ -403,11 +404,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.ajsState.go(route);
   }
 
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
+  isActive(baseRoute: MenuItem['baseRoute']): boolean {
+    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 
   isTabActive(tabs: MenuItem[]): boolean {
-    return tabs.some((tab) => this.ajsState.includes(tab.baseRoute));
+    return flatMap(tabs, (tab) => tab.baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 }
