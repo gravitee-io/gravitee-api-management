@@ -722,7 +722,7 @@
                 <gravitee-policy-data-logging-masking.version>1.1.1</gravitee-policy-data-logging-masking.version>
 
                 <!-- Management API Only -->
-                <gravitee-notifier-email.version>1.4.1</gravitee-notifier-email.version>
+                <gravitee-notifier-email.version>1.5.0</gravitee-notifier-email.version>
                 <gravitee-notifier-slack.version>1.2.1</gravitee-notifier-slack.version>
                 <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
                 <!-- Gateway Only -->
