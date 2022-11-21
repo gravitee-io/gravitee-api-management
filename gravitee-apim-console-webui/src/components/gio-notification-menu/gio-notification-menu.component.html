@@ -1,0 +1,57 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<button
+  mat-icon-button
+  (click)="isOpen = !isOpen"
+  type="button"
+  cdkOverlayOrigin
+  #trigger="cdkOverlayOrigin"
+  aria-label="Open notifications"
+>
+  <mat-icon svgIcon="gio:bell"></mat-icon>
+  <span *ngIf="hasNotifications" class="gio-notification-menu__badge gio-badge-accent">{{ userNotificationsCount }}</span>
+</button>
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="trigger"
+  [cdkConnectedOverlayOpen]="isOpen"
+  (overlayOutsideClick)="onOutsideClick()"
+>
+  <mat-card class="gio-notification-menu mat-elevation-z4">
+    <div class="gio-notification-menu__header">
+      <div *ngIf="userNotifications.length < 2">{{ userNotifications.length }} notification</div>
+      <div *ngIf="userNotifications.length > 1">{{ userNotifications.length }} notifications</div>
+      <button mat-button (click)="deleteAll()">
+        <span>Delete all</span>
+      </button>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-list class="gio-notification-menu__list">
+      <mat-list-item *ngFor="let userNotification of userNotifications" class="gio-notification-menu__list-item">
+        <button mat-icon-button (click)="delete(userNotification)" type="button" aria-label="Delete notification">
+          <mat-icon svgIcon="gio:trash"></mat-icon>
+        </button>
+        <div mat-line>
+          <strong>{{ userNotification.title }}</strong>
+        </div>
+        <div mat-line>{{ userNotification.message }}</div>
+        <div mat-line>{{ userNotification.created_at }}</div>
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
+</ng-template>
