@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ORGANIZATION;
 import static java.util.Comparator.comparing;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -91,68 +92,78 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
 
-    @Value("${notifiers.email.subject:[Gravitee.io] %s}")
-    private String subject;
+    private final String subject;
+    private final String host;
+    private final String port;
+    private final String username;
+    private final String password;
+    private final Set<String> authMethods;
+    private final boolean startTLSEnabled;
+    private final boolean sslTrustAll;
+    private final String sslKeyStore;
+    private final String sslKeyStorePassword;
 
-    @Value("${notifiers.email.host:#{null}}")
-    private String host;
-
-    @Value("${notifiers.email.port}")
-    private String port;
-
-    @Value("${notifiers.email.username:#{null}}")
-    private String username;
-
-    @Value("${notifiers.email.password:#{null}}")
-    private String password;
-
-    @Value("${notifiers.email.starttls.enabled:false}")
-    private boolean startTLSEnabled;
-
-    @Value("${notifiers.email.ssl.trustAll:false}")
-    private boolean sslTrustAll;
-
-    @Value("${notifiers.email.ssl.keyStore:#{null}}")
-    private String sslKeyStore;
-
-    @Value("${notifiers.email.ssl.keyStorePassword:#{null}}")
-    private String sslKeyStorePassword;
+    private final ConfigurableEnvironment environment;
+    private final ObjectMapper mapper;
+    private final AlertTriggerRepository alertTriggerRepository;
+    private final ApiService apiService;
+    private final ApplicationService applicationService;
+    private final PlanService planService;
+    private final AlertEventRepository alertEventRepository;
+    private final TriggerProvider triggerProvider;
+    private final AlertTriggerProviderManager triggerProviderManager;
+    private final ParameterService parameterService;
+    private final ApiRepository apiRepository;
+    private final ApiMetadataService apiMetadataService;
 
     @Autowired
-    private ConfigurableEnvironment environment;
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
-    private AlertTriggerRepository alertTriggerRepository;
-
-    @Autowired
-    private ApiService apiService;
-
-    @Autowired
-    private ApplicationService applicationService;
-
-    @Autowired
-    private PlanService planService;
-
-    @Autowired
-    private AlertEventRepository alertEventRepository;
-
-    @Autowired
-    private TriggerProvider triggerProvider;
-
-    @Autowired
-    private AlertTriggerProviderManager triggerProviderManager;
-
-    @Autowired
-    private ParameterService parameterService;
-
-    @Autowired
-    private ApiRepository apiRepository;
-
-    @Autowired
-    private ApiMetadataService apiMetadataService;
+    public AlertServiceImpl(
+        @Value("${notifiers.email.subject:[Gravitee.io] %s}") String subject,
+        @Value("${notifiers.email.host:#{null}}") String host,
+        @Value("${notifiers.email.port}") String port,
+        @Value("${notifiers.email.username:#{null}}") String username,
+        @Value("${notifiers.email.password:#{null}}") String password,
+        @Value("${notifiers.email.authMethods:#{null}}") String[] authMethods,
+        @Value("${notifiers.email.starttls.enabled:false}") boolean startTLSEnabled,
+        @Value("${notifiers.email.ssl.trustAll:false}") boolean sslTrustAll,
+        @Value("${notifiers.email.ssl.keyStore:#{null}}") String sslKeyStore,
+        @Value("${notifiers.email.ssl.keyStorePassword:#{null}}") String sslKeyStorePassword,
+        ConfigurableEnvironment environment,
+        ObjectMapper mapper,
+        AlertTriggerRepository alertTriggerRepository,
+        ApiService apiService,
+        ApplicationService applicationService,
+        PlanService planService,
+        AlertEventRepository alertEventRepository,
+        TriggerProvider triggerProvider,
+        AlertTriggerProviderManager triggerProviderManager,
+        ParameterService parameterService,
+        ApiRepository apiRepository,
+        ApiMetadataService apiMetadataService
+    ) {
+        this.subject = subject;
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+        this.authMethods = ofNullable(authMethods).map(Set::of).orElse(null);
+        this.startTLSEnabled = startTLSEnabled;
+        this.sslTrustAll = sslTrustAll;
+        this.sslKeyStore = sslKeyStore;
+        this.sslKeyStorePassword = sslKeyStorePassword;
+        this.environment = environment;
+        this.mapper = mapper;
+        this.alertTriggerRepository = alertTriggerRepository;
+        this.apiService = apiService;
+        this.applicationService = applicationService;
+        this.planService = planService;
+        this.alertEventRepository = alertEventRepository;
+        this.triggerProvider = triggerProvider;
+        this.triggerProviderManager = triggerProviderManager;
+        this.parameterService = parameterService;
+        this.apiRepository = apiRepository;
+        this.apiMetadataService = apiMetadataService;
+    }
 
     @Override
     public AlertStatusEntity getStatus() {
@@ -595,6 +606,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             configuration.setSslKeyStorePassword(sslKeyStorePassword);
             configuration.setSslTrustAll(sslTrustAll);
         }
+
+        configuration.setAuthMethods(authMethods);
 
         try {
             JsonNode emailNode = mapper.readTree(notification.getConfiguration());
