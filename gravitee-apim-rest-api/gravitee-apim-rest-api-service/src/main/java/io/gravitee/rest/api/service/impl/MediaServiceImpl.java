@@ -33,12 +33,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -51,15 +49,17 @@ public class MediaServiceImpl implements MediaService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaServiceImpl.class);
     private static final String MEDIA_TYPE_IMAGE = "image";
 
-    @Lazy
-    @Autowired
-    private MediaRepository mediaRepository;
+    private final MediaRepository mediaRepository;
 
-    @Autowired
-    private ConfigService configService;
+    private final ConfigService configService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public MediaServiceImpl(@Lazy MediaRepository mediaRepository, ConfigService configService, ObjectMapper objectMapper) {
+        this.mediaRepository = mediaRepository;
+        this.configService = configService;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String savePortalMedia(MediaEntity mediaEntity) {
@@ -69,15 +69,13 @@ public class MediaServiceImpl implements MediaService {
     @Override
     public String saveApiMedia(String api, MediaEntity mediaEntity) {
         try {
-            // disable sonar as md5 is not used for security purpose here
+            // disable sonar as md5 is not used for security purpose here,
             // and we don't want to slow down the startup process
             // by adding an upgrader that would perform hashing against a potentially large amount of data
             MessageDigest digest = MessageDigest.getInstance("MD5"); // NOSONAR
             byte[] hash = digest.digest(mediaEntity.getData());
             String hashString = DatatypeConverter.printHexBinary(hash);
-            String id = mediaEntity.getId() != null && UUID.fromString(mediaEntity.getId()) != null
-                ? mediaEntity.getId()
-                : UuidString.generateRandom();
+            String id = mediaEntity.getId() != null ? mediaEntity.getId() : UuidString.generateRandom();
 
             Optional<Media> checkMedia;
 
@@ -110,13 +108,13 @@ public class MediaServiceImpl implements MediaService {
     @Override
     public MediaEntity findByHash(String hash) {
         Optional<Media> mediaData = mediaRepository.findByHashAndType(hash, MEDIA_TYPE_IMAGE);
-        return mediaData.isPresent() ? convert(mediaData.get()) : null;
+        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
     public MediaEntity findByHashAndApiId(String hash, String apiId) {
         Optional<Media> mediaData = mediaRepository.findByHashAndApiAndType(hash, apiId, MEDIA_TYPE_IMAGE);
-        return mediaData.isPresent() ? convert(mediaData.get()) : null;
+        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
@@ -127,7 +125,7 @@ public class MediaServiceImpl implements MediaService {
         } else {
             mediaData = mediaRepository.findByHashAndType(id, MEDIA_TYPE_IMAGE);
         }
-        return mediaData.isPresent() ? convert(mediaData.get()) : null;
+        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
@@ -138,7 +136,7 @@ public class MediaServiceImpl implements MediaService {
         } else {
             mediaData = mediaRepository.findByHashAndApiAndType(id, api, MEDIA_TYPE_IMAGE);
         }
-        return mediaData.isPresent() ? convert(mediaData.get()) : null;
+        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
@@ -153,7 +151,7 @@ public class MediaServiceImpl implements MediaService {
             for (PageMediaEntity pme : pageMediaEntities) {
                 final Optional<Media> foundMedia = mediaRepository.findByHashAndApi(pme.getMediaHash(), api, false);
                 if (foundMedia.isPresent()) {
-                    MediaEntity me = this.convert(foundMedia.get());
+                    MediaEntity me = convert(foundMedia.get());
                     me.setFileName(pme.getMediaName());
                     me.setUploadDate(pme.getAttachedAt());
                     result.add(me);
@@ -170,7 +168,7 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public List<MediaEntity> findAllByApiId(String apiId) {
-        return mediaRepository.findAllByApi(apiId).stream().map(media -> convert(media)).collect(Collectors.toList());
+        return mediaRepository.findAllByApi(apiId).stream().map(MediaServiceImpl::convert).collect(Collectors.toList());
     }
 
     @Override
@@ -190,10 +188,9 @@ public class MediaServiceImpl implements MediaService {
     }
 
     private MediaEntity convertToEntity(String mediaDefinition) throws JsonProcessingException {
-        final MediaEntity media = objectMapper
+        return objectMapper
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(mediaDefinition, MediaEntity.class);
-        return media;
     }
 
     private static Media convert(MediaEntity imageEntity) {
@@ -203,7 +200,6 @@ public class MediaServiceImpl implements MediaService {
         media.setType(imageEntity.getType());
         media.setSubType(imageEntity.getSubType());
         media.setId(imageEntity.getId());
-        //media.setData(new ByteArrayInputStream(imageEntity.getData()));
         return media;
     }
 
