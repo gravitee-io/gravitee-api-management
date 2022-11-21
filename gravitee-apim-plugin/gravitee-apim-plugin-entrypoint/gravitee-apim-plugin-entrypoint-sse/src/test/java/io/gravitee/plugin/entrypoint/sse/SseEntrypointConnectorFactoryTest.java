@@ -60,7 +60,7 @@ class SseEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportQos() {
-        assertThat(sseEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED);
+        assertThat(sseEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO);
     }
 
     @ParameterizedTest

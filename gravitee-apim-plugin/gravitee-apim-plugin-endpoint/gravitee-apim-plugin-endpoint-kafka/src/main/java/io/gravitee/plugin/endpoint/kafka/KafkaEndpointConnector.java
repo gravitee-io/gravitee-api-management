@@ -31,7 +31,8 @@ import io.gravitee.gateway.jupiter.api.context.MessageExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.error.KafkaConnectionClosedException;
 import io.gravitee.plugin.endpoint.kafka.error.KafkaReceiverErrorTransformer;
@@ -76,11 +77,12 @@ import reactor.kafka.sender.SenderResult;
 public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     static final String KAFKA_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "kafka.";
     static final String CONTEXT_ATTRIBUTE_KAFKA_TOPICS = KAFKA_CONTEXT_ATTRIBUTE + "topics";
     static final String CONTEXT_ATTRIBUTE_KAFKA_GROUP_ID = KAFKA_CONTEXT_ATTRIBUTE + "groupId";
     static final String CONTEXT_ATTRIBUTE_KAFKA_RECORD_KEY = KAFKA_CONTEXT_ATTRIBUTE + "recordKey";
+    private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES = Set.of(QosCapability.AUTO_ACK);
     private static final String FAILURE_ENDPOINT_CONNECTION_CLOSED = "FAILURE_ENDPOINT_CONNECTION_CLOSED";
     private static final String FAILURE_ENDPOINT_CONFIGURATION_INVALID = "FAILURE_ENDPOINT_CONFIGURATION_INVALID";
     private static final String FAILURE_ENDPOINT_UNKNOWN_ERROR = "FAILURE_ENDPOINT_UNKNOWN_ERROR";
@@ -105,6 +107,11 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     @Override
     public Set<Qos> supportedQos() {
         return SUPPORTED_QOS;
+    }
+
+    @Override
+    public Set<QosCapability> supportedQosCapabilities() {
+        return SUPPORTED_QOS_CAPABILITIES;
     }
 
     @Override
@@ -190,10 +197,10 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                     final EntrypointAsyncConnector entrypointAsyncConnector = ctx.getInternalAttribute(
                                         InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR
                                     );
-                                    final QosOptions qosOptions = entrypointAsyncConnector.qosOptions();
+                                    final QosRequirement qosRequirement = entrypointAsyncConnector.qosRequirement();
                                     QosStrategy<String, byte[]> qosStrategy = qosStrategyFactory.createQosStrategy(
                                         kafkaReceiverFactory,
-                                        qosOptions
+                                        qosRequirement
                                     );
 
                                     Map<String, Object> config = new HashMap<>();

@@ -61,6 +61,7 @@ public abstract class AbstractFailureProcessor implements Processor {
             executionFailure =
                 new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
                 .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         }
 
         // If no application has been associated to the request (for example in case security chain can not be processed

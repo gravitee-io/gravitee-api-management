@@ -25,7 +25,8 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -46,19 +47,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
+    public static final String ENTRYPOINT_ID = "webhook";
     protected static final String INTERNAL_ATTR_WEBHOOK_REQUEST_URI = "webhook.requestUri";
     protected static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
     protected static final String INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG = "webhook.subscriptionConfiguration";
-
-    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
-    public static final String ENTRYPOINT_ID = "webhook";
-    private static final char URI_QUERY_DELIMITER_CHAR = '?';
-    private final ConnectorHelper connectorHelper;
-    private final QosOptions qosOptions;
     protected static final String STOPPING_MESSAGE = "Stopping, please reconnect";
-
+    static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    private static final char URI_QUERY_DELIMITER_CHAR = '?';
     protected final WebhookEntrypointConnectorConfiguration configuration;
+    private final ConnectorHelper connectorHelper;
+    private QosRequirement qosRequirement;
 
     public WebhookEntrypointConnector(
         final ConnectorHelper connectorHelper,
@@ -66,8 +65,16 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         final WebhookEntrypointConnectorConfiguration configuration
     ) {
         this.connectorHelper = connectorHelper;
-        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(false).manualAckSupported(true).build();
+        computeQosRequirement(qos);
         this.configuration = configuration;
+    }
+
+    protected void computeQosRequirement(final Qos qos) {
+        QosRequirement.QosRequirementBuilder qosRequirementBuilder = QosRequirement.builder().qos(qos);
+        if (qos == Qos.AT_MOST_ONCE || qos == Qos.AT_LEAST_ONCE) {
+            qosRequirementBuilder.capabilities(Set.of(QosCapability.MANUAL_ACK)).build();
+        }
+        this.qosRequirement = qosRequirementBuilder.build();
     }
 
     @Override
@@ -86,11 +93,6 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
-    }
-
-    @Override
     public int matchCriteriaCount() {
         return 0;
     }
@@ -102,8 +104,8 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public QosOptions qosOptions() {
-        return qosOptions;
+    public QosRequirement qosRequirement() {
+        return qosRequirement;
     }
 
     @Override

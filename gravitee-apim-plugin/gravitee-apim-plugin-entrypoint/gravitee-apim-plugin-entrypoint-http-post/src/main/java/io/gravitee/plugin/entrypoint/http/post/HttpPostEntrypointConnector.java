@@ -34,7 +34,7 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
@@ -50,13 +50,13 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NA);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     private static final String ENTRYPOINT_ID = "http-post";
-    private final QosOptions qosOptions;
+    private final QosRequirement qosRequirement;
     private HttpPostEntrypointConnectorConfiguration configuration;
 
-    public HttpPostEntrypointConnector(final HttpPostEntrypointConnectorConfiguration configuration) {
-        this.qosOptions = QosOptions.builder().qos(Qos.NA).errorRecoverySupported(false).manualAckSupported(false).build();
+    public HttpPostEntrypointConnector(final Qos qos, final HttpPostEntrypointConnectorConfiguration configuration) {
+        this.qosRequirement = QosRequirement.builder().qos(qos).build();
         this.configuration = configuration;
         if (this.configuration == null) {
             this.configuration = new HttpPostEntrypointConnectorConfiguration();
@@ -79,11 +79,6 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
-    }
-
-    @Override
     public int matchCriteriaCount() {
         return 1;
     }
@@ -94,8 +89,8 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public QosOptions qosOptions() {
-        return qosOptions;
+    public QosRequirement qosRequirement() {
+        return qosRequirement;
     }
 
     @Override

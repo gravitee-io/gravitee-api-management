@@ -652,8 +652,8 @@ class DefaultApiReactorTest {
         // Skip because platform response failed.
         inOrder.verify(spyMessageResponsePlatformFlowChain, never()).subscribe(any(CompletableObserver.class));
 
-        // Entrypoint response must have been invoked.
-        inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
+        // In case of error we do not expect entrypoint.handleResponse to be called
+        inOrder.verify(spyEntrypointResponse, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
 

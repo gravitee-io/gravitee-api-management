@@ -78,7 +78,7 @@ class HttpPostEntrypointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.headers()).thenReturn(HttpHeaders.create());
         lenient().when(response.messages()).thenReturn(Flowable.empty());
-        cut = new HttpPostEntrypointConnector(null);
+        cut = new HttpPostEntrypointConnector(Qos.NONE, null);
     }
 
     @Test
@@ -99,11 +99,6 @@ class HttpPostEntrypointConnectorTest {
     @Test
     void shouldSupportPublishModeOnly() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH);
-    }
-
-    @Test
-    void shouldSupportQos() {
-        assertThat(cut.supportedQos()).containsOnly(Qos.NA);
     }
 
     @Test
@@ -148,7 +143,7 @@ class HttpPostEntrypointConnectorTest {
         HttpPostEntrypointConnectorConfiguration configuration = new HttpPostEntrypointConnectorConfiguration();
         configuration.setRequestHeadersToMessage(true);
 
-        cut = new HttpPostEntrypointConnector(configuration);
+        cut = new HttpPostEntrypointConnector(Qos.AUTO, configuration);
         cut.handleRequest(ctx).test().assertComplete();
 
         dummyRequest

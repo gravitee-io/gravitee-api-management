@@ -97,8 +97,7 @@ class DefaultEntrypointConnectorResolverTest {
 
         when(entrypointAsyncConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.jupiter.api.ListenerType.HTTP);
-        when(asyncConnectorFactory.createConnector(deploymentContext, Qos.BALANCED, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointAsyncConnector);
+        when(asyncConnectorFactory.createConnector(deploymentContext, Qos.AUTO, ENTRYPOINT_CONFIG)).thenReturn(entrypointAsyncConnector);
         when(entrypointAsyncConnector.matches(ctx)).thenReturn(true);
 
         final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);

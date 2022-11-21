@@ -20,6 +20,7 @@ import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static io.reactivex.rxjava3.core.Completable.defer;
@@ -121,10 +122,10 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final long pendingRequestsTimeout;
     private final AtomicLong pendingRequests = new AtomicLong(0);
+    private final boolean isEventNative;
     private LoggingContext loggingContext;
     private SecurityChain securityChain;
     private Lifecycle.State lifecycleState;
-    private final boolean isEventNative;
 
     public DefaultApiReactor(
         final Api api,
@@ -238,14 +239,16 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed.
-            .chainWith((platformFlowChain.execute(ctx, RESPONSE)))
+            .chainWith(platformFlowChain.execute(ctx, RESPONSE))
             .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
             .chainWith(upstream -> timeout(upstream, ctx))
-            // Catch all possible unexpected errors
-            .chainWithOnError(t -> handleUnexpectedError(ctx, t))
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
+            // Catch possible unexpected errors before executing after Handle Processors
+            .chainWithOnError(t -> handleUnexpectedError(ctx, t))
             .chainWith(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
+            // Catch all possible unexpected errors
+            .chainWithOnError(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
             .chainWith(ctx.response().end())
             .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
@@ -274,15 +277,16 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         return Completable
             .defer(
                 () -> {
-                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                    if (entrypointConnector != null) {
-                        return entrypointConnector.handleResponse(ctx);
+                    if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
+                        final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                        if (entrypointConnector != null) {
+                            return entrypointConnector.handleResponse(ctx);
+                        }
                     }
                     return Completable.complete();
                 }
             )
-            .compose(upstream -> timeout(upstream, ctx))
-            .onErrorResumeNext(t -> handleUnexpectedError(ctx, t));
+            .compose(upstream -> timeout(upstream, ctx));
     }
 
     private Completable executeProcessorChain(

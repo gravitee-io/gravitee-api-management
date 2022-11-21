@@ -100,11 +100,6 @@ class SseEntrypointConnectorTest {
     }
 
     @Test
-    void shouldSupportQos() {
-        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED);
-    }
-
-    @Test
     void shouldMatchesCriteriaReturnValidCount() {
         assertThat(cut.matchCriteriaCount()).isEqualTo(2);
     }

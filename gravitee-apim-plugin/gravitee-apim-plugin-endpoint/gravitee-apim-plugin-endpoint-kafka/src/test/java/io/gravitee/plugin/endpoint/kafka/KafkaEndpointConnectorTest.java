@@ -32,7 +32,7 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
@@ -126,7 +126,7 @@ class KafkaEndpointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(entrypointAsyncConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
-        lenient().when(entrypointAsyncConnector.qosOptions()).thenReturn(QosOptions.builder().build());
+        lenient().when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().build());
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
 
         AdminClient adminClient = AdminClient.create(

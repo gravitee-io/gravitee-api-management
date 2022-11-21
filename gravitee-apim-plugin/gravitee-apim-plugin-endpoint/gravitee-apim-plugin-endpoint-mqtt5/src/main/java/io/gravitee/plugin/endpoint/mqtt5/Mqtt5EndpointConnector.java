@@ -41,6 +41,7 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
 import io.reactivex.Maybe;
 import io.reactivex.rxjava3.core.Completable;
@@ -60,11 +61,12 @@ import lombok.extern.slf4j.Slf4j;
 public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
 
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    public static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED);
+    public static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     static final String MQTT5_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "mqtt5.";
     static final String CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID = MQTT5_CONTEXT_ATTRIBUTE + "clientId";
     static final String CONTEXT_ATTRIBUTE_MQTT5_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "topic";
     static final String CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "responseTopic";
+    private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES = Set.of(QosCapability.AUTO_ACK);
     static final String MQTT5_INTERNAL_CONTEXT_ATTRIBUTE = "mqtt5.";
     public static final String INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT = MQTT5_INTERNAL_CONTEXT_ATTRIBUTE + "mqttClient";
     private static final String FAILURE_ENDPOINT_CONNECTION_FAILED = "FAILURE_ENDPOINT_CONNECTION_FAILED";
@@ -87,6 +89,11 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     @Override
     public Set<Qos> supportedQos() {
         return SUPPORTED_QOS;
+    }
+
+    @Override
+    public Set<QosCapability> supportedQosCapabilities() {
+        return SUPPORTED_QOS_CAPABILITIES;
     }
 
     protected Mqtt5EndpointConnectorConfiguration configuration() {
@@ -125,7 +132,9 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                                     String topic = getTopic(ctx);
                                     return RxJavaBridge
                                         .toV3Flowable(
-                                            prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic).applySubscribe().map(this::transform)
+                                            prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic)
+                                                .applySubscribe()
+                                                .<Message>map(mqtt5Publish -> transform(ctx, mqtt5Publish))
                                         )
                                         .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
                                         .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe());
@@ -137,7 +146,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         );
     }
 
-    protected Message transform(final Mqtt5Publish mqttPublish) {
+    protected DefaultMessage transform(final ExecutionContext ctx, final Mqtt5Publish mqttPublish) {
         DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder();
 
         if (mqttPublish.getPayload().isPresent()) {

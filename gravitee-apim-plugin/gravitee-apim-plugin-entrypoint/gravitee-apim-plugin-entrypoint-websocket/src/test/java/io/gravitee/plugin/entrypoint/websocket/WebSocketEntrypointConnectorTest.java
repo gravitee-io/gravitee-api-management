@@ -105,11 +105,6 @@ class WebSocketEntrypointConnectorTest {
     }
 
     @Test
-    void shouldSupportQos() {
-        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED);
-    }
-
-    @Test
     void shouldMatch4Criteria() {
         assertEquals(4, cut.matchCriteriaCount());
     }

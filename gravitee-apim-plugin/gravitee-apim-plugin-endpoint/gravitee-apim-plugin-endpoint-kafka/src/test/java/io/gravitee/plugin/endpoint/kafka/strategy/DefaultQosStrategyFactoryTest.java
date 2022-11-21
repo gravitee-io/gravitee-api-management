@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
-import io.gravitee.plugin.endpoint.kafka.strategy.impl.BalancedStrategy;
+import io.gravitee.plugin.endpoint.kafka.strategy.impl.AutoStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ class DefaultQosStrategyFactoryTest {
     private DefaultQosStrategyFactory cut;
 
     private static Stream<Arguments> provideQosFactory() {
-        return Stream.of(Arguments.of(Qos.NONE, NoneStrategy.class, Qos.BALANCED, BalancedStrategy.class));
+        return Stream.of(Arguments.of(Qos.NONE, NoneStrategy.class, Qos.AUTO, AutoStrategy.class));
     }
 
     @BeforeEach
@@ -50,14 +50,14 @@ class DefaultQosStrategyFactoryTest {
     @ParameterizedTest
     @MethodSource("provideQosFactory")
     void shouldReturnValidStrategy(Qos qos, final Class<? extends QosStrategy> qosStrategyClass) {
-        QosStrategy qosStrategy = cut.createQosStrategy(new KafkaReceiverFactory(), QosOptions.builder().qos(qos).build());
+        QosStrategy qosStrategy = cut.createQosStrategy(new KafkaReceiverFactory(), QosRequirement.builder().qos(qos).build());
         assertThat(qosStrategy).isInstanceOf(qosStrategyClass);
     }
 
     @ParameterizedTest
-    @EnumSource(value = Qos.class, names = { "NONE", "BALANCED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = Qos.class, names = { "NONE", "AUTO" }, mode = EnumSource.Mode.EXCLUDE)
     void shouldThrowExceptionOnUnsupportedQos() {
-        QosOptions qosOptions = QosOptions.builder().qos(null).build();
+        QosRequirement qosOptions = QosRequirement.builder().qos(null).build();
         assertThatThrownBy(() -> cut.createQosStrategy(new KafkaReceiverFactory(), qosOptions))
             .isInstanceOf(IllegalArgumentException.class);
     }
