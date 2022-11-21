@@ -29,8 +29,23 @@ import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
+import io.gravitee.rest.api.model.ApiStateEntity;
+import io.gravitee.rest.api.model.DebugApiEntity;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MessageEntity;
+import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.DuplicateApiEntity;
+import io.gravitee.rest.api.model.api.RollbackApiEntity;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -40,7 +55,15 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiExportService;
+import io.gravitee.rest.api.service.DebugApiService;
+import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.QualityMetricsService;
+import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -59,12 +82,30 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -77,6 +118,8 @@ import org.springframework.web.bind.annotation.RequestBody;
  */
 @Tag(name = "APIs")
 public class ApiResource extends AbstractResource {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiResource.class);
 
     @Context
     private ResourceContext resourceContext;
@@ -277,7 +320,8 @@ public class ApiResource extends AbstractResource {
             ImageUtils.verify(apiToUpdate.getPicture());
             ImageUtils.verify(apiToUpdate.getBackground());
         } catch (InvalidImageException e) {
-            throw new BadRequestException("Invalid image format");
+            LOGGER.warn("Invalid image format", e);
+            throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
