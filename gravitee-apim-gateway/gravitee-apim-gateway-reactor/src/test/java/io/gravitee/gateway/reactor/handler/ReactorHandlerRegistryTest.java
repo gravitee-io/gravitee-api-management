@@ -20,9 +20,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionAcceptor;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -589,6 +596,25 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
     }
 
+    @Test
+    public void shouldHaveOneHttpAcceptorAndOneSubscriptionAcceptor_singleReactable() {
+        Reactable reactable = createReactable("reactable1");
+
+        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultSubscriptionAcceptor("api1"));
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+
+        reactorHandlerRegistry.create(reactable);
+
+        final Collection<HttpAcceptor> httpAcceptors = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
+        final Iterator<HttpAcceptor> httpAcceptorsIterator = httpAcceptors.iterator();
+        Assert.assertEquals(1, httpAcceptors.size());
+        assertEntryPoint(null, "/products/v1/", httpAcceptorsIterator.next());
+        final Collection<SubscriptionAcceptor> subscriptionAcceptors = reactorHandlerRegistry.getAcceptors(SubscriptionAcceptor.class);
+        final Iterator<SubscriptionAcceptor> subscriptionAcceptorsIterator = subscriptionAcceptors.iterator();
+        Assert.assertEquals(1, httpAcceptors.size());
+        Assert.assertEquals("api1", subscriptionAcceptorsIterator.next().apiId());
+    }
+
     private void assertEntryPoint(String host, String path, HttpAcceptor httpAcceptor) {
         Assert.assertEquals(host, httpAcceptor.host());
         Assert.assertEquals(path, httpAcceptor.path());
@@ -606,12 +632,20 @@ public class ReactorHandlerRegistryTest {
         return createReactorHandler(new DefaultHttpAcceptor(virtualHost, contextPath));
     }
 
-    private ReactorHandler createReactorHandler(DefaultHttpAcceptor... httpAcceptors) {
+    private ReactorHandler createReactorHandler(Acceptor<? extends Acceptor<?>>... httpAcceptors) {
         ReactorHandler handler = mock(ReactorHandler.class);
 
         List<Acceptor<?>> acceptors = Arrays
             .stream(httpAcceptors)
-            .peek(defaultHttpAcceptor -> defaultHttpAcceptor.reactor(handler))
+            .peek(
+                acceptor -> {
+                    if (acceptor instanceof DefaultHttpAcceptor) {
+                        ((DefaultHttpAcceptor) acceptor).reactor(handler);
+                    } else if (acceptor instanceof DefaultSubscriptionAcceptor) {
+                        ((DefaultSubscriptionAcceptor) acceptor).reactor(handler);
+                    }
+                }
+            )
             .collect(Collectors.toList());
 
         when(handler.acceptors()).thenReturn(acceptors);
