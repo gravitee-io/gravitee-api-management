@@ -34,6 +34,7 @@ export interface User {
   customFields?: Record<string, unknown>;
   primary_owner?: boolean;
   number_of_active_tokens?: number;
+  firstLogin?: boolean;
 
   created_at?: number;
   updated_at?: number;

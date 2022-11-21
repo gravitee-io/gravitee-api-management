@@ -25,6 +25,8 @@ export class User {
   public id: string;
   public username: string;
   public displayName: string;
+  public firstname: string;
+  public lastname: string;
   public email: string;
   public source: string;
   public sourceId?: string;

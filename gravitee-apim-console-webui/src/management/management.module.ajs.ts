@@ -67,8 +67,6 @@ import LoginController from '../user/login/login.controller';
 import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';
-// Navbar
-import { NavbarComponent } from '../components/navbar/navbar.component';
 // Api
 import ApiCreationComponent from '../management/api/creation/steps/api-creation.component';
 import ApiCreationController from '../management/api/creation/steps/api-creation.controller';
@@ -226,13 +224,8 @@ import globalNotificationsRouterConfig from './configuration/notifications/globa
 import UserService from '../services/user.service';
 import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
-// User Tasks
 import { TasksComponent } from './tasks/tasks.component';
 import { PromotionTaskComponent } from './tasks/promotion/promotion-task.component';
-import TaskService from '../services/task.service';
-// Portal notifications
-import PortalNotificationsComponent from './portalnotifications/portalnotifications.component';
-import UserNotificationService from '../services/userNotification.service';
 // Notification Settings
 import NotificationsComponent from '../components/notifications/notifications.component';
 import NotificationSettingsComponent from '../components/notifications/notificationsettings/notificationsettings.component';
@@ -534,6 +527,7 @@ import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/ap
 import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
 import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
+import { GioTopNavComponent } from '../components/gio-top-nav/gio-top-nav.component';
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
@@ -659,6 +653,7 @@ graviteeManagementModule.run(runBlock);
 
 // New Navigation components
 graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component: GioSideNavComponent }));
+graviteeManagementModule.directive('gioTopNav', downgradeComponent({ component: GioTopNavComponent }));
 graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
 graviteeManagementModule.directive('apiNavigation', downgradeComponent({ component: ApiNavigationComponent }));
@@ -940,10 +935,6 @@ graviteeManagementModule.component('tasks', TasksComponent);
 graviteeManagementModule.factory('ngTaskService', downgradeInjectable(TaskService));
 graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
 
-graviteeManagementModule.service('TaskService', TaskService);
-
-graviteeManagementModule.component('portalNotifications', PortalNotificationsComponent);
-graviteeManagementModule.service('UserNotificationService', UserNotificationService);
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
 graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
@@ -961,7 +952,6 @@ graviteeManagementModule.directive(
 );
 
 graviteeManagementModule.component('logout', LogoutComponent);
-graviteeManagementModule.component('graviteeNavbar', NavbarComponent);
 
 graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
