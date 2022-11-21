@@ -91,7 +91,7 @@ describe('ApiPortalPlanListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['drag_indicator', 'Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
+      expect(rowCells).toEqual([['', 'Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
     }));
 
     it('should search closed plan on click', fakeAsync(async () => {
@@ -104,7 +104,7 @@ describe('ApiPortalPlanListComponent', () => {
       expectApiPlansListRequest([closedPlan], 'CLOSED');
 
       const { rowCells } = await computePlansTableCells();
-      expect(rowCells).toEqual([['drag_indicator', 'closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
+      expect(rowCells).toEqual([['', 'closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
     }));
 
     it('should search and not find any plan', fakeAsync(async () => {
