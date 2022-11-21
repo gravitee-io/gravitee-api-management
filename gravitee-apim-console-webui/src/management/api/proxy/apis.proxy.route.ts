@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 import { ApiService } from '../../../services/api.service';
-import EnvironmentService from '../../../services/environment.service';
 
 export default apisProxyRouterConfig;
 
 function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
-    .state('management.apis.detail.proxy', {
-      resolve: {
-        resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent(),
-      },
-    })
+    .state('management.apis.detail.proxy', {})
     .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
       component: 'ngApiProxyEntrypoints',

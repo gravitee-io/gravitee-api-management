@@ -297,7 +297,6 @@ import TopApiService from '../services/top-api.service';
 import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
-import ApiProxyController from './api/proxy/apiProxy.controller';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './api/analytics/pathMappings/modal/import-pathMapping.dialog.controller';
@@ -700,7 +699,6 @@ graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesControll
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
-graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
