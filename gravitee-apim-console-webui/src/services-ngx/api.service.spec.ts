@@ -426,27 +426,4 @@ describe('ApiService', () => {
       }
     });
   });
-
-  describe('syncV2Api', () => {
-    it('should not sync api', (done) => {
-      const api = fakeApi({ gravitee: '1.0.0' });
-
-      apiService.syncV2Api(api).subscribe((haveSendSyncEvent) => {
-        expect(haveSendSyncEvent).toBe(false);
-        done();
-      });
-    });
-
-    it('should sync V2 api', (done) => {
-      const api = fakeApi({ gravitee: '2.0.0' });
-
-      apiService.syncV2Api(api).subscribe((haveSendSyncEvent) => {
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: api });
-        expect(haveSendSyncEvent).toBe(true);
-        done();
-      });
-
-      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` }).flush(api);
-    });
-  });
 });

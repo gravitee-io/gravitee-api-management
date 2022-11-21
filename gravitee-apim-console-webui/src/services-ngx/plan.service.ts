@@ -17,9 +17,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { IScope } from 'angular';
-import { tap } from 'rxjs/operators';
-
-import { ApiService } from './api.service';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
@@ -33,7 +31,6 @@ export class PlanService {
     private readonly http: HttpClient,
     @Inject('Constants') private readonly constants: Constants,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
-    private readonly apiService: ApiService,
   ) {}
 
   public getApiPlans(apiId: string, status?: string, security?: string): Observable<ApiPlan[]> {
@@ -50,10 +47,27 @@ export class PlanService {
     return this.http.get<ApiPlan[]>(`${this.constants.env.baseURL}/apis/${apiId}/plans`, { params });
   }
 
-  public updatePlan(api: Api, plan: ApiPlan): Observable<ApiPlan> {
+  public update(api: Api, plan: ApiPlan): Observable<ApiPlan> {
     return this.http.put<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
-      tap((plan) => {
-        this.apiService.syncV2Api(api);
+      map((plan) => {
+        if (api.gravitee === '2.0.0') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
+        }
+        return plan;
+      }),
+    );
+  }
+
+  public get(apiId: string, planId: string): Observable<ApiPlan> {
+    return this.http.get<ApiPlan>(`${this.constants.env.baseURL}/apis/${apiId}/plans/${planId}`);
+  }
+
+  public publish(api: Api, plan: ApiPlan): Observable<ApiPlan> {
+    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_publish`, plan).pipe(
+      map((plan) => {
+        if (api.gravitee === '2.0.0') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
+        }
         return plan;
       }),
     );

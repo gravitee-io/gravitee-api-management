@@ -21,6 +21,9 @@ import { MatCellHarness, MatTableHarness } from '@angular/material/table/testing
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
@@ -42,14 +45,21 @@ describe('ApiPortalPlanListComponent', () => {
   let fixture: ComponentFixture<ApiPortalPlanListComponent>;
   let component: ApiPortalPlanListComponent;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule],
+      imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: InteractivityChecker,
+          useValue: {
+            isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -127,7 +137,7 @@ describe('ApiPortalPlanListComponent', () => {
 
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
-      expectApiPlansPutRequest({ ...plan2, order: 1 });
+      expectApiPlanUpdateRequest({ ...plan2, order: 1 });
       expectApiGetRequest(anAPi);
       expectApiPlansListRequest([
         { ...plan2, order: 1 },
@@ -169,6 +179,30 @@ describe('ApiPortalPlanListComponent', () => {
 
       expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.design.flowsNg', { apiId: API_ID, flows: `${plan.id}_0` });
     });
+
+    it('should publish the staging plan', async () => {
+      const plan = fakePlan({ name: 'publish me ☁️️', status: 'STAGING' });
+      await initComponent([plan]);
+
+      let table = await computePlansTableCells();
+      expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'STAGING', '', '']]);
+
+      await loader.getHarness(MatButtonToggleHarness.with({ text: 'STAGING' })).then((btn) => btn.toggle());
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+      const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+      await confirmDialogSwitchButton.click();
+
+      const updatedPlan: ApiPlan = { ...plan, status: 'PUBLISHED' };
+      expectPlanGetRequest(updatedPlan);
+      expectApiPlanPublishRequest(updatedPlan);
+      expectApiPlansListRequest([updatedPlan]);
+
+      table = await computePlansTableCells();
+      expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'PUBLISHED', '', '']]);
+      expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'PUBLISHED' })).then((btn) => btn.isChecked())).toBe(true);
+    });
   });
 
   describe('kubernetes api tests', () => {
@@ -196,6 +230,7 @@ describe('ApiPortalPlanListComponent', () => {
     expectApiGetRequest(api);
 
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
   }
 
@@ -222,8 +257,15 @@ describe('ApiPortalPlanListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiPlansPutRequest(plan: ApiPlan) {
+  function expectApiPlanUpdateRequest(plan: ApiPlan) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
+    expect(req.request.body).toEqual(plan);
+    req.flush(plan);
+    fixture.detectChanges();
+  }
+
+  function expectApiPlanPublishRequest(plan: ApiPlan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_publish`, 'POST');
     expect(req.request.body).toEqual(plan);
     req.flush(plan);
     fixture.detectChanges();
@@ -231,6 +273,11 @@ describe('ApiPortalPlanListComponent', () => {
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectPlanGetRequest(plan: ApiPlan) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, method: 'GET' }).flush(plan);
     fixture.detectChanges();
   }
 });

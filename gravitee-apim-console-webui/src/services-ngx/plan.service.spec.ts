@@ -39,6 +39,7 @@ describe('PlanService', () => {
   });
 
   afterEach(() => {
+    fakeRootScope.$broadcast.mockClear();
     httpTestingController.verify();
   });
 
@@ -95,20 +96,97 @@ describe('PlanService', () => {
     });
   });
 
-  describe('updatePlan', () => {
+  describe('update', () => {
     it('should update api plans', (done) => {
       const api = fakeApi();
       const plan = fakePlan();
 
-      planService.updatePlan(api, plan).subscribe((response) => {
+      planService.update(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans/${plan.id}`,
+      });
+      expect(planReq.request.body).toEqual(plan);
+      planReq.flush(plan);
+    });
+
+    it('should not publish apiChangeSuccess event', (done) => {
+      const api = fakeApi({ gravitee: '1.0.0' });
+      const plan = fakePlan();
+
+      planService.update(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans/${plan.id}`,
+      });
+      expect(planReq.request.body).toEqual(plan);
+      planReq.flush(plan);
+    });
+  });
+
+  describe('get', () => {
+    it('should get the api plan', (done) => {
+      const plan = fakePlan();
+
+      planService.get(plan.api, plan.id).subscribe((response) => {
         expect(response).toMatchObject(plan);
         done();
       });
 
-      const req = httpTestingController.expectOne({
-        method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans/${plan.id}`,
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}`,
+        })
+        .flush(plan);
+    });
+  });
+
+  describe('publish', () => {
+    it('should publish the api plan', (done) => {
+      const api = fakeApi();
+      const plan = fakePlan({ api: api.id });
+
+      planService.publish(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
+        done();
       });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_publish`,
+      });
+
+      expect(req.request.body).toEqual(plan);
+      req.flush(plan);
+    });
+
+    it('should not publish apiChangeSuccess event', (done) => {
+      const api = fakeApi({ gravitee: '1.0.0' });
+      const plan = fakePlan({ api: api.id });
+
+      planService.publish(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_publish`,
+      });
+
       expect(req.request.body).toEqual(plan);
       req.flush(plan);
     });

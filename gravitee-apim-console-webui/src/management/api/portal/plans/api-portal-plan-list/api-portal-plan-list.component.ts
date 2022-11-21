@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
-import { catchError, map, takeUntil, tap } from "rxjs/operators";
-import { combineLatest, EMPTY, Subject } from "rxjs";
-import { StateService } from "@uirouter/core";
-import { CdkDragDrop } from "@angular/cdk/drag-drop";
-import { orderBy } from "lodash";
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { StateService } from '@uirouter/core';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { orderBy } from 'lodash';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+import { IRootScopeService } from 'angular';
 
-import { UIRouterState, UIRouterStateParams } from "../../../../../ajs-upgraded-providers";
-import { PlanService } from "../../../../../services-ngx/plan.service";
-import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
-import { ApiService } from "../../../../../services-ngx/api.service";
-import { SnackBarService } from "../../../../../services-ngx/snack-bar.service";
+import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { PlanService } from '../../../../../services-ngx/plan.service';
+import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from '../../../../../entities/api';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
@@ -46,9 +49,11 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
     private readonly plansService: PlanService,
     private readonly apiService: ApiService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
@@ -95,7 +100,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     movedPlan.order = currentIndex + 1;
 
     this.plansService
-      .updatePlan(this.api, movedPlan)
+      .update(this.api, movedPlan)
       .pipe(
         takeUntil(this.unsubscribe$),
         map(() => this.ngOnInit()),
@@ -111,10 +116,46 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.detail.design.flowsNg', { apiId: this.api.id, flows: `${planId}_0` });
   }
 
+  public publishPlan(plan: ApiPlan): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Publish plan`,
+          content: `Are you sure you want to publish the plan ${plan.name}?`,
+          confirmButton: `Publish`,
+        },
+        role: 'alertdialog',
+        id: 'publishPlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.plansService.get(plan.api, plan.id)),
+        switchMap((plan) =>
+          this.plansService.publish(this.api, {
+            ...plan,
+            status: 'PUBLISHED',
+          }),
+        ),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map((plan) => {
+          this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
+          this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'PUBLISHED' });
+          this.searchPlansByStatus('PUBLISHED');
+        }),
+      )
+      .subscribe();
+  }
+
   private onInit(api, plans) {
     this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
     this.api = api;
-    this.isV2Api = this.apiService.isV2Api(api);
+    this.isV2Api = api && api.gravitee === '2.0.0';
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
 
     this.plansTableDS = orderBy(plans, 'order', 'asc');

@@ -110,7 +110,13 @@
             </button>
           </ng-container>
           <ng-container *ngIf="element.status === 'STAGING'">
-            <button *gioPermission="{ anyOf: ['api-plan-u'] }" mat-icon-button aria-label="Publish the plan" matTooltip="Publish the plan">
+            <button
+              *gioPermission="{ anyOf: ['api-plan-u'] }"
+              mat-icon-button
+              aria-label="Publish the plan"
+              matTooltip="Publish the plan"
+              (click)="publishPlan(element)"
+            >
               <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
             </button>
           </ng-container>
