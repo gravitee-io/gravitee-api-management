@@ -152,6 +152,42 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  public deprecatePlan(plan: ApiPlan): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Deprecate plan`,
+          content: `Would you like to deprecate the plan ${plan.name}?`,
+          confirmButton: `Deprecate`,
+        },
+        role: 'alertdialog',
+        id: 'deprecatePlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.plansService.get(plan.api, plan.id)),
+        switchMap((plan) =>
+          this.plansService.deprecate(this.api, {
+            ...plan,
+            status: 'DEPRECATED',
+          }),
+        ),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map((plan) => {
+          this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
+          this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'DEPRECATED' });
+          this.searchPlansByStatus('DEPRECATED');
+        }),
+      )
+      .subscribe();
+  }
+
   private onInit(api, plans) {
     this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
     this.api = api;
