@@ -15,9 +15,9 @@
  */
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
-import io.gravitee.plugin.endpoint.kafka.strategy.impl.BalancedStrategy;
+import io.gravitee.plugin.endpoint.kafka.strategy.impl.AutoStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
 
 /**
@@ -26,18 +26,20 @@ import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;
  */
 public class DefaultQosStrategyFactory implements QosStrategyFactory {
 
-    public <K, V> QosStrategy<K, V> createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions) {
-        if (qosOptions != null && qosOptions.getQos() != null) {
-            switch (qosOptions.getQos()) {
+    public <K, V> QosStrategy<K, V> createQosStrategy(
+        final KafkaReceiverFactory kafkaReceiverFactory,
+        final QosRequirement qosRequirement
+    ) {
+        if (qosRequirement != null && qosRequirement.getQos() != null) {
+            switch (qosRequirement.getQos()) {
                 case NONE:
-                    return new NoneStrategy(kafkaReceiverFactory);
-                case BALANCED:
-                    return new BalancedStrategy(kafkaReceiverFactory);
-                case AT_BEST:
+                    return new NoneStrategy<>(kafkaReceiverFactory);
+                case AUTO:
+                    return new AutoStrategy<>(kafkaReceiverFactory);
                 case AT_MOST_ONCE:
                 case AT_LEAST_ONCE:
                 default:
-                    throw new IllegalArgumentException(String.format("Unsupported QoS '%s' for Kafka", qosOptions.getQos()));
+                    throw new IllegalArgumentException(String.format("Unsupported QoS '%s' for Kafka", qosRequirement.getQos()));
             }
         }
         throw new IllegalArgumentException("QoS cannot be null");

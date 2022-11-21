@@ -67,7 +67,7 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportQos() {
-        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED);
+        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO);
     }
 
     @Test

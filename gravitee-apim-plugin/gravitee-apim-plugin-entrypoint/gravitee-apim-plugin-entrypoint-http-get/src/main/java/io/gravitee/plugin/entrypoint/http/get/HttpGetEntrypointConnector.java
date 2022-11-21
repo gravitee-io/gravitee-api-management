@@ -28,7 +28,8 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -62,17 +63,40 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     static final String CURSOR_QUERY_PARAM = "cursor";
     static final String LIMIT_QUERY_PARAM = "limit";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     private static final String ENTRYPOINT_ID = "http-get";
-    private final QosOptions qosOptions;
     protected HttpGetEntrypointConnectorConfiguration configuration;
+    private QosRequirement qosRequirement;
 
     public HttpGetEntrypointConnector(final Qos qos, final HttpGetEntrypointConnectorConfiguration configuration) {
-        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(true).manualAckSupported(false).build();
+        computeQosRequirement(qos);
         this.configuration = configuration;
         if (this.configuration == null) {
             this.configuration = new HttpGetEntrypointConnectorConfiguration();
         }
+    }
+
+    private static boolean isMediaTypeSupported(MediaType mediaType) {
+        return isMediaTypeSupported(mediaType.toMediaString());
+    }
+
+    private static boolean isMediaTypeSupported(String mediaType) {
+        return (
+            mediaType.equals(MediaType.APPLICATION_JSON) ||
+            mediaType.equals(MediaType.APPLICATION_XML) ||
+            mediaType.equals(MediaType.TEXT_PLAIN)
+        );
+    }
+
+    private void computeQosRequirement(final Qos qos) {
+        QosRequirement.QosRequirementBuilder qosRequirementBuilder = QosRequirement.builder().qos(qos);
+        switch (qos) {
+            case AT_LEAST_ONCE:
+            case AT_MOST_ONCE:
+                qosRequirementBuilder.capabilities(Set.of(QosCapability.RECOVER)).build();
+                break;
+        }
+        this.qosRequirement = qosRequirementBuilder.build();
     }
 
     @Override
@@ -88,11 +112,6 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     @Override
     public Set<ConnectorMode> supportedModes() {
         return SUPPORTED_MODES;
-    }
-
-    @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
     }
 
     @Override
@@ -141,8 +160,8 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public QosOptions qosOptions() {
-        return qosOptions;
+    public QosRequirement qosRequirement() {
+        return qosRequirement;
     }
 
     @Override
@@ -440,18 +459,6 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
                 }
                 return Flowable.empty();
             }
-        );
-    }
-
-    private static boolean isMediaTypeSupported(MediaType mediaType) {
-        return isMediaTypeSupported(mediaType.toMediaString());
-    }
-
-    private static boolean isMediaTypeSupported(String mediaType) {
-        return (
-            mediaType.equals(MediaType.APPLICATION_JSON) ||
-            mediaType.equals(MediaType.APPLICATION_XML) ||
-            mediaType.equals(MediaType.TEXT_PLAIN)
         );
     }
 }

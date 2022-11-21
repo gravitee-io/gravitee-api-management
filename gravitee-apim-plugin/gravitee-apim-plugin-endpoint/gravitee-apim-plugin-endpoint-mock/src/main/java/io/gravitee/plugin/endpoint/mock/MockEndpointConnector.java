@@ -22,13 +22,13 @@ import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,12 @@ import lombok.extern.slf4j.Slf4j;
 public class MockEndpointConnector extends EndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO, Qos.AT_LEAST_ONCE, Qos.AT_MOST_ONCE);
+    private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES = Set.of(
+        QosCapability.AUTO_ACK,
+        QosCapability.MANUAL_ACK,
+        QosCapability.RECOVER
+    );
     private static final String ENDPOINT_ID = "mock";
     protected final MockEndpointConnectorConfiguration configuration;
 
@@ -57,6 +62,11 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
     @Override
     public Set<Qos> supportedQos() {
         return SUPPORTED_QOS;
+    }
+
+    @Override
+    public Set<QosCapability> supportedQosCapabilities() {
+        return SUPPORTED_QOS_CAPABILITIES;
     }
 
     @Override

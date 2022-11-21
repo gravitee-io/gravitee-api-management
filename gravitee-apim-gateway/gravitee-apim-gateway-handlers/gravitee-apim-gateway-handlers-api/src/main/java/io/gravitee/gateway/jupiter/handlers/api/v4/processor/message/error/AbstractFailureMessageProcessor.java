@@ -111,6 +111,7 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
                     new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
                     .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             }
+            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
             return buildMessage(ctx, executionFailure).toFlowable();
         }

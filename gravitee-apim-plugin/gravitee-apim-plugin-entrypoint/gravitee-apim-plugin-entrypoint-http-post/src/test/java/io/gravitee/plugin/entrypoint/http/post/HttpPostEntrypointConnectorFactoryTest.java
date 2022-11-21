@@ -47,7 +47,7 @@ class HttpPostEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportQos() {
-        assertThat(httpPostEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NA);
+        assertThat(httpPostEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO);
     }
 
     @ParameterizedTest

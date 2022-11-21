@@ -29,7 +29,8 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.entrypoint.sse.configuration.SseEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.sse.model.SseEvent;
 import io.reactivex.rxjava3.core.Completable;
@@ -54,23 +55,32 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
 
     public static final String HEADER_LAST_EVENT_ID = "Last-Event-ID";
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     private static final String ENTRYPOINT_ID = "sse";
     private static final int RETRY_MIN_VALUE = 1000;
     private static final int RETRY_MAX_VALUE = 30000;
     private final Random random;
-    protected QosOptions qosOptions;
+    protected QosRequirement qosRequirement;
     private SseEntrypointConnectorConfiguration configuration;
 
     @SuppressWarnings("java:S2245")
     public SseEntrypointConnector(final Qos qos, final SseEntrypointConnectorConfiguration configuration) {
-        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(false).manualAckSupported(false).build();
+        computeQosRequirement(qos);
         this.configuration = configuration;
         if (this.configuration == null) {
             this.configuration = new SseEntrypointConnectorConfiguration();
         }
         // Random doesn't require to be secured here and is only used for random retry time
         this.random = new Random();
+    }
+
+    protected void computeQosRequirement(final Qos qos) {
+        QosRequirement.QosRequirementBuilder qosRequirementBuilder = QosRequirement.builder().qos(qos);
+        if (qos == Qos.AUTO) {
+            qosRequirementBuilder.capabilities(Set.of(QosCapability.AUTO_ACK));
+        }
+
+        this.qosRequirement = qosRequirementBuilder.build();
     }
 
     @Override
@@ -89,18 +99,13 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
+    public QosRequirement qosRequirement() {
+        return qosRequirement;
     }
 
     @Override
     public int matchCriteriaCount() {
         return 2;
-    }
-
-    @Override
-    public QosOptions qosOptions() {
-        return qosOptions;
     }
 
     @Override

@@ -29,22 +29,16 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @Schema(name = "EntrypointQosV4")
 public enum Qos {
-    NA("not-applicable"),
     NONE("none"),
-    BALANCED("balanced"),
-    AT_BEST("at-best"),
+    AUTO("auto"),
     AT_MOST_ONCE("at-most-once"),
     AT_LEAST_ONCE("at-least-once");
 
     private static final Map<String, Qos> maps = Map.of(
-        NA.label,
-        NA,
         NONE.label,
         NONE,
-        BALANCED.label,
-        BALANCED,
-        AT_BEST.label,
-        AT_BEST,
+        AUTO.label,
+        AUTO,
         AT_MOST_ONCE.label,
         AT_MOST_ONCE,
         AT_LEAST_ONCE.label,

@@ -15,7 +15,9 @@
  */
 package io.gravitee.plugin.entrypoint.websocket;
 
-import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.*;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.NORMAL_CLOSURE;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.SERVER_ERROR;
+import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.TRY_AGAIN_LATER;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
@@ -25,12 +27,12 @@ import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Single;
 import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -43,16 +45,23 @@ import lombok.extern.slf4j.Slf4j;
 public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.BALANCED);
+    static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     private static final String ENTRYPOINT_ID = "websocket";
-    private final QosOptions qosOptions;
     protected WebSocketEntrypointConnectorConfiguration configuration;
+    private QosRequirement qosRequirement;
 
     public WebSocketEntrypointConnector(final Qos qos, final WebSocketEntrypointConnectorConfiguration configuration) {
-        this.qosOptions = QosOptions.builder().qos(qos).errorRecoverySupported(false).manualAckSupported(false).build();
+        computeQosRequirement(qos);
         this.configuration = configuration;
         if (this.configuration == null) {
             this.configuration = new WebSocketEntrypointConnectorConfiguration();
+        }
+    }
+
+    private void computeQosRequirement(final Qos qos) {
+        QosRequirement.QosRequirementBuilder qosRequirementBuilder = QosRequirement.builder().qos(qos);
+        if (qos == Qos.AUTO) {
+            qosRequirementBuilder.capabilities(Set.of(QosCapability.AUTO_ACK)).build();
         }
     }
 
@@ -72,11 +81,6 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
-    }
-
-    @Override
     public int matchCriteriaCount() {
         // 4 criteria: http 1.x version, GET method, Connection Upgrade, Upgrade websocket.
         return 4;
@@ -88,8 +92,8 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public QosOptions qosOptions() {
-        return qosOptions;
+    public QosRequirement qosRequirement() {
+        return qosRequirement;
     }
 
     @Override

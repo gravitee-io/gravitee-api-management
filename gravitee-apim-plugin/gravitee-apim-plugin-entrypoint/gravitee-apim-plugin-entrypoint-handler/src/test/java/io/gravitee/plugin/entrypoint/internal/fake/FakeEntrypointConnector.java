@@ -21,7 +21,7 @@ import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import lombok.Builder;
@@ -57,11 +57,6 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public Set<Qos> supportedQos() {
-        return SUPPORTED_QOS;
-    }
-
-    @Override
     public int matchCriteriaCount() {
         return 0;
     }
@@ -82,7 +77,7 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     @Override
-    public QosOptions qosOptions() {
-        return QosOptions.builder().build();
+    public QosRequirement qosRequirement() {
+        return QosRequirement.builder().build();
     }
 }

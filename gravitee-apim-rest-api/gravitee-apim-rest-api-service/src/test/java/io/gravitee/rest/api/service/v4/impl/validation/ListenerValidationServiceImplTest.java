@@ -155,7 +155,7 @@ public class ListenerValidationServiceImplTest {
         List<Listener> listeners = List.of(httpListener);
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
         when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
-        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.BALANCED));
+        when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AUTO));
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
@@ -305,32 +305,13 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowInvalidQosExceptionWithNAQos() {
-        // Given
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("path")));
-        Entrypoint entrypoint = new Entrypoint();
-        entrypoint.setType("type");
-        entrypoint.setQos(Qos.NA);
-        httpListener.setEntrypoints(List.of(entrypoint));
-        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
-        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
-        // When
-        assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
-            );
-    }
-
-    @Test
     public void shouldThrowUnsupportedQosExceptionWithWrongQos() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
-        entrypoint.setQos(Qos.AT_BEST);
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
         httpListener.setEntrypoints(List.of(entrypoint));
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
         when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);

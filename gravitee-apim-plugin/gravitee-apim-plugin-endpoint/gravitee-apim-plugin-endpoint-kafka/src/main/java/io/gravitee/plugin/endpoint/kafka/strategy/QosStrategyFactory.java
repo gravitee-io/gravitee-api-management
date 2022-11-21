@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
-import io.gravitee.gateway.jupiter.api.qos.QosOptions;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 
 /**
@@ -23,5 +23,5 @@ import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
  * @author GraviteeSource Team
  */
 public interface QosStrategyFactory {
-    <K, V> QosStrategy<K, V> createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosOptions qosOptions);
+    <K, V> QosStrategy<K, V> createQosStrategy(final KafkaReceiverFactory kafkaReceiverFactory, final QosRequirement qosRequirement);
 }

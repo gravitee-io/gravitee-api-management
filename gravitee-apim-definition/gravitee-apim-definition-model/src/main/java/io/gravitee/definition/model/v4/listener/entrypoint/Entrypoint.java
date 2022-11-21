@@ -45,7 +45,7 @@ public class Entrypoint implements Serializable {
     @NotEmpty
     private String type;
 
-    private Qos qos = Qos.BALANCED;
+    private Qos qos = Qos.AUTO;
 
     @Schema(implementation = Object.class)
     @JsonRawValue

@@ -47,8 +47,7 @@ class HttpGetEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportQos() {
-        assertThat(httpGetEntrypointConnectorFactory.supportedQos())
-            .containsOnly(Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+        assertThat(httpGetEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     }
 
     @ParameterizedTest
@@ -56,7 +55,7 @@ class HttpGetEntrypointConnectorFactoryTest {
     void shouldCreateConnectorWithWrongConfiguration(String configuration) {
         HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(
             new DefaultDeploymentContext(),
-            Qos.NONE,
+            Qos.AUTO,
             configuration
         );
         assertThat(connector).isNull();
@@ -66,7 +65,7 @@ class HttpGetEntrypointConnectorFactoryTest {
     void shouldCreateConnectorWithNullConfiguration() {
         HttpGetEntrypointConnector connector = httpGetEntrypointConnectorFactory.createConnector(
             new DefaultDeploymentContext(),
-            Qos.NONE,
+            Qos.AUTO,
             null
         );
         assertThat(connector).isNotNull();

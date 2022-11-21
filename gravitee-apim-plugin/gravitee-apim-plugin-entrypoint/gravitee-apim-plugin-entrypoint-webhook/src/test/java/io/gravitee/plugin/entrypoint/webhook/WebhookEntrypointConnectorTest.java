@@ -140,11 +140,6 @@ class WebhookEntrypointConnectorTest {
     }
 
     @Test
-    void shouldSupportQos() {
-        assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
-    }
-
-    @Test
     void shouldMatchesCriteriaReturnValidCount() {
         assertThat(cut.matchCriteriaCount()).isZero();
     }

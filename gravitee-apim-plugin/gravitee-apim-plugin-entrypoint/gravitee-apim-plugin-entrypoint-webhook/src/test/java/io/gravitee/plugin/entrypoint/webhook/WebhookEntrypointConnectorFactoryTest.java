@@ -60,8 +60,7 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportQos() {
-        assertThat(webhookEntrypointConnectorFactory.supportedQos())
-            .containsOnly(Qos.NONE, Qos.BALANCED, Qos.AT_BEST, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+        assertThat(webhookEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
     }
 
     @ParameterizedTest

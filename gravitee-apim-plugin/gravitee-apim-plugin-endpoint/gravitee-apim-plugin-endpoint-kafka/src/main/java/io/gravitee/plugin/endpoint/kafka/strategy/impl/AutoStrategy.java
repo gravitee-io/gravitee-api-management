@@ -26,9 +26,9 @@ import reactor.kafka.receiver.ReceiverOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BalancedStrategy<K, V> extends AbstractQosStrategy<K, V> {
+public class AutoStrategy<K, V> extends AbstractQosStrategy<K, V> {
 
-    public BalancedStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
+    public AutoStrategy(final KafkaReceiverFactory kafkaReceiverFactory) {
         super(kafkaReceiverFactory);
     }
 

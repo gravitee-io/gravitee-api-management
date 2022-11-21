@@ -56,6 +56,7 @@ public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnec
     ) {
         try {
             return new HttpPostEntrypointConnector(
+                qos,
                 connectorHelper.readConfiguration(HttpPostEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (PluginConfigurationException e) {
