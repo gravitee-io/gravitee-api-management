@@ -14,21 +14,39 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IController, IOnInit } from 'angular';
+import { IController, IOnDestroy, IOnInit } from 'angular';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { PagedResult } from '../../entities/pagedResult';
 import { Task } from '../../entities/task/task';
 import UserService from '../../services/user.service';
+import { TaskService } from '../../services-ngx/task.service';
 
-class TasksComponentController implements IController, IOnInit {
+class TasksComponentController implements IController, IOnInit, IOnDestroy {
   private tasks: PagedResult<Task>;
+  private unsubscribe$ = new Subject();
 
-  constructor(private readonly $state: StateService, private readonly UserService: UserService) {
+  constructor(
+    private readonly $state: StateService,
+    private readonly UserService: UserService,
+    private readonly ngTaskService: TaskService,
+  ) {
     'ngInject';
   }
 
   $onInit(): void {
-    this.tasks = this.UserService.currentUser.tasks;
+    this.ngTaskService
+      .getTasks()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((taskPagedResult) => {
+        this.tasks = taskPagedResult;
+      });
+  }
+
+  $onDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 
   taskMessage(task: Task): string {

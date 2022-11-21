@@ -18,7 +18,6 @@ import { StateParams } from '@uirouter/core';
 import TicketsListController from './support/tickets-list.controller';
 
 import { Scope } from '../entities/alert';
-import { User } from '../entities/user';
 import AlertService from '../services/alert.service';
 import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
@@ -245,11 +244,6 @@ function managementRouterConfig($stateProvider) {
       data: {
         docs: {
           page: 'management-tasks',
-        },
-      },
-      resolve: {
-        tasks: (graviteeUser: User) => {
-          return graviteeUser.tasks;
         },
       },
     })
