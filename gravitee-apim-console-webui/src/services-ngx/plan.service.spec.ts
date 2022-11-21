@@ -191,4 +191,44 @@ describe('PlanService', () => {
       req.flush(plan);
     });
   });
+
+  describe('deprecate', () => {
+    it('should deprecate the api plan', (done) => {
+      const api = fakeApi();
+      const plan = fakePlan({ api: api.id });
+
+      planService.deprecate(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_deprecate`,
+      });
+
+      expect(req.request.body).toEqual(plan);
+      req.flush(plan);
+    });
+
+    it('should not publish apiChangeSuccess event', (done) => {
+      const api = fakeApi({ gravitee: '1.0.0' });
+      const plan = fakePlan({ api: api.id });
+
+      planService.deprecate(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_deprecate`,
+      });
+
+      expect(req.request.body).toEqual(plan);
+      req.flush(plan);
+    });
+  });
 });

@@ -203,6 +203,30 @@ describe('ApiPortalPlanListComponent', () => {
       expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'PUBLISHED', '', '']]);
       expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'PUBLISHED' })).then((btn) => btn.isChecked())).toBe(true);
     });
+
+    it('should deprecate the published plan', async () => {
+      const plan = fakePlan({ name: 'deprecate me 😥️', status: 'PUBLISHED' });
+      await initComponent([plan]);
+
+      let table = await computePlansTableCells();
+      expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'PUBLISHED', '', '']]);
+
+      await loader.getHarness(MatButtonToggleHarness.with({ text: 'PUBLISHED' })).then((btn) => btn.toggle());
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
+      const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' }));
+      await confirmDialogSwitchButton.click();
+
+      const updatedPlan: ApiPlan = { ...plan, status: 'DEPRECATED' };
+      expectPlanGetRequest(updatedPlan);
+      expectApiPlanDeprecateRequest(updatedPlan);
+      expectApiPlansListRequest([updatedPlan], 'DEPRECATED');
+
+      table = await computePlansTableCells();
+      expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'DEPRECATED', '', '']]);
+      expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'DEPRECATED' })).then((btn) => btn.isChecked())).toBe(true);
+    });
   });
 
   describe('kubernetes api tests', () => {
@@ -266,6 +290,13 @@ describe('ApiPortalPlanListComponent', () => {
 
   function expectApiPlanPublishRequest(plan: ApiPlan) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_publish`, 'POST');
+    expect(req.request.body).toEqual(plan);
+    req.flush(plan);
+    fixture.detectChanges();
+  }
+
+  function expectApiPlanDeprecateRequest(plan: ApiPlan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_deprecate`, 'POST');
     expect(req.request.body).toEqual(plan);
     req.flush(plan);
     fixture.detectChanges();
