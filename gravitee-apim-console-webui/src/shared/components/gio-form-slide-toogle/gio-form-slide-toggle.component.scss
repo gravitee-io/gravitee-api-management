@@ -23,6 +23,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
 
 :host {
   display: inline-block;
+  padding: 4px 0; // add padding to have "same" size like mat-form-field
 }
 
 .form-slide-toggle {

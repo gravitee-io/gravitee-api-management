@@ -8,6 +8,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__endpoint-configuration {
     &__inherit {
       width: 100%;
+      padding-bottom: 0;
     }
   }
 }

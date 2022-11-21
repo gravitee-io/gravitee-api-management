@@ -47,10 +47,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
     }
   }
 
-  &__allow-origin,
-  &__allow-methods,
-  &__allow-headers,
-  &__expose-headers {
+  &__allow-origin {
     margin-top: 16px;
   }
 }
