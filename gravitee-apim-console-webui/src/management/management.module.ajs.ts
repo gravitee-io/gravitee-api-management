@@ -538,6 +538,7 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
+import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -880,6 +881,7 @@ graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeCom
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
 // Plan
+graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.component('editPlan', ApiEditPlanComponent);
 graviteeManagementModule.controller('ApiEditPlanController', ApiEditPlanController);
