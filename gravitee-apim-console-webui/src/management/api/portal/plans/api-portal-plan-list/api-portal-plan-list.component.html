@@ -44,7 +44,7 @@
   <ng-container matColumnDef="drag-icon">
     <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
     <td mat-cell *matCellDef="let element" [class.plans__table__drag-icon]="!isReadOnly">
-      <mat-icon>drag_indicator</mat-icon>
+      <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>
     </td>
   </ng-container>
   <!-- Display Name Column -->
