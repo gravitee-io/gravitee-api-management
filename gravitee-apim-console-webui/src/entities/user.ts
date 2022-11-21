@@ -15,8 +15,6 @@
  */
 import * as _ from 'lodash';
 
-import { PagedResult } from './pagedResult';
-
 /**
  * @deprecated No longer seems to reflect the real user type.
  * With the Angular migration the User Type will be split in 2, one for the
@@ -37,8 +35,6 @@ export class User {
   public userApiPermissions: string[];
   public userEnvironmentPermissions: string[];
   public userApplicationPermissions: string[];
-  public tasks: PagedResult;
-  public notifications: PagedResult;
   public authenticated = false;
   public firstLogin: boolean;
   public picture: string;
@@ -46,8 +42,6 @@ export class User {
   public number_of_active_tokens: number;
   constructor() {
     'ngInject';
-    this.tasks = new PagedResult();
-    this.notifications = new PagedResult();
   }
 
   allowedTo(permissions: string[]): boolean {

@@ -24,7 +24,6 @@ import RoleService from './role.service';
 import StringService from './string.service';
 import { ApiPrimaryOwnerType } from './apiPrimaryOwnerMode.service';
 
-import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user';
 import { UserDetails } from '../entities/user/userDetails';
 import { RoleName, RoleScope } from '../management/configuration/groups/group/membershipState';
@@ -310,11 +309,6 @@ class UserService {
 
   getMemberships(id: string, type: string): ng.IPromise<any> {
     return this.$http.get(`${this.Constants.org.baseURL}/users/${id}/memberships?type=${type}`);
-  }
-
-  setTasks(tasks: PagedResult) {
-    this.currentUser.tasks.populate(tasks);
-    return this.currentUser;
   }
 
   getCurrentUserTags(): ng.IPromise<any> {

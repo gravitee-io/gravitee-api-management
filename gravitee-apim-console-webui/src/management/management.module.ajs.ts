@@ -539,6 +539,7 @@ import { ApplicationNavigationComponent } from './application/details/applicatio
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
+import { TaskService } from '../services-ngx/task.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -936,6 +937,7 @@ graviteeManagementModule.controller('DialogTransferApplicationController', Dialo
 graviteeManagementModule.component('user', UserComponent);
 
 graviteeManagementModule.component('tasks', TasksComponent);
+graviteeManagementModule.factory('ngTaskService', downgradeInjectable(TaskService));
 graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
 
 graviteeManagementModule.service('TaskService', TaskService);
