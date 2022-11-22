@@ -10,6 +10,12 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .plans {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   &__filters {
     margin-bottom: 8px;
   }

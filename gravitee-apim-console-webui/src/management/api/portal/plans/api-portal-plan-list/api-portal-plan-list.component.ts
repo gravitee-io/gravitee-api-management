@@ -120,6 +120,10 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.detail.portal.plans.plan', { planId });
   }
 
+  public navigateToNewPlan(): void {
+    this.ajsState.go('management.apis.detail.portal.plans.new');
+  }
+
   public designPlan(planId: string): void {
     this.ajsState.go('management.apis.detail.design.flowsNg', { apiId: this.api.id, flows: `${planId}_0` });
   }
