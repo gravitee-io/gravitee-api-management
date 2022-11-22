@@ -17,12 +17,20 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatStepperModule } from '@angular/material/stepper';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
+import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
+import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
+import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
 @NgModule({
-  declarations: [ApiPortalPlanEditComponent],
+  declarations: [ApiPortalPlanEditComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
   exports: [ApiPortalPlanEditComponent],
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatStepperModule, MatButtonModule, GioIconsModule],
 })
 export class ApiPortalPlanEditModule {}
