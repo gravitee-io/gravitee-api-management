@@ -40,7 +40,7 @@
         <div class="details-card__header__info-inputs__second-row">
           <mat-form-field class="details-card__header__info-inputs__second-row__description-field" appearance="fill">
             <mat-label>Description</mat-label>
-            <input matInput formControlName="description" required />
+            <textarea matInput formControlName="description" required></textarea>
             <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
           </mat-form-field>
 
