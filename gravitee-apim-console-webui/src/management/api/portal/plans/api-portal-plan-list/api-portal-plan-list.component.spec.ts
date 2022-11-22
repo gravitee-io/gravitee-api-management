@@ -36,6 +36,7 @@ import { fakePlan } from '../../../../../entities/plan/plan.fixture';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -140,11 +141,23 @@ describe('ApiPortalPlanListComponent', () => {
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
       expectApiPlanUpdateRequest({ ...plan2, order: 1 });
-      expectApiGetRequest(anAPi);
       expectApiPlansListRequest([
         { ...plan2, order: 1 },
         { ...plan1, order: 2 },
       ]);
+    });
+
+    it('should fail to update and reload plans', async () => {
+      const plan1 = fakePlan({ name: 'Plan 1️⃣', order: 1 });
+      const plan2 = fakePlan({ name: 'Plan 2️⃣', order: 2 });
+      await initComponent([plan1, plan2]);
+      const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
+
+      expectApiPlanUpdateRequestFail({ ...plan2, order: 1 });
+      expectApiPlansListRequest([plan1, plan2]);
+      expect(snackBarSpy).toHaveBeenCalled();
     });
   });
 
@@ -348,6 +361,13 @@ describe('ApiPortalPlanListComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
     expect(req.request.body).toEqual(plan);
     req.flush(plan);
+    fixture.detectChanges();
+  }
+
+  function expectApiPlanUpdateRequestFail(plan: ApiPlan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
+    expect(req.request.body).toEqual(plan);
+    req.error(new ErrorEvent('error'), { status: 400 });
     fixture.detectChanges();
   }
 

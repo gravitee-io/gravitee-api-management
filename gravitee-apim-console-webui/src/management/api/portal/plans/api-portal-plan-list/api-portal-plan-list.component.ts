@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
 import { catchError, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
-import { combineLatest, EMPTY, Subject } from "rxjs";
+import { combineLatest, EMPTY, of, Subject } from "rxjs";
 import { StateService } from "@uirouter/core";
 import { CdkDragDrop } from "@angular/cdk/drag-drop";
 import { orderBy } from "lodash";
@@ -103,15 +103,25 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public dropRow({ previousIndex, currentIndex }: CdkDragDrop<ApiPlan[], any>) {
-    const movedPlan = this.plansTableDS[previousIndex];
-    movedPlan.order = currentIndex + 1;
+  public dropRow(event: CdkDragDrop<string[]>) {
+    const currentData = [...this.plansTableDS];
+    const elm = currentData[event.previousIndex];
+    currentData.splice(event.previousIndex, 1);
+    currentData.splice(event.currentIndex, 0, elm);
+    this.plansTableDS = [...currentData];
+
+    const movedPlan = this.plansTableDS[event.currentIndex];
+    movedPlan.order = event.currentIndex + 1;
 
     this.plansService
       .update(this.api, movedPlan)
       .pipe(
         takeUntil(this.unsubscribe$),
-        map(() => this.ngOnInit()),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return of({});
+        }),
+        tap(() => this.searchPlansByStatus('PUBLISHED')),
       )
       .subscribe();
   }
