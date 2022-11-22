@@ -108,6 +108,11 @@ public class SubscriptionRequest implements MutableRequest {
     }
 
     @Override
+    public String originalHost() {
+        return DEFAULT_LOCALHOST;
+    }
+
+    @Override
     public String path() {
         return "";
     }

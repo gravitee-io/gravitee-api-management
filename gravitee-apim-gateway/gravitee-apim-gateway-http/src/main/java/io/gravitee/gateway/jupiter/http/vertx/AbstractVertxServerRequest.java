@@ -38,6 +38,7 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     protected final long timestamp;
     protected final Metrics metrics;
     protected final HttpServerRequest nativeRequest;
+    private final String originalHost;
     protected String contextPath;
     protected String pathInfo;
     protected String id;
@@ -50,6 +51,7 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
 
     AbstractVertxServerRequest(HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         this.nativeRequest = nativeRequest;
+        this.originalHost = this.nativeRequest.host();
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
@@ -213,6 +215,11 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     @Override
     public String host() {
         return this.nativeRequest.host();
+    }
+
+    @Override
+    public String originalHost() {
+        return this.originalHost;
     }
 
     /**

@@ -439,6 +439,15 @@ class VertxHttpServerRequestTest {
     }
 
     @Test
+    void shouldReturnOriginalHost() {
+        when(httpServerRequest.host()).thenReturn("original.host", "changed.host");
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+
+        assertEquals("original.host", cut.originalHost());
+        assertEquals("changed.host", cut.host());
+    }
+
+    @Test
     void shouldPause() {
         cut.pause();
         verify(httpServerRequest).pause();
