@@ -20,45 +20,47 @@
   Group
 </h1>
 
-<mat-tab-group animationDuration="0ms">
-  <mat-tab label="General">
-    <!-- General tab content -->
-    <div class="tab-body-wrapper">
-      <api-proxy-group-general *ngIf="generalForm" [generalForm]="generalForm"></api-proxy-group-general>
-    </div>
-  </mat-tab>
-  <mat-tab label="Configuration">
-    <!-- Configuration tab content -->
-    <div class="tab-body-wrapper">
-      <api-proxy-group-configuration
-        *ngIf="schemaForm"
-        [schemaForm]="schemaForm"
-        [group]="group"
-        [isReadOnly]="isReadOnly"
-        (onConfigurationChange)="onConfigurationChange($event)"
-      ></api-proxy-group-configuration>
-    </div>
-  </mat-tab>
-  <mat-tab label="Service discovery">
-    <!-- Service discovery tab content -->
-    <div class="tab-body-wrapper">
-      <api-proxy-group-service-discovery
-        *ngIf="serviceDiscoveryForm && serviceDiscoveryItems"
-        [serviceDiscoveryForm]="serviceDiscoveryForm"
-        [serviceDiscoveryItems]="serviceDiscoveryItems"
-        [group]="group"
-        [isReadOnly]="isReadOnly"
-        (onServiceDiscoveryConfigurationChange)="onServiceDiscoveryChange($event)"
-      ></api-proxy-group-service-discovery>
-    </div>
-  </mat-tab>
-</mat-tab-group>
+<form gioFormFocusInvalid>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="General">
+      <!-- General tab content -->
+      <div class="tab-body-wrapper">
+        <api-proxy-group-general *ngIf="generalForm" [generalForm]="generalForm"></api-proxy-group-general>
+      </div>
+    </mat-tab>
+    <mat-tab label="Configuration">
+      <!-- Configuration tab content -->
+      <div class="tab-body-wrapper">
+        <api-proxy-group-configuration
+          *ngIf="schemaForm"
+          [schemaForm]="schemaForm"
+          [group]="group"
+          [isReadOnly]="isReadOnly"
+          (onConfigurationChange)="onConfigurationChange($event)"
+        ></api-proxy-group-configuration>
+      </div>
+    </mat-tab>
+    <mat-tab label="Service discovery">
+      <!-- Service discovery tab content -->
+      <div class="tab-body-wrapper">
+        <api-proxy-group-service-discovery
+          *ngIf="serviceDiscoveryForm && serviceDiscoveryItems"
+          [serviceDiscoveryForm]="serviceDiscoveryForm"
+          [serviceDiscoveryItems]="serviceDiscoveryItems"
+          [group]="group"
+          [isReadOnly]="isReadOnly"
+          (onServiceDiscoveryConfigurationChange)="onServiceDiscoveryChange($event)"
+        ></api-proxy-group-service-discovery>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 
-<gio-save-bar
-  class="save-bar"
-  *ngIf="!isReadOnly && groupForm?.dirty"
-  [form]="groupForm"
-  [formInitialValues]="initialGroupFormValue"
-  (submitted)="onSubmit()"
-  (resetClicked)="reset()"
-></gio-save-bar>
+  <gio-save-bar
+    class="save-bar"
+    [creationMode]="mode === 'new'"
+    [form]="groupForm"
+    [formInitialValues]="initialGroupFormValue"
+    (submitted)="onSubmit()"
+    (resetClicked)="reset()"
+  ></gio-save-bar>
+</form>
