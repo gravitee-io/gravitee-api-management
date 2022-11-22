@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { startWith, takeUntil } from 'rxjs/operators';
 
+import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { DocumentationService } from '../../../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../../../services-ngx/group.service';
 import { TagService } from '../../../../../../../services-ngx/tag.service';
 
@@ -31,12 +33,19 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
 
   generalForm: FormGroup;
 
-  conditionPages = [];
-
+  conditionPages$ = this.documentationService.apiSearch(this.ajsStateParams.apiId, {
+    type: 'MARKDOWN',
+    api: this.ajsStateParams.apiId,
+  });
   shardingTags$ = this.tagService.list();
   groups$ = this.groupService.list();
 
-  constructor(private readonly tagService: TagService, private readonly groupService: GroupService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly tagService: TagService,
+    private readonly groupService: GroupService,
+    private readonly documentationService: DocumentationService,
+  ) {}
 
   ngOnInit(): void {
     this.generalForm = new FormGroup({
