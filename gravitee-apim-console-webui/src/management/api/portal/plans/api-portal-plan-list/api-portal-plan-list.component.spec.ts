@@ -159,6 +159,15 @@ describe('ApiPortalPlanListComponent', () => {
       expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
     });
 
+    it('should navigate to new plan', async () => {
+      await initComponent([]);
+      fakeUiRouter.go.mockReset();
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.new');
+    });
+
     it('should navigate to edit when click on the name', async () => {
       const plan = fakePlan();
       await initComponent([plan]);
@@ -277,7 +286,7 @@ describe('ApiPortalPlanListComponent', () => {
   });
 
   describe('kubernetes api tests', () => {
-    it('should access plan in read only', async () => {
+    it('should access plan in read only', async (done) => {
       const kubernetesApi = fakeApi({ id: API_ID, definition_context: { origin: 'kubernetes' } });
       const plan = fakePlan({ api: API_ID });
       await initComponent([plan], kubernetesApi);
@@ -286,6 +295,13 @@ describe('ApiPortalPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
 
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).catch((reason) => {
+        expect(reason.message).toEqual(
+          'Failed to find element matching one of the following queries:\n' +
+            '(MatButtonHarness with host element matching selector: "[mat-button],[mat-raised-button],[mat-flat-button],[mat-icon-button],[mat-stroked-button],[mat-fab],[mat-mini-fab]" satisfying the constraints: host matches selector "[aria-label="Add new plan"]")',
+        );
+        done();
+      });
       expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
     });
   });
