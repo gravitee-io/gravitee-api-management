@@ -35,6 +35,8 @@ import { Group } from '../../../../../../entities/group/group';
 import { fakeGroup } from '../../../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../../../entities/tag/tag.fixture';
 import { Page } from '../../../../../../entities/page';
+import { fakeApi } from '../../../../../../entities/api/Api.fixture';
+import { Api } from '../../../../../../entities/api';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -69,9 +71,13 @@ describe('ApiPortalPlanEditComponent', () => {
   });
 
   it('should add new plan', async () => {
-    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+    const TAG_1_ID = 'tag-1';
+
+    expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
+    expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
     expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+    expectCurrentUserTagsRequest([TAG_1_ID]);
     fixture.detectChanges();
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -100,6 +106,7 @@ describe('ApiPortalPlanEditComponent', () => {
 
     const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
     await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+    await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
 
     const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
     await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -110,7 +117,7 @@ describe('ApiPortalPlanEditComponent', () => {
         description: 'Description',
         characteristics: ['C1'],
         generalConditions: 'doc-1',
-        shardingTags: ['tag-1'],
+        shardingTags: [TAG_1_ID],
         commentRequired: true,
         commentMessage: 'Comment message',
         validation: true,
@@ -144,5 +151,18 @@ describe('ApiPortalPlanEditComponent', () => {
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/pages?type=MARKDOWN&api=${apiId}`,
       })
       .flush(groups);
+  }
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  }
+
+  function expectCurrentUserTagsRequest(tags: string[]) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`,
+      })
+      .flush(tags);
   }
 });

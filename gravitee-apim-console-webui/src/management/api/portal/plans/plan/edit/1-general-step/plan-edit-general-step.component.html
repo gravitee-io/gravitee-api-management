@@ -86,7 +86,7 @@
   <mat-form-field appearance="fill">
     <mat-label>Sharding tags</mat-label>
     <mat-select formControlName="shardingTags" aria-label="Sharding tags selection" multiple>
-      <mat-option *ngFor="let tag of shardingTags$ | async" [value]="tag.id"
+      <mat-option *ngFor="let tag of shardingTags$ | async" [value]="tag.id" [disabled]="tag.disabled"
         >{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option
       >
     </mat-select>

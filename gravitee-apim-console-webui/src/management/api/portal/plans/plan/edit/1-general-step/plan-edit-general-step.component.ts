@@ -15,10 +15,13 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { startWith, takeUntil } from 'rxjs/operators';
+import { includes } from 'lodash';
+import { combineLatest, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../../../../services-ngx/api.service';
+import { CurrentUserService } from '../../../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../../../services-ngx/group.service';
 import { TagService } from '../../../../../../../services-ngx/tag.service';
@@ -37,7 +40,19 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     type: 'MARKDOWN',
     api: this.ajsStateParams.apiId,
   });
-  shardingTags$ = this.tagService.list();
+  shardingTags$ = combineLatest([
+    this.tagService.list(),
+    this.apiService.get(this.ajsStateParams.apiId),
+    this.currentUserService.getTags(),
+  ]).pipe(
+    map(([tags, api, userTags]) => {
+      return tags.map((tag) => ({
+        ...tag,
+        disabled: !includes(userTags, tag.id) || !includes(api.tags, tag.id),
+      }));
+    }),
+  );
+
   groups$ = this.groupService.list();
 
   constructor(
@@ -45,6 +60,8 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     private readonly tagService: TagService,
     private readonly groupService: GroupService,
     private readonly documentationService: DocumentationService,
+    private readonly currentUserService: CurrentUserService,
+    private readonly apiService: ApiService,
   ) {}
 
   ngOnInit(): void {
