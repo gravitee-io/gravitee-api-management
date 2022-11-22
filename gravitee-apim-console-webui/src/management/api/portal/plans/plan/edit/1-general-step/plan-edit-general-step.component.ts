@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 
 @Component({
-  selector: 'api-portal-plan-edit',
-  template: require('./api-portal-plan-edit.component.html'),
-  styles: [require('./api-portal-plan-edit.component.scss')],
-  providers: [
-    {
-      provide: STEPPER_GLOBAL_OPTIONS,
-      useValue: { displayDefaultIndicatorType: false },
-    },
-  ],
+  selector: 'plan-edit-general-step',
+  template: require('./plan-edit-general-step.component.html'),
+  styles: [require('./plan-edit-general-step.component.scss')],
 })
-export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
+export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
