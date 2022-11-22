@@ -103,6 +103,12 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
+    public void deleteByHashAndApi(String hash, String api) {
+        LOGGER.debug("JdbcMediaRepository.deleteByHashAndApi({}, {})", hash, api);
+        jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and api = ?", hash, api);
+    }
+
+    @Override
     public Optional<Media> findByHash(String hash) {
         LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
         return this.findByHashAndApiAndType(hash, null, null, true);

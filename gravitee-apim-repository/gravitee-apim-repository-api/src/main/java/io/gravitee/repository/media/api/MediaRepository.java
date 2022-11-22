@@ -46,4 +46,6 @@ public interface MediaRepository {
     Media create(Media media) throws TechnicalException;
 
     void deleteAllByApi(String api);
+
+    void deleteByHashAndApi(String hash, String api);
 }

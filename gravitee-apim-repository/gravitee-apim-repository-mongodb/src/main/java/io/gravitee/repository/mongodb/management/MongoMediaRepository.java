@@ -40,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
-import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -207,5 +206,12 @@ public class MongoMediaRepository implements MediaRepository {
             GridFSFindIterable files = gridFs.find(apiQuery);
             files.forEach((Consumer<GridFSFile>) gridFSFile -> gridFs.delete(gridFSFile.getId()));
         }
+    }
+
+    @Override
+    public void deleteByHashAndApi(String hash, String api) {
+        Bson query = and(eq("metadata.api", api), eq("metadata.hash", hash));
+        GridFSBucket gridFs = getGridFs();
+        gridFs.find(query).forEach(gridFSFile -> gridFs.delete(gridFSFile.getId()));
     }
 }
