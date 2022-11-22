@@ -49,7 +49,6 @@
   aria-label="Plans table"
   cdkDropList
   (cdkDropListDropped)="dropRow($event)"
-  [cdkDropListData]="plansTableDS"
   [dataSource]="plansTableDS"
 >
   <!-- Display Drag icon Column -->
@@ -171,13 +170,7 @@
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr
-    mat-row
-    cdkDrag
-    [cdkDragData]="row"
-    [cdkDragDisabled]="isReadOnly || row.status !== 'PUBLISHED'"
-    *matRowDef="let row; columns: displayedColumns"
-  ></tr>
+  <tr mat-row cdkDrag [cdkDragDisabled]="isReadOnly || row.status !== 'PUBLISHED'" *matRowDef="let row; columns: displayedColumns"></tr>
 
   <!-- Row shown when there is no data -->
   <tr class="mat-row" *matNoDataRow>
