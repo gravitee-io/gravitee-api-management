@@ -139,6 +139,11 @@ public class DummyMessageRequest implements Request {
     }
 
     @Override
+    public String originalHost() {
+        return null;
+    }
+
+    @Override
     public String path() {
         return null;
     }

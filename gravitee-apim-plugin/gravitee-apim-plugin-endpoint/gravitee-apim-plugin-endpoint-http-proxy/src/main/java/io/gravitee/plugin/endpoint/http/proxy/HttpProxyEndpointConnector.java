@@ -15,17 +15,15 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import static io.gravitee.gateway.api.http.HttpHeaderNames.*;
 import static io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient.buildUrl;
 import static io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
-import static io.netty.handler.codec.http.HttpHeaderNames.*;
 
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
@@ -43,6 +41,7 @@ import io.vertx.rxjava3.core.http.HttpHeaders;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
@@ -137,10 +136,19 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         final RequestOptions requestOptions = new RequestOptions();
         final Request request = ctx.request();
         final io.gravitee.gateway.api.http.HttpHeaders requestHeaders = request.headers();
+        final String originalHost = request.originalHost();
+        final String currentRequestHost = request.host();
 
         // Remove HOP-by-HOP headers
         for (CharSequence header : HOP_HEADERS) {
             requestHeaders.remove(header.toString());
+        }
+
+        if (currentRequestHost != null && !Objects.equals(originalHost, currentRequestHost)) {
+            // 'Host' header must be removed unless it has been set during the request flow (non-null and different from original request's host).
+            requestHeaders.set(HOST, currentRequestHost);
+        } else {
+            requestHeaders.remove(HOST);
         }
 
         if (!configuration.getHttpOptions().isPropagateClientAcceptEncoding()) {
