@@ -60,7 +60,7 @@
 
   <gio-save-bar
     class="save-bar"
-    *ngIf="!isReadOnly && endpointForm?.dirty"
+    [creationMode]="mode === 'new'"
     [form]="endpointForm"
     [formInitialValues]="initialEndpointFormValue"
     (submitted)="onSubmit()"
