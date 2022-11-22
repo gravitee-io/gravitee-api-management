@@ -33,7 +33,7 @@
 
       <mat-form-field appearance="fill">
         <mat-label>Sharding tags</mat-label>
-        <mat-select formControlName="tags" aria-label="Restricted groups selection" multiple required>
+        <mat-select formControlName="tags" aria-label="Sharding tags selection" multiple required>
           <mat-option *ngFor="let tag of tags$ | async" [value]="tag.id"
             >{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option
           >
