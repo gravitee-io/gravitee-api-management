@@ -132,7 +132,13 @@
             </button>
           </ng-container>
           <ng-container *ngIf="element.status !== 'CLOSED'">
-            <button *gioPermission="{ anyOf: ['api-plan-u'] }" mat-icon-button aria-label="`Close` the plan" matTooltip="Close the plan">
+            <button
+              *gioPermission="{ anyOf: ['api-plan-u'] }"
+              mat-icon-button
+              aria-label="Close the plan"
+              matTooltip="Close the plan"
+              (click)="closePlan(element)"
+            >
               <mat-icon svgIcon="gio:cancel"></mat-icon>
             </button>
           </ng-container>

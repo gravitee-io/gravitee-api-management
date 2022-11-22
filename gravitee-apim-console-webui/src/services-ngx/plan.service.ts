@@ -83,4 +83,15 @@ export class PlanService {
       }),
     );
   }
+
+  public close(api: Api, plan: ApiPlan): Observable<ApiPlan> {
+    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_close`, {}).pipe(
+      map((plan) => {
+        if (api.gravitee === '2.0.0') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
+        }
+        return plan;
+      }),
+    );
+  }
 }

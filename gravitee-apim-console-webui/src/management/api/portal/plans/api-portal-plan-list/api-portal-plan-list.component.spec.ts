@@ -24,6 +24,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
@@ -34,6 +35,7 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { fakePlan } from '../../../../../entities/plan/plan.fixture';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { User as DeprecatedUser } from '../../../../../entities/user';
+import { Subscription } from '../../../../../entities/subscription/subscription';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -227,6 +229,51 @@ describe('ApiPortalPlanListComponent', () => {
       expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'DEPRECATED', '', '']]);
       expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'DEPRECATED' })).then((btn) => btn.isChecked())).toBe(true);
     });
+
+    describe('close plan', () => {
+      it('should close the published plan', async () => {
+        const plan = fakePlan({ name: 'close me 🚪️', status: 'PUBLISHED' });
+        await initComponent([plan]);
+
+        let table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'close me 🚪️', 'KEY_LESS', 'PUBLISHED', '', '']]);
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
+
+        expectGetApiPlanSubscriptionsRequest(plan.id);
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+        await confirmDialog.confirm();
+
+        const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
+        expectApiPlanCloseRequest(updatedPlan);
+        expectApiPlansListRequest([updatedPlan], 'CLOSED');
+
+        table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'close me 🚪️', 'KEY_LESS', 'CLOSED', '', '']]);
+        expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'CLOSED' })).then((btn) => btn.isChecked())).toBe(true);
+      });
+
+      it('should change delete plan button message', async () => {
+        const plan = fakePlan({ name: 'key plan 🔑️', status: 'PUBLISHED', security: 'API_KEY' });
+        await initComponent([plan]);
+
+        const table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'key plan 🔑️', 'API_KEY', 'PUBLISHED', '', '']]);
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
+
+        expectGetApiPlanSubscriptionsRequest(plan.id);
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+        expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Yes, delete this plan' }))).toBeTruthy();
+        await confirmDialog.confirm();
+
+        const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
+        expectApiPlanCloseRequest(updatedPlan);
+        expectApiPlansListRequest([updatedPlan], 'CLOSED');
+      });
+    });
   });
 
   describe('kubernetes api tests', () => {
@@ -302,6 +349,13 @@ describe('ApiPortalPlanListComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectApiPlanCloseRequest(plan: ApiPlan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_close`, 'POST');
+    expect(req.request.body).toEqual({});
+    req.flush(plan);
+    fixture.detectChanges();
+  }
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -309,6 +363,22 @@ describe('ApiPortalPlanListComponent', () => {
 
   function expectPlanGetRequest(plan: ApiPlan) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, method: 'GET' }).flush(plan);
+    fixture.detectChanges();
+  }
+
+  function expectGetApiPlanSubscriptionsRequest(planId: string, subscriptions: Subscription[] = []) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
+        method: 'GET',
+      })
+      .flush({
+        data: subscriptions,
+        metadata: {},
+        page: {
+          size: subscriptions.length,
+        },
+      });
     fixture.detectChanges();
   }
 });

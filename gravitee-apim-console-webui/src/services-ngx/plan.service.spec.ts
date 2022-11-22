@@ -231,4 +231,44 @@ describe('PlanService', () => {
       req.flush(plan);
     });
   });
+
+  describe('close', () => {
+    it('should close the api plan', (done) => {
+      const api = fakeApi();
+      const plan = fakePlan({ api: api.id });
+
+      planService.close(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_close`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
+    });
+
+    it('should not publish apiChangeSuccess event', (done) => {
+      const api = fakeApi({ gravitee: '1.0.0' });
+      const plan = fakePlan({ api: api.id });
+
+      planService.close(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${plan.api}/plans/${plan.id}/_close`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
+    });
+  });
 });
