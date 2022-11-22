@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 
@@ -34,18 +34,20 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 export class ApiPortalPlanEditComponent implements AfterViewInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public planForm: FormGroup;
+  public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
 
   @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
+  constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
 
   ngAfterViewInit(): void {
     this.planForm = new FormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
     });
+
+    // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError
+    this.changeDetectorRef.detectChanges();
   }
 
   ngOnDestroy() {

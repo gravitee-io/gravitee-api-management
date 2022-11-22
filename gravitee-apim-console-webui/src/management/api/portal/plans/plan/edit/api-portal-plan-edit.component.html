@@ -20,7 +20,7 @@
 <form autocomplete="off" gioFormFocusInvalid>
   <mat-card>
     <mat-stepper>
-      <mat-step state="general" [stepControl]="planEditGeneralStepComponent?.generalForm">
+      <mat-step state="general" [stepControl]="planForm.get('general')">
         <ng-template matStepperIcon="general">
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </ng-template>

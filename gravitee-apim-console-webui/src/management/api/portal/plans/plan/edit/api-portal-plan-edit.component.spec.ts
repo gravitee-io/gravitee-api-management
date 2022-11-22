@@ -27,15 +27,17 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
 
-import { CurrentUserService } from '../../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { Tag } from '../../../../../../entities/tag/tag';
 import { Group } from '../../../../../../entities/group/group';
 import { fakeGroup } from '../../../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../../../entities/tag/tag.fixture';
+import { Page } from '../../../../../../entities/page';
 
 describe('ApiPortalPlanEditComponent', () => {
+  const API_ID = 'my-api';
   const currentUser = new User();
   currentUser.userPermissions = ['api-plan-u'];
 
@@ -46,7 +48,10 @@ describe('ApiPortalPlanEditComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlanEditModule, MatIconTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [
+        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+      ],
     });
   });
 
@@ -66,6 +71,7 @@ describe('ApiPortalPlanEditComponent', () => {
   it('should add new plan', async () => {
     expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
     expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
     fixture.detectChanges();
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -80,9 +86,8 @@ describe('ApiPortalPlanEditComponent', () => {
     const characteristicsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
     await characteristicsInput.addTag('C1');
 
-    // Todo
-    // const conditionInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="condition"]' }));
-    // await conditionInput.clickOptions({ text: 'API Key' });
+    const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
+    await generalConditionsInput.clickOptions({ text: 'Doc 1' });
 
     const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
     await validationToggle.toggle();
@@ -104,11 +109,11 @@ describe('ApiPortalPlanEditComponent', () => {
         name: '🗺',
         description: 'Description',
         characteristics: ['C1'],
-        generalConditions: '',
+        generalConditions: 'doc-1',
         shardingTags: ['tag-1'],
         commentRequired: true,
-        validation: true,
         commentMessage: 'Comment message',
+        validation: true,
         excludedGroups: ['group-a'],
       },
     });
@@ -128,6 +133,15 @@ describe('ApiPortalPlanEditComponent', () => {
       .expectOne({
         method: 'GET',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`,
+      })
+      .flush(groups);
+  }
+
+  function expectDocumentationSearchRequest(apiId: string, groups: Page[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/pages?type=MARKDOWN&api=${apiId}`,
       })
       .flush(groups);
   }
