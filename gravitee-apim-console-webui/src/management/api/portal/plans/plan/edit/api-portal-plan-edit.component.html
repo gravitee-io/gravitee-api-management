@@ -17,31 +17,40 @@
 -->
 
 <h1>Plan</h1>
+<form autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <mat-stepper>
+      <mat-step state="general" [stepControl]="planEditGeneralStepComponent?.generalForm">
+        <ng-template matStepperIcon="general">
+          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        </ng-template>
+        <ng-template matStepLabel>General</ng-template>
+        <plan-edit-general-step matStepContent></plan-edit-general-step>
+      </mat-step>
 
-<mat-card>
-  <mat-stepper>
-    <mat-step state="general">
-      <ng-template matStepperIcon="general">
-        <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-      </ng-template>
-      <ng-template matStepLabel>General</ng-template>
-      <plan-edit-general-step matStepContent></plan-edit-general-step>
-    </mat-step>
+      <mat-step state="secure">
+        <ng-template matStepperIcon="secure">
+          <mat-icon svgIcon="gio:lock"></mat-icon>
+        </ng-template>
+        <ng-template matStepLabel>Secure</ng-template>
+        <plan-edit-secure-step matStepContent></plan-edit-secure-step>
+      </mat-step>
 
-    <mat-step state="secure">
-      <ng-template matStepperIcon="secure">
-        <mat-icon svgIcon="gio:lock"></mat-icon>
-      </ng-template>
-      <ng-template matStepLabel>Secure</ng-template>
-      <plan-edit-secure-step matStepContent></plan-edit-secure-step>
-    </mat-step>
+      <mat-step state="restriction">
+        <ng-template matStepperIcon="restriction">
+          <mat-icon svgIcon="gio:shield-cross"></mat-icon>
+        </ng-template>
+        <ng-template matStepLabel>Restriction</ng-template>
+        <plan-edit-restriction-step matStepContent></plan-edit-restriction-step>
+      </mat-step>
+    </mat-stepper>
+  </mat-card>
 
-    <mat-step state="restriction">
-      <ng-template matStepperIcon="restriction">
-        <mat-icon svgIcon="gio:shield-cross"></mat-icon>
-      </ng-template>
-      <ng-template matStepLabel>Restriction</ng-template>
-      <plan-edit-restriction-step matStepContent></plan-edit-restriction-step>
-    </mat-step>
-  </mat-stepper>
-</mat-card>
+  <gio-save-bar
+    *ngIf="planForm"
+    [creationMode]="true"
+    [form]="planForm"
+    [formInitialValues]="initialPlanFormValue"
+    (submitted)="onSubmit()"
+  ></gio-save-bar>
+</form>

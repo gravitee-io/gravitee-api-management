@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
+
+import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -24,18 +27,26 @@ import { Subject } from 'rxjs';
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
-      useValue: { displayDefaultIndicatorType: false },
+      useValue: { displayDefaultIndicatorType: false, showError: true },
     },
   ],
 })
-export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
+export class ApiPortalPlanEditComponent implements AfterViewInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  public planForm: FormGroup;
+  public initialPlanFormValue: unknown;
+
+  @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  ngAfterViewInit(): void {
+    this.planForm = new FormGroup({
+      general: this.planEditGeneralStepComponent.generalForm,
+    });
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);

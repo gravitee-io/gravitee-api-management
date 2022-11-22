@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { startWith, takeUntil } from 'rxjs/operators';
+
+import { GroupService } from '../../../../../../../services-ngx/group.service';
+import { TagService } from '../../../../../../../services-ngx/tag.service';
 
 @Component({
   selector: 'plan-edit-general-step',
@@ -24,11 +29,36 @@ import { Subject } from 'rxjs';
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
+  generalForm: FormGroup;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  conditionPages = [];
+
+  shardingTags$ = this.tagService.list();
+  groups$ = this.groupService.list();
+
+  constructor(private readonly tagService: TagService, private readonly groupService: GroupService) {}
+
+  ngOnInit(): void {
+    this.generalForm = new FormGroup({
+      name: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+      description: new FormControl(''),
+      characteristics: new FormControl([]),
+      generalConditions: new FormControl(''),
+      validation: new FormControl(false),
+      commentRequired: new FormControl(false),
+      commentMessage: new FormControl(''),
+      shardingTags: new FormControl([]),
+      excludedGroups: new FormControl([]),
+    });
+
+    // Enable comment message only if comment required is checked
+    this.generalForm
+      .get('commentRequired')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.generalForm.get('commentRequired').value))
+      .subscribe((value) => {
+        value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
+      });
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
