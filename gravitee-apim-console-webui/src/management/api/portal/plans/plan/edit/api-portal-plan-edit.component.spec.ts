@@ -18,17 +18,26 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
 
 import { CurrentUserService } from '../../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../../entities/user';
-import { GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { Tag } from '../../../../../../entities/tag/tag';
+import { Group } from '../../../../../../entities/group/group';
+import { fakeGroup } from '../../../../../../entities/group/group.fixture';
+import { fakeTag } from '../../../../../../entities/tag/tag.fixture';
 
 describe('ApiPortalPlanEditComponent', () => {
   const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
+  currentUser.userPermissions = ['api-plan-u'];
 
   let fixture: ComponentFixture<ApiPortalPlanEditComponent>;
   let loader: HarnessLoader;
@@ -36,7 +45,7 @@ describe('ApiPortalPlanEditComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlanEditModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlanEditModule, MatIconTestingModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
@@ -54,7 +63,72 @@ describe('ApiPortalPlanEditComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should work', () => {
-    expect(loader).toBeTruthy();
+  it('should add new plan', async () => {
+    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+    expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    fixture.detectChanges();
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isVisible()).toBe(true);
+
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+    await nameInput.setValue('🗺');
+
+    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+    await descriptionInput.setValue('Description');
+
+    const characteristicsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
+    await characteristicsInput.addTag('C1');
+
+    // Todo
+    // const conditionInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="condition"]' }));
+    // await conditionInput.clickOptions({ text: 'API Key' });
+
+    const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
+    await validationToggle.toggle();
+
+    const commentRequired = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
+    await commentRequired.toggle();
+
+    const commentMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
+    await commentMessageInput.setValue('Comment message');
+
+    const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+    await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+
+    const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
+    await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+    expect(fixture.componentInstance.planForm.getRawValue()).toEqual({
+      general: {
+        name: '🗺',
+        description: 'Description',
+        characteristics: ['C1'],
+        generalConditions: '',
+        shardingTags: ['tag-1'],
+        commentRequired: true,
+        validation: true,
+        commentMessage: 'Comment message',
+        excludedGroups: ['group-a'],
+      },
+    });
   });
+
+  function expectTagsListRequest(tags: Tag[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`,
+      })
+      .flush(tags);
+  }
+
+  function expectGroupLisRequest(groups: Group[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`,
+      })
+      .flush(groups);
+  }
 });
