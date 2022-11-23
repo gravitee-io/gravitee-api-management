@@ -587,6 +587,10 @@ public class ApisResource extends AbstractResource {
             apiItem.setDefinitionContext(api.getDefinitionContext());
         }
 
+        if (api.getDefinitionVersion() != null) {
+            apiItem.setGraviteeDefinitionVersion(api.getDefinitionVersion().getLabel());
+        }
+
         return apiItem;
     }
 

@@ -74,6 +74,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context paths',
+          definitionVersion: 'Version',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -94,6 +95,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context paths',
+          definitionVersion: 'Version',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -102,7 +104,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
     }));
 
     it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -175,6 +177,7 @@ describe('ApisListComponent', () => {
           visibility: { label: 'PUBLIC', icon: 'public' },
           origin: 'management' as ApiOrigin,
           readonly: false,
+          definitionVersion: { label: 'Policy studio', icon: '' },
         };
 
         apiListComponent.onEditActionClicked(api);
@@ -217,6 +220,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context paths',
+          definitionVersion: 'Version',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -226,7 +230,9 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'public', 'edit']]);
+      expect(rowCells).toEqual([
+        ['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit'],
+      ]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
     }));
 
