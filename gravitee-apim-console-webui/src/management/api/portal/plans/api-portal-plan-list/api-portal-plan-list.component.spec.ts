@@ -299,23 +299,29 @@ describe('ApiPortalPlanListComponent', () => {
   });
 
   describe('kubernetes api tests', () => {
-    it('should access plan in read only', async (done) => {
+    it('should access plan in read only', async () => {
       const kubernetesApi = fakeApi({ id: API_ID, definition_context: { origin: 'kubernetes' } });
-      const plan = fakePlan({ api: API_ID });
+      const plan = fakePlan({ api: API_ID, tags: ['tag1', 'tag2'] });
       await initComponent([plan], kubernetesApi);
 
       expect(component.isReadOnly).toBe(true);
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).catch((reason) => {
-        expect(reason.message).toEqual(
-          'Failed to find element matching one of the following queries:\n' +
-            '(MatButtonHarness with host element matching selector: "[mat-button],[mat-raised-button],[mat-flat-button],[mat-icon-button],[mat-stroked-button],[mat-fab],[mat-mini-fab]" satisfying the constraints: host matches selector "[aria-label="Add new plan"]")',
-        );
-        done();
-      });
+      expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
       expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+
+      const { headerCells, rowCells } = await computePlansTableCells();
+      expect(headerCells).toEqual([
+        {
+          name: 'Name',
+          security: 'Security',
+          status: 'Status',
+          'deploy-on': 'Deploy on',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([['Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', 'tag1, tag2', '']]);
     });
   });
 
