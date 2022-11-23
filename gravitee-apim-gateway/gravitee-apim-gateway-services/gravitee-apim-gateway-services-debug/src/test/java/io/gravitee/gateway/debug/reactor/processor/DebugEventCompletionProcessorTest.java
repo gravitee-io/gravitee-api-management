@@ -41,6 +41,11 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.impl.future.PromiseImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +88,17 @@ public class DebugEventCompletionProcessorTest {
     public void setUp() {
         cut = new DebugEventCompletionProcessor(eventRepository, objectMapper);
         cut.handler(__ -> {});
+        final Vertx vertx = mock(Vertx.class);
+        Promise<Void> promise = new PromiseImpl<>();
+        when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        doAnswer(
+                i -> {
+                    ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
+                    return null;
+                }
+            )
+            .when(vertx)
+            .executeBlocking(any(), any());
     }
 
     @Test
