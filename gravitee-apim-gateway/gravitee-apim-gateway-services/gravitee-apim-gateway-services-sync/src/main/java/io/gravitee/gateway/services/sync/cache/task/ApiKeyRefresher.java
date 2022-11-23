@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 
@@ -54,18 +53,10 @@ public abstract class ApiKeyRefresher implements Callable<Result<Boolean>> {
         logger.debug("Refresh api-keys");
 
         try {
-            findApiKeys(criteria).forEach(this::saveOrUpdate);
+            findApiKeys(criteria).forEach(cache::save);
             return Result.success(true);
         } catch (Exception ex) {
             return Result.failure(ex);
-        }
-    }
-
-    protected void saveOrUpdate(ApiKey apiKey) {
-        if (apiKey.isRevoked() || apiKey.isPaused() || apiKey.getSubscriptionStatus() != ACCEPTED) {
-            cache.remove(apiKey);
-        } else {
-            cache.put(apiKey);
         }
     }
 

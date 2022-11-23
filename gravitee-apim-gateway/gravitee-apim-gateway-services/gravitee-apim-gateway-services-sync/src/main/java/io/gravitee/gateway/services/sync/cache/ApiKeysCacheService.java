@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.cache.repository.ApiKeyRepositoryWrappe
 import io.gravitee.gateway.services.sync.cache.task.FullApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.IncrementalApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.task.Result;
+import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -63,6 +64,9 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
+
+    @Value("${services.sync.apikeys.mode:full}")
+    private String mode;
 
     private static final String PATH = "/apikeys";
 
@@ -126,7 +130,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
         beanFactory.registerSingleton(
             ApiKeyRepository.class.getName(),
-            new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)))
+            new ApiKeyRepositoryWrapper(this.apiKeyRepository, buildApiKeysCache())
         );
 
         LOGGER.info("Associate a new HTTP handler on {}", PATH);
@@ -175,7 +179,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                                 );
                                 refresher.setApiKeyRepository(apiKeyRepository);
                                 refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
+                                refresher.setCache(buildApiKeysCache());
 
                                 return refresher;
                             }
@@ -288,11 +292,11 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             final Set<String> planIds = plansByApi.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
             // If the node is not a master, we assume that the full refresh has been handle by another node
-            if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
+            if (!isLazyMode() && (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed))) {
                 final FullApiKeyRefresher refresher = new FullApiKeyRefresher(planIds);
                 refresher.setApiKeyRepository(apiKeyRepository);
                 refresher.setSubscriptionRepository(subscriptionRepository);
-                refresher.setCache(new ApiKeysCache(cacheManager.getOrCreateCache(API_KEY_CACHE_NAME)));
+                refresher.setCache(buildApiKeysCache());
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)
@@ -328,5 +332,16 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private void unregister(Api api) {
         plansPerApi.remove(api.getId());
+    }
+
+    private ApiKeysCache buildApiKeysCache() {
+        Cache apiKeysCache = cacheManager.getOrCreateCache(API_KEY_CACHE_NAME);
+        return isLazyMode()
+            ? new ApiKeysFetchingCache(apiKeysCache, apiKeyRepository, subscriptionRepository)
+            : new ApiKeysCache(apiKeysCache);
+    }
+
+    private boolean isLazyMode() {
+        return "lazy".equals(mode);
     }
 }
