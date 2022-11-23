@@ -156,12 +156,9 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
                     applicationContext.getBean(ObjectMapper.class)
                 );
 
-                final Invoker invoker = invokerFactory(
-                    api,
-                    applicationContext.getBean(Vertx.class),
-                    endpointResolver(referenceRegister, groupLifecycleManager)
-                )
-                    .create();
+                EndpointResolver endpointResolver = endpointResolver(referenceRegister, groupLifecycleManager);
+                customComponentProvider.add(EndpointResolver.class, endpointResolver);
+                final Invoker invoker = invokerFactory(api, applicationContext.getBean(Vertx.class), endpointResolver).create();
 
                 if (isV3ExecutionMode(api)) {
                     // Force creation of a dedicated PolicyFactory for each api as it may involve cache we want to be released when api is undeployed.
