@@ -19,8 +19,9 @@ import { ApiPortalDetailsModule } from './portal/details/api-portal-details.modu
 import { ApiListModule } from './list/api-list.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
+import { ApiPortalPlanEditModule } from './portal/plans/plan/edit/api-portal-plan-edit.module';
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiNavigationModule],
+  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiPortalPlanEditModule, ApiNavigationModule],
 })
 export class ApisModule {}

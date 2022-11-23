@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-const ApplicationComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-  },
-  template: require('./application.html'),
-};
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 
-export default ApplicationComponent;
+import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
+
+@NgModule({
+  declarations: [ApiPortalPlanEditComponent],
+  exports: [ApiPortalPlanEditComponent],
+  imports: [CommonModule, ReactiveFormsModule],
+})
+export class ApiPortalPlanEditModule {}

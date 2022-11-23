@@ -62,7 +62,6 @@
   }
 
   .md-content {
-    padding-top: $navbarHeaderHeight;
     background-color: inherit;
     color: inherit;
   }
@@ -96,4 +95,10 @@
     background-color: transparent;
     border-radius: 0;
   }
+}
+
+.gv-main-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }

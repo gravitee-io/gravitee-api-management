@@ -20,9 +20,11 @@
     "generalConditionsContentRevision": 2,
     "generalConditionsAccepted": true,
     "daysToExpirationOnLastNotification": 30,
-    "filter": "my-filter",
     "configuration": "{}",
-    "type": "STANDARD"
+    "type": "STANDARD",
+    "metadata": {
+      "key" : "value"
+    }
   },
   {
     "id":"sub2",

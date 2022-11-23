@@ -18,6 +18,10 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 
+  &--forms {
+    padding-top: 16px;
+  }
+
   &__request {
     padding-left: 8px;
 

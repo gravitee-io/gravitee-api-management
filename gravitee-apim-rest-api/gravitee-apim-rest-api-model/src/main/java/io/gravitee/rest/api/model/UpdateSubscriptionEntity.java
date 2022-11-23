@@ -24,6 +24,7 @@ import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class UpdateSubscriptionEntity {
 
@@ -43,28 +45,10 @@ public class UpdateSubscriptionEntity {
     @JsonProperty("ending_at")
     private Date endingAt;
 
-    private String filter;
-
     @JsonRawValue
     private String configuration;
 
     private Map<String, String> metadata;
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setStartingAt(Date startingAt) {
-        this.startingAt = startingAt;
-    }
-
-    public void setEndingAt(Date endingAt) {
-        this.endingAt = endingAt;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
 
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
@@ -75,9 +59,5 @@ public class UpdateSubscriptionEntity {
         if (configuration != null) {
             this.configuration = configuration.toString();
         }
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
     }
 }

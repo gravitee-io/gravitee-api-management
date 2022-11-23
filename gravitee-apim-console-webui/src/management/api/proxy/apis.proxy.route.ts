@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 import { ApiService } from '../../../services/api.service';
-import EnvironmentService from '../../../services/environment.service';
-import SpelService from '../../../services/spel.service';
 
 export default apisProxyRouterConfig;
 
 function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
-    .state('management.apis.detail.proxy', {
-      resolve: {
-        resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent(),
-      },
-    })
+    .state('management.apis.detail.proxy', {})
     .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
       component: 'ngApiProxyEntrypoints',
@@ -118,23 +112,6 @@ function apisProxyRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.proxy.endpointhc', {
-      url: '/groups/:groupName/endpoints/:endpointName/healthcheck',
-      template: require('./backend/healthcheck/healthcheck-configure.html'),
-      controller: 'ApiHealthCheckConfigureController',
-      controllerAs: 'healthCheckCtrl',
-      data: {
-        perms: {
-          only: ['api-health-c'],
-        },
-        docs: {
-          page: 'management-api-health-check',
-        },
-      },
-      resolve: {
-        resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
-      },
-    })
     .state('management.apis.detail.proxy.healthCheckDashboard', {
       abstract: true,
       url: '/healthcheck-dashboard',
@@ -196,20 +173,6 @@ function apisProxyRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-health-check-configure',
-        },
-      },
-    })
-    .state('management.apis.detail.proxy.discovery', {
-      url: '/discovery',
-      template: require('./backend/discovery/discovery.html'),
-      controller: 'ApiDiscoveryController',
-      controllerAs: 'discoveryCtrl',
-      data: {
-        perms: {
-          only: ['api-discovery-c'],
-        },
-        docs: {
-          page: 'management-api-discovery',
         },
       },
     })

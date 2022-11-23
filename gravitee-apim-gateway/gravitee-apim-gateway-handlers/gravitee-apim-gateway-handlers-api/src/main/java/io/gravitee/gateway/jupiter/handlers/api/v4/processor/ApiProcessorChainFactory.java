@@ -34,6 +34,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponsePro
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
@@ -97,23 +98,26 @@ public class ApiProcessorChainFactory {
      */
     public ProcessorChain beforeApiExecution(final Api api) {
         final List<Processor> processors = new ArrayList<>();
+        if (api.getDefinition().getListeners() != null) {
+            getHttpListener(api)
+                .ifPresent(
+                    httpListener -> {
+                        final Cors cors = httpListener.getCors();
 
-        getHttpListener(api)
-            .ifPresent(
-                httpListener -> {
-                    final Cors cors = httpListener.getCors();
+                        if (cors != null && cors.isEnabled()) {
+                            processors.add(CorsPreflightRequestProcessor.instance());
+                        }
 
-                    if (cors != null && cors.isEnabled()) {
-                        processors.add(CorsPreflightRequestProcessor.instance());
+                        if (overrideXForwardedPrefix) {
+                            processors.add(XForwardedPrefixProcessor.instance());
+                        }
+
+                        processors.add(PlanProcessor.instance());
                     }
+                );
 
-                    if (overrideXForwardedPrefix) {
-                        processors.add(XForwardedPrefixProcessor.instance());
-                    }
-
-                    processors.add(PlanProcessor.instance());
-                }
-            );
+            processors.add(SubscriptionProcessor.instance());
+        }
 
         return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
     }

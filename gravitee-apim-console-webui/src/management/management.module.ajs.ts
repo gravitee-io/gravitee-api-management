@@ -107,7 +107,6 @@ import ApplicationCreationStep2Controller from './application/creation/steps/app
 import ApplicationCreationStep3Component from './application/creation/steps/application-creation-step3.component';
 import ApplicationCreationStep4Component from './application/creation/steps/application-creation-step4.component';
 
-import ApplicationComponent from './application/details/application.component';
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
 import ApplicationGeneralComponent from './application/details/general/application-general.component';
@@ -244,8 +243,6 @@ import NotificationTemplatesService from '../services/notificationTemplates.serv
 import '../components/documentation/documentation.module';
 
 // Healthcheck
-import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
-import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiHealthCheckController from '../management/api/proxy/health-check-dashboard/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 import ApiHealthCheckLogController from '../management/api/proxy/health-check-dashboard/healthcheck-log.controller';
@@ -300,7 +297,6 @@ import TopApiService from '../services/top-api.service';
 import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
-import ApiProxyController from './api/proxy/apiProxy.controller';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './api/analytics/pathMappings/modal/import-pathMapping.dialog.controller';
@@ -542,6 +538,7 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
+import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -703,9 +700,7 @@ graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesControll
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
-graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
-graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
@@ -886,6 +881,7 @@ graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeCom
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
 // Plan
+graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.component('editPlan', ApiEditPlanComponent);
 graviteeManagementModule.controller('ApiEditPlanController', ApiEditPlanController);
@@ -906,7 +902,6 @@ graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
 
 graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
-graviteeManagementModule.component('application', ApplicationComponent);
 
 graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
@@ -981,7 +976,6 @@ graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
 graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
 // Healthcheck
-graviteeManagementModule.controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController);
 graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({ component: ApiProxyHealthCheckComponent }));
 graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);

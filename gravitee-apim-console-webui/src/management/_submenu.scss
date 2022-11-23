@@ -68,7 +68,7 @@
 }
 
 .gv-sub-content {
-  padding: 0 32px;
+  padding: 24px 32px 0 32px;
   position: relative;
   @media screen and (max-width: 1000px) {
     padding: 0 8px;
@@ -76,7 +76,6 @@
 }
 
 .gv-sub-content-fullscreen {
-  padding: 0 4px;
   position: relative;
   @media screen and (max-width: 1000px) {
     padding: 0 8px;

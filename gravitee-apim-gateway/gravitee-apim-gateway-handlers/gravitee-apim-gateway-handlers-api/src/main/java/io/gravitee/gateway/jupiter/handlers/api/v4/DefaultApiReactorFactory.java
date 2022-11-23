@@ -275,8 +275,9 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
     protected List<TemplateVariableProvider> ctxTemplateVariableProviders(Api api) {
         final List<TemplateVariableProvider> requestTemplateVariableProviders = commonTemplateVariableProviders(api);
-        requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
-
+        if (api.getDefinition().getType() == ApiType.SYNC) {
+            requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
+        }
         return requestTemplateVariableProviders;
     }
 }

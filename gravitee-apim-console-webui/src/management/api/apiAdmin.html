@@ -23,7 +23,7 @@
   [api-is-sync]="apiCtrl.apiIsSynchronized"
   [api-origin]="apiCtrl.api.definition_context.origin"
 >
-  <section id="banner">
+  <div id="banner" class="top-api-banner">
     <div class="gravitee-api-banner" ng-class="{'gravitee-api-banner-min': reducedMode}" ng-if="apiCtrl.canReview()" ng-cloak="">
       <div class="gravitee-api-banner-content" style="background-color: #d73a49">
         API in review<span permission permission-only="'api-reviews-u'"
@@ -61,7 +61,7 @@
     <div class="gravitee-api-banner" ng-class="{'gravitee-api-banner-min': reducedMode}" ng-if="apiCtrl.isDeprecated()" ng-cloak="">
       <div class="gravitee-api-banner-content" style="background-color: #d73a49">API deprecated</div>
     </div>
-  </section>
+  </div>
 
   <div id="view">
     <div

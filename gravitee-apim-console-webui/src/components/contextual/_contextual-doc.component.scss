@@ -1,8 +1,6 @@
-gv-contextual-doc {
-  -webkit-box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-}
 .contextual-doc-container {
+  opacity: 0;
+  visibility: hidden;
   width: 0;
   right: 0;
   overflow: auto;
@@ -10,10 +8,19 @@ gv-contextual-doc {
   -moz-transition: width 0.4s;
   -webkit-transition: width 0.4s;
   -o-transition: width 0.4s;
+  transition: visibility 0s, opacity 0.2s linear;
+
+  &__fixed {
+    position: fixed;
+    height: 100%;
+    -webkit-box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  }
 
   &.open {
     width: 300px;
     opacity: 1;
+    visibility: visible;
   }
 
   .contextual-doc-header {
@@ -73,7 +80,6 @@ gv-contextual-doc {
 
   div.contextual-doc-content {
     padding: 20px 8px;
-    position: fixed;
     height: calc(100vh - 150px);
     overflow: auto;
     width: 300px;

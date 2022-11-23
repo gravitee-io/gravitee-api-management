@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -76,6 +77,8 @@ public class Subscription {
 
     @JsonProperty("client_id")
     private String clientId;
+
+    private Map<String, String> metadata;
 
     public String getId() {
         return id;
@@ -211,6 +214,14 @@ public class Subscription {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override

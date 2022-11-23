@@ -17,8 +17,7 @@ package io.gravitee.plugin.endpoint.http.proxy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static io.gravitee.gateway.api.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.gravitee.gateway.api.http.HttpHeaderNames.TRANSFER_ENCODING;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.*;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.HOP_HEADERS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -283,6 +282,59 @@ class HttpProxyEndpointConnectorTest {
             .withHeader("X-Custom", new EqualToPattern("value1"))
             .withHeader("X-To-Be-Overriden", new EqualToPattern("Override"))
             .withHeader("X-To-Be-Added", new EqualToPattern("Added"));
+
+        for (CharSequence header : HOP_HEADERS) {
+            requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
+        }
+
+        wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void shouldOverrideHostWithRequestHostHeader() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.originalHost()).thenReturn("localhost:8082");
+
+        // Simulated a policy that force the host header to use when calling the backend endpoint.
+        when(request.host()).thenReturn("api.gravitee.io");
+        httpHeaders.add("X-Custom", "value1");
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        obs.assertComplete();
+
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+            .withHeader(HOST, new EqualToPattern("api.gravitee.io"))
+            .withHeader("X-Custom", new EqualToPattern("value1"));
+
+        for (CharSequence header : HOP_HEADERS) {
+            requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
+        }
+
+        wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void shouldNotOverrideRequestHostHeaderWhenSameAsRequestOriginalHost() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.originalHost()).thenReturn("api.gravitee.io");
+        when(request.host()).thenReturn("api.gravitee.io");
+
+        httpHeaders.add("X-Custom", "value1");
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        obs.assertComplete();
+
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+            .withHeader(HOST, new EqualToPattern("localhost:" + wiremock.port()))
+            .withHeader("X-Custom", new EqualToPattern("value1"));
 
         for (CharSequence header : HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());

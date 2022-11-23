@@ -48,6 +48,21 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.plan', {
+      url: '/plan',
+    })
+    .state('management.apis.detail.portal.plan.new', {
+      url: '/new',
+      component: 'ngApiPortalPlanEdit',
+      data: {
+        perms: {
+          only: ['api-plan-c'],
+        },
+        docs: {
+          page: 'management-api-plans-wizard',
+        },
+      },
+    })
     .state('management.apis.detail.portal.plans', {
       abstract: true,
       url: '/plans',

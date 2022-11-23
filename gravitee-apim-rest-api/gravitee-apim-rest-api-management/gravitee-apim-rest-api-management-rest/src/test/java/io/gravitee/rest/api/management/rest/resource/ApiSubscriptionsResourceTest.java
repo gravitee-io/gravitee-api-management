@@ -218,7 +218,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         verify(subscriptionService, times(1))
             .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
         assertEquals(newSubscriptionEntityCaptor.getValue().getConfiguration(), "{}");
-        assertEquals(newSubscriptionEntityCaptor.getValue().getFilter(), "my-filter");
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }

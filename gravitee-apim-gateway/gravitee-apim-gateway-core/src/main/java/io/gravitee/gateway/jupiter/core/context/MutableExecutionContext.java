@@ -36,4 +36,6 @@ public interface MutableExecutionContext extends ExecutionContext {
     MutableExecutionContext componentProvider(final ComponentProvider componentProvider);
 
     MutableExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
+
+    Collection<TemplateVariableProvider> templateVariableProviders();
 }
