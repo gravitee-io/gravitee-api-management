@@ -92,6 +92,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
+    private long startTime;
+
     public ApiKeysCacheService() {
         scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("gio.sync-apikeys-");
@@ -103,6 +105,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+        this.startTime = System.currentTimeMillis();
 
         LOGGER.info("Overriding API key repository implementation with cached API Key repository");
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
@@ -141,7 +144,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     class ApiKeysTask extends TimerTask {
 
-        private long lastRefreshAt = -1;
+        private long lastRefreshAt = startTime;
 
         @Override
         public void run() {

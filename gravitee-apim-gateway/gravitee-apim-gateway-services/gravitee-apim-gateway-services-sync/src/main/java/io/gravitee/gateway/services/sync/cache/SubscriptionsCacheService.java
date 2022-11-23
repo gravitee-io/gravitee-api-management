@@ -90,6 +90,8 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
 
+    private long startTime;
+
     public SubscriptionsCacheService() {
         scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("gio.sync-subscriptions-");
@@ -101,6 +103,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+        this.startTime = System.currentTimeMillis();
 
         LOGGER.info("Overriding subscription repository implementation with a cached subscription repository");
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
@@ -137,7 +140,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     class SubscriptionsTask extends TimerTask {
 
-        private long lastRefreshAt = -1;
+        private long lastRefreshAt = startTime;
 
         @Override
         public void run() {
