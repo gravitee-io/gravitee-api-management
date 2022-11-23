@@ -84,19 +84,17 @@ public class ApiKeyRefresherTest {
 
         apiKeyRefresher.doRefresh(apiKeyCriteria);
 
-        // those API keys have been put in cache because they are active and their subscription is active
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-2")));
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-4")));
-        verify(cache, times(1)).put(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-5")));
-
-        // those API keys have been removed from cache because they are inactive, or their subscription is not active
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-3")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-4")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-1")));
-        verify(cache, times(1)).remove(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-4")));
+        // those API keys have been saved in cache
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-2")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-4")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-5")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-1")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-1") && apiKey.getSubscription().equals("sub-3")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-1")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-2") && apiKey.getSubscription().equals("sub-4")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-4") && apiKey.getSubscription().equals("sub-1")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-1")));
+        verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-4")));
 
         verifyNoMoreInteractions(cache);
     }

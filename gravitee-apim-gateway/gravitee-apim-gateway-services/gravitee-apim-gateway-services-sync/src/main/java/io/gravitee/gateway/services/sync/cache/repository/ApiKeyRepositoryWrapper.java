@@ -39,32 +39,32 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<ApiKey> findById(String id) throws TechnicalException {
+    public Optional<ApiKey> findById(String id) {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<ApiKey> findByKey(String apiKey) throws TechnicalException {
+    public List<ApiKey> findByKey(String apiKey) {
         throw new IllegalStateException();
     }
 
     @Override
     public Optional<ApiKey> findByKeyAndApi(String apiKey, String api) throws TechnicalException {
-        return Optional.ofNullable(cache.get(api, apiKey));
+        return cache.get(api, apiKey).map(ApiKey.class::cast);
     }
 
     @Override
-    public ApiKey create(ApiKey apiKey) throws TechnicalException {
+    public ApiKey create(ApiKey apiKey) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+    public Set<ApiKey> findBySubscription(String subscription) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+    public Set<ApiKey> findByPlan(String plan) {
         throw new IllegalStateException();
     }
 
@@ -74,17 +74,17 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public ApiKey update(ApiKey apiKey) throws TechnicalException {
+    public ApiKey update(ApiKey apiKey) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<ApiKey> findAll() throws TechnicalException {
+    public Set<ApiKey> findAll() {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
+    public List<ApiKey> findByApplication(String applicationId) {
         throw new IllegalStateException();
     }
 }

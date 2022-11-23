@@ -15,8 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+
 import io.gravitee.gateway.handlers.api.definition.ApiKey;
 import io.gravitee.node.api.cache.Cache;
+import io.gravitee.repository.exceptions.TechnicalException;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,36 +33,75 @@ public class ApiKeysCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeysCache.class);
 
-    protected Cache<String, ApiKey> cache;
+    protected Cache<String, Optional<ApiKey>> cache;
 
-    public ApiKeysCache(Cache<String, ApiKey> cache) {
+    public ApiKeysCache(Cache<String, Optional<ApiKey>> cache) {
         this.cache = cache;
     }
 
-    public void remove(ApiKey apiKey) {
-        LOGGER.debug(
-            "Remove an api-key from cache [id: {}] [plan: {}] [app: {}]",
-            apiKey.getId(),
-            apiKey.getPlan(),
-            apiKey.getApplication()
-        );
-        cache.evict(buildCacheKey(apiKey));
+    /**
+     * Get an API key from the cache
+     *
+     * @param api api
+     * @param key api key value
+     * @return Cached API key, or empty optional if not found
+     * @throws TechnicalException
+     */
+    public Optional<ApiKey> get(String api, String key) throws TechnicalException {
+        Optional<ApiKey> cachedValue = cache.get(buildCacheKey(api, key));
+        return cachedValue != null ? cachedValue : Optional.empty();
     }
 
-    public void put(ApiKey apiKey) {
+    /**
+     * Save an API key to the cache.
+     *
+     * @param apiKey api key to save to the cache
+     * @return cached value
+     */
+    public Optional<ApiKey> save(ApiKey apiKey) {
+        if (apiKey.isRevoked() || apiKey.isPaused() || apiKey.getSubscriptionStatus() != ACCEPTED) {
+            return saveInactive(apiKey);
+        }
+        return saveActive(apiKey);
+    }
+
+    /**
+     * Save an active API key to the cache
+     *
+     * @param apiKey api key to save to the cache
+     * @return cached value
+     */
+    private Optional<ApiKey> saveActive(ApiKey apiKey) {
         LOGGER.debug("Caching an api-key [id: {}] [plan: {}] [app: {}]", apiKey.getId(), apiKey.getPlan(), apiKey.getApplication());
-        cache.put(buildCacheKey(apiKey), apiKey);
+        Optional<ApiKey> cacheValue = Optional.of(apiKey);
+        cache.put(buildCacheKey(apiKey), cacheValue);
+        return cacheValue;
     }
 
-    public ApiKey get(String api, String key) {
-        return cache.get(buildCacheKey(api, key));
+    /**
+     * Save an inactive API key to the cache.
+     *
+     * @param cacheKey cache key
+     * @return cached value
+     */
+    protected Optional<ApiKey> saveInactive(String cacheKey) {
+        cache.evict(cacheKey);
+        return Optional.empty();
+    }
+
+    protected Optional<ApiKey> saveInactive(String api, String key) {
+        return saveInactive(buildCacheKey(api, key));
+    }
+
+    protected String buildCacheKey(String api, String key) {
+        return String.format("%s.%s", api, key);
+    }
+
+    private Optional<ApiKey> saveInactive(ApiKey apiKey) {
+        return saveInactive(buildCacheKey(apiKey));
     }
 
     private String buildCacheKey(ApiKey apiKey) {
         return buildCacheKey(apiKey.getApi(), apiKey.getKey());
-    }
-
-    private String buildCacheKey(String api, String key) {
-        return String.format("%s.%s", api, key);
     }
 }

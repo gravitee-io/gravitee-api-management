@@ -90,7 +90,7 @@ public class ApiKeyRepositoryWrapperTest {
         String apiKey = "1234-4567-7890";
         String apiId = "my-Api-Id";
 
-        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(null);
+        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(Optional.empty());
         Optional<io.gravitee.repository.management.model.ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
@@ -98,12 +98,12 @@ public class ApiKeyRepositoryWrapperTest {
     }
 
     @Test
-    public void shouldFindByKey_fromCache() throws TechnicalException {
+    public void shouldFindByKeyAndApi_fromCache() throws TechnicalException {
         String apiKey = "1234-4567-7890";
         String apiId = "my-Api-Id";
         ApiKey mockApiKey = Mockito.mock(ApiKey.class);
 
-        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(mockApiKey);
+        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(Optional.of(mockApiKey));
         Optional<io.gravitee.repository.management.model.ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
