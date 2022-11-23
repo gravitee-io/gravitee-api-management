@@ -52,7 +52,7 @@
   [dataSource]="plansTableDS"
 >
   <!-- Display Drag icon Column -->
-  <ng-container matColumnDef="drag-icon">
+  <ng-container matColumnDef="drag-icon" *ngIf="!isReadOnly">
     <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
     <td mat-cell *matCellDef="let element" [class.plans__table__drag-icon]="!isReadOnly">
       <mat-icon class="plans__table__drag-icon" svgIcon="gio:drag-indicator"></mat-icon>

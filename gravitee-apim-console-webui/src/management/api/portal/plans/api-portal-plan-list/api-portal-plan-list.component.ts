@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
-import { catchError, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
-import { combineLatest, EMPTY, of, Subject } from "rxjs";
-import { StateService } from "@uirouter/core";
-import { CdkDragDrop } from "@angular/cdk/drag-drop";
-import { orderBy } from "lodash";
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { StateService } from '@uirouter/core';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { orderBy } from 'lodash';
 import {
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
   GioConfirmDialogComponent,
-  GioConfirmDialogData
-} from "@gravitee/ui-particles-angular";
-import { MatDialog } from "@angular/material/dialog";
-import { IRootScopeService } from "angular";
+  GioConfirmDialogData,
+} from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+import { IRootScopeService } from 'angular';
 
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from "../../../../../ajs-upgraded-providers";
-import { PlanService } from "../../../../../services-ngx/plan.service";
-import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from "../../../../../entities/api";
-import { ApiService } from "../../../../../services-ngx/api.service";
-import { SubscriptionService } from "../../../../../services-ngx/subscription.service";
-import { GioPermissionService } from "../../../../../shared/components/gio-permission/gio-permission.service";
-import { SnackBarService } from "../../../../../services-ngx/snack-bar.service";
-import { PlanSecurityType } from "../../../../../entities/plan/plan";
+import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { PlanService } from '../../../../../services-ngx/plan.service';
+import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from '../../../../../entities/api';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { PlanSecurityType } from '../../../../../entities/plan/plan';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -45,7 +45,7 @@ import { PlanSecurityType } from "../../../../../entities/plan/plan";
 export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
-  public displayedColumns = ['drag-icon', 'name', 'security', 'status', 'deploy-on', 'actions'];
+  public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
   public plansTableDS: ApiPlan[] = [];
   public isLoadingData = true;
   public apiPlanStatus = API_PLAN_STATUS;
@@ -73,6 +73,9 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(([api, plans]) => {
           this.onInit(api, plans);
+          if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
+            this.displayedColumns.unshift('drag-icon');
+          }
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
