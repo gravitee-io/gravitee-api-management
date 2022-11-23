@@ -78,6 +78,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                     OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
                     API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
                     "api-key".equalsIgnoreCase(plan.getSecurity().getType()) ||
+                    JWT.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
                     SUBSCRIPTION.name().equalsIgnoreCase(plan.getSecurity().getType())
             )
             .map(Plan::getId)

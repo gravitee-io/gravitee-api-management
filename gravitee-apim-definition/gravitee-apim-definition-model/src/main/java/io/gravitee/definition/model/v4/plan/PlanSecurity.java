@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -42,4 +44,15 @@ public class PlanSecurity {
     @Schema(implementation = Object.class)
     @JsonRawValue
     private String configuration;
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setConfiguration(final String configuration) {
+        this.configuration = configuration;
+    }
 }
