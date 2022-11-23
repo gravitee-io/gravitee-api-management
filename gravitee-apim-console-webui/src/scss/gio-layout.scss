@@ -32,20 +32,22 @@ $container-padding-bottom: 48px;
   display: block;
   padding-top: $container-padding-top;
   padding-bottom: $container-padding-bottom;
+  margin-left: 20px;
+  margin-right: 20px;
 
   @include small-desktop {
-    padding-left: calc((100% - 840px) / 2);
-    padding-right: calc((100% - 840px) / 2);
+    padding-left: calc((100% - 880px) / 2);
+    padding-right: calc((100% - 880px) / 2);
   }
 
   @include desktop {
-    padding-left: 200px;
-    padding-right: 200px;
+    padding-left: calc((100% - 880px) / 2);
+    padding-right: calc((100% - 880px) / 2);
   }
 
   @include large-desktop {
-    padding-left: calc((100% - 1040px) / 2);
-    padding-right: calc((100% - 1040px) / 2);
+    padding-left: calc((100% - 1080px) / 2);
+    padding-right: calc((100% - 1080px) / 2);
   }
 }
 
