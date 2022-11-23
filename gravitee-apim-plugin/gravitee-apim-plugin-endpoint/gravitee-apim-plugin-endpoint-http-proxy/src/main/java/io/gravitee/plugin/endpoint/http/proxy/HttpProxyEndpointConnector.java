@@ -21,12 +21,15 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelpe
 
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.DefaultHttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerResponse;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -37,6 +40,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientResponse;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -115,6 +119,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
                 .doOnSuccess(
                     endpointResponse -> {
                         response.status(endpointResponse.statusCode());
+                        copyResponseHeaders(response, endpointResponse);
                         response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
                     }
                 )
@@ -129,6 +134,18 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         if (httpClient != null) {
             //noinspection ReactiveStreamsUnusedPublisher
             httpClient.close();
+        }
+    }
+
+    private void copyResponseHeaders(Response response, HttpClientResponse endpointResponse) {
+        final io.gravitee.gateway.api.http.HttpHeaders responseHeaders = response.headers();
+
+        if (responseHeaders instanceof VertxHttpHeaders) {
+            // Optimize header copy by relying on delegate.
+            ((VertxHttpHeaders) responseHeaders).getDelegate().addAll(endpointResponse.headers().getDelegate());
+        } else {
+            // Use regular copy by iterating on headers.
+            endpointResponse.headers().forEach(entry -> responseHeaders.add(entry.getKey(), entry.getValue()));
         }
     }
 
