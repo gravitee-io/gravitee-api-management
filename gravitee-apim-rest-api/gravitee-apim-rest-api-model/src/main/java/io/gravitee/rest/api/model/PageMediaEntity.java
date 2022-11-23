@@ -16,11 +16,15 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
 public class PageMediaEntity {
 
     private String mediaHash;
