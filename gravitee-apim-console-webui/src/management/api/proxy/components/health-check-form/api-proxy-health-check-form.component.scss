@@ -11,10 +11,17 @@ $typography: map.get(gio.$mat-theme, typography);
     width: 100%;
   }
 
+  &__trigger,
+  &__request,
+  &__assertions {
+    padding-bottom: 16px;
+  }
+
   &__trigger {
-    padding-left: 8px;
     &__hint {
       @include mat.typography-level($typography, caption);
+      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+      padding-left: 8px;
     }
   }
 
@@ -23,8 +30,6 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__request {
-    padding-left: 8px;
-
     &__methods__form-field,
     &__path__form-field,
     &__fromRoot__toggle,
@@ -44,13 +49,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
       &__hint {
         @include mat.typography-level($typography, caption);
+        color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+        padding-left: 8px;
       }
     }
   }
 
   &__assertions {
-    padding-left: 8px;
-
     &__banner {
       margin-bottom: 16px;
     }
@@ -76,5 +81,10 @@ $typography: map.get(gio.$mat-theme, typography);
 
   .disabled {
     color: mat.get-color-from-palette($foreground, disabled);
+
+    .health-check-card__trigger__hint,
+    .health-check-card__request__http-headers__hint {
+      color: inherit;
+    }
   }
 }
