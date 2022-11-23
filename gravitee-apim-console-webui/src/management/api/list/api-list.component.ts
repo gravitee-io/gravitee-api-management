@@ -43,6 +43,7 @@ export type ApisTableDS = {
   visibility: { label: string; icon: string };
   origin: ApiOrigin;
   readonly: boolean;
+  definitionVersion: { label: string; icon?: string };
 }[];
 
 @Component({
@@ -51,7 +52,7 @@ export type ApisTableDS = {
   styles: [require('./api-list.component.scss')],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -161,8 +162,20 @@ export class ApiListComponent implements OnInit, OnDestroy {
           visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
           origin: api.definition_context.origin,
           readonly: api.definition_context?.origin === 'kubernetes',
+          definitionVersion: this.getDefinitionVersion(api),
         }))
       : [];
+  }
+
+  private getDefinitionVersion(api) {
+    switch (api.gravitee) {
+      case '4.0.0':
+        return { label: 'Event native' };
+      case '2.0.0':
+        return { label: 'Policy studio' };
+      default:
+        return { icon: 'gio:alert-circle', label: 'Path based' };
+    }
   }
 
   private getWorkflowBadge(api) {

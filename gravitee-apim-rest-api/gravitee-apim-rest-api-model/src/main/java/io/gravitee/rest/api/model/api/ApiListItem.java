@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
@@ -120,4 +118,8 @@ public class ApiListItem {
     @JsonProperty(value = "definition_context")
     @Schema(description = "the context where the api definition was created from")
     private DefinitionContext definitionContext;
+
+    @JsonProperty(value = "gravitee")
+    @Schema(description = "API's gravitee definition version")
+    private String graviteeDefinitionVersion;
 }
