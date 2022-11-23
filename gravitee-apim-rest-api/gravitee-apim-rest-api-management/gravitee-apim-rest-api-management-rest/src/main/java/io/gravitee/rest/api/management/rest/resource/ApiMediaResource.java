@@ -26,7 +26,9 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,6 +47,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 /**
  * @author Guillaume Gillon
+ * @author GraviteeSource Team
  */
 @Tag(name = "API Media")
 public class ApiMediaResource extends AbstractResource {
@@ -125,5 +128,24 @@ public class ApiMediaResource extends AbstractResource {
         }
 
         return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
+    }
+
+    @DELETE
+    @Path("/{hash}")
+    @Operation(
+        summary = "Delete media matching hash and API id",
+        description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this endpoint"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @ApiResponse(responseCode = "204", description = "Media successfully deleted")
+    @ApiResponse(responseCode = "404", description = "Media not found")
+    @ApiResponse(responseCode = "403", description = "Unauthorized user")
+    @ApiResponse(responseCode = "500", description = "Unexpected error")
+    public Response deleteApiMedia(
+        @Context Request request,
+        @PathParam("hash") @ApiParam(name = "hash", value = "The MD5 sum of the media") String hash
+    ) {
+        mediaService.deleteByHashAndApi(hash, api);
+        return Response.noContent().build();
     }
 }

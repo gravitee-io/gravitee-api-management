@@ -316,6 +316,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected EndpointConnectorPluginService endpointConnectorPluginService;
 
+    @Autowired
+    protected MediaService mediaService;
+
     @Before
     public void setUp() throws Exception {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
