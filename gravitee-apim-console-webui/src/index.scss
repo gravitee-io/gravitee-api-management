@@ -85,26 +85,6 @@ body {
   @include material-layout-compatibility();
 
   @import './scss/gio-global-style';
-
-  .gio-root {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-
-  .gio-main-page {
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-    height: 100%;
-
-    &__content {
-      flex: 1;
-      display: flex;
-      flex-direction: row;
-      overflow: auto;
-    }
-  }
 }
 
 :where(.bootstrap) {
