@@ -23,6 +23,7 @@ import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import java.io.ByteArrayInputStream;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume GILLON
+ * @author GraviteeSource Team
  */
 @Component
 public class MongoMediaRepository implements MediaRepository {
@@ -74,42 +76,43 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHash(String hash) {
+    public Optional<Media> findByHash(String hash) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, null, null, true);
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, boolean withContent) {
+    public Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, null, null, withContent);
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api) {
+    public Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, api, null, true);
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) {
+    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, api, null, withContent);
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType) {
+    public Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, null, mediaType, true);
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) {
+    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
     }
 
     @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) {
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, api, mediaType, true);
     }
 
     @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) {
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent)
+        throws TechnicalException {
         return this.findFirst(this.getQueryFindMedia(hash, api, mediaType), withContent);
     }
 
@@ -136,10 +139,14 @@ public class MongoMediaRepository implements MediaRepository {
         return all;
     }
 
-    private Optional<Media> findFirst(Bson query, boolean withContent) {
-        GridFSFile file = getGridFs().find(query).first();
-        Media imageData = convert(file, withContent);
-        return Optional.ofNullable(imageData);
+    private Optional<Media> findFirst(Bson query, boolean withContent) throws TechnicalException {
+        try {
+            GridFSFile file = getGridFs().find(query).first();
+            Media imageData = convert(file, withContent);
+            return Optional.ofNullable(imageData);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     private Media convert(GridFSFile file, boolean withContent) {
@@ -199,19 +206,33 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     @Override
-    public void deleteAllByApi(String api) {
-        if (api != null) {
+    public void deleteAllByApi(String api) throws TechnicalException {
+        if (api == null) {
+            LOGGER.warn("Skipping media deletion because the API identifier given as an argument is null");
+        } else {
+            doDeleteAllByApi(api);
+        }
+    }
+
+    private void doDeleteAllByApi(String api) throws TechnicalException {
+        try {
             Bson apiQuery = eq("metadata.api", api);
             GridFSBucket gridFs = getGridFs();
             GridFSFindIterable files = gridFs.find(apiQuery);
             files.forEach((Consumer<GridFSFile>) gridFSFile -> gridFs.delete(gridFSFile.getId()));
+        } catch (Exception e) {
+            throw new TechnicalException(e);
         }
     }
 
     @Override
-    public void deleteByHashAndApi(String hash, String api) {
-        Bson query = and(eq("metadata.api", api), eq("metadata.hash", hash));
-        GridFSBucket gridFs = getGridFs();
-        gridFs.find(query).forEach(gridFSFile -> gridFs.delete(gridFSFile.getId()));
+    public void deleteByHashAndApi(String hash, String api) throws TechnicalException {
+        try {
+            Bson query = and(eq("metadata.api", api), eq("metadata.hash", hash));
+            GridFSBucket gridFs = getGridFs();
+            gridFs.find(query).forEach(gridFSFile -> gridFs.delete(gridFSFile.getId()));
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 }

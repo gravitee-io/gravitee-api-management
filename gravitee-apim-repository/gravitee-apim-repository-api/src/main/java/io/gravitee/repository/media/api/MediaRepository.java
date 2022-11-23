@@ -25,27 +25,27 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface MediaRepository {
-    Optional<Media> findByHash(String hash);
+    Optional<Media> findByHash(String hash) throws TechnicalException;
 
-    Optional<Media> findByHash(String hash, boolean withContent);
+    Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException;
 
-    Optional<Media> findByHashAndApi(String hash, String api);
+    Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException;
 
-    Optional<Media> findByHashAndApi(String hash, String api, boolean withContent);
+    Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException;
 
-    Optional<Media> findByHashAndType(String hash, String mediaType);
+    Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException;
 
-    Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent);
+    Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException;
 
-    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType);
+    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException;
 
-    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent);
+    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) throws TechnicalException;
 
-    List<Media> findAllByApi(String api);
+    List<Media> findAllByApi(String api) throws TechnicalException;
 
     Media create(Media media) throws TechnicalException;
 
-    void deleteAllByApi(String api);
+    void deleteAllByApi(String api) throws TechnicalException;
 
-    void deleteByHashAndApi(String hash, String api);
+    void deleteByHashAndApi(String hash, String api) throws TechnicalException;
 }

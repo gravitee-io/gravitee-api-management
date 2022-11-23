@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +36,7 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Guillaume GILLON
+ * @author GraviteeSource Team
  */
 @Repository
 public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implements MediaRepository {
@@ -64,15 +64,19 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
-    public List<Media> findAllByApi(String api) {
+    public List<Media> findAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
 
-        String sql = getOrm().getSelectAllSql() + " where api = ?";
-        Object[] param = new Object[] { api };
+        try {
+            String sql = getOrm().getSelectAllSql() + " where api = ?";
+            Object[] param = new Object[] { api };
 
-        List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), param);
+            List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), param);
 
-        return mediaList.stream().collect(Collectors.toList());
+            return new ArrayList<>(mediaList);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
@@ -97,87 +101,132 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
-    public void deleteAllByApi(String api) {
+    public void deleteAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
-        jdbcTemplate.update("delete from " + this.tableName + " where api = ?", api);
+
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where api = ?", api);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public void deleteByHashAndApi(String hash, String api) {
+    public void deleteByHashAndApi(String hash, String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByHashAndApi({}, {})", hash, api);
-        jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and api = ?", hash, api);
+
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and api = ?", hash, api);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHash(String hash) {
+    public Optional<Media> findByHash(String hash) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
-        return this.findByHashAndApiAndType(hash, null, null, true);
+
+        try {
+            return this.findByHashAndApiAndType(hash, null, null, true);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, boolean withContent) {
+    public Optional<Media> findByHash(String hash, boolean withContent) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
 
-        return this.findByHashAndApiAndType(hash, null, null, withContent);
+        try {
+            return this.findByHashAndApiAndType(hash, null, null, withContent);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api) {
+    public Optional<Media> findByHashAndApi(String hash, String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHash({},{})", hash, api);
 
-        return this.findByHashAndApiAndType(hash, api, null, true);
+        try {
+            return this.findByHashAndApiAndType(hash, api, null, true);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) {
+    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHash({},{}, {})", hash, api, withContent);
 
-        return this.findByHashAndApiAndType(hash, api, null, withContent);
+        try {
+            return this.findByHashAndApiAndType(hash, api, null, withContent);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType) {
+    public Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{})", hash, mediaType);
 
-        return this.findByHashAndApiAndType(hash, null, mediaType, true);
+        try {
+            return this.findByHashAndApiAndType(hash, null, mediaType, true);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) {
+    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, mediaType, withContent);
 
-        return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
+        try {
+            return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) {
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, api, mediaType);
-        return this.findByHashAndApiAndType(hash, api, mediaType, true);
+
+        try {
+            return this.findByHashAndApiAndType(hash, api, mediaType, true);
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 
     @Override
-    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) {
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent)
+        throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{}, {})", hash, mediaType, api, withContent);
 
-        String select = "select id, type, sub_type, file_name, size, created_at, api, hash";
-        if (withContent) {
-            select += ", data";
-        }
-        String sql = select + " from " + escapeReservedWord(this.tableName) + " where hash = ?";
-        List<Object> paramList = new ArrayList<>();
-        paramList.add(hash);
-        Object[] param;
-        if (api != null) {
-            sql += " and api = ?";
-            paramList.add(api);
-        }
-        if (mediaType != null) {
-            sql += " and type = ?";
-            paramList.add(mediaType);
-        }
+        try {
+            String select = "select id, type, sub_type, file_name, size, created_at, api, hash";
+            if (withContent) {
+                select += ", data";
+            }
+            String sql = select + " from " + escapeReservedWord(this.tableName) + " where hash = ?";
+            List<Object> paramList = new ArrayList<>();
+            paramList.add(hash);
 
-        List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), paramList.toArray());
+            if (api != null) {
+                sql += " and api = ?";
+                paramList.add(api);
+            }
+            if (mediaType != null) {
+                sql += " and type = ?";
+                paramList.add(mediaType);
+            }
 
-        return mediaList.stream().findFirst();
+            List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), paramList.toArray());
+
+            return mediaList.stream().findFirst();
+        } catch (Exception e) {
+            throw new TechnicalException(e);
+        }
     }
 }

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume Gillon
+ * @author GraviteeSource Team
  */
 @Component
 public class MediaServiceImpl implements MediaService {
@@ -100,43 +102,55 @@ public class MediaServiceImpl implements MediaService {
                 return hashString;
             }
         } catch (TechnicalException | NoSuchAlgorithmException ex) {
-            LOGGER.error("An error occurs while trying to create {}", mediaEntity, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + mediaEntity, ex);
+            LOGGER.error("An error has occurred while trying to create media " + mediaEntity, ex);
+            throw new TechnicalManagementException("An error occurs while trying create media");
         }
     }
 
     @Override
     public MediaEntity findByHash(String hash) {
-        Optional<Media> mediaData = mediaRepository.findByHashAndType(hash, MEDIA_TYPE_IMAGE);
-        return mediaData.map(MediaServiceImpl::convert).orElse(null);
+        try {
+            return mediaRepository.findByHashAndType(hash, MEDIA_TYPE_IMAGE).map(MediaServiceImpl::convert).orElse(null);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error has occurred trying to find media with hash " + hash, e);
+            throw new TechnicalManagementException("An error has occurred trying to find media");
+        }
     }
 
     @Override
     public MediaEntity findByHashAndApiId(String hash, String apiId) {
-        Optional<Media> mediaData = mediaRepository.findByHashAndApiAndType(hash, apiId, MEDIA_TYPE_IMAGE);
-        return mediaData.map(MediaServiceImpl::convert).orElse(null);
+        try {
+            return mediaRepository.findByHashAndApiAndType(hash, apiId, MEDIA_TYPE_IMAGE).map(MediaServiceImpl::convert).orElse(null);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error as occurred trying to find media for API " + apiId + " with hash " + hash, e);
+            throw new TechnicalManagementException("An error as occurred trying to find media");
+        }
     }
 
     @Override
-    public MediaEntity findByHash(String id, boolean ignoreType) {
-        Optional<Media> mediaData;
-        if (ignoreType) {
-            mediaData = mediaRepository.findByHash(id);
-        } else {
-            mediaData = mediaRepository.findByHashAndType(id, MEDIA_TYPE_IMAGE);
+    public MediaEntity findByHash(String hash, boolean ignoreType) {
+        try {
+            if (ignoreType) {
+                return mediaRepository.findByHash(hash).map(MediaServiceImpl::convert).orElse(null);
+            }
+            return mediaRepository.findByHashAndType(hash, MEDIA_TYPE_IMAGE).map(MediaServiceImpl::convert).orElse(null);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error as occurred trying to find media with hash " + hash, e);
+            throw new TechnicalManagementException("An error has occurred trying to find media");
         }
-        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
-    public MediaEntity findByHashAndApi(String id, String api, boolean ignoreType) {
-        Optional<Media> mediaData;
-        if (ignoreType) {
-            mediaData = mediaRepository.findByHashAndApi(id, api);
-        } else {
-            mediaData = mediaRepository.findByHashAndApiAndType(id, api, MEDIA_TYPE_IMAGE);
+    public MediaEntity findByHashAndApi(String hash, String api, boolean ignoreType) {
+        try {
+            if (ignoreType) {
+                return mediaRepository.findByHashAndApi(hash, api).map(MediaServiceImpl::convert).orElse(null);
+            }
+            return mediaRepository.findByHashAndApiAndType(hash, api, MEDIA_TYPE_IMAGE).map(MediaServiceImpl::convert).orElse(null);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error as occurred trying to find media for API " + api + " with hash " + hash, e);
+            throw new TechnicalManagementException("An error as occurred trying to find media");
         }
-        return mediaData.map(MediaServiceImpl::convert).orElse(null);
     }
 
     @Override
@@ -146,19 +160,24 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api) {
-        List<MediaEntity> result = new ArrayList<>();
-        if (pageMediaEntities != null && !pageMediaEntities.isEmpty()) {
-            for (PageMediaEntity pme : pageMediaEntities) {
-                final Optional<Media> foundMedia = mediaRepository.findByHashAndApi(pme.getMediaHash(), api, false);
-                if (foundMedia.isPresent()) {
-                    MediaEntity me = convert(foundMedia.get());
-                    me.setFileName(pme.getMediaName());
-                    me.setUploadDate(pme.getAttachedAt());
-                    result.add(me);
+        try {
+            List<MediaEntity> result = new ArrayList<>();
+            if (pageMediaEntities != null && !pageMediaEntities.isEmpty()) {
+                for (PageMediaEntity pme : pageMediaEntities) {
+                    final Optional<Media> foundMedia = mediaRepository.findByHashAndApi(pme.getMediaHash(), api, false);
+                    if (foundMedia.isPresent()) {
+                        MediaEntity me = convert(foundMedia.get());
+                        me.setFileName(pme.getMediaName());
+                        me.setUploadDate(pme.getAttachedAt());
+                        result.add(me);
+                    }
                 }
             }
+            return result;
+        } catch (TechnicalException e) {
+            LOGGER.error("An error as occurred trying to find medias for API " + api, e);
+            throw new TechnicalManagementException("An error as occurred trying to find medias");
         }
-        return result;
     }
 
     @Override
@@ -168,7 +187,12 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public List<MediaEntity> findAllByApiId(String apiId) {
-        return mediaRepository.findAllByApi(apiId).stream().map(MediaServiceImpl::convert).collect(Collectors.toList());
+        try {
+            return mediaRepository.findAllByApi(apiId).stream().map(MediaServiceImpl::convert).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            LOGGER.error("An error as occurred trying to find medias for API " + apiId, e);
+            throw new TechnicalManagementException("An error as occurred trying to find medias");
+        }
     }
 
     @Override
@@ -177,14 +201,30 @@ public class MediaServiceImpl implements MediaService {
             final MediaEntity media = convertToEntity(mediaDefinition);
             return saveApiMedia(api, media);
         } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the media {}", mediaDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Media definition.");
+            LOGGER.error("An error as occurred while trying to JSON deserialize the media " + mediaDefinition, e);
+            throw new TechnicalManagementException("An error has occurred while trying to create media");
         }
     }
 
     @Override
     public void deleteAllByApi(String apiId) {
-        mediaRepository.deleteAllByApi(apiId);
+        try {
+            mediaRepository.deleteAllByApi(apiId);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error has occurred while trying delete medias for API " + apiId, e);
+            throw new TechnicalManagementException("An error occurred trying to delete medias");
+        }
+    }
+
+    @Override
+    public void deleteByHashAndApi(String hash, String apiId) {
+        try {
+            Media media = mediaRepository.findByHashAndApi(hash, apiId).orElseThrow(() -> new ApiMediaNotFoundException(hash, apiId));
+            mediaRepository.deleteByHashAndApi(media.getHash(), apiId);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error has occurred trying to delete media for API " + apiId + " with hash " + hash, e);
+            throw new TechnicalManagementException("An error has occurred trying to delete media");
+        }
     }
 
     private MediaEntity convertToEntity(String mediaDefinition) throws JsonProcessingException {
