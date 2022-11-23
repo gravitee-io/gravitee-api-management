@@ -99,7 +99,8 @@ class HttpProxyEndpointConnectorTest {
     private MockedStatic<VertxHttpClientHelper> vertxHttpClientHelperMockedStatic;
 
     private HttpClient httpClient;
-    private HttpHeaders httpHeaders;
+    private HttpHeaders requestHeaders;
+    private HttpHeaders responseHeaders;
     private HttpProxyEndpointConnectorConfiguration configuration;
     private HttpProxyEndpointConnector cut;
 
@@ -144,11 +145,14 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
 
-        httpHeaders = HttpHeaders.create();
+        requestHeaders = HttpHeaders.create();
         lenient().when(request.pathInfo()).thenReturn("");
-        lenient().when(request.headers()).thenReturn(httpHeaders);
+        lenient().when(request.headers()).thenReturn(requestHeaders);
         lenient().when(request.metrics()).thenReturn(metrics);
         lenient().when(request.chunks()).thenReturn(Flowable.empty());
+
+        responseHeaders = HttpHeaders.create();
+        lenient().when(response.headers()).thenReturn(responseHeaders);
 
         configuration = new HttpProxyEndpointConnectorConfiguration();
 
@@ -222,7 +226,7 @@ class HttpProxyEndpointConnectorTest {
     void shouldExecutePostRequestChunked() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.chunks()).thenReturn(Flowable.just(Buffer.buffer(REQUEST_BODY)));
-        httpHeaders.set(CONTENT_LENGTH, "" + REQUEST_BODY_LENGTH);
+        requestHeaders.set(CONTENT_LENGTH, "" + REQUEST_BODY_LENGTH);
 
         wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -243,8 +247,8 @@ class HttpProxyEndpointConnectorTest {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.chunks()).thenReturn(Flowable.empty());
 
-        httpHeaders.add("X-Custom", List.of("value1", "value2"));
-        HOP_HEADERS.forEach(header -> httpHeaders.add(header.toString(), "should be removed"));
+        requestHeaders.add("X-Custom", List.of("value1", "value2"));
+        HOP_HEADERS.forEach(header -> requestHeaders.add(header.toString(), "should be removed"));
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -269,8 +273,8 @@ class HttpProxyEndpointConnectorTest {
         when(request.chunks()).thenReturn(Flowable.empty());
         configuration.setHeaders(List.of(new HttpHeader("X-To-Be-Overriden", "Override"), new HttpHeader("X-To-Be-Added", "Added")));
 
-        httpHeaders.add("X-Custom", "value1");
-        httpHeaders.add("X-To-Be-Overriden", List.of("toOverrideValue1", "toOverrideValue2"));
+        requestHeaders.add("X-Custom", "value1");
+        requestHeaders.add("X-To-Be-Overriden", List.of("toOverrideValue1", "toOverrideValue2"));
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -298,7 +302,7 @@ class HttpProxyEndpointConnectorTest {
 
         // Simulated a policy that force the host header to use when calling the backend endpoint.
         when(request.host()).thenReturn("api.gravitee.io");
-        httpHeaders.add("X-Custom", "value1");
+        requestHeaders.add("X-Custom", "value1");
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -324,7 +328,7 @@ class HttpProxyEndpointConnectorTest {
         when(request.originalHost()).thenReturn("api.gravitee.io");
         when(request.host()).thenReturn("api.gravitee.io");
 
-        httpHeaders.add("X-Custom", "value1");
+        requestHeaders.add("X-Custom", "value1");
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -344,14 +348,14 @@ class HttpProxyEndpointConnectorTest {
     }
 
     @Test
-    void shouldPropagateVertxHttpHeaderWithoutTemporaryCopy() throws InterruptedException {
-        httpHeaders = new VertxHttpHeaders(new HeadersMultiMap());
-        when(request.headers()).thenReturn(httpHeaders);
+    void shouldPropagateRequestVertxHttpHeaderWithoutTemporaryCopy() throws InterruptedException {
+        requestHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        when(request.headers()).thenReturn(requestHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.chunks()).thenReturn(Flowable.empty());
 
-        httpHeaders.add("X-Custom", List.of("value1", "value2"));
-        HOP_HEADERS.forEach(header -> httpHeaders.add(header.toString(), "should be removed"));
+        requestHeaders.add("X-Custom", List.of("value1", "value2"));
+        HOP_HEADERS.forEach(header -> requestHeaders.add(header.toString(), "should be removed"));
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -368,6 +372,53 @@ class HttpProxyEndpointConnectorTest {
         }
 
         wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void shouldPropagateResponseHeaders() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+
+        wiremock.stubFor(
+            get("/team")
+                .willReturn(
+                    ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
+                )
+        );
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        obs.assertComplete();
+
+        assertEquals(List.of("Value1", "Value2"), responseHeaders.getAll("X-Response-Header"));
+        assertEquals(List.of("OtherValue"), responseHeaders.getAll("X-Other"));
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+    }
+
+    @Test
+    void shouldPropagateResponseHeadersWhenVertxResponseHeader() throws InterruptedException {
+        responseHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+
+        when(response.headers()).thenReturn(responseHeaders);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+
+        wiremock.stubFor(
+            get("/team")
+                .willReturn(
+                    ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
+                )
+        );
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        obs.assertComplete();
+
+        assertEquals(List.of("Value1", "Value2"), responseHeaders.getAll("X-Response-Header"));
+        assertEquals(List.of("OtherValue"), responseHeaders.getAll("X-Other"));
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
     }
 
     @Test
