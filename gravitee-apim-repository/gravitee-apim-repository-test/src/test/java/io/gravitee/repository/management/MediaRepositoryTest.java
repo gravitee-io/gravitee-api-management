@@ -156,6 +156,26 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse("Invalid asset found", image.isPresent());
     }
 
+    @Test
+    public void shouldDeleteByHashAndApiId() throws Exception {
+        String apiId = "1ba38b69-446d-4722-9208-024153fc500f";
+        String mediaId = "542449ec-7dd7-4e35-bdcc-735b8788b0cc";
+        String fileName = "stars.png";
+
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        String hashString = getHashString(fileBytes);
+
+        createMedia(fileName, fileBytes, size, hashString, mediaId, apiId);
+
+        mediaRepository.deleteByHashAndApi(hashString, apiId);
+
+        Optional<Media> media = mediaRepository.findByHashAndApi(hashString, apiId);
+
+        assertFalse("Should not find media after deletion", media.isPresent());
+    }
+
     private Media createMedia(String fileName, byte[] fileBytes, long size, String hashString, String id, String api)
         throws TechnicalException {
         Media imageData = new Media();
