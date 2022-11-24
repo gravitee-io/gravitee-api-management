@@ -20,6 +20,7 @@ import { Subject } from 'rxjs';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
+import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
 import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../../entities/api';
@@ -45,6 +46,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
 
   @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
   @ViewChild(PlanEditSecureStepComponent) planEditSecureStepComponent: PlanEditSecureStepComponent;
+  @ViewChild(PlanEditRestrictionStepComponent) planEditRestrictionStepComponent: PlanEditRestrictionStepComponent;
 
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
@@ -60,6 +62,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
     this.planForm = new FormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
       secure: this.planEditSecureStepComponent.secureForm,
+      restriction: this.planEditRestrictionStepComponent.restrictionForm,
     });
 
     // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError

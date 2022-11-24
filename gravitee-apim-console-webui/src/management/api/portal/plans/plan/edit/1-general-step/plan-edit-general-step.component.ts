@@ -21,7 +21,6 @@ import { map, startWith, takeUntil } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../../../entities/api';
-import { ApiService } from '../../../../../../../services-ngx/api.service';
 import { CurrentUserService } from '../../../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../../../services-ngx/group.service';
@@ -64,7 +63,6 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     private readonly groupService: GroupService,
     private readonly documentationService: DocumentationService,
     private readonly currentUserService: CurrentUserService,
-    private readonly apiService: ApiService,
   ) {}
 
   ngOnInit(): void {
