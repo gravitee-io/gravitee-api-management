@@ -35,8 +35,6 @@ public interface MediaRepository {
 
     Optional<Media> findByHashAndType(String hash, String mediaType) throws TechnicalException;
 
-    Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException;
-
     Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException;
 
     Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) throws TechnicalException;
