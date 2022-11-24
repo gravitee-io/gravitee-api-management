@@ -67,12 +67,19 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     public List<Media> findAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
 
+        if (api == null) {
+            LOGGER.warn("Returning an empty list because API identifier given as an argument is null");
+            return List.of();
+        } else {
+            return doFindAllByApi(api);
+        }
+    }
+
+    private List<Media> doFindAllByApi(String api) throws TechnicalException {
         try {
             String sql = getOrm().getSelectAllSql() + " where api = ?";
             Object[] param = new Object[] { api };
-
             List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), param);
-
             return new ArrayList<>(mediaList);
         } catch (Exception e) {
             throw new TechnicalException(e);
@@ -104,6 +111,14 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     public void deleteAllByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
 
+        if (api == null) {
+            LOGGER.warn("Skipping media deletion because the API identifier given as an argument is null");
+        } else {
+            doDeleteAllByApi(api);
+        }
+    }
+
+    private void doDeleteAllByApi(String api) throws TechnicalException {
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where api = ?", api);
         } catch (Exception e) {
