@@ -25,7 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
-import { GioFormTagsInputModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -56,6 +56,7 @@ import { GioFormFocusInvalidModule } from '../../../../../../shared/components/g
     GioIconsModule,
     GioSaveBarModule,
     GioFormFocusInvalidModule,
+    GioBannerModule,
   ],
 })
 export class ApiPortalPlanEditModule {}

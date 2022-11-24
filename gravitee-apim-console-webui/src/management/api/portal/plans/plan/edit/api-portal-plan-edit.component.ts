@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
+import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
+
+import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../../entities/api';
+import { ApiService } from '../../../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -31,19 +36,30 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
     },
   ],
 })
-export class ApiPortalPlanEditComponent implements AfterViewInit, OnDestroy {
+export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
+  public api: Api;
 
   @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
+  @ViewChild(PlanEditSecureStepComponent) planEditSecureStepComponent: PlanEditSecureStepComponent;
 
-  constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
+  constructor(
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+  ) {}
+
+  ngOnInit() {
+    this.apiService.get(this.ajsStateParams.apiId).subscribe((api) => (this.api = api));
+  }
 
   ngAfterViewInit(): void {
     this.planForm = new FormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
+      secure: this.planEditSecureStepComponent.secureForm,
     });
 
     // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError

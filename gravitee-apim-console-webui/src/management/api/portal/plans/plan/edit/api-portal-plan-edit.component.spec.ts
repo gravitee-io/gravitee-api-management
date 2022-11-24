@@ -23,6 +23,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { set } from 'lodash';
 
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
@@ -53,6 +54,17 @@ describe('ApiPortalPlanEditComponent', () => {
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.plan.security', {
+              oauth2: { enabled: false },
+              jwt: { enabled: true },
+            });
+            return constants;
+          },
+        },
       ],
     });
   });
@@ -78,11 +90,13 @@ describe('ApiPortalPlanEditComponent', () => {
     expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
     expectCurrentUserTagsRequest([TAG_1_ID]);
+    expectResourceGetRequest();
     fixture.detectChanges();
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isVisible()).toBe(true);
 
+    // 1- General Step
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
     await nameInput.setValue('🗺');
 
@@ -111,6 +125,15 @@ describe('ApiPortalPlanEditComponent', () => {
     const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
     await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
+    // 2- Secure Step
+    const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
+    await securityTypesInput.clickOptions({ text: /JWT/ });
+    await securityTypesInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
+    expectPolicySchemaGetRequest('jwt', {});
+
+    const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+    await selectionRuleInput.setValue('{ #el ...}');
+
     expect(fixture.componentInstance.planForm.getRawValue()).toEqual({
       general: {
         name: '🗺',
@@ -122,6 +145,11 @@ describe('ApiPortalPlanEditComponent', () => {
         commentMessage: 'Comment message',
         validation: true,
         excludedGroups: ['group-a'],
+      },
+      secure: {
+        securityConfig: {},
+        securityTypes: 'JWT',
+        selectionRule: '{ #el ...}',
       },
     });
   });
@@ -164,5 +192,13 @@ describe('ApiPortalPlanEditComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`,
       })
       .flush(tags);
+  }
+
+  function expectResourceGetRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/resources?expand=icon`, method: 'GET' }).flush([]);
+  }
+
+  function expectPolicySchemaGetRequest(type: string, schema: unknown) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/${type}/schema`, method: 'GET' }).flush(schema);
   }
 });

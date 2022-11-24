@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { includes } from 'lodash';
 import { combineLatest, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../../../entities/api';
 import { ApiService } from '../../../../../../../services-ngx/api.service';
 import { CurrentUserService } from '../../../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../../../services-ngx/documentation.service';
@@ -33,18 +34,20 @@ import { TagService } from '../../../../../../../services-ngx/tag.service';
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public api$ = new Subject<Api>();
 
-  generalForm: FormGroup;
+  public generalForm: FormGroup;
+
+  @Input()
+  public set api(api: Api) {
+    this.api$.next(api);
+  }
 
   conditionPages$ = this.documentationService.apiSearch(this.ajsStateParams.apiId, {
     type: 'MARKDOWN',
     api: this.ajsStateParams.apiId,
   });
-  shardingTags$ = combineLatest([
-    this.tagService.list(),
-    this.apiService.get(this.ajsStateParams.apiId),
-    this.currentUserService.getTags(),
-  ]).pipe(
+  shardingTags$ = combineLatest([this.tagService.list(), this.api$, this.currentUserService.getTags()]).pipe(
     map(([tags, api, userTags]) => {
       return tags.map((tag) => ({
         ...tag,
