@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 public class MongoUserRepository implements UserRepository {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
+    private final Pattern escaper = Pattern.compile("([^a-zA-Z0-9])");
 
     @Autowired
     private UserMongoRepository internalUserRepo;
