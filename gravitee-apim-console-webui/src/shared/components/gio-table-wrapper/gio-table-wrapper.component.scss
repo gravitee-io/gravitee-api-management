@@ -38,6 +38,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__search-field {
       font-family: mat.font-family($typography, caption);
       font-size: mat.font-size($typography, caption);
+      padding-bottom: 0;
 
       @include gio-layout.large-desktop {
         width: 360px;
