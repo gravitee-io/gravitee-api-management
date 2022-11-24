@@ -95,7 +95,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindMediaWithoutContent() throws Exception {
+    public void shouldFindByHashWithoutContent() throws Exception {
         String fileName = "stars.png";
         byte[] fileBytes = getFileBytes(fileName);
         long size = fileBytes.length;
@@ -104,6 +104,24 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(fileName, fileBytes, size, hashString, "2233445566", null);
 
         Optional<Media> optionalAfter = mediaRepository.findByHash(hashString, false);
+        assertTrue(optionalAfter.isPresent());
+        assertNull(optionalAfter.get().getData());
+    }
+
+    @Test
+    public void shouldFindByHashAndApiWithoutContent() throws Exception {
+        String apiId = "c2f71615-6db0-48fb-b4b0-ccd6cf33dce8";
+        String mediaId = "294b50da-01eb-4dce-ace8-94f98bb07787";
+        String fileName = "stars.png";
+
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        String hashString = getHashString(fileBytes);
+
+        createMedia(fileName, fileBytes, size, hashString, mediaId, apiId);
+
+        Optional<Media> optionalAfter = mediaRepository.findByHashAndApi(hashString, apiId, false);
         assertTrue(optionalAfter.isPresent());
         assertNull(optionalAfter.get().getData());
     }
@@ -131,6 +149,40 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         final Media imageDataSaved = all.get(1);
         assertEquals("Invalid saved image id.", "image-1", imageDataSaved.getId());
         assertNotNull("Invalid saved image size.", imageDataSaved.getSize());
+    }
+
+    @Test
+    public void shouldFindByHashAndApi() throws Exception {
+        String apiId = "221933a0-1d15-4638-adf1-6e5d0523c894";
+        String mediaId = "833419c4-4fde-430b-9a60-58c12f5fe4fb";
+        String fileName = "stars.png";
+
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        String hashString = getHashString(fileBytes);
+
+        createMedia(fileName, fileBytes, size, hashString, mediaId, apiId);
+
+        Optional<Media> media = mediaRepository.findByHashAndApi(hashString, apiId);
+        assertFalse("Should find by hash and API", media.isEmpty());
+    }
+
+    @Test
+    public void shouldFindByHashAndApiAndType() throws Exception {
+        String apiId = "7ecb2e06-24d7-4077-acf7-b806dcb57f35";
+        String mediaId = "f5a2745f-754c-46e9-abe8-077a621816f1";
+        String fileName = "stars.png";
+
+        byte[] fileBytes = getFileBytes(fileName);
+        long size = fileBytes.length;
+
+        String hashString = getHashString(fileBytes);
+
+        createMedia(fileName, fileBytes, size, hashString, mediaId, apiId);
+
+        Optional<Media> media = mediaRepository.findByHashAndApiAndType(hashString, apiId, "image");
+        assertFalse("Should find by hash and API", media.isEmpty());
     }
 
     @Test
