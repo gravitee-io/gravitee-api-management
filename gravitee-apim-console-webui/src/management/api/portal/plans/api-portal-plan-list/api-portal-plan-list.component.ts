@@ -30,12 +30,12 @@ import { IRootScopeService } from 'angular';
 
 import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { PlanService } from '../../../../../services-ngx/plan.service';
-import { Api, API_PLAN_STATUS, ApiPlan, ApiPlanStatus } from '../../../../../entities/api';
+import { Api, ApiPlan } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PlanSecurityType } from '../../../../../entities/plan/plan';
+import { PlanSecurityType, PlanStatus, PLAN_STATUS } from '../../../../../entities/plan';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -48,8 +48,8 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
   public plansTableDS: ApiPlan[] = [];
   public isLoadingData = true;
-  public apiPlanStatus = API_PLAN_STATUS;
-  public status: ApiPlanStatus;
+  public apiPlanStatus = PLAN_STATUS;
+  public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;
 
@@ -90,7 +90,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  public searchPlansByStatus(status: ApiPlanStatus): void {
+  public searchPlansByStatus(status: PlanStatus): void {
     this.status = status;
 
     this.plansService
