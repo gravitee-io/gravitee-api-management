@@ -42,6 +42,9 @@ public class JdbcTestRepositoryConfiguration {
     @Value("${jdbcType:postgresql}")
     private String jdbcType;
 
+    @Value("${maxPoolSize:20}")
+    private int maxPoolSize;
+
     @Bean
     public DataSource graviteeDataSource(JdbcDatabaseContainer container) {
         final HikariConfig dsConfig = getHikariConfig(container);
@@ -105,6 +108,7 @@ public class JdbcTestRepositoryConfiguration {
         Properties properties = new Properties();
         properties.setProperty("useSSL", "false");
         hikariConfig.setDataSourceProperties(properties);
+        hikariConfig.setMaximumPoolSize(maxPoolSize);
         return hikariConfig;
     }
 

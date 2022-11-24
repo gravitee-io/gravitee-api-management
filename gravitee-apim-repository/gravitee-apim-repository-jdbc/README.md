@@ -32,6 +32,8 @@ You can also use a specific version of the database like:
 - MySQL: `mvn clean install -DjdbcType=mysql~8.0.28`
 - PostgreSQL: `mvn clean install -DjdbcType=postgresql~13.6`
 
+The default max pool size used when running tests is set to 20. This parameter can be configured by adding the `maxPoolSize` property:
+- `mvn clean install -DmaxPoolSize=10`
 
 ## Installing
 
