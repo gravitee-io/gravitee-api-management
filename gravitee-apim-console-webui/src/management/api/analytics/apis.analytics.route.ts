@@ -128,6 +128,19 @@ function apisAnalyticsRouterConfig($stateProvider) {
         spelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
+    .state('management.apis.detail.analytics.logs.configuration', {
+      url: '/ng-configure',
+      component: 'ngApiLogsConfiguration',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-log-u'],
+        },
+        docs: {
+          page: 'management-api-logging-configuration',
+        },
+      },
+    })
     .state('management.apis.detail.analytics.logs.log', {
       url: '/:logId?timestamp&from&to&q&page&size',
       component: 'log',

@@ -535,6 +535,7 @@ import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy
 import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
+import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -974,6 +975,9 @@ graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({
 graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
+
+// Analytics
+graviteeManagementModule.directive('ngApiLogsConfiguration', downgradeComponent({ component: ApiLogsConfigurationComponent }));
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);
