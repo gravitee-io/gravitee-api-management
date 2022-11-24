@@ -193,17 +193,6 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException {
-        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, mediaType, withContent);
-
-        try {
-            return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
-        } catch (Exception e) {
-            throw new TechnicalException(e);
-        }
-    }
-
-    @Override
     public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, api, mediaType);
 

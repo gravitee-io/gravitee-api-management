@@ -101,11 +101,6 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) throws TechnicalException {
-        return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
-    }
-
-    @Override
     public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) throws TechnicalException {
         return this.findByHashAndApiAndType(hash, api, mediaType, true);
     }
