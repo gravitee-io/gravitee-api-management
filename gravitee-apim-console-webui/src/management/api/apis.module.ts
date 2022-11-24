@@ -21,8 +21,17 @@ import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
 import { ApiPortalPlanEditModule } from './portal/plans/plan/edit/api-portal-plan-edit.module';
+import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 
 @NgModule({
-  imports: [ApiListModule, ApiProxyModule, ApiPortalDetailsModule, ApiPortalPlanEditModule, ApiNavigationModule, ApiPortalPlansModule],
+  imports: [
+    ApiAnalyticsModule,
+    ApiListModule,
+    ApiNavigationModule,
+    ApiPortalDetailsModule,
+    ApiPortalPlanEditModule,
+    ApiPortalPlansModule,
+    ApiProxyModule,
+  ],
 })
 export class ApisModule {}
