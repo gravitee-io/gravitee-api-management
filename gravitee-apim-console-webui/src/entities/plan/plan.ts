@@ -1,3 +1,5 @@
+import { Flow } from '../flow/flow';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,4 +20,38 @@ export enum PlanSecurityType {
   API_KEY = 'API_KEY',
   OAUTH2 = 'OAUTH2',
   JWT = 'JWT',
+}
+
+export enum PlanValidation {
+  AUTO = 'AUTO',
+  MANUAL = 'MANUAL',
+}
+
+export enum PlanType {
+  API = 'API',
+  CATALOG = 'CATALOG',
+}
+
+export const PLAN_STATUS = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'] as const;
+export type PlanStatus = typeof PLAN_STATUS[number];
+
+export interface NewPlanEntity {
+  name: string;
+  description?: string;
+  validation?: PlanValidation;
+  security: PlanSecurityType;
+  securityDefinition?: string;
+  type?: PlanType;
+  status?: PlanStatus;
+  api?: string;
+  characteristics?: string[];
+  tags?: string[];
+  order?: number;
+  paths?: object;
+  flows?: Flow[];
+  excluded_groups?: string[];
+  comment_required?: boolean;
+  comment_message?: string;
+  selection_rule?: string;
+  general_conditions?: string;
 }

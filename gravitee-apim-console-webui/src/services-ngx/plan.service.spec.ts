@@ -22,6 +22,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakePlan } from '../entities/plan/plan.fixture';
 import { fakeApi } from '../entities/api/Api.fixture';
+import { NewPlanEntity, PlanSecurityType } from '../entities/plan';
 
 describe('PlanService', () => {
   let httpTestingController: HttpTestingController;
@@ -128,6 +129,29 @@ describe('PlanService', () => {
       const planReq = httpTestingController.expectOne({
         method: 'PUT',
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans/${plan.id}`,
+      });
+      expect(planReq.request.body).toEqual(plan);
+      planReq.flush(plan);
+    });
+  });
+
+  describe('create', () => {
+    it('should create api plans', (done) => {
+      const api = fakeApi();
+      const plan: NewPlanEntity = {
+        name: 'free',
+        security: PlanSecurityType.API_KEY,
+      };
+
+      planService.create(api, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/plans`,
       });
       expect(planReq.request.body).toEqual(plan);
       planReq.flush(plan);

@@ -22,6 +22,7 @@ import { map } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { Api, ApiPlan } from '../entities/api';
+import { NewPlanEntity } from '../entities/plan';
 
 @Injectable({
   providedIn: 'root',
@@ -49,6 +50,17 @@ export class PlanService {
 
   public update(api: Api, plan: ApiPlan): Observable<ApiPlan> {
     return this.http.put<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
+      map((plan) => {
+        if (api.gravitee === '2.0.0') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
+        }
+        return plan;
+      }),
+    );
+  }
+
+  public create(api: Api, plan: NewPlanEntity): Observable<ApiPlan> {
+    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans`, plan).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });

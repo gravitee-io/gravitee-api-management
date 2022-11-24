@@ -33,14 +33,14 @@ import {
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface FlowVM {
-  name: string;
+  name?: string;
   'path-operator': PathOperator;
   pre: Step[];
   post: Step[];
   enabled: boolean;
-  methods: string[];
-  condition: string;
-  consumers: string[];
+  methods?: string[];
+  condition?: string;
+  consumers?: string[];
 }
 
 interface DefinitionVM {

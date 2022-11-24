@@ -150,31 +150,55 @@ describe('ApiPortalPlanEditComponent', () => {
     await resourceFilteringEnabledInput.toggle();
     expectPolicySchemaGetRequest('resource-filtering', {});
 
-    expect(fixture.componentInstance.planForm.getRawValue()).toEqual({
-      general: {
-        name: '🗺',
-        description: 'Description',
-        characteristics: ['C1'],
-        generalConditions: 'doc-1',
-        shardingTags: [TAG_1_ID],
-        commentRequired: true,
-        commentMessage: 'Comment message',
-        validation: true,
-        excludedGroups: ['group-a'],
-      },
-      secure: {
-        securityConfig: {},
-        securityTypes: 'JWT',
-        selectionRule: '{ #el ...}',
-      },
-      restriction: {
-        quotaEnabled: true,
-        quotaConfig: {},
-        rateLimitEnabled: true,
-        rateLimitConfig: {},
-        resourceFilteringEnabled: true,
-        resourceFilteringConfig: {},
-      },
+    // Save
+    await saveBar.clickSubmit();
+
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans`, method: 'POST' });
+
+    expect(req.request.body).toEqual({
+      name: '🗺',
+      description: 'Description',
+      api: 'my-api',
+      characteristics: ['C1'],
+      comment_message: 'Comment message',
+      comment_required: true,
+      excluded_groups: ['group-a'],
+      general_conditions: 'doc-1',
+      security: 'JWT',
+      securityDefinition: '{}',
+      selection_rule: '{ #el ...}',
+      tags: [TAG_1_ID],
+      validation: 'AUTO',
+      flows: [
+        {
+          enabled: true,
+          'path-operator': {
+            operator: 'STARTS_WITH',
+            path: '/',
+          },
+          post: [],
+          pre: [
+            {
+              configuration: {},
+              enabled: true,
+              name: 'Rate Limiting',
+              policy: 'rate-limit',
+            },
+            {
+              configuration: {},
+              enabled: true,
+              name: 'Quota',
+              policy: 'quota',
+            },
+            {
+              configuration: {},
+              enabled: true,
+              name: 'Resource Filtering',
+              policy: 'resource-filtering',
+            },
+          ],
+        },
+      ],
     });
   });
 
