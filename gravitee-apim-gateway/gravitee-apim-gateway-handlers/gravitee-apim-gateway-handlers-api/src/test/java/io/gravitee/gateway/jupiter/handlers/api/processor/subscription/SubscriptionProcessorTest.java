@@ -19,6 +19,7 @@ import static io.gravitee.gateway.api.ExecutionContext.ATTR_APPLICATION;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.APPLICATION_ANONYMOUS;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
@@ -31,9 +32,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
+import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -72,33 +75,18 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    void shouldSetMetricsUnknownApplicationEvenIfApplicationSetWhenSubscriptionIsNull() {
-        when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
-        spyCtx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, null);
+    void shouldSetMetricsWhenSecurityChainIsNotSkipped() {
+        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, null);
         spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
         spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
         spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
 
-        cut.execute(spyCtx).test().assertResult();
-        assertThat(spyCtx.<String>getAttribute(ATTR_PLAN)).isEqualTo(PLAN_ANONYMOUS);
-        assertThat(spyCtx.<String>getAttribute(ATTR_APPLICATION)).isEqualTo(APPLICATION_ANONYMOUS);
-        assertThat(spyCtx.<String>getAttribute(ATTR_SUBSCRIPTION_ID)).isEqualTo(REMOTE_ADDRESS);
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
+        obs.assertResult();
 
-        verify(mockMetrics).setPlan(PLAN_ANONYMOUS);
-        verify(mockMetrics).setApplication(APPLICATION_ANONYMOUS);
-        verify(mockMetrics).setSubscription(REMOTE_ADDRESS);
-    }
-
-    @Test
-    void shouldSetMetricsUnknownApplicationWhenSubscriptionIsNull() {
-        spyCtx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, null);
-        when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
-
-        cut.execute(spyCtx).test().assertResult();
-
-        verify(mockMetrics).setPlan(PLAN_ANONYMOUS);
-        verify(mockMetrics).setApplication(APPLICATION_ANONYMOUS);
-        verify(mockMetrics).setSubscription(REMOTE_ADDRESS);
+        verify(mockMetrics).setPlan(PLAN_ID);
+        verify(mockMetrics).setApplication(APPLICATION_ID);
+        verify(mockMetrics).setSubscription(SUBSCRIPTION_ID);
     }
 
     @Test
@@ -132,9 +120,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldUseSubscriptionIdWhenClientIdentifierHeaderIsNullAndSubscriptionNotNull() {
         String subscriptionId = "1234";
-        Subscription subscription = new Subscription();
-        subscription.setId(subscriptionId);
-        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+        spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, subscriptionId);
 
         cut.execute(spyCtx).test().assertComplete();
 
