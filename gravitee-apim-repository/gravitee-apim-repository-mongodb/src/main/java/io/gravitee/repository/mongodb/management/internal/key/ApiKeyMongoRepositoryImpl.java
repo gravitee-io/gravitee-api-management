@@ -87,8 +87,6 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(lte("keys.expireAt", new Date(filter.getExpireBefore()))));
         }
 
-        pipeline.add(sort(Sorts.descending("keys.updatedAt")));
-
         return mongoTemplate.getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class)).aggregate(pipeline);
     }
 
