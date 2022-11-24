@@ -199,7 +199,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findUserBySourceSpecialCharacters() throws Exception {
-        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV");
+        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me [IT] & others", "DEV");
         assertTrue(user.isPresent());
     }
 
