@@ -134,6 +134,22 @@ describe('ApiPortalPlanEditComponent', () => {
     const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
     await selectionRuleInput.setValue('{ #el ...}');
 
+    // 3- Restriction Step
+
+    const rateLimitEnabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="rateLimitEnabled"]' }));
+    await rateLimitEnabledInput.toggle();
+    expectPolicySchemaGetRequest('rate-limit', {});
+
+    const quotaEnabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="quotaEnabled"]' }));
+    await quotaEnabledInput.toggle();
+    expectPolicySchemaGetRequest('quota', {});
+
+    const resourceFilteringEnabledInput = await loader.getHarness(
+      MatSlideToggleHarness.with({ selector: '[formControlName="resourceFilteringEnabled"]' }),
+    );
+    await resourceFilteringEnabledInput.toggle();
+    expectPolicySchemaGetRequest('resource-filtering', {});
+
     expect(fixture.componentInstance.planForm.getRawValue()).toEqual({
       general: {
         name: '🗺',
@@ -150,6 +166,14 @@ describe('ApiPortalPlanEditComponent', () => {
         securityConfig: {},
         securityTypes: 'JWT',
         selectionRule: '{ #el ...}',
+      },
+      restriction: {
+        quotaEnabled: true,
+        quotaConfig: {},
+        rateLimitEnabled: true,
+        rateLimitConfig: {},
+        resourceFilteringEnabled: true,
+        resourceFilteringConfig: {},
       },
     });
   });

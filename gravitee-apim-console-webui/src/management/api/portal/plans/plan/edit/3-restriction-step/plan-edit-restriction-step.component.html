@@ -15,8 +15,74 @@
     limitations under the License.
 
 -->
-🦊
+<ng-container *ngIf="restrictionForm" [formGroup]="restrictionForm">
+  <mat-card class="rateLimit-card">
+    <gio-form-slide-toggle appearance="fill">
+      <gio-form-label>Rate Limiting</gio-form-label>
+      Rate limit how many HTTP requests an application can make in a given period of seconds or minutes.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="rateLimitEnabled"
+        aria-label="Toggle to enable rate limit"
+        name="rateLimit"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
-<div>
+    <gv-schema-form
+      *ngIf="rateLimitSchema"
+      class="rateLimit-card__schema-form"
+      ngDefaultControl
+      formControlName="rateLimitConfig"
+      [schema]="rateLimitSchema"
+      [attr.readonly]="restrictionForm.get('rateLimitConfig').enabled ? null : true"
+    ></gv-schema-form>
+  </mat-card>
+
+  <mat-card class="quota-card">
+    <gio-form-slide-toggle appearance="fill">
+      <gio-form-label>Quota</gio-form-label>
+      Rate limit how many HTTP requests an application can make in a given period of hours, days or months.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="quotaEnabled"
+        aria-label="Toggle to enable quota"
+        name="quota"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gv-schema-form
+      *ngIf="quotaSchema"
+      class="quota-card__schema-form"
+      ngDefaultControl
+      formControlName="quotaConfig"
+      [schema]="quotaSchema"
+      [attr.readonly]="restrictionForm.get('quotaConfig').enabled ? null : true"
+    ></gv-schema-form>
+  </mat-card>
+
+  <mat-card class="resourceFiltering-card">
+    <gio-form-slide-toggle appearance="fill">
+      <gio-form-label>Resource Filtering</gio-form-label>
+      Restrict resources according to whitelist and / or blacklist rules.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="resourceFilteringEnabled"
+        aria-label="Comment when subscribing to the plan toggle"
+        name="resourceFilteringEnabled"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gv-schema-form
+      *ngIf="resourceFilteringSchema"
+      class="resourceFiltering-card__schema-form"
+      ngDefaultControl
+      formControlName="resourceFilteringConfig"
+      [schema]="resourceFilteringSchema"
+      [attr.readonly]="restrictionForm.get('resourceFilteringConfig').enabled ? null : true"
+    ></gv-schema-form>
+  </mat-card>
+</ng-container>
+
+<div class="actions">
   <button mat-button matStepperPrevious>Back</button>
 </div>
