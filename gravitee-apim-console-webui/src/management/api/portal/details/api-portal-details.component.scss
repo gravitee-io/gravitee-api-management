@@ -118,6 +118,17 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-right: 8px;
     }
   }
+
+  &__update-banner {
+    padding-bottom: 16px;
+
+    &__refresh-icon {
+      animation-name: spin;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+  }
 }
 
 .api-quality {
@@ -126,4 +137,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .danger-zone {
   margin-top: 16px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(1turn);
+  }
 }

@@ -245,4 +245,8 @@ export class ApiService {
       return version.length > 32 ? { version: 'Maximum length is 32 characters.' } : null;
     };
   }
+
+  migrateApiToPolicyStudio(apiId: string): Observable<Api> {
+    return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/_migrate`, {});
+  }
 }

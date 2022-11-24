@@ -84,6 +84,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public isQualityEnabled = false;
 
   public isReadOnly = false;
+  public updateState: 'TO_UPDATE' | 'IN_PROGRESS' | 'UPDATED' | undefined;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -126,6 +127,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
           this.apiId = api.id;
           this.api = api;
+          this.updateState = api.gravitee == null || api.gravitee === '1.0.0' ? 'TO_UPDATE' : undefined;
 
           this.apiCategories = categories;
           this.apiOwner = api.owner.displayName;
@@ -329,6 +331,27 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     } else {
       return api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'PUBLISHED' || api.lifecycle_state === 'UNPUBLISHED';
     }
+  }
+
+  public updateApiVersion() {
+    this.updateState = 'IN_PROGRESS';
+    this.apiService
+      .migrateApiToPolicyStudio(this.apiId)
+      .pipe(
+        tap(() => {
+          this.updateState = 'UPDATED';
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          this.updateState = 'TO_UPDATE';
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  public reloadApi() {
+    this.ajsState.go('management.apis.detail.portal.general', { apiId: this.apiId }, { reload: true });
   }
 }
 
