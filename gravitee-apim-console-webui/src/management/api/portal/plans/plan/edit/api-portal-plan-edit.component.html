@@ -25,15 +25,15 @@
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </ng-template>
         <ng-template matStepLabel>General</ng-template>
-        <plan-edit-general-step matStepContent></plan-edit-general-step>
+        <plan-edit-general-step matStepContent [api]="api"></plan-edit-general-step>
       </mat-step>
 
-      <mat-step state="secure">
+      <mat-step state="secure" [stepControl]="planForm.get('secure')">
         <ng-template matStepperIcon="secure">
           <mat-icon svgIcon="gio:lock"></mat-icon>
         </ng-template>
         <ng-template matStepLabel>Secure</ng-template>
-        <plan-edit-secure-step matStepContent></plan-edit-secure-step>
+        <plan-edit-secure-step matStepContent [api]="api"></plan-edit-secure-step>
       </mat-step>
 
       <mat-step state="restriction">
