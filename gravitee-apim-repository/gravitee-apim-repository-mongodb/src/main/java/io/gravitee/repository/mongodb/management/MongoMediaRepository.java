@@ -195,11 +195,6 @@ public class MongoMediaRepository implements MediaRepository {
         return and(eq("metadata.type", mediaType), eq("metadata.hash", hash), addQuery);
     }
 
-    private Bson getQueryFindMedia(List<String> hashList, String api) {
-        Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
-        return and(in("metadata.hash", hashList), addQuery);
-    }
-
     private GridFSBucket getGridFs() {
         MongoDatabase db = mongoFactory.getMongoDatabase();
         String bucketName = "media";
