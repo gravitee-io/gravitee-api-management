@@ -176,6 +176,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse("Should not find media after deletion", media.isPresent());
     }
 
+    @Test
+    public void shouldReturnEmptyListWithNullApi() throws TechnicalException {
+        List<Media> apis = mediaRepository.findAllByApi(null);
+        assertTrue("Should return empty list with null API", apis.isEmpty());
+    }
+
     private Media createMedia(String fileName, byte[] fileBytes, long size, String hashString, String id, String api)
         throws TechnicalException {
         Media imageData = new Media();

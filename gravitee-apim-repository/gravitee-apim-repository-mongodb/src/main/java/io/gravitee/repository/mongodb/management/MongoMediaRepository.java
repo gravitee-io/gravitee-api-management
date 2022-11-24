@@ -122,6 +122,7 @@ public class MongoMediaRepository implements MediaRepository {
             Bson apiQuery = eq("metadata.api", api);
             return this.findAll(apiQuery);
         }
+        LOGGER.warn("Returning an empty list because the API identifier given as an argument is null");
         return new ArrayList<>();
     }
 
