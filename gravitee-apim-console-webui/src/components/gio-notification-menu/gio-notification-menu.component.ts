@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UserNotificationService } from '../../services-ngx/user-notification.service';
 import { UserNotification } from '../../entities/user-notification/userNotification';
@@ -27,6 +27,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
   styles: [require('./gio-notification-menu.component.scss')],
 })
 export class GioNotificationMenuComponent implements OnInit, OnDestroy {
+  private startNotificationFetch$ = new Subject();
   private unsubscribe$ = new Subject();
   public hasNotifications = false;
   public userNotificationsCount = 0;
@@ -36,24 +37,27 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
   constructor(public readonly userNotificationService: UserNotificationService, private readonly snackBarService: SnackBarService) {}
 
   public ngOnInit(): void {
-    this.userNotificationService
-      .getNotificationsAutoFetch()
-      .pipe(takeUntil(this.unsubscribe$))
+    this.startNotificationFetch$
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(() => this.userNotificationService.getNotificationsAutoFetch()),
+      )
       .subscribe((notificationPagedResult) => {
         this.userNotificationsCount = notificationPagedResult.page.total_elements;
         this.hasNotifications = this.userNotificationsCount > 0;
         this.userNotifications = notificationPagedResult.data;
       });
+    this.startNotificationFetch$.next();
   }
 
   public ngOnDestroy(): void {
-    this.unsubscribe$.next();
+    this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
 
   public deleteAll() {
     this.userNotificationService
-      .getNotifications()
+      .deleteAll()
       .pipe(
         takeUntil(this.unsubscribe$),
         tap(() => {
@@ -64,7 +68,7 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe(() => this.unsubscribe$.next());
+      .subscribe(() => this.startNotificationFetch$.next());
   }
 
   public delete(userNotification: UserNotification) {
@@ -80,7 +84,7 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe(() => this.unsubscribe$.next());
+      .subscribe(() => this.startNotificationFetch$.next());
   }
 
   onOutsideClick() {

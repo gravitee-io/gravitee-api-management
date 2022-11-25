@@ -34,6 +34,10 @@
     }
   }
 
+  .empty {
+    padding-bottom: 0;
+  }
+
   &__badge {
     position: absolute;
     top: -4px;
