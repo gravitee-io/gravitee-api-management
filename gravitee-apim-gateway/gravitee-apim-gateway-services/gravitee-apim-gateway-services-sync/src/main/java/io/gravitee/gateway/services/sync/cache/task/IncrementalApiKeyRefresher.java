@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class IncrementalApiKeyRefresher extends ApiKeyRefresher {
 
-    private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
-    private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+    private static final int TIMEFRAME_BEFORE_DELAY = 30_000;
+    private static final int TIMEFRAME_AFTER_DELAY = 30_000;
 
     private final Collection<String> plans;
 
