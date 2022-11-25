@@ -35,7 +35,7 @@ export enum PlanType {
 export const PLAN_STATUS = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'] as const;
 export type PlanStatus = typeof PLAN_STATUS[number];
 
-export interface NewPlanEntity {
+export interface NewPlan {
   name: string;
   description?: string;
   validation?: PlanValidation;
@@ -54,4 +54,31 @@ export interface NewPlanEntity {
   comment_message?: string;
   selection_rule?: string;
   general_conditions?: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  description?: string;
+  security: PlanSecurityType;
+  securityDefinition?: string;
+  api?: string;
+  characteristics?: Array<string>;
+  closed_at?: Date;
+  comment_message?: string;
+  comment_required?: boolean;
+  created_at?: Date;
+  crossId?: string;
+  excluded_groups?: Array<string>;
+  flows?: Array<Flow>;
+  general_conditions?: string;
+  order?: number;
+  paths?: { [key: string]: Array<unknown> };
+  published_at?: Date;
+  selection_rule?: string;
+  status?: PlanStatus;
+  tags?: Array<string>;
+  type?: PlanType;
+  updated_at?: Date;
+  validation?: PlanValidation;
 }

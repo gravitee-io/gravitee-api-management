@@ -15,13 +15,13 @@
  */
 import { isFunction } from 'lodash';
 
-import { ApiPlan } from '../api';
+import { Plan, PlanSecurityType } from './plan';
 
-export function fakePlan(modifier?: Partial<ApiPlan> | ((baseApi: ApiPlan) => ApiPlan)): ApiPlan {
-  const base: ApiPlan = {
+export function fakePlan(modifier?: Partial<Plan> | ((baseApi: Plan) => Plan)): Plan {
+  const base: Plan = {
     id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
     name: 'Free Spaceshuttle',
-    security: 'KEY_LESS',
+    security: PlanSecurityType.KEY_LESS,
     securityDefinition: '{}',
     paths: {},
     flows: [],

@@ -21,8 +21,8 @@ import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
-import { Api, ApiPlan } from '../entities/api';
-import { NewPlanEntity } from '../entities/plan';
+import { Api } from '../entities/api';
+import { NewPlan, Plan } from '../entities/plan';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +34,7 @@ export class PlanService {
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
-  public getApiPlans(apiId: string, status?: string, security?: string): Observable<ApiPlan[]> {
+  public getApiPlans(apiId: string, status?: string, security?: string): Observable<Plan[]> {
     let params = new HttpParams();
 
     if (status) {
@@ -45,11 +45,11 @@ export class PlanService {
       params = params.append('security', security);
     }
 
-    return this.http.get<ApiPlan[]>(`${this.constants.env.baseURL}/apis/${apiId}/plans`, { params });
+    return this.http.get<Plan[]>(`${this.constants.env.baseURL}/apis/${apiId}/plans`, { params });
   }
 
-  public update(api: Api, plan: ApiPlan): Observable<ApiPlan> {
-    return this.http.put<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
+  public update(api: Api, plan: Plan): Observable<Plan> {
+    return this.http.put<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
@@ -59,8 +59,8 @@ export class PlanService {
     );
   }
 
-  public create(api: Api, plan: NewPlanEntity): Observable<ApiPlan> {
-    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans`, plan).pipe(
+  public create(api: Api, plan: NewPlan): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans`, plan).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
@@ -70,12 +70,12 @@ export class PlanService {
     );
   }
 
-  public get(apiId: string, planId: string): Observable<ApiPlan> {
-    return this.http.get<ApiPlan>(`${this.constants.env.baseURL}/apis/${apiId}/plans/${planId}`);
+  public get(apiId: string, planId: string): Observable<Plan> {
+    return this.http.get<Plan>(`${this.constants.env.baseURL}/apis/${apiId}/plans/${planId}`);
   }
 
-  public publish(api: Api, plan: ApiPlan): Observable<ApiPlan> {
-    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_publish`, plan).pipe(
+  public publish(api: Api, plan: Plan): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_publish`, plan).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
@@ -85,8 +85,8 @@ export class PlanService {
     );
   }
 
-  public deprecate(api: Api, plan: ApiPlan): Observable<ApiPlan> {
-    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_deprecate`, plan).pipe(
+  public deprecate(api: Api, plan: Plan): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_deprecate`, plan).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
@@ -96,8 +96,8 @@ export class PlanService {
     );
   }
 
-  public close(api: Api, plan: ApiPlan): Observable<ApiPlan> {
-    return this.http.post<ApiPlan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_close`, {}).pipe(
+  public close(api: Api, plan: Plan): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}/_close`, {}).pipe(
       map((plan) => {
         if (api.gravitee === '2.0.0') {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });

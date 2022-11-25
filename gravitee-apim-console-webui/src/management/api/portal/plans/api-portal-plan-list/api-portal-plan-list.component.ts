@@ -35,7 +35,7 @@ import { ApiService } from '../../../../../services-ngx/api.service';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PlanSecurityType, PlanStatus, PLAN_STATUS } from '../../../../../entities/plan';
+import { Plan, PlanSecurityType, PlanStatus, PLAN_STATUS } from '../../../../../entities/plan';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -46,7 +46,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
   public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
-  public plansTableDS: ApiPlan[] = [];
+  public plansTableDS: Plan[] = [];
   public isLoadingData = true;
   public apiPlanStatus = PLAN_STATUS;
   public status: PlanStatus;
@@ -213,7 +213,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public closePlan(plan: ApiPlan): void {
+  public closePlan(plan: Plan): void {
     this.subscriptionService
       .getApiSubscriptionsByPlan(plan.api, plan.id)
       .pipe(
