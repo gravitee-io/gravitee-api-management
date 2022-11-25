@@ -31,7 +31,7 @@
   <span> By enabling health-check, all non-backup endpoints will be checked except if health-check is disabled at endpoint level. </span>
 </gio-banner-info>
 
-<form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid>
+<form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid [formGroup]="healthCheckForm">
   <api-proxy-health-check-form [healthCheckForm]="healthCheckForm"></api-proxy-health-check-form>
 
   <gio-save-bar [form]="healthCheckForm" (resetClicked)="ngOnInit()" (submitted)="onSubmit()"></gio-save-bar>
