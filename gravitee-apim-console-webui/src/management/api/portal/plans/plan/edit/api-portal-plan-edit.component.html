@@ -17,7 +17,7 @@
 -->
 
 <h1>Plan</h1>
-<form autocomplete="off" gioFormFocusInvalid>
+<form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
   <mat-card>
     <mat-stepper>
       <mat-step state="general" [stepControl]="planForm.get('general')">

@@ -20,7 +20,7 @@
   Group
 </h1>
 
-<form gioFormFocusInvalid>
+<form *ngIf="groupForm" autocomplete="off" gioFormFocusInvalid [formGroup]="groupForm">
   <mat-tab-group animationDuration="0ms">
     <mat-tab label="General">
       <!-- General tab content -->

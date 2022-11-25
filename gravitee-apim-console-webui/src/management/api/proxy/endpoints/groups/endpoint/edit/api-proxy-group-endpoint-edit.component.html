@@ -20,7 +20,7 @@
   Endpoint
 </h1>
 
-<form gioFormFocusInvalid>
+<form *ngIf="endpointForm" gioFormFocusInvalid autocomplete="off" [formGroup]="endpointForm">
   <mat-tab-group animationDuration="0ms">
     <mat-tab label="General">
       <!-- General tab content -->
