@@ -26,6 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
 import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -50,6 +51,7 @@ import { GioFormFocusInvalidModule } from '../../../../../../shared/components/g
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
 
     GioFormSlideToggleModule,
     GioFormTagsInputModule,

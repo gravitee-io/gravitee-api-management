@@ -15,9 +15,9 @@
  */
 import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { camelCase } from 'lodash';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form';
 
 import { Constants } from '../../../../../../../entities/Constants';
@@ -26,6 +26,7 @@ import { PolicyService } from '../../../../../../../services-ngx/policy.service'
 import { ResourceService } from '../../../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
 import { Api } from '../../../../../../../entities/api';
+import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
 
 const allSecurityTypes = [
   {
@@ -76,6 +77,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     @Inject('Constants') private readonly constants: Constants,
     private readonly policyService: PolicyService,
     private readonly resourceService: ResourceService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -96,6 +98,10 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         filter((securityType) => securityType !== PlanSecurityType.KEY_LESS),
         map((securityType) => this.securityTypes.find((type) => type.id === securityType).policy),
         switchMap((securityTypePolicy) => this.policyService.getSchema(securityTypePolicy)),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'An error occurs while loading security schema.');
+          return EMPTY;
+        }),
       )
       .subscribe((schema) => {
         this.securityConfigSchema = schema;
@@ -103,7 +109,13 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
 
     this.resourceService
       .list({ expandSchema: false, expandIcon: true })
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'An error occurs while loading resources.');
+          return EMPTY;
+        }),
+      )
       .subscribe((resources) => {
         this.resourceTypes = resources;
       });
