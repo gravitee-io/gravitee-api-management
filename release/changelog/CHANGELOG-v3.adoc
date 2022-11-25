@@ -5,6 +5,30 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 *Important:* If you plan to skip versions when you upgrade, ensure that you read the version-specific upgrade notes for each intermediate version. You may be required to perform manual actions as part of the upgrade.
 
 
+== https://github.com/gravitee-io/issues/milestone/615?closed=1[APIM - 3.18.13 (2022-11-25)]
+
+=== Bug fixes
+
+*_Console_*
+
+- Design studio's debug mode is not working in gateway bridge configuration https://github.com/gravitee-io/issues/issues/8486[#8486]
+
+*_General_*
+
+- Merge 3.15.18 into 3.18.x https://github.com/gravitee-io/issues/issues/8658[#8658]
+
+*_Management_*
+
+- Api subscribers resource should return nothing when there is no subscriptions. https://github.com/gravitee-io/issues/issues/8630[#8630]
+- Duplicate users on login when special characters https://github.com/gravitee-io/issues/issues/8672[#8672]
+
+=== Improvements
+
+*_Gateway_*
+
+- API Keys Synchronization - Lazy loading mechanism implementation https://github.com/gravitee-io/issues/issues/8680[#8680]
+
+
 == https://github.com/gravitee-io/issues/milestone/614?closed=1[APIM - 3.15.18 (2022-11-18)]
 
 === Bug fixes
