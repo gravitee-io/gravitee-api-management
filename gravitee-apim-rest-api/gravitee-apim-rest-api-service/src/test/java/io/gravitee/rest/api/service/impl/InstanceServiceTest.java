@@ -16,13 +16,21 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.InstanceEntity;
+import io.gravitee.rest.api.model.InstanceListItem;
+import io.gravitee.rest.api.model.InstanceState;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -38,7 +46,6 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -54,12 +61,15 @@ public class InstanceServiceTest {
 
     private ExecutionContext executionContext;
 
-    @InjectMocks
-    private InstanceService cut = new InstanceServiceImpl();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private InstanceService cut;
 
     @Before
     public void setup() {
         this.executionContext = GraviteeContext.getExecutionContext();
+
+        cut = new InstanceServiceImpl(eventService, objectMapper);
     }
 
     @Test
@@ -107,6 +117,41 @@ public class InstanceServiceTest {
     @Test
     public void shouldFindByEvent() {
         final EventEntity evt = new EventEntity();
+        Instant aMinAgo = Instant.now().minus(1, ChronoUnit.MINUTES);
+        Instant twoMinAgo = Instant.now().minus(2, ChronoUnit.MINUTES);
+        evt.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
+                "evt-org",
+                "last_heartbeat_at",
+                String.valueOf(aMinAgo.toEpochMilli()),
+                "started_at",
+                String.valueOf(twoMinAgo.toEpochMilli())
+            )
+        );
+        evt.setType(EventType.GATEWAY_STARTED);
+        evt.setPayload("{\"hostname\":\"myhost\"}");
+
+        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
+
+        assertThat(result.getLastHeartbeatAt()).isEqualTo(Date.from(aMinAgo));
+        assertThat(result.getStartedAt()).isEqualTo(Date.from(twoMinAgo));
+        assertThat(result.getState()).isEqualTo(InstanceState.STARTED);
+        assertThat(result.getEnvironmentsHrids()).hasSize(1);
+        assertThat(result.getOrganizationsHrids()).hasSize(1);
+
+        assertThat(result.getHostname()).isEqualTo("myhost");
+    }
+
+    @Test
+    public void shouldFindByEventWithoutDateProperties() {
+        final EventEntity evt = new EventEntity();
         evt.setProperties(
             Map.of(
                 "id",
@@ -117,14 +162,40 @@ public class InstanceServiceTest {
                 "evt-org"
             )
         );
+        evt.setType(EventType.GATEWAY_STARTED);
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
-        assertThat(result).isNotNull();
-        assertThat(result.getEnvironmentsHrids()).hasSize(1);
-        assertThat(result.getOrganizationsHrids()).hasSize(1);
+        assertThat(result.getLastHeartbeatAt()).isNull();
+        assertThat(result.getState()).isEqualTo(InstanceState.UNKNOWN);
+    }
+
+    @Test
+    public void shouldFindByEventWithoutGatewayStartedType() {
+        Instant aMinAgo = Instant.now().minus(1, ChronoUnit.MINUTES);
+
+        final EventEntity evt = new EventEntity();
+        evt.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(),
+                "evt-org",
+                "stopped_at",
+                String.valueOf(aMinAgo.toEpochMilli())
+            )
+        );
+
+        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+
+        final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
+
+        assertThat(result.getState()).isEqualTo(InstanceState.STOPPED);
+        assertThat(result.getStoppedAt()).isEqualTo(Date.from(aMinAgo));
     }
 
     @Test
@@ -189,7 +260,7 @@ public class InstanceServiceTest {
         assertNotNull(items);
         assertEquals(3, items.size());
         for (InstanceListItem item : items) {
-            assertFalse("ko-4".equals(item.getId()));
+            assertNotEquals("ko-4", item.getId());
         }
     }
 }

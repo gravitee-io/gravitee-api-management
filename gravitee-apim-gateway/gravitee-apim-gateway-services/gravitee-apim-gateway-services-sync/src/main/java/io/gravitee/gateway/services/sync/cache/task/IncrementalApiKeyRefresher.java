@@ -32,22 +32,6 @@ public class IncrementalApiKeyRefresher extends ApiKeyRefresher {
 
     private final long lastRefreshAt, nextLastRefreshAt;
 
-    /*
-    private long minTime;
-
-    private long maxTime;
-
-    private long avgTime;
-
-    private long totalTime;
-
-    private long count;
-
-    private long errorsCount;
-
-    private Throwable lastException;
-     */
-
     public IncrementalApiKeyRefresher(final long lastRefreshAt, final long nextLastRefreshAt, final List<String> plans) {
         this.lastRefreshAt = lastRefreshAt;
         this.nextLastRefreshAt = nextLastRefreshAt;
@@ -56,9 +40,6 @@ public class IncrementalApiKeyRefresher extends ApiKeyRefresher {
 
     @Override
     public Result<Boolean> call() {
-        //long start = System.currentTimeMillis();
-        //long nextLastRefreshAt = System.currentTimeMillis();
-
         return doRefresh(
             new ApiKeyCriteria.Builder()
                 .plans(plans)
@@ -67,72 +48,5 @@ public class IncrementalApiKeyRefresher extends ApiKeyRefresher {
                 .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
                 .build()
         );
-        /*
-            try {
-                apiKeyRepository
-                        .findByCriteria(criteriaBuilder.build())
-                        .forEach(this::saveOrUpdate);
-
-                lastRefreshAt = nextLastRefreshAt;
-            } catch (Exception ex) {
-                errorsCount++;
-                logger.error("Unexpected error while refreshing api-keys", ex);
-                lastException = ex;
-            }
-
-            count++;
-
-            long end = System.currentTimeMillis();
-
-            long diff = end - start;
-            totalTime += diff;
-
-            if (count == 1) {
-                minTime = diff;
-            } else {
-                if (diff > maxTime) {
-                    maxTime = diff;
-                }
-
-                if (diff < minTime) {
-                    minTime = diff;
-                }
-            }
-
-            avgTime = totalTime / count;
-*/
     }
-    /*
-    public long getLastRefreshAt() {
-        return lastRefreshAt;
-    }
-
-    public long getCount() {
-        return count;
-    }
-
-    public long getMinTime() {
-        return minTime;
-    }
-
-    public long getMaxTime() {
-        return maxTime;
-    }
-
-    public long getAvgTime() {
-        return avgTime;
-    }
-
-    public long getTotalTime() {
-        return totalTime;
-    }
-
-    public long getErrorsCount() {
-        return errorsCount;
-    }
-
-    public Throwable getLastException() {
-        return lastException;
-    }
-     */
 }

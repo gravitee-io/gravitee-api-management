@@ -82,6 +82,8 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     private ScheduledFuture<?> scheduledFuture;
 
+    private long startTime;
+
     public SubscriptionsCacheService() {
         scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("gio.sync-subscriptions-");
@@ -93,6 +95,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+        this.startTime = System.currentTimeMillis();
 
         // Create handlers
         // Set subscriptions handler
@@ -207,7 +210,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     class SubscriptionsTask extends TimerTask {
 
-        private long lastRefreshAt = -1;
+        private long lastRefreshAt = startTime;
 
         @Override
         public void run() {
