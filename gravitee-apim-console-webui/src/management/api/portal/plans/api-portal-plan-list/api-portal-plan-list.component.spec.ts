@@ -37,6 +37,7 @@ import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { PlanSecurityType } from '../../../../../entities/plan';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -277,7 +278,7 @@ describe('ApiPortalPlanListComponent', () => {
       });
 
       it('should change delete plan button message', async () => {
-        const plan = fakePlan({ name: 'key plan 🔑️', status: 'PUBLISHED', security: 'API_KEY' });
+        const plan = fakePlan({ name: 'key plan 🔑️', status: 'PUBLISHED', security: PlanSecurityType.API_KEY });
         await initComponent([plan]);
 
         const table = await computePlansTableCells();

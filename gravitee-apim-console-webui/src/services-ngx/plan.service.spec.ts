@@ -22,7 +22,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakePlan } from '../entities/plan/plan.fixture';
 import { fakeApi } from '../entities/api/Api.fixture';
-import { NewPlanEntity, PlanSecurityType } from '../entities/plan';
+import { NewPlan, PlanSecurityType } from '../entities/plan';
 
 describe('PlanService', () => {
   let httpTestingController: HttpTestingController;
@@ -81,7 +81,7 @@ describe('PlanService', () => {
 
     it('should get only PUBLISHED KEY_LESS api plans', (done) => {
       const apiId = 'fox';
-      const fakePlans = [fakePlan({ id: '1', name: '🙅🔑', security: 'KEY_LESS' })];
+      const fakePlans = [fakePlan({ id: '1', name: '🙅🔑', security: PlanSecurityType.KEY_LESS })];
 
       planService.getApiPlans(apiId, 'published', 'KEY_LESS').subscribe((response) => {
         expect(response).toMatchObject(fakePlans);
@@ -138,7 +138,7 @@ describe('PlanService', () => {
   describe('create', () => {
     it('should create api plans', (done) => {
       const api = fakeApi();
-      const plan: NewPlanEntity = {
+      const plan: NewPlan = {
         name: 'free',
         security: PlanSecurityType.API_KEY,
       };
