@@ -45,8 +45,8 @@ public class VertxDebugConfiguration {
         return HttpServerConfiguration
             .builder()
             .withEnvironment(environment)
-            .withPort(Integer.parseInt(environment.getProperty("debug.http.port", "8482")))
-            .withHost(environment.getProperty("debug.http.host", "localhost"))
+            .withPort(Integer.parseInt(environment.getProperty("debug.port", "8482")))
+            .withHost(environment.getProperty("debug.host", "localhost"))
             .build();
     }
 

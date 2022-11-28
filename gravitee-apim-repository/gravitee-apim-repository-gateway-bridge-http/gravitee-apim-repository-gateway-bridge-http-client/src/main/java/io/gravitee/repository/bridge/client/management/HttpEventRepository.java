@@ -39,7 +39,7 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     @Override
     public Optional<Event> findById(String eventId) throws TechnicalException {
         try {
-            return blockingGet(get("/event" + eventId, BodyCodecs.optional(Event.class)).send()).payload();
+            return blockingGet(get("/events/" + eventId, BodyCodecs.optional(Event.class)).send()).payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

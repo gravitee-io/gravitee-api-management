@@ -36,6 +36,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,21 +66,30 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         final DebugExecutionContext debugContext = (DebugExecutionContext) context;
         final DebugApi debugApiComponent = (DebugApi) debugContext.getComponent(Api.class);
 
-        Event event = null;
+        final Vertx vertx = context.getComponent(Vertx.class);
+        vertx.executeBlocking(
+            (Handler<Promise<Void>>) promise -> {
+                Event event = null;
+                try {
+                    event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
+                    final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(
+                        debugContext,
+                        debugApiComponent
+                    );
 
-        try {
-            event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
-            final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(debugContext, debugApiComponent);
-
-            event.setPayload(objectMapper.writeValueAsString(debugApi));
-            updateEvent(event, ApiDebugStatus.SUCCESS);
-        } catch (JsonProcessingException | TechnicalException e) {
-            LOGGER.error("Error occurs while saving debug event", e);
-            failEvent(event);
-        }
-
-        // Push response to the next handler
-        next.handle(context);
+                    event.setPayload(objectMapper.writeValueAsString(debugApi));
+                    updateEvent(event, ApiDebugStatus.SUCCESS);
+                } catch (JsonProcessingException | TechnicalException e) {
+                    LOGGER.error("Error occurs while saving debug event", e);
+                    failEvent(event);
+                }
+                promise.complete();
+            },
+            result -> {
+                // Push response to the next handler
+                next.handle(context);
+            }
+        );
     }
 
     private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(

@@ -158,7 +158,8 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userRepository.findBySource("gravitee", "user1", "DEV")).thenReturn(of(user1));
         when(userRepository.findBySource("gravitee", "USER1", "DEV")).thenReturn(of(user1));
         when(userRepository.findBySource("gravitee", "user", "DEV")).thenReturn(empty());
-        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV")).thenReturn(of(userSpecialChar));
+        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me [IT] & others", "DEV"))
+            .thenReturn(of(userSpecialChar));
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 

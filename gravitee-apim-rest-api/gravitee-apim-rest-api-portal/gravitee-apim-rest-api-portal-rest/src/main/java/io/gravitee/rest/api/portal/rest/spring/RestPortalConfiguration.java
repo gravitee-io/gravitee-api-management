@@ -19,14 +19,9 @@ import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import java.util.Properties;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,36 +30,6 @@ import org.springframework.core.env.Environment;
 @Configuration
 @ComponentScan({ "io.gravitee.rest.api.portal.rest.mapper" })
 @Import(
-    {
-        PropertiesConfiguration.class,
-        PluginConfiguration.class,
-        ServiceConfiguration.class,
-        SecurityPortalConfiguration.class,
-        IdentityProviderPluginConfiguration.class,
-    }
+    { PluginConfiguration.class, ServiceConfiguration.class, SecurityPortalConfiguration.class, IdentityProviderPluginConfiguration.class }
 )
-public class RestPortalConfiguration {
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer properties(@Qualifier("graviteeProperties") Properties graviteeProperties) {
-        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties);
-        propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
-
-        return propertySourcesPlaceholderConfigurer;
-    }
-
-    @Bean
-    public static EnvironmentBeanFactoryPostProcessor environmentBeanFactoryPostProcessor() {
-        return new EnvironmentBeanFactoryPostProcessor();
-    }
-
-    @Bean
-    public static PropertySourceBeanProcessor propertySourceBeanProcessor(
-        @Qualifier("graviteeProperties") Properties graviteeProperties,
-        Environment environment
-    ) {
-        // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
-        return new PropertySourceBeanProcessor(graviteeProperties, environment);
-    }
-}
+public class RestPortalConfiguration {}
