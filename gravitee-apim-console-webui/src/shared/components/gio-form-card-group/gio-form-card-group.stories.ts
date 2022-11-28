@@ -76,3 +76,28 @@ export const ReactiveForms: Story = {
     };
   },
 };
+
+export const ReactiveFormsGroupDisable: Story = {
+  render: () => {
+    const selectControl = new FormControl({ value: 'A', disabled: true });
+
+    selectControl.valueChanges.subscribe((value) => {
+      action('On select')(value);
+    });
+
+    return {
+      template: `
+      <gio-form-card-group [formControl]="selectControl">
+        <gio-form-card value="A">A card</gio-form-card>
+        <gio-form-card value="B">B card</gio-form-card>
+        <gio-form-card value="C">C card</gio-form-card>
+        <gio-form-card value="D">D card</gio-form-card>
+        <gio-form-card value="E">E card</gio-form-card>
+      </gio-form-card-group>
+      `,
+      props: {
+        selectControl,
+      },
+    };
+  },
+};

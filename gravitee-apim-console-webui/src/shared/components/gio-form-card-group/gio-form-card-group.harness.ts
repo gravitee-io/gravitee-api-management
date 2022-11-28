@@ -34,13 +34,13 @@ export class GioFormCardGroupHarness extends ComponentHarness {
 
   protected getCards = this.locatorForAll('gio-form-card');
 
-  protected getCardByValue = (value: string) => this.locatorFor(`gio-form-card[value="${value}"]`)();
+  protected getCardByValue = (value: string) => this.locatorFor(`gio-form-card[ng-reflect-value="${value}"]`)();
 
   async getSelectedValue(): Promise<string> {
     const cards = await this.getCards();
 
     const cardsAttr = await parallel(() =>
-      cards.map(async (row) => ({ class: await row.hasClass('selected'), value: await row.getAttribute('value') })),
+      cards.map(async (row) => ({ class: await row.hasClass('selected'), value: await row.getAttribute('ng-reflect-value') })),
     );
 
     return cardsAttr.find((card) => card.class)?.value;
@@ -60,5 +60,13 @@ export class GioFormCardGroupHarness extends ComponentHarness {
     const card = await this.getCardByValue(value);
 
     await card.click();
+  }
+
+  async isDisabled(): Promise<boolean> {
+    const cards = await this.getCards();
+
+    const cardsAttr = await parallel(() => cards.map(async (card) => ({ hasClass: await card.hasClass('disabled') })));
+
+    return cardsAttr.every((card) => card.hasClass);
   }
 }
