@@ -1666,7 +1666,7 @@ jobs:
                   working_directory: "./release"
                   command: |
                     npm run zx -- --experimental ci-steps/check-bundle-size.mjs
-                    echo "export BUNDLE_SIZE_MESSAGE=$(cat .tmp/bundle-size.md)" >> $BASH_ENV
+                    echo "export BUNDLE_SIZE_MESSAGE=\"$(cat .tmp/bundle-size.md)\"" >> $BASH_ENV
             - when:
                 condition:
                   not: << pipeline.parameters.dry_run>>
@@ -1696,6 +1696,11 @@ jobs:
                         	 }
                           ]
                         }
+            - persist_to_workspace:
+                root: .
+                paths:
+                  - ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+
     publish-bundle:
         docker:
           - image: cimg/base:stable
@@ -1706,6 +1711,8 @@ jobs:
           - keeper/env-export:
               secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
               var-name: AWS_SECRET_ACCESS_KEY
+          - attach_workspace:
+              at: .
           - when:
               condition: << pipeline.parameters.dry_run>>
               steps:
