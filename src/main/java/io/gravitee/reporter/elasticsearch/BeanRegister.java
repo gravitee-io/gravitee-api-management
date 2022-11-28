@@ -62,6 +62,8 @@ public class BeanRegister {
                 return new Elastic6xBeanRegistrer();
             case 7:
                 return new Elastic7xBeanRegistrer();
+            case 8:
+                return new Elastic8xBeanRegistrer();
             default:
                 return null;
         }

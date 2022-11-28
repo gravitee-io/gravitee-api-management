@@ -78,6 +78,9 @@ public class IndexNameGeneratorRegistrationTest {
         if (elasticsearchVersion.startsWith("7")) {
             configuration.setIndexMode("daily");
         }
+        if (elasticsearchVersion.startsWith("8")) {
+            configuration.setIndexMode("daily");
+        }
         reporter.start();
         IndexNameGenerator indexNameGenerator = (IndexNameGenerator) applicationContext.getBean("indexNameGenerator");
         assertThat(indexNameGenerator.getClass()).isEqualTo(PerTypeAndDateIndexNameGenerator.class);
@@ -97,6 +100,9 @@ public class IndexNameGeneratorRegistrationTest {
         if (elasticsearchVersion.startsWith("7")) {
             configuration.setIndexMode("ilm");
         }
+        if (elasticsearchVersion.startsWith("8")) {
+            configuration.setIndexMode("ilm");
+        }
         reporter.start();
 
         IndexNameGenerator indexNameGenerator = (IndexNameGenerator) applicationContext.getBean("indexNameGenerator");
@@ -111,6 +117,10 @@ public class IndexNameGeneratorRegistrationTest {
             assertThat(generatedName).isEqualTo("gravitee-log");
         }
         if (elasticsearchVersion.startsWith("7")) {
+            assertThat(indexNameGenerator.getClass()).isEqualTo(PerTypeIndexNameGenerator.class);
+            assertThat(generatedName).isEqualTo("gravitee-log");
+        }
+        if (elasticsearchVersion.startsWith("8")) {
             assertThat(indexNameGenerator.getClass()).isEqualTo(PerTypeIndexNameGenerator.class);
             assertThat(generatedName).isEqualTo("gravitee-log");
         }
