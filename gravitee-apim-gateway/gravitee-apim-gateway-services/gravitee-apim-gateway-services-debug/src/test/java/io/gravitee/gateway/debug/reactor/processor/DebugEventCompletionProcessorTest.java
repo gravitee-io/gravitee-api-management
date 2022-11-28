@@ -90,8 +90,9 @@ class DebugEventCompletionProcessorTest {
         cut.handler(__ -> {});
         final Vertx vertx = mock(Vertx.class);
         Promise<Void> promise = new PromiseImpl<>();
-        when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
-        doAnswer(
+        lenient().when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        lenient()
+            .doAnswer(
                 i -> {
                     ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
                     return null;
