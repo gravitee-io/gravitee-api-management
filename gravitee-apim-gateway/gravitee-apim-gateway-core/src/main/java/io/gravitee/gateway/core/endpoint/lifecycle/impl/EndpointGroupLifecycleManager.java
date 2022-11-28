@@ -26,6 +26,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.LoadBalancer;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.connector.ConnectorRegistry;
 import io.gravitee.gateway.core.endpoint.EndpointException;
@@ -69,6 +71,8 @@ public class EndpointGroupLifecycleManager
 
     private final EndpointGroup group;
     private LoadBalancedEndpointGroup lbGroup;
+
+    private final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 
     public EndpointGroupLifecycleManager(
         Api api,
@@ -141,6 +145,9 @@ public class EndpointGroupLifecycleManager
 
     public void start(io.gravitee.definition.model.Endpoint model) {
         try {
+            // Evaluate endpoint target to be sure SpEL expressions are resolved
+            model.setTarget(evaluateTarget(model.getTarget(), api.getProperties()));
+
             logger.debug(
                 "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
                 model.getName(),
@@ -184,6 +191,14 @@ public class EndpointGroupLifecycleManager
         } catch (Exception ex) {
             logger.error("Unexpected error while creating endpoint connector", ex);
         }
+    }
+
+    private String evaluateTarget(String target, Properties properties) {
+        if (properties != null) {
+            templateEngine.getTemplateContext().setVariable("properties", properties.getValues());
+        }
+
+        return templateEngine.getValue(target, String.class);
     }
 
     public void stop(String endpointName) {

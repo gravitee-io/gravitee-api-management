@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.After;
@@ -121,6 +120,22 @@ public class ApplicationService_FindByIdsTest {
             .ids(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .environmentIds(executionContext.getEnvironmentId())
+            .build();
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(2).when(primaryOwners).size();
+
+        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
+
+        assertNotNull(applications);
+        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void shouldFindByIdsWithNoEnvironmentCriteria() throws TechnicalException {
+        ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
+        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+            .ids(Sets.newHashSet(APPLICATION_IDS))
+            .status(ApplicationStatus.ACTIVE)
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();

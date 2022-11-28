@@ -1398,6 +1398,7 @@ jobs:
     nexus-staging:
         executor:
             name: openjdk
+            version: "11.0"
             class: xlarge
         steps:
             - checkout
@@ -1419,7 +1420,7 @@ jobs:
             - run:
                   name: Release on Nexus
                   command: |
-                      mvn clean deploy --batch-mode -Dgravitee-release -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
             - save-maven-job-cache:
                   jobName: nexus-staging
             - keeper/env-export:

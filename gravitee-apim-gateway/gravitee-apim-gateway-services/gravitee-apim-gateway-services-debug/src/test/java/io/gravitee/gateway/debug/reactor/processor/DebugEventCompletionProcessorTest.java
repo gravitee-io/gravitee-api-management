@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -41,6 +40,10 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.impl.future.PromiseImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +88,18 @@ class DebugEventCompletionProcessorTest {
     public void setUp() {
         cut = new DebugEventCompletionProcessor(eventRepository, objectMapper);
         cut.handler(__ -> {});
+        final Vertx vertx = mock(Vertx.class);
+        Promise<Void> promise = new PromiseImpl<>();
+        lenient().when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        lenient()
+            .doAnswer(
+                i -> {
+                    ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
+                    return null;
+                }
+            )
+            .when(vertx)
+            .executeBlocking(any(), any());
 
         lenient().when(debugApi.getDefinition()).thenReturn(new io.gravitee.definition.model.debug.DebugApi());
     }

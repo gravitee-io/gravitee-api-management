@@ -26,18 +26,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.connector.api.ConnectorBuilder;
 import io.gravitee.connector.api.ConnectorFactory;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.connector.ConnectorRegistry;
 import io.gravitee.gateway.core.endpoint.EndpointException;
+import io.gravitee.gateway.core.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -159,6 +159,37 @@ public class EndpointGroupLifecycleManagerTest {
         assertNull(endpointLifecycleManager.get("unknown"));
 
         assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+    }
+
+    @Test
+    public void shouldStartEndpointWithSpEL() throws Exception {
+        io.gravitee.definition.model.Endpoint endpoint = new io.gravitee.definition.model.Endpoint(
+            "http",
+            "endpoint",
+            "{#properties['backend']}"
+        );
+        endpoint.setBackup(false);
+        endpoint.setConfiguration("");
+
+        when(group.getEndpoints()).thenReturn(Collections.singleton(endpoint));
+
+        Properties properties = new Properties();
+        properties.setProperties(List.of(new Property("backend", "http://localhost:8080")));
+        when(api.getProperties()).thenReturn(properties);
+
+        Endpoint registeredEndpoint = new ManagedEndpoint(endpoint, mock(Connector.class));
+        when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class))).thenReturn(registeredEndpoint);
+
+        endpointLifecycleManager.start();
+
+        Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
+
+        assertNotNull(httpClientEndpoint);
+        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
+        assertEquals("http://localhost:8080", httpClientEndpoint.target());
+
+        verify(endpointFactory, times(1)).create(eq(endpoint), any(io.gravitee.connector.api.Connector.class));
+        verify(httpClientEndpoint.connector(), times(1)).start();
     }
 
     @Test

@@ -40,6 +40,7 @@ public class SubscriptionServiceTest {
     private static final String PLAN_ID = "my-test-plan-id";
     private static final String API_ID = "my-test-api-id";
     private static final String SUB_ID = "my-test-subscription-id";
+    private static final String SUB_ID_2 = "my-test-subscription-id-2";
     private static final String API_KEY = "my-test-api-key";
     private static final String CLIENT_ID = "my-test-client-id";
 
@@ -170,6 +171,31 @@ public class SubscriptionServiceTest {
 
         Optional<Subscription> optSubscription = subscriptionService.getById("sub-id");
         assertTrue(optSubscription.isEmpty());
+    }
+
+    @Test
+    public void should_evict_subscriptions_when_ids_match() {
+        Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+        Subscription subscription2 = buildAcceptedSubscription(SUB_ID_2, API_ID, CLIENT_ID, PLAN_ID);
+
+        subscriptionService.save(subscription);
+
+        Optional<Subscription> foundSubscription = subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
+        assertTrue(foundSubscription.isPresent());
+        assertEquals(subscription.getId(), foundSubscription.get().getId());
+
+        subscriptionService.save(subscription2);
+
+        foundSubscription = subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
+        assertTrue(foundSubscription.isPresent());
+        assertEquals(subscription2.getId(), foundSubscription.get().getId());
+
+        subscription.setStatus("CLOSED");
+        subscriptionService.save(subscription);
+
+        foundSubscription = subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
+        assertTrue(foundSubscription.isPresent());
+        assertEquals(subscription2.getId(), foundSubscription.get().getId());
     }
 
     private Subscription buildAcceptedSubscription(String id, String api, String clientId, String plan) {
