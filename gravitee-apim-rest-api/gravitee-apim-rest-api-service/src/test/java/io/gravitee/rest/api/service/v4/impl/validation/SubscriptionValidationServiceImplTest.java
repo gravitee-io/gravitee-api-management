@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -92,6 +93,16 @@ public class SubscriptionValidationServiceImplTest {
         Assertions.assertThat(sanitizedField).isEqualTo("sanitized");
     }
 
+    @Test
+    public void shouldAcceptNullConfigurationForNewSubscription() {
+        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+        newSubscriptionEntity.setConfiguration((String) null);
+
+        cut.validateAndSanitize(newSubscriptionEntity);
+
+        assertNull(newSubscriptionEntity.getConfiguration());
+    }
+
     @Test(expected = SubscriptionEntrypointIdMissingException.class)
     public void shouldThrowIfNoConnectorIdProvidedInConfigurationUpdateSubscription() {
         UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
@@ -130,6 +141,16 @@ public class SubscriptionValidationServiceImplTest {
             .path("aConfigurationFieldToSanitize")
             .asText();
         Assertions.assertThat(sanitizedField).isEqualTo("sanitized");
+    }
+
+    @Test
+    public void shouldAcceptNullConfigurationForUpdateSubscription() {
+        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+        updateSubscriptionEntity.setConfiguration((String) null);
+
+        cut.validateAndSanitize(updateSubscriptionEntity);
+
+        assertNull(updateSubscriptionEntity.getConfiguration());
     }
 
     @Test(expected = SubscriptionEntrypointIdMissingException.class)
