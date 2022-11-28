@@ -47,7 +47,7 @@ public class UpdateSubscriptionConfigurationEntity {
 
     @JsonSetter
     public void setConfiguration(final JsonNode configuration) {
-        if (configuration != null) {
+        if (configuration != null && !configuration.isNull()) {
             this.configuration = configuration.toString();
         }
     }

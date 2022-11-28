@@ -62,6 +62,9 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     }
 
     private String validateAndSanitizeSubscriptionConfiguration(String configuration) {
+        if (configuration == null) {
+            return null;
+        }
         try {
             String connectorId = objectMapper.readTree(configuration).path("entrypointId").asText();
             if (connectorId == null || connectorId.isEmpty()) {
