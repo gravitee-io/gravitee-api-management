@@ -507,6 +507,10 @@ public class ReporterConfiguration {
         this.extendedSettingsTemplate = extendedSettingsTemplate;
     }
 
+    public void setIndexMode(String indexMode) {
+        this.indexMode = indexMode;
+    }
+
     public boolean isIlmManagedIndex() {
         return "ilm".equalsIgnoreCase(indexMode);
     }

@@ -17,7 +17,6 @@ package io.gravitee.reporter.elasticsearch.spring;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.elasticsearch.ElasticsearchReporter;
 import io.gravitee.reporter.elasticsearch.ElasticsearchReporterTest;
@@ -25,12 +24,15 @@ import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import java.time.Instant;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -51,6 +53,12 @@ public class IndexNameGeneratorRegistrationTest {
     @Autowired
     ElasticsearchReporter reporter;
 
+    @Autowired
+    ConfigurableEnvironment environment;
+
+    @Value("${elasticsearch.version:" + ElasticsearchReporterConfigurationTest.ELASTICSEARCH_DEFAULT_VERSION + "}")
+    private String elasticsearchVersion;
+
     private static final long TIMESTAMP = Instant.parse("2021-12-13T00:00:00.00Z").toEpochMilli();
 
     @After
@@ -60,9 +68,16 @@ public class IndexNameGeneratorRegistrationTest {
 
     @Test
     public void testIndexNameGeneratorRegistration_should_register_per_type_and_date_generator() throws Exception {
-        configuration.setPerTypeIndex(true);
+        if (elasticsearchVersion.startsWith("5")) {
+            configuration.setPerTypeIndex(true);
+        }
+        if (elasticsearchVersion.startsWith("6")) {
+            configuration.setIndexMode("daily");
+        }
+        if (elasticsearchVersion.startsWith("7")) {
+            configuration.setIndexMode("daily");
+        }
         reporter.start();
-
         IndexNameGenerator indexNameGenerator = (IndexNameGenerator) applicationContext.getBean("indexNameGenerator");
         assertEquals(PerTypeAndDateIndexNameGenerator.class, indexNameGenerator.getClass());
 
@@ -71,14 +86,32 @@ public class IndexNameGeneratorRegistrationTest {
     }
 
     @Test
-    public void testIndexNameGenerator_should_register_multi_type_generator() throws Exception {
-        configuration.setPerTypeIndex(false);
+    public void testIndexNameGenerator_should_register_multi_type_or_per_type_generator() throws Exception {
+        if (elasticsearchVersion.startsWith("5")) {
+            configuration.setPerTypeIndex(false);
+        }
+        if (elasticsearchVersion.startsWith("6")) {
+            configuration.setIndexMode("ilm");
+        }
+        if (elasticsearchVersion.startsWith("7")) {
+            configuration.setIndexMode("ilm");
+        }
         reporter.start();
 
         IndexNameGenerator indexNameGenerator = (IndexNameGenerator) applicationContext.getBean("indexNameGenerator");
-        assertEquals(MultiTypeIndexNameGenerator.class, indexNameGenerator.getClass());
-
         String generatedName = indexNameGenerator.generate(new Log(TIMESTAMP));
-        assertEquals("gravitee-2021.12.13", generatedName);
+
+        if (elasticsearchVersion.startsWith("5")) {
+            assertEquals(MultiTypeIndexNameGenerator.class, indexNameGenerator.getClass());
+            assertEquals("gravitee-2021.12.13", generatedName);
+        }
+        if (elasticsearchVersion.startsWith("6")) {
+            assertEquals(PerTypeIndexNameGenerator.class, indexNameGenerator.getClass());
+            assertEquals("gravitee-log", generatedName);
+        }
+        if (elasticsearchVersion.startsWith("7")) {
+            assertEquals(PerTypeIndexNameGenerator.class, indexNameGenerator.getClass());
+            assertEquals("gravitee-log", generatedName);
+        }
     }
 }

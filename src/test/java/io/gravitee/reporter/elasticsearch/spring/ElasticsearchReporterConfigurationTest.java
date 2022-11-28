@@ -18,13 +18,14 @@ package io.gravitee.reporter.elasticsearch.spring;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.reporter.elasticsearch.node.DummyNode;
 import io.vertx.core.Vertx;
 import java.util.Collections;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
  * Spring configuration used for testing purpose.
@@ -36,16 +37,23 @@ import org.springframework.context.annotation.Import;
 @Import(ElasticsearchReporterConfiguration.class)
 public class ElasticsearchReporterConfigurationTest {
 
+    public static final String ELASTICSEARCH_DEFAULT_VERSION = "7.17.8";
+    public static final String CLUSTER_NAME = "gravitee_test";
+
+    @Value("${elasticsearch.version:" + ELASTICSEARCH_DEFAULT_VERSION + "}")
+    private String elasticsearchVersion;
+
     @Bean
     public Vertx vertx() {
         return Vertx.vertx();
     }
 
     @Bean
-    public ReporterConfiguration configuration() {
+    public ReporterConfiguration configuration(ElasticsearchContainer elasticSearchContainer) {
         ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
-        //        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
+        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
+        elasticConfiguration.setUsername("elastic");
+        elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
         return elasticConfiguration;
     }
 
@@ -54,8 +62,13 @@ public class ElasticsearchReporterConfigurationTest {
         return new DummyNode();
     }
 
-    @Bean
-    public ElasticsearchNode elasticsearchNode() {
-        return new ElasticsearchNode();
+    @Bean(destroyMethod = "close")
+    public ElasticsearchContainer elasticSearchContainer() {
+        final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(
+            "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion
+        );
+        elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
+        elasticsearchContainer.start();
+        return elasticsearchContainer;
     }
 }
