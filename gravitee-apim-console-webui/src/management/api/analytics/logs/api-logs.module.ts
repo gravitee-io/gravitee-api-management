@@ -17,13 +17,35 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { ApiLogsConfigurationComponent } from './configuration/api-logs-configuration.component';
+
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
+import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 
 @NgModule({
   declarations: [ApiLogsConfigurationComponent],
   exports: [ApiLogsConfigurationComponent],
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
+    GioFormCardGroupModule,
+    GioIconsModule,
+    GioBannerModule,
+    GioFormSlideToggleModule,
+    GioSaveBarModule,
+  ],
 })
 export class ApiLogsModule {}

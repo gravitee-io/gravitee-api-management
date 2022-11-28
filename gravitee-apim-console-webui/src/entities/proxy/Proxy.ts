@@ -121,7 +121,7 @@ export interface ProxyCors {
 }
 
 export interface ProxyLogging {
-  mode: 'CLIENT' | 'PROXY' | 'CLIENT_PROXY';
+  mode: 'NONE' | 'CLIENT' | 'PROXY' | 'CLIENT_PROXY';
   scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
   content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
   condition?: string;

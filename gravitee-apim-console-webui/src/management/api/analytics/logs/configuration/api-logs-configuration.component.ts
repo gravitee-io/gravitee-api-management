@@ -13,20 +13,130 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/angular';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './api-logs-configuration';
+
+import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { Api } from '../../../../../entities/api';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+
+interface LoggingConfiguration {
+  enabled: boolean;
+  mode: 'CLIENT' | 'PROXY' | 'CLIENT_PROXY' | 'NONE';
+  content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
+  scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
+  condition: string;
+}
 
 @Component({
   selector: 'api-log-configuration',
   template: require('./api-logs-configuration.component.html'),
   styles: [require('./api-logs-configuration.component.scss')],
 })
-export class ApiLogsConfigurationComponent {
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
+export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private api: Api;
+  private defaultLogging = DEFAULT_LOGGING;
+  private defaultConfiguration: LoggingConfiguration;
+
+  public logsConfigurationForm: FormGroup;
+  public mode: FormControl;
+  public scope: FormControl;
+  public content: FormControl;
+  public loggingModes = LOGGING_MODES;
+  public contentModes = CONTENT_MODES;
+  public scopeModes = SCOPE_MODES;
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(AjsRootScope) readonly ajsRootScope,
+    private readonly apiService: ApiService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
+
+  public ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  public ngOnInit() {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          this.api = api;
+          this.initForm(api);
+          this.onEnabledChanges();
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe();
+  }
+
+  public onEnabledChanges(): void {
+    this.logsConfigurationForm
+      .get('enabled')
+      .valueChanges.pipe(
+        takeUntil(this.unsubscribe$),
+        tap((enabled) => {
+          if (enabled === null || enabled === true) {
+            this.logsConfigurationForm.get('mode').enable();
+            this.logsConfigurationForm.get('content').enable();
+            this.logsConfigurationForm.get('scope').enable();
+            this.logsConfigurationForm.get('condition').enable();
+          } else {
+            this.logsConfigurationForm.get('mode').patchValue('NONE');
+            this.logsConfigurationForm.get('content').patchValue('NONE');
+            this.logsConfigurationForm.get('scope').patchValue('NONE');
+            this.logsConfigurationForm.get('condition').patchValue('');
+            this.logsConfigurationForm.get('mode').disable();
+            this.logsConfigurationForm.get('content').disable();
+            this.logsConfigurationForm.get('scope').disable();
+            this.logsConfigurationForm.get('condition').disable();
+          }
+        }),
+      )
+      .subscribe();
+  }
 
   public goToLoggingDashboard() {
     this.ajsState.go('management.apis.detail.analytics.logs.list');
+  }
+
+  public onSubmit() {
+    // Do something
+  }
+
+  private initForm(api: Api) {
+    const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
+    const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';
+    this.mode = new FormControl({
+      value: mode !== 'NONE' ? mode : 'CLIENT_PROXY',
+      disabled: !enabled,
+    });
+    this.content = new FormControl({
+      value: content !== 'NONE' ? content : 'HEADERS_PAYLOADS',
+      disabled: !enabled,
+    });
+    this.scope = new FormControl({
+      value: scope !== 'NONE' ? scope : 'REQUEST_RESPONSE',
+      disabled: !enabled,
+    });
+    this.logsConfigurationForm = new FormGroup({
+      enabled: new FormControl(enabled),
+      condition: new FormControl(api.proxy.logging?.condition),
+      mode: this.mode,
+      content: this.content,
+      scope: this.scope,
+    });
+    this.defaultConfiguration = this.logsConfigurationForm.getRawValue();
   }
 }

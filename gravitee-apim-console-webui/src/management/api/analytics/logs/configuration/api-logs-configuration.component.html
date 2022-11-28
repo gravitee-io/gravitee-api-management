@@ -15,9 +15,81 @@
     limitations under the License.
 
 -->
-<h1>
+<h2>
   Logging configuration
   <button mat-raised-button type="button" class="go-to-dashboard" aria-label="Go to Logging dashboard" (click)="goToLoggingDashboard()">
     Go to Logging dashboard
   </button>
-</h1>
+</h2>
+
+<gio-banner-info class="logging-banner">
+  <span>
+    Use logging with caution and only for development purposes. It requires more space for analytics storage and can impact API performance.
+  </span>
+</gio-banner-info>
+
+<form *ngIf="logsConfigurationForm" [formGroup]="logsConfigurationForm" autocomplete="off">
+  <mat-card class="logging-card">
+    <mat-card-content>
+      <!-- Enable health-check -->
+      <gio-form-slide-toggle class="logging-card__enable-toggle">
+        <gio-form-label>Enable Logging</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Logging enable toggle"
+          name="enableLogging"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <mat-divider></mat-divider>
+
+      <div class="logging-card__logging-modes">
+        <h4>Logging Mode</h4>
+        <gio-form-card-group class="logging-card__logging-modes__card-group" [formControl]="mode">
+          <gio-form-card *ngFor="let loggingMode of loggingModes" [value]="loggingMode.id">
+            <div class="card__content">
+              <mat-icon class="material-symbols-outlined card__content__icon">{{ loggingMode.icon }}</mat-icon>
+              <span class="card__content__title">{{ loggingMode.title }}</span>
+              <p class="card__content__description">{{ loggingMode.description }}</p>
+            </div>
+          </gio-form-card>
+        </gio-form-card-group>
+      </div>
+
+      <div class="logging-card__content-modes">
+        <h4>Content Mode</h4>
+        <gio-form-card-group class="logging-card__content-modes__card-group" [formControl]="content">
+          <gio-form-card *ngFor="let contentMode of contentModes" [value]="contentMode.id">
+            <div class="card__content">
+              <mat-icon class="card__content__icon">{{ contentMode.icon }}</mat-icon>
+              <span class="card__content__title">{{ contentMode.title }}</span>
+              <p class="card__content__description">{{ contentMode.description }}</p>
+            </div>
+          </gio-form-card>
+        </gio-form-card-group>
+      </div>
+
+      <div class="logging-card__scope-modes">
+        <h4>Scope Mode</h4>
+        <gio-form-card-group class="logging-card__scope-modes__card-group" [formControl]="scope">
+          <gio-form-card *ngFor="let scopeMode of scopeModes" [value]="scopeMode.id">
+            <div class="card__content">
+              <mat-icon class="card__content__icon">{{ scopeMode.icon }}</mat-icon>
+              <span class="card__content__title">{{ scopeMode.title }}</span>
+              <p class="card__content__description">{{ scopeMode.description }}</p>
+            </div>
+          </gio-form-card>
+        </gio-form-card-group>
+      </div>
+
+      <mat-form-field class="logging-card__conditionEL__form-field" appearance="fill">
+        <mat-label>Condition</mat-label>
+        <input type="text" matInput aria-label="Logging configuration condition" formControlName="condition" />
+        <mat-hint> Support EL (e.g: &#123;#request.headers['Content-Type'][0] === 'application/json'&#125; )</mat-hint>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar [form]="logsConfigurationForm" (resetClicked)="ngOnInit()" (submitted)="onSubmit()"></gio-save-bar>
+</form>
