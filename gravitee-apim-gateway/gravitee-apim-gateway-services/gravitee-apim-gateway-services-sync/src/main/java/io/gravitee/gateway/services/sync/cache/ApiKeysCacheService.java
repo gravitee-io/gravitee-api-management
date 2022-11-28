@@ -54,6 +54,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private static final String PATH = "/apikeys";
     private final ThreadPoolTaskScheduler scheduler;
     private final Map<String, Set<String>> plansPerApi = new ConcurrentHashMap<>();
+    private long startTime;
 
     @Value("${services.sync.bulk_items:100}")
     private int bulkItems;
@@ -97,6 +98,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+        this.startTime = System.currentTimeMillis();
 
         // Set API-keys handler
         LOGGER.info("Associate a new HTTP handler on {}", PATH);
@@ -211,7 +213,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     class ApiKeysTask extends TimerTask {
 
-        private long lastRefreshAt = -1;
+        private long lastRefreshAt = startTime;
 
         @Override
         public void run() {

@@ -23,6 +23,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.spec.converter.OpenAPIConverter;
 import io.gravitee.rest.api.spec.converter.wsdl.exception.WsdlDescriptorException;
+import io.gravitee.rest.api.spec.converter.wsdl.reader.GraviteeWSDLReaderImpl;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.info.Info;
@@ -35,7 +36,6 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.wsdl.*;
-import javax.wsdl.extensions.ElementExtensible;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
@@ -82,12 +82,10 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
 
     private Definition loadWSDL(InputStream stream) {
         try {
-            WSDLReaderImpl reader = new WSDLReaderImpl();
+            WSDLReaderImpl reader = new GraviteeWSDLReaderImpl();
             reader.setFeature("javax.wsdl.importDocuments", true);
             return reader.readWSDL(null, new InputSource(stream));
         } catch (WSDLException e) {
-            LOGGER.info("Unable to read WSDL", e);
-            e.printStackTrace();
             throw new WsdlDescriptorException("Unable to read WSDL");
         }
     }

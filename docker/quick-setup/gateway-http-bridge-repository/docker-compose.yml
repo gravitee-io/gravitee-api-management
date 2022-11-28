@@ -82,6 +82,8 @@ services:
       - gravitee_services_bridge_http_authentication_users_admin=adminadmin
       - gravitee_services_bridge_http_secured=false
       - gravitee_services_bridge_http_ssl_clientAuth=false
+      - gravitee_services_gatewaydebug_enabled=false
+      - gravitee_services_sync_enabled=false
     networks:
       - storage
       - frontend
