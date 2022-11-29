@@ -15,14 +15,17 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
-import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import java.awt.print.Book;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -226,12 +229,24 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     private void remove(List<Acceptor> previousAcceptors) {
-        synchronized (this) {
-            Class<? extends Acceptor<?>> acceptorType = resolve(previousAcceptors.get(0).getClass());
-            List<? extends Acceptor> registeredAcceptors = acceptors.get(acceptorType);
-
-            registeredAcceptors.removeAll(previousAcceptors);
-            Collections.sort(registeredAcceptors);
+        if (!previousAcceptors.isEmpty()) {
+            synchronized (this) {
+                previousAcceptors.forEach(
+                    acceptor -> {
+                        Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
+                        List registeredAcceptors = acceptors.get(acceptorType);
+                        if (registeredAcceptors != null) {
+                            registeredAcceptors.remove(acceptor);
+                            if (!registeredAcceptors.isEmpty()) {
+                                Collections.sort(registeredAcceptors);
+                                acceptors.put(acceptorType, registeredAcceptors);
+                            } else {
+                                acceptors.remove(acceptorType);
+                            }
+                        }
+                    }
+                );
+            }
         }
     }
 
