@@ -40,7 +40,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
@@ -70,7 +70,6 @@ import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
-import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioFormSlideToggleModule } from '../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';

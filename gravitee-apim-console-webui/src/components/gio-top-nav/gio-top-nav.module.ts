@@ -15,14 +15,13 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioIconsModule, GioTopBarLinkModule, GioTopBarMenuModule, GioTopBarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioIconsModule, GioTopBarLinkModule, GioTopBarMenuModule, GioTopBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { GioTopNavComponent } from './gio-top-nav.component';
 
-import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioUserMenuModule } from '../gio-user-menu/gio-user-menu.module';
 import { GioNotificationMenuModule } from '../gio-notification-menu/gio-notification-menu.module';
 

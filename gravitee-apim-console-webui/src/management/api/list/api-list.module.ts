@@ -17,14 +17,13 @@ import { NgModule } from '@angular/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 
 import { ApiListComponent } from './api-list.component';
 
-import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 

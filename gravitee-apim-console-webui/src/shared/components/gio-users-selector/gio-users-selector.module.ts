@@ -23,10 +23,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioAvatarModule } from '@gravitee/ui-particles-angular';
 
 import { GioUsersSelectorComponent } from './gio-users-selector.component';
-
-import { GioAvatarModule } from '../gio-avatar/gio-avatar.module';
 
 @NgModule({
   imports: [
