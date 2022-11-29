@@ -49,7 +49,7 @@
         <gio-form-card-group class="logging-card__logging-modes__card-group" [formControl]="mode">
           <gio-form-card *ngFor="let loggingMode of loggingModes" [value]="loggingMode.id">
             <div class="card__content">
-              <mat-icon class="material-symbols-outlined card__content__icon">{{ loggingMode.icon }}</mat-icon>
+              <mat-icon class="material-symbols-outlined card__content__icon" [svgIcon]="loggingMode.icon"></mat-icon>
               <span class="card__content__title">{{ loggingMode.title }}</span>
               <p class="card__content__description">{{ loggingMode.description }}</p>
             </div>
@@ -62,7 +62,7 @@
         <gio-form-card-group class="logging-card__content-modes__card-group" [formControl]="content">
           <gio-form-card *ngFor="let contentMode of contentModes" [value]="contentMode.id">
             <div class="card__content">
-              <mat-icon class="card__content__icon">{{ contentMode.icon }}</mat-icon>
+              <mat-icon class="card__content__icon" [svgIcon]="contentMode.icon"></mat-icon>
               <span class="card__content__title">{{ contentMode.title }}</span>
               <p class="card__content__description">{{ contentMode.description }}</p>
             </div>
@@ -75,7 +75,7 @@
         <gio-form-card-group class="logging-card__scope-modes__card-group" [formControl]="scope">
           <gio-form-card *ngFor="let scopeMode of scopeModes" [value]="scopeMode.id">
             <div class="card__content">
-              <mat-icon class="card__content__icon">{{ scopeMode.icon }}</mat-icon>
+              <mat-icon class="card__content__icon" [svgIcon]="scopeMode.icon"></mat-icon>
               <span class="card__content__title">{{ scopeMode.title }}</span>
               <p class="card__content__description">{{ scopeMode.description }}</p>
             </div>
