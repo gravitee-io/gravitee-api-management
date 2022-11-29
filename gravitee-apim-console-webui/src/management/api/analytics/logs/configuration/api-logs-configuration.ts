@@ -19,19 +19,19 @@ export const LOGGING_MODES = [
   {
     title: 'Client & proxy',
     id: 'CLIENT_PROXY',
-    icon: 'public',
+    icon: 'gio:language',
     description: 'to log content for the client and the gateway',
   },
   {
     title: 'Client only',
     id: 'CLIENT',
-    icon: 'admin_panel_settings',
+    icon: 'gio:laptop',
     description: 'to log content between the client and the gateway',
   },
   {
     title: 'Proxy only',
     id: 'PROXY',
-    icon: 'local_police',
+    icon: 'gio:hard-drive',
     description: 'to log content between the gateway and the backend',
   },
 ];
@@ -40,19 +40,19 @@ export const CONTENT_MODES = [
   {
     title: 'Headers & payloads',
     id: 'HEADERS_PAYLOADS',
-    icon: 'file_copy',
+    icon: 'gio:empty-page',
     description: 'to log headers and payloads',
   },
   {
     title: 'Headers only',
     id: 'HEADERS',
-    icon: 'text_snippet',
+    icon: 'gio:file-minus',
     description: 'to log headers without payloads',
   },
   {
     title: 'Payloads only',
     id: 'PAYLOADS',
-    icon: 'list_alt',
+    icon: 'gio:page',
     description: 'to log payloads without headers',
   },
 ];
@@ -61,19 +61,19 @@ export const SCOPE_MODES = [
   {
     title: 'Request & Response',
     id: 'REQUEST_RESPONSE',
-    icon: 'sync_alt',
+    icon: 'gio:data-transfer-both',
     description: 'to log request and response',
   },
   {
     title: 'Request only',
     id: 'REQUEST',
-    icon: 'arrow_forward',
+    icon: 'gio:data-transfer-up',
     description: 'to log request content only',
   },
   {
     title: 'Response only',
     id: 'RESPONSE',
-    icon: 'arrow_back',
+    icon: 'gio:data-transfer-down',
     description: 'to log response content only',
   },
 ];
