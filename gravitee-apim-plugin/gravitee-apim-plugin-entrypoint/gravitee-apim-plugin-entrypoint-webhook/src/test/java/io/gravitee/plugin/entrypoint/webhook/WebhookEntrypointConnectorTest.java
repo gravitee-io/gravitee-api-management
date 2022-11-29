@@ -39,6 +39,7 @@ import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -104,6 +105,7 @@ class WebhookEntrypointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.end()).thenReturn(Completable.complete());
         lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
+        lenient().when(ctx.getComponent(Configuration.class)).thenReturn(mock(Configuration.class));
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
         lenient().when(ctx.getComponent(ConnectorHelper.class)).thenReturn(connectorHelper);
         lenient()
@@ -175,7 +177,7 @@ class WebhookEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleRequest(ctx).test();
         obs.assertNoValues();
 
-        verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/endpoint");
+        verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "http://callbackserver/endpoint");
         verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), any(HttpClient.class));
     }
 
