@@ -17,7 +17,7 @@
     "@fontsource/libre-franklin": "4.4.5",
     "@gravitee/ui-analytics": "4.9.0",
     "@gravitee/ui-components": "3.37.1",
-    "@gravitee/ui-particles-angular": "4.9.0",
+    "@gravitee/ui-particles-angular": "4.10.0",
     "@gravitee/ui-policy-studio-angular": "4.9.0",
     "@highcharts/map-collection": "1.1.4",
     "@toast-ui/editor": "2.5.4",

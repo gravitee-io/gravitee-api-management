@@ -21,7 +21,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { GioBannerModule, GioFormFilePickerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioAvatarModule,
+  GioBannerModule,
+  GioFormFilePickerModule,
+  GioFormTagsInputModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +46,6 @@ import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-d
 import { ApiPortalDetailsExportDialogComponent } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 import { ApiPortalDetailsPromoteDialogComponent } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
-import { GioAvatarModule } from '../../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';

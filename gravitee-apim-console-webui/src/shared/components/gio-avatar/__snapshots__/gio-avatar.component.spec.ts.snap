@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`GioAvatarComponent should complete avatar with jdenticon 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"undefined\\" height=\\"undefined\\" viewBox=\\"0 0 undefined undefined\\" preserveAspectRatio=\\"xMidYMid meet\\"><rect width=\\"100%\\" height=\\"100%\\" fill=\\"#FFFFFF\\" opacity=\\"1.00\\"></rect><path fill=\\"#545454\\" d=\\"M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0M0 0a0,0 0 1,1 0,0a0,0 0 1,1 0,0\\"></path><path fill=\\"#d1757a\\" d=\\"M0 0L0 0L0 0L0 0ZM0 0L0 0L0 0L0 0ZM0 0L0 0L0 0L0 0ZM0 0L0 0L0 0L0 0ZM0 0L0 0L0 0L0 0ZM0 0a0,0 0 1,0 0,0a0,0 0 1,0 0,0M0 0L0 0L0 0L0 0ZM0 0a0,0 0 1,0 0,0a0,0 0 1,0 0,0M0 0L0 0L0 0L0 0ZM0 0a0,0 0 1,0 0,0a0,0 0 1,0 0,0M0 0L0 0L0 0L0 0ZM0 0a0,0 0 1,0 0,0a0,0 0 1,0 0,0\\"></path></svg>"`;
-
-exports[`GioAvatarComponent should display avatar image 1`] = `
-"<img _ngcontent-a-c11=\\"\\" alt=\\"Avatar picture\\" class=\\"gio-avatar__img\\" src=\\"https://i.pravatar.cc/500\\" width=\\"0\\"><!--bindings={
-  \\"ng-reflect-ng-if\\": \\"https://i.pravatar.cc/500\\"
-}-->"
-`;

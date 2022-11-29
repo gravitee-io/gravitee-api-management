@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,7 +35,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
-import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 
 @NgModule({
   imports: [
