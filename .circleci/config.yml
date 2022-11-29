@@ -76,6 +76,14 @@ executors:
         resource_class: <<parameters.resource_class>>
 
 commands:
+    create-docker-context:
+        steps:
+            - run:
+                  name: "Create docker context for buildx"
+                  command: |
+                      docker context create tls-env
+                      docker buildx create tls-env --use
+
     install-jdk-17-for-machine:
         description: Install JDK 17 on machine executor
         steps:
@@ -194,35 +202,6 @@ commands:
                   paths:
                       - ./<< parameters.apim-ui-project >>/node_modules
 
-    build-backend-images:
-        steps:
-            - run:
-                  name: Build rest api and gateway docker images
-                  command: |
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:$APIM_VERSION
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:$APIM_VERSION
-
-                      docker build -f gravitee-apim-rest-api/docker/Dockerfile \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${REST_API_PRIVATE_IMAGE_TAG} \
-                      rest-api-docker-context
-
-                      docker build -f gravitee-apim-gateway/docker/Dockerfile \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
-                      gateway-docker-context
-
-    save-backend-images-in-workspace:
-        steps:
-            - run:
-                  name: Save Image in Docker Cache
-                  command: |
-                      mkdir -p ./docker-cache
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:$APIM_VERSION
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:$APIM_VERSION
-                      docker save -o ./docker-cache/apim-management-api.tar ${REST_API_PRIVATE_IMAGE_TAG}
-                      docker save -o ./docker-cache/apim-gateway.tar ${GATEWAY_PRIVATE_IMAGE_TAG}
-
     build-ui-image:
         parameters:
             docker-image-name:
@@ -234,40 +213,19 @@ commands:
                 default: ""
                 description: the name of the UI project to build
         steps:
+            - get-apim-tag
+            - create-docker-context
+            - docker-azure-login
             - run:
                   name: Build UI docker image
                   command: |
                       cp -fr docker/config .
-                      cp -fr docker/run.sh .
 
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION
-                      docker build -f docker/Dockerfile -t ${PRIVATE_IMAGE_TAG} .
+                      docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+                      -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:$TAG \
+                      .
                   working_directory: << parameters.apim-ui-project >>
-
-    save-image-in-workspace:
-        parameters:
-            docker-image-name:
-                type: string
-                default: ""
-                description: the name of the image
-        steps:
-            - run:
-                  name: Save Image in Docker Cache
-                  command: |
-                      mkdir -p ./docker-cache
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION
-                      docker save -o ./docker-cache/<< parameters.docker-image-name >>.tar ${PRIVATE_IMAGE_TAG}
-
-    load-image-from-workspace:
-        parameters:
-            docker-image-name:
-                type: string
-                default: ""
-                description: the name of the image
-        steps:
-            - run:
-                  name: Load Image from Docker Cache
-                  command: docker load < ./docker-cache/<< parameters.docker-image-name >>.tar
+            - docker-azure-logout
 
     add-docker-image-in-snyk:
         parameters:
@@ -323,6 +281,27 @@ commands:
                       echo "export GRAVITEEIO_QUALIFIER_NAME=${GRAVITEEIO_QUALIFIER_NAME}" >> $BASH_ENV
                       echo "export GRAVITEEIO_QUALIFIER_VERSION=${GRAVITEEIO_QUALIFIER_VERSION}" >> $BASH_ENV
 
+    docker-azure-login:
+        description: Login to Azure Container Registry
+        steps:
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+            - run:
+                  name: Login to Azure Container Registry
+                  command: |
+                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+
+    docker-azure-logout:
+        description: Logout from Azure Container Registry
+        steps:
+            - run:
+                  name: Logout from Azure Container Registry
+                  command: docker logout graviteeio.azurecr.io
+
 parameters:
     gio_action:
         type: enum
@@ -341,9 +320,9 @@ parameters:
         type: string
         description: "Version of APIM to be used in docker images"
     gio_milestone_version:
-      type: string
-      default: $GIO_MILESTONE_VERSION
-      description: "The Gravitee.io Milestone version https://github.com/gravitee-io/issues/milestones for which we want to generate Changelog"
+        type: string
+        default: $GIO_MILESTONE_VERSION
+        description: "The Gravitee.io Milestone version https://github.com/gravitee-io/issues/milestones for which we want to generate Changelog"
 
 jobs:
     setup:
@@ -526,13 +505,21 @@ jobs:
                   at: .
             - prepare-env-var
             - get-apim-version
+            - get-apim-tag
             - setup_remote_docker
-            - build-backend-images
-            - save-backend-images-in-workspace
-            - persist_to_workspace:
-                  root: ./
-                  paths:
-                      - ./docker-cache
+            - create-docker-context
+            - docker-azure-login
+            - run:
+                  name: Build rest api and gateway docker images
+                  command: |
+                      docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \
+                      -t graviteeio.azurecr.io/apim-management-api:$TAG \
+                      rest-api-docker-context
+
+                      docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
+                      -t graviteeio.azurecr.io/apim-gateway:$TAG \
+                      gateway-docker-context
+            - docker-azure-logout
 
     community-build:
         executor:
@@ -697,68 +684,29 @@ jobs:
             - save-maven-job-cache:
                   jobName: publish-on-nexus
 
-    publish-images-azure-registry:
+    e2e-generate-sdk:
         executor:
             name: openjdk
+            with_node: true
             class: small
         steps:
             - checkout
+            - webui-install:
+                  apim-ui-project: gravitee-apim-e2e
             - attach_workspace:
                   at: .
-            - setup_remote_docker
-            - get-apim-tag
-            - get-apim-version
-            - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
-            - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
             - run:
-                  name: Build & publish dev docker image
+                  name: Generate e2e tests SDK
                   command: |
-                      export REST_API_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
-                      export GATEWAY_PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
-
-                      docker build -f gravitee-apim-rest-api/docker/Dockerfile \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${REST_API_PRIVATE_IMAGE_TAG} \
-                      rest-api-docker-context
-
-                      docker build -f gravitee-apim-gateway/docker/Dockerfile \
-                      --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
-                      -t ${GATEWAY_PRIVATE_IMAGE_TAG} \
-                      gateway-docker-context
-
-                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${REST_API_PRIVATE_IMAGE_TAG}
-                      docker push ${GATEWAY_PRIVATE_IMAGE_TAG}
-                      docker logout graviteeio.azurecr.io
+                      npm run update:sdk:management
+                      npm run update:sdk:portal
+                  working_directory: gravitee-apim-e2e
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - gravitee-apim-e2e/lib/management-webclient-sdk
+                      - gravitee-apim-e2e/lib/portal-webclient-sdk
             - notify-on-failure
-
-    e2e-generate-sdk:
-      executor:
-        name: openjdk
-        with_node: true
-        class: small
-      steps:
-        - checkout
-        - webui-install:
-            apim-ui-project: gravitee-apim-e2e
-        - attach_workspace:
-            at: .
-        - run:
-            name: Generate e2e tests SDK
-            command: |
-              npm run update:sdk:management
-              npm run update:sdk:portal
-            working_directory: gravitee-apim-e2e
-        - persist_to_workspace:
-            root: .
-            paths:
-              - gravitee-apim-e2e/lib/management-webclient-sdk
-              - gravitee-apim-e2e/lib/portal-webclient-sdk
-        - notify-on-failure
 
     e2e-lint-build:
         executor:
@@ -924,55 +872,11 @@ jobs:
             - build-ui-image:
                   docker-image-name: << parameters.docker-image-name >>
                   apim-ui-project: << parameters.apim-ui-project >>
-            - save-image-in-workspace:
-                  docker-image-name: << parameters.docker-image-name >>
             - notify-on-failure
             - persist_to_workspace:
                   root: .
                   paths:
                       - << parameters.apim-ui-project >>/dist
-                      - ./docker-cache
-
-    webui-publish-images-azure-registry:
-        parameters:
-            apim-ui-project:
-                type: string
-                default: ""
-                description: the name of the UI project to build
-            docker-image-name:
-                type: string
-                default: ""
-                description: the name of the docker image to create
-        executor:
-            name: openjdk
-            class: small
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - setup_remote_docker
-            - get-apim-tag
-            - get-apim-version
-            - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                  var-name: AZURE_DOCKER_REGISTRY_USERNAME
-            - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                  var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-            - load-image-from-workspace:
-                  docker-image-name: << parameters.docker-image-name >>
-            - run:
-                  name: Publish Web UI Docker Image to Azure Registry
-                  command: |
-                      # Add new tag before pushing to Azure
-                      export PRIVATE_IMAGE_TAG=graviteeio.azurecr.io/<< parameters.docker-image-name >>:$TAG
-                      docker tag graviteeio.azurecr.io/<< parameters.docker-image-name >>:$APIM_VERSION $PRIVATE_IMAGE_TAG
-
-                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${PRIVATE_IMAGE_TAG}
-                      docker logout graviteeio.azurecr.io
-                  working_directory: << parameters.apim-ui-project >>
-            - notify-on-failure
 
     console-webui-build-storybook:
         executor:
@@ -1281,7 +1185,7 @@ jobs:
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
 
                       # If we are on master branch, we need to create the support branch
-                      if [ "${CIRCLE_BRANCH}" = "master" ]; then
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         export MAINTENANCE_GIT_BRANCH="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.x"
 
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
@@ -1298,10 +1202,10 @@ jobs:
                         git checkout ${CIRCLE_BRANCH}
                       fi
 
-                      if [ "${CIRCLE_BRANCH}" = "master" ]; then
+                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.$((${GRAVITEEIO_VERSION_MINOR}+1)).0</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-                      elif [ "${GRAVITEEIO_QUALIFIER}" = "" ]; then
+                      elif [ "${GRAVITEEIO_QUALIFIER}" == "" ]; then
                         sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       else
@@ -1340,6 +1244,7 @@ jobs:
                   var-name: DOCKERHUB_BOT_USER_TOKEN
             - parse-gravitee-version:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
+            - create-docker-context
             - run:
                   name: "Build & Publish Gravitee.io APIM Docker images"
                   command: |
@@ -1366,7 +1271,7 @@ jobs:
                         DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-ee"
 
                         #  create x, x-ee and latest tags only if it's the latest version and there is no qualifier
-                        if [ "<< parameters.docker_tag_as_latest >>" = "true" ]; then
+                        if [ "<< parameters.docker_tag_as_latest >>" == "true" ]; then
                           DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}-ee           -t graviteeio/apim-gateway:latest"
                           DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}-ee    -t graviteeio/apim-management-api:latest"
                           DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}-ee     -t graviteeio/apim-management-ui:latest"
@@ -1374,26 +1279,25 @@ jobs:
                         fi
                       fi
 
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
-                      docker build ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
-
-                      docker image ls
-
-                      # Login to DockerHub
-                      docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
-
                       # Push all tags if not dry-run mode
-                      if [ "<< parameters.dry_run >>" = "false" ]; then                    
-                        docker push --all-tags graviteeio/apim-management-api
-                        docker push --all-tags graviteeio/apim-gateway
-                        docker push --all-tags graviteeio/apim-management-ui
-                        docker push --all-tags graviteeio/apim-portal-ui
-                      fi
+                      if [ "<< parameters.dry_run >>" == "false" ]; then
+                        # Login to DockerHub
+                        docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
 
-                      # Docker logout
-                      docker logout
+                        docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
+                        docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
+                        docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
+                        docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
+
+                        # Docker logout
+                        docker logout
+                      else
+                        echo "DRY RUN - Docker commands to be executed:"
+                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker"
+                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker"
+                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker"
+                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker"
+                      fi
 
     nexus-staging:
         executor:
@@ -1533,46 +1437,46 @@ jobs:
                             command: exit 0
 
     elastic-test-container:
-      parameters:
-        version:
-          type: string
-          description: version of elasticsearch to test
-          default: ""
-      executor:
-        name: ubuntu
-      steps:
-        - when:
-            condition: << parameters.version >>
-            steps:
-              - install-jdk-17-for-machine
-              - checkout
-              - attach_workspace:
-                  at: .
-              - restore-maven-job-cache:
-                  jobName: elastic-test-container
-              - run:
-                  name: Run Elasticsearch repository tests with version << parameters.version >>
-                  command: |
-                    cd gravitee-apim-repository
-                    mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -Delasticsearch.version=<< parameters.version>> -T 2C
-              - run:
-                  name: Save test results
-                  command: |
-                    mkdir -p ~/test-results/junit/
-                    find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-                  when: always
-              - save-maven-job-cache:
-                  jobName: elastic-test-container
-              - store_test_results:
-                  path: ~/test-results
-              - notify-on-failure
-        - when:
-            condition:
-              not: << parameters.version >>
-            steps:
-              - run:
-                  name: Version not set - nothing to run
-                  command: exit 0
+        parameters:
+            version:
+                type: string
+                description: version of elasticsearch to test
+                default: ""
+        executor:
+            name: ubuntu
+        steps:
+            - when:
+                  condition: << parameters.version >>
+                  steps:
+                      - install-jdk-17-for-machine
+                      - checkout
+                      - attach_workspace:
+                            at: .
+                      - restore-maven-job-cache:
+                            jobName: elastic-test-container
+                      - run:
+                            name: Run Elasticsearch repository tests with version << parameters.version >>
+                            command: |
+                                cd gravitee-apim-repository
+                                mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -Delasticsearch.version=<< parameters.version>> -T 2C
+                      - run:
+                            name: Save test results
+                            command: |
+                                mkdir -p ~/test-results/junit/
+                                find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                            when: always
+                      - save-maven-job-cache:
+                            jobName: elastic-test-container
+                      - store_test_results:
+                            path: ~/test-results
+                      - notify-on-failure
+            - when:
+                  condition:
+                      not: << parameters.version >>
+                  steps:
+                      - run:
+                            name: Version not set - nothing to run
+                            command: exit 0
 
     e2e-test:
         executor:
@@ -1587,11 +1491,8 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - get-apim-version
-            - load-image-from-workspace:
-                  docker-image-name: apim-gateway
-            - load-image-from-workspace:
-                  docker-image-name: apim-management-api
+            - get-apim-tag
+            - docker-azure-login
             - run:
                   name: Run API & E2E Tests
                   command: |
@@ -1602,7 +1503,8 @@ jobs:
                         echo "Enabling jupiter mode on APIM Gateway and Rest API"
                         export JUPITER_MODE_ENABLED=true
                       fi
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:<< parameters.database >>
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$TAG npm run test:api:<< parameters.database >>
+            - docker-azure-logout
             - when:
                   condition:
                       and:
@@ -1631,22 +1533,16 @@ jobs:
             - checkout
             - attach_workspace:
                   at: .
-            - get-apim-version
-            - load-image-from-workspace:
-                  docker-image-name: apim-gateway
-            - load-image-from-workspace:
-                  docker-image-name: apim-management-api
-            - load-image-from-workspace:
-                  docker-image-name: apim-management-ui
-            - load-image-from-workspace:
-                  docker-image-name: apim-portal-ui
+            - get-apim-tag
             - webui-install:
                   apim-ui-project: gravitee-apim-e2e
+            - docker-azure-login
             - run:
                   name: Run UI tests
                   command: |
                       cd gravitee-apim-e2e
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:ui
+                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$TAG npm run test:ui
+            - docker-azure-logout
             - notify-on-failure
 
     publish_rpm_packages:
@@ -1672,7 +1568,7 @@ jobs:
                       cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
                       ./build.sh -v << parameters.graviteeio_version >>
 
-                      if [ "<< parameters.dry_run >>" = "false" ]; then
+                      if [ "<< parameters.dry_run >>" == "false" ]; then
                           docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
                       else
                           echo "This is just a DRY RUN, no RPMs will be published"
@@ -1693,8 +1589,8 @@ jobs:
                   secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
                   var-name: ARTIFACTORY_PASSWORD
             - keeper/env-export:
-                secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                var-name: SLACK_ACCESS_TOKEN
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
             - checkout
             - run:
                   name: Install dependencies
@@ -1708,134 +1604,134 @@ jobs:
                   name: "Comparing bundle size with previous version"
                   working_directory: "./release"
                   command: |
-                    npm run zx -- --experimental ci-steps/check-bundle-size.mjs
-                    echo "export BUNDLE_SIZE_MESSAGE=\"$(cat .tmp/bundle-size.md)\"" >> $BASH_ENV
+                      npm run zx -- --experimental ci-steps/check-bundle-size.mjs
+                      echo "export BUNDLE_SIZE_MESSAGE=\"$(cat .tmp/bundle-size.md)\"" >> $BASH_ENV
             - when:
-                condition:
-                  not: << pipeline.parameters.dry_run>>
-                steps:
-                  - slack/notify:
-                      channel: C02JENTV2AX
-                      event: always
-                      custom: |
-                        {
-                          "blocks": [
-                            {
-                              "type": "section",
-                              "text": {
-                                "type": "mrkdwn",
-                                "text": "$BUNDLE_SIZE_MESSAGE"
-                              }
-                            },
-                            {
-                                "type": "actions",
-                                "elements": [
-                                   {
-                                      "type": "button",
-                                      "text": "🧐 Approve to continue",
-                                      "url": "https://app.circleci.com/pipelines/workflows/$CIRCLE_WORKFLOW_ID"
-                                   }
-                                ]
-                        	 }
-                          ]
-                        }
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - slack/notify:
+                            channel: C02JENTV2AX
+                            event: always
+                            custom: |
+                                {
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": "$BUNDLE_SIZE_MESSAGE"
+                                      }
+                                    },
+                                    {
+                                        "type": "actions",
+                                        "elements": [
+                                           {
+                                              "type": "button",
+                                              "text": "🧐 Approve to continue",
+                                              "url": "https://app.circleci.com/pipelines/workflows/$CIRCLE_WORKFLOW_ID"
+                                           }
+                                        ]
+                                	 }
+                                  ]
+                                }
             - persist_to_workspace:
-                root: .
-                paths:
-                  - ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+                  root: .
+                  paths:
+                      - ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
 
     publish-bundle:
         docker:
-          - image: cimg/base:stable
+            - image: cimg/base:stable
         steps:
-          - keeper/env-export:
-              secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
-              var-name: AWS_ACCESS_KEY_ID
-          - keeper/env-export:
-              secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
-              var-name: AWS_SECRET_ACCESS_KEY
-          - attach_workspace:
-              at: .
-          - when:
-              condition: << pipeline.parameters.dry_run>>
-              steps:
-                - aws-s3/sync:
-                    arguments: |
-                      --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                      --acl public-read
-                    from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-                    to: "s3://gravitee-dry-releases-downloads/graviteeio-apim"
-          - when:
-              condition:
-                not: << pipeline.parameters.dry_run>>
-              steps:
-                - aws-s3/sync:
-                    arguments: |
-                      --endpoint-url https://cellar-c2.services.clever-cloud.com \
-                      --acl public-read
-                    from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-                    to: "s3://gravitee-releases-downloads/graviteeio-apim"
+            - keeper/env-export:
+                  secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
+                  var-name: AWS_ACCESS_KEY_ID
+            - keeper/env-export:
+                  secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
+                  var-name: AWS_SECRET_ACCESS_KEY
+            - attach_workspace:
+                  at: .
+            - when:
+                  condition: << pipeline.parameters.dry_run>>
+                  steps:
+                      - aws-s3/sync:
+                            arguments: |
+                                --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                                --acl public-read
+                            from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+                            to: "s3://gravitee-dry-releases-downloads/graviteeio-apim"
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - aws-s3/sync:
+                            arguments: |
+                                --endpoint-url https://cellar-c2.services.clever-cloud.com \
+                                --acl public-read
+                            from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
+                            to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
     release_notes_apim:
-      executor:
-        name: node-lts
-        class: medium
-      environment:
-        VERSION: << pipeline.parameters.graviteeio_version >>
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
-            var-name: GIT_USER_NAME
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
-            var-name: GIT_USER_EMAIL
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - keeper/env-export:
-              secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-              var-name: SLACK_ACCESS_TOKEN
-        - add_ssh_keys:
-            fingerprints:
-              - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
-        - run:
-            name: Git config
-            command: |
-              git config --global user.name "${GIT_USER_NAME}"
-              git config --global user.email "${GIT_USER_EMAIL}"
-        - gh/setup
-        - run:
-            name: Install dependencies
-            command: npm install
-            working_directory: "./release"
-        - run:
-            name: "Open a PR to create release notes into docs repository"
-            working_directory: "./release"
-            command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
-        - when:
-              condition:
-                  not: << pipeline.parameters.dry_run>>
-              steps:
-                  - run:
-                        name: Get RELEASE_NOTES_PR_URL
-                        command: |
-                            echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
-                  - slack/notify:
-                        channel: C02NGT20S4W
-                        event: always
-                        custom: |
-                            {
-                              "blocks": [
+        executor:
+            name: node-lts
+            class: medium
+        environment:
+            VERSION: << pipeline.parameters.graviteeio_version >>
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                  var-name: GIT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                  var-name: GIT_USER_EMAIL
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - run:
+                  name: Git config
+                  command: |
+                      git config --global user.name "${GIT_USER_NAME}"
+                      git config --global user.email "${GIT_USER_EMAIL}"
+            - gh/setup
+            - run:
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: "./release"
+            - run:
+                  name: "Open a PR to create release notes into docs repository"
+                  working_directory: "./release"
+                  command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - run:
+                            name: Get RELEASE_NOTES_PR_URL
+                            command: |
+                                echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
                                 {
-                                  "type": "section",
-                                  "text": {
-                                    "type": "mrkdwn",
-                                    "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
-                                  }
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                      }
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
 
 workflows:
     pull_requests:
@@ -1850,7 +1746,9 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - /.*-run-e2e.*/
                               - /.*merge.*/
+
             - setup:
                   context: cicd-orchestrator
             - validate:
@@ -1929,18 +1827,6 @@ workflows:
                       - test
                       - test-plugin
                       - test-repository
-            - publish-images-azure-registry:
-                  name: Publish images on azure registry
-                  context: cicd-orchestrator
-                  requires:
-                      - test
-                      - test-plugin
-                      - test-repository
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
             - webui-lint-test:
                   name: Lint & test APIM Console
                   context: cicd-orchestrator
@@ -1980,19 +1866,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - console-webui-deploy-on-azure-storage
-            - webui-publish-images-azure-registry:
-                  name: Build and publish APIM Console docker image
-                  apim-ui-project: gravitee-apim-console-webui
-                  docker-image-name: apim-management-ui
-                  context: cicd-orchestrator
-                  requires:
-                      - Build APIM Console
-                      - setup
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
             - webui-lint-test:
                   name: Lint & test APIM Portal
                   context: cicd-orchestrator
@@ -2013,35 +1886,25 @@ workflows:
                   docker-image-name: apim-portal-ui
                   requires:
                       - setup
-            - webui-publish-images-azure-registry:
-                  name: Build and publish APIM Portal docker image
-                  apim-ui-project: gravitee-apim-portal-webui
-                  docker-image-name: apim-portal-ui
-                  context: cicd-orchestrator
-                  requires:
-                      - Build APIM Portal
-                      - setup
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   requires:
-                      - Publish images on azure registry
-                      - Build and publish APIM Console docker image
-                      - Build and publish APIM Portal docker image
+                      - test
+                      - test-plugin
+                      - test-repository
+                      - build-images
+                      - Build APIM Console
+                      - Build APIM Portal
                   filters:
                       branches:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
             - e2e-generate-sdk:
-                name: Generate e2e tests SDK
-                context: cicd-orchestrator
-                requires:
-                  - build
+                  name: Generate e2e tests SDK
+                  context: cicd-orchestrator
+                  requires:
+                      - build
             - e2e-lint-build:
                   name: Lint & Build APIM e2e
                   context: cicd-orchestrator
@@ -2068,6 +1931,7 @@ workflows:
                   context: cicd-orchestrator
                   name: Run Cypress UI tests
                   requires:
+                      - Lint & Build APIM e2e
                       - Build APIM Portal
                       - Build APIM Console
                       - build-images
@@ -2076,6 +1940,7 @@ workflows:
                           only:
                               - master
                               - /.*-run-e2e.*/
+                              - /.*merge.*/
                               - /^\d+\.\d+\.x$/
             - perf-lint-build:
                   name: Lint & Build APIM perf
@@ -2183,11 +2048,11 @@ workflows:
             - review-bundle-size:
                   type: approval
                   requires:
-                    - package-bundle
+                      - package-bundle
             - publish-bundle:
                   context: cicd-orchestrator
                   requires:
-                    - review-bundle-size
+                      - review-bundle-size
 
     nexus_staging:
         when:
@@ -2240,16 +2105,16 @@ workflows:
                       parameters:
                           version: ["3", "4", "5"]
             - elastic-test-container:
-                context: cicd-orchestrator
-                requires:
-                  - setup
-                matrix:
-                  parameters:
-                    version: ["5.6.16", "6.8.23", "7.17.8"]
+                  context: cicd-orchestrator
+                  requires:
+                      - setup
+                  matrix:
+                      parameters:
+                          version: ["5.6.16", "6.8.23", "7.17.8"]
 
     release_notes_apim:
-      when:
-        equal: [ release_notes_apim, << pipeline.parameters.gio_action >> ]
-      jobs:
-        - release_notes_apim:
-            context: cicd-orchestrator
+        when:
+            equal: [release_notes_apim, << pipeline.parameters.gio_action >>]
+        jobs:
+            - release_notes_apim:
+                  context: cicd-orchestrator
