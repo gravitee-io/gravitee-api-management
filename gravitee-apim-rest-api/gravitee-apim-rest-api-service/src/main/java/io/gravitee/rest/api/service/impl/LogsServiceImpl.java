@@ -387,35 +387,53 @@ public class LogsServiceImpl implements LogsService {
     }
 
     private String getSubscription(ExecutionContext executionContext, ExtendedLog log) {
-        if ("API_KEY".equals(log.getSecurityType())) {
+        if (PlanSecurityType.API_KEY.name().equals(log.getSecurityType())) {
             try {
-                ApiKeyEntity key = apiKeyService.findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi());
-                if (key != null) {
-                    return key
-                        .getSubscriptions()
-                        .stream()
-                        .filter(s -> s.getApi().equals(log.getApi()))
-                        .findFirst()
-                        .map(SubscriptionEntity::getId)
-                        .orElseThrow(() -> new ApiKeyNotFoundException());
-                }
+                return getApiKeySubscription(executionContext, log);
             } catch (ApiKeyNotFoundException e) {
-                // wrong apikey
+                logger.error("Unable to find API key for log [api={}, application={}]", log.getApi(), log.getApplication());
             }
         } else if (log.getPlan() != null && log.getApplication() != null) {
-            PlanEntity plan = planService.findById(executionContext, log.getPlan());
-            if (!PlanSecurityType.API_KEY.equals(plan.getSecurity()) && !PlanSecurityType.KEY_LESS.equals(plan.getSecurity())) {
-                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
-                    executionContext,
-                    log.getApplication(),
-                    log.getPlan()
+            try {
+                return getJwtOrOauth2Subscription(executionContext, log);
+            } catch (PlanNotFoundException | SubscriptionNotFoundException | IllegalStateException e) {
+                logger.error(
+                    String.format("Unable to find subscription for log [plan=%s, application=%s]", log.getPlan(), log.getApplication()),
+                    e
                 );
-                if (!subscriptions.isEmpty() && subscriptions.size() == 1) {
-                    return subscriptions.iterator().next().getId();
-                }
             }
         }
         return null;
+    }
+
+    private String getApiKeySubscription(ExecutionContext executionContext, ExtendedLog log) {
+        return apiKeyService
+            .findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi())
+            .getSubscriptions()
+            .stream()
+            .filter(s -> s.getApi().equals(log.getApi()))
+            .findFirst()
+            .map(SubscriptionEntity::getId)
+            .orElseThrow(ApiKeyNotFoundException::new);
+    }
+
+    private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
+        PlanEntity plan = planService.findById(executionContext, log.getPlan());
+        if (PlanSecurityType.KEY_LESS.equals(plan.getSecurity())) {
+            return null;
+        }
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+            executionContext,
+            log.getApplication(),
+            log.getPlan()
+        );
+
+        if (subscriptions.size() > 1) {
+            throw new IllegalStateException("Found more than one subscription for the same application and plan");
+        }
+
+        return subscriptions.stream().findFirst().map(SubscriptionEntity::getId).orElseThrow(() -> new SubscriptionNotFoundException(null));
     }
 
     @Override
