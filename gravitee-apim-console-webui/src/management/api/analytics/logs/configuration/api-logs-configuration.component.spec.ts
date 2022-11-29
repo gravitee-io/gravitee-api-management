@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiLogsConfigurationComponent } from './api-logs-configuration.component';
 
@@ -30,6 +31,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { Api } from '../../../../../entities/api';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 describe('ApiLogsConfigurationComponent', () => {
   const API_ID = 'my-api';
@@ -160,10 +162,88 @@ describe('ApiLogsConfigurationComponent', () => {
 
       expect(await modeGroup.getSelectedValue()).toBeUndefined();
     });
+
+    it('should save logging configuration', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          logging: {
+            condition: '',
+            mode: 'NONE',
+            content: 'NONE',
+            scope: 'NONE',
+          },
+        },
+      });
+      expectApiGetRequest(api);
+
+      await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.toggle());
+      fixture.detectChanges();
+
+      const modeGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__logging-modes__card-group' }));
+      await modeGroup.select('CLIENT');
+      expect(await modeGroup.getSelectedValue()).toStrictEqual('CLIENT');
+
+      const scopeGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__scope-modes__card-group' }));
+      await scopeGroup.select('REQUEST');
+      expect(await scopeGroup.getSelectedValue()).toStrictEqual('REQUEST');
+
+      const contentGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__content-modes__card-group' }));
+      await contentGroup.select('HEADERS');
+      expect(await contentGroup.getSelectedValue()).toStrictEqual('HEADERS');
+
+      await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+
+      expectApiGetRequest(api);
+      expectApiPutRequest({
+        ...api,
+        proxy: { ...api.proxy, logging: { mode: 'CLIENT', content: 'HEADERS', scope: 'REQUEST' } },
+      });
+      expectApiGetRequest(api);
+    });
+
+    it('should handle error on save', async () => {
+      const snackBarServiceSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          logging: {
+            condition: '',
+            mode: 'NONE',
+            content: 'NONE',
+            scope: 'NONE',
+          },
+        },
+      });
+      expectApiGetRequest(api);
+
+      await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.toggle());
+      fixture.detectChanges();
+
+      await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+
+      expectApiGetRequest(api);
+      expectApiPutRequestError(api.id);
+      expect(snackBarServiceSpy).toHaveBeenCalled();
+    });
   });
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequest(api: Api) {
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+    expect(req.request.body.proxy.logging).toStrictEqual(api.proxy.logging);
+    req.flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequestError(apiId: string) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'PUT' })
+      .error(new ErrorEvent('error'));
     fixture.detectChanges();
   }
 });

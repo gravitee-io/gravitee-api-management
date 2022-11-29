@@ -16,8 +16,8 @@
 import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/angular';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './api-logs-configuration';
 
@@ -58,6 +58,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(AjsRootScope) readonly ajsRootScope,
     private readonly apiService: ApiService,
+    private readonly snackBarService: SnackBarService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
@@ -112,7 +113,42 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   }
 
   public onSubmit() {
-    // Do something
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => {
+          const configurationValues = this.logsConfigurationForm.getRawValue();
+          const updatedApi = {
+            ...api,
+            proxy: {
+              ...api.proxy,
+              logging: {
+                ...api.proxy.logging,
+                scope: configurationValues.scope,
+                content: configurationValues.content,
+                mode: configurationValues.enabled ? configurationValues.mode : 'NONE',
+                condition: configurationValues.condition,
+              },
+            },
+          };
+
+          if (configurationValues.condition != null && configurationValues.condition.trim() === '') {
+            delete updatedApi.proxy.logging.condition;
+          }
+
+          return this.apiService.update(updatedApi);
+        }),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
   }
 
   private initForm(api: Api) {
