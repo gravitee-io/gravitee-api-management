@@ -155,13 +155,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                 Assert.assertEquals(0, bucket.value());
             }
             if (bucket.name().startsWith("200")) {
-                Assert.assertEquals(6, bucket.value()); //line 56 in bulk.json
+                Assert.assertEquals(6, bucket.value()); //line 56 in bulk.ftl
             }
             if (bucket.name().startsWith("300")) {
                 Assert.assertEquals(0, bucket.value());
             }
             if (bucket.name().startsWith("400")) {
-                Assert.assertEquals(1, bucket.value()); //line 42 in bulk.json
+                Assert.assertEquals(1, bucket.value()); //line 42 in bulk.ftl
             }
         }
     }

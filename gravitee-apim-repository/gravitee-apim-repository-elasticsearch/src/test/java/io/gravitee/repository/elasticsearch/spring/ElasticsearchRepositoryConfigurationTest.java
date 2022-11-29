@@ -15,14 +15,20 @@
  */
 package io.gravitee.repository.elasticsearch.spring;
 
+import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.client.http.HttpClient;
+import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
+import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
-import io.gravitee.repository.elasticsearch.embedded.ElasticsearchNode;
 import io.vertx.core.Vertx;
 import java.util.Collections;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
  * Spring configuration for the test.
@@ -30,9 +36,16 @@ import org.springframework.context.annotation.Import;
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
+
 @Configuration
 @Import(ElasticsearchRepositoryConfiguration.class)
 public class ElasticsearchRepositoryConfigurationTest {
+
+    public static final String DEFAULT_ELASTICSEARCH_VERSION = "7.17.8";
+    public static final String CLUSTER_NAME = "gravitee_test";
+
+    @Value("${elasticsearch.version:" + DEFAULT_ELASTICSEARCH_VERSION + "}")
+    private String elasticsearchVersion;
 
     @Bean
     public Vertx vertx() {
@@ -40,14 +53,41 @@ public class ElasticsearchRepositoryConfigurationTest {
     }
 
     @Bean
-    public ElasticsearchNode elasticsearchNode() {
-        return new ElasticsearchNode();
+    public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent) {
+        return new DatabaseHydrator(client, freeMarkerComponent, elasticsearchVersion);
     }
 
     @Bean
-    public RepositoryConfiguration repositoryConfiguration() {
+    public Client client(RepositoryConfiguration repositoryConfiguration) throws InterruptedException {
+        HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
+        clientConfiguration.setEndpoints(repositoryConfiguration.getEndpoints());
+        clientConfiguration.setUsername(repositoryConfiguration.getUsername());
+        clientConfiguration.setPassword(repositoryConfiguration.getPassword());
+        clientConfiguration.setRequestTimeout(60_000);
+        return new HttpClient(clientConfiguration);
+    }
+
+    @Bean
+    public RepositoryConfiguration repositoryConfiguration(
+        ElasticsearchContainer elasticSearchContainer,
+        ConfigurableEnvironment environment
+    ) {
         RepositoryConfiguration elasticConfiguration = new RepositoryConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
+        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
+        elasticConfiguration.setUsername("elastic");
+        elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
+        environment.getSystemProperties().put("analytics.elasticsearch.index_per_type", "true");
         return elasticConfiguration;
+    }
+
+    @Bean(destroyMethod = "close")
+    public ElasticsearchContainer elasticSearchContainer() {
+        final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(
+            "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion
+        );
+        elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
+        elasticsearchContainer.withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+        elasticsearchContainer.start();
+        return elasticsearchContainer;
     }
 }
