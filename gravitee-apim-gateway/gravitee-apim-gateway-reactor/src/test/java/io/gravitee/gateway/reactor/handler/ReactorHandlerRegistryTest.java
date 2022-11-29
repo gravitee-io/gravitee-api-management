@@ -615,6 +615,20 @@ public class ReactorHandlerRegistryTest {
         Assert.assertEquals("api1", subscriptionAcceptorsIterator.next().apiId());
     }
 
+    @Test
+    public void shouldHaveNoEntrypoints_removeSameReactableWithHttpAndSubscriptionAcceptors() {
+        DummyReactable reactable = createReactable("reactable1");
+        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultSubscriptionAcceptor("api1"));
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+        reactorHandlerRegistry.create(reactable);
+
+        DummyReactable updateReactable = createReactable("reactable1");
+        reactorHandlerRegistry.remove(updateReactable);
+
+        Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(SubscriptionAcceptor.class).size());
+    }
+
     private void assertEntryPoint(String host, String path, HttpAcceptor httpAcceptor) {
         Assert.assertEquals(host, httpAcceptor.host());
         Assert.assertEquals(path, httpAcceptor.path());
