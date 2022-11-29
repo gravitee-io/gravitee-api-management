@@ -372,10 +372,10 @@ jobs:
                   secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/field/password
                   var-name: SNYK_API_KEY
             - keeper/env-export:
-                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/graviteeio_org_id
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
                   var-name: SNYK_ORG_ID
             - keeper/env-export:
-                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/dockerhub_integration_id
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_dockerhub_integration_id
                   var-name: SNYK_INTEGRATION_ID
             - add-docker-image-in-snyk:
                   docker-image-name: apim-gateway
