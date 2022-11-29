@@ -23,6 +23,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiLogsConfigurationComponent } from './configuration/api-logs-configuration.component';
 
@@ -41,6 +42,7 @@ import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-c
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
     GioFormCardGroupModule,
     GioIconsModule,
     GioBannerModule,
