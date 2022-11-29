@@ -16,6 +16,7 @@
 package io.gravitee.plugin.entrypoint.webhook.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointConnectorSubscriptionConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector;
 import java.util.List;
@@ -46,4 +47,9 @@ public class WebhookEntrypointConnectorSubscriptionConfiguration implements Entr
      * The list of headers to add to the request to the callback URL.
      */
     private List<HttpHeader> headers;
+
+    /**
+     * Ssl options.
+     */
+    private SslOptions ssl = new SslOptions();
 }

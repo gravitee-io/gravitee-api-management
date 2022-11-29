@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
@@ -34,11 +35,16 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
-import io.gravitee.gateway.jupiter.api.context.*;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -47,6 +53,8 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +65,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -70,6 +79,7 @@ class WebhookEntrypointConnectorTest {
     protected static final String MOCK_ERROR = "Mock error";
     public static final int AWAIT_SECONDS = 60;
     private final Vertx vertx = Vertx.vertx();
+    private final Configuration nodeConfiguration = new SpringEnvironmentConfiguration(new StandardEnvironment());
 
     @Mock
     private ExecutionContext ctx;
@@ -106,6 +116,7 @@ class WebhookEntrypointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.end()).thenReturn(Completable.complete());
         lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
+        lenient().when(ctx.getComponent(Configuration.class)).thenReturn(nodeConfiguration);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
         lenient().when(ctx.getComponent(ConnectorHelper.class)).thenReturn(connectorHelper);
         lenient()
@@ -117,6 +128,7 @@ class WebhookEntrypointConnectorTest {
             )
             .thenReturn(subscriptionConfiguration);
         lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
+        lenient().when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:8080/callback");
 
         cut = new WebhookEntrypointConnector(connectorHelper, Qos.NONE, configuration);
     }
@@ -177,7 +189,6 @@ class WebhookEntrypointConnectorTest {
         final TestObserver<Void> obs = cut.handleRequest(ctx).test();
         obs.assertNoValues();
 
-        verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/endpoint");
         verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), any(HttpClient.class));
     }
 
@@ -186,7 +197,6 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(ok()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
@@ -213,10 +223,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(ok()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
@@ -260,10 +268,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(ok()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
@@ -309,10 +315,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(ok()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
@@ -363,6 +367,7 @@ class WebhookEntrypointConnectorTest {
 
         final HttpClient httpClient = mock(HttpClient.class);
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT)).thenReturn(httpClient);
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
@@ -390,10 +395,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(serverError()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
         when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
@@ -440,10 +443,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(badRequest()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
         when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
@@ -491,10 +492,8 @@ class WebhookEntrypointConnectorTest {
         stubFor(post("/callback").willReturn(badRequest()));
 
         when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
-        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
         when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
         when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
@@ -529,5 +528,42 @@ class WebhookEntrypointConnectorTest {
         verify(ctx).interruptMessageWith(failure);
         verify(message).error(true);
         verify(message, never()).ack();
+    }
+
+    @Test
+    public void shouldBuildHttpClientWithSsl() {
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("https://localhost:473/test");
+
+        SslOptions sslOptions = new SslOptions();
+        sslOptions.setTrustAll(true);
+        sslOptions.setHostnameVerifier(false);
+        when(subscriptionConfiguration.getSsl()).thenReturn(sslOptions);
+
+        cut.computeSubscriptionContextAttributes(ctx, subscriptionConfiguration);
+
+        verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
+        verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+
+        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).getOptions();
+        assertThat(options.isSsl()).isTrue();
+        assertThat(options.getDefaultHost()).isEqualTo("localhost");
+        assertThat(options.getDefaultPort()).isEqualTo(473);
+        assertThat(options.isVerifyHost()).isFalse();
+        assertThat(options.isTrustAll()).isTrue();
+    }
+
+    @Test
+    public void shouldBuildHttpClientWithoutSsl() {
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:473/test");
+
+        cut.computeSubscriptionContextAttributes(ctx, subscriptionConfiguration);
+
+        verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
+        verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+
+        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).getOptions();
+        assertThat(options.isSsl()).isFalse();
+        assertThat(options.getDefaultHost()).isEqualTo("localhost");
+        assertThat(options.getDefaultPort()).isEqualTo(473);
     }
 }
