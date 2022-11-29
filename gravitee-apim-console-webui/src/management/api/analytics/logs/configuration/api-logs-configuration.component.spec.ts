@@ -22,20 +22,24 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiLogsConfigurationComponent } from './api-logs-configuration.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiLogsModule } from '../api-logs.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Api } from '../../../../../entities/api';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { User } from '../../../../../entities/user';
 
 describe('ApiLogsConfigurationComponent', () => {
   const API_ID = 'my-api';
   const fakeUiRouter = { go: jest.fn() };
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-log-u'];
   let fixture: ComponentFixture<ApiLogsConfigurationComponent>;
   let component: ApiLogsConfigurationComponent;
   let loader: HarnessLoader;
@@ -47,6 +51,10 @@ describe('ApiLogsConfigurationComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
+        {
+          provide: CurrentUserService,
+          useValue: { currentUser },
+        },
       ],
     });
 
@@ -225,6 +233,34 @@ describe('ApiLogsConfigurationComponent', () => {
       expectApiGetRequest(api);
       expectApiPutRequestError(api.id);
       expect(snackBarServiceSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('kubernetes origin tests', () => {
+    it('should disable the form when the origin is kubernetes', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        proxy: {
+          logging: {
+            condition: '',
+            mode: 'CLIENT',
+            content: 'PAYLOADS',
+            scope: 'RESPONSE',
+          },
+        },
+        definition_context: {
+          origin: 'kubernetes',
+        },
+      });
+      expectApiGetRequest(api);
+
+      const groups = await loader.getAllHarnesses(GioFormCardGroupHarness);
+      for (const group of groups) {
+        expect(await group.isDisabled()).toBe(true);
+      }
+
+      expect(await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.isDisabled())).toStrictEqual(true);
+      expect(await loader.getHarness(MatInputHarness).then((input) => input.isDisabled())).toStrictEqual(true);
     });
   });
 

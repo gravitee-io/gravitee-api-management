@@ -25,6 +25,7 @@ import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../..
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { Api } from '../../../../../entities/api';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 interface LoggingConfiguration {
   enabled: boolean;
@@ -59,6 +60,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     @Inject(AjsRootScope) readonly ajsRootScope,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
@@ -153,22 +155,23 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
 
   private initForm(api: Api) {
     const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
+    const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definition_context?.origin === 'kubernetes';
     const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';
     this.mode = new FormControl({
       value: mode !== 'NONE' ? mode : 'CLIENT_PROXY',
-      disabled: !enabled,
+      disabled: !enabled || isReadOnly,
     });
     this.content = new FormControl({
       value: content !== 'NONE' ? content : 'HEADERS_PAYLOADS',
-      disabled: !enabled,
+      disabled: !enabled || isReadOnly,
     });
     this.scope = new FormControl({
       value: scope !== 'NONE' ? scope : 'REQUEST_RESPONSE',
-      disabled: !enabled,
+      disabled: !enabled || isReadOnly,
     });
     this.logsConfigurationForm = new FormGroup({
-      enabled: new FormControl(enabled),
-      condition: new FormControl(api.proxy.logging?.condition),
+      enabled: new FormControl({ value: enabled, disabled: isReadOnly }),
+      condition: new FormControl({ value: api.proxy.logging?.condition, disabled: !enabled || isReadOnly }),
       mode: this.mode,
       content: this.content,
       scope: this.scope,
