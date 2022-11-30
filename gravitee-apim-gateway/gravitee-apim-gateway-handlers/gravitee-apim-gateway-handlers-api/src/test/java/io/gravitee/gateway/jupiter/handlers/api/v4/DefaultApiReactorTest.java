@@ -751,7 +751,9 @@ class DefaultApiReactorTest {
 
     @Test
     void shouldTimeoutDuringPlatformResponseFlow() {
-        when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L, 10000L);
+        // Simulate a grace delay for platform flow (a bit tricky due to use of System.currentTimeMillis).
+        when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L, 1000L);
+        when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(1000L);
         spyInvokerChain = spy(Completable.complete().delay(9000, TimeUnit.MILLISECONDS));
         spyResponsePlatformFlowChain = spy(Completable.complete().delay(3000, TimeUnit.MILLISECONDS));
         when(defaultInvoker.invoke(ctx)).thenReturn(spyInvokerChain);
@@ -763,9 +765,10 @@ class DefaultApiReactorTest {
         testScheduler.advanceTimeBy(9000, TimeUnit.MILLISECONDS);
         testScheduler.triggerActions();
 
-        // Should not have completed after 9s because timeout is set to 10s.
+        // Should not have completed after 9s because there is no request timeout.
         obs.assertNotComplete();
 
+        // Should have complete after grace delay.
         testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
         testScheduler.triggerActions();
         obs.assertComplete();
