@@ -37,7 +37,9 @@ import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosCapability;
 import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointCriteria;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Set;
@@ -55,7 +57,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class EndpointInvokerTest {
 
     @Mock
-    private DefaultEndpointConnectorResolver endpointConnectorResolver;
+    private EndpointManager endpointManager;
+
+    @Mock
+    private ManagedEndpoint managedEndpoint;
 
     @Mock
     private EndpointConnector endpointConnector;
@@ -67,12 +72,15 @@ class EndpointInvokerTest {
 
     @BeforeEach
     void init() {
-        cut = new EndpointInvoker(endpointConnectorResolver);
+        cut = new EndpointInvoker(endpointManager);
     }
 
     @Test
     void shouldConnectToEndpointConnector() {
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointConnector);
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
@@ -82,7 +90,9 @@ class EndpointInvokerTest {
 
     @Test
     void shouldFailWith404WhenNoEndpointConnectorHasBeenResolved() {
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(null);
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(null);
         when(ctx.interruptWith(any(ExecutionFailure.class)))
             .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
@@ -105,7 +115,9 @@ class EndpointInvokerTest {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
         when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
+
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AT_LEAST_ONCE).build());
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
@@ -121,7 +133,8 @@ class EndpointInvokerTest {
     void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfMissingRequirements() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
         when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
         when(ctx.interruptWith(any(ExecutionFailure.class)))
@@ -145,7 +158,8 @@ class EndpointInvokerTest {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
         when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AUTO).build());
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
@@ -172,7 +186,8 @@ class EndpointInvokerTest {
         when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
         when(endpointAsyncConnector.supportedQosCapabilities()).thenReturn(Set.of());
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(entrypointAsyncConnector.qosRequirement())
             .thenReturn(QosRequirement.builder().qos(Qos.AT_LEAST_ONCE).capabilities(Set.of(QosCapability.AUTO_ACK)).build());
@@ -199,7 +214,8 @@ class EndpointInvokerTest {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
         when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
         when(endpointAsyncConnector.supportedQos()).thenReturn(null);
-        when(endpointConnectorResolver.resolve(ctx)).thenReturn(endpointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AUTO).build());
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);

@@ -26,6 +26,8 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointManager;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.jupiter.handlers.api.el.ContentTemplateVariableProvider;
@@ -182,6 +184,14 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 deploymentContext.componentProvider(componentProvider);
                 deploymentContext.templateVariableProviders(commonTemplateVariableProviders(api));
 
+                final EndpointManager endpointManager = new DefaultEndpointManager(
+                    api.getDefinition(),
+                    endpointConnectorPluginManager,
+                    deploymentContext
+                );
+
+                customComponentProvider.add(EndpointManager.class, endpointManager);
+
                 final io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory = new io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory(
                     v4PolicyChainFactory,
                     configuration,
@@ -195,6 +205,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     policyManager,
                     entrypointConnectorPluginManager,
                     endpointConnectorPluginManager,
+                    endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,
                     flowChainFactory,

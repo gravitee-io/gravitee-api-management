@@ -75,7 +75,9 @@ class HttpProxyEndpointConnectorTest {
 
     protected static final int REQUEST_BODY_LENGTH = REQUEST_BODY.getBytes().length;
     protected static final String BACKEND_RESPONSE_BODY = "response from backend";
+    public static final int TIMEOUT_SECONDS = 60;
     private static WireMockServer wiremock;
+    private static Vertx vertx;
 
     @Mock
     private DeploymentContext deploymentCtx;
@@ -111,17 +113,18 @@ class HttpProxyEndpointConnectorTest {
         final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
         wiremock = new WireMockServer(wireMockConfiguration);
         wiremock.start();
+        vertx = Vertx.vertx();
     }
 
     @AfterAll
     static void tearDown() {
+        wiremock.stop();
         wiremock.shutdownServer();
+        vertx.close().blockingAwait(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @BeforeEach
     void init() {
-        Vertx vertx = Vertx.vertx();
-
         final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
         wiremock = new WireMockServer(wireMockConfiguration);
         wiremock.start();
@@ -167,7 +170,7 @@ class HttpProxyEndpointConnectorTest {
         }
 
         wiremock.resetAll();
-        httpClient.close();
+        httpClient.close().blockingAwait(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @Test
@@ -194,7 +197,7 @@ class HttpProxyEndpointConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
@@ -208,10 +211,10 @@ class HttpProxyEndpointConnectorTest {
                 Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
             );
 
-        wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
+        wiremock.stubFor(post(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
@@ -231,7 +234,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
@@ -253,7 +256,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
@@ -279,7 +282,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
@@ -307,7 +310,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
@@ -333,7 +336,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
@@ -360,7 +363,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
@@ -388,7 +391,7 @@ class HttpProxyEndpointConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         assertEquals(List.of("Value1", "Value2"), responseHeaders.getAll("X-Response-Header"));
@@ -413,7 +416,7 @@ class HttpProxyEndpointConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         assertEquals(List.of("Value1", "Value2"), responseHeaders.getAll("X-Response-Header"));
@@ -428,14 +431,14 @@ class HttpProxyEndpointConnectorTest {
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < TIMEOUT_SECONDS; i++) {
             final TestObserver<Void> obs = cut.connect(ctx).test();
 
-            assertTrue(obs.await(10, TimeUnit.SECONDS));
+            assertNoTimeout(obs);
             obs.assertComplete();
         }
 
-        wiremock.verify(10, getRequestedFor(urlPathEqualTo("/team")));
+        wiremock.verify(TIMEOUT_SECONDS, getRequestedFor(urlPathEqualTo("/team")));
         assertEquals(1, httpClientCreationCount.get());
     }
 
@@ -459,7 +462,7 @@ class HttpProxyEndpointConnectorTest {
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
@@ -484,10 +487,10 @@ class HttpProxyEndpointConnectorTest {
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team?param1=value1&param2=value2");
         cut = new HttpProxyEndpointConnector(configuration);
 
-        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+        wiremock.stubFor(get(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
@@ -520,7 +523,7 @@ class HttpProxyEndpointConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
-        assertTrue(obs.await(10, TimeUnit.SECONDS));
+        assertNoTimeout(obs);
         obs.assertComplete();
 
         cut.doStop();
@@ -532,5 +535,9 @@ class HttpProxyEndpointConnectorTest {
         cut.doStop();
 
         verify(httpClient, never()).close();
+    }
+
+    private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {
+        assertThat(obs.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue().as("Should complete before timeout");
     }
 }
