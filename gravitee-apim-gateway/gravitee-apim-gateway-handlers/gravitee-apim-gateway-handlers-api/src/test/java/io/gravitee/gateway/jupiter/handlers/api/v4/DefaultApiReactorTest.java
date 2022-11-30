@@ -49,6 +49,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
@@ -204,6 +205,9 @@ class DefaultApiReactorTest {
 
     @Mock
     private EndpointConnectorPluginManager endpointConnectorPluginManager;
+
+    @Mock
+    private EndpointManager endpointManager;
 
     @Mock
     private EndpointInvoker defaultInvoker;
@@ -364,6 +368,7 @@ class DefaultApiReactorTest {
                     policyManager,
                     entrypointConnectorPluginManager,
                     endpointConnectorPluginManager,
+                    endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,
                     flowChainFactory,
@@ -953,14 +958,14 @@ class DefaultApiReactorTest {
 
         // Pre-stop should have been called
         verify(entrypointConnectorResolver).preStop();
-        verify(defaultInvoker).preStop();
+        verify(endpointManager).preStop();
 
         testScheduler.advanceTimeBy(2500L, TimeUnit.MILLISECONDS);
         testScheduler.triggerActions();
 
         // Not called yet as there is still a pending request and timeout has not expired.
         verify(entrypointConnectorResolver, times(0)).stop();
-        verify(defaultInvoker, times(0)).stop();
+        verify(endpointManager, times(0)).stop();
         verify(resourceLifecycleManager, times(0)).stop();
         verify(policyManager, times(0)).stop();
 
@@ -970,7 +975,7 @@ class DefaultApiReactorTest {
         testScheduler.triggerActions();
 
         verify(entrypointConnectorResolver).stop();
-        verify(defaultInvoker).stop();
+        verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
     }
@@ -984,7 +989,7 @@ class DefaultApiReactorTest {
 
         // Pre-stop should have been called
         verify(entrypointConnectorResolver).preStop();
-        verify(defaultInvoker).preStop();
+        verify(endpointManager).preStop();
 
         for (int i = 0; i < 99; i++) {
             testScheduler.advanceTimeBy(100L, TimeUnit.MILLISECONDS);
@@ -992,7 +997,7 @@ class DefaultApiReactorTest {
 
             // Not called yet as there is still a pending request and timeout has not expired.
             verify(entrypointConnectorResolver, times(0)).stop();
-            verify(defaultInvoker, times(0)).stop();
+            verify(endpointManager, times(0)).stop();
             verify(resourceLifecycleManager, times(0)).stop();
             verify(policyManager, times(0)).stop();
         }
@@ -1001,7 +1006,7 @@ class DefaultApiReactorTest {
         testScheduler.triggerActions();
 
         verify(entrypointConnectorResolver).stop();
-        verify(defaultInvoker).stop();
+        verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
 
@@ -1017,8 +1022,8 @@ class DefaultApiReactorTest {
 
         verify(entrypointConnectorResolver).preStop();
         verify(entrypointConnectorResolver).stop();
-        verify(defaultInvoker).preStop();
-        verify(defaultInvoker).stop();
+        verify(endpointManager).preStop();
+        verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
     }
@@ -1031,8 +1036,8 @@ class DefaultApiReactorTest {
 
         verify(entrypointConnectorResolver).preStop();
         verify(entrypointConnectorResolver).stop();
-        verify(defaultInvoker).preStop();
-        verify(defaultInvoker, never()).stop();
+        verify(endpointManager).preStop();
+        verify(endpointManager, never()).stop();
         verify(resourceLifecycleManager, never()).stop();
         verify(policyManager, never()).stop();
     }

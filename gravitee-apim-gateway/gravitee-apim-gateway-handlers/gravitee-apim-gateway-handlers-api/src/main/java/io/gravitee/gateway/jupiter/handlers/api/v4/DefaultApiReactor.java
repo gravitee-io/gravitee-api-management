@@ -55,7 +55,7 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
@@ -106,6 +106,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final List<TemplateVariableProvider> ctxTemplateVariableProviders;
     private final PolicyManager policyManager;
     private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
+    private final EndpointManager endpointManager;
     private final EndpointInvoker defaultInvoker;
     private final ResourceLifecycleManager resourceLifecycleManager;
     private final ProcessorChain beforeHandleProcessors;
@@ -135,6 +136,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         final PolicyManager policyManager,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
+        final EndpointManager endpointManager,
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory flowChainFactory,
@@ -147,12 +149,10 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         this.componentProvider = componentProvider;
         this.ctxTemplateVariableProviders = ctxTemplateVariableProviders;
         this.policyManager = policyManager;
+        this.endpointManager = endpointManager;
         this.entrypointConnectorResolver =
             new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager);
-        this.defaultInvoker =
-            new EndpointInvoker(
-                new DefaultEndpointConnectorResolver(api.getDefinition(), deploymentContext, endpointConnectorPluginManager)
-            );
+        this.defaultInvoker = new EndpointInvoker(endpointManager);
 
         this.resourceLifecycleManager = resourceLifecycleManager;
 
@@ -451,6 +451,8 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
 
+        endpointManager.start();
+
         this.lifecycleState = Lifecycle.State.STARTED;
         dumpAcceptors();
     }
@@ -461,7 +463,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
         try {
             entrypointConnectorResolver.preStop();
-            defaultInvoker.preStop();
+            endpointManager.preStop();
 
             if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
                 log.debug("Current node is not started, API handler will be stopped immediately");
@@ -488,7 +490,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         log.debug("API reactor is now stopping, closing context for {} ...", this);
 
         entrypointConnectorResolver.stop();
-        defaultInvoker.stop();
+        endpointManager.stop();
         policyManager.stop();
         resourceLifecycleManager.stop();
 

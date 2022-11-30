@@ -23,13 +23,16 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosCapability;
 import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointConnectorResolver;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointCriteria;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 
@@ -37,16 +40,16 @@ import java.util.Set;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointInvoker extends AbstractService<EndpointInvoker> implements Invoker {
+public class EndpointInvoker implements Invoker {
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
     public static final String INCOMPATIBLE_QOS_CAPABILITIES_KEY = "INCOMPATIBLE_QOS_CAPABILITIES";
 
-    private final DefaultEndpointConnectorResolver endpointResolver;
+    private final EndpointManager endpointManager;
 
-    public EndpointInvoker(final DefaultEndpointConnectorResolver endpointResolver) {
-        this.endpointResolver = endpointResolver;
+    public EndpointInvoker(final EndpointManager endpointManager) {
+        this.endpointManager = endpointManager;
     }
 
     @Override
@@ -55,7 +58,7 @@ public class EndpointInvoker extends AbstractService<EndpointInvoker> implements
     }
 
     public Completable invoke(ExecutionContext ctx) {
-        final EndpointConnector endpointConnector = endpointResolver.resolve(ctx);
+        final EndpointConnector endpointConnector = resolveConnector(ctx);
 
         if (endpointConnector == null) {
             return ctx.interruptWith(
@@ -99,16 +102,20 @@ public class EndpointInvoker extends AbstractService<EndpointInvoker> implements
         return endpointConnector.connect(ctx);
     }
 
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
-        endpointResolver.stop();
-    }
+    @SuppressWarnings("unchecked")
+    private <T extends EndpointConnector> T resolveConnector(final ExecutionContext ctx) {
+        final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
-    @Override
-    public EndpointInvoker preStop() throws Exception {
-        super.preStop();
-        endpointResolver.preStop();
-        return this;
+        final EndpointCriteria endpointCriteria = new EndpointCriteria(
+            entrypointConnector.supportedApi(),
+            entrypointConnector.supportedModes()
+        );
+
+        final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
+
+        if (managedEndpoint != null) {
+            return (T) managedEndpoint.getConnector();
+        }
+        return null;
     }
 }
