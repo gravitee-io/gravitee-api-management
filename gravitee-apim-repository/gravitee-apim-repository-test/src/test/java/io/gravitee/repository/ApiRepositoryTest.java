@@ -31,7 +31,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -218,19 +220,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
-    @Test
-    public void shouldFindIdsWithMultipleApiCriteria() {
-        List<String> apis = apiRepository.searchIds(
-            new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
-            new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build(),
-            new ApiCriteria.Builder().groups("api-group", "unknown").build()
-        );
-        assertNotNull(apis);
-        assertFalse(apis.isEmpty());
-        assertEquals(4, apis.size());
-        assertTrue(apis.containsAll(asList("api-to-delete", "api-to-update", "big-name", "grouped-api")));
-    }
-
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownApi() throws TechnicalException {
         Api unknownApi = new Api();
@@ -368,29 +357,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void searchByPageable() {
-        Page<Api> apiPage = apiRepository.search(
-            new ApiCriteria.Builder().version("1").build(),
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
-
-        assertEquals(4, apiPage.getTotalElements());
-        assertEquals(2, apiPage.getPageElements());
-        Iterator<Api> apiIterator = apiPage.getContent().iterator();
-        assertEquals("api-to-delete", apiIterator.next().getId());
-        assertEquals("api-to-findById", apiIterator.next().getId());
-
-        apiPage =
-            apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build());
-
-        assertEquals(4, apiPage.getTotalElements());
-        assertEquals(2, apiPage.getPageElements());
-        apiIterator = apiPage.getContent().iterator();
-        assertEquals("api-to-update", apiIterator.next().getId());
-        assertEquals("grouped-api", apiIterator.next().getId());
-    }
-
-    @Test
     public void shouldFindByLifecycleStates() {
         final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
         assertNotNull(apis);
@@ -479,5 +445,43 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     @Test(expected = Exception.class)
     public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() throws TechnicalException {
         apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId");
+    }
+
+    @Test
+    public void searchIdsWithPageable() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(0).pageSize(2).build(),
+            null
+        );
+
+        assertEquals(4, apiIds.getTotalElements());
+        assertEquals(2, apiIds.getPageElements());
+
+        assertEquals("api-to-delete", apiIds.getContent().get(0));
+        assertEquals("api-to-findById", apiIds.getContent().get(1));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null
+            );
+
+        assertEquals(4, apiIds.getTotalElements());
+        assertEquals(2, apiIds.getPageElements());
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("grouped-api", apiIds.getContent().get(1));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build()
+            );
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("api-to-delete", apiIds.getContent().get(1));
     }
 }

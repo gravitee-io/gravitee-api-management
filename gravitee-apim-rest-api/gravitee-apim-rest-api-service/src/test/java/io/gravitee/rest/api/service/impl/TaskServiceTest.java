@@ -26,12 +26,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -107,17 +112,25 @@ public class TaskServiceTest {
         m2.setReferenceType(MembershipReferenceType.API);
         m2.setRoleId("API_USER");
 
+        MembershipEntity m3 = new MembershipEntity();
+        m3.setId("3");
+        m3.setReferenceId("api3");
+        m3.setReferenceType(MembershipReferenceType.API);
+        m3.setRoleId("API_PO");
+
         Map<String, char[]> withPerm = new HashMap<>();
         withPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'U', 'D' });
         Map<String, char[]> withoutPerm = new HashMap<>();
         withoutPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'D' });
 
         RoleEntity roleEntityWithPerm = new RoleEntity();
+        roleEntityWithPerm.setId("API_PO");
         roleEntityWithPerm.setName("PO");
         roleEntityWithPerm.setPermissions(withPerm);
         roleEntityWithPerm.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
 
         RoleEntity roleEntityWithoutPerm = new RoleEntity();
+        roleEntityWithoutPerm.setId("API_USER");
         roleEntityWithoutPerm.setName("USER");
         roleEntityWithoutPerm.setPermissions(withoutPerm);
         roleEntityWithoutPerm.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
@@ -131,6 +144,7 @@ public class TaskServiceTest {
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
+        memberships.add(m3);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
 
         when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any()))
@@ -148,10 +162,13 @@ public class TaskServiceTest {
         final Authentication authentication = mock(Authentication.class);
 
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+        when(apiRepository.searchIds(emptyList(), new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(), null))
+            .thenReturn(new Page<String>(emptyList(), 1, 0, 0));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
-        verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any());
+        verify(subscriptionService, times(1))
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
     }
@@ -169,6 +186,14 @@ public class TaskServiceTest {
         environment.setId(GraviteeContext.getCurrentEnvironment());
 
         when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(List.of(environment));
+        when(
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().environments(List.of(environment.getId())).build()),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
+                null
+            )
+        )
+            .thenReturn(new Page<String>(emptyList(), 1, 0, 0));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "admin");
 

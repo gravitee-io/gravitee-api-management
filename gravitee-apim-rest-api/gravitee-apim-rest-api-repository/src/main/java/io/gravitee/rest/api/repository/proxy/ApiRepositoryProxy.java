@@ -68,11 +68,6 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
-        return target.search(apiCriteria, pageable);
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria) {
         return target.search(apiCriteria);
     }
@@ -83,13 +78,8 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public List<String> searchIds(ApiCriteria... apiCriteria) {
-        return target.searchIds(apiCriteria);
-    }
-
-    @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
-        return target.searchIds(sortable, apiCriteria);
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
+        return target.searchIds(apiCriteria, pageable, sortable);
     }
 
     @Override

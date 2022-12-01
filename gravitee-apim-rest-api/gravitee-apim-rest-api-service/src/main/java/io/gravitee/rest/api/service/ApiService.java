@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -166,12 +165,7 @@ public interface ApiService {
 
     Collection<ApiEntity> search(ExecutionContext executionContext, ApiQuery query);
 
-    Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query);
-
-    default Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters)
-        throws TechnicalException {
-        return searchIds(executionContext, query, filters, null);
-    }
+    Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable);
 
     Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
         throws TechnicalException;

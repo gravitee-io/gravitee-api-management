@@ -34,7 +34,15 @@ public interface ApiMongoRepositoryCustom {
 
     List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 
-    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+    /**
+     * Find ids of APIs matching the given criteria.
+     *
+     * @param apiCriteria the search criteria
+     * @param pageable    the pagination criteria
+     * @param sortable    the sort criteria
+     * @return the list of matching APIs' ids
+     */
+    Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria);
 }
