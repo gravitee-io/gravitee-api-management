@@ -2733,6 +2733,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
+        try {
+            LOGGER.debug("Search API ids by {}", query);
+            ApiCriteria apiCriteria = queryToCriteria(executionContext, query).build();
+            return apiRepository.searchIds(List.of(apiCriteria), convert(pageable), convert(sortable));
+        } catch (Exception ex) {
+            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
     public Page<ApiEntity> search(
         ExecutionContext executionContext,
         String query,

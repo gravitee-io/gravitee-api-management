@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -176,28 +177,29 @@ public abstract class AbstractResource {
         if (!isAdmin()) {
             // get memberships of the current user
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
+
+            // if the current user is member of the API, continue
+            Optional<MembershipEntity> directMembershipEntity = memberships
+                .stream()
+                .filter(m -> API.equals(m.getReferenceType()))
+                .findAny();
+
+            if (directMembershipEntity.isPresent()) {
+                return;
+            }
+
+            // fetch group memberships
             Set<String> groups = memberships
                 .stream()
                 .filter(m -> GROUP.equals(m.getReferenceType()))
                 .map(m -> m.getReferenceId())
                 .collect(Collectors.toSet());
-            Set<String> directMembers = memberships
-                .stream()
-                .filter(m -> API.equals(m.getReferenceType()))
-                .map(m -> m.getReferenceId())
-                .collect(Collectors.toSet());
 
-            // if the current user is member of the API, continue
-            if (directMembers.contains(api)) {
-                return;
-            }
-
-            // fetch group memberships
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
             apiQuery.setIds(Collections.singletonList(api));
-            final Collection<String> strings = apiService.searchIds(executionContext, apiQuery);
-            final boolean canReadAPI = strings.contains(api);
+            final Collection<String> ids = apiService.searchIds(executionContext, apiQuery, new PageableImpl(0, 1), null).getContent();
+            final boolean canReadAPI = ids != null && ids.contains(api);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }
