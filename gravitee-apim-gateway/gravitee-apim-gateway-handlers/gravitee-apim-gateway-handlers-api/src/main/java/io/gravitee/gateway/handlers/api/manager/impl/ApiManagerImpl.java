@@ -146,6 +146,19 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     }
 
     @Override
+    public boolean requireDeployment(ReactableApi reactableApi) {
+        if (gatewayConfiguration.hasMatchingTags(reactableApi.getTags())) {
+            ReactableApi<?> deployedApi = get(reactableApi.getId());
+            boolean apiToDeploy = deployedApi == null;
+            boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(reactableApi.getDeployedAt());
+
+            // API will be deployed or updated
+            return (apiToDeploy || apiToUpdate);
+        }
+        return false;
+    }
+
+    @Override
     public boolean register(ReactableApi api) {
         return register(api, false);
     }
