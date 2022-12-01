@@ -24,7 +24,6 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;

@@ -63,8 +63,8 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     public static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
     static final String MQTT5_CONTEXT_ATTRIBUTE = ContextAttributes.ATTR_PREFIX + "mqtt5.";
-    static final String CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID = MQTT5_CONTEXT_ATTRIBUTE + "clientId";
-    static final String CONTEXT_ATTRIBUTE_MQTT5_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "topic";
+    public static final String CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID = MQTT5_CONTEXT_ATTRIBUTE + "clientId";
+    public static final String CONTEXT_ATTRIBUTE_MQTT5_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "topic";
     static final String CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC = MQTT5_CONTEXT_ATTRIBUTE + "responseTopic";
     private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES = Set.of(QosCapability.AUTO_ACK);
     static final String MQTT5_INTERNAL_CONTEXT_ATTRIBUTE = "mqtt5.";
