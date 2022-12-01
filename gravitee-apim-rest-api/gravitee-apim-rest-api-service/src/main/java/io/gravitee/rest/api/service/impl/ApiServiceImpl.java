@@ -2711,28 +2711,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query) {
-        try {
-            LOGGER.debug("Search API ids by {}", query);
-            Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
-
-            if (optionalTargetIds.isPresent()) {
-                Collection<String> targetIds = optionalTargetIds.get();
-                if (targetIds.isEmpty()) {
-                    return Collections.emptySet();
-                }
-                query.setIds(targetIds);
-            }
-
-            return apiRepository.searchIds(null, queryToCriteria(executionContext, query).build());
-        } catch (Exception ex) {
-            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
-            LOGGER.error(errorMessage, ex);
-            throw new TechnicalManagementException(errorMessage, ex);
-        }
-    }
-
-    @Override
     public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
         try {
             LOGGER.debug("Search API ids by {}", query);

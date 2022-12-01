@@ -166,8 +166,6 @@ public interface ApiService {
 
     Collection<ApiEntity> search(ExecutionContext executionContext, ApiQuery query);
 
-    Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query);
-
     Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable);
 
     default Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters)
