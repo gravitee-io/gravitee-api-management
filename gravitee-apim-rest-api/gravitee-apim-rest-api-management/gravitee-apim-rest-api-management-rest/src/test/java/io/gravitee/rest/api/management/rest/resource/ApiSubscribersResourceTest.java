@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -128,5 +129,12 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         final Collection<ApplicationListItem> applicationsResponse = response.readEntity(new GenericType<>() {});
         assertNotNull(applicationsResponse);
         assertEquals(0, applicationsResponse.size());
+    }
+
+    @Test
+    public void shouldNotFilterOnSubscriptionStatus() {
+        envTarget(API_ID).path("subscribers").request().get();
+        verify(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
     }
 }

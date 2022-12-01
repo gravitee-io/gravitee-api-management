@@ -107,7 +107,6 @@ public class ApiSubscribersResource extends AbstractResource {
 
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApi(api);
-        subscriptionQuery.setStatuses(Set.of(PENDING, ACCEPTED));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
 
