@@ -311,6 +311,53 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         );
     }
 
+    @Override
+    public Page<String> searchIds(List<ApiCriteria> criteria, Pageable pageable, Sortable sortable) {
+        LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
+
+        final StringBuilder sbQuery = new StringBuilder("select a.id from ")
+            .append(this.tableName)
+            .append(" a left join ")
+            .append(API_CATEGORIES)
+            .append(" ac on a.id = ac.api_id ");
+
+        Optional<ApiCriteria> hasGroups = criteria.stream().filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
+        Optional<ApiCriteria> hasLabels = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
+        if (hasGroups.isPresent()) {
+            sbQuery.append("left join " + API_GROUPS + " ag on a.id = ag.api_id ");
+        }
+        if (hasLabels.isPresent()) {
+            sbQuery.append("left join " + API_LABELS + " al on a.id = al.api_id ");
+        }
+
+        List<String> clauses = criteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!clauses.isEmpty()) {
+            sbQuery.append("where (").append(String.join(") or (", clauses)).append(") ");
+        }
+
+        applySortable(sortable, sbQuery);
+
+        List<String> apisIds = jdbcTemplate.query(
+            sbQuery.toString(),
+            (PreparedStatement ps) -> {
+                int lastIndex = 1;
+                for (ApiCriteria apiCriteria : criteria) {
+                    lastIndex = fillPreparedStatement(apiCriteria, ps, lastIndex);
+                }
+            },
+            resultSet -> {
+                List<String> ids = new ArrayList<>();
+                while (resultSet.next()) {
+                    String id = resultSet.getString(1);
+                    ids.add(id);
+                }
+                return ids;
+            }
+        );
+        return getResultAsPage(pageable, apisIds);
+    }
+
     private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -368,7 +415,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private void applySortable(Sortable sortable, StringBuilder query) {
         if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
             query.append("order by ");
-            if ("created_at".equals(sortable.field())) {
+            if ("created_at".equals(sortable.field()) || "updated_at".equals(sortable.field())) {
                 query.append("a.").append(sortable.field());
             } else {
                 query.append(" lower(a.").append(sortable.field()).append(") ");

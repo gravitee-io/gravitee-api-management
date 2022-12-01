@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
@@ -194,7 +195,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldAccessToApiState_BecauseGroupMember_onApi() {
+    public void shouldAccessToApiState_BecauseGroupMember_onApi() throws TechnicalException {
         final String groupId = "group_id";
         final String roleId = "role_id";
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
@@ -224,7 +225,8 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
-        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.singletonList(mockApi.getId()));
+        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), anyString(), any(), any()))
+            .thenReturn(Collections.singletonList(mockApi.getId()));
 
         final Response response = envTarget(API + "/state").request().get();
 

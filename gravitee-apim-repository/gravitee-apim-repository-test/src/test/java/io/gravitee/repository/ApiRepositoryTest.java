@@ -31,7 +31,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -479,5 +481,43 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     @Test(expected = Exception.class)
     public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() throws TechnicalException {
         apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId");
+    }
+
+    @Test
+    public void searchIdsWithPageable() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(0).pageSize(2).build(),
+            null
+        );
+
+        assertEquals(4, apiIds.getTotalElements());
+        assertEquals(2, apiIds.getPageElements());
+
+        assertEquals("api-to-delete", apiIds.getContent().get(0));
+        assertEquals("api-to-findById", apiIds.getContent().get(1));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null
+            );
+
+        assertEquals(4, apiIds.getTotalElements());
+        assertEquals(2, apiIds.getPageElements());
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("grouped-api", apiIds.getContent().get(1));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build()
+            );
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("api-to-delete", apiIds.getContent().get(1));
     }
 }

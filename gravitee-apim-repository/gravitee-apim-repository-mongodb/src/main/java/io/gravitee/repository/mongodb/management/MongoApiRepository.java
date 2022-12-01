@@ -115,6 +115,11 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
+        return internalApiRepo.searchIds(apiCriteria, pageable, sortable);
+    }
+
+    @Override
     public Set<String> listCategories(ApiCriteria apiCriteria) {
         return internalApiRepo.listCategories(apiCriteria);
     }

@@ -55,6 +55,8 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
 
+    Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
+
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;

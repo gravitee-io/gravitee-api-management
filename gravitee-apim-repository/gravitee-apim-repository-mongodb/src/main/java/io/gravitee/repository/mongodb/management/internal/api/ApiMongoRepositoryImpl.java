@@ -105,6 +105,34 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return apis.parallelStream().map(ApiMongo::getId).collect(Collectors.toList());
     }
 
+    @Override
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+
+        final Query query = new Query();
+        // Only fetch the id
+        query.fields().include("_id");
+        fillQuery(query, apiCriteria.toArray(new ApiCriteria[0]));
+
+        Sort sort;
+        if (sortable == null) {
+            sort = Sort.by(ASC, "name");
+        } else {
+            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
+        }
+
+        // Get total count before adding pagination to the query
+        long total = mongoTemplate.count(query, ApiMongo.class);
+
+        // set pageable
+        query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
+
+        List<String> apisIds = mongoTemplate.find(query, ApiMongo.class).stream().map(ApiMongo::getId).collect(Collectors.toList());
+
+        return new Page<>(apisIds, pageable.pageNumber(), apisIds.size(), total);
+    }
+
     private Query buildQuery(ApiFieldExclusionFilter apiFieldExclusionFilter, ApiCriteria... orApiCriteria) {
         final Query query = new Query();
 

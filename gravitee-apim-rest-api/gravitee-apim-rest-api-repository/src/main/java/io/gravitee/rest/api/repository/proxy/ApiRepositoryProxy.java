@@ -93,6 +93,11 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
+        return target.searchIds(apiCriteria, pageable, sortable);
+    }
+
+    @Override
     public Set<Api> findAll() throws TechnicalException {
         return target.findAll();
     }
