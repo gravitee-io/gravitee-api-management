@@ -17,17 +17,22 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -167,6 +172,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotAccessToApiState_BecauseNotAMember() {
+        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull()))
+            .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+
         final Response response = envTarget(API + "/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
@@ -194,7 +202,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldAccessToApiState_BecauseGroupMember_onApi() {
+    public void shouldAccessToApiState_BecauseGroupMember_onApi() throws TechnicalException {
         final String groupId = "group_id";
         final String roleId = "role_id";
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
@@ -224,7 +232,8 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
-        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.singletonList(mockApi.getId()));
+        when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull()))
+            .thenReturn(new Page<>(Collections.singletonList(mockApi.getId()), 0, 1, 1));
 
         final Response response = envTarget(API + "/state").request().get();
 

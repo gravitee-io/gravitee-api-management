@@ -33,27 +33,17 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiRepository extends CrudRepository<Api, String> {
-    default Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
-        return search(apiCriteria, null, pageable, null);
-    }
-
-    default Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable) {
-        return search(apiCriteria, sortable, pageable, null);
-    }
-
     Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
-    List<Api> search(ApiCriteria apiCriteria);
+    default List<Api> search(ApiCriteria apiCriteria) {
+        return search(apiCriteria, ApiFieldExclusionFilter.noExclusion());
+    }
 
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 
-    default List<String> searchIds(ApiCriteria... apiCriteria) {
-        return searchIds(null, apiCriteria);
-    }
-
-    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+    Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
 

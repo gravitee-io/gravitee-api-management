@@ -137,8 +137,7 @@ public class ApiService_FindByUserTest {
             .thenReturn(singletonList(api));
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -202,10 +201,7 @@ public class ApiService_FindByUserTest {
         api2.setId("api2");
         api2.setName("api2");
 
-        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId(), api2.getId()).build());
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(any(), any())).thenReturn(Arrays.asList(api2.getId(), api1.getId()));
+        when(apiRepository.searchIds(any(), any(), any())).thenReturn(new Page<>(List.of(api2.getId(), api1.getId()), 0, 2, 2));
 
         MembershipEntity membership1 = new MembershipEntity();
         membership1.setId("id1");

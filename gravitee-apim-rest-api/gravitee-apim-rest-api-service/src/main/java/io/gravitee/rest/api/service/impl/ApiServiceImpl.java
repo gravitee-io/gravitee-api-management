@@ -56,6 +56,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Audit;
@@ -1184,8 +1185,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return Set.of();
         }
         // Just one call to apiRepository to preserve sort
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
+        // FIXME: Remove this hardcoded page size, it should be handled properly in the service
+        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), convert(sortable)).getContent();
         return new LinkedHashSet<>(apiIds);
     }
 
@@ -2711,23 +2713,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query) {
+    public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
         try {
             LOGGER.debug("Search API ids by {}", query);
-            Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
-
-            if (optionalTargetIds.isPresent()) {
-                Collection<String> targetIds = optionalTargetIds.get();
-                if (targetIds.isEmpty()) {
-                    return Collections.emptySet();
-                }
-                query.setIds(targetIds);
-            }
-
-            return apiRepository.searchIds(queryToCriteria(executionContext, query).build());
+            ApiCriteria apiCriteria = queryToCriteria(executionContext, query).build();
+            return apiRepository.searchIds(List.of(apiCriteria), convert(pageable), convert(sortable));
         } catch (Exception ex) {
             final String errorMessage = "An error occurs while trying to search for API ids: " + query;
-            LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
         }
     }

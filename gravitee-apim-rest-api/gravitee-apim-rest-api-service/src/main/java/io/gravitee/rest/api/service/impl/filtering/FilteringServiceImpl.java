@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -151,7 +150,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
 
-        return apiService.searchIds(executionContext, query, filters);
+        return apiService.searchIds(executionContext, query, filters, null);
     }
 
     @Override

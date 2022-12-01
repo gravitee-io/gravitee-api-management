@@ -38,6 +38,11 @@ import org.springframework.stereotype.Component;
 public class HttpApiRepository extends AbstractRepository implements ApiRepository {
 
     @Override
+    public Set<Api> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
         return blockingGet(get("/apis/" + apiId, BodyCodecs.optional(Api.class)).send()).payload();
     }
@@ -77,8 +82,8 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
         try {
             return blockingGet(
                 get("/apis", BodyCodecs.list(Api.class))
-                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
-                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPicture()))
+                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinitionExcluded()))
+                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPictureExcluded()))
                     .send()
             )
                 .payload();
@@ -89,17 +94,12 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<Api> findAll() throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         throw new IllegalStateException();
     }
 

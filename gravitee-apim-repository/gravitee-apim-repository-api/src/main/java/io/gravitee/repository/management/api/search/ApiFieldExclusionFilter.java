@@ -23,20 +23,29 @@ import java.util.Objects;
  */
 public class ApiFieldExclusionFilter {
 
-    private final boolean definition;
-    private final boolean picture;
+    public static ApiFieldExclusionFilter noExclusion() {
+        return new ApiFieldExclusionFilter();
+    }
+
+    private final boolean definitionExcluded;
+    private final boolean pictureExcluded;
+
+    private ApiFieldExclusionFilter() {
+        this.definitionExcluded = false;
+        this.pictureExcluded = false;
+    }
 
     private ApiFieldExclusionFilter(ApiFieldExclusionFilter.Builder builder) {
-        this.definition = builder.definition;
-        this.picture = builder.picture;
+        this.definitionExcluded = builder.excludeDefinition;
+        this.pictureExcluded = builder.excludePicture;
     }
 
-    public boolean isDefinition() {
-        return definition;
+    public boolean isDefinitionExcluded() {
+        return definitionExcluded;
     }
 
-    public boolean isPicture() {
-        return picture;
+    public boolean isPictureExcluded() {
+        return pictureExcluded;
     }
 
     @Override
@@ -44,26 +53,26 @@ public class ApiFieldExclusionFilter {
         if (this == o) return true;
         if (!(o instanceof ApiFieldExclusionFilter)) return false;
         ApiFieldExclusionFilter that = (ApiFieldExclusionFilter) o;
-        return definition == that.definition && picture == that.picture;
+        return definitionExcluded == that.definitionExcluded && pictureExcluded == that.pictureExcluded;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(definition, picture);
+        return Objects.hash(definitionExcluded, pictureExcluded);
     }
 
     public static class Builder {
 
-        private boolean definition;
-        private boolean picture;
+        private boolean excludeDefinition;
+        private boolean excludePicture;
 
         public ApiFieldExclusionFilter.Builder excludeDefinition() {
-            this.definition = true;
+            this.excludeDefinition = true;
             return this;
         }
 
         public ApiFieldExclusionFilter.Builder excludePicture() {
-            this.picture = true;
+            this.excludePicture = true;
             return this;
         }
 

@@ -19,9 +19,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -33,7 +31,6 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -371,7 +368,12 @@ public class FilteringServiceTest {
             .findPublishedIdsByUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
         doReturn(List.of("api-#3"))
             .when(apiService)
-            .searchIds(eq(GraviteeContext.getExecutionContext()), eq(aQuery), eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))));
+            .searchIds(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(aQuery),
+                eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))),
+                isNull()
+            );
 
         Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
 
