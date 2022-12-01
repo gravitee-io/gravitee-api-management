@@ -168,11 +168,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
             // If the node is not a master, we assume that the full refresh has been handle by another node
             if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
-                Date initialDate = new Date();
-                if (apis.size() == 1) {
-                    initialDate = apis.get(0).getDeployedAt();
-                }
-                final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds, initialDate);
+                final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);
                 refresher.setSubscriptionService(subscriptionService);
 

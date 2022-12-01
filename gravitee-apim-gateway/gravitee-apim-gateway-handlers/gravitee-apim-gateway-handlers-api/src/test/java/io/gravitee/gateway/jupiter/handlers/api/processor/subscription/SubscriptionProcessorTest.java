@@ -148,6 +148,24 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
+    void shouldUseTransactionIdWhenClientIdentifierHeaderIsNullAndSubscriptionEqualsRemoteAddress() {
+        String transactionId = "1234";
+        when(mockRequest.transactionId()).thenReturn(transactionId);
+        String remoteAddress = "remoteAddress";
+        when(mockRequest.remoteAddress()).thenReturn(remoteAddress);
+        spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, remoteAddress);
+
+        cut.execute(spyCtx).test().assertComplete();
+
+        assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(transactionId);
+        assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
+        assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
+
+        verify(mockRequest).clientIdentifier(transactionId);
+        verify(mockMetrics).setClientIdentifier(transactionId);
+    }
+
+    @Test
     void shouldUseClientIdentifierHeader() {
         String clientIdentifier = "1234";
         spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);

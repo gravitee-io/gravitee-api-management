@@ -37,17 +37,10 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
     private SubscriptionService subscriptionService;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
-        logger.debug("Refresh subscriptions");
-
-        try {
-            subscriptionRepository.search(criteria).stream().map(this::convertModelSubscriptionToCache).forEach(subscriptionService::save);
-            return Result.success(true);
-        } catch (Exception ex) {
-            return Result.failure(ex);
-        }
+        return doRefresh(criteria, false);
     }
 
-    protected Result<Boolean> doRefresh(SubscriptionCriteria criteria, Date fetchDate) {
+    protected Result<Boolean> doRefresh(SubscriptionCriteria criteria, boolean forceDispatch) {
         logger.debug("Refresh subscriptions");
 
         try {
@@ -57,7 +50,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
                 .map(this::convertModelSubscriptionToCache)
                 .map(
                     s -> {
-                        s.setInitialFetchDate(fetchDate);
+                        s.setForceDispatch(forceDispatch);
                         return s;
                     }
                 )

@@ -29,7 +29,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Plan;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -148,6 +152,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<String> processApiRegisterEvents(Flowable<Event> upstream) {
         return upstream
             .flatMapMaybe(this::toApiDefinition)
+            .filter(reactableApi -> apiManager.requireDeployment(reactableApi))
             .compose(this::fetchApiPlans)
             .compose(this::fetchKeysAndSubscriptions)
             .compose(this::registerApi);
