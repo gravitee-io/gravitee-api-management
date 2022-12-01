@@ -2724,7 +2724,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 query.setIds(targetIds);
             }
 
-            return apiRepository.searchIds(queryToCriteria(executionContext, query).build());
+            return apiRepository.searchIds(null, queryToCriteria(executionContext, query).build());
         } catch (Exception ex) {
             final String errorMessage = "An error occurs while trying to search for API ids: " + query;
             LOGGER.error(errorMessage, ex);

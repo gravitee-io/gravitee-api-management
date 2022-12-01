@@ -225,7 +225,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         if (!groupIds.isEmpty()) {
             ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
 
-            apiIds.addAll(apiRepository.searchIds(criteria));
+            apiIds.addAll(apiRepository.searchIds(null, criteria));
         }
 
         if (isEnvironmentAdmin()) {
@@ -237,7 +237,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
             ApiCriteria criteria = new ApiCriteria.Builder().environments(environmentIds).build();
 
-            apiIds.addAll(apiRepository.searchIds(criteria));
+            apiIds.addAll(apiRepository.searchIds(null, criteria));
         }
 
         return apiIds;

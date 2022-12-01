@@ -102,7 +102,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
     private void checkOrganization(String organizationId) throws TechnicalException {
         String apiPrimaryOwnerRoleId = findApiPrimaryOwnerRoleId(organizationId);
         List<String> environmentIds = findEnvironmentIds(organizationId);
-        List<String> apiIds = apiRepository.searchIds(new ApiCriteria.Builder().environments(environmentIds).build());
+        List<String> apiIds = apiRepository.searchIds(null, new ApiCriteria.Builder().environments(environmentIds).build());
         List<String> unCorruptedApiIds = findApiPrimaryOwnerReferenceIds(apiPrimaryOwnerRoleId, apiIds);
         if (shouldFix(apiIds, unCorruptedApiIds)) {
             ArrayList<String> corruptedApiIds = new ArrayList<>(apiIds);

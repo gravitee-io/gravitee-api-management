@@ -96,7 +96,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -118,7 +118,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -147,7 +147,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -174,7 +174,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of(membership("api-test")));
 

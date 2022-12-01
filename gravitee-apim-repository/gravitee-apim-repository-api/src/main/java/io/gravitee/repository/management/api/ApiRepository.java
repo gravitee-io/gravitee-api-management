@@ -49,10 +49,6 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 
-    default List<String> searchIds(ApiCriteria... apiCriteria) {
-        return searchIds(null, apiCriteria);
-    }
-
     List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
