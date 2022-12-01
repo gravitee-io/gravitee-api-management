@@ -31,12 +31,10 @@ import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -44,8 +42,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,12 +94,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         }
 
         try {
+            List<MembershipAndPermissions> userMembershipsAndPermissions = getUserMembershipsAndPermissions(userId);
+
             // because Tasks only consists on subscriptions, we can optimize the search by only look for apis where
             // the user has a SUBSCRIPTION_UPDATE permission
 
             // search for PENDING subscriptions
-
-            Set<String> apiIds = getApisForAPermission(executionContext, userId, SUBSCRIPTION.getName());
+            Set<String> apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, SUBSCRIPTION.getName());
             final List<TaskEntity> tasks;
             if (apiIds.isEmpty()) {
                 tasks = new ArrayList<>();
@@ -127,7 +124,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // search for IN_REVIEW apis
-            apiIds = getApisForAPermission(executionContext, userId, REVIEWS.getName());
+            apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
             if (!apiIds.isEmpty()) {
                 apiIds.forEach(
                     apiId -> {
@@ -143,7 +140,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // search for REQUEST_FOR_CHANGES apis
-            apiIds = getApisForAPermission(executionContext, userId, DEFINITION.getName());
+            apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, DEFINITION.getName());
             if (!apiIds.isEmpty()) {
                 apiIds.forEach(
                     apiId -> {
@@ -168,8 +165,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         }
     }
 
-    private Set<String> getApisForAPermission(ExecutionContext executionContext, final String userId, final String permission)
-        throws TechnicalException {
+    private List<MembershipAndPermissions> getUserMembershipsAndPermissions(final String userId) {
         // 1. find apis and group memberships
 
         Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
@@ -186,32 +182,40 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             )
         );
 
-        Map<String, RoleEntity> roleNameToEntity = new HashMap<>();
-        Set<String> apiIds = new HashSet<>();
-        List<String> groupIds = new ArrayList<>();
+        List<MembershipAndPermissions> userMembershipAndPermissions = new ArrayList<>();
 
         for (MembershipEntity membership : memberships) {
             // 2. get API roles in each memberships and search for roleEntity only once
-            RoleEntity roleEntity = roleNameToEntity.get(membership.getRoleId());
-            if (roleEntity == null && !roleNameToEntity.containsKey(membership.getRoleId())) {
-                RoleEntity role = roleService.findById(membership.getRoleId());
-                if (role.getScope() == RoleScope.API) {
-                    roleNameToEntity.put(role.getId(), role);
-                    roleEntity = role;
-                }
+            RoleEntity role = roleService.findById(membership.getRoleId());
+            if (role.getScope() == RoleScope.API) {
+                userMembershipAndPermissions.add(new MembershipAndPermissions(membership, role.getPermissions()));
             }
-            if (roleEntity != null) {
+        }
+
+        return userMembershipAndPermissions;
+    }
+
+    private Set<String> getApisForAPermission(
+        ExecutionContext executionContext,
+        List<MembershipAndPermissions> membershipsAndPermissions,
+        final String permission
+    ) throws TechnicalException {
+        Set<String> apiIds = new HashSet<>();
+        List<String> groupIds = new ArrayList<>();
+
+        for (MembershipAndPermissions membershipAndPermissions : membershipsAndPermissions) {
+            if (membershipAndPermissions != null) {
                 // 3. get apiId or groupId only if the role has a given permission
-                final char[] rights = roleEntity.getPermissions().get(permission);
+                final char[] rights = membershipAndPermissions.permission.get(permission);
                 if (rights != null) {
                     for (char c : rights) {
                         if (c == 'U') {
-                            switch (membership.getReferenceType()) {
+                            switch (membershipAndPermissions.membership.getReferenceType()) {
                                 case GROUP:
-                                    groupIds.add(membership.getReferenceId());
+                                    groupIds.add(membershipAndPermissions.membership.getReferenceId());
                                     break;
                                 case API:
-                                    apiIds.add(membership.getReferenceId());
+                                    apiIds.add(membershipAndPermissions.membership.getReferenceId());
                                     break;
                                 default:
                                     break;
@@ -221,13 +225,14 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 }
             }
         }
+
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         // 54. add apiId that comes from group
         if (!groupIds.isEmpty()) {
             ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
 
-            apiIds.addAll(apiRepository.searchIds(null, criteria));
+            apiCriteriaList.add(criteria);
         }
-
         if (isEnvironmentAdmin()) {
             List<String> environmentIds = environmentService
                 .findByOrganization(executionContext.getOrganizationId())
@@ -237,8 +242,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
             ApiCriteria criteria = new ApiCriteria.Builder().environments(environmentIds).build();
 
-            apiIds.addAll(apiRepository.searchIds(null, criteria));
+            apiCriteriaList.add(criteria);
         }
+
+        // NOTE: Explicitly set the page size to MAX
+        // If we want to improve performance, we need to change the way we retrieve tasks
+        // ex: use a dedicated repository & collection to retrieve tasks
+        apiIds.addAll(apiRepository.searchIds(apiCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null).getContent());
 
         return apiIds;
     }
@@ -343,5 +353,16 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             throw new TechnicalManagementException(error, e);
         }
         return taskEntity;
+    }
+
+    private class MembershipAndPermissions {
+
+        public MembershipEntity membership;
+        public Map<String, char[]> permission;
+
+        MembershipAndPermissions(MembershipEntity membership, Map<String, char[]> permission) {
+            this.membership = membership;
+            this.permission = permission;
+        }
     }
 }

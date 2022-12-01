@@ -173,7 +173,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldNotAccessToApiState_BecauseNotAMember() {
         when(apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull()))
-                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+            .thenReturn(new Page<>(emptyList(), 0, 0, 0));
 
         final Response response = envTarget(API + "/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
