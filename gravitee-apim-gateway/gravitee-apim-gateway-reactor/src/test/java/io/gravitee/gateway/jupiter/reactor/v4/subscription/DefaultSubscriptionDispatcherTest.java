@@ -251,6 +251,47 @@ class DefaultSubscriptionDispatcherTest {
     }
 
     @Test
+    void shouldRedispatchSubscriptionWithForceDispatch() {
+        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
+        ApiReactor reactor = mock(ApiReactor.class);
+        MutableExecutionContext context = mock(MutableExecutionContext.class);
+
+        when(acceptor.reactor()).thenReturn(reactor);
+
+        when(factory.create(any())).thenReturn(context);
+        when(resolver.resolve(any())).thenReturn(acceptor);
+        when(reactor.handle(context)).thenReturn(Completable.complete());
+
+        Subscription originSubscription = new Subscription();
+        originSubscription.setId(SUBSCRIPTION_ID);
+        originSubscription.setStatus("ACCEPTED");
+        originSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+
+        // dispatcher already contains a subscription/disposable in his internal maps
+        Disposable originSubscriptionDisposable = mock(Disposable.class);
+        dispatcher.getActiveSubscriptions().put(originSubscription.getId(), originSubscription);
+        dispatcher.getActiveDisposables().put(originSubscription.getId(), originSubscriptionDisposable);
+
+        // update the subscription configuration, and dispatch it
+        Subscription updatedSubscription = new Subscription();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+        updatedSubscription.setStatus("ACCEPTED");
+        updatedSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+        updatedSubscription.setForceDispatch(true);
+        dispatcher.dispatch(updatedSubscription);
+
+        // ensure the disposable of the origin subscription has been disposed
+        verify(originSubscriptionDisposable).dispose();
+        assertEquals(1, dispatcher.getActiveDisposables().size());
+        assertNotSame(originSubscriptionDisposable, dispatcher.getActiveDisposables().get(originSubscription.getId()));
+
+        // ensure there is only 1 active subscription with updated configuration
+        Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
+        assertThat(activeSubscriptions).hasSize(1);
+        assertThat(activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration()).isEqualTo("{\"entrypointId\": \"webhook\"}");
+    }
+
+    @Test
     @DisplayName("Should dispose subscription when its end date is reached")
     void shouldDisposeSubscriptionWhenEndDateReached() {
         DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);

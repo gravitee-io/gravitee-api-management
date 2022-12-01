@@ -47,11 +47,10 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionDispatcher> implements SubscriptionDispatcher {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
-    private static final String SUBSCRIPTION_ENTRYPOINT_FIELD = "entrypointId";
     public static final int ON_SUBSCRIPTION_ERROR_RETRY_COUNT = 5;
     public static final int ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS = 3_000;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
+    private static final String SUBSCRIPTION_ENTRYPOINT_FIELD = "entrypointId";
     private final Map<String, Subscription> activeSubscriptions = new ConcurrentHashMap<>();
     private final Map<String, Disposable> activeDisposables = new ConcurrentHashMap<>();
 
@@ -67,6 +66,25 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         this.subscriptionExecutionRequestFactory = subscriptionExecutionRequestFactory;
     }
 
+    private static boolean statusIsAccepted(Subscription subscriptionToDispatch) {
+        return "ACCEPTED".equalsIgnoreCase(subscriptionToDispatch.getStatus());
+    }
+
+    private static boolean consumerStatusIsActive(Subscription subscriptionToDispatch) {
+        return Subscription.ConsumerStatus.STARTED.equals(subscriptionToDispatch.getConsumerStatus());
+    }
+
+    private static Predicate<Throwable> manageErrors() {
+        return throwable -> {
+            if (throwable instanceof SubscriptionExpiredException) {
+                LOGGER.debug(throwable.getMessage());
+                return true;
+            }
+            // manage functional error to complete normally here
+            return false;
+        };
+    }
+
     @Override
     public void dispatch(Subscription subscriptionToDispatch) {
         if (
@@ -80,7 +98,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                         return activateSubscription(subscriptionToDispatch);
                     }
                     // if subscription already active modified, update it
-                    else if (!subscriptionToDispatch.equals(activeSubscription)) {
+                    else if (!subscriptionToDispatch.equals(activeSubscription) || subscriptionToDispatch.isForceDispatch()) {
                         return updateSubscription(subscriptionToDispatch);
                     }
                     // otherwise, keep active subscription as it is
@@ -92,14 +110,6 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         else {
             disposeSubscription(subscriptionToDispatch.getId());
         }
-    }
-
-    private static boolean statusIsAccepted(Subscription subscriptionToDispatch) {
-        return "ACCEPTED".equalsIgnoreCase(subscriptionToDispatch.getStatus());
-    }
-
-    private static boolean consumerStatusIsActive(Subscription subscriptionToDispatch) {
-        return Subscription.ConsumerStatus.STARTED.equals(subscriptionToDispatch.getConsumerStatus());
     }
 
     private Subscription activateSubscription(Subscription subscription) {
@@ -180,17 +190,6 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 );
             }
             return upstream;
-        };
-    }
-
-    private static Predicate<Throwable> manageErrors() {
-        return throwable -> {
-            if (throwable instanceof SubscriptionExpiredException) {
-                LOGGER.debug(throwable.getMessage());
-                return true;
-            }
-            // manage functional error to complete normally here
-            return false;
         };
     }
 
