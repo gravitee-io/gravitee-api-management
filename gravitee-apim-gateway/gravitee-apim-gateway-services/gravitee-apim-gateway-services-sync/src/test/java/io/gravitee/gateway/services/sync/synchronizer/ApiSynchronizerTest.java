@@ -24,6 +24,7 @@ import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -109,6 +110,7 @@ public class ApiSynchronizerTest extends TestCase {
     @Before
     public void setUp() {
         apiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        lenient().when(apiManager.requireDeployment(any())).thenReturn(true);
     }
 
     @Test
@@ -724,6 +726,48 @@ public class ApiSynchronizerTest extends TestCase {
         // Check that only one call to env and org repositories have been made, others should hit the cache.
         verify(environmentRepository, times(1)).findById(ENVIRONMENT_ID);
         verify(organizationRepository, times(1)).findById(ORGANIZATION_ID);
+    }
+
+    @Test
+    public void shouldNotDeployWhichDoesntRequireRedeployment() throws Exception {
+        lenient().when(apiManager.requireDeployment(any())).thenReturn(false);
+
+        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
+            .id(API_ID)
+            .updatedAt(new Date())
+            .definition("test")
+            .environment(ENVIRONMENT_ID)
+            .build();
+
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
+
+        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        when(
+            eventRepository.searchLatest(
+                argThat(
+                    criteria ->
+                        criteria != null &&
+                        criteria
+                            .getTypes()
+                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                ),
+                eq(Event.EventProperties.API_ID),
+                anyLong(),
+                anyLong()
+            )
+        )
+            .thenReturn(singletonList(mockEvent));
+
+        mockEnvironmentAndOrganization();
+
+        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+        verify(apiManager, never()).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
+        verify(planRepository, never()).findByApis(anyList());
+        verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
+        verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
     }
 
     private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {

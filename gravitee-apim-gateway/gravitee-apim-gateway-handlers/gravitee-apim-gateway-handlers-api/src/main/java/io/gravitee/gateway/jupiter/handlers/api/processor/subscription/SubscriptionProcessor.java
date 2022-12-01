@@ -78,7 +78,7 @@ public class SubscriptionProcessor implements Processor {
                 String clientIdentifier = ctx.request().headers().get(clientIdentifierHeader);
 
                 if (clientIdentifier == null) {
-                    if (subscriptionId != null) {
+                    if (subscriptionId != null && !subscriptionId.equals(ctx.request().remoteAddress())) {
                         clientIdentifier = subscriptionId;
                     } else {
                         clientIdentifier = ctx.request().transactionId();
