@@ -17,6 +17,8 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -365,7 +367,7 @@ public class ApiManagerTest {
 
         final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
-        api2.getDefinition().setPlans(Collections.<Plan>emptyList());
+        api2.getDefinition().setPlans(Collections.emptyList());
 
         apiManager.register(api2);
 
@@ -432,6 +434,70 @@ public class ApiManagerTest {
         apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.EXPIRED, api.getId(), api, null));
 
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+    }
+
+    @Test
+    public void shouldRequireDeploymentWithNoApi() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+
+        boolean requireDeployment = apiManager.requireDeployment(api);
+        assertTrue(requireDeployment);
+    }
+
+    @Test
+    public void shouldRequireDeploymentWithUpdatedApi() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+
+        apiManager.register(api);
+        boolean requireDeployment = apiManager.requireDeployment(api);
+        assertFalse(requireDeployment);
+
+        final Api api2 = buildTestApi();
+        Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
+        api2.setDeployedAt(Date.from(deployDateInst));
+        api2.getDefinition().setPlans(singletonList(mockedPlan));
+
+        boolean requireDeployment2 = apiManager.requireDeployment(api2);
+        assertTrue(requireDeployment2);
+    }
+
+    @Test
+    public void shouldNotRequireDeploymentWithSameApi() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+
+        apiManager.register(api);
+        boolean requireDeployment = apiManager.requireDeployment(api);
+        assertFalse(requireDeployment);
+    }
+
+    @Test
+    public void shouldRequireDeploymentWithMatchingTag() {
+        final Api api = buildTestApi();
+        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+
+        boolean requireDeployment = apiManager.requireDeployment(api);
+        assertTrue(requireDeployment);
+    }
+
+    @Test
+    public void shouldNotRequireDeploymentWithoutMatchingTag() {
+        final Api api = buildTestApi();
+        api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
+
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+
+        boolean requireDeployment = apiManager.requireDeployment(api);
+        assertFalse(requireDeployment);
     }
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {

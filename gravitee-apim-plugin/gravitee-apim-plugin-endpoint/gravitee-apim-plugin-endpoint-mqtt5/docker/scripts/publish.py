@@ -20,7 +20,7 @@ from paho.mqtt import client as mqtt_client
 
 broker = 'localhost'
 port = 1883
-topic = "python/mqtt"
+topic = "demo"
 client_id = f'python-mqtt-{str(uuid.uuid4())}'
 
 def connect_mqtt():
