@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.context.HttpResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.http.vertx.BufferFlow;
 import io.gravitee.gateway.jupiter.http.vertx.MessageFlow;
 import io.reactivex.rxjava3.core.*;
 import java.util.function.Function;
@@ -35,7 +36,8 @@ public class SubscriptionResponse implements MutableResponse {
     private int statusCode;
     private String reason;
     private final MessageFlow messageFlow;
-    private Flowable<Buffer> chunks;
+
+    private BufferFlow bufferFlow;
     private boolean ended;
 
     public SubscriptionResponse() {
@@ -103,48 +105,42 @@ public class SubscriptionResponse implements MutableResponse {
 
     @Override
     public Maybe<Buffer> body() {
-        // Subscription does not allow buffer body access.
-        return Maybe.empty();
+        return lazyBufferFlow().body();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        // Subscription does not allow buffer body access.
-        return Single.just(Buffer.buffer());
+        return lazyBufferFlow().bodyOrEmpty();
     }
 
     @Override
     public void body(Buffer buffer) {
-        // Subscription does not allow buffer body access.
+        lazyBufferFlow().body(buffer);
     }
 
     @Override
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        // Subscription does not allow buffer body access.
-        return Completable.complete();
+        return lazyBufferFlow().onBody(onBody);
     }
 
     @Override
     public void chunks(Flowable<Buffer> chunks) {
-        this.chunks = chunks;
+        lazyBufferFlow().chunks(chunks);
     }
 
     @Override
     public Flowable<Buffer> chunks() {
-        return this.chunks;
+        return lazyBufferFlow().chunks();
     }
 
     @Override
     public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
-        if (chunks == null) {
-            return Completable.error(new IllegalStateException("The is no chunks to apply the transformation on"));
-        }
-        return Completable.fromRunnable(() -> chunks = chunks.compose(onChunks));
+        return lazyBufferFlow().onChunks(onChunks);
     }
 
     @Override
     public Completable end() {
-        return Completable.defer(() -> chunks.ignoreElements().andThen(Completable.fromRunnable(() -> ended = true)));
+        return Completable.defer(() -> lazyBufferFlow().chunks().ignoreElements().andThen(Completable.fromRunnable(() -> ended = true)));
     }
 
     @Override
@@ -155,5 +151,16 @@ public class SubscriptionResponse implements MutableResponse {
     @Override
     public void unsetMessagesInterceptor() {
         this.messageFlow.unsetOnMessagesInterceptor();
+    }
+
+    /**
+     * Instantiate {@link BufferFlow} only when needed
+     * @return the BufferFlow
+     */
+    private BufferFlow lazyBufferFlow() {
+        if (bufferFlow == null) {
+            bufferFlow = new BufferFlow();
+        }
+        return bufferFlow;
     }
 }
