@@ -50,6 +50,11 @@ public class MongoApiRepository implements ApiRepository {
     private GraviteeMapper mapper;
 
     @Override
+    public Set<Api> findAll() throws TechnicalException {
+        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
+    }
+
+    @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
         ApiMongo apiMongo = internalApiRepo.findById(apiId).orElse(null);
         return Optional.ofNullable(mapApi(apiMongo));
@@ -105,6 +110,11 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
+    public Set<Api> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
+        return internalApiRepo.search(criteria, apiFieldInclusionFilter).stream().map(this::mapApi).collect(Collectors.toSet());
+    }
+
+    @Override
     public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
         return internalApiRepo.searchIds(sortable, apiCriteria);
     }
@@ -119,6 +129,11 @@ public class MongoApiRepository implements ApiRepository {
         return internalApiRepo.listCategories(apiCriteria);
     }
 
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
+    }
+
     private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
         return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
@@ -130,20 +145,5 @@ public class MongoApiRepository implements ApiRepository {
 
     private Api mapApi(ApiMongo apiMongo) {
         return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
-    }
-
-    @Override
-    public Set<Api> findAll() throws TechnicalException {
-        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Api> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        return internalApiRepo.search(criteria, apiFieldInclusionFilter).stream().map(this::mapApi).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
     }
 }
