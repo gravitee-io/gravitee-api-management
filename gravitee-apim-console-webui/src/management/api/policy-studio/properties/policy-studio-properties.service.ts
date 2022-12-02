@@ -88,6 +88,10 @@ const PROPERTY_PROVIDERS = [
               mode: 'javascript',
             },
           },
+          default: `[{
+  "operation": "default",
+  "spec": {}
+}]`,
         },
       },
       required: ['url', 'specification'],
@@ -108,20 +112,13 @@ const DYNAMIC_PROPERTY_SCHEMA = {
       title: 'Enabled',
       description: ' This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.',
     },
-    trigger: {
-      type: 'object',
-      properties: {
-        rate: {
-          type: 'integer',
-          title: 'Polling frequency interval',
-        },
-        unit: {
-          type: 'string',
-          title: 'Time unit',
-          enum: ['SECONDS', 'MINUTES', 'HOURS'],
-        },
+    schedule: {
+      type: 'string',
+      title: 'Schedule',
+      'x-schema-form': {
+        'cron-expression': true,
       },
-      required: ['rate', 'unit'],
+      default: '0 */5 * * * *',
     },
     provider: {
       type: 'string',
@@ -133,7 +130,7 @@ const DYNAMIC_PROPERTY_SCHEMA = {
       },
     },
   },
-  required: ['trigger', 'provider'],
+  required: ['schedule', 'provider'],
 };
 
 @Injectable({
