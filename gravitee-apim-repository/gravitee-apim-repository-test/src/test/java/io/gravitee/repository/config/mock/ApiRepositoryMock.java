@@ -171,12 +171,6 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById, groupedApi));
         when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build()))
             .thenReturn(asList(apiToFindById, groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(0).pageSize(2).build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById), 0, 2, 4));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToUpdate, groupedApi), 1, 2, 4));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
 
         when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));

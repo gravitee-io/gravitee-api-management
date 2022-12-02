@@ -357,29 +357,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void searchByPageable() {
-        Page<Api> apiPage = apiRepository.search(
-            new ApiCriteria.Builder().version("1").build(),
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
-
-        assertEquals(4, apiPage.getTotalElements());
-        assertEquals(2, apiPage.getPageElements());
-        Iterator<Api> apiIterator = apiPage.getContent().iterator();
-        assertEquals("api-to-delete", apiIterator.next().getId());
-        assertEquals("api-to-findById", apiIterator.next().getId());
-
-        apiPage =
-            apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build());
-
-        assertEquals(4, apiPage.getTotalElements());
-        assertEquals(2, apiPage.getPageElements());
-        apiIterator = apiPage.getContent().iterator();
-        assertEquals("api-to-update", apiIterator.next().getId());
-        assertEquals("grouped-api", apiIterator.next().getId());
-    }
-
-    @Test
     public void shouldFindByLifecycleStates() {
         final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
         assertNotNull(apis);
