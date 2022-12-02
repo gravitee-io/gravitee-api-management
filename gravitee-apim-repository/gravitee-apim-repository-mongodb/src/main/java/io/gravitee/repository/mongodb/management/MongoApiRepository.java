@@ -100,13 +100,9 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria) {
-        return findByCriteria(apiCriteria, null);
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
+        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
     }
 
     @Override
@@ -132,11 +128,6 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
-    }
-
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
-        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
     }
 
     private ApiMongo mapApi(Api api) {
