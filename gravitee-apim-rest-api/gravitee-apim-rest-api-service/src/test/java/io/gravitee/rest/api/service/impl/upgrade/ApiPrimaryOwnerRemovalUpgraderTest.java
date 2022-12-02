@@ -22,9 +22,14 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -96,7 +101,12 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), any(Sortable.class)))
+            .thenReturn(
+                new Page<>(List.of("api-test"), 0, 1, 2),
+                new Page<>(List.of("api-test-2"), 1, 1, 2),
+                new Page<>(Collections.emptyList(), 2, 0, 2)
+            );
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -105,7 +115,8 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         assertThat(success).isTrue();
 
         verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
-
+        verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test-2".equals(event.getMessage())));
+        verify(apiRepository, times(3)).searchIds(anyList(), any(Pageable.class), any(Sortable.class));
         verify(membershipRepository, never()).create(any());
     }
 
@@ -118,7 +129,12 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), any(Sortable.class)))
+            .thenReturn(
+                new Page<>(List.of("api-test"), 0, 1, 2),
+                new Page<>(List.of("api-test-2"), 1, 1, 2),
+                new Page<>(Collections.emptyList(), 2, 0, 2)
+            );
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -129,8 +145,9 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         assertThat(success).isTrue();
 
         verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
+        verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test-2".equals(event.getMessage())));
 
-        verify(membershipRepository, times(1))
+        verify(membershipRepository, times(2))
             .create(
                 argThat(
                     membership -> membership.getMemberType() == MembershipMemberType.USER && membership.getRoleId().equals(API_PO_ROLE_ID)
@@ -147,7 +164,8 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), any(Sortable.class)))
+            .thenReturn(new Page<>(List.of("api-test"), 0, 1, 1), new Page<>(Collections.emptyList(), 1, 0, 1));
 
         when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of());
 
@@ -174,9 +192,15 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
             .thenReturn(Optional.of(apiPoRole()));
 
-        when(apiRepository.searchIds(isNull(), any())).thenReturn(List.of("api-test"));
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), any(Sortable.class)))
+            .thenReturn(
+                new Page<>(List.of("api-test"), 0, 1, 2),
+                new Page<>(List.of("api-test-2"), 1, 1, 2),
+                new Page<>(Collections.emptyList(), 2, 0, 2)
+            );
 
-        when(membershipRepository.findByReferencesAndRoleId(any(), any(), any())).thenReturn(Set.of(membership("api-test")));
+        when(membershipRepository.findByReferencesAndRoleId(any(), any(), any()))
+            .thenReturn(Set.of(membership("api-test")), Set.of(membership("api-test-2")));
 
         boolean success = upgrader.upgrade();
 
