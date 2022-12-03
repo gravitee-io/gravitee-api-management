@@ -36,7 +36,7 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     default List<Api> search(ApiCriteria apiCriteria) {
-        return search(apiCriteria, new ApiFieldExclusionFilter.Builder().build());
+        return search(apiCriteria, ApiFieldExclusionFilter.noExclusion());
     }
 
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);

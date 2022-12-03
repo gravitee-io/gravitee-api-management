@@ -137,10 +137,10 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         final Query query = new Query();
 
         if (apiFieldExclusionFilter != null) {
-            if (apiFieldExclusionFilter.isDefinition()) {
+            if (apiFieldExclusionFilter.isDefinitionExcluded()) {
                 query.fields().exclude("definition");
             }
-            if (apiFieldExclusionFilter.isPicture()) {
+            if (apiFieldExclusionFilter.isPictureExcluded()) {
                 query.fields().exclude("picture");
                 query.fields().exclude("background");
             }

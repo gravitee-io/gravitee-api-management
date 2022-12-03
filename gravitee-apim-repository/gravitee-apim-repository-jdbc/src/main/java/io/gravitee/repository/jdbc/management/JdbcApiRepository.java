@@ -444,10 +444,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
             "a.visibility, a.lifecycle_state, a.api_lifecycle_state";
 
-        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
+        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinitionExcluded()) {
             projection += ", a.definition";
         }
-        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isPicture()) {
+        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isPictureExcluded()) {
             projection += ", a.picture, a.background";
         }
 
