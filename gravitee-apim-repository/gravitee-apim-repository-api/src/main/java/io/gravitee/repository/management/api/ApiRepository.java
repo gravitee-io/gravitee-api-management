@@ -43,7 +43,7 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 
-    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+    List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable);
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 

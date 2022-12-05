@@ -44,7 +44,7 @@ public interface ApiMongoRepositoryCustom {
      */
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
-    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+    List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria);
 }

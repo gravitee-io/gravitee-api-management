@@ -215,9 +215,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return new HashSet<>(apis);
     }
 
-    @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... criteria) {
-        LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
+    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
+        LOGGER.debug("JdbcApiRepository.searchIds({})", apiCriteria);
 
         final StringBuilder sbQuery = new StringBuilder("select a.id from ")
             .append(this.tableName)
@@ -225,8 +224,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .append(API_CATEGORIES)
             .append(" ac on a.id = ac.api_id ");
 
-        Optional<ApiCriteria> hasGroups = Arrays.stream(criteria).filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
-        Optional<ApiCriteria> hasLabels = Arrays.stream(criteria).filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
+        Optional<ApiCriteria> hasGroups = apiCriteria.stream().filter(criteria -> !isEmpty(criteria.getGroups())).findFirst();
+        Optional<ApiCriteria> hasLabels = apiCriteria.stream().filter(criteria -> hasText(criteria.getLabel())).findFirst();
         if (hasGroups.isPresent()) {
             sbQuery.append("left join " + API_GROUPS + " ag on a.id = ag.api_id ");
         }
@@ -234,7 +233,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             sbQuery.append("left join " + API_LABELS + " al on a.id = al.api_id ");
         }
 
-        List<String> clauses = Arrays.stream(criteria).map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
+        List<String> clauses = apiCriteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
 
         if (!clauses.isEmpty()) {
             sbQuery.append("where (").append(String.join(") or (", clauses)).append(") ");
@@ -246,8 +245,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             sbQuery.toString(),
             (PreparedStatement ps) -> {
                 int lastIndex = 1;
-                for (ApiCriteria apiCriteria : criteria) {
-                    lastIndex = fillPreparedStatement(apiCriteria, ps, lastIndex);
+                for (ApiCriteria criteria : apiCriteria) {
+                    lastIndex = fillPreparedStatement(criteria, ps, lastIndex);
                 }
             },
             resultSet -> {

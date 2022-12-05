@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Sorts.ascending;
+import static java.util.Collections.emptyList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -54,7 +55,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         Pageable pageable,
         ApiFieldExclusionFilter apiFieldExclusionFilter
     ) {
-        final Query query = buildQuery(apiFieldExclusionFilter, criteria);
+        final Query query = buildQuery(apiFieldExclusionFilter, criteria == null ? emptyList() : List.of(criteria));
 
         if (sortable != null) {
             query.with(
@@ -80,14 +81,14 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
     @Override
     public List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        Query query = buildQuery(apiFieldInclusionFilter, criteria);
+        Query query = buildQuery(apiFieldInclusionFilter, List.of(criteria));
         return mongoTemplate.find(query, ApiMongo.class);
     }
 
     @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... criteria) {
+    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
         ApiFieldInclusionFilter apiFieldInclusionFilter = new ApiFieldInclusionFilter.Builder().build();
-        final Query query = buildQuery(apiFieldInclusionFilter, criteria);
+        final Query query = buildQuery(apiFieldInclusionFilter, apiCriteria);
 
         if (sortable != null) {
             query.with(
@@ -112,7 +113,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         final Query query = new Query();
         // Only fetch the id
         query.fields().include("_id");
-        fillQuery(query, apiCriteria.toArray(new ApiCriteria[0]));
+        fillQuery(query, apiCriteria);
 
         Sort sort;
         if (sortable == null) {
@@ -133,7 +134,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return new Page<>(apisIds, pageable.pageNumber(), apisIds.size(), total);
     }
 
-    private Query buildQuery(ApiFieldExclusionFilter apiFieldExclusionFilter, ApiCriteria... orApiCriteria) {
+    private Query buildQuery(ApiFieldExclusionFilter apiFieldExclusionFilter, List<ApiCriteria> orApiCriteria) {
         final Query query = new Query();
 
         if (apiFieldExclusionFilter != null) {
@@ -152,7 +153,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return query;
     }
 
-    private Query buildQuery(ApiFieldInclusionFilter apiFieldInclusionFilter, ApiCriteria... orApiCriteria) {
+    private Query buildQuery(ApiFieldInclusionFilter apiFieldInclusionFilter, List<ApiCriteria> orApiCriteria) {
         final Query query = new Query();
         if (apiFieldInclusionFilter != null) {
             String[] fields = apiFieldInclusionFilter.includedFields();
@@ -169,10 +170,10 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return query;
     }
 
-    private Query fillQuery(Query query, ApiCriteria... orCriteria) {
-        if (orCriteria != null && orCriteria.length > 0) {
-            List<List<Criteria>> convertedCriteria = Arrays
-                .stream(orCriteria)
+    private Query fillQuery(Query query, List<ApiCriteria> orCriteria) {
+        if (orCriteria != null && orCriteria.size() > 0) {
+            List<List<Criteria>> convertedCriteria = orCriteria
+                .stream()
                 .filter(Objects::nonNull)
                 .map(
                     apiCriteria -> {
@@ -227,7 +228,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                         )
                 );
             } else if (convertedCriteria.size() == 1) {
-                convertedCriteria.get(0).forEach(criteria -> query.addCriteria(criteria));
+                convertedCriteria.get(0).forEach(query::addCriteria);
             }
         }
         return query;

@@ -1184,8 +1184,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return Set.of();
         }
         // Just one call to apiRepository to preserve sort
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(sortable));
         return new LinkedHashSet<>(apiIds);
     }
 

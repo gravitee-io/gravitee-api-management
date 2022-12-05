@@ -111,8 +111,8 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
-        return internalApiRepo.searchIds(sortable, apiCriteria);
+    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
+        return internalApiRepo.searchIds(apiCriteria, sortable);
     }
 
     @Override
