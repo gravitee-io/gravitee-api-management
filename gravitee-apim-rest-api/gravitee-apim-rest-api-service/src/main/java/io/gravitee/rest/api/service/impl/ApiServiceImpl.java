@@ -56,7 +56,6 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Audit;
@@ -1126,22 +1125,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition) {
+    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext) {
         try {
             LOGGER.debug(
                 "Find all APIs without some fields (definition, picture...) for environment {}",
                 executionContext.getEnvironmentId()
             );
-            final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
-            if (excludeDefinition) {
-                exclusionFilterBuilder.excludeDefinition();
-            }
+            final ApiFieldExclusionFilter exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder()
+                .excludePicture()
+                .excludeDefinition()
+                .build();
             return new HashSet<>(
                 convert(
                     executionContext,
                     apiRepository.search(
                         new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        exclusionFilterBuilder.build()
+                        exclusionFilterBuilder
                     )
                 )
             );
