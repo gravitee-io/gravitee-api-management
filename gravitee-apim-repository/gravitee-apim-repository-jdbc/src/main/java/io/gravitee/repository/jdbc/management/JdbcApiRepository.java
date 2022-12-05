@@ -215,51 +215,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return new HashSet<>(apis);
     }
 
-    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
-        LOGGER.debug("JdbcApiRepository.searchIds({})", apiCriteria);
-
-        final StringBuilder sbQuery = new StringBuilder("select a.id from ")
-            .append(this.tableName)
-            .append(" a left join ")
-            .append(API_CATEGORIES)
-            .append(" ac on a.id = ac.api_id ");
-
-        Optional<ApiCriteria> hasGroups = apiCriteria.stream().filter(criteria -> !isEmpty(criteria.getGroups())).findFirst();
-        Optional<ApiCriteria> hasLabels = apiCriteria.stream().filter(criteria -> hasText(criteria.getLabel())).findFirst();
-        if (hasGroups.isPresent()) {
-            sbQuery.append("left join " + API_GROUPS + " ag on a.id = ag.api_id ");
-        }
-        if (hasLabels.isPresent()) {
-            sbQuery.append("left join " + API_LABELS + " al on a.id = al.api_id ");
-        }
-
-        List<String> clauses = apiCriteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
-
-        if (!clauses.isEmpty()) {
-            sbQuery.append("where (").append(String.join(") or (", clauses)).append(") ");
-        }
-
-        applySortable(sortable, sbQuery);
-
-        return jdbcTemplate.query(
-            sbQuery.toString(),
-            (PreparedStatement ps) -> {
-                int lastIndex = 1;
-                for (ApiCriteria criteria : apiCriteria) {
-                    lastIndex = fillPreparedStatement(criteria, ps, lastIndex);
-                }
-            },
-            resultSet -> {
-                List<String> ids = new ArrayList<>();
-                while (resultSet.next()) {
-                    String id = resultSet.getString(1);
-                    ids.add(id);
-                }
-                return ids;
-            }
-        );
-    }
-
     @Override
     public Page<String> searchIds(List<ApiCriteria> criteria, Pageable pageable, Sortable sortable) {
         LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);

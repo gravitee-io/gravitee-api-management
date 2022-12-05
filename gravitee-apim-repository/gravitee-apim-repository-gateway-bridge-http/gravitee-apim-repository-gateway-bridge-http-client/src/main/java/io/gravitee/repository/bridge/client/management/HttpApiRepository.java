@@ -99,11 +99,6 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         throw new IllegalStateException();
     }

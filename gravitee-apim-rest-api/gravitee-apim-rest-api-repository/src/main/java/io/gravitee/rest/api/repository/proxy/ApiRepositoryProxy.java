@@ -78,11 +78,6 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
-        return target.searchIds(apiCriteria, sortable);
-    }
-
-    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         return target.searchIds(apiCriteria, pageable, sortable);
     }

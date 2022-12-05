@@ -56,6 +56,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Audit;
@@ -1184,7 +1185,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return Set.of();
         }
         // Just one call to apiRepository to preserve sort
-        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(sortable));
+        // FIXME: Remove this hardcoded page size, it should be handled properly in the service
+        Pageable pageable = new PageableImpl(0, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), convert(sortable)).getContent();
         return new LinkedHashSet<>(apiIds);
     }
 

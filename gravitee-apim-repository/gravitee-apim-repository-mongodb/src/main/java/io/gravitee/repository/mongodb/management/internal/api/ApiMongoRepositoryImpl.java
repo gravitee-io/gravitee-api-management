@@ -86,27 +86,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     }
 
     @Override
-    public List<String> searchIds(List<ApiCriteria> apiCriteria, Sortable sortable) {
-        ApiFieldInclusionFilter apiFieldInclusionFilter = new ApiFieldInclusionFilter.Builder().build();
-        final Query query = buildQuery(apiFieldInclusionFilter, apiCriteria);
-
-        if (sortable != null) {
-            query.with(
-                Sort.by(
-                    sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                    FieldUtils.toCamelCase(sortable.field())
-                )
-            );
-        } else {
-            query.with(Sort.by(ASC, "name"));
-        }
-
-        List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
-
-        return apis.parallelStream().map(ApiMongo::getId).collect(Collectors.toList());
-    }
-
-    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         Objects.requireNonNull(pageable, "Pageable must not be null");
 
