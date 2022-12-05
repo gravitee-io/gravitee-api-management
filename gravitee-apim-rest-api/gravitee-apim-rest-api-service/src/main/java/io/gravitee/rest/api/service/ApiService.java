@@ -73,19 +73,9 @@ public interface ApiService {
 
     Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId);
 
-    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        return findIdsByUser(executionContext, userId, apiQuery, null, portal);
-    }
-
     Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
 
     Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
-
-    Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
-
-    default Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId) {
-        return findPublishedIdsByUser(executionContext, userId, null);
-    }
 
     Set<ApiEntity> findByVisibility(ExecutionContext executionContext, Visibility visibility);
 

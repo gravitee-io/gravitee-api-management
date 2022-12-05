@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.filtering;
 
+import static java.util.Collections.singletonList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -139,13 +141,13 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         FilterType excludedFilterType,
         ApiQuery apiQuery
     ) {
-        Set<String> apis = this.apiService.findPublishedIdsByUser(executionContext, userId, apiQuery);
+        Set<String> apis = this.findPublishedIdsByUser(executionContext, userId, apiQuery);
         return this.filterApis(executionContext, apis, filterType, excludedFilterType);
     }
 
     @Override
     public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query) throws TechnicalException {
-        Set<String> apis = apiService.findPublishedIdsByUser(executionContext, userId);
+        Set<String> apis = findPublishedIdsByUser(executionContext, userId, null);
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
@@ -160,7 +162,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         FilterType filterType,
         FilterType excludedFilterType
     ) {
-        Set<String> apisForUser = this.apiService.findPublishedIdsByUser(executionContext, userId);
+        Set<String> apisForUser = this.findPublishedIdsByUser(executionContext, userId, null);
         Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
         return this.apiService.listCategories(apis, executionContext.getEnvironmentId());
     }
@@ -221,5 +223,13 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
             .stream()
             .filter(api -> (!excluded && subscribedApis.contains(api)) || (excluded && !subscribedApis.contains(api)))
             .collect(Collectors.toList());
+    }
+
+    private Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
+        if (apiQuery == null) {
+            apiQuery = new ApiQuery();
+        }
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        return apiService.findIdsByUser(executionContext, userId, apiQuery, null, true);
     }
 }

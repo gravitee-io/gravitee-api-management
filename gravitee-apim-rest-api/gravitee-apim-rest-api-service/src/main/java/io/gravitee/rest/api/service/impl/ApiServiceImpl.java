@@ -1483,15 +1483,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
-        if (apiQuery == null) {
-            apiQuery = new ApiQuery();
-        }
-        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findIdsByUser(executionContext, userId, apiQuery, true);
-    }
-
-    @Override
     public Page<ApiEntity> findPublishedByUser(
         ExecutionContext executionContext,
         String userId,

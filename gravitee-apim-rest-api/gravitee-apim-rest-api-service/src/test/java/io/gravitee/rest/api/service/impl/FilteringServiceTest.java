@@ -365,7 +365,7 @@ public class FilteringServiceTest {
 
         doReturn(Set.of("api-#1", "api-#2", "api-#3"))
             .when(apiService)
-            .findPublishedIdsByUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), any(), any(), anyBoolean());
         doReturn(List.of("api-#3"))
             .when(apiService)
             .searchIds(

@@ -29,7 +29,9 @@ import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import javax.ws.rs.core.Response;
@@ -217,7 +219,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), eq(false)))
             .thenReturn(Collections.singleton(api.getId()));
         when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq(api.getId()), eq(READ)))
             .thenReturn(true);

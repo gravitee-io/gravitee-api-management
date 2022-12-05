@@ -450,7 +450,7 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, false));
+            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, null, false));
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
