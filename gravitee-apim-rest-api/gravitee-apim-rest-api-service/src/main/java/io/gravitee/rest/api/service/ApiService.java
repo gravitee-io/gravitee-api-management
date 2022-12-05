@@ -50,8 +50,6 @@ public interface ApiService {
 
     Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition);
 
-    Set<ApiEntity> findAllLight(ExecutionContext executionContext);
-
     Page<ApiEntity> findByUser(
         ExecutionContext executionContext,
         String userId,

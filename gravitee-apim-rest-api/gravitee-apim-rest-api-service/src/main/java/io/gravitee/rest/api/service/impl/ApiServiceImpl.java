@@ -1152,11 +1152,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLight(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, false);
-    }
-
-    @Override
     public Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
         return new HashSet<>(findByUser(executionContext, userId, apiQuery, null, null, portal).getContent());
     }
