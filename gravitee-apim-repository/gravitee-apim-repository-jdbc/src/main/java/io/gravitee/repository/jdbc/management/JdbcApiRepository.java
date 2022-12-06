@@ -22,6 +22,7 @@ import static org.springframework.util.StringUtils.hasText;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.*;
@@ -213,6 +214,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
 
         return new HashSet<>(apis);
+    }
+
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        // FIXME: To implement
+        throw new UnsupportedOperationException();
     }
 
     @Override

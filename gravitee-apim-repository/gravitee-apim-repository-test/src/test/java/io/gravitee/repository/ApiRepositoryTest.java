@@ -28,6 +28,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -483,5 +484,45 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
+    }
+
+    @Test
+    public void searchWithFieldFilter_includesCategories() {
+        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
+
+        List<Api> apis = apiRepository.search(criteria, ApiFieldFilter.builder().includeCategories().build());
+        assertEquals(3, apis.size());
+
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
+        assertTrue(apis.stream().map(Api::getName).allMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getDefinition).allMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getPicture).allMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getBackground).allMatch(Objects::isNull));
+
+        List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
+        assertTrue(categories.contains("category-1"));
+    }
+
+    @Test
+    public void searchWithFieldFilter_excludeDefinition() {
+        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
+
+        List<Api> apis = apiRepository.search(criteria, ApiFieldFilter.builder().excludeDefinition().build());
+        assertEquals(3, apis.size());
+
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
+        assertTrue(apis.stream().map(Api::getDefinition).allMatch(Objects::isNull));
+    }
+
+    @Test
+    public void searchWithFieldFilter_excludePicture() {
+        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
+
+        List<Api> apis = apiRepository.search(criteria, ApiFieldFilter.builder().excludePicture().build());
+        assertEquals(3, apis.size());
+
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
+        assertTrue(apis.stream().map(Api::getPicture).allMatch(Objects::isNull));
+        assertTrue(apis.stream().map(Api::getBackground).allMatch(Objects::isNull));
     }
 }

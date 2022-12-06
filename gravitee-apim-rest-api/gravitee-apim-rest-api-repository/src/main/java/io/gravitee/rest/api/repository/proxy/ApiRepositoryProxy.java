@@ -17,6 +17,7 @@ package io.gravitee.rest.api.repository.proxy;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -75,6 +76,11 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return target.search(apiCriteria, apiFieldExclusionFilter);
+    }
+
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        return target.search(apiCriteria, apiFieldFilter);
     }
 
     @Override

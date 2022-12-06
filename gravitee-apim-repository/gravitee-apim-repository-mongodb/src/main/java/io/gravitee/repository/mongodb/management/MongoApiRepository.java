@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -108,6 +109,11 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public Set<Api> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
         return internalApiRepo.search(criteria, apiFieldInclusionFilter).stream().map(this::mapApi).collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        return internalApiRepo.search(apiCriteria, apiFieldFilter).stream().map(this::mapApi).collect(Collectors.toList());
     }
 
     @Override

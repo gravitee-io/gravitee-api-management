@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -87,6 +88,23 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
                     .send()
             )
                 .payload();
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
+    }
+
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        try {
+            return blockingGet(
+                    get("/apis", BodyCodecs.list(Api.class))
+                            .addQueryParam("excludeDefinition", Boolean.toString(apiFieldFilter.isDefinitionExcluded()))
+                            .addQueryParam("excludePicture", Boolean.toString(apiFieldFilter.isPictureExcluded()))
+                            .addQueryParam("includeCategories", Boolean.toString(apiFieldFilter.areCategoriesIncluded()))
+                            .send()
+            )
+                    .payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

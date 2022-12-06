@@ -39,8 +39,32 @@ public interface ApiRepository extends CrudRepository<Api, String> {
         return search(apiCriteria, ApiFieldExclusionFilter.noExclusion());
     }
 
+    /**
+     * Search for APIs matching the given criteria.
+     * @param apiCriteria the criteria to match
+     * @param apiFieldFilter the fields to exclude or include from the return APIs
+     * @return the list of APIs matching the given criteria
+     */
+    List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter);
+
+    /**
+     * Search APIs with a criteria and a field exclusion filter.
+     * @param apiCriteria the criteria to search APIs
+     * @param apiFieldExclusionFilter the field exclusion filter
+     * @return the list of APIs matching the criteria, each API WILL NOT contain the excluded fields
+     * @deprecated use {@link #search(ApiCriteria, ApiFieldFilter)} or {@link #search(ApiCriteria, Sortable, Pageable, ApiFieldExclusionFilter)} instead
+     */
+    @Deprecated(since = "3.18", forRemoval = true)
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
+    /**
+     * Search APIs with a criteria and a field inclusion filter.
+     * @param apiCriteria the criteria to search APIs
+     * @param apiFieldInclusionFilter the field inclusion filter
+     * @return the list of APIs matching the criteria, each API WILL contain the included fields
+     * @deprecated use {@link #search(ApiCriteria, ApiFieldFilter)} or {@link #search(ApiCriteria, Sortable, Pageable, ApiFieldExclusionFilter)} instead
+     */
+    @Deprecated(since = "3.18", forRemoval = true)
     Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
