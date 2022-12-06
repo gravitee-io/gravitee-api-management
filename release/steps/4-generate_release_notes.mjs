@@ -8,34 +8,18 @@ await checkToken();
 
 const releasingVersion = await extractVersion();
 
-console.log(chalk.blue(`Triggering Changelog generation Pipeline`));
-
-const milestone = `APIM - ${releasingVersion}`;
+console.log(chalk.blue(`Triggering Release Notes generation Pipeline`));
 
 // Use the preconfigured payload from config folder with the good parameters
-// For changelog generation, always work on master
+// For release-notes generation, always work on master
 const body = {
   branch: 'master',
   parameters: {
-    gio_action: 'changelog_apim',
+    gio_action: 'release_notes_apim',
     dry_run: isDryRun(),
-    gio_milestone_version: milestone,
+    graviteeio_version: releasingVersion,
   },
 };
-
-const tagSteps = await question(
-  chalk.blue(
-    `Before generating the changelog, you have to ensure the milestone named '${chalk.bold(
-      milestone,
-    )}' is closed and all of its tickets too` +
-      '\n' +
-      'Is it ok ? (y/n)\n',
-  ),
-);
-if (tagSteps !== 'y') {
-  console.log(chalk.yellow('Please close the milestone and try again!'));
-  process.exit();
-}
 
 const response = await fetch('https://circleci.com/api/v2/project/gh/gravitee-io/gravitee-api-management/pipeline', {
   method: 'post',
