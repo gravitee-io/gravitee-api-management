@@ -326,7 +326,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, changelog_apim]
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1733,13 +1733,12 @@ jobs:
                     from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
                     to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
-    changelog_apim:
-      docker:
-        - image: groovy:jdk11
-          user: root
-      resource_class: small
+    release_notes_apim:
+      executor:
+        name: node-lts
+        class: medium
       environment:
-        MILESTONE_VERSION: << pipeline.parameters.gio_milestone_version >>
+        VERSION: << pipeline.parameters.graviteeio_version >>
       steps:
         - checkout
         - keeper/env-export:
@@ -1751,36 +1750,50 @@ jobs:
         - keeper/env-export:
             secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
             var-name: GITHUB_TOKEN
+        - keeper/env-export:
+              secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+              var-name: SLACK_ACCESS_TOKEN
         - add_ssh_keys:
             fingerprints:
               - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
         - run:
             name: Git config
             command: |
-              apt-get -y update
-              apt-get -y install git
               git config --global user.name "${GIT_USER_NAME}"
               git config --global user.email "${GIT_USER_EMAIL}"
         - gh/setup
         - run:
-            name: "Generate Changelog for Gravitee.io APIM"
-            command: groovy -DMILESTONE_VERSION="$MILESTONE_VERSION" .circleci/githubChangelogGenerator.groovy
+            name: Install dependencies
+            command: npm install
+            working_directory: "./release"
         - run:
-            name: "Commit Changelog and open a PR on the repository"
-            command: |
-              # Sanitize MILESTONE_VERSION
-              MILESTONE_VERSION_SANITIZED=$(echo ${MILESTONE_VERSION} | sed -e 's/[^a-zA-Z0-9]//g')
+            name: "Open a PR to create release notes into docs repository"
+            working_directory: "./release"
+            command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
+        - when:
+              condition:
+                  not: << pipeline.parameters.dry_run>>
+              steps:
+                  - run:
+                        name: Get RELEASE_NOTES_PR_URL
+                        command: |
+                            echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
+                  - slack/notify:
+                        channel: C02NGT20S4W
+                        event: always
+                        custom: |
+                            {
+                              "blocks": [
+                                {
+                                  "type": "section",
+                                  "text": {
+                                    "type": "mrkdwn",
+                                    "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                  }
+                                }
+                              ]
+                            }
 
-              # Create a branch for the changelog PR
-              git checkout -b "changelog_apim_pr_${MILESTONE_VERSION_SANITIZED}"
-
-              # Commit the changelog
-              git add ./release/changelog/CHANGELOG*.adoc
-              git commit -m "Generate changelog for version ${MILESTONE_VERSION}"
-
-              # Push the branch and open a PR
-              git push --set-upstream origin "changelog_apim_pr_${MILESTONE_VERSION_SANITIZED}"
-              gh pr create --title "Changelog for ${MILESTONE_VERSION}" --body "Generate changelog for version ${MILESTONE_VERSION}" --reviewer "@gravitee-io/apim"
 workflows:
     pull_requests:
         when:
@@ -2184,9 +2197,9 @@ workflows:
                       parameters:
                           version: ["3", "4", "5"]
 
-    changelog_apim:
+    release_notes_apim:
       when:
-        equal: [ changelog_apim, << pipeline.parameters.gio_action >> ]
+        equal: [ release_notes_apim, << pipeline.parameters.gio_action >> ]
       jobs:
-        - changelog_apim:
+        - release_notes_apim:
             context: cicd-orchestrator
