@@ -25,12 +25,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
@@ -805,7 +800,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return apiRepository
             .search(
                 new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
             )
             .stream()
             .map(

@@ -1131,10 +1131,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 "Find all APIs without some fields (definition, picture...) for environment {}",
                 executionContext.getEnvironmentId()
             );
-            final ApiFieldExclusionFilter exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder()
-                .excludePicture()
-                .excludeDefinition()
-                .build();
+            final ApiFieldFilter exclusionFilterBuilder = new ApiFieldFilter.Builder().excludePicture().excludeDefinition().build();
             return new HashSet<>(
                 convert(
                     executionContext,

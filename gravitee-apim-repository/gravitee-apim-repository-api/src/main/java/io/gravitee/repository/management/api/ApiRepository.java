@@ -36,7 +36,7 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     default List<Api> search(ApiCriteria apiCriteria) {
-        return search(apiCriteria, ApiFieldExclusionFilter.noExclusion());
+        return search(apiCriteria, ApiFieldFilter.emptyFilter());
     }
 
     /**
@@ -46,16 +46,6 @@ public interface ApiRepository extends CrudRepository<Api, String> {
      * @return the list of APIs matching the given criteria
      */
     List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter);
-
-    /**
-     * Search APIs with a criteria and a field exclusion filter.
-     * @param apiCriteria the criteria to search APIs
-     * @param apiFieldExclusionFilter the field exclusion filter
-     * @return the list of APIs matching the criteria, each API WILL NOT contain the excluded fields
-     * @deprecated use {@link #search(ApiCriteria, ApiFieldFilter)} or {@link #search(ApiCriteria, Sortable, Pageable, ApiFieldExclusionFilter)} instead
-     */
-    @Deprecated(since = "3.18", forRemoval = true)
-    List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 

@@ -100,12 +100,6 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
-        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         return internalApiRepo.search(apiCriteria, apiFieldFilter).stream().map(this::mapApi).collect(Collectors.toList());
     }

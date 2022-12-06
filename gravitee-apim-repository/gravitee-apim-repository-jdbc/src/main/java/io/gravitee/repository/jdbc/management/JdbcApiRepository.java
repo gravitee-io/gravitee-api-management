@@ -184,11 +184,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, null, apiFieldExclusionFilter);
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         // FIXME: To implement
         throw new UnsupportedOperationException();

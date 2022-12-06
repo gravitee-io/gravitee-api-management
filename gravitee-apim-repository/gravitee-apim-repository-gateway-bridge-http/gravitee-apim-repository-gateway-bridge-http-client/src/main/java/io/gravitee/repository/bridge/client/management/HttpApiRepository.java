@@ -78,32 +78,16 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        try {
-            return blockingGet(
-                get("/apis", BodyCodecs.list(Api.class))
-                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinitionExcluded()))
-                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPictureExcluded()))
-                    .send()
-            )
-                .payload();
-        } catch (TechnicalException te) {
-            // Ensure that an exception is thrown and managed by the caller
-            throw new IllegalStateException(te);
-        }
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         try {
             return blockingGet(
-                    get("/apis", BodyCodecs.list(Api.class))
-                            .addQueryParam("excludeDefinition", Boolean.toString(apiFieldFilter.isDefinitionExcluded()))
-                            .addQueryParam("excludePicture", Boolean.toString(apiFieldFilter.isPictureExcluded()))
-                            .addQueryParam("includeCategories", Boolean.toString(apiFieldFilter.areCategoriesIncluded()))
-                            .send()
+                get("/apis", BodyCodecs.list(Api.class))
+                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldFilter.isDefinitionExcluded()))
+                    .addQueryParam("excludePicture", Boolean.toString(apiFieldFilter.isPictureExcluded()))
+                    .addQueryParam("includeCategories", Boolean.toString(apiFieldFilter.areCategoriesIncluded()))
+                    .send()
             )
-                    .payload();
+                .payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

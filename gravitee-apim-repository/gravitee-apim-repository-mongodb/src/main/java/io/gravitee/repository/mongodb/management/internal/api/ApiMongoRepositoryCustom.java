@@ -34,7 +34,6 @@ public interface ApiMongoRepositoryCustom {
 
     List<ApiMongo> search(ApiCriteria criteria, ApiFieldFilter apiFieldFilter);
 
-
     /**
      * Find ids of APIs matching the given criteria.
      *

@@ -156,7 +156,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().build()
+                new ApiFieldFilter.Builder().excludeDefinition().build()
             )
         )
             .thenReturn(singletonList(apiToFindById));

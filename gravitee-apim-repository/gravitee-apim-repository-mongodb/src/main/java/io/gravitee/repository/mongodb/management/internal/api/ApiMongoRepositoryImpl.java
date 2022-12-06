@@ -156,53 +156,55 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             List<List<Criteria>> convertedCriteria = orCriteria
                 .stream()
                 .filter(Objects::nonNull)
-                .map(apiCriteria -> {
-                    List<Criteria> criteria = new ArrayList<>();
-                    if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
-                        criteria.add(where("id").in(apiCriteria.getIds()));
+                .map(
+                    apiCriteria -> {
+                        List<Criteria> criteria = new ArrayList<>();
+                        if (apiCriteria.getIds() != null && !apiCriteria.getIds().isEmpty()) {
+                            criteria.add(where("id").in(apiCriteria.getIds()));
+                        }
+                        if (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()) {
+                            criteria.add(where("groups").in(apiCriteria.getGroups()));
+                        }
+                        if (apiCriteria.getEnvironmentId() != null) {
+                            criteria.add(where("environmentId").is(apiCriteria.getEnvironmentId()));
+                        }
+                        if (apiCriteria.getEnvironments() != null && !apiCriteria.getEnvironments().isEmpty()) {
+                            criteria.add(where("environmentId").in(apiCriteria.getEnvironments()));
+                        }
+                        if (apiCriteria.getLabel() != null && !apiCriteria.getLabel().isEmpty()) {
+                            criteria.add(where("labels").in(apiCriteria.getLabel()));
+                        }
+                        if (apiCriteria.getName() != null && !apiCriteria.getName().isEmpty()) {
+                            criteria.add(where("name").is(apiCriteria.getName()));
+                        }
+                        if (apiCriteria.getState() != null) {
+                            criteria.add(where("lifecycleState").is(apiCriteria.getState()));
+                        }
+                        if (apiCriteria.getVersion() != null && !apiCriteria.getVersion().isEmpty()) {
+                            criteria.add(where("version").is(apiCriteria.getVersion()));
+                        }
+                        if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
+                            criteria.add(where("categories").in(apiCriteria.getCategory()));
+                        }
+                        if (apiCriteria.getVisibility() != null) {
+                            criteria.add(where("visibility").is(apiCriteria.getVisibility()));
+                        }
+                        if (apiCriteria.getLifecycleStates() != null && !apiCriteria.getLifecycleStates().isEmpty()) {
+                            criteria.add(where("apiLifecycleState").in(apiCriteria.getLifecycleStates()));
+                        }
+                        if (apiCriteria.getCrossId() != null && !apiCriteria.getCrossId().isEmpty()) {
+                            criteria.add(where("crossId").is(apiCriteria.getCrossId()));
+                        }
+                        return criteria;
                     }
-                    if (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()) {
-                        criteria.add(where("groups").in(apiCriteria.getGroups()));
-                    }
-                    if (apiCriteria.getEnvironmentId() != null) {
-                        criteria.add(where("environmentId").is(apiCriteria.getEnvironmentId()));
-                    }
-                    if (apiCriteria.getEnvironments() != null && !apiCriteria.getEnvironments().isEmpty()) {
-                        criteria.add(where("environmentId").in(apiCriteria.getEnvironments()));
-                    }
-                    if (apiCriteria.getLabel() != null && !apiCriteria.getLabel().isEmpty()) {
-                        criteria.add(where("labels").in(apiCriteria.getLabel()));
-                    }
-                    if (apiCriteria.getName() != null && !apiCriteria.getName().isEmpty()) {
-                        criteria.add(where("name").is(apiCriteria.getName()));
-                    }
-                    if (apiCriteria.getState() != null) {
-                        criteria.add(where("lifecycleState").is(apiCriteria.getState()));
-                    }
-                    if (apiCriteria.getVersion() != null && !apiCriteria.getVersion().isEmpty()) {
-                        criteria.add(where("version").is(apiCriteria.getVersion()));
-                    }
-                    if (apiCriteria.getCategory() != null && !apiCriteria.getCategory().isEmpty()) {
-                        criteria.add(where("categories").in(apiCriteria.getCategory()));
-                    }
-                    if (apiCriteria.getVisibility() != null) {
-                        criteria.add(where("visibility").is(apiCriteria.getVisibility()));
-                    }
-                    if (apiCriteria.getLifecycleStates() != null && !apiCriteria.getLifecycleStates().isEmpty()) {
-                        criteria.add(where("apiLifecycleState").in(apiCriteria.getLifecycleStates()));
-                    }
-                    if (apiCriteria.getCrossId() != null && !apiCriteria.getCrossId().isEmpty()) {
-                        criteria.add(where("crossId").is(apiCriteria.getCrossId()));
-                    }
-                    return criteria;
-                })
+                )
                 .filter(criteria -> criteria.size() > 0)
                 .collect(Collectors.toList());
 
             if (convertedCriteria.size() > 1) {
                 query.addCriteria(
                     new Criteria()
-                        .orOperator(
+                    .orOperator(
                             convertedCriteria.stream().map(criteria -> new Criteria().andOperator(criteria)).collect(Collectors.toList())
                         )
                 );
@@ -228,10 +230,12 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             .aggregate(aggregations);
 
         Set<String> categories = new LinkedHashSet<>();
-        distinctCategories.forEach(document -> {
-            String category = document.getString("_id");
-            categories.add(category);
-        });
+        distinctCategories.forEach(
+            document -> {
+                String category = document.getString("_id");
+                categories.add(category);
+            }
+        );
         return categories;
     }
 }
