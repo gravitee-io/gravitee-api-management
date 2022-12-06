@@ -795,7 +795,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     groupApplications.forEach(application -> resourceIds.add(application.getId()));
                 } else if (type.equals(MembershipReferenceType.API) && groupIds.length > 0) {
                     ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
-                    Set<Api> groupApis = apiRepository.search(criteria, ApiFieldInclusionFilter.builder().build());
+                    List<Api> groupApis = apiRepository.search(criteria);
                     groupApis.forEach(api -> resourceIds.add(api.getId()));
                 }
 

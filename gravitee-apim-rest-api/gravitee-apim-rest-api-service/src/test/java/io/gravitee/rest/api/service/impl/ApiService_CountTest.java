@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -32,8 +32,6 @@ import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
 import org.junit.Before;
@@ -125,9 +123,9 @@ public class ApiService_CountTest {
         api3.setId("api-3");
         api3.setCategories(Set.of(category1.getId(), category2.getId(), category3.getId()));
 
-        HashSet<Api> apiMocks = new HashSet<>(List.of(api1, api2, api3));
+        List<Api> apiMocks = List.of(api1, api2, api3);
 
-        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class))).thenReturn(apiMocks);
+        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class))).thenReturn(apiMocks);
 
         when(categoryService.getTotalApisByCategoryId(any(), anyString())).thenCallRealMethod();
 

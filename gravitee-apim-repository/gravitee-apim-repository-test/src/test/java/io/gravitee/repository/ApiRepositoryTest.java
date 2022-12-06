@@ -29,9 +29,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiFieldFilter;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -332,7 +330,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindByNameAndVersionWithoutDefinition() {
         List<Api> apis = apiRepository.search(
             new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-            new ApiFieldExclusionFilter.Builder().excludeDefinition().build()
+            new ApiFieldFilter.Builder().excludeDefinition().build()
         );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
@@ -372,9 +370,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldOnlyIncludeRequiredAndDefaultFields() {
         ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+        ApiFieldFilter filter = ApiFieldFilter.builder().includeCategories().build();
 
-        Set<Api> apis = apiRepository.search(criteria, filter);
+        List<Api> apis = apiRepository.search(criteria, filter);
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
@@ -392,9 +390,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldNotIncludeCategories() {
         ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().build();
+        ApiFieldFilter filter = ApiFieldFilter.builder().build();
 
-        Set<Api> apis = apiRepository.search(criteria, filter);
+        List<Api> apis = apiRepository.search(criteria, filter);
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());

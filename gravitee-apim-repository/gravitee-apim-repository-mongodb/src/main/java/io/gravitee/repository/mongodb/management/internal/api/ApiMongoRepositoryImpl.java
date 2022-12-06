@@ -25,7 +25,6 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import com.mongodb.client.AggregateIterable;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApiFieldFilter;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -78,12 +77,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
 
         return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
-    }
-
-    @Override
-    public List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        Query query = buildQuery(apiFieldInclusionFilter, List.of(criteria));
-        return mongoTemplate.find(query, ApiMongo.class);
     }
 
     @Override
@@ -154,23 +147,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
         fillQuery(query, orApiCriteria);
 
-        query.with(Sort.by(ASC, "name"));
-        return query;
-    }
-
-    private Query buildQuery(ApiFieldInclusionFilter apiFieldInclusionFilter, List<ApiCriteria> orApiCriteria) {
-        final Query query = new Query();
-        if (apiFieldInclusionFilter != null) {
-            String[] fields = apiFieldInclusionFilter.includedFields();
-            // If there is no field to include, then the Mongo query will behave like there is no filter, and so will include all available fields.
-            // In that case we need to explicitly add the "_id" column.
-            if (fields.length > 0) {
-                query.fields().include(fields);
-            } else {
-                query.fields().include("_id");
-            }
-        }
-        fillQuery(query, orApiCriteria);
         query.with(Sort.by(ASC, "name"));
         return query;
     }

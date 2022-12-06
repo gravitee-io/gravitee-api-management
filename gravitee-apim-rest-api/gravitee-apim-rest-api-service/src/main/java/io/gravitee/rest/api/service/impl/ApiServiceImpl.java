@@ -51,7 +51,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -3601,9 +3601,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
         ApiCriteria criteria = new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+        ApiFieldFilter filter = ApiFieldFilter.builder().includeCategories().build();
 
-        Set<Api> apis = apiRepository.search(criteria, filter);
+        List<Api> apis = apiRepository.search(criteria, filter);
 
         apis.addAll(findUserApis(userId, filter));
 
@@ -3612,13 +3612,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         HashMap<String, Long> groups = new HashMap<>();
 
         for (String category : categories) {
-            groups.put(category, categoryService.getTotalApisByCategoryId(apis, category));
+            groups.put(category, categoryService.getTotalApisByCategoryId(new HashSet<>(apis), category));
         }
 
         return groups;
     }
 
-    private Set<Api> findUserApis(String userId, ApiFieldInclusionFilter filter) {
+    private Set<Api> findUserApis(String userId, ApiFieldFilter filter) {
         if (userId == null) {
             return Set.of();
         }
@@ -3633,7 +3633,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (userApiIds.length > 0) {
             ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userApiIds).build();
-            Set<Api> userApis = apiRepository.search(criteria, filter);
+            List<Api> userApis = apiRepository.search(criteria, filter);
             apis.addAll(userApis);
         }
 
@@ -3651,7 +3651,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (groupIds.length > 0 && groupIds[0] != null) {
             ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(groupIds).build();
-            Set<Api> groupApis = apiRepository.search(criteria, filter);
+            List<Api> groupApis = apiRepository.search(criteria, filter);
             apis.addAll(groupApis);
         }
 

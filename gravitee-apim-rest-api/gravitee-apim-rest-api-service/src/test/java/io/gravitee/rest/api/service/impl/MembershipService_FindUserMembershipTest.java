@@ -23,10 +23,7 @@ import static org.mockito.Mockito.*;
 
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
@@ -106,7 +103,7 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        verify(mockApiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class));
+        verify(mockApiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
 
         assertTrue(references.isEmpty());
     }
@@ -163,8 +160,8 @@ public class MembershipService_FindUserMembershipTest {
 
         Api api = new Api();
         api.setId("apiGroup1Id");
-        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
-            .thenReturn(new HashSet<>(asList(api)));
+        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldFilter) any()))
+            .thenReturn(List.of(api));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -204,8 +201,8 @@ public class MembershipService_FindUserMembershipTest {
 
         Api api = new Api();
         api.setId("apiGroup1Id");
-        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
-            .thenReturn(new HashSet<>(asList(api)));
+        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldFilter) any()))
+            .thenReturn(List.of(api));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -216,8 +213,8 @@ public class MembershipService_FindUserMembershipTest {
         assertFalse(references.isEmpty());
         assertEquals(2, references.size());
         assertNotEquals(references.get(0).getReference(), references.get(1).getReference());
-        assertEquals(references.get(0).getReference(), "api-id1");
-        assertEquals(references.get(1).getReference(), "apiGroup1Id");
+        assertEquals("api-id1", references.get(0).getReference());
+        assertEquals("apiGroup1Id", references.get(1).getReference());
         assertEquals("API", references.get(0).getType());
     }
 

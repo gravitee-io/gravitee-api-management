@@ -57,16 +57,6 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     @Deprecated(since = "3.18", forRemoval = true)
     List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
-    /**
-     * Search APIs with a criteria and a field inclusion filter.
-     * @param apiCriteria the criteria to search APIs
-     * @param apiFieldInclusionFilter the field inclusion filter
-     * @return the list of APIs matching the criteria, each API WILL contain the included fields
-     * @deprecated use {@link #search(ApiCriteria, ApiFieldFilter)} or {@link #search(ApiCriteria, Sortable, Pageable, ApiFieldExclusionFilter)} instead
-     */
-    @Deprecated(since = "3.18", forRemoval = true)
-    Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
-
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;

@@ -32,12 +32,10 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
@@ -190,16 +188,16 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         Api bigNameApiProjection = Mockito.mock(Api.class);
         when(bigNameApiProjection.getId()).thenReturn("big-name");
 
-        when(apiRepository.search(any(), argThat((ApiFieldInclusionFilter filter) -> null != filter && filter.hasCategories())))
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
+        when(apiRepository.search(any(), argThat((ApiFieldFilter filter) -> null != filter && filter.areCategoriesIncluded())))
+            .thenReturn(List.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
 
         when(
             apiRepository.search(
                 any(),
-                argThat((ApiFieldInclusionFilter filter) -> null != filter && Boolean.FALSE.equals(filter.hasCategories()))
+                argThat((ApiFieldFilter filter) -> null != filter && Boolean.FALSE.equals(filter.areCategoriesIncluded()))
             )
         )
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
+            .thenReturn(List.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
 
         Set<String> categories = new LinkedHashSet<>();
         categories.add("category-1");
