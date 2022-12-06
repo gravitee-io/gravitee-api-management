@@ -137,21 +137,31 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
         final List<Api> searchedApisAfterDeletion = asList(mock(Api.class), mock(Api.class), mock(Api.class));
-        when(apiRepository.search(null)).thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
-        when(apiRepository.search(new ApiCriteria.Builder().build()))
+        when(apiRepository.search(null, ApiFieldFilter.emptyFilter()))
+            .thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
+        when(apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.emptyFilter()))
             .thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
+                ApiFieldFilter.emptyFilter()
+            )
+        )
             .thenReturn(asList(apiToUpdate, apiToDelete));
 
-        when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build(), ApiFieldFilter.emptyFilter()))
             .thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
 
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(singletonList(apiToFindById));
+        when(
+            apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(), ApiFieldFilter.emptyFilter())
+        )
             .thenReturn(singletonList(apiToFindById));
         when(
             apiRepository.search(
@@ -160,20 +170,26 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
             )
         )
             .thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build())).thenReturn(singletonList(groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(singletonList(groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), ApiFieldFilter.emptyFilter()))
             .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build(), ApiFieldFilter.emptyFilter()))
             .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById, groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(asList(apiToFindById, groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.emptyFilter()))
             .thenReturn(asList(apiToFindById, groupedApi));
 
-        when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
+        when(
+            apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build(), ApiFieldFilter.emptyFilter())
+        )
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
 
-        when(apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build())).thenReturn(asList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build(), ApiFieldFilter.emptyFilter()))
+            .thenReturn(asList(apiToFindById));
 
         Api apiToUpdateProjection = Mockito.mock(Api.class);
         when(apiToUpdateProjection.getId()).thenReturn("api-to-update");

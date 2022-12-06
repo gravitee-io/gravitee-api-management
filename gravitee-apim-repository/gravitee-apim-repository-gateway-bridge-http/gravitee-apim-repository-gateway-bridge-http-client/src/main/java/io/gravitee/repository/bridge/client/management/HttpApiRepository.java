@@ -73,11 +73,6 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria) {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         try {
             return blockingGet(

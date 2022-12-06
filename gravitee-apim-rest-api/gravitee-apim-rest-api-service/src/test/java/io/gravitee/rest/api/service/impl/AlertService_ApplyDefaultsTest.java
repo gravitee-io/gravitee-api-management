@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
@@ -63,6 +64,9 @@ public class AlertService_ApplyDefaultsTest {
         alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
 
         verify(apiRepository, times(1))
-            .search(argThat(criteria -> criteria.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())));
+            .search(
+                argThat(criteria -> criteria.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
+                isA(ApiFieldFilter.class)
+            );
     }
 }

@@ -30,7 +30,6 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
@@ -792,7 +791,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     groupApplications.forEach(application -> resourceIds.add(application.getId()));
                 } else if (type.equals(MembershipReferenceType.API) && groupIds.length > 0) {
                     ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
-                    List<Api> groupApis = apiRepository.search(criteria);
+                    List<Api> groupApis = apiRepository.search(criteria, ApiFieldFilter.emptyFilter());
                     groupApis.forEach(api -> resourceIds.add(api.getId()));
                 }
 

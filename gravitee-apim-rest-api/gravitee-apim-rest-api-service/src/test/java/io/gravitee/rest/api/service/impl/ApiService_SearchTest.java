@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.repository.management.api.ApiFieldFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -214,7 +215,12 @@ public class ApiService_SearchTest {
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), any(Query.class))).thenReturn(searchResult);
 
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build(),
+                ApiFieldFilter.emptyFilter()
+            )
+        )
             .thenReturn(Arrays.asList(api3, api1, api2));
 
         RoleEntity poRole = new RoleEntity();

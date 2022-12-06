@@ -84,9 +84,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid api disable membership notifications", apiSaved.isDisableMembershipNotifications());
 
         // test delete
-        int nbApplicationBefore = apiRepository.search(null).size();
+        int nbApplicationBefore = apiRepository.search(null, ApiFieldFilter.emptyFilter()).size();
         apiRepository.delete(apiId);
-        int nbApplicationAfter = apiRepository.search(null).size();
+        int nbApplicationAfter = apiRepository.search(null, ApiFieldFilter.emptyFilter()).size();
         assertFalse("api was deleted", apiRepository.findById(apiId).isPresent());
         assertEquals("Invalid number of apis after deletion", nbApplicationBefore - 1, nbApplicationAfter);
     }
@@ -115,9 +115,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
         api.setDisableMembershipNotifications(false);
 
-        int nbAPIsBeforeUpdate = apiRepository.search(null).size();
+        int nbAPIsBeforeUpdate = apiRepository.search(null, ApiFieldFilter.emptyFilter()).size();
         apiRepository.update(api);
-        int nbAPIsAfterUpdate = apiRepository.search(null).size();
+        int nbAPIsAfterUpdate = apiRepository.search(null, ApiFieldFilter.emptyFilter()).size();
 
         assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
 
@@ -168,7 +168,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findAllTest() {
-        List<Api> apis = apiRepository.search(null);
+        List<Api> apis = apiRepository.search(null, ApiFieldFilter.emptyFilter());
 
         assertNotNull(apis);
         assertFalse("Api list is empty", apis.isEmpty());
@@ -177,7 +177,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findAllTestCriteriaEmpty() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.emptyFilter());
 
         assertNotNull(apis);
         assertFalse("Api list is empty", apis.isEmpty());
@@ -203,7 +203,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByIds() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
@@ -212,7 +215,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByEnvironmentsDevs() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
@@ -235,7 +241,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByGroups() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().groups("api-group", "unknown").build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -244,7 +253,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByName() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -253,7 +262,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByLabel() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().label("label 1").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().label("label 1").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -262,7 +271,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByState() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
@@ -277,7 +286,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByEnvironment() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
@@ -286,7 +295,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByVersion() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().version("1").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().version("1").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
@@ -301,7 +310,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByView() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().category("my-category").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -310,7 +319,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByVisibility() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
@@ -319,7 +328,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByNameAndVersion() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -341,7 +353,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCrossId() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build(), ApiFieldFilter.emptyFilter());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -350,14 +362,20 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCrossId_andReturnEmptyListIfNotFound() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("api-cross-id-not-existing").build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().crossId("api-cross-id-not-existing").build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertTrue(apis.isEmpty());
     }
 
     @Test
     public void shouldFindByLifecycleStates() {
-        final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
+        final List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build(),
+            ApiFieldFilter.emptyFilter()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());

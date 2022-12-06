@@ -35,10 +35,6 @@ import java.util.Set;
 public interface ApiRepository extends CrudRepository<Api, String> {
     Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 
-    default List<Api> search(ApiCriteria apiCriteria) {
-        return search(apiCriteria, ApiFieldFilter.emptyFilter());
-    }
-
     /**
      * Search for APIs matching the given criteria.
      * @param apiCriteria the criteria to match
