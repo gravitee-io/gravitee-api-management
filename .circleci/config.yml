@@ -1743,6 +1743,9 @@ jobs:
         - keeper/env-export:
             secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
             var-name: GITHUB_TOKEN
+        - keeper/env-export:
+              secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+              var-name: SLACK_ACCESS_TOKEN
         - add_ssh_keys:
             fingerprints:
               - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
@@ -1760,6 +1763,29 @@ jobs:
             name: "Open a PR to create release notes into docs repository"
             working_directory: "./release"
             command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
+        - when:
+              condition:
+                  not: << pipeline.parameters.dry_run>>
+              steps:
+                  - run:
+                        name: Get RELEASE_NOTES_PR_URL
+                        command: |
+                            echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
+                  - slack/notify:
+                        channel: C02NGT20S4W
+                        event: always
+                        custom: |
+                            {
+                              "blocks": [
+                                {
+                                  "type": "section",
+                                  "text": {
+                                    "type": "mrkdwn",
+                                    "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                  }
+                                }
+                              ]
+                            }
 
 workflows:
     pull_requests:
