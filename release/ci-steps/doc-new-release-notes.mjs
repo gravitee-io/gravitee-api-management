@@ -139,4 +139,6 @@ ${allFixCommits.stdout}
 echo(chalk.blue('# Create PR on Github Doc repository'));
 echo(prBody);
 process.env.PR_BODY = prBody;
-$`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
+
+const releaseNotesPrUrl = await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
+$`echo ${releaseNotesPrUrl.stdout} > /tmp/releaseNotesPrUrl.txt`;
