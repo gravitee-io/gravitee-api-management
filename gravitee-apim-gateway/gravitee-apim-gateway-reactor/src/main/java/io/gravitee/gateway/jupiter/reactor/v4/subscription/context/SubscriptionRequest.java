@@ -16,14 +16,12 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.LinkedMultiValueMap;
-import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.ws.WebSocket;
+import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -34,7 +32,6 @@ import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.function.Function;
-import javax.net.ssl.SSLSession;
 
 /**
  * This is a sort of fake {@link MutableRequest} to deal with subscription.
@@ -44,18 +41,9 @@ import javax.net.ssl.SSLSession;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionRequest implements MutableRequest {
+public class SubscriptionRequest extends AbstractRequest implements MutableRequest {
 
     protected static final String DEFAULT_LOCALHOST = "localhost";
-
-    private final long timestamp;
-    private final String id;
-    private final HttpHeaders headers;
-    private final Metrics metrics;
-    private final LinkedMultiValueMap<String, String> parameters;
-    private final LinkedMultiValueMap<String, String> pathParameters;
-    private String transactionId;
-    private String clientIdentifier;
 
     public SubscriptionRequest(Subscription subscription) {
         this.id = subscription.getId();
@@ -66,166 +54,22 @@ public class SubscriptionRequest implements MutableRequest {
         this.metrics = Metrics.on(timestamp).build();
         this.parameters = new LinkedMultiValueMap<>(Collections.emptyMap());
         this.pathParameters = new LinkedMultiValueMap<>(Collections.emptyMap());
-    }
-
-    @Override
-    public MutableRequest contextPath(String contextPath) {
-        return this;
-    }
-
-    @Override
-    public MutableRequest pathInfo(String pathInfo) {
-        return this;
-    }
-
-    @Override
-    public MutableRequest transactionId(String id) {
-        this.transactionId = id;
-        return this;
-    }
-
-    @Override
-    public MutableRequest clientIdentifier(String clientIdentifier) {
-        this.clientIdentifier = clientIdentifier;
-        return this;
-    }
-
-    @Override
-    public MutableRequest remoteAddress(String remoteAddress) {
-        return this;
-    }
-
-    @Override
-    public String id() {
-        return this.id;
-    }
-
-    @Override
-    public String transactionId() {
-        return this.transactionId;
-    }
-
-    @Override
-    public String clientIdentifier() {
-        return this.clientIdentifier;
-    }
-
-    @Override
-    public String uri() {
-        return "";
-    }
-
-    @Override
-    public String host() {
-        return DEFAULT_LOCALHOST;
-    }
-
-    @Override
-    public String originalHost() {
-        return DEFAULT_LOCALHOST;
-    }
-
-    @Override
-    public String path() {
-        return "";
-    }
-
-    @Override
-    public String pathInfo() {
-        return "";
-    }
-
-    @Override
-    public String contextPath() {
-        return "";
-    }
-
-    @Override
-    public MultiValueMap<String, String> parameters() {
-        // We still maintain request parameters to be compliant with the execution flow (eg: policies), that could access metrics.
-        return parameters;
-    }
-
-    @Override
-    public MultiValueMap<String, String> pathParameters() {
-        // We still maintain request path parameters to be compliant with the execution flow (eg: policies), that could access metrics.
-        return pathParameters;
-    }
-
-    @Override
-    public HttpHeaders headers() {
-        // We still maintain request headers to be compliant with the execution flow (eg: policies), that could access metrics.
-        return this.headers;
-    }
-
-    @Override
-    public HttpMethod method() {
-        // We still maintain metrics to be compliant with the execution flow (eg: policies), that could access metrics.
-
-        return HttpMethod.OTHER;
-    }
-
-    @Override
-    public String scheme() {
-        // There is no concept of scheme for a subscription request as it is issued internally by the gateway.
-        return "";
-    }
-
-    @Override
-    public HttpVersion version() {
-        // There is no real concept of http version for a subscription request as it is issued internally by the gateway.
-        return null;
-    }
-
-    @Override
-    public long timestamp() {
-        return this.timestamp;
-    }
-
-    @Override
-    public String remoteAddress() {
-        // Subscription request is issued by the gateway itslef.
-        return DEFAULT_LOCALHOST;
-    }
-
-    @Override
-    public String localAddress() {
-        // Subscription request is issued by the gateway internally.
-        return DEFAULT_LOCALHOST;
-    }
-
-    @Override
-    public SSLSession sslSession() {
-        // There is no ssl session on a subscription request.
-        return null;
-    }
-
-    @Override
-    public Metrics metrics() {
-        // We still maintain metrics to be compliant with the execution flow (eg: policies), that could access metrics.
-        return metrics;
-    }
-
-    @Override
-    public boolean ended() {
-        // Subscription request must always be considered has ended because it is issued by the gateway itself and there is no body to consume in that case.
-        return true;
-    }
-
-    @Override
-    public boolean isWebSocket() {
-        // A subscription request can't be upgraded to websocket.
-        return false;
-    }
-
-    @Override
-    public WebSocket webSocket() {
-        return null;
+        this.uri = "";
+        this.host = DEFAULT_LOCALHOST;
+        this.originalHost = DEFAULT_LOCALHOST;
+        this.path = "";
+        this.pathInfo = "";
+        this.contextPath = "";
+        this.method = HttpMethod.OTHER;
+        this.scheme = "";
+        this.remoteAddress = DEFAULT_LOCALHOST;
+        this.localAddress = DEFAULT_LOCALHOST;
+        this.ended = true;
     }
 
     @Override
     public Maybe<Buffer> body() {
-        // Subscription request has no body because it is issue by the gateway itself.
+        // Subscription request has no body because it is issued by the gateway itself.
         return Maybe.empty();
     }
 

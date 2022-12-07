@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.handler.context;
+package io.gravitee.gateway.jupiter.core.context;
 
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_PREFIX;
 
@@ -23,6 +23,8 @@ import java.util.HashMap;
  * Special {@link java.util.Map} implementation allowing to retrieve attributes prefixed with #ATTR_PREFIX without having to specify it explicitly.
  */
 class ContextAttributeMap extends HashMap<String, Object> {
+
+    private static final long serialVersionUID = -8914016743809221307L;
 
     /**
      * In the most general case, the context will not store more than 12 elements in the Map.

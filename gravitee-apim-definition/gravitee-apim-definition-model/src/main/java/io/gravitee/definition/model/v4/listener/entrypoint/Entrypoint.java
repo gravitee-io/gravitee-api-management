@@ -22,12 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -46,6 +41,8 @@ public class Entrypoint implements Serializable {
     private String type;
 
     private Qos qos = Qos.AUTO;
+
+    private Dlq dlq;
 
     @Schema(implementation = Object.class)
     @JsonRawValue

@@ -55,8 +55,8 @@ public class ManagedEndpoint {
         return group;
     }
 
-    public EndpointConnector getConnector() {
-        return connector;
+    public <T extends EndpointConnector> T getConnector() {
+        return (T) connector;
     }
 
     public Status getStatus() {

@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.ConnectorPluginService;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -108,6 +109,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                     .map(ConnectorFeature::fromLabel)
                     .collect(Collectors.toSet())
             );
+        } else {
+            entity.setAvailableFeatures(Collections.emptySet());
         }
 
         return entity;

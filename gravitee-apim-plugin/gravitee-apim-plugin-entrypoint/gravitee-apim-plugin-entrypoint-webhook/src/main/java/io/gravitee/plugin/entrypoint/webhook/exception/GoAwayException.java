@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.context;
-
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.Response;
+package io.gravitee.plugin.entrypoint.webhook.exception;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableResponse extends Response, OnMessagesInterceptor {
-    /**
-     * Allows to replace the response headers.
-     *
-     * @param headers the new response headers.
-     */
-    MutableResponse setHeaders(final HttpHeaders headers);
+public class GoAwayException extends Exception {
+
+    private static final long serialVersionUID = 4353327772603524304L;
 }

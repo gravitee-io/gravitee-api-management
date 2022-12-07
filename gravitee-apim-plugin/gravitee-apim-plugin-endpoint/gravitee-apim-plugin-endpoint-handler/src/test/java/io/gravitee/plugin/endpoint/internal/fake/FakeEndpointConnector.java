@@ -15,10 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.internal.fake;
 
-import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosCapability;
@@ -61,12 +59,12 @@ public class FakeEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    protected Completable subscribe(ExecutionContext ctx) {
+    public Completable subscribe(ExecutionContext ctx) {
         return Completable.complete();
     }
 
     @Override
-    protected Completable publish(ExecutionContext ctx) {
+    public Completable publish(ExecutionContext ctx) {
         return Completable.complete();
     }
 }

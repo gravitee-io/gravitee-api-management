@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.http.vertx;
+package io.gravitee.gateway.jupiter.core;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.reactivex.rxjava3.core.Completable;
@@ -30,8 +30,14 @@ import java.util.function.Supplier;
  */
 public class BufferFlow {
 
-    protected Flowable<Buffer> chunks;
-    protected Maybe<Buffer> cachedBuffer;
+    private Flowable<Buffer> chunks;
+    private Maybe<Buffer> cachedBuffer;
+
+    public BufferFlow() {}
+
+    public BufferFlow(final Flowable<Buffer> chunks) {
+        this.chunks = chunks;
+    }
 
     public Maybe<Buffer> body() {
         this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
@@ -76,6 +82,10 @@ public class BufferFlow {
         this.chunks = this.chunksFromCache(this::chunks).compose(onChunks).compose(chunksToCache());
 
         return this.chunks.ignoreElements();
+    }
+
+    public boolean hasChunks() {
+        return chunks != null;
     }
 
     private Flowable<Buffer> chunksOrEmpty() {

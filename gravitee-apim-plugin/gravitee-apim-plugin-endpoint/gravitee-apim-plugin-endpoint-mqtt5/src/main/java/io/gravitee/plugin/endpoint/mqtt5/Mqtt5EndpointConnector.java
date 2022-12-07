@@ -119,7 +119,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    protected Completable subscribe(ExecutionContext ctx) {
+    public Completable subscribe(ExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 if (configuration.getConsumer().isEnabled()) {
@@ -170,7 +170,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    protected Completable publish(ExecutionContext ctx) {
+    public Completable publish(ExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
             return Completable.defer(
                 () -> {

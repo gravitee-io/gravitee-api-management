@@ -18,87 +18,21 @@ package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.HttpResponse;
-import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.core.MessageFlow;
+import io.gravitee.gateway.jupiter.core.context.AbstractResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.http.vertx.MessageFlow;
 import io.reactivex.rxjava3.core.*;
-import java.util.function.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionResponse implements MutableResponse {
-
-    private HttpHeaders headers;
-    private int statusCode;
-    private String reason;
-    private final MessageFlow messageFlow;
-    private Flowable<Buffer> chunks;
-    private boolean ended;
+public class SubscriptionResponse extends AbstractResponse implements MutableResponse {
 
     public SubscriptionResponse() {
         this.statusCode = HttpStatusCode.OK_200;
         this.headers = HttpHeaders.create();
         this.messageFlow = new MessageFlow();
-    }
-
-    @Override
-    public void setHeaders(HttpHeaders headers) {
-        this.headers = headers;
-    }
-
-    @Override
-    public HttpResponse status(int statusCode) {
-        this.statusCode = statusCode;
-        return this;
-    }
-
-    @Override
-    public int status() {
-        return this.statusCode;
-    }
-
-    @Override
-    public String reason() {
-        return this.reason;
-    }
-
-    @Override
-    public HttpResponse reason(String message) {
-        this.reason = message;
-        return this;
-    }
-
-    @Override
-    public HttpHeaders headers() {
-        return headers;
-    }
-
-    @Override
-    public HttpHeaders trailers() {
-        return null;
-    }
-
-    @Override
-    public boolean ended() {
-        return ended;
-    }
-
-    @Override
-    public Flowable<Message> messages() {
-        return this.messageFlow.messages();
-    }
-
-    @Override
-    public void messages(Flowable<Message> messages) {
-        this.messageFlow.messages(messages);
-    }
-
-    @Override
-    public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
-        return Completable.fromRunnable(() -> this.messageFlow.onMessages(onMessages));
     }
 
     @Override
@@ -122,38 +56,5 @@ public class SubscriptionResponse implements MutableResponse {
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
         // Subscription does not allow buffer body access.
         return Completable.complete();
-    }
-
-    @Override
-    public void chunks(Flowable<Buffer> chunks) {
-        this.chunks = chunks;
-    }
-
-    @Override
-    public Flowable<Buffer> chunks() {
-        return this.chunks;
-    }
-
-    @Override
-    public Completable onChunks(FlowableTransformer<Buffer, Buffer> onChunks) {
-        if (chunks == null) {
-            return Completable.error(new IllegalStateException("The is no chunks to apply the transformation on"));
-        }
-        return Completable.fromRunnable(() -> chunks = chunks.compose(onChunks));
-    }
-
-    @Override
-    public Completable end() {
-        return Completable.defer(() -> chunks.ignoreElements().andThen(Completable.fromRunnable(() -> ended = true)));
-    }
-
-    @Override
-    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        this.messageFlow.setOnMessagesInterceptor(interceptor);
-    }
-
-    @Override
-    public void unsetMessagesInterceptor() {
-        this.messageFlow.unsetOnMessagesInterceptor();
     }
 }

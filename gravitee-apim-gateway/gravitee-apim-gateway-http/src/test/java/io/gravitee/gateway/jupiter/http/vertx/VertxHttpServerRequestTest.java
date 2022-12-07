@@ -22,6 +22,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
+import io.gravitee.gateway.jupiter.core.MessageFlow;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
@@ -300,6 +301,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertFalse(cut.isWebSocket());
     }
 
@@ -309,6 +312,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn(null);
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertFalse(cut.isWebSocket());
     }
 
@@ -318,6 +323,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
         when(httpServerRequest.method()).thenReturn(HttpMethod.POST);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertFalse(cut.isWebSocket());
     }
 
@@ -327,6 +334,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("something else");
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertFalse(cut.isWebSocket());
     }
 
@@ -336,6 +345,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertTrue(cut.isWebSocket());
     }
 
@@ -345,6 +356,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertTrue(cut.isWebSocket());
     }
 
@@ -354,6 +367,8 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
         for (int i = 0; i < 10; i++) {
             assertTrue(cut.isWebSocket());
@@ -372,6 +387,7 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
 
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertNotNull(cut.webSocket());
     }
 
@@ -382,6 +398,7 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
 
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         final WebSocket webSocket = cut.webSocket();
 
         for (int i = 0; i < 10; i++) {
@@ -406,6 +423,7 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
 
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         assertTrue(cut.isWebSocket());
         assertFalse(cut.isWebSocketUpgraded());
     }
@@ -417,6 +435,7 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
 
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         final WebSocket webSocket = cut.webSocket();
         ReflectionTestUtils.setField(webSocket, "upgraded", false);
 
@@ -431,6 +450,7 @@ class VertxHttpServerRequestTest {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
 
+        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         final WebSocket webSocket = cut.webSocket();
         ReflectionTestUtils.setField(webSocket, "upgraded", true);
 

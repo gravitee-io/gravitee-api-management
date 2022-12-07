@@ -15,16 +15,18 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
+import static io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
+import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
 import io.gravitee.reporter.api.http.Metrics;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
@@ -33,22 +35,9 @@ import javax.net.ssl.SSLSession;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractVertxServerRequest implements MutableRequest {
+abstract class AbstractVertxServerRequest extends AbstractRequest {
 
-    protected final long timestamp;
-    protected final Metrics metrics;
     protected final HttpServerRequest nativeRequest;
-    private final String originalHost;
-    protected String contextPath;
-    protected String pathInfo;
-    protected String id;
-    protected String transactionId;
-    protected String clientIdentifier;
-    protected String remoteAddress;
-    protected String localAddress;
-    protected MultiValueMap<String, String> queryParameters = null;
-    protected MultiValueMap<String, String> pathParameters = null;
-    protected HttpHeaders headers;
 
     AbstractVertxServerRequest(HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         this.nativeRequest = nativeRequest;
@@ -63,7 +52,7 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
         this.metrics.setRemoteAddress(remoteAddress());
         this.metrics.setHost(nativeRequest.host());
         this.metrics.setUri(uri());
-        this.metrics.setUserAgent(nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT));
+        this.metrics.setUserAgent(headers.get(USER_AGENT));
     }
 
     public HttpServerRequest getNativeRequest() {
@@ -71,58 +60,21 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     }
 
     @Override
-    public String id() {
-        return id;
-    }
-
-    @Override
-    public String transactionId() {
-        return this.transactionId;
-    }
-
-    @Override
-    public AbstractVertxServerRequest transactionId(String transactionId) {
-        this.transactionId = transactionId;
-        return this;
-    }
-
-    @Override
-    public String clientIdentifier() {
-        return this.clientIdentifier;
-    }
-
-    @Override
-    public AbstractVertxServerRequest clientIdentifier(String clientIdentifier) {
-        this.clientIdentifier = clientIdentifier;
-        return this;
-    }
-
-    @Override
     public String uri() {
-        return nativeRequest.uri();
+        if (uri == null) {
+            uri = nativeRequest.uri();
+        }
+
+        return uri;
     }
 
     @Override
     public String path() {
-        return nativeRequest.path();
-    }
+        if (path == null) {
+            path = nativeRequest.path();
+        }
 
-    @Override
-    public String pathInfo() {
-        return pathInfo;
-    }
-
-    @Override
-    public AbstractVertxServerRequest pathInfo(final String pathInfo) {
-        this.pathInfo = pathInfo;
-        return this;
-    }
-
-    @Override
-    public AbstractVertxServerRequest contextPath(String contextPath) {
-        this.contextPath = contextPath;
-        this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
-        return this;
+        return path;
     }
 
     @Override
@@ -132,11 +84,11 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
 
     @Override
     public MultiValueMap<String, String> parameters() {
-        if (queryParameters == null) {
-            queryParameters = URIUtils.parameters(nativeRequest.uri());
+        if (parameters == null) {
+            parameters = URIUtils.parameters(nativeRequest.uri());
         }
 
-        return queryParameters;
+        return parameters;
     }
 
     @Override
@@ -149,32 +101,34 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     }
 
     @Override
-    public HttpHeaders headers() {
-        return headers;
-    }
-
-    @Override
     public HttpMethod method() {
-        try {
-            return HttpMethod.valueOf(nativeRequest.method().name());
-        } catch (IllegalArgumentException iae) {
-            return HttpMethod.OTHER;
+        if (method == null) {
+            try {
+                method = HttpMethod.valueOf(nativeRequest.method().name());
+            } catch (IllegalArgumentException iae) {
+                method = HttpMethod.OTHER;
+            }
         }
+
+        return method;
     }
 
     @Override
     public String scheme() {
-        return nativeRequest.scheme();
+        if (scheme == null) {
+            scheme = nativeRequest.scheme();
+        }
+
+        return scheme;
     }
 
     @Override
     public HttpVersion version() {
-        return HttpVersion.valueOf(nativeRequest.version().name());
-    }
+        if (version == null) {
+            version = HttpVersion.valueOf(nativeRequest.version().name());
+        }
 
-    @Override
-    public long timestamp() {
-        return timestamp;
+        return version;
     }
 
     @Override
@@ -184,12 +138,6 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
             this.remoteAddress = extractAddress(nativeRemoteAddress);
         }
         return remoteAddress;
-    }
-
-    @Override
-    public AbstractVertxServerRequest remoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress;
-        return this;
     }
 
     @Override
@@ -211,12 +159,11 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
 
     @Override
     public SSLSession sslSession() {
-        return nativeRequest.sslSession();
-    }
+        if (sslSession == null) {
+            sslSession = nativeRequest.sslSession();
+        }
 
-    @Override
-    public Metrics metrics() {
-        return metrics;
+        return sslSession;
     }
 
     @Override
@@ -227,11 +174,6 @@ abstract class AbstractVertxServerRequest implements MutableRequest {
     @Override
     public String host() {
         return this.nativeRequest.host();
-    }
-
-    @Override
-    public String originalHost() {
-        return this.originalHost;
     }
 
     /**

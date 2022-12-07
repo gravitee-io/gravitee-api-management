@@ -50,10 +50,6 @@ public class EndpointCriteria {
         this(name, apiType, modes, ManagedEndpoint.Status.UP);
     }
 
-    public String getName() {
-        return name;
-    }
-
     public EndpointCriteria(String name, ApiType apiType, Set<ConnectorMode> modes, ManagedEndpoint.Status endpointStatus) {
         this.name = name;
         this.apiType = apiType;
@@ -79,5 +75,21 @@ public class EndpointCriteria {
         }
 
         return apiType == null || apiType.equals(managedEndpoint.getConnector().supportedApi());
+    }
+
+    public ApiType getApiType() {
+        return apiType;
+    }
+
+    public Set<ConnectorMode> getModes() {
+        return modes;
+    }
+
+    public ManagedEndpoint.Status getEndpointStatus() {
+        return endpointStatus;
+    }
+
+    public String getName() {
+        return name;
     }
 }

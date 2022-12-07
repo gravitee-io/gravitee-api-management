@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.jupiter.core.context.AbstractResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 
@@ -26,12 +27,10 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractVertxServerResponse implements MutableResponse {
+abstract class AbstractVertxServerResponse extends AbstractResponse {
 
     protected final AbstractVertxServerRequest serverRequest;
-    protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
-    protected HttpHeaders headers;
 
     public AbstractVertxServerResponse(AbstractVertxServerRequest serverRequest) {
         this.serverRequest = serverRequest;
@@ -73,18 +72,8 @@ abstract class AbstractVertxServerResponse implements MutableResponse {
     }
 
     @Override
-    public HttpHeaders headers() {
-        return headers;
-    }
-
-    @Override
     public boolean ended() {
         return nativeResponse.ended();
-    }
-
-    @Override
-    public HttpHeaders trailers() {
-        return trailers;
     }
 
     protected void prepareHeaders() {
@@ -104,10 +93,5 @@ abstract class AbstractVertxServerResponse implements MutableResponse {
                 .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
                 .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
         }
-    }
-
-    @Override
-    public void setHeaders(HttpHeaders headers) {
-        this.headers = headers;
     }
 }

@@ -115,7 +115,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    protected Completable publish(final ExecutionContext ctx) {
+    public Completable publish(final ExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
             return Completable.defer(
                 () -> {
@@ -185,7 +185,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     }
 
     @Override
-    protected Completable subscribe(final ExecutionContext ctx) {
+    public Completable subscribe(final ExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
                 if (configuration.getConsumer().isEnabled()) {

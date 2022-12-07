@@ -15,11 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
-import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import org.reactivestreams.Subscription;
 
 /**
@@ -28,48 +27,8 @@ import org.reactivestreams.Subscription;
  */
 public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
-    private final BufferFlow bufferFlow;
-    private MessageFlow messageFlow;
-
     public VertxHttpServerResponse(final VertxHttpServerRequest vertxHttpServerRequest) {
         super(vertxHttpServerRequest);
-        bufferFlow = new BufferFlow();
-        messageFlow = null;
-    }
-
-    @Override
-    public Maybe<Buffer> body() {
-        return bufferFlow.body();
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        return bufferFlow.bodyOrEmpty();
-    }
-
-    @Override
-    public void body(final Buffer buffer) {
-        bufferFlow.body(buffer);
-    }
-
-    @Override
-    public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
-        return bufferFlow.onBody(onBody);
-    }
-
-    @Override
-    public Flowable<Buffer> chunks() {
-        return bufferFlow.chunks();
-    }
-
-    @Override
-    public void chunks(final Flowable<Buffer> chunks) {
-        bufferFlow.chunks(chunks);
-    }
-
-    @Override
-    public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
-        return bufferFlow.onChunks(onChunks);
     }
 
     @Override
@@ -87,7 +46,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
                 final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
-                if (bufferFlow.chunks != null) {
+                if (lazyBufferFlow().hasChunks()) {
                     return nativeResponse
                         .rxSend(
                             chunks()
@@ -110,37 +69,9 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     @Override
     public void messages(final Flowable<Message> messages) {
-        getMessageFlow().messages(messages);
+        super.messages(messages);
 
         // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
         chunks(Flowable.empty());
-    }
-
-    @Override
-    public Flowable<Message> messages() {
-        return getMessageFlow().messages();
-    }
-
-    @Override
-    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
-        return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
-    }
-
-    @Override
-    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        getMessageFlow().setOnMessagesInterceptor(interceptor);
-    }
-
-    @Override
-    public void unsetMessagesInterceptor() {
-        getMessageFlow().unsetOnMessagesInterceptor();
-    }
-
-    private MessageFlow getMessageFlow() {
-        if (messageFlow == null) {
-            messageFlow = new MessageFlow();
-        }
-
-        return this.messageFlow;
     }
 }
