@@ -29,6 +29,7 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
     /**
      * Allow setting context path.
      *
+     * @param contextPath the context path to set.
      * @return {@link MutableRequest}.
      */
     MutableRequest contextPath(final String contextPath);
@@ -36,6 +37,7 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
     /**
      * Allow setting path info.
      *
+     * @param pathInfo the path info to set.
      * @return {@link MutableRequest}.
      */
     MutableRequest pathInfo(final String pathInfo);
@@ -43,20 +45,23 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
     /**
      * Allow setting transaction id.
      *
+     * @param transactionId the transaction identifier to set.
      * @return {@link MutableRequest}.
      */
-    MutableRequest transactionId(final String id);
+    MutableRequest transactionId(final String transactionId);
 
     /**
      * Allow setting client identifier.
      *
+     * @param clientIdentifier the client identifier to set.
      * @return {@link MutableRequest}.
      */
-    MutableRequest clientIdentifier(final String id);
+    MutableRequest clientIdentifier(final String clientIdentifier);
 
     /**
-     * Allow overriding remote adresse
+     * Allow overriding remote address.
      *
+     * @param remoteAddress the remote address to set.
      * @return {@link MutableRequest}.
      */
     MutableRequest remoteAddress(final String remoteAddress);

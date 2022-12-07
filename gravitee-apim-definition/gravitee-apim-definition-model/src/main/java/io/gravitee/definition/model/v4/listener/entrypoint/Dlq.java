@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.context;
+package io.gravitee.definition.model.v4.listener.entrypoint;
 
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableResponse extends Response, OnMessagesInterceptor {
-    /**
-     * Allows to replace the response headers.
-     *
-     * @param headers the new response headers.
-     */
-    MutableResponse setHeaders(final HttpHeaders headers);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Dlq {
+
+    private String endpoint;
 }

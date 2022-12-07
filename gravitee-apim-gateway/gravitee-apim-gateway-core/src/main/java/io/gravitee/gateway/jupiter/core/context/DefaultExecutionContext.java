@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.handler.context;
+package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
-import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import java.util.Collection;
 
 /**

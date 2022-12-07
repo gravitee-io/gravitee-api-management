@@ -20,6 +20,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
+import io.gravitee.gateway.jupiter.core.BufferFlow;
+import io.gravitee.gateway.jupiter.core.MessageFlow;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -31,19 +33,19 @@ import java.util.function.Function;
  */
 public class VertxHttpServerRequest extends AbstractVertxServerRequest {
 
-    private final BufferFlow bufferFlow;
-    private MessageFlow messageFlow;
     private Boolean isWebSocket = null;
     private WebSocket webSocket;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         super(nativeRequest, idGenerator);
-        bufferFlow = new BufferFlow();
-        bufferFlow.chunks =
-            nativeRequest
-                .toFlowable()
-                .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
-                .map(Buffer::buffer);
+        bufferFlow =
+            new BufferFlow(
+                nativeRequest
+                    .toFlowable()
+                    .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
+                    .map(Buffer::buffer)
+            );
+
         messageFlow = null;
     }
 
@@ -83,73 +85,10 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
     }
 
     @Override
-    public Maybe<Buffer> body() {
-        return bufferFlow.body();
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        return bufferFlow.bodyOrEmpty();
-    }
-
-    @Override
-    public void body(final Buffer buffer) {
-        bufferFlow.body(buffer);
-    }
-
-    @Override
-    public Completable onBody(final MaybeTransformer<Buffer, Buffer> onBody) {
-        return bufferFlow.onBody(onBody);
-    }
-
-    @Override
-    public Flowable<Buffer> chunks() {
-        return bufferFlow.chunks();
-    }
-
-    @Override
-    public void chunks(final Flowable<Buffer> chunks) {
-        bufferFlow.chunks(chunks);
-    }
-
-    @Override
-    public Completable onChunks(final FlowableTransformer<Buffer, Buffer> onChunks) {
-        return bufferFlow.onChunks(onChunks);
-    }
-
-    @Override
     public void messages(final Flowable<Message> messages) {
-        getMessageFlow().messages(messages);
+        super.messages(messages);
 
         // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
         chunks(Flowable.empty());
-    }
-
-    @Override
-    public Flowable<Message> messages() {
-        return getMessageFlow().messages();
-    }
-
-    @Override
-    public Completable onMessages(final FlowableTransformer<Message, Message> onMessages) {
-        return Completable.fromRunnable(() -> getMessageFlow().onMessages(onMessages));
-    }
-
-    @Override
-    public void setMessagesInterceptor(Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor) {
-        getMessageFlow().setOnMessagesInterceptor(interceptor);
-    }
-
-    @Override
-    public void unsetMessagesInterceptor() {
-        getMessageFlow().unsetOnMessagesInterceptor();
-    }
-
-    private MessageFlow getMessageFlow() {
-        if (messageFlow == null) {
-            messageFlow = new MessageFlow();
-        }
-
-        return this.messageFlow;
     }
 }

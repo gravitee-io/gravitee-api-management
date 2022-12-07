@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.handler.context;
+package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
@@ -40,7 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractExecutionContext<RQ extends Request, RS extends Response> implements ExecutionContext {
+public abstract class AbstractExecutionContext<RQ extends Request, RS extends Response> implements ExecutionContext {
 
     private final RQ request;
     private final RS response;
@@ -54,7 +54,7 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
     private EvaluableResponse evaluableResponse;
     private EvaluableExecutionContext evaluableExecutionContext;
 
-    AbstractExecutionContext(final RQ request, final RS response) {
+    public AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
         this.response = response;
     }

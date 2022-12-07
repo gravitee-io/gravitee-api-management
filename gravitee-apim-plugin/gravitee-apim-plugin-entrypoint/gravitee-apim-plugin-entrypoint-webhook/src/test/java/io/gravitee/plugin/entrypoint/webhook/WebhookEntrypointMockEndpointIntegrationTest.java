@@ -66,6 +66,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
+        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
 
@@ -77,7 +78,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(anyUrl()).build()).getCount() < 7)
             .test()
-            .awaitDone(1, SECONDS)
+            .awaitDone(60, SECONDS)
             .assertComplete();
 
         // verify requests received by wiremock
@@ -87,6 +88,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
+        wiremock.stubFor(post(WEBHOOK_URL_PATH).willReturn(ok()));
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
         configuration.setHeaders(List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value")));
@@ -99,7 +101,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(anyUrl()).build()).getCount() < 7)
             .test()
-            .awaitDone(1, SECONDS)
+            .awaitDone(60, SECONDS)
             .assertComplete();
 
         // verify requests received by wiremock

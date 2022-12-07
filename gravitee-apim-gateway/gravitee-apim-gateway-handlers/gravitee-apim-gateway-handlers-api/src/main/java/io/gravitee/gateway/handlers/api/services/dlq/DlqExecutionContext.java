@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.context;
+package io.gravitee.gateway.handlers.api.services.dlq;
 
-import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.core.context.AbstractExecutionContext;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MutableResponse extends Response, OnMessagesInterceptor {
-    /**
-     * Allows to replace the response headers.
-     *
-     * @param headers the new response headers.
-     */
-    MutableResponse setHeaders(final HttpHeaders headers);
+public class DlqExecutionContext extends AbstractExecutionContext<DlqRequest, DlqResponse> {
+
+    public DlqExecutionContext(Flowable<Message> messages) {
+        super(new DlqRequest(messages), new DlqResponse());
+    }
 }

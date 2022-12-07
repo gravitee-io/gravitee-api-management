@@ -16,8 +16,8 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.context.SubscriptionRequest;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.context.SubscriptionResponse;
 

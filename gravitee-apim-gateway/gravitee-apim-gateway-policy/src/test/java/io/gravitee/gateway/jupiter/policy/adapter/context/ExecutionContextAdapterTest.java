@@ -25,7 +25,7 @@ import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

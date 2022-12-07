@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.http.vertx;
+package io.gravitee.gateway.jupiter.core;
 
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.rxjava3.core.Flowable;

@@ -30,9 +30,10 @@ import lombok.RequiredArgsConstructor;
 @Schema(name = "ConnectorFeatureV4")
 public enum ConnectorFeature {
     LIMIT("limit"),
-    RESUME("resume");
+    RESUME("resume"),
+    DLQ("dlq");
 
-    private static final Map<String, ConnectorFeature> LABELS_MAP = Map.of(LIMIT.label, LIMIT, RESUME.label, RESUME);
+    private static final Map<String, ConnectorFeature> LABELS_MAP = Map.of(LIMIT.label, LIMIT, RESUME.label, RESUME, DLQ.label, DLQ);
 
     @JsonValue
     private final String label;

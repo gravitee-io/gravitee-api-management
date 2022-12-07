@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,7 +26,12 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.ConnectorFeature;
+import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -35,16 +42,12 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -78,6 +81,9 @@ public class ListenerValidationServiceImplTest {
     @Mock
     private EntrypointConnectorPluginService entrypointService;
 
+    @Mock
+    private EndpointConnectorPluginService endpointService;
+
     private ListenerValidationServiceImpl listenerValidationService;
 
     @Before
@@ -88,6 +94,7 @@ public class ListenerValidationServiceImplTest {
             new ListenerValidationServiceImpl(
                 new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
                 entrypointService,
+                endpointService,
                 corsValidationService,
                 loggingValidationService
             );
@@ -99,7 +106,8 @@ public class ListenerValidationServiceImplTest {
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             null,
-            emptyListeners
+            emptyListeners,
+            emptyList()
         );
         Assertions.assertThat(validatedListeners).isEmpty();
         Assertions.assertThat(validatedListeners).isEqualTo(emptyListeners);
@@ -113,7 +121,9 @@ public class ListenerValidationServiceImplTest {
         List<Listener> listeners = List.of(httpListener1, httpListener2);
         // When
         assertThatExceptionOfType(ListenersDuplicatedException.class)
-            .isThrownBy(() -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, listeners));
+            .isThrownBy(
+                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
+            );
     }
 
     @Test
@@ -130,7 +140,8 @@ public class ListenerValidationServiceImplTest {
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             null,
-            listeners
+            listeners,
+            emptyList()
         );
         // Then
         assertThat(validatedListeners).isNotNull();
@@ -161,7 +172,8 @@ public class ListenerValidationServiceImplTest {
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             null,
-            listeners
+            listeners,
+            emptyList()
         );
         // Then
         assertThat(validatedListeners).isNotNull();
@@ -182,7 +194,13 @@ public class ListenerValidationServiceImplTest {
         // When
         assertThatExceptionOfType(HttpListenerPathMissingException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
             );
     }
 
@@ -194,7 +212,13 @@ public class ListenerValidationServiceImplTest {
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
             );
     }
 
@@ -207,7 +231,13 @@ public class ListenerValidationServiceImplTest {
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
             );
     }
 
@@ -222,7 +252,13 @@ public class ListenerValidationServiceImplTest {
         // When
         assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
             );
     }
 
@@ -240,7 +276,8 @@ public class ListenerValidationServiceImplTest {
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             null,
-            listeners
+            listeners,
+            emptyList()
         );
         // Then
         assertThat(validatedListeners).isNotNull();
@@ -260,7 +297,8 @@ public class ListenerValidationServiceImplTest {
                     listenerValidationService.validateAndSanitize(
                         GraviteeContext.getExecutionContext(),
                         null,
-                        List.of(subscriptionListener)
+                        List.of(subscriptionListener),
+                        emptyList()
                     )
             );
     }
@@ -279,7 +317,8 @@ public class ListenerValidationServiceImplTest {
                     listenerValidationService.validateAndSanitize(
                         GraviteeContext.getExecutionContext(),
                         null,
-                        List.of(subscriptionListener)
+                        List.of(subscriptionListener),
+                        emptyList()
                     )
             );
     }
@@ -299,7 +338,8 @@ public class ListenerValidationServiceImplTest {
                     listenerValidationService.validateAndSanitize(
                         GraviteeContext.getExecutionContext(),
                         null,
-                        List.of(subscriptionListener)
+                        List.of(subscriptionListener),
+                        emptyList()
                     )
             );
     }
@@ -319,7 +359,215 @@ public class ListenerValidationServiceImplTest {
         // When
         assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)
             .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
             );
+    }
+
+    @Test
+    public void shouldThrowUnsupportedDlqExceptionWhenConnectorDoesNotSupportDlqFeature() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("target"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(emptySet());
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        assertThatExceptionOfType(ListenerEntrypointUnsupportedDlqException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowInvalidDlqExceptionWhenNullTargetEndpoint() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq(null));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowUnsupportedDlqExceptionWhenUnknownTargetEndpoint() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("unknown"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        emptyList()
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotSupportPublish() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("endpoint2"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        ConnectorPluginEntity endpointConnectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(endpointConnectorPluginEntity.getSupportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE));
+        when(endpointService.findById("endpoint-test")).thenReturn(endpointConnectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        List.of(endpointGroup)
+                    )
+            );
+    }
+
+    @Test
+    public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotHaveConnector() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("endpoint2"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+        when(endpointService.findById("endpoint-test")).thenReturn(null);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        List.of(endpointGroup)
+                    )
+            );
+    }
+
+    @Test
+    public void shouldValidateDlqConfigWhenTargetingEndpoint() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("endpoint2"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        ConnectorPluginEntity endpointConnectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(endpointConnectorPluginEntity.getSupportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH));
+        when(endpointService.findById("endpoint-test")).thenReturn(endpointConnectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            List.of(httpListener),
+            List.of(endpointGroup)
+        );
+    }
+
+    @Test
+    public void shouldValidateDlqConfigWhenTargetingEndpointGroup() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("type");
+        entrypoint.setDlq(new Dlq("endpoint-group"));
+        httpListener.setEntrypoints(List.of(entrypoint));
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
+        when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
+
+        ConnectorPluginEntity endpointConnectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(endpointConnectorPluginEntity.getSupportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH));
+        when(endpointService.findById("endpoint-test")).thenReturn(endpointConnectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        listenerValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            List.of(httpListener),
+            List.of(endpointGroup)
+        );
+    }
+
+    private io.gravitee.definition.model.v4.endpointgroup.EndpointGroup buildEndpointGroup() {
+        final io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup = new EndpointGroup();
+        final ArrayList<Endpoint> endpoints = new ArrayList<>();
+
+        endpointGroup.setName("endpoint-group");
+        endpointGroup.setType("endpoint-test");
+        endpointGroup.setEndpoints(endpoints);
+
+        endpoints.add(buildEndpoint("endpoint1"));
+        endpoints.add(buildEndpoint("endpoint2"));
+
+        return endpointGroup;
+    }
+
+    private Endpoint buildEndpoint(String name) {
+        final Endpoint endpoint = new Endpoint();
+        endpoint.setName(name);
+        endpoint.setType("endpoint-test");
+        return endpoint;
     }
 }

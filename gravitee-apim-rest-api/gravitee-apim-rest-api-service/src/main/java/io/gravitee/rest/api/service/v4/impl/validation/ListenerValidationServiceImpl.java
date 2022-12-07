@@ -16,23 +16,22 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.ConnectorFeature;
+import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
@@ -55,33 +54,41 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     private final PathValidationService pathValidationService;
     private final EntrypointConnectorPluginService entrypointService;
+    private final EndpointConnectorPluginService endpointService;
     private final CorsValidationService corsValidationService;
     private final LoggingValidationService loggingValidationService;
 
     public ListenerValidationServiceImpl(
         final PathValidationService pathValidationService,
         final EntrypointConnectorPluginService entrypointService,
+        EndpointConnectorPluginService endpointService,
         final CorsValidationService corsValidationService,
         final LoggingValidationService loggingValidationService
     ) {
         this.pathValidationService = pathValidationService;
         this.entrypointService = entrypointService;
+        this.endpointService = endpointService;
         this.corsValidationService = corsValidationService;
         this.loggingValidationService = loggingValidationService;
     }
 
     @Override
-    public List<Listener> validateAndSanitize(final ExecutionContext executionContext, final String apiId, final List<Listener> listeners) {
+    public List<Listener> validateAndSanitize(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final List<Listener> listeners,
+        final List<EndpointGroup> endpointGroups
+    ) {
         if (listeners != null && !listeners.isEmpty()) {
             checkDuplicatedListeners(listeners);
             listeners.forEach(
                 listener -> {
                     switch (listener.getType()) {
                         case HTTP:
-                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
+                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
                             break;
                         case SUBSCRIPTION:
-                            validateAndSanitizeSubscriptionListener((SubscriptionListener) listener);
+                            validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
                             break;
                         case TCP:
                         default:
@@ -108,24 +115,32 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private void validateAndSanitizeHttpListener(
         final ExecutionContext executionContext,
         final String apiId,
-        final HttpListener httpListener
+        final HttpListener httpListener,
+        final List<EndpointGroup> endpointGroups
     ) {
         httpListener.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, httpListener.getPaths()));
         validatePathMappings(httpListener.getPathMappings());
         // Validate and clean entrypoints
-        validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints());
+        validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints(), endpointGroups);
         // Validate and clean cors configuration
         httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
         // Validate and clean logging configuration
         httpListener.setLogging(loggingValidationService.validateAndSanitize(executionContext, httpListener.getLogging()));
     }
 
-    private void validateAndSanitizeSubscriptionListener(final SubscriptionListener subscriptionListener) {
+    private void validateAndSanitizeSubscriptionListener(
+        final SubscriptionListener subscriptionListener,
+        final List<EndpointGroup> endpointGroups
+    ) {
         // Validate and clean entrypoints
-        validateEntrypoints(subscriptionListener.getType(), subscriptionListener.getEntrypoints());
+        validateEntrypoints(subscriptionListener.getType(), subscriptionListener.getEntrypoints(), endpointGroups);
     }
 
-    private void validateEntrypoints(final ListenerType type, final List<Entrypoint> entrypoints) {
+    private void validateEntrypoints(
+        final ListenerType type,
+        final List<Entrypoint> entrypoints,
+        final List<EndpointGroup> endpointGroups
+    ) {
         if (entrypoints == null || entrypoints.isEmpty()) {
             throw new ListenerEntrypointMissingException(type);
         }
@@ -135,14 +150,16 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 if (entrypoint.getType() == null) {
                     throw new ListenerEntrypointMissingTypeException();
                 }
-                checkEntrypointQos(entrypoint);
+                final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
+
+                checkEntrypointQos(entrypoint, connectorPlugin);
+                checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
                 checkEntrypointConfiguration(entrypoint);
             }
         );
     }
 
-    private void checkEntrypointQos(final Entrypoint entrypoint) {
-        ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
+    private void checkEntrypointQos(final Entrypoint entrypoint, final ConnectorPluginEntity connectorPlugin) {
         if (connectorPlugin.getSupportedApiType() == ApiType.ASYNC) {
             if (entrypoint.getQos() == null) {
                 throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
@@ -154,6 +171,41 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 throw new ListenerEntrypointUnsupportedQosException(entrypoint.getType(), entrypoint.getQos().getLabel());
             }
         }
+    }
+
+    private void checkEntrypointDlq(
+        final Entrypoint entrypoint,
+        final List<EndpointGroup> endpointGroups,
+        final ConnectorPluginEntity connectorPlugin
+    ) {
+        final Dlq dlq = entrypoint.getDlq();
+        if (dlq != null) {
+            if (!connectorPlugin.getAvailableFeatures().contains(ConnectorFeature.DLQ)) {
+                throw new ListenerEntrypointUnsupportedDlqException(entrypoint.getType());
+            }
+
+            if (dlq.getEndpoint() == null || !checkEntrypointDlqEndpoint(endpointGroups, dlq)) {
+                throw new ListenerEntrypointInvalidDlqException(entrypoint.getType(), dlq.getEndpoint());
+            }
+        }
+    }
+
+    private boolean checkEntrypointDlqEndpoint(List<EndpointGroup> endpointGroups, Dlq dlq) {
+        return endpointGroups
+            .stream()
+            .anyMatch(
+                endpointGroup -> {
+                    final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+                    return (
+                        endpointConnectorPlugin != null &&
+                        endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
+                        (
+                            endpointGroup.getName().equals(dlq.getEndpoint()) ||
+                            endpointGroup.getEndpoints().stream().anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint()))
+                        )
+                    );
+                }
+            );
     }
 
     private void checkEntrypointConfiguration(final Entrypoint entrypoint) {

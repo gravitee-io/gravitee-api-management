@@ -16,6 +16,7 @@
 package io.gravitee.plugin.entrypoint.webhook;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 import static io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -24,17 +25,16 @@ import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -43,6 +43,7 @@ import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConn
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -67,6 +68,7 @@ class WebhookEntrypointConnectorTest {
 
     protected static final String SUBSCRIPTION_CONFIGURATION = "subscription configuration";
     protected static final String MOCK_ERROR = "Mock error";
+    public static final int AWAIT_SECONDS = 60;
     private final Vertx vertx = Vertx.vertx();
 
     @Mock
@@ -187,8 +189,6 @@ class WebhookEntrypointConnectorTest {
         doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
         doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
         doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
         cut.handleRequest(ctx).test().assertComplete();
@@ -197,7 +197,7 @@ class WebhookEntrypointConnectorTest {
         when(ctx.response()).thenReturn(response);
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.await(10, TimeUnit.SECONDS);
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
 
         verify(response).chunks(chunksCaptor.capture());
 
@@ -224,27 +224,23 @@ class WebhookEntrypointConnectorTest {
         cut.handleRequest(ctx).test().assertComplete();
 
         // Prepare response messages
-        final DefaultMessage message1 = DefaultMessage
-            .builder()
-            .content(Buffer.buffer("message1"))
-            .headers(HttpHeaders.create().set("my-header", "my-value"))
-            .build();
+        final DefaultMessage message1 = spy(
+            DefaultMessage.builder().content(Buffer.buffer("message1")).headers(HttpHeaders.create().set("my-header", "my-value")).build()
+        );
 
-        final DefaultMessage message2 = DefaultMessage
-            .builder()
-            .content(Buffer.buffer("message2"))
-            .headers(HttpHeaders.create().set("my-header", "my-value"))
-            .build();
+        final DefaultMessage message2 = spy(
+            DefaultMessage.builder().content(Buffer.buffer("message2")).headers(HttpHeaders.create().set("my-header", "my-value")).build()
+        );
 
-        final DefaultMessage messageNoHeader = DefaultMessage.builder().content(Buffer.buffer("message3")).build();
-        final DefaultMessage messageNoPayload = DefaultMessage.builder().build();
+        final DefaultMessage messageNoHeader = spy(DefaultMessage.builder().content(Buffer.buffer("message3")).build());
+        final DefaultMessage messageNoPayload = spy(DefaultMessage.builder().build());
         final Flowable<Message> messages = Flowable.just(message1, message2, messageNoHeader, messageNoPayload);
 
         when(response.messages()).thenReturn(messages);
         when(ctx.response()).thenReturn(response);
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.await(10, TimeUnit.SECONDS);
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
 
         verify(response).chunks(chunksCaptor.capture());
 
@@ -253,6 +249,10 @@ class WebhookEntrypointConnectorTest {
         chunksObs.await();
 
         wmRuntimeInfo.getWireMock().verifyThat(4, postRequestedFor(urlPathEqualTo("/callback")));
+        verify(message1).ack();
+        verify(message2).ack();
+        verify(messageNoHeader).ack();
+        verify(messageNoPayload).ack();
     }
 
     @Test
@@ -300,8 +300,7 @@ class WebhookEntrypointConnectorTest {
 
         cut.preStop();
 
-        // Note: this is subject to change when subscription lifecycle will be fully handled.
-        chunksObs.assertError(throwable -> STOPPING_MESSAGE.equals(throwable.getMessage()));
+        chunksObs.assertComplete();
         wmRuntimeInfo.getWireMock().verifyThat(lessThanOrExactly(2), postRequestedFor(urlPathEqualTo("/callback")));
     }
 
@@ -321,21 +320,22 @@ class WebhookEntrypointConnectorTest {
         cut.handleRequest(ctx).test().assertComplete();
 
         // Prepare response messages : 1 message with 2 headers : header1 and header2
-        final Flowable<Message> messages = Flowable.just(
+        final DefaultMessage message = spy(
             DefaultMessage
                 .builder()
                 .content(Buffer.buffer("message1"))
                 .headers(HttpHeaders.create().set("my-header1", "XXX").set("my-header2", "YYY"))
                 .build()
         );
-        when(response.messages()).thenReturn(messages);
+
+        when(response.messages()).thenReturn(Flowable.just(message));
 
         // Prepare response headers : header2 and header3
         when(response.headers()).thenReturn(HttpHeaders.create().set("my-header2", "AAA").set("my-header3", "ZZZ"));
         when(ctx.response()).thenReturn(response);
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
-        obs.await(10, TimeUnit.SECONDS);
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
 
         verify(response).chunks(chunksCaptor.capture());
 
@@ -352,15 +352,18 @@ class WebhookEntrypointConnectorTest {
                     .withHeader("my-header2", equalTo("AAA"))
                     .withHeader("my-header3", equalTo("ZZZ"))
             );
+        verify(message).ack();
     }
 
     @Test
     void shouldErrorWhenMessageFlaggedInErrorIsReceived() {
-        when(response.messages()).thenReturn(Flowable.just(new DefaultMessage(MOCK_ERROR).error(true)));
+        final DefaultMessage message = spy(new DefaultMessage(MOCK_ERROR).error(true));
+        when(response.messages()).thenReturn(Flowable.just(message));
         when(ctx.response()).thenReturn(response);
 
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
-        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT)).thenReturn(mock(HttpClient.class));
+        final HttpClient httpClient = mock(HttpClient.class);
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT)).thenReturn(httpClient);
+        when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
 
         final TestObserver<Void> obs = cut.handleResponse(ctx).test();
         obs.assertComplete();
@@ -369,6 +372,162 @@ class WebhookEntrypointConnectorTest {
 
         final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
 
-        chunksObs.assertError(throwable -> MOCK_ERROR.equals(throwable.getMessage()));
+        chunksObs.assertError(Throwable.class);
+        verify(ctx)
+            .interruptMessageWith(
+                argThat(
+                    executionFailure ->
+                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                        executionFailure.message().equals(MOCK_ERROR)
+                )
+            );
+        verify(message, never()).ack();
+        verify(httpClient).close();
+    }
+
+    @Test
+    void shouldErrorWithoutAckWhenCallbackReturns5xx(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
+        stubFor(post("/callback").willReturn(serverError()));
+
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
+        doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+        when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
+
+        // Prepare the client
+        cut.handleRequest(ctx).test().assertComplete();
+
+        // Prepare response messages
+        final DefaultMessage message = spy(
+            DefaultMessage.builder().content(Buffer.buffer("message1")).headers(HttpHeaders.create().set("my-header", "my-value")).build()
+        );
+
+        final Flowable<Message> messages = Flowable.just(message);
+
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.await();
+        chunksObs.assertError(Throwable.class);
+        wmRuntimeInfo.getWireMock().verifyThat(1, postRequestedFor(urlPathEqualTo("/callback")));
+
+        verify(ctx)
+            .interruptMessageWith(
+                argThat(
+                    executionFailure ->
+                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                        executionFailure.key().equals(WEBHOOK_UNREACHABLE_KEY) &&
+                        executionFailure.message().equals(WEBHOOK_UNREACHABLE_MESSAGE)
+                )
+            );
+
+        verify(message, never()).ack();
+    }
+
+    @Test
+    void shouldFlagMessageInErrorAndErrorWithoutAckWhenCallbackReturns4xx(WireMockRuntimeInfo wmRuntimeInfo) throws InterruptedException {
+        stubFor(post("/callback").willReturn(badRequest()));
+
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
+        doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+        when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
+
+        // Prepare the client
+        cut.handleRequest(ctx).test().assertComplete();
+
+        // Prepare response messages
+        final DefaultMessage message = spy(
+            DefaultMessage.builder().content(Buffer.buffer("message1")).headers(HttpHeaders.create().set("my-header", "my-value")).build()
+        );
+
+        final Flowable<Message> messages = Flowable.just(message);
+
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.await();
+        chunksObs.assertError(Throwable.class);
+        wmRuntimeInfo.getWireMock().verifyThat(1, postRequestedFor(urlPathEqualTo("/callback")));
+
+        verify(ctx)
+            .interruptMessageWith(
+                argThat(
+                    executionFailure ->
+                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                        executionFailure.key().equals(MESSAGE_PROCESSING_FAILED_KEY) &&
+                        executionFailure.message().equals(MESSAGE_PROCESSING_FAILED_MESSAGE)
+                )
+            );
+        verify(message).error(true);
+        verify(message, never()).ack();
+    }
+
+    @Test
+    void shouldErrorExistingExecutionFailureWithoutAckWhenCallbackReturns4xx(WireMockRuntimeInfo wmRuntimeInfo)
+        throws InterruptedException {
+        stubFor(post("/callback").willReturn(badRequest()));
+
+        when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:" + wmRuntimeInfo.getHttpPort() + "/callback");
+        doNothing().when(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, "/callback");
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
+        doNothing().when(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG), any());
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI)).thenReturn("/callback");
+        when(ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG)).thenReturn(subscriptionConfiguration);
+        doAnswer(i -> httpClientCaptor.getValue()).when(ctx).getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+        when(ctx.interruptMessageWith(any())).thenReturn(Maybe.error(new Exception(MOCK_ERROR)));
+
+        final ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(failure);
+
+        // Prepare the client
+        cut.handleRequest(ctx).test().assertComplete();
+
+        // Prepare response messages
+        final DefaultMessage message = spy(
+            DefaultMessage.builder().content(Buffer.buffer("message1")).headers(HttpHeaders.create().set("my-header", "my-value")).build()
+        );
+
+        final Flowable<Message> messages = Flowable.just(message);
+
+        when(response.messages()).thenReturn(messages);
+        when(ctx.response()).thenReturn(response);
+
+        final TestObserver<Void> obs = cut.handleResponse(ctx).test();
+        obs.await(AWAIT_SECONDS, TimeUnit.SECONDS);
+
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> chunksObs = chunksCaptor.getValue().test();
+
+        chunksObs.await();
+        chunksObs.assertError(Throwable.class);
+        wmRuntimeInfo.getWireMock().verifyThat(1, postRequestedFor(urlPathEqualTo("/callback")));
+
+        verify(ctx).interruptMessageWith(failure);
+        verify(message).error(true);
+        verify(message, never()).ack();
     }
 }

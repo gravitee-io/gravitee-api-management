@@ -152,7 +152,7 @@ class DefaultEndpointManagerTest {
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(api.getEndpointGroups().get(0).getEndpoints().get(0));
-        assertThat(next.getConnector()).isEqualTo(connector);
+        assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
         assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
         assertThat(next.getGroup()).isNotNull();
         assertThat(next.getGroup().getDefinition()).isEqualTo(api.getEndpointGroups().get(0));
@@ -174,7 +174,7 @@ class DefaultEndpointManagerTest {
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(expectedEndpoint);
-        assertThat(next.getConnector()).isEqualTo(connector);
+        assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
         assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
         assertThat(next.getGroup()).isNotNull();
         assertThat(next.getGroup().getDefinition()).isEqualTo(expectedEndpointGroup);
@@ -195,7 +195,7 @@ class DefaultEndpointManagerTest {
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
-        assertThat(next.getConnector()).isEqualTo(connector);
+        assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
         assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
         assertThat(next.getGroup()).isNotNull();
         assertThat(next.getGroup().getDefinition()).isEqualTo(expectedEndpointGroup);
@@ -335,7 +335,7 @@ class DefaultEndpointManagerTest {
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
-        assertThat(next.getConnector()).isEqualTo(connector);
+        assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
         assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
         assertThat(next.getGroup()).isNotNull();
         assertThat(next.getGroup().getDefinition()).isEqualTo(expectedEndpointGroup);
@@ -393,7 +393,7 @@ class DefaultEndpointManagerTest {
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
-        assertThat(next.getConnector()).isEqualTo(connector);
+        assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
         assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
         assertThat(next.getGroup()).isNotNull();
         assertThat(next.getGroup().getDefinition()).isEqualTo(expectedEndpointGroup);

@@ -43,6 +43,7 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyn
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
@@ -57,7 +58,6 @@ import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;

@@ -22,8 +22,6 @@ import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultDeploymentContext;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import java.util.List;
 import java.util.Set;

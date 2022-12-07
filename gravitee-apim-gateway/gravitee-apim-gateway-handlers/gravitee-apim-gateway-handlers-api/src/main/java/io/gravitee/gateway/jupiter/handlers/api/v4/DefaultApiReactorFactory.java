@@ -26,6 +26,9 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.handlers.api.services.dlq.DefaultDlqServiceFactory;
+import io.gravitee.gateway.jupiter.api.service.dlq.DlqServiceFactory;
+import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
@@ -38,7 +41,6 @@ import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
-import io.gravitee.gateway.jupiter.reactor.handler.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
@@ -197,6 +199,10 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     configuration,
                     v4FlowResolverFactory
                 );
+
+                final DefaultDlqServiceFactory dlqServiceFactory = new DefaultDlqServiceFactory(api.getDefinition(), endpointManager);
+                customComponentProvider.add(DlqServiceFactory.class, dlqServiceFactory);
+
                 return new DefaultApiReactor(
                     api,
                     deploymentContext,
