@@ -30,6 +30,8 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -102,6 +104,21 @@ class WebSocketEntrypointConnectorTest {
     @Test
     void shouldSupportPublishAndSubscribeModes() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
+    }
+
+    @Test
+    void shouldReturnQosRequirement() {
+        QosRequirement qosRequirement = cut.qosRequirement();
+        assertThat(qosRequirement.getQos()).isEqualTo(Qos.NONE);
+        assertThat(qosRequirement.getCapabilities()).isEmpty();
+    }
+
+    @Test
+    void shouldReturnQosRequirementWithCapabilities() {
+        WebSocketEntrypointConnector cut = new WebSocketEntrypointConnector(Qos.AUTO, configuration);
+        QosRequirement qosRequirement = cut.qosRequirement();
+        assertThat(qosRequirement.getQos()).isEqualTo(Qos.AUTO);
+        assertThat(qosRequirement.getCapabilities()).containsOnly(QosCapability.AUTO_ACK);
     }
 
     @Test
