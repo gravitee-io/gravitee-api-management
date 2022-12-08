@@ -25,18 +25,15 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.context.SubscriptionTemplateVariableProvider;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.UUID;
-import org.bouncycastle.asn1.x509.Holder;
 
 /**
  * This processor will add template variable provide for the resolved {@link Subscription} if any.
@@ -72,8 +69,8 @@ public class SubscriptionProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                String plan = ctx.getAttribute(ATTR_PLAN);
-                String application = ctx.getAttribute(ATTR_APPLICATION);
+                String planId = ctx.getAttribute(ATTR_PLAN);
+                String applicationId = ctx.getAttribute(ATTR_APPLICATION);
                 String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
                 String clientIdentifier = ctx.request().headers().get(clientIdentifierHeader);
 
@@ -87,13 +84,13 @@ public class SubscriptionProcessor implements Processor {
 
                 if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                     // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
-                    if (application == null) {
-                        application = APPLICATION_ANONYMOUS;
-                        ctx.setAttribute(ATTR_APPLICATION, application);
+                    if (applicationId == null) {
+                        applicationId = APPLICATION_ANONYMOUS;
+                        ctx.setAttribute(ATTR_APPLICATION, applicationId);
                     }
-                    if (plan == null) {
-                        plan = PLAN_ANONYMOUS;
-                        ctx.setAttribute(ATTR_PLAN, plan);
+                    if (planId == null) {
+                        planId = PLAN_ANONYMOUS;
+                        ctx.setAttribute(ATTR_PLAN, planId);
                     }
                     if (subscriptionId == null) {
                         subscriptionId = ctx.request().remoteAddress();
@@ -106,20 +103,23 @@ public class SubscriptionProcessor implements Processor {
                 ctx.request().headers().set(clientIdentifierHeader, clientIdentifier);
                 ctx.response().headers().set(clientIdentifierHeader, clientIdentifier);
 
-                final Metrics metrics = ctx.request().metrics();
+                final Metrics metrics = ctx.metrics();
                 // Stores information about the resolved plan (according to the incoming request)
-                metrics.setPlan(plan);
-                metrics.setApplication(ctx.getAttribute(ATTR_APPLICATION));
-                metrics.setSubscription(subscriptionId);
+                metrics.setPlanId(planId);
+                metrics.setApplicationId(ctx.getAttribute(ATTR_APPLICATION));
+                metrics.setSubscriptionId(subscriptionId);
                 metrics.setClientIdentifier(clientIdentifier);
+                if (metrics.getLog() != null) {
+                    metrics.getLog().setClientIdentifier(clientIdentifier);
+                }
 
                 Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
                 if (subscription == null) {
                     subscription = new Subscription();
                     subscription.setId(subscriptionId);
                     subscription.setApi(ctx.getAttribute(ATTR_API));
-                    subscription.setPlan(plan);
-                    subscription.setApplication(application);
+                    subscription.setPlan(planId);
+                    subscription.setApplication(applicationId);
                     subscription.setStatus(ACCEPTED.name());
                     ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
                 }

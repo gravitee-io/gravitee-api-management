@@ -18,27 +18,32 @@ package io.gravitee.gateway.jupiter.handlers.api.v4.processor;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPrefixProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogRequestProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.reporter.EntrypointRequestReporterMessageProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.reporter.EntrypointResponseReporterMessageProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.reporter.EventNativeReporterProcessor;
+import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -56,13 +61,15 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
+    private final ReporterService reporterService;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
-    public ApiProcessorChainFactory(final Configuration configuration, Node node) {
+    public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.clientIdentifierHeader =
             configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
         this.node = node;
+        this.reporterService = reporterService;
 
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         if (tracing) {
@@ -80,15 +87,11 @@ public class ApiProcessorChainFactory {
     public ProcessorChain beforeHandle(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
-        getHttpListener(api)
-            .ifPresent(
-                httpListener -> {
-                    final Logging logging = httpListener.getLogging();
-                    if (LoggingUtils.getLoggingContext(logging) != null) {
-                        processors.add(LogRequestProcessor.instance());
-                    }
-                }
-            );
+        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        Analytics analytics = apiDefinition.getAnalytics();
+        if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+            processors.add(LogRequestProcessor.instance());
+        }
 
         return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
     }
@@ -159,7 +162,30 @@ public class ApiProcessorChainFactory {
         return processors;
     }
 
-    public ProcessorChain onMessage(final Api api) {
+    public ProcessorChain afterEntrypointRequest(final Api api) {
+        List<Processor> processors = new ArrayList<>();
+
+        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        Analytics analytics = apiDefinition.getAnalytics();
+        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.EVENT_NATIVE) {
+            processors.add(new EntrypointRequestReporterMessageProcessor(reporterService));
+        }
+
+        return new ProcessorChain("processor-chain-after-entrypoint-request-message", processors);
+    }
+
+    public ProcessorChain beforeEntrypointResponse(final Api api) {
+        List<Processor> processors = new ArrayList<>();
+        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        Analytics analytics = apiDefinition.getAnalytics();
+        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.EVENT_NATIVE) {
+            processors.add(new EntrypointResponseReporterMessageProcessor(reporterService));
+        }
+
+        return new ProcessorChain("processor-chain-before-entrypoint-response-message", processors);
+    }
+
+    public ProcessorChain afterApiExecutionMessage(final Api api) {
         List<Processor> processors = new ArrayList<>();
 
         if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
@@ -168,7 +194,7 @@ public class ApiProcessorChainFactory {
             processors.add(SimpleFailureMessageProcessor.instance());
         }
 
-        return new ProcessorChain("processor-chain-api-message", processors);
+        return new ProcessorChain("processor-chain-after-api-execution-message", processors);
     }
 
     /**
@@ -201,15 +227,16 @@ public class ApiProcessorChainFactory {
     public ProcessorChain afterHandle(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
-        getHttpListener(api)
-            .ifPresent(
-                httpListener -> {
-                    final Logging logging = httpListener.getLogging();
-                    if (LoggingUtils.getLoggingContext(logging) != null) {
-                        processors.add(LogResponseProcessor.instance());
-                    }
-                }
-            );
+        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        Analytics analytics = apiDefinition.getAnalytics();
+        if (analytics != null) {
+            if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+                processors.add(LogResponseProcessor.instance());
+            }
+            if (apiDefinition.getType() == ApiType.EVENT_NATIVE && analytics.isEnabled()) {
+                processors.add(new EventNativeReporterProcessor(reporterService));
+            }
+        }
 
         return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
     }

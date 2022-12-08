@@ -191,7 +191,7 @@ class EndpointInvokerTest {
     @Test
     void shouldConnectToEndpointConnectorWhenEntrypointAndEndpointQosAreCompatible() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
@@ -210,7 +210,7 @@ class EndpointInvokerTest {
     @Test
     void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfMissingRequirements() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
         EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
@@ -234,7 +234,7 @@ class EndpointInvokerTest {
     @Test
     void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatible() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
@@ -261,7 +261,7 @@ class EndpointInvokerTest {
     @Test
     void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfMissingCapabilities() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
         when(endpointAsyncConnector.supportedQosCapabilities()).thenReturn(Set.of());
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
@@ -290,7 +290,7 @@ class EndpointInvokerTest {
     @Test
     void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfEndpointQosNull() {
         EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(endpointAsyncConnector.supportedQos()).thenReturn(null);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);

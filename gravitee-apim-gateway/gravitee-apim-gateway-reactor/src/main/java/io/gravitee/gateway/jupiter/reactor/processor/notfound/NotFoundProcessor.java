@@ -56,7 +56,7 @@ public class NotFoundProcessor implements Processor {
                     .headers()
                     .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
                 ctx.response().body(Buffer.buffer(message));
-                return ctx.response().end();
+                return ctx.response().end(ctx);
             }
         );
     }

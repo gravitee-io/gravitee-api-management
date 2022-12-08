@@ -47,9 +47,9 @@ public class FlowResolverFactory {
     }
 
     private ConditionFilter<Flow> getConditionFilter(final Api api) {
-        if (ApiType.SYNC == api.getDefinition().getType()) {
+        if (ApiType.REQUEST_RESPONSE == api.getDefinition().getType()) {
             return syncApiFlowFilter;
-        } else if (ApiType.ASYNC == api.getDefinition().getType()) {
+        } else if (ApiType.EVENT_NATIVE == api.getDefinition().getType()) {
             return asyncApiFlowFilter;
         }
         throw new IllegalArgumentException("Api type unsupported");

@@ -15,13 +15,16 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor.reporter;
 
+import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,15 +51,41 @@ public class ReporterProcessor implements Processor {
         return Completable
             .fromRunnable(
                 () -> {
-                    Metrics metrics = ctx.request().metrics();
-                    reporterService.report(metrics);
-                    if (metrics.getLog() != null) {
-                        metrics.getLog().setApi(metrics.getApi());
-                        reporterService.report(metrics.getLog());
+                    Metrics metrics = ctx.metrics();
+                    if (metrics != null && metrics.isEnabled()) {
+                        Api api = getApiV4(ctx);
+                        if (api != null) {
+                            metrics.setRequestEnded(true);
+                            reporterService.report(metrics);
+                            Log log = metrics.getLog();
+                            if (log != null) {
+                                log.setApiId(metrics.getApiId());
+                                log.setRequestEnded(true);
+                                reporterService.report(log);
+                            }
+                        } else {
+                            // As api is null, this means we are executing a v2 api with jupiter engine; metrics are always enabled
+                            io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
+                            reporterService.report(metricsV2);
+                            if (metricsV2.getLog() != null) {
+                                metricsV2.getLog().setApi(metricsV2.getApi());
+                                reporterService.report(metricsV2.getLog());
+                            }
+                        }
                     }
                 }
             )
             .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
+    }
+
+    private Api getApiV4(final MutableExecutionContext ctx) {
+        // Temporary work around to check if current api is V4 or V2
+        try {
+            return ctx.getComponent(Api.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            // api V4 not found, we are running an api V2.
+            return null;
+        }
     }
 }

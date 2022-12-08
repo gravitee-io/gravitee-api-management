@@ -26,9 +26,6 @@ import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
@@ -60,7 +57,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getSchema(FAKE_ENTRYPOINT)).thenReturn("schemaResponse");
@@ -77,7 +74,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 
@@ -106,7 +103,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getDocumentation(FAKE_ENTRYPOINT)).thenReturn("documentationResponse");
@@ -123,7 +120,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 
@@ -152,7 +149,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT)).thenReturn("subscriptionSchemaResponse");
@@ -169,7 +166,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 

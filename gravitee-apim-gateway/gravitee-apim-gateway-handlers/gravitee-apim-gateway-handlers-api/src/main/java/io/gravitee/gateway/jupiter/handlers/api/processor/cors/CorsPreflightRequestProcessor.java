@@ -20,7 +20,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.api.context.GenericResponse;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
@@ -58,7 +58,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                 // Test if we are in the context of a preflight request
                 if (isPreflightRequest(ctx.request())) {
                     Cors cors = getCors(ctx);
-                    handlePreflightRequest(cors, ctx.request(), ctx.response());
+                    handlePreflightRequest(cors, ctx);
                     // If we don't want to run policies, exit request processing
                     if (!cors.isRunPolicies()) {
                         return ctx.interrupt();
@@ -82,13 +82,15 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     /**
      * See <a href="https://www.w3.org/TR/cors/#resource-preflight-requests">Preflight request</a>
      * @param cors Cors settings
-     * @param request Incoming Request
-     * @param response Client response
+     * @param ctx current context
      */
-    private void handlePreflightRequest(final Cors cors, final GenericRequest request, final GenericResponse response) {
+    private void handlePreflightRequest(final Cors cors, final GenericExecutionContext ctx) {
+        final GenericRequest request = ctx.request();
+        final GenericResponse response = ctx.response();
+
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown
-        request.metrics().setApplication("1");
+        ctx.metrics().setApplicationId("1");
 
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         //  this specification.
@@ -97,7 +99,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         String originHeader = request.headers().get(HttpHeaderNames.ORIGIN);
         if (!isOriginAllowed(cors, originHeader)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage(String.format("Origin '%s' is not allowed", originHeader));
+            ctx.metrics().setErrorMessage(String.format("Origin '%s' is not allowed", originHeader));
             return;
         }
 
@@ -107,7 +109,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         String accessControlRequestMethod = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD);
         if (!isRequestMethodsValid(cors, accessControlRequestMethod)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
+            ctx.metrics().setErrorMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
             return;
         }
 
@@ -115,7 +117,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         String accessControlRequestHeaders = request.headers().get(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS);
         if (!isRequestHeadersValid(cors, accessControlRequestHeaders)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
+            ctx.metrics().setErrorMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
             return;
         }
 
@@ -144,7 +146,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                 );
         } else {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage("CORS configuration invalid,  Access-Control-Allow-Methods cannot be null or empty.");
+            ctx.metrics().setErrorMessage("CORS configuration invalid,  Access-Control-Allow-Methods cannot be null or empty.");
             return;
         }
 

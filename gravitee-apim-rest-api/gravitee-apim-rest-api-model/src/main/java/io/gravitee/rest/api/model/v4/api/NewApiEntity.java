@@ -17,12 +17,14 @@ package io.gravitee.rest.api.model.v4.api;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
@@ -79,6 +81,9 @@ public class NewApiEntity {
     @Valid
     @Schema(description = "A list of endpoint describing the endpoints to contact.")
     private List<EndpointGroup> endpointGroups;
+
+    @Schema(description = "Analytics configuration")
+    private Analytics analytics;
 
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;

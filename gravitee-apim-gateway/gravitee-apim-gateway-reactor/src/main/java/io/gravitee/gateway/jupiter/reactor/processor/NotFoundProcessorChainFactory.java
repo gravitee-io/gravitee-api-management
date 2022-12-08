@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
@@ -36,6 +38,7 @@ public class NotFoundProcessorChainFactory {
     private final Environment environment;
     private final ReporterService reporterService;
     private final boolean logEnabled;
+    private final GatewayConfiguration gatewayConfiguration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
 
@@ -43,11 +46,13 @@ public class NotFoundProcessorChainFactory {
         final Environment environment,
         final ReporterService reporterService,
         boolean logEnabled,
-        boolean tracing
+        boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         this.environment = environment;
         this.reporterService = reporterService;
         this.logEnabled = logEnabled;
+        this.gatewayConfiguration = gatewayConfiguration;
         if (tracing) {
             processorHooks.add(new TracingHook("processor"));
         }
@@ -63,6 +68,7 @@ public class NotFoundProcessorChainFactory {
     protected void initProcessorChain() {
         List<Processor> processorList = new ArrayList<>();
 
+        processorList.add(new MetricsProcessor(gatewayConfiguration));
         processorList.add(new NotFoundProcessor(environment));
         processorList.add(new ResponseTimeProcessor());
         processorList.add(new NotFoundReporterProcessor(reporterService, logEnabled));

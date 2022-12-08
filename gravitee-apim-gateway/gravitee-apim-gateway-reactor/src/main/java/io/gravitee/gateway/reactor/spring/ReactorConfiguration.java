@@ -122,7 +122,8 @@ public class ReactorConfiguration {
         AlertEventProducer eventProducer,
         Node node,
         @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing
+        @Value("${services.tracing.enabled:false}") boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -131,7 +132,8 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            tracing
+            tracing,
+            gatewayConfiguration
         );
     }
 
@@ -142,7 +144,8 @@ public class ReactorConfiguration {
         AlertEventProducer eventProducer,
         Node node,
         @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing
+        @Value("${services.tracing.enabled:false}") boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new SubscriptionPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -150,7 +153,8 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            tracing
+            tracing,
+            gatewayConfiguration
         );
     }
 
@@ -260,9 +264,10 @@ public class ReactorConfiguration {
         Environment environment,
         ReporterService reporterService,
         @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        GatewayConfiguration gatewayConfiguration
     ) {
-        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled, tracingEnabled);
+        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled, tracingEnabled, gatewayConfiguration);
     }
 
     @Bean

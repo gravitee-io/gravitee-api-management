@@ -82,7 +82,7 @@ class DefaultDlqServiceFactoryTest {
                         criteria.getName().equals(endpointTarget) &&
                         criteria.getEndpointStatus() == ManagedEndpoint.Status.UP &&
                         criteria.getModes().equals(Set.of(PUBLISH)) &&
-                        criteria.getApiType() == ApiType.ASYNC
+                        criteria.getApiType() == ApiType.EVENT_NATIVE
                 )
             );
     }

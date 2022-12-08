@@ -20,9 +20,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
@@ -61,6 +62,9 @@ class VertxHttpServerResponseTest {
     private VertxHttpServerRequest request;
 
     @Mock
+    private GenericExecutionContext ctx;
+
+    @Mock
     private HttpServerRequest httpServerRequest;
 
     @Mock
@@ -82,7 +86,7 @@ class VertxHttpServerResponseTest {
         when(httpServerResponse.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerResponse.trailers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.response()).thenReturn(httpServerResponse);
-        lenient().when(request.metrics()).thenReturn(metrics);
+        lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
 
         ReflectionTestUtils.setField(request, "nativeRequest", httpServerRequest);
@@ -94,7 +98,7 @@ class VertxHttpServerResponseTest {
     @Test
     void shouldSubscribeOnceWhenIgnoringAndReplacingExistingChunks() {
         cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -110,7 +114,7 @@ class VertxHttpServerResponseTest {
             .chunks()
             .ignoreElements()
             .andThen(Completable.fromRunnable(() -> cut.body(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Completable.defer(() -> cut.end()))
+            .andThen(Completable.defer(() -> cut.end(ctx)))
             .test()
             .assertComplete();
 
@@ -126,7 +130,7 @@ class VertxHttpServerResponseTest {
     void shouldNotSubscribeOnExistingChunksWhenJustReplacingExistingBody() {
         // Note: never do that unless you really know what you are doing.
         cut.body(Buffer.buffer(NEW_CHUNK));
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -141,7 +145,7 @@ class VertxHttpServerResponseTest {
     void shouldNotSubscribeOnExistingChunksWhenJustReplacingExistingChunks() {
         // Note: never do that unless you really know what you are doing.
         cut.chunks(Flowable.just(Buffer.buffer(NEW_CHUNK)));
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -164,7 +168,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -186,7 +190,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -208,7 +212,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -230,7 +234,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -341,7 +345,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -359,7 +363,7 @@ class VertxHttpServerResponseTest {
             .test()
             .assertComplete();
 
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
 
         verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
@@ -373,7 +377,7 @@ class VertxHttpServerResponseTest {
     void shouldNotSubscribeAndCompleteWhenRequestIsWebSocket() {
         when(request.isWebSocketUpgraded()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.end().test();
+        final TestObserver<Void> obs = cut.end(ctx).test();
 
         obs.assertComplete();
         verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));

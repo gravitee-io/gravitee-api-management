@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -71,7 +70,7 @@ public class EndpointPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-        when(mockFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(mockFactory.supportedApi()).thenReturn(ApiType.EVENT_NATIVE);
         when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.jupiter.api.ConnectorMode.REQUEST_RESPONSE));
     }
 

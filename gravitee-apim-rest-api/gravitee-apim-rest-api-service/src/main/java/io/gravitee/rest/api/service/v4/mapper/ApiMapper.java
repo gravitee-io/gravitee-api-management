@@ -107,6 +107,7 @@ public class ApiMapper {
             try {
                 var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
                 apiEntity.setDefinitionVersion(apiDefinition.getDefinitionVersion());
+                apiEntity.setAnalytics(apiDefinition.getAnalytics());
                 apiEntity.setListeners(apiDefinition.getListeners());
                 apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
                 apiEntity.setServices(apiDefinition.getServices());
@@ -224,6 +225,7 @@ public class ApiMapper {
             apiDefinition.setTags(newApiEntity.getTags());
             apiDefinition.setListeners(newApiEntity.getListeners());
             apiDefinition.setEndpointGroups(newApiEntity.getEndpointGroups());
+            apiDefinition.setAnalytics(newApiEntity.getAnalytics());
             apiDefinition.setFlowMode(newApiEntity.getFlowMode());
             apiDefinition.setFlows(newApiEntity.getFlows());
 
@@ -282,6 +284,7 @@ public class ApiMapper {
             apiDefinition.setTags(updateApiEntity.getTags());
             apiDefinition.setListeners(updateApiEntity.getListeners());
             apiDefinition.setEndpointGroups(updateApiEntity.getEndpointGroups());
+            apiDefinition.setAnalytics(updateApiEntity.getAnalytics());
             apiDefinition.setProperties(
                 updateApiEntity
                     .getProperties()

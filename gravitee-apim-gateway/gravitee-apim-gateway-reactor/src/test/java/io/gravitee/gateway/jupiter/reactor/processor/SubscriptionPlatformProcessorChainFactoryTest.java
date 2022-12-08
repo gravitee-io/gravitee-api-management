@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -54,6 +54,9 @@ class SubscriptionPlatformProcessorChainFactoryTest {
     @Mock
     private Node node;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     public void setup() {
         when(transactionHandlerFactory.create()).thenReturn(mock(TransactionProcessor.class));
@@ -68,11 +71,13 @@ class SubscriptionPlatformProcessorChainFactoryTest {
             eventProducer,
             node,
             "8080",
-            false
+            false,
+            gatewayConfiguration
         );
         List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-        assertEquals(1, processors.size());
-        assertTrue(processors.get(0) instanceof TransactionProcessor);
+        assertEquals(2, processors.size());
+        assertTrue(processors.get(0) instanceof MetricsProcessor);
+        assertTrue(processors.get(1) instanceof TransactionProcessor);
     }
 }

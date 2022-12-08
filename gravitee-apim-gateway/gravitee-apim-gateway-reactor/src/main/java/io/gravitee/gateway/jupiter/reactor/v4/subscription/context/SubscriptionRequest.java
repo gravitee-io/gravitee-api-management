@@ -51,7 +51,6 @@ public class SubscriptionRequest extends AbstractRequest implements MutableReque
         this.clientIdentifier = subscription.getId();
         this.timestamp = System.currentTimeMillis();
         this.headers = HttpHeaders.create();
-        this.metrics = Metrics.on(timestamp).build();
         this.parameters = new LinkedMultiValueMap<>(Collections.emptyMap());
         this.pathParameters = new LinkedMultiValueMap<>(Collections.emptyMap());
         this.uri = "";

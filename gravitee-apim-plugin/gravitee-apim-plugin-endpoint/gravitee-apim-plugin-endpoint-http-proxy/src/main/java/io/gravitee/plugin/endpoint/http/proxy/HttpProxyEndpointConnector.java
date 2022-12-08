@@ -111,7 +111,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
             final HttpClient client = getOrBuildHttpClient(ctx);
             final RequestOptions options = buildRequestOptions(ctx);
 
-            request.metrics().setEndpoint(options.getURI());
+            ctx.metrics().setEndpoint(options.getURI());
 
             return client
                 .rxRequest(options)

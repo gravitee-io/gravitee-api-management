@@ -46,7 +46,7 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -184,12 +184,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
-        // Set gateway tenants and zones in request metrics.
-        prepareMetrics(request.metrics());
-
         MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
         ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
+
         return ctx;
     }
 
@@ -227,7 +225,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         simpleExecutionContext.setAttribute(ATTR_ENTRYPOINT, handlerEntrypoint);
 
         // Set gateway tenants and zones in request metrics.
-        prepareMetrics(request.metrics());
+        prepareV3Metrics(request.metrics());
+
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(
             emitter -> {
@@ -269,7 +268,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      *
      * @param metrics the {@link Metrics} object to add information on.
      */
-    private void prepareMetrics(Metrics metrics) {
+    private void prepareV3Metrics(io.gravitee.reporter.api.http.Metrics metrics) {
         // Set gateway tenant
         gatewayConfiguration.tenant().ifPresent(metrics::setTenant);
 

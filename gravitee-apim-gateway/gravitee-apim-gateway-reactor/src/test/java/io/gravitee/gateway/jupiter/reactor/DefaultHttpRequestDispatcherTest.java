@@ -187,23 +187,6 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    void shouldSetMetricsWhenHandlingJupiterRequest() {
-        final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
-        final ArgumentCaptor<MutableExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableExecutionContext.class);
-
-        this.prepareJupiterMock(handlerEntrypoint, apiReactor);
-
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
-        when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
-        when(apiReactor.handle(ctxCaptor.capture())).thenReturn(Completable.complete());
-        cut.dispatch(rxRequest).test().assertResult();
-
-        final MutableExecutionContext ctxCaptorValue = ctxCaptor.getValue();
-        assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
-        assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
-    }
-
-    @Test
     void shouldPropagateErrorWhenErrorWithJupiterRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
 
@@ -364,24 +347,6 @@ class DefaultHttpRequestDispatcherTest {
 
         verify(notFoundProcessorChainFactory).processorChain();
         verify(processorChain).execute(any(), any());
-    }
-
-    @Test
-    void shouldSetMetricsWhenHandlingNotFoundRequest() {
-        ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
-        when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
-
-        final ArgumentCaptor<MutableExecutionContext> ctxCaptor = ArgumentCaptor.forClass(MutableExecutionContext.class);
-
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
-        when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
-        when(processorChain.execute(ctxCaptor.capture(), any())).thenCallRealMethod();
-        cut.dispatch(rxRequest).test().assertResult();
-
-        final MutableExecutionContext ctxCaptorValue = ctxCaptor.getValue();
-        assertThat(ctxCaptorValue.request().metrics().getTenant()).isEqualTo("TENANT");
-        assertThat(ctxCaptorValue.request().metrics().getZone()).isEqualTo("ZONE");
     }
 
     private void prepareJupiterMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {

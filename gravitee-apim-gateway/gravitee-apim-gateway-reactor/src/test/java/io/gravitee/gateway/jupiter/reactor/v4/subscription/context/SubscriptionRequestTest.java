@@ -54,7 +54,6 @@ public class SubscriptionRequestTest {
         Assertions.assertEquals("localhost", request.remoteAddress());
         Assertions.assertEquals("localhost", request.localAddress());
         Assertions.assertNull(request.sslSession());
-        Assertions.assertNotNull(request.metrics());
         Assertions.assertTrue(request.ended());
         Assertions.assertEquals(Maybe.empty(), request.body());
         Assertions.assertEquals(Flowable.empty(), request.messages());

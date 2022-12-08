@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.converters;
 
-import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -70,7 +69,7 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
      * Add a default endpoint group to the api
      */
     private void addDefaultEndpointGroupIfNeeded(Api api) {
-        if (ApiType.SYNC.equals(api.getType())) {
+        if (ApiType.REQUEST_RESPONSE.equals(api.getType())) {
             // TODO: implement this when sync api endpoints will be implemented
         }
     }

@@ -73,7 +73,6 @@ public abstract class Listener implements Serializable {
     @NotNull
     private ListenerType type;
 
-    @JsonProperty("entrypoints")
     @NotEmpty
     private List<Entrypoint> entrypoints;
 

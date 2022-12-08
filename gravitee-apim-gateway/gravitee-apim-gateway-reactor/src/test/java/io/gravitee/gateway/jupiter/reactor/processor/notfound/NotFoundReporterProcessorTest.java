@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor.notfound;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,8 +25,9 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,46 +40,31 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class NotFoundReporterProcessorTest {
-
-    @Mock
-    private MutableRequest request;
-
-    @Mock
-    private MutableResponse response;
+class NotFoundReporterProcessorTest extends AbstractProcessorTest {
 
     @Mock
     private ReporterService reporterService;
 
     private NotFoundReporterProcessor notFoundProcessor;
-    private DefaultExecutionContext ctx;
-    private Metrics metrics;
-
-    @BeforeEach
-    public void beforeEach() {
-        metrics = Metrics.on(System.currentTimeMillis()).build();
-        when(request.metrics()).thenReturn(metrics);
-        ctx = new DefaultExecutionContext(request, response);
-    }
 
     @Test
     public void shouldLogAndReportWhenLogEnabled() {
-        when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer()));
+        when(mockRequest.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer()));
         notFoundProcessor = new NotFoundReporterProcessor(reporterService, true);
         notFoundProcessor.execute(ctx).test().assertResult();
-        assertEquals("1", metrics.getApi());
-        assertEquals("1", metrics.getApplication());
-        assertNotNull(metrics.getLog());
-        verify(reporterService).report(metrics);
+        assertEquals("1", ctx.metrics().getApiId());
+        assertEquals("1", ctx.metrics().getApplicationId());
+        assertNotNull(ctx.metrics().getLog());
+        verify(reporterService).report(ctx.metrics());
     }
 
     @Test
     public void shouldOnlyReportWhenLogDisabled() {
         notFoundProcessor = new NotFoundReporterProcessor(reporterService, false);
         notFoundProcessor.execute(ctx).test().assertResult();
-        assertEquals("1", metrics.getApi());
-        assertEquals("1", metrics.getApplication());
-        assertNull(metrics.getLog());
-        verify(reporterService).report(metrics);
+        assertEquals("1", ctx.metrics().getApiId());
+        assertEquals("1", ctx.metrics().getApplicationId());
+        assertNull(ctx.metrics().getLog());
+        verify(reporterService).report(ctx.metrics());
     }
 }

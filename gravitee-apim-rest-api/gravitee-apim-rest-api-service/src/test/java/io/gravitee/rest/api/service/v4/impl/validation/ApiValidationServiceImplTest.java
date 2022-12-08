@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
@@ -45,7 +46,6 @@ import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,6 +77,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ResourcesValidationService resourcesValidationService;
 
+    @Mock
+    private AnalyticsValidationService loggingValidationService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -88,7 +91,8 @@ public class ApiValidationServiceImplTest {
                 listenerValidationService,
                 endpointGroupsValidationService,
                 flowValidationService,
-                resourcesValidationService
+                resourcesValidationService,
+                loggingValidationService
             );
     }
 
@@ -96,7 +100,7 @@ public class ApiValidationServiceImplTest {
     public void shouldCallOtherServicesWhenValidatingNewApiEntity() {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         NewApiEntity newApiEntity = new NewApiEntity();
-        newApiEntity.setType(ApiType.SYNC);
+        newApiEntity.setType(ApiType.REQUEST_RESPONSE);
         apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
@@ -157,7 +161,7 @@ public class ApiValidationServiceImplTest {
         updateApiEntity.setType(null);
         ApiEntity existingApiEntity = new ApiEntity();
         existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.ASYNC);
+        existingApiEntity.setType(ApiType.EVENT_NATIVE);
 
         apiValidationService.validateAndSanitizeUpdateApi(
             GraviteeContext.getExecutionContext(),
@@ -171,10 +175,10 @@ public class ApiValidationServiceImplTest {
     public void shouldThrowExceptionBecauseMustNotChangeApiType() {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.SYNC);
+        updateApiEntity.setType(ApiType.REQUEST_RESPONSE);
         ApiEntity existingApiEntity = new ApiEntity();
         existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.ASYNC);
+        existingApiEntity.setType(ApiType.EVENT_NATIVE);
 
         apiValidationService.validateAndSanitizeUpdateApi(
             GraviteeContext.getExecutionContext(),
@@ -188,11 +192,11 @@ public class ApiValidationServiceImplTest {
     public void shouldReUseExistingLifecycleIfNotProvided() {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.EVENT_NATIVE);
         updateApiEntity.setLifecycleState(null);
         ApiEntity existingApiEntity = new ApiEntity();
         existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.ASYNC);
+        existingApiEntity.setType(ApiType.EVENT_NATIVE);
         existingApiEntity.setLifecycleState(CREATED);
 
         apiValidationService.validateAndSanitizeUpdateApi(
@@ -233,12 +237,12 @@ public class ApiValidationServiceImplTest {
     public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.EVENT_NATIVE);
         updateApiEntity.setLifecycleState(PUBLISHED);
 
         ApiEntity existingApiEntity = new ApiEntity();
         existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.ASYNC);
+        existingApiEntity.setType(ApiType.EVENT_NATIVE);
         existingApiEntity.setLifecycleState(CREATED);
         existingApiEntity.setWorkflowState(IN_REVIEW);
 
@@ -257,11 +261,11 @@ public class ApiValidationServiceImplTest {
     ) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.EVENT_NATIVE);
         updateApiEntity.setLifecycleState(lifecycleState);
         ApiEntity existingApiEntity = new ApiEntity();
         existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.ASYNC);
+        existingApiEntity.setType(ApiType.EVENT_NATIVE);
         existingApiEntity.setLifecycleState(fromLifecycleState);
 
         boolean failed = false;

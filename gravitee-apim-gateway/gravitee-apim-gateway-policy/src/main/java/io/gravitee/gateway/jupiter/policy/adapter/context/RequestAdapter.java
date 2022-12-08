@@ -37,15 +37,18 @@ import javax.net.ssl.SSLSession;
 public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     private final HttpRequest request;
-
+    private MetricsAdapter metrics;
     private Runnable onResumeHandler;
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
     private WebSocketAdapter adaptedWebSocket;
     private final AtomicBoolean hasBeenResumed;
 
-    public RequestAdapter(HttpRequest request) {
+    public RequestAdapter(HttpRequest request, final io.gravitee.reporter.api.v4.metric.Metrics metrics) {
         this.request = request;
+        if (metrics != null) {
+            this.metrics = new MetricsAdapter(metrics);
+        }
         this.hasBeenResumed = new AtomicBoolean(false);
     }
 
@@ -156,7 +159,7 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public Metrics metrics() {
-        return request.metrics();
+        return metrics;
     }
 
     @Override

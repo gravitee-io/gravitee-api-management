@@ -24,8 +24,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;
@@ -59,7 +57,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
 
@@ -71,7 +69,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.get("id"));
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ApiType.EVENT_NATIVE.getLabel(), pluginEntity.get("supportedApiType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
@@ -83,7 +81,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.EVENT_NATIVE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
         when(endpointConnectorPluginService.getSchema(connectorPlugin.getId())).thenReturn("schema");
@@ -97,7 +95,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.get("id"));
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ApiType.EVENT_NATIVE.getLabel(), pluginEntity.get("supportedApiType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));

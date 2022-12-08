@@ -103,7 +103,7 @@ class HttpGetEntrypointConnectorTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.EVENT_NATIVE);
     }
 
     @Test

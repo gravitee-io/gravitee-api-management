@@ -47,7 +47,7 @@ import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
@@ -149,11 +149,11 @@ class HttpProxyEndpointConnectorTest {
 
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.metrics()).thenReturn(metrics);
 
         requestHeaders = HttpHeaders.create();
         lenient().when(request.pathInfo()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
-        lenient().when(request.metrics()).thenReturn(metrics);
         lenient().when(request.chunks()).thenReturn(Flowable.empty());
 
         responseHeaders = HttpHeaders.create();
@@ -177,7 +177,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void shouldSupportSyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.SYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.REQUEST_RESPONSE);
     }
 
     @Test

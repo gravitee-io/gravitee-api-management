@@ -16,6 +16,8 @@
 package io.gravitee.gateway.jupiter.handlers.api;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
@@ -28,8 +30,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
-import io.gravitee.gateway.core.logging.LoggingContext;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
@@ -46,12 +46,14 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.jupiter.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.hook.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
+import io.gravitee.gateway.jupiter.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
@@ -60,7 +62,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
@@ -102,9 +104,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final Node node;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final boolean tracingEnabled;
+    private final String loggingExcludedResponseType;
+    private final String loggingMaxSize;
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
     private final long pendingRequestsTimeout;
-    protected LoggingContext loggingContext;
+    protected AnalyticsContext analyticsContext;
     protected SecurityChain securityChain;
 
     public SyncApiReactor(
@@ -144,6 +148,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.tracingEnabled = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
+        this.loggingExcludedResponseType =
+            configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
+        this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
@@ -171,20 +178,20 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
-        ctx.setInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT, loggingContext);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {
         final GenericRequest request = ctx.request();
-        final Metrics metrics = request.metrics();
+        final Metrics metrics = ctx.metrics();
 
-        metrics.setApi(api.getId());
+        metrics.setApiId(api.getId());
         metrics.setPath(request.pathInfo());
     }
 
     private void setApiResponseTimeMetric(HttpExecutionContext ctx) {
-        if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+        if (ctx.metrics().getEndpointResponseTimeMs() > Integer.MAX_VALUE) {
+            ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
         }
     }
 
@@ -268,7 +275,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                     return Completable.complete();
                 }
             )
-            .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
+            .doOnSubscribe(disposable -> ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis()))
             .doOnDispose(() -> setApiResponseTimeMetric(ctx))
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
     }
@@ -295,7 +302,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable endResponse(MutableExecutionContext ctx) {
-        return ctx.response().end();
+        return ctx.response().end(ctx);
     }
 
     private Completable timeout(final Completable upstream, MutableExecutionContext ctx) {
@@ -388,8 +395,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             securityChain.addHooks(new TracingHook("security-plan"));
         }
 
-        this.loggingContext = LoggingUtils.getLoggingContext(api.getDefinition());
-        if (loggingContext != null) {
+        this.analyticsContext = AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType);
+        if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
         }
 

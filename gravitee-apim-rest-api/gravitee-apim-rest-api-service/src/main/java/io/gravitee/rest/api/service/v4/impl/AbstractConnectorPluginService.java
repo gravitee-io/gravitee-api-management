@@ -20,9 +20,7 @@ import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -75,7 +73,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         if (connectorFactory.supportedApi() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
-        if (connectorFactory.supportedApi() == io.gravitee.gateway.jupiter.api.ApiType.ASYNC) {
+        if (connectorFactory.supportedApi() == io.gravitee.gateway.jupiter.api.ApiType.EVENT_NATIVE) {
             Set<io.gravitee.gateway.jupiter.api.qos.Qos> supportedQos = null;
             if (connectorFactory instanceof EntrypointAsyncConnectorFactory) {
                 supportedQos = ((EntrypointAsyncConnectorFactory) connectorFactory).supportedQos();

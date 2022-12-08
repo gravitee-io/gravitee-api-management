@@ -3,7 +3,7 @@
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
-  "type": "async",
+  "type": "event-native",
   "description": "API v4 using HTTP-GET entrypoint",
   "listeners": [
     {
@@ -32,7 +32,7 @@
       "type": "mock",
       "endpoints": [
         {
-          "name": "default",
+          "name": "default-endpoint",
           "type": "mock",
           "weight": 1,
           "inheritConfiguration": false,
@@ -44,5 +44,8 @@
       ]
     }
   ],
-  "flows": []
+  "flows": [],
+  "analytics": {
+    "enabled" : true
+  }
 }

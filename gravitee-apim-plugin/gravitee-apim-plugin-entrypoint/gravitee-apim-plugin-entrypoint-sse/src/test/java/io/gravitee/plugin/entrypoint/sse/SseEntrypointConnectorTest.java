@@ -26,7 +26,6 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
@@ -75,7 +74,7 @@ class SseEntrypointConnectorTest {
         lenient().when(request.headers()).thenReturn(HttpHeaders.create());
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
-        lenient().when(response.end()).thenReturn(Completable.complete());
+        lenient().when(response.end(ctx)).thenReturn(Completable.complete());
         cut = new SseEntrypointConnector(Qos.NONE, null);
     }
 
@@ -86,7 +85,7 @@ class SseEntrypointConnectorTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.EVENT_NATIVE);
     }
 
     @Test

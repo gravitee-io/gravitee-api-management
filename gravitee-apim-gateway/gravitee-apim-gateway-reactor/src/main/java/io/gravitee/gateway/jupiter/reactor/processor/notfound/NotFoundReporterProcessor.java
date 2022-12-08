@@ -20,8 +20,8 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Request;
-import io.gravitee.reporter.api.http.Metrics;
-import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +49,9 @@ public class NotFoundReporterProcessor implements Processor {
         return Completable
             .defer(
                 () -> {
-                    Metrics metrics = ctx.request().metrics();
-                    metrics.setApi(UNKNOWN_SERVICE);
-                    metrics.setApplication(UNKNOWN_SERVICE);
+                    Metrics metrics = ctx.metrics();
+                    metrics.setApiId(UNKNOWN_SERVICE);
+                    metrics.setApplicationId(UNKNOWN_SERVICE);
                     metrics.setPath(ctx.request().pathInfo());
 
                     if (logEnabled) {
@@ -61,15 +61,21 @@ public class NotFoundReporterProcessor implements Processor {
                             .bodyOrEmpty()
                             .doOnSuccess(
                                 buffer -> {
-                                    Log log = new Log(System.currentTimeMillis());
-                                    log.setRequestId(ctx.request().id());
-                                    log.setClientRequest(new Request());
-                                    log.getClientRequest().setMethod(ctx.request().method());
-                                    log.getClientRequest().setUri(ctx.request().uri());
-                                    log.getClientRequest().setHeaders(ctx.request().headers());
-                                    log.getClientRequest().setBody(payload.toString());
+                                    Request entrypointRequest = new Request();
+                                    entrypointRequest.setMethod(ctx.request().method());
+                                    entrypointRequest.setUri(ctx.request().uri());
+                                    entrypointRequest.setHeaders(ctx.request().headers());
+                                    entrypointRequest.setBody(payload.toString());
 
-                                    metrics.setLog(log);
+                                    metrics.setLog(
+                                        Log
+                                            .builder()
+                                            .timestamp(System.currentTimeMillis())
+                                            .apiId(UNKNOWN_SERVICE)
+                                            .requestId(ctx.request().id())
+                                            .entrypointRequest(entrypointRequest)
+                                            .build()
+                                    );
 
                                     reporterService.report(metrics);
                                 }

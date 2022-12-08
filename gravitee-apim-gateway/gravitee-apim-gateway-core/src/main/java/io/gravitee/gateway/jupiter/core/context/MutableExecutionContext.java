@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.Collection;
 
 public interface MutableExecutionContext extends ExecutionContext {
@@ -32,6 +33,8 @@ public interface MutableExecutionContext extends ExecutionContext {
     MutableExecutionContext request(Request request);
 
     MutableExecutionContext response(Response response);
+
+    MutableExecutionContext metrics(Metrics metrics);
 
     MutableExecutionContext componentProvider(final ComponentProvider componentProvider);
 

@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.core.context;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.GenericResponse;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.Message;
@@ -79,7 +80,7 @@ public abstract class AbstractResponse implements MutableResponse {
     }
 
     @Override
-    public Completable end() {
+    public Completable end(final GenericExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 final BufferFlow bufferFlow = lazyBufferFlow();

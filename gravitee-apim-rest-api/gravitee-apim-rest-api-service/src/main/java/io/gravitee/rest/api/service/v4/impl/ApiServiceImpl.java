@@ -26,11 +26,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
@@ -106,7 +102,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -413,27 +408,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
 
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                Optional<Listener> firstUpdateHttpListener = updateApiEntity
-                    .getListeners()
-                    .stream()
-                    .filter(listener -> ListenerType.HTTP == listener.getType())
-                    .findFirst();
-                Optional<Listener> firstExistingHttpListener = existingApiEntity
-                    .getListeners()
-                    .stream()
-                    .filter(listener -> ListenerType.HTTP == listener.getType())
-                    .findFirst();
-                if (firstUpdateHttpListener.isPresent() && firstExistingHttpListener.isPresent()) {
-                    HttpListener updateHttpListener = (HttpListener) firstUpdateHttpListener.get();
-                    HttpListener existingHttpListener = (HttpListener) firstExistingHttpListener.get();
-                    // Audit API logging if option is enabled
-                    auditApiLogging(
-                        executionContext,
-                        updateApiEntity.getId(),
-                        existingHttpListener.getLogging(),
-                        updateHttpListener.getLogging()
-                    );
+                Logging existingApiLogging = null;
+                if (existingApiEntity.getAnalytics() != null) {
+                    existingApiLogging = existingApiEntity.getAnalytics().getLogging();
                 }
+                Logging updateApiLogging = null;
+                if (updateApiEntity.getAnalytics() != null) {
+                    updateApiLogging = updateApiEntity.getAnalytics().getLogging();
+                }
+                // Audit API logging if option is enabled
+                auditApiLogging(executionContext, updateApiEntity.getId(), existingApiLogging, updateApiLogging);
             }
 
             ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, null, true);
@@ -541,16 +525,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void auditApiLogging(ExecutionContext executionContext, String apiId, Logging loggingToUpdate, Logging loggingUpdated) {
+    private void auditApiLogging(ExecutionContext executionContext, String apiId, Logging existingLogging, Logging updatedLogging) {
         try {
             // no changes for logging configuration, continue
             if (
-                loggingToUpdate == loggingUpdated ||
+                existingLogging == updatedLogging ||
                 (
-                    loggingToUpdate != null &&
-                    loggingUpdated != null &&
-                    Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode()) &&
-                    Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition())
+                    existingLogging != null &&
+                    updatedLogging != null &&
+                    Objects.equals(existingLogging.getMode(), updatedLogging.getMode()) &&
+                    Objects.equals(existingLogging.getContent(), updatedLogging.getContent()) &&
+                    Objects.equals(existingLogging.getPhase(), updatedLogging.getPhase()) &&
+                    Objects.equals(existingLogging.getCondition(), updatedLogging.getCondition())
                 )
             ) {
                 return;
@@ -559,13 +545,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // determine the audit event type
             Api.AuditEvent auditEvent;
             if (
-                (loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (loggingUpdated != null && !loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (existingLogging == null || !existingLogging.getMode().isEnabled()) &&
+                (updatedLogging != null && updatedLogging.getMode().isEnabled())
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
             } else if (
-                (loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (loggingUpdated == null || loggingUpdated.getMode().equals(LoggingMode.NONE))
+                (existingLogging != null && existingLogging.getMode().isEnabled()) &&
+                (updatedLogging == null || !updatedLogging.getMode().isEnabled())
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
             } else {
@@ -579,8 +565,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 Collections.emptyMap(),
                 auditEvent,
                 new Date(),
-                loggingToUpdate,
-                loggingUpdated
+                existingLogging,
+                updatedLogging
             );
         } catch (Exception ex) {
             String errorMsg = String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);

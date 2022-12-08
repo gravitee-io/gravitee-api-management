@@ -17,11 +17,15 @@ package io.gravitee.gateway.jupiter.reactor.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
@@ -57,13 +61,16 @@ class DefaultPlatformProcessorChainFactoryTest {
     @Mock
     private Node node;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     public void setup() {
         lenient().when(transactionHandlerFactory.create()).thenReturn(mock(TransactionProcessor.class));
     }
 
     @Test
-    @DisplayName("Should have 3 pre processors when trace context is enabled")
+    @DisplayName("Should have 4 pre processors when trace context is enabled")
     public void shouldHave3PreProcessorsWhenTraceContextEnabled() {
         DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -72,18 +79,20 @@ class DefaultPlatformProcessorChainFactoryTest {
             eventProducer,
             node,
             "8080",
-            false
+            false,
+            gatewayConfiguration
         );
         List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-        assertEquals(3, processors.size());
-        assertTrue(processors.get(0) instanceof XForwardForProcessor);
-        assertTrue(processors.get(1) instanceof TraceContextProcessor);
-        assertTrue(processors.get(2) instanceof TransactionProcessor);
+        assertEquals(4, processors.size());
+        assertTrue(processors.get(0) instanceof MetricsProcessor);
+        assertTrue(processors.get(1) instanceof XForwardForProcessor);
+        assertTrue(processors.get(2) instanceof TraceContextProcessor);
+        assertTrue(processors.get(3) instanceof TransactionProcessor);
     }
 
     @Test
-    @DisplayName("Should have 2 pre processors when trace context is not enabled")
+    @DisplayName("Should have 3 pre processors when trace context is not enabled")
     public void shouldHave2PreProcessorsWhenTraceContextNotEnabled() {
         DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -92,13 +101,15 @@ class DefaultPlatformProcessorChainFactoryTest {
             eventProducer,
             node,
             "8080",
-            false
+            false,
+            gatewayConfiguration
         );
         List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-        assertEquals(2, processors.size());
-        assertTrue(processors.get(0) instanceof XForwardForProcessor);
-        assertTrue(processors.get(1) instanceof TransactionProcessor);
+        assertEquals(3, processors.size());
+        assertTrue(processors.get(0) instanceof MetricsProcessor);
+        assertTrue(processors.get(1) instanceof XForwardForProcessor);
+        assertTrue(processors.get(2) instanceof TransactionProcessor);
     }
 
     @Test
@@ -111,7 +122,8 @@ class DefaultPlatformProcessorChainFactoryTest {
             eventProducer,
             node,
             "8080",
-            false
+            false,
+            gatewayConfiguration
         );
         when(eventProducer.isEmpty()).thenReturn(true);
 
@@ -132,7 +144,8 @@ class DefaultPlatformProcessorChainFactoryTest {
             eventProducer,
             node,
             "8080",
-            false
+            false,
+            gatewayConfiguration
         );
         when(eventProducer.isEmpty()).thenReturn(false);
 

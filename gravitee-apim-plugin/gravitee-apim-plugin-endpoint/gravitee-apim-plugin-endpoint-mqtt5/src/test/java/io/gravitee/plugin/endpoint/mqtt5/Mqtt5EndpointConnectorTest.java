@@ -43,7 +43,6 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
@@ -131,7 +130,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(mqtt5EndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(mqtt5EndpointConnector.supportedApi()).isEqualTo(ApiType.EVENT_NATIVE);
     }
 
     @Test

@@ -45,8 +45,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
-import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -76,7 +76,7 @@ public class ListenerValidationServiceImplTest {
     private CorsValidationService corsValidationService;
 
     @Mock
-    private LoggingValidationService loggingValidationService;
+    private AnalyticsValidationService loggingValidationService;
 
     @Mock
     private EntrypointConnectorPluginService entrypointService;
@@ -165,7 +165,7 @@ public class ListenerValidationServiceImplTest {
         httpListener.setEntrypoints(List.of(entrypoint));
         List<Listener> listeners = List.of(httpListener);
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.EVENT_NATIVE);
         when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AUTO));
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
@@ -354,7 +354,7 @@ public class ListenerValidationServiceImplTest {
         entrypoint.setQos(Qos.AT_LEAST_ONCE);
         httpListener.setEntrypoints(List.of(entrypoint));
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.EVENT_NATIVE);
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
         assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)

@@ -180,10 +180,10 @@ public class ApiSearchServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.ASYNC);
+        api.setType(ApiType.EVENT_NATIVE);
         api.setDefinition(
             "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"async\", " +
+            "\"type\": \"event-native\", " +
             "\"listeners\" : " +
             "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
             "}] }"
@@ -200,7 +200,7 @@ public class ApiSearchServiceImplTest {
         assertThat(apiEntity).isNotNull();
         assertThat(apiEntity.getId()).isEqualTo(API_ID);
         assertThat(apiEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.EVENT_NATIVE);
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
         assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
@@ -215,10 +215,10 @@ public class ApiSearchServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.ASYNC);
+        api.setType(ApiType.EVENT_NATIVE);
         api.setDefinition(
             "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"async\", " +
+            "\"type\": \"event-native\", " +
             "\"listeners\" : " +
             "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
             "}] }"
@@ -243,7 +243,7 @@ public class ApiSearchServiceImplTest {
         assertThat(apiEntity).isNotNull();
         assertThat(apiEntity.getId()).isEqualTo(API_ID);
         assertThat(apiEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.ASYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.EVENT_NATIVE);
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
         assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);

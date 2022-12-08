@@ -21,7 +21,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,28 +33,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class ResponseTimeProcessorTest {
-
-    @Mock
-    private MutableRequest request;
-
-    @Mock
-    private MutableResponse response;
-
-    private DefaultExecutionContext ctx;
+class ResponseTimeProcessorTest extends AbstractProcessorTest {
 
     @Test
-    public void shouldAddResponseTimeToMetric() {
-        // Prepare metrics
-        Metrics metrics = Metrics.on(System.currentTimeMillis()).build();
-        metrics.setApiResponseTimeMs(100);
-        when(request.metrics()).thenReturn(metrics);
-
-        ctx = new DefaultExecutionContext(request, response);
-
+    void shouldAddResponseTimeToMetric() {
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
+        ctx.metrics().setEndpointResponseTimeMs(100);
         responseTimeProcessor.execute(ctx).test().assertResult();
-        assertThat(metrics.getProxyResponseTimeMs()).isLessThanOrEqualTo(System.currentTimeMillis() - metrics.getApiResponseTimeMs());
-        assertThat(metrics.getProxyLatencyMs()).isEqualTo(metrics.getProxyResponseTimeMs() - metrics.getApiResponseTimeMs());
+        assertThat(ctx.metrics().getGatewayResponseTimeMs())
+            .isLessThanOrEqualTo(System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
+        assertThat(ctx.metrics().getGatewayLatencyMs())
+            .isEqualTo(ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs());
     }
 }

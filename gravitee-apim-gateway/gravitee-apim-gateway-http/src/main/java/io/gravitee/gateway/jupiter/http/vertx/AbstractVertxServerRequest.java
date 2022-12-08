@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import static io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT;
-
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
@@ -25,8 +23,6 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
-import io.gravitee.reporter.api.http.Metrics;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
@@ -45,14 +41,6 @@ abstract class AbstractVertxServerRequest extends AbstractRequest {
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
-        this.metrics = Metrics.on(timestamp).build();
-        this.metrics.setRequestId(id());
-        this.metrics.setHttpMethod(method());
-        this.metrics.setLocalAddress(localAddress());
-        this.metrics.setRemoteAddress(remoteAddress());
-        this.metrics.setHost(nativeRequest.host());
-        this.metrics.setUri(uri());
-        this.metrics.setUserAgent(headers.get(USER_AGENT));
     }
 
     public HttpServerRequest getNativeRequest() {

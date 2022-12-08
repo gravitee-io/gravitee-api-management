@@ -37,7 +37,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import java.io.InputStream;
 import java.util.Collections;
 import org.junit.Test;
@@ -110,7 +110,7 @@ public class ApiService_CreateWithDefinitionTest {
     private NotificationTemplateService notificationTemplateService;
 
     @Mock
-    private LoggingValidationService loggingValidationService;
+    private AnalyticsValidationService loggingValidationService;
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;

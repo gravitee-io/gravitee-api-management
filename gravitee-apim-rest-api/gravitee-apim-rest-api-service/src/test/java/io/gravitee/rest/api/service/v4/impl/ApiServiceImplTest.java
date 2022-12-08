@@ -43,9 +43,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -364,7 +365,7 @@ public class ApiServiceImplTest {
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.SYNC);
+        newApiEntity.setType(ApiType.REQUEST_RESPONSE);
         newApiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));
@@ -376,7 +377,7 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getId()).isNotNull();
         assertThat(apiEntity.getName()).isEqualTo(API_NAME);
         assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.REQUEST_RESPONSE);
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
@@ -431,7 +432,7 @@ public class ApiServiceImplTest {
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.SYNC);
+        newApiEntity.setType(ApiType.REQUEST_RESPONSE);
         newApiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));
@@ -446,7 +447,7 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getId()).isNotNull();
         assertThat(apiEntity.getName()).isEqualTo(API_NAME);
         assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.REQUEST_RESPONSE);
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
@@ -874,15 +875,19 @@ public class ApiServiceImplTest {
 
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(singletonList(new Path("/old")));
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT_PROXY);
-        logging.setCondition("condition");
-        httpListener.setLogging(logging);
         apiDefinition.setListeners(singletonList(httpListener));
+        Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
+        logging.setCondition("condition");
+        analytics.setLogging(logging);
+        apiDefinition.setAnalytics(analytics);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
-        httpListener.setLogging(null);
-        updateApiEntity.setListeners(singletonList(httpListener));
+        Analytics updatedAnalytics = new Analytics();
+        updatedAnalytics.setEnabled(true);
+        updateApiEntity.setAnalytics(updatedAnalytics);
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -920,11 +925,13 @@ public class ApiServiceImplTest {
         apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
+        Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
         logging.setCondition("condition");
-        httpListener.setLogging(logging);
-        updateApiEntity.setListeners(singletonList(httpListener));
+        analytics.setLogging(logging);
+        updateApiEntity.setAnalytics(analytics);
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -959,15 +966,18 @@ public class ApiServiceImplTest {
 
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(singletonList(new Path("/old")));
+
+        Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setMode(LoggingMode.builder().endpoint(true).entrypoint(true).build());
         logging.setCondition("condition");
-        httpListener.setLogging(logging);
-        apiDefinition.setListeners(singletonList(httpListener));
+        analytics.setLogging(logging);
+        apiDefinition.setAnalytics(analytics);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         logging.setCondition("condition2");
-        updateApiEntity.setListeners(singletonList(httpListener));
+        updateApiEntity.setAnalytics(analytics);
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
@@ -1050,7 +1060,7 @@ public class ApiServiceImplTest {
         updateApiEntity.setApiVersion("v1");
         updateApiEntity.setDescription("Ma description");
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.EVENT_NATIVE);
 
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName(endpointGroupName);

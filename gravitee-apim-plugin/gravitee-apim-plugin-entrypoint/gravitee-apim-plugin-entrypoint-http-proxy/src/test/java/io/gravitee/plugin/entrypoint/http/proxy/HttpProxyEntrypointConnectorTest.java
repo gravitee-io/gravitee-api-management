@@ -17,7 +17,6 @@ package io.gravitee.plugin.entrypoint.http.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
@@ -52,7 +51,7 @@ class HttpProxyEntrypointConnectorTest {
 
     @Test
     void shouldSupportSyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.SYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.REQUEST_RESPONSE);
     }
 
     @Test

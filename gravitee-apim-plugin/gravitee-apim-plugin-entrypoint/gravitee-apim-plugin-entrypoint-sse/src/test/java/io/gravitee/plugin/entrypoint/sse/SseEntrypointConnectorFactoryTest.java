@@ -50,7 +50,7 @@ class SseEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(sseEntrypointConnectorFactory.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(sseEntrypointConnectorFactory.supportedApi()).isEqualTo(ApiType.EVENT_NATIVE);
     }
 
     @Test
