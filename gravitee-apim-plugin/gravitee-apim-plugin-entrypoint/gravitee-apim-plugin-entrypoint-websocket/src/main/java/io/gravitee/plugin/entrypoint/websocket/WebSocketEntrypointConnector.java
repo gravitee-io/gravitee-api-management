@@ -63,6 +63,7 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
         if (qos == Qos.AUTO) {
             qosRequirementBuilder.capabilities(Set.of(QosCapability.AUTO_ACK)).build();
         }
+        qosRequirement = qosRequirementBuilder.build();
     }
 
     @Override
