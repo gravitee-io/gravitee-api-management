@@ -230,6 +230,7 @@ import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -3681,44 +3682,49 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
-        ApiCriteria criteria = new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+        List<ApiCriteria> criteriaList = new ArrayList<>();
+        // Find all Public and published APIs
+        criteriaList.add(new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build());
 
-        Set<Api> apis = apiRepository.search(criteria, filter);
+        // if user is not anonymous
+        if (userId != null) {
+            // Find all Published APIs for which the user is a member
+            List<String> userMembershipApiIds = getUserMembershipApiIds(userId);
+            if (!userMembershipApiIds.isEmpty()) {
+                criteriaList.add(
+                    new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userMembershipApiIds).build()
+                );
+            }
 
-        apis.addAll(findUserApis(userId, filter));
-
-        Set<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toSet());
-
-        HashMap<String, Long> groups = new HashMap<>();
-
-        for (String category : categories) {
-            groups.put(category, categoryService.getTotalApisByCategoryId(apis, category));
+            // Find all Published APIs for which the user is a member of a group
+            List<String> userGroupIdsWithApiRole = getUserGroupIdsWithApiRole(userId);
+            if (!userGroupIdsWithApiRole.isEmpty()) {
+                criteriaList.add(
+                    new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(userGroupIdsWithApiRole).build()
+                );
+            }
         }
 
-        return groups;
+        Page<String> foundApiIds = apiRepository.searchIds(criteriaList, new PageableBuilder().pageSize(Integer.MAX_VALUE).build(), null);
+
+        if (foundApiIds.getContent() == null || foundApiIds.getContent().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(),
+            new ApiFieldExclusionFilter.Builder().excludePicture().excludeDefinition().build()
+        );
+
+        return apis
+            .stream()
+            .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
+            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
+            .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
     }
 
-    private Set<Api> findUserApis(String userId, ApiFieldInclusionFilter filter) {
-        if (userId == null) {
-            return Set.of();
-        }
-
-        HashSet<Api> apis = new HashSet<>();
-
-        final String[] userApiIds = membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-            .stream()
-            .map(MembershipEntity::getReferenceId)
-            .toArray(String[]::new);
-
-        if (userApiIds.length > 0) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userApiIds).build();
-            Set<Api> userApis = apiRepository.search(criteria, filter);
-            apis.addAll(userApis);
-        }
-
-        final String[] groupIds = membershipService
+    private List<String> getUserGroupIdsWithApiRole(String userId) {
+        return membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
             .stream()
             .filter(
@@ -3728,14 +3734,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             )
             .map(MembershipEntity::getReferenceId)
-            .toArray(String[]::new);
+            .collect(toList());
+    }
 
-        if (groupIds.length > 0 && groupIds[0] != null) {
-            ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(groupIds).build();
-            Set<Api> groupApis = apiRepository.search(criteria, filter);
-            apis.addAll(groupApis);
-        }
-
-        return apis;
+    private List<String> getUserMembershipApiIds(String userId) {
+        return membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(toList());
     }
 }
