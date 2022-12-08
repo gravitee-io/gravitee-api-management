@@ -23,10 +23,14 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -125,21 +129,16 @@ public class ApiService_CountTest {
         api3.setId("api-3");
         api3.setCategories(Set.of(category1.getId(), category2.getId(), category3.getId()));
 
-        HashSet<Api> apiMocks = new HashSet<>(List.of(api1, api2, api3));
+        final Api api4 = new Api();
+        api4.setId("api-4");
 
-        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class))).thenReturn(apiMocks);
-
-        when(categoryService.getTotalApisByCategoryId(any(), anyString())).thenCallRealMethod();
+        when(apiRepository.searchIds(anyList(), isA(Pageable.class), eq(null)))
+            .thenReturn(new Page<>(Arrays.asList(api1.getId(), api2.getId(), api3.getId(), api4.getId()), 0, 4, 4));
+        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class))).thenReturn(List.of(api1, api2, api3, api4));
 
         Map<String, Long> expectedCounts = Map.of(category1.getId(), 3L, category2.getId(), 2L, category3.getId(), 1L);
         Map<String, Long> counts = apiService.countPublishedByUserGroupedByCategories(USER_ID);
 
         assertEquals(expectedCounts, counts);
-
-        // check getTotalApisByCategoryId has been called only once per category id
-        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category1.getId()));
-        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category2.getId()));
-        verify(categoryService, times(1)).getTotalApisByCategoryId(any(), eq(category3.getId()));
-        verifyNoMoreInteractions(categoryService);
     }
 }
