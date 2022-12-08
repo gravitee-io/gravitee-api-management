@@ -66,18 +66,18 @@ public abstract class AbstractFailureProcessor implements Processor {
 
         // If no application has been associated to the request (for example in case security chain can not be processed
         // correctly) set the default application to track it.
-        if (ctx.request().metrics().getApplication() == null) {
-            ctx.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+        if (ctx.metrics().getApplicationId() == null) {
+            ctx.metrics().setApplicationId(APPLICATION_NAME_ANONYMOUS);
         }
 
         return processFailure(ctx, executionFailure);
     }
 
-    protected Completable processFailure(final HttpExecutionContext context, final ExecutionFailure executionFailure) {
-        final GenericRequest request = context.request();
-        final GenericResponse response = context.response();
+    protected Completable processFailure(final HttpExecutionContext ctx, final ExecutionFailure executionFailure) {
+        final GenericRequest request = ctx.request();
+        final GenericResponse response = ctx.response();
 
-        request.metrics().setErrorKey(executionFailure.key());
+        ctx.metrics().setErrorKey(executionFailure.key());
         response.status(executionFailure.statusCode());
         response.reason(HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
         // In case of client error we don't want to force close the connection
@@ -93,7 +93,7 @@ public abstract class AbstractFailureProcessor implements Processor {
 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            context.response().body(payload);
+            ctx.response().body(payload);
         }
         return Completable.complete();
     }

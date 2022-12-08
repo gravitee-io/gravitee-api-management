@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.debug.reactor.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
@@ -42,10 +43,11 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
         final Node node,
         final String port,
         final boolean tracing,
+        final GatewayConfiguration gatewayConfiguration,
         final EventRepository eventRepository,
         final ObjectMapper objectMapper
     ) {
-        super(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, port, tracing);
+        super(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, port, tracing, gatewayConfiguration);
         this.eventRepository = eventRepository;
         this.objectMapper = objectMapper;
     }

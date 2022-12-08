@@ -73,7 +73,6 @@ class VertxHttpServerRequestTest {
             )
             .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
-        when(httpServerRequest.method()).thenReturn(HttpMethod.POST);
         when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
         cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
@@ -376,7 +375,7 @@ class VertxHttpServerRequestTest {
 
         verify(httpServerRequest).getHeader(HttpHeaders.CONNECTION);
         verify(httpServerRequest).getHeader(HttpHeaders.UPGRADE);
-        verify(httpServerRequest, times(2)).method(); // Also called in the constructor.
+        verify(httpServerRequest).method();
         verify(httpServerRequest).version();
     }
 

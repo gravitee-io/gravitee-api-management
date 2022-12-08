@@ -24,8 +24,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;

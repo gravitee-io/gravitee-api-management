@@ -15,20 +15,24 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor.notfound;
 
+import static io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundProcessor.UNKNOWN_SERVICE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
-import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.StandardEnvironment;
 
@@ -37,31 +41,29 @@ import org.springframework.core.env.StandardEnvironment;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class NotFoundProcessorTest {
-
-    @Mock
-    private MutableRequest request;
-
-    @Mock
-    private MutableResponse response;
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class NotFoundProcessorTest extends AbstractProcessorTest {
 
     private NotFoundProcessor notFoundProcessor;
-    private DefaultExecutionContext ctx;
 
     @BeforeEach
     public void beforeEach() {
-        when(response.headers()).thenReturn(HttpHeaders.create());
-        when(response.end()).thenReturn(Completable.complete());
+        when(mockResponse.headers()).thenReturn(HttpHeaders.create());
+        when(mockResponse.end(ctx)).thenReturn(Completable.complete());
         notFoundProcessor = new NotFoundProcessor(new StandardEnvironment());
-        ctx = new DefaultExecutionContext(request, response);
     }
 
     @Test
-    public void shouldEndResponseWith404() {
+    void should_end_response_with_404() {
         notFoundProcessor.execute(ctx).test().assertResult();
-        verify(response).status(HttpStatusCode.NOT_FOUND_404);
-        verify(response, times(2)).headers();
-        verify(response).body(any(Buffer.class));
-        verify(response).end();
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+        verify(mockResponse, times(2)).headers();
+        verify(mockResponse).body(any(Buffer.class));
+        verify(mockResponse).end(ctx);
+
+        Metrics metrics = ctx.metrics();
+        assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
     }
 }

@@ -45,8 +45,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
-import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -76,7 +76,7 @@ public class ListenerValidationServiceImplTest {
     private CorsValidationService corsValidationService;
 
     @Mock
-    private LoggingValidationService loggingValidationService;
+    private AnalyticsValidationService loggingValidationService;
 
     @Mock
     private EntrypointConnectorPluginService entrypointService;

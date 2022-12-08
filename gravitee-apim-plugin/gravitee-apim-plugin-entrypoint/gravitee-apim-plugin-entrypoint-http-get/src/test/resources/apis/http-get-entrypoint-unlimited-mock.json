@@ -32,7 +32,7 @@
       "type": "mock",
       "endpoints": [
         {
-          "name": "default",
+          "name": "default-endpoint",
           "type": "mock",
           "weight": 1,
           "inheritConfiguration": false,
@@ -44,5 +44,8 @@
       ]
     }
   ],
-  "flows": []
+  "flows": [],
+  "analytics": {
+    "enabled" : true
+  }
 }

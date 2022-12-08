@@ -24,14 +24,13 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.el.EvaluableMessage;
 import io.gravitee.gateway.jupiter.api.el.EvaluableRequest;
 import io.gravitee.gateway.jupiter.api.el.EvaluableResponse;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -40,12 +39,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractExecutionContext<RQ extends Request, RS extends Response> implements ExecutionContext {
+public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse> implements ExecutionContext {
 
     private final RQ request;
     private final RS response;
     private final Map<String, Object> attributes = new ContextAttributeMap();
     private final Map<String, Object> internalAttributes = new HashMap<>();
+    protected Metrics metrics;
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;
     protected Collection<TemplateVariableProvider> templateVariableProviders;
@@ -67,6 +67,11 @@ public abstract class AbstractExecutionContext<RQ extends Request, RS extends Re
     @Override
     public RS response() {
         return response;
+    }
+
+    @Override
+    public Metrics metrics() {
+        return metrics;
     }
 
     @Override

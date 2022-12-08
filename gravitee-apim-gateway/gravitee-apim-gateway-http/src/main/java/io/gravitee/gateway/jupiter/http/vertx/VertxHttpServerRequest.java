@@ -36,14 +36,7 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         super(nativeRequest, idGenerator);
-        bufferFlow =
-            new BufferFlow(
-                nativeRequest
-                    .toFlowable()
-                    .doOnNext(buffer -> metrics().setRequestContentLength(metrics().getRequestContentLength() + buffer.length()))
-                    .map(Buffer::buffer)
-            );
-
+        bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer));
         messageFlow = null;
     }
 

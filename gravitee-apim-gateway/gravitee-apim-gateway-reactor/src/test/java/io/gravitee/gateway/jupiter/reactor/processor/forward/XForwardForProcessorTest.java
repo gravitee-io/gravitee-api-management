@@ -16,10 +16,12 @@
 package io.gravitee.gateway.jupiter.reactor.processor.forward;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,22 +54,22 @@ public class XForwardForProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     public void setUp() {
         xForwardForProcessor = new XForwardForProcessor();
+        ctx.metrics(Metrics.builder().build());
     }
 
     @Test
-    public void shouldNotChangeRemoteAddressWithXForwardedForHeader() {
+    void shouldNotChangeRemoteAddressWithXForwardedForHeader() {
         xForwardForProcessor.execute(ctx).test().assertResult();
-        verify(mockRequest).headers();
-        verifyNoMoreInteractions(mockRequest);
-        assertThat(metrics.getRemoteAddress()).isNull();
+        verify(mockRequest, times(1)).headers();
+        assertThat(ctx.metrics().getRemoteAddress()).isNull();
     }
 
     @ParameterizedTest(name = "header {0}; remote address {1}")
     @MethodSource("provideParameters")
-    public void shouldOverrideRemoteAddressWithForwardedForHeader(String header, String remoteAddress) {
+    void shouldOverrideRemoteAddressWithForwardedForHeader(String header, String remoteAddress) {
         spyRequestHeaders.set(HttpHeaderNames.X_FORWARDED_FOR, header);
         xForwardForProcessor.execute(ctx).test().assertResult();
-        verify(mockRequest).remoteAddress(eq(remoteAddress));
-        assertThat(metrics.getRemoteAddress()).isEqualTo(remoteAddress);
+        verify(mockRequest).remoteAddress(remoteAddress);
+        assertThat(ctx.metrics().getRemoteAddress()).isEqualTo(remoteAddress);
     }
 }

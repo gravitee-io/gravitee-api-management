@@ -307,6 +307,7 @@ public class DebugConfiguration {
         Node node,
         @Value("${debug.http.port:8482}") String httpPort,
         @Value("${services.tracing.enabled:false}") boolean tracing,
+        GatewayConfiguration gatewayConfiguration,
         EventRepository eventRepository,
         ObjectMapper objectMapper
     ) {
@@ -318,6 +319,7 @@ public class DebugConfiguration {
             node,
             httpPort,
             tracing,
+            gatewayConfiguration,
             eventRepository,
             objectMapper
         );

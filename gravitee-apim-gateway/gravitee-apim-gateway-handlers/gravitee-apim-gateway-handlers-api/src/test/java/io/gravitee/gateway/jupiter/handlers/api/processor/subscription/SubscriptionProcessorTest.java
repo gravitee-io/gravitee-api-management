@@ -20,7 +20,6 @@ import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.APPLICATION_ANONYMOUS;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.PLAN_ANONYMOUS;
@@ -84,9 +83,9 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertResult();
 
-        verify(mockMetrics).setPlan(PLAN_ID);
-        verify(mockMetrics).setApplication(APPLICATION_ID);
-        verify(mockMetrics).setSubscription(SUBSCRIPTION_ID);
+        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
     }
 
     @Test
@@ -99,9 +98,9 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertResult();
 
-        verify(mockMetrics).setPlan(PLAN_ID);
-        verify(mockMetrics).setApplication(APPLICATION_ID);
-        verify(mockMetrics).setSubscription(SUBSCRIPTION_ID);
+        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
     }
 
     @Test
@@ -116,9 +115,9 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(spyCtx.<String>getAttribute(ATTR_APPLICATION)).isEqualTo(APPLICATION_ANONYMOUS);
         assertThat(spyCtx.<String>getAttribute(ATTR_SUBSCRIPTION_ID)).isEqualTo(remoteAddress);
 
-        verify(mockMetrics).setPlan(PLAN_ANONYMOUS);
-        verify(mockMetrics).setApplication(APPLICATION_ANONYMOUS);
-        verify(mockMetrics).setSubscription(remoteAddress);
+        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ANONYMOUS);
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ANONYMOUS);
+        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(remoteAddress);
     }
 
     @Test
@@ -161,7 +160,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(subscriptionId);
 
         verify(mockRequest).clientIdentifier(subscriptionId);
-        verify(mockMetrics).setClientIdentifier(subscriptionId);
+        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(subscriptionId);
     }
 
     @Test
@@ -176,7 +175,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
 
         verify(mockRequest).clientIdentifier(transactionId);
-        verify(mockMetrics).setClientIdentifier(transactionId);
+        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(transactionId);
     }
 
     @Test
@@ -194,7 +193,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
 
         verify(mockRequest).clientIdentifier(transactionId);
-        verify(mockMetrics).setClientIdentifier(transactionId);
+        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(transactionId);
     }
 
     @Test
@@ -209,6 +208,6 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
 
         verify(mockRequest).clientIdentifier(clientIdentifier);
-        verify(mockMetrics).setClientIdentifier(clientIdentifier);
+        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
     }
 }

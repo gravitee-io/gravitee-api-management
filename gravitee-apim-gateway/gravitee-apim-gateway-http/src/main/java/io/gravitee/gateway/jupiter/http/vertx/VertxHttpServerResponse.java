@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -32,7 +34,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
     }
 
     @Override
-    public Completable end() {
+    public Completable end(final GenericExecutionContext ctx) {
         return Completable.defer(
             () -> {
                 if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
@@ -54,9 +56,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                                 .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                                 .doOnNext(
                                     buffer ->
-                                        serverRequest
-                                            .metrics()
-                                            .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                                        ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
                                 )
                         )
                         .doOnDispose(() -> subscriptionRef.get().cancel());

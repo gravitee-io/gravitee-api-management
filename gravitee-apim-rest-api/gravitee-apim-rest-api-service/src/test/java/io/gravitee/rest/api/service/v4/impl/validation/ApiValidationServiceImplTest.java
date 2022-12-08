@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
@@ -45,7 +46,6 @@ import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,6 +77,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ResourcesValidationService resourcesValidationService;
 
+    @Mock
+    private AnalyticsValidationService loggingValidationService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -88,7 +91,8 @@ public class ApiValidationServiceImplTest {
                 listenerValidationService,
                 endpointGroupsValidationService,
                 flowValidationService,
-                resourcesValidationService
+                resourcesValidationService,
+                loggingValidationService
             );
     }
 

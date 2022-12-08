@@ -130,13 +130,16 @@
             <artifactId>gravitee-node-cache</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.gravitee.apim.definition</groupId>
             <artifactId>gravitee-apim-definition-jackson</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-api</artifactId>
+        </dependency>
 
         <!-- Vert.x -->
         <dependency>

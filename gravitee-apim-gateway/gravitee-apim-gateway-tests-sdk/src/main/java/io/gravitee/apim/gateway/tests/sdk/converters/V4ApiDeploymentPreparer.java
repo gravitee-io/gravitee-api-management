@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.converters;
 
-import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.Plan;

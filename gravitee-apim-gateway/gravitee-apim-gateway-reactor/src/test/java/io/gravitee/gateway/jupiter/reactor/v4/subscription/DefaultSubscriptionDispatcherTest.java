@@ -80,7 +80,7 @@ class DefaultSubscriptionDispatcherTest {
     private SubscriptionAcceptorResolver resolver;
 
     @Mock
-    private SubscriptionExecutionRequestFactory factory;
+    private SubscriptionExecutionContextFactory factory;
 
     @Mock
     private ProcessorChain preProcessorChain;
@@ -100,14 +100,19 @@ class DefaultSubscriptionDispatcherTest {
     @Mock
     private DefaultSubscriptionAcceptor acceptor;
 
+    @Mock
+    private SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory;
+
     private TestScheduler testScheduler;
+    private Vertx vertx;
 
     @BeforeEach
     void init() {
         lenient().when(preProcessorChain.execute(any(), any())).thenReturn(Completable.complete());
+        lenient().when(preProcessorChain.getId()).thenReturn("preProcessorChain");
         lenient().when(postProcessorChain.execute(any(), any())).thenReturn(Completable.complete());
+        lenient().when(postProcessorChain.getId()).thenReturn("postProcessorChain");
 
-        var platformProcessorChainFactory = mock(SubscriptionPlatformProcessorChainFactory.class);
         lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(preProcessorChain);
         lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(postProcessorChain);
 
@@ -117,7 +122,7 @@ class DefaultSubscriptionDispatcherTest {
         // ensure we use the same TestScheduler everywhere
         RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
 
-        Vertx vertx = Vertx.vertx();
+        vertx = Vertx.vertx();
         dispatcher = new DefaultSubscriptionDispatcher(resolver, factory, platformProcessorChainFactory, false, vertx);
 
         subscription = new Subscription();
@@ -249,13 +254,14 @@ class DefaultSubscriptionDispatcherTest {
                 dispatcher.dispatch(subscription).test().assertComplete();
 
                 // subscription span has been created and put in context attributes
-                InOrder orderedChain = inOrder(reactor, tracer, context, preProcessorChain, postProcessorChain);
+                InOrder orderedChain = inOrder(preProcessorChain, tracer, reactor, context, postProcessorChain, span);
                 orderedChain.verify(preProcessorChain).execute(context, ExecutionPhase.REQUEST);
-                orderedChain.verify(reactor).handle(context);
                 orderedChain.verify(tracer).span(TRACING_SPAN_NAME);
                 orderedChain.verify(context).putInternalAttribute(ATTR_INTERNAL_TRACING_SPAN, span);
+                orderedChain.verify(reactor).handle(context);
                 // postProcessorChain and endTracing is executing in a doFinally, meaning another thread, so we had a timeout to ensure we finish it.
                 orderedChain.verify(postProcessorChain, timeout(1000)).execute(context, ExecutionPhase.RESPONSE);
+                orderedChain.verify(span).end();
                 orderedChain.verify(context, timeout(1000)).removeInternalAttribute(ATTR_INTERNAL_TRACING_SPAN);
             }
 

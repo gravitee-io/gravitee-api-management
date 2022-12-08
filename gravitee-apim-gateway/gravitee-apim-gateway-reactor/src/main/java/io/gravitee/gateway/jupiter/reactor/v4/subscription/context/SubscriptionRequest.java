@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -23,7 +24,6 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
-import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
@@ -43,39 +43,35 @@ import java.util.function.Function;
  */
 public class SubscriptionRequest extends AbstractRequest implements MutableRequest {
 
-    protected static final String DEFAULT_LOCALHOST = "localhost";
-
-    public SubscriptionRequest(Subscription subscription) {
-        this.id = subscription.getId();
-        this.transactionId = subscription.getId();
+    public SubscriptionRequest(Subscription subscription, final IdGenerator idGenerator) {
+        this.id = idGenerator.randomString();
         this.clientIdentifier = subscription.getId();
         this.timestamp = System.currentTimeMillis();
         this.headers = HttpHeaders.create();
-        this.metrics = Metrics.on(timestamp).build();
         this.parameters = new LinkedMultiValueMap<>(Collections.emptyMap());
         this.pathParameters = new LinkedMultiValueMap<>(Collections.emptyMap());
         this.uri = "";
-        this.host = DEFAULT_LOCALHOST;
-        this.originalHost = DEFAULT_LOCALHOST;
+        this.host = "";
+        this.originalHost = "";
         this.path = "";
         this.pathInfo = "";
         this.contextPath = "";
         this.method = HttpMethod.OTHER;
         this.scheme = "";
-        this.remoteAddress = DEFAULT_LOCALHOST;
-        this.localAddress = DEFAULT_LOCALHOST;
+        this.remoteAddress = "";
+        this.localAddress = "";
         this.ended = true;
     }
 
     @Override
     public Maybe<Buffer> body() {
-        // Subscription request has no body because it is issued by the gateway itself.
+        // Subscription request has not body because it is issued by the gateway itself.
         return Maybe.empty();
     }
 
     @Override
     public Single<Buffer> bodyOrEmpty() {
-        // Subscription request has no body. Just return an empty buffer.
+        // Subscription request has not body. Just return an empty buffer.
         return Single.just(Buffer.buffer());
     }
 

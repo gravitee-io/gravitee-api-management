@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.reactor.processor.responsetime;
 
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
@@ -36,12 +36,14 @@ public class ResponseTimeProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(
             () -> {
-                Metrics metrics = ctx.request().metrics();
+                Metrics metrics = ctx.metrics();
                 // Compute response-time and add it to the metrics
-                long proxyResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+                long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
                 metrics.setStatus(ctx.response().status());
-                metrics.setProxyResponseTimeMs(proxyResponseTimeInMs);
-                metrics.setProxyLatencyMs(proxyResponseTimeInMs - metrics.getApiResponseTimeMs());
+                metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
+                if (metrics.getEndpointResponseTimeMs() > -1) {
+                    metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
+                }
             }
         );
     }

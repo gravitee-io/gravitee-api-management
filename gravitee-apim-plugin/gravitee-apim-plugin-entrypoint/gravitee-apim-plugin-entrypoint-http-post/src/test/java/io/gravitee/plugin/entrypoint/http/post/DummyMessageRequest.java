@@ -204,11 +204,6 @@ public class DummyMessageRequest implements Request {
     }
 
     @Override
-    public Metrics metrics() {
-        return null;
-    }
-
-    @Override
     public boolean ended() {
         return false;
     }

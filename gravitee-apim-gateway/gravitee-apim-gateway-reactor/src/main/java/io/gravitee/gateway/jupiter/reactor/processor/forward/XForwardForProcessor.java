@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.context.GenericRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -65,7 +66,7 @@ public class XForwardForProcessor implements Processor {
                                 ctx.request().remoteAddress(xForwardFor);
 
                                 // And override the remote address provided by container in metrics
-                                request.metrics().setRemoteAddress(xForwardFor);
+                                ctx.metrics().setRemoteAddress(xForwardFor);
                             }
                         );
                 }

@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
@@ -56,6 +57,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final EndpointGroupsValidationService endpointGroupsValidationService;
     private final FlowValidationService flowValidationService;
     private final ResourcesValidationService resourcesValidationService;
+    private final AnalyticsValidationService analyticsValidationService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -63,7 +65,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final ListenerValidationService listenerValidationService,
         final EndpointGroupsValidationService endpointGroupsValidationService,
         final FlowValidationService flowValidationService,
-        final ResourcesValidationService resourcesValidationService
+        final ResourcesValidationService resourcesValidationService,
+        final AnalyticsValidationService loggingValidationService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -71,6 +74,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.endpointGroupsValidationService = endpointGroupsValidationService;
         this.flowValidationService = flowValidationService;
         this.resourcesValidationService = resourcesValidationService;
+        this.analyticsValidationService = loggingValidationService;
     }
 
     @Override
@@ -100,6 +104,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean endpoints
         newApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(newApiEntity.getEndpointGroups()));
+        // Validate and clean logging
+        newApiEntity.setAnalytics(
+            analyticsValidationService.validateAndSanitize(executionContext, newApiEntity.getType(), newApiEntity.getAnalytics())
+        );
         // Validate and clean flow
         newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
     }
@@ -142,6 +150,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean endpoints
         updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
+        // Validate and clean logging
+        updateApiEntity.setAnalytics(
+            analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
+        );
         // Validate and clean flow
         updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getFlows()));
         // Validate and clean resources

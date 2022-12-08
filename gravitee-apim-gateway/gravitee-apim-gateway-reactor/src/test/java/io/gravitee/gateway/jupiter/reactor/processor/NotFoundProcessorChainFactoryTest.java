@@ -15,23 +15,42 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
+import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,7 +62,10 @@ import org.springframework.core.env.StandardEnvironment;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class NotFoundProcessorChainFactoryTest {
+
+    private TransactionProcessorFactory transactionHandlerFactory = new TransactionProcessorFactory(null, null);
 
     @Mock
     private ReporterService reporterService;
@@ -54,34 +76,75 @@ class NotFoundProcessorChainFactoryTest {
     @Mock
     private MutableResponse response;
 
-    private Metrics metrics;
-
-    @BeforeEach
-    public void beforeEach() {
-        metrics = Metrics.on(System.currentTimeMillis()).build();
-        when(request.metrics()).thenReturn(metrics);
-        when(response.end()).thenReturn(Completable.complete());
-        when(response.headers()).thenReturn(HttpHeaders.create());
-    }
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
 
     @Test
-    public void shouldExecuteNotFoundProcessorChain() {
+    void should_have_notFoundProcessors() {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
+            transactionHandlerFactory,
             new StandardEnvironment(),
             reporterService,
             false,
-            false
+            false,
+            gatewayConfiguration
         );
-        ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
+        List<Processor> processors = notFoundProcessorChainFactory.buildProcessorChain();
+
+        assertEquals(5, processors.size());
+        assertTrue(processors.get(0) instanceof TransactionProcessor);
+        assertTrue(processors.get(1) instanceof MetricsProcessor);
+        assertTrue(processors.get(2) instanceof NotFoundProcessor);
+        assertTrue(processors.get(3) instanceof ResponseTimeProcessor);
+        assertTrue(processors.get(4) instanceof ReporterProcessor);
+    }
+
+    @Test
+    void should_execute_not_found_processor_chain() {
+        // Given
         DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response);
 
+        NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
+            transactionHandlerFactory,
+            new StandardEnvironment(),
+            reporterService,
+            true,
+            false,
+            gatewayConfiguration
+        );
+        ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
+
+        when(response.end(notFoundRequestContext)).thenReturn(Completable.complete());
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(request.id()).thenReturn("requestId");
+        when(request.headers()).thenReturn(HttpHeaders.create());
+
+        when(request.transactionId(any()))
+            .thenAnswer(
+                answer -> {
+                    when(request.transactionId()).thenReturn(answer.getArgument(0));
+                    return request;
+                }
+            );
+
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
+        when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
+
+        // When
         processorChain.execute(notFoundRequestContext, ExecutionPhase.RESPONSE).test().assertResult();
+
+        // Then
         verify(response).status(HttpStatusCode.NOT_FOUND_404);
-        verify(response).end();
-        verify(reporterService).report(any());
-        assertTrue(metrics.getProxyResponseTimeMs() > 0);
-        assertTrue(metrics.getProxyLatencyMs() > 0);
-        assertEquals("1", metrics.getApi());
-        assertEquals("1", metrics.getApplication());
+        verify(response).end(notFoundRequestContext);
+        verify(reporterService).report(any(Reportable.class));
+        Metrics metrics = notFoundRequestContext.metrics();
+        assertTrue(metrics.getGatewayResponseTimeMs() > 0);
+        assertThat(metrics.getGatewayLatencyMs()).isEqualTo(-1L);
+        assertThat(metrics.getApiId()).isEqualTo("1");
+        assertThat(metrics.getApplicationId()).isEqualTo("1");
+        assertThat(metrics.getTenant()).isEqualTo("TENANT");
+        assertThat(metrics.getZone()).isEqualTo("ZONE");
+        assertThat(metrics.getRequestId()).isNotNull();
+        assertThat(metrics.getTransactionId()).isNotNull();
     }
 }

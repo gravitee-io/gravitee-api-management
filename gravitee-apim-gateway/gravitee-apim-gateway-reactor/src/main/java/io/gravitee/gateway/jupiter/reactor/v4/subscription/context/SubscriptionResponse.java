@@ -16,12 +16,10 @@
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
 import io.gravitee.gateway.jupiter.core.context.AbstractResponse;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.reactivex.rxjava3.core.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -22,7 +22,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -53,7 +52,7 @@ public class DefaultApiReactorFactoryTest {
     public void init() {
         lenient().when(api.getDefinition()).thenReturn(definition);
 
-        cut = new DefaultApiReactorFactory(null, null, null, null, null, null, null, null, null, null, null, null);
+        cut = new DefaultApiReactorFactory(null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

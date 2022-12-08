@@ -21,6 +21,7 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.core.v4.analytics.BufferUtils;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -133,14 +134,7 @@ public final class LoggingUtils {
     }
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
-        if (maxLength != -1 && (buffer.length() + chunk.length()) > maxLength) {
-            final int remainingSpace = maxLength - buffer.length();
-            if (remainingSpace > 0) {
-                buffer.appendBuffer(chunk, remainingSpace);
-            }
-        } else {
-            buffer.appendBuffer(chunk);
-        }
+        BufferUtils.appendBuffer(buffer, chunk, maxLength);
     }
 
     public static boolean isProxyLoggable(final ExecutionContext executionContext) {

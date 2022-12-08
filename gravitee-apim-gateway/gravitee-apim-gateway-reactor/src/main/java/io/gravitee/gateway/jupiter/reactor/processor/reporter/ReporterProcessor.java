@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor.reporter;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +52,35 @@ public class ReporterProcessor implements Processor {
         return Completable
             .fromRunnable(
                 () -> {
-                    Metrics metrics = ctx.request().metrics();
-                    reporterService.report(metrics);
-                    if (metrics.getLog() != null) {
-                        metrics.getLog().setApi(metrics.getApi());
-                        reporterService.report(metrics.getLog());
+                    Metrics metrics = ctx.metrics();
+                    if (metrics != null && metrics.isEnabled()) {
+                        metrics.setRequestEnded(true);
+                        ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
+                        if (reactableApi != null) {
+                            DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();
+                            if (definitionVersion == DefinitionVersion.V2) { // We are executing a v2 api with jupiter engine
+                                io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
+                                reporterService.report(metricsV2);
+                                if (metricsV2.getLog() != null) {
+                                    metricsV2.getLog().setApi(metricsV2.getApi());
+                                    reporterService.report(metricsV2.getLog());
+                                }
+                            } else if (definitionVersion == DefinitionVersion.V4) {
+                                reporterService.report(metrics);
+                                Log log = metrics.getLog();
+                                if (log != null) {
+                                    log.setApiId(metrics.getApiId());
+                                    log.setRequestEnded(metrics.isRequestEnded());
+                                    reporterService.report(log);
+                                }
+                            } else {
+                                // Version unsupported only report metrics
+                                reporterService.report(metrics);
+                            }
+                        } else {
+                            // No api found report only metrics
+                            reporterService.report(metrics);
+                        }
                     }
                 }
             )

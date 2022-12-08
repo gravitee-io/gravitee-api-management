@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -33,6 +35,7 @@ import java.util.List;
 public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProcessorChainFactory {
 
     private final boolean traceContext;
+    private final GatewayConfiguration gatewayConfiguration;
 
     public DefaultPlatformProcessorChainFactory(
         TransactionProcessorFactory transactionHandlerFactory,
@@ -41,15 +44,19 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         AlertEventProducer eventProducer,
         Node node,
         String port,
-        boolean tracing
+        boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         super(transactionHandlerFactory, reporterService, eventProducer, node, port, tracing);
         this.traceContext = traceContext;
+        this.gatewayConfiguration = gatewayConfiguration;
     }
 
     @Override
     protected List<Processor> buildPreProcessorList() {
         List<Processor> preProcessorList = new ArrayList<>();
+        preProcessorList.add(transactionHandlerFactory.create());
+        preProcessorList.add(new MetricsProcessor(gatewayConfiguration));
 
         preProcessorList.add(new XForwardForProcessor());
 
@@ -59,7 +66,6 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
             preProcessorList.add(new TraceContextProcessor());
         }
 
-        preProcessorList.add(transactionHandlerFactory.create());
         return preProcessorList;
     }
 }

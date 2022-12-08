@@ -52,8 +52,8 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     public void shouldDoNothingWhenNodeStateIsStarted() {
         lenient().when(mockNode.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
         shutdownProcessor.execute(spyCtx).test().assertResult();
-        Mockito.verifyNoInteractions(mockRequest);
-        Mockito.verifyNoInteractions(mockResponse);
+        Mockito.verify(mockRequest, never()).version();
+        Mockito.verify(mockResponse, never()).headers();
     }
 
     @ParameterizedTest

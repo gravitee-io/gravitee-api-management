@@ -21,21 +21,21 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+@Slf4j
+@RequiredArgsConstructor
 public class NotFoundProcessor implements Processor {
 
-    public static final String ID = "processor-not-found";
-    private final Logger LOGGER = LoggerFactory.getLogger(NotFoundProcessor.class);
-
+    private static final String ID = "processor-not-found";
+    protected static final String UNKNOWN_SERVICE = "1";
     private final Environment environment;
-
-    public NotFoundProcessor(final Environment environment) {
-        this.environment = environment;
-    }
 
     @Override
     public String getId() {
@@ -46,7 +46,13 @@ public class NotFoundProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.defer(
             () -> {
-                LOGGER.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
+                log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
+
+                // Init not found metrics
+                Metrics metrics = ctx.metrics();
+                metrics.setApiId(UNKNOWN_SERVICE);
+                metrics.setApplicationId(UNKNOWN_SERVICE);
+
                 // Send a NOT_FOUND HTTP status code (404)
                 ctx.response().status(HttpStatusCode.NOT_FOUND_404);
                 String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
@@ -56,7 +62,7 @@ public class NotFoundProcessor implements Processor {
                     .headers()
                     .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
                 ctx.response().body(Buffer.buffer(message));
-                return ctx.response().end();
+                return ctx.response().end(ctx);
             }
         );
     }

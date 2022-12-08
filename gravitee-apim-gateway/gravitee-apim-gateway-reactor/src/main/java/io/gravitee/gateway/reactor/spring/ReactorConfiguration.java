@@ -34,7 +34,11 @@ import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFacto
 import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
-import io.gravitee.gateway.jupiter.reactor.v4.subscription.*;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionDispatcher;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionExecutionContextFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -122,7 +126,8 @@ public class ReactorConfiguration {
         AlertEventProducer eventProducer,
         Node node,
         @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing
+        @Value("${services.tracing.enabled:false}") boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -131,7 +136,8 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            tracing
+            tracing,
+            gatewayConfiguration
         );
     }
 
@@ -142,7 +148,8 @@ public class ReactorConfiguration {
         AlertEventProducer eventProducer,
         Node node,
         @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing
+        @Value("${services.tracing.enabled:false}") boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new SubscriptionPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -150,7 +157,8 @@ public class ReactorConfiguration {
             eventProducer,
             node,
             httpPort,
-            tracing
+            tracing,
+            gatewayConfiguration
         );
     }
 
@@ -189,21 +197,21 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory() {
-        return new SubscriptionExecutionRequestFactory();
+    public SubscriptionExecutionContextFactory subscriptionExecutionRequestFactory(final IdGenerator idGenerator) {
+        return new SubscriptionExecutionContextFactory(idGenerator);
     }
 
     @Bean
     public SubscriptionDispatcher subscriptionDispatcher(
         SubscriptionAcceptorResolver subscriptionAcceptorResolver,
-        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory,
+        SubscriptionExecutionContextFactory subscriptionExecutionContextFactory,
         SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         Vertx vertx
     ) {
         return new DefaultSubscriptionDispatcher(
             subscriptionAcceptorResolver,
-            subscriptionExecutionRequestFactory,
+            subscriptionExecutionContextFactory,
             platformProcessorChainFactory,
             tracingEnabled,
             vertx
@@ -257,12 +265,22 @@ public class ReactorConfiguration {
 
     @Bean
     public NotFoundProcessorChainFactory notFoundProcessorChainFactory(
+        io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         Environment environment,
         ReporterService reporterService,
-        @Value("${handlers.notfound.log.enabled:false}") boolean logEnabled,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled
+        @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
+        @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        GatewayConfiguration gatewayConfiguration
     ) {
-        return new NotFoundProcessorChainFactory(environment, reporterService, logEnabled, tracingEnabled);
+        return new NotFoundProcessorChainFactory(
+            transactionHandlerFactory,
+            environment,
+            reporterService,
+            notFoundAnalyticsEnabled || notFoundLogEnabled,
+            tracingEnabled,
+            gatewayConfiguration
+        );
     }
 
     @Bean

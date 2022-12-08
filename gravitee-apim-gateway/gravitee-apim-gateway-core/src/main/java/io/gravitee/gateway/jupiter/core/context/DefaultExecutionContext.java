@@ -19,6 +19,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.Collection;
 
 /**
@@ -40,6 +41,12 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
 
     @Override
     public DefaultExecutionContext response(Response response) {
+        return this;
+    }
+
+    @Override
+    public DefaultExecutionContext metrics(final Metrics metrics) {
+        this.metrics = metrics;
         return this;
     }
 

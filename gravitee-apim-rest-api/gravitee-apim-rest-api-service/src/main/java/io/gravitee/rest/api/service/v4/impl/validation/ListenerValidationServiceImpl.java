@@ -32,9 +32,9 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
-import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.HashSet;
 import java.util.List;
@@ -56,14 +56,14 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final EntrypointConnectorPluginService entrypointService;
     private final EndpointConnectorPluginService endpointService;
     private final CorsValidationService corsValidationService;
-    private final LoggingValidationService loggingValidationService;
+    private final AnalyticsValidationService loggingValidationService;
 
     public ListenerValidationServiceImpl(
         final PathValidationService pathValidationService,
         final EntrypointConnectorPluginService entrypointService,
         EndpointConnectorPluginService endpointService,
         final CorsValidationService corsValidationService,
-        final LoggingValidationService loggingValidationService
+        final AnalyticsValidationService loggingValidationService
     ) {
         this.pathValidationService = pathValidationService;
         this.entrypointService = entrypointService;
@@ -124,8 +124,6 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints(), endpointGroups);
         // Validate and clean cors configuration
         httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
-        // Validate and clean logging configuration
-        httpListener.setLogging(loggingValidationService.validateAndSanitize(executionContext, httpListener.getLogging()));
     }
 
     private void validateAndSanitizeSubscriptionListener(

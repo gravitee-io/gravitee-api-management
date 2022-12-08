@@ -31,10 +31,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -98,6 +100,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity.setResources(List.of(new Resource()));
         apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
         apiEntity.setUpdatedAt(new Date());
+        apiEntity.setAnalytics(new Analytics());
         doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
         doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
@@ -201,14 +204,15 @@ public class ApiResourceTest extends AbstractResourceTest {
         UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
 
         ApiEntity updatedApiEntity = new ApiEntity();
+        updatedApiEntity.setAnalytics(new Analytics());
         updatedApiEntity.setUpdatedAt(new Date());
-        doReturn(updatedApiEntity).when(apiServiceV4).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
+        when(apiServiceV4.update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME))
+            .thenReturn(updatedApiEntity);
 
         final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
-        verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
-
         assertEquals(OK_200, response.getStatus());
+        verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
 
         final ApiEntity responseApi = response.readEntity(ApiEntity.class);
         assertNull(responseApi.getPicture());
@@ -261,6 +265,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setName("api-name");
         updateApiEntity.setDescription("api-description");
         updateApiEntity.setVisibility(Visibility.PUBLIC);
+        updateApiEntity.setAnalytics(new Analytics());
 
         HttpListener httpListener = new HttpListener();
         httpListener.setEntrypoints(List.of(new Entrypoint()));

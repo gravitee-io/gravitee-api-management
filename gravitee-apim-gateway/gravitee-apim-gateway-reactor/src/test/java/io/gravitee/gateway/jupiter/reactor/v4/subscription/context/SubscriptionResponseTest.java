@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -35,9 +36,11 @@ class SubscriptionResponseTest {
 
     public static final String NEW_CHUNK = "NEW_CHUNK";
     private SubscriptionResponse cut;
+    private DefaultExecutionContext ctx;
 
     @BeforeEach
     void setUp() {
+        ctx = new DefaultExecutionContext(null, null);
         cut = new SubscriptionResponse();
     }
 
@@ -54,13 +57,13 @@ class SubscriptionResponseTest {
     @Test
     void shouldSubscribeOnceWhenIgnoringAndReplacingExistingChunks() {
         cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
         cut.body().test().assertComplete().assertValue(b -> NEW_CHUNK.equals(b.toString()));
     }
 
     @Test
     void shouldEndProperlyWithoutHavingSetChunks() {
-        cut.end().test().assertComplete();
+        cut.end(ctx).test().assertComplete();
         cut.body().test().assertComplete().assertNoValues();
     }
 
@@ -70,7 +73,7 @@ class SubscriptionResponseTest {
             .chunks()
             .ignoreElements()
             .andThen(Completable.fromRunnable(() -> cut.body(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Completable.defer(() -> cut.end()))
+            .andThen(Completable.defer(() -> cut.end(ctx)))
             .test()
             .assertComplete();
 
