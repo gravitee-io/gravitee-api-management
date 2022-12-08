@@ -161,7 +161,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
             .doOnComplete(() -> LOGGER.debug("Subscription [{}] has been dispatched", subscription.getId()))
             .onErrorResumeNext(
                 t -> {
-                    LOGGER.error("Subscription [{}] failed with cause: {}", subscription.getId(), t.getMessage());
+                    LOGGER.error("Subscription [{}] failed with cause: {}", subscription.getId(), t);
                     return sendFailureCommand(subscription, t);
                 }
             )

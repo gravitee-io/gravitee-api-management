@@ -71,7 +71,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
     @Override
     public Request request() {
         if (adaptedRequest == null) {
-            adaptedRequest = new RequestAdapter(ctx.request());
+            adaptedRequest = new RequestAdapter(ctx.request(), ctx.metrics());
         }
         return adaptedRequest;
     }

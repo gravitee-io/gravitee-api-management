@@ -17,11 +17,15 @@ package io.gravitee.gateway.jupiter.reactor.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
@@ -32,7 +36,9 @@ import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -43,6 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DefaultPlatformProcessorChainFactoryTest {
 
     @Mock
@@ -57,90 +64,103 @@ class DefaultPlatformProcessorChainFactoryTest {
     @Mock
     private Node node;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     public void setup() {
         lenient().when(transactionHandlerFactory.create()).thenReturn(mock(TransactionProcessor.class));
     }
 
-    @Test
-    @DisplayName("Should have 3 pre processors when trace context is enabled")
-    public void shouldHave3PreProcessorsWhenTraceContextEnabled() {
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            true,
-            reporterService,
-            eventProducer,
-            node,
-            "8080",
-            false
-        );
-        List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
+    @Nested
+    class PreProcessors {
 
-        assertEquals(3, processors.size());
-        assertTrue(processors.get(0) instanceof XForwardForProcessor);
-        assertTrue(processors.get(1) instanceof TraceContextProcessor);
-        assertTrue(processors.get(2) instanceof TransactionProcessor);
+        @Test
+        void should_have_preProcessors_with_TraceContextProcessor_when_traceContext_is_enabled() {
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
+                transactionHandlerFactory,
+                true,
+                reporterService,
+                eventProducer,
+                node,
+                "8080",
+                false,
+                gatewayConfiguration
+            );
+            List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
+
+            assertEquals(4, processors.size());
+            assertTrue(processors.get(0) instanceof TransactionProcessor);
+            assertTrue(processors.get(1) instanceof MetricsProcessor);
+            assertTrue(processors.get(2) instanceof XForwardForProcessor);
+            assertTrue(processors.get(3) instanceof TraceContextProcessor);
+        }
+
+        @Test
+        void should_not_have_preProcessors_with_TraceContextProcessor_when_traceContext_is_not_enabled() {
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
+                transactionHandlerFactory,
+                false,
+                reporterService,
+                eventProducer,
+                node,
+                "8080",
+                false,
+                gatewayConfiguration
+            );
+            List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
+
+            assertEquals(3, processors.size());
+            assertTrue(processors.get(0) instanceof TransactionProcessor);
+            assertTrue(processors.get(1) instanceof MetricsProcessor);
+            assertTrue(processors.get(2) instanceof XForwardForProcessor);
+        }
     }
 
-    @Test
-    @DisplayName("Should have 2 pre processors when trace context is not enabled")
-    public void shouldHave2PreProcessorsWhenTraceContextNotEnabled() {
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            false,
-            reporterService,
-            eventProducer,
-            node,
-            "8080",
-            false
-        );
-        List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
+    @Nested
+    class PostProcessors {
 
-        assertEquals(2, processors.size());
-        assertTrue(processors.get(0) instanceof XForwardForProcessor);
-        assertTrue(processors.get(1) instanceof TransactionProcessor);
-    }
+        @Test
+        void should_not_have_postProcessors_with_AlertProcessors_when_EventProducer_is_empty() {
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
+                transactionHandlerFactory,
+                false,
+                reporterService,
+                eventProducer,
+                node,
+                "8080",
+                false,
+                gatewayConfiguration
+            );
+            when(eventProducer.isEmpty()).thenReturn(true);
 
-    @Test
-    @DisplayName("Should have 2 post processors when event producer is empty")
-    public void shouldHave2PostProcessorsWhenEmptyEventProducer() {
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            false,
-            reporterService,
-            eventProducer,
-            node,
-            "8080",
-            false
-        );
-        when(eventProducer.isEmpty()).thenReturn(true);
+            List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();
 
-        List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();
+            assertEquals(2, processors.size());
+            assertTrue(processors.get(0) instanceof ResponseTimeProcessor);
+            assertTrue(processors.get(1) instanceof ReporterProcessor);
+        }
 
-        assertEquals(2, processors.size());
-        assertTrue(processors.get(0) instanceof ResponseTimeProcessor);
-        assertTrue(processors.get(1) instanceof ReporterProcessor);
-    }
+        @Test
+        void should_have_postProcessors_with_AlertProcessors_when_EventProducer_is_not_empty() {
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
+                transactionHandlerFactory,
+                false,
+                reporterService,
+                eventProducer,
+                node,
+                "8080",
+                false,
+                gatewayConfiguration
+            );
+            when(eventProducer.isEmpty()).thenReturn(false);
 
-    @Test
-    @DisplayName("Should have 3 post processors when event producer is not empty")
-    public void shouldHave2PostProcessorsWhenNotEmptyEventProducer() {
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            false,
-            reporterService,
-            eventProducer,
-            node,
-            "8080",
-            false
-        );
-        when(eventProducer.isEmpty()).thenReturn(false);
+            List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();
 
-        List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();
-
-        assertEquals(3, processors.size());
-        assertTrue(processors.get(0) instanceof ResponseTimeProcessor);
-        assertTrue(processors.get(1) instanceof ReporterProcessor);
-        assertTrue(processors.get(2) instanceof AlertProcessor);
+            assertEquals(3, processors.size());
+            assertTrue(processors.get(0) instanceof ResponseTimeProcessor);
+            assertTrue(processors.get(1) instanceof ReporterProcessor);
+            assertTrue(processors.get(2) instanceof AlertProcessor);
+        }
     }
 }

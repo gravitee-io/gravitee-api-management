@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -43,6 +44,8 @@ class AlertProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     public void beforeEach() {
         alertProcessor = new AlertProcessor(mockEventProducer, mockNode, "1234");
+
+        ctx.metrics(Metrics.builder().build());
         ctx.setAttribute(ExecutionContext.ATTR_API, "api");
         ctx.setAttribute(ExecutionContext.ATTR_APPLICATION, "application");
         ctx.setAttribute(ExecutionContext.ATTR_PLAN, "plan");

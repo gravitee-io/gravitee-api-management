@@ -330,6 +330,9 @@ services:
 #    request:
 #      # Default: X-Gravitee-Request-Id.
 #      header: X-Gravitee-Request-Id
+#  notfound:
+#    analytics:
+#      enabled: false
 
 # Referenced properties
 ds:

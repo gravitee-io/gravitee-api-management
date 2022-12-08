@@ -20,9 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
@@ -31,14 +32,15 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsPreflightRequ
 import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPrefixProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogRequestProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
+import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Flowable;
@@ -65,6 +67,9 @@ class ApiProcessorChainFactoryTest {
     @Mock
     private Node node;
 
+    @Mock
+    private ReporterService reporterService;
+
     private ApiProcessorChainFactory apiProcessorChainFactory;
 
     @BeforeEach
@@ -73,7 +78,7 @@ class ApiProcessorChainFactoryTest {
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
             .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
-        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
     }
 
     @Test
@@ -90,11 +95,12 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnEmptyBeforeHandleProcessorChainWhenLoggingModeNone() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        final HttpListener httpListener = new HttpListener();
+        final Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         final Logging logging = new Logging();
-        logging.setMode(LoggingMode.NONE);
-        httpListener.setLogging(logging);
-        apiModel.setListeners(List.of(httpListener));
+        logging.setMode(LoggingMode.builder().entrypoint(false).endpoint(false).build());
+        analytics.setLogging(logging);
+        apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
@@ -105,11 +111,12 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnBeforeHandleProcessorChainWithLogging() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        final HttpListener httpListener = new HttpListener();
+        final Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         final Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT);
-        httpListener.setLogging(logging);
-        apiModel.setListeners(List.of(httpListener));
+        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(false).build());
+        analytics.setLogging(logging);
+        apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
@@ -161,9 +168,6 @@ class ApiProcessorChainFactoryTest {
     void shouldReturnBeforeApiExecutionChainWithHttpListener() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         HttpListener httpListener = new HttpListener();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT);
-        httpListener.setLogging(logging);
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
@@ -175,7 +179,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnXForwardedBeforeApiExecutionChainWithHttpListenerAndOverrideXForwarded() {
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(true);
-        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
 
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         HttpListener httpListener = new HttpListener();
@@ -233,13 +237,8 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
-    void shouldReturnLoggingAfterApiExecutionChainWithHttpListener() {
+    void shouldReturnShutdownAfterApiExecutionChainWithHttpListener() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        HttpListener httpListener = new HttpListener();
-        Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT);
-        httpListener.setLogging(logging);
-        apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution");
@@ -288,8 +287,8 @@ class ApiProcessorChainFactoryTest {
     void shouldReturnSimpleFailureProcessorChainWithResponseTemplate() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.onMessage(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-api-message");
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecutionMessage(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution-message");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -303,8 +302,8 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         apiModel.setResponseTemplates(Map.of("test", Map.of("test", new ResponseTemplate())));
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.onMessage(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-api-message");
+        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecutionMessage(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution-message");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
@@ -327,11 +326,12 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnEmptyAfterHandleProcessorChainWhenLoggingModeNone() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        final HttpListener httpListener = new HttpListener();
+        Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         final Logging logging = new Logging();
-        logging.setMode(LoggingMode.NONE);
-        httpListener.setLogging(logging);
-        apiModel.setListeners(List.of(httpListener));
+        logging.setMode(LoggingMode.builder().entrypoint(false).endpoint(false).build());
+        analytics.setLogging(logging);
+        apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");
@@ -342,11 +342,12 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnAfterHandleProcessorChainWithLogging() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        final HttpListener httpListener = new HttpListener();
+        Analytics analytics = new Analytics();
+        analytics.setEnabled(true);
         final Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT);
-        httpListener.setLogging(logging);
-        apiModel.setListeners(List.of(httpListener));
+        logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(false).build());
+        analytics.setLogging(logging);
+        apiModel.setAnalytics(analytics);
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");

@@ -21,6 +21,8 @@ import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -105,6 +107,10 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "A list of endpoint describing the endpoints to contact.")
     @DeploymentRequired
     private List<EndpointGroup> endpointGroups;
+
+    @Schema(description = "Analytics configuration")
+    @DeploymentRequired
+    private Analytics analytics;
 
     @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     @DeploymentRequired

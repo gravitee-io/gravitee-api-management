@@ -18,6 +18,8 @@ package io.gravitee.definition.model.v4;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
@@ -28,6 +30,7 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +86,8 @@ public class Api implements Serializable {
     @NotEmpty
     private List<EndpointGroup> endpointGroups;
 
+    private Analytics analytics;
+
     private List<Property> properties;
 
     private List<Resource> resources;
@@ -114,7 +119,7 @@ public class Api implements Serializable {
         if (plans != null) {
             this.plans = plans.stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
         } else {
-            this.plans = null;
+            this.plans = new HashMap<>();
         }
     }
 

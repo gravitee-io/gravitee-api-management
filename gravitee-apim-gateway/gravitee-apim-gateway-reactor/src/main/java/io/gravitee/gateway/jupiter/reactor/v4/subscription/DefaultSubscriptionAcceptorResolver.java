@@ -32,7 +32,7 @@ public class DefaultSubscriptionAcceptorResolver implements SubscriptionAcceptor
     }
 
     @Override
-    public Acceptor resolve(Subscription subscription) {
+    public SubscriptionAcceptor resolve(Subscription subscription) {
         for (SubscriptionAcceptor acceptor : handlerRegistry.getAcceptors(SubscriptionAcceptor.class)) {
             if (acceptor.accept(subscription)) {
                 return acceptor;

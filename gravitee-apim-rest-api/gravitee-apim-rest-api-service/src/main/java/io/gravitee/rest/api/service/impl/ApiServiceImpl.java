@@ -200,8 +200,8 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
-import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -383,7 +383,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ApiNotificationService apiNotificationService;
 
     @Autowired
-    private LoggingValidationService loggingValidationService;
+    private AnalyticsValidationService loggingValidationService;
 
     @Autowired
     private CorsValidationService corsValidationService;

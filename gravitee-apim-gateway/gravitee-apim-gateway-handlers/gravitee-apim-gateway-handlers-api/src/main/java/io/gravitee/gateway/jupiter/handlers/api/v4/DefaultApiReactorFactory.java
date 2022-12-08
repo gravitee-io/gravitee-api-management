@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.CLASSLOADER_LEGACY_ENABLED_PROPERTY;
-
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -48,10 +46,10 @@ import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
+import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
-import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -87,6 +85,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final ReporterService reporterService;
     private final Node node;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
@@ -102,7 +101,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final ApiProcessorChainFactory apiProcessorChainFactory,
         final io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final FlowResolverFactory v4FlowResolverFactory,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final ReporterService reporterService
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -116,6 +116,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = v4FlowResolverFactory;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.reporterService = reporterService;
     }
 
     @Override
@@ -214,7 +215,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     ctxTemplateVariableProviders,
                     policyManager,
                     entrypointConnectorPluginManager,
-                    endpointConnectorPluginManager,
                     endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,
@@ -222,7 +222,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     v4FlowChainFactory,
                     configuration,
                     node,
-                    requestTimeoutConfiguration
+                    requestTimeoutConfiguration,
+                    reporterService
                 );
             }
         } catch (Exception ex) {

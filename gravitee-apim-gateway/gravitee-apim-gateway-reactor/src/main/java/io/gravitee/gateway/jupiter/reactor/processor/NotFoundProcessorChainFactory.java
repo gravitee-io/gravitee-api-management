@@ -15,13 +15,16 @@
  */
 package io.gravitee.gateway.jupiter.reactor.processor;
 
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.notfound.NotFoundReporterProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
+import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,21 +36,27 @@ import org.springframework.core.env.Environment;
  */
 public class NotFoundProcessorChainFactory {
 
+    private final TransactionProcessorFactory transactionHandlerFactory;
     private final Environment environment;
     private final ReporterService reporterService;
-    private final boolean logEnabled;
+    private final boolean notFoundAnalyticsEnabled;
+    private final GatewayConfiguration gatewayConfiguration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
 
     public NotFoundProcessorChainFactory(
+        final TransactionProcessorFactory transactionHandlerFactory,
         final Environment environment,
         final ReporterService reporterService,
-        boolean logEnabled,
-        boolean tracing
+        boolean notFoundAnalyticsEnabled,
+        boolean tracing,
+        GatewayConfiguration gatewayConfiguration
     ) {
+        this.transactionHandlerFactory = transactionHandlerFactory;
         this.environment = environment;
         this.reporterService = reporterService;
-        this.logEnabled = logEnabled;
+        this.notFoundAnalyticsEnabled = notFoundAnalyticsEnabled;
+        this.gatewayConfiguration = gatewayConfiguration;
         if (tracing) {
             processorHooks.add(new TracingHook("processor"));
         }
@@ -60,14 +69,19 @@ public class NotFoundProcessorChainFactory {
         return processorChain;
     }
 
-    protected void initProcessorChain() {
-        List<Processor> processorList = new ArrayList<>();
-
-        processorList.add(new NotFoundProcessor(environment));
-        processorList.add(new ResponseTimeProcessor());
-        processorList.add(new NotFoundReporterProcessor(reporterService, logEnabled));
-
+    void initProcessorChain() {
+        List<Processor> processorList = buildProcessorChain();
         processorChain = new ProcessorChain("processor-chain-not-found", processorList);
         processorChain.addHooks(processorHooks);
+    }
+
+    protected List<Processor> buildProcessorChain() {
+        List<Processor> processorList = new ArrayList<>();
+        processorList.add(transactionHandlerFactory.create());
+        processorList.add(new MetricsProcessor(gatewayConfiguration, notFoundAnalyticsEnabled));
+        processorList.add(new NotFoundProcessor(environment));
+        processorList.add(new ResponseTimeProcessor());
+        processorList.add(new ReporterProcessor(reporterService));
+        return processorList;
     }
 }

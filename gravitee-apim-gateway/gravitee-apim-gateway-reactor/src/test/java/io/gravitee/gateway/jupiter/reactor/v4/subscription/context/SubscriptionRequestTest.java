@@ -15,48 +15,49 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.service.Subscription;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collections;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SubscriptionRequestTest {
 
     @Test
-    public void checkSubscriptionRequest() {
+    void should_create_subscription_request() {
         Subscription subscription = mock(Subscription.class);
         when(subscription.getId()).thenReturn("sub-id1");
 
-        SubscriptionRequest request = new SubscriptionRequest(subscription);
+        SubscriptionRequest request = new SubscriptionRequest(subscription, new UUID());
 
-        Assertions.assertEquals("sub-id1", request.id());
-        Assertions.assertEquals("sub-id1", request.transactionId());
-        Assertions.assertEquals("", request.contextPath());
-        Assertions.assertEquals("", request.uri());
-        Assertions.assertEquals("", request.path());
-        Assertions.assertEquals("", request.pathInfo());
-        Assertions.assertEquals(HttpMethod.OTHER, request.method());
-        Assertions.assertEquals("", request.scheme());
-        Assertions.assertNull(request.version());
-        Assertions.assertEquals("localhost", request.host());
-        Assertions.assertEquals("localhost", request.remoteAddress());
-        Assertions.assertEquals("localhost", request.localAddress());
-        Assertions.assertNull(request.sslSession());
-        Assertions.assertNotNull(request.metrics());
-        Assertions.assertTrue(request.ended());
-        Assertions.assertEquals(Maybe.empty(), request.body());
-        Assertions.assertEquals(Flowable.empty(), request.messages());
+        assertThat(request.id()).isNotNull();
+        assertThat(request.transactionId()).isNull();
+        assertThat(request.contextPath()).isEqualTo("");
+        assertThat(request.uri()).isEqualTo("");
+        assertThat(request.path()).isEqualTo("");
+        assertThat(request.pathInfo()).isEqualTo("");
+        assertThat(request.scheme()).isEqualTo("");
+        assertThat(request.method()).isEqualTo(HttpMethod.OTHER);
+        assertThat(request.version()).isNull();
+        assertThat(request.host()).isEqualTo("");
+        assertThat(request.remoteAddress()).isEqualTo("");
+        assertThat(request.localAddress()).isEqualTo("");
+        assertThat(request.sslSession()).isNull();
+        assertThat(request.ended()).isTrue();
+        assertThat(request.body()).isEqualTo(Maybe.empty());
+        assertThat(request.messages()).isEqualTo(Flowable.empty());
     }
 }

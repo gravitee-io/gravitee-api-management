@@ -20,7 +20,15 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.ORIGIN;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Cors;
@@ -59,7 +67,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        verify(mockMetrics, times(1)).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse, times(2)).headers();
 
         verify(spyResponseHeaders, times(2)).set(any(), anyString());
@@ -76,7 +84,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        verify(mockMetrics, times(1)).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true");
@@ -93,7 +101,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        verify(mockMetrics, times(1)).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
@@ -111,7 +119,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        verify(mockMetrics, times(1)).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse, times(3)).headers();
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
@@ -127,7 +135,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     public void shouldCompleteWithoutChangingResponseWhenCorsDisabled() {
         api.getProxy().getCors().setEnabled(false);
         corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
         verifyNoInteractions(mockResponse);
     }
 
@@ -137,7 +145,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.set(ORIGIN, "origin");
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
         verifyNoInteractions(mockResponse);
     }
 
@@ -145,7 +153,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     public void shouldCompleteWithoutAddingHeadersWhenCorsEnableButNoOrigin() {
         spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "GET");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
         verifyNoInteractions(mockResponse);
     }
 
@@ -153,7 +161,7 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
     public void shouldCompleteWithoutAddingHeadersWhenCorsEnableButNoHeaderMethod() {
         spyRequestHeaders.set(ORIGIN, "origin");
         corsPreflightRequestProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
         verifyNoInteractions(mockResponse);
     }
 }

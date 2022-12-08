@@ -38,7 +38,6 @@ import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcess
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionConnectionException;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionExpiredException;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionNotDispatchedException;
-import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.tracing.api.Span;
 import io.gravitee.tracing.api.Tracer;
 import io.reactivex.rxjava3.core.Completable;
@@ -77,7 +76,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     private final SubscriptionAcceptorResolver subscriptionAcceptorResolver;
     private final ObjectMapper mapper = new ObjectMapper();
-    private final SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory;
+    private final SubscriptionExecutionContextFactory subscriptionExecutionContextFactory;
     private final SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory;
     private final Vertx vertx;
     private final List<ChainHook> processorChainHooks;
@@ -85,13 +84,13 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     public DefaultSubscriptionDispatcher(
         SubscriptionAcceptorResolver subscriptionAcceptorResolver,
-        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory,
+        SubscriptionExecutionContextFactory subscriptionExecutionContextFactory,
         SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory,
         boolean tracingEnabled,
         Vertx vertx
     ) {
         this.subscriptionAcceptorResolver = subscriptionAcceptorResolver;
-        this.subscriptionExecutionRequestFactory = subscriptionExecutionRequestFactory;
+        this.subscriptionExecutionContextFactory = subscriptionExecutionContextFactory;
         this.platformProcessorChainFactory = platformProcessorChainFactory;
         this.tracingEnabled = tracingEnabled;
         this.processorChainHooks = tracingEnabled ? List.of(new TracingHook("processor-chain")) : new ArrayList<>();
@@ -146,10 +145,10 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
     }
 
     private Subscription activateSubscription(Subscription subscription, CompletableEmitter emitter) {
-        Acceptor<SubscriptionAcceptor> acceptor = subscriptionAcceptorResolver.resolve(subscription);
+        SubscriptionAcceptor subscriptionAcceptor = subscriptionAcceptorResolver.resolve(subscription);
 
-        if (acceptor != null && acceptor.reactor() != null) {
-            ApiReactor reactorHandler = (ApiReactor) acceptor.reactor();
+        if (subscriptionAcceptor != null && subscriptionAcceptor.reactor() != null) {
+            ApiReactor apiReactor = (ApiReactor) subscriptionAcceptor.reactor();
 
             String configuration = subscription.getConfiguration();
             try {
@@ -158,7 +157,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 if (type == null || type.trim().isEmpty()) {
                     LOGGER.error("Unable to handle subscription without known entrypoint id");
                 } else {
-                    Completable subscriptionObs = handleSubscription(subscription, reactorHandler, type)
+                    Completable subscriptionObs = handleSubscription(subscription, apiReactor, type)
                         .onErrorComplete(
                             throwable -> {
                                 emitter.onError(throwable);
@@ -184,13 +183,14 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         throw new SubscriptionNotDispatchedException(String.format("No acceptor available for subscription [%s]", subscription.getId()));
     }
 
-    private Completable handleSubscription(Subscription subscription, ApiReactor reactorHandler, String type) {
+    private Completable handleSubscription(Subscription subscription, ApiReactor apiReactor, String type) {
         return Completable
             .defer(
                 () -> {
-                    MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
+                    MutableExecutionContext context = subscriptionExecutionContextFactory.create(subscription);
 
                     // This attribute is used by connectors
+                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
                     context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
                     context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     context.setAttribute(ContextAttributes.ATTR_PLAN, subscription.getPlan());
@@ -201,7 +201,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                     context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
 
                     context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
-                    return executeSubscriptionChain(reactorHandler, context)
+                    return executeSubscriptionChain(apiReactor, context)
                         // Apply a delay before starting the subscription if it has a starting date
                         .compose(delayToStartDate(subscription))
                         // Apply a timeout to the subscription if it has an ending date
@@ -228,7 +228,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
             // execute pre processor chain
             .andThen(executePreProcessorChain(ctx))
             // execute reactor handler
-            .andThen(reactorHandler.handle(ctx))
+            .andThen(Completable.defer(() -> reactorHandler.handle(ctx)))
             // execute post processors
             // we have to run it on the same vertx context as subscriber's, cause tracing mechanism is relying on vertx context
             .doFinally(

@@ -17,7 +17,6 @@ package io.gravitee.gateway.jupiter.handlers.api;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,14 +25,15 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
-import io.gravitee.gateway.core.logging.LoggingContext;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
@@ -47,18 +47,20 @@ import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionExcepti
 import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
+import io.gravitee.gateway.jupiter.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.jupiter.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.hook.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.security.SecurityChain;
+import io.gravitee.gateway.jupiter.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observable;
@@ -88,6 +90,9 @@ class SyncApiReactorTest {
 
     @Mock
     Api api;
+
+    @Mock
+    io.gravitee.definition.model.Api apiDefinition;
 
     @Mock
     ComponentProvider componentProvider;
@@ -204,7 +209,8 @@ class SyncApiReactorTest {
     @Spy
     Completable spyInterruptSecurityChain = Completable.error(new InterruptionFailureException(new ExecutionFailure(UNAUTHORIZED_401)));
 
-    MockedStatic<LoggingUtils> LoggingUtilsMockedStatic;
+    @Mock
+    AnalyticsContext analyticsContext;
 
     @Mock
     LoggingContext loggingContext;
@@ -218,10 +224,8 @@ class SyncApiReactorTest {
 
     @BeforeEach
     void init() {
-        LoggingUtilsMockedStatic = mockStatic(LoggingUtils.class);
-        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api.getDefinition())).thenReturn(null);
-
-        lenient().when(api.getDefinition()).thenReturn(mock(io.gravitee.definition.model.Api.class));
+        lenient().when(apiDefinition.getProxy()).thenReturn(mock(Proxy.class));
+        lenient().when(api.getDefinition()).thenReturn(apiDefinition);
         when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
         when(flowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
         when(flowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
@@ -289,7 +293,6 @@ class SyncApiReactorTest {
 
     @AfterEach
     void tearDown() {
-        LoggingUtilsMockedStatic.close();
         RxJavaPlugins.reset();
     }
 
@@ -323,7 +326,9 @@ class SyncApiReactorTest {
 
     @Test
     void shouldStartWithLoggingContext() throws Exception {
-        LoggingUtilsMockedStatic.when(() -> LoggingUtils.getLoggingContext(api.getDefinition())).thenReturn(loggingContext);
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT);
+        when(apiDefinition.getProxy().getLogging()).thenReturn(logging);
 
         cut.doStart();
 
@@ -722,10 +727,10 @@ class SyncApiReactorTest {
         MutableRequest request = mock(MutableRequest.class);
         when(request.contextPath()).thenReturn("/contextPath");
         Metrics metrics = mock(Metrics.class);
-        when(request.metrics()).thenReturn(metrics);
+        when(ctx.metrics()).thenReturn(metrics);
         when(ctx.request()).thenReturn(request);
         MutableResponse response = mock(MutableResponse.class);
-        when(response.end()).thenReturn(Completable.complete());
+        when(response.end(ctx)).thenReturn(Completable.complete());
         when(ctx.response()).thenReturn(response);
         when(ctx.componentProvider(any())).thenReturn(ctx);
         when(ctx.templateVariableProviders(any())).thenReturn(ctx);

@@ -61,7 +61,7 @@ public class PathMappingProcessor implements Processor {
                     .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
                     .map(Map.Entry::getKey)
                     .min(comparing(this::countOccurrencesOf))
-                    .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
+                    .ifPresent(resolvedMappedPath -> ctx.metrics().setMappedPath(resolvedMappedPath));
             }
         );
     }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor;
 
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY;
 import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
@@ -29,11 +30,11 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.cors.CorsSimpleRequest
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPrefixProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogRequestProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -47,15 +48,17 @@ import java.util.regex.Pattern;
  */
 public class ApiProcessorChainFactory {
 
+    private static final String HANDLERS_REQUEST_CLIENT_HEADER = "handlers.request.client.header";
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
-        this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
+        this.overrideXForwardedPrefix =
+            configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false);
         this.clientIdentifierHeader =
-            configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
+            configuration.getProperty(HANDLERS_REQUEST_CLIENT_HEADER, String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
 
         this.node = node;
 

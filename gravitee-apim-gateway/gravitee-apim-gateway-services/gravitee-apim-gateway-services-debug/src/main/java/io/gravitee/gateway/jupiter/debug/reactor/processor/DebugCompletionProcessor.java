@@ -29,6 +29,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.debug.policy.steps.PolicyStep;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -111,7 +112,7 @@ public class DebugCompletionProcessor implements Processor {
                     debugContext.getInvokerResponse().getBuffer()
                 );
                 definitionDebugApi.setBackendResponse(invokerResponse);
-                definitionDebugApi.setMetrics(createMetrics(debugContext.request().metrics()));
+                definitionDebugApi.setMetrics(createMetrics(debugContext.metrics()));
                 return debugContext
                     .response()
                     .bodyOrEmpty()
@@ -130,14 +131,14 @@ public class DebugCompletionProcessor implements Processor {
         );
     }
 
-    private DebugMetrics createMetrics(io.gravitee.reporter.api.http.Metrics requestMetrics) {
-        final DebugMetrics metrics = new DebugMetrics();
-        if (requestMetrics != null) {
-            metrics.setApiResponseTimeMs(requestMetrics.getApiResponseTimeMs());
-            metrics.setProxyLatencyMs(requestMetrics.getProxyLatencyMs());
-            metrics.setProxyResponseTimeMs(requestMetrics.getProxyResponseTimeMs());
+    private DebugMetrics createMetrics(Metrics metrics) {
+        final DebugMetrics debugMetrics = new DebugMetrics();
+        if (metrics != null) {
+            debugMetrics.setApiResponseTimeMs(metrics.getEndpointResponseTimeMs());
+            debugMetrics.setProxyLatencyMs(metrics.getGatewayLatencyMs());
+            debugMetrics.setProxyResponseTimeMs(metrics.getGatewayResponseTimeMs());
         }
-        return metrics;
+        return debugMetrics;
     }
 
     private PreprocessorStep createPreprocessorStep(DebugExecutionContext debugContext) {

@@ -15,10 +15,12 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.reporter.api.v4.log.Log;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,14 +45,15 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     public void shouldNotAddMappedPathWithEmptyMapping() {
         api.setPathMappings(Map.of());
         pathMappingProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
     }
 
     @Test
     public void shouldAddMappedPathWithMapping() {
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/")));
         pathMappingProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setMappedPath(PATH_INFO);
+
+        assertThat(spyCtx.metrics().getMappedPath()).isEqualTo(PATH_INFO);
     }
 
     @Test
@@ -58,7 +61,7 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
         String shorterPath = "/path";
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/"), shorterPath, Pattern.compile("/path.*")));
         pathMappingProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setMappedPath(shorterPath);
+        assertThat(spyCtx.metrics().getMappedPath()).isEqualTo(shorterPath);
     }
 
     @Test
@@ -66,6 +69,6 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
         when(mockRequest.pathInfo()).thenReturn("");
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/")));
         pathMappingProcessor.execute(spyCtx).test().assertResult();
-        verifyNoInteractions(mockMetrics);
+        verify(spyCtx, never()).metrics();
     }
 }

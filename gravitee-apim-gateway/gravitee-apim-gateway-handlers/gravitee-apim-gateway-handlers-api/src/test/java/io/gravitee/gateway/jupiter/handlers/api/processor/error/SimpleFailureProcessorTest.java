@@ -62,7 +62,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     void shouldCompleteWith500StatusWithoutExecutionFailure() {
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
@@ -73,7 +73,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
@@ -86,7 +86,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
@@ -104,7 +104,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
@@ -123,7 +123,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
@@ -140,7 +140,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsText);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
+        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
         verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
         verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();

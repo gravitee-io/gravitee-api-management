@@ -22,7 +22,7 @@ import io.gravitee.reporter.api.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FakeReporter extends AbstractService implements Reporter {
+public class FakeReporter extends AbstractService<Reporter> implements Reporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FakeReporter.class);
 

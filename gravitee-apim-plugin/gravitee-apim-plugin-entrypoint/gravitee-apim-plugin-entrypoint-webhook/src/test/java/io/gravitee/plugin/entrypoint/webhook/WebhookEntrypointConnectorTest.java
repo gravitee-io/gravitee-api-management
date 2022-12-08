@@ -114,7 +114,7 @@ class WebhookEntrypointConnectorTest {
     void beforeEach() throws PluginConfigurationException {
         lenient().when(ctx.request()).thenReturn(mockMessageRequest);
         lenient().when(ctx.response()).thenReturn(response);
-        lenient().when(response.end()).thenReturn(Completable.complete());
+        lenient().when(response.end(ctx)).thenReturn(Completable.complete());
         lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(nodeConfiguration);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);

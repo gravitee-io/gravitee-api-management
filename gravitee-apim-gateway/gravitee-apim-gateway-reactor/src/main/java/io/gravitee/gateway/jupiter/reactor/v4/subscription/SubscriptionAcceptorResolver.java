@@ -24,5 +24,5 @@ import io.gravitee.gateway.reactor.handler.Acceptor;
  * @author GraviteeSource Team
  */
 public interface SubscriptionAcceptorResolver {
-    Acceptor<SubscriptionAcceptor> resolve(Subscription subscription);
+    SubscriptionAcceptor resolve(Subscription subscription);
 }

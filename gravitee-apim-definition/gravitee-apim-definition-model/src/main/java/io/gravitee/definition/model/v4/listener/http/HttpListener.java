@@ -56,8 +56,6 @@ public class HttpListener extends Listener {
 
     private Cors cors;
 
-    private Logging logging;
-
     public HttpListener() {
         super(ListenerType.HTTP);
     }

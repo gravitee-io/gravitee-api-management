@@ -50,7 +50,7 @@ class RequestAdapterTest {
 
     @BeforeEach
     void init() {
-        cut = new RequestAdapter(request);
+        cut = new RequestAdapter(request, null);
         cut.onResume(onResumeHandler);
         cut.bodyHandler(bodyHandler);
         cut.endHandler(endHandler);

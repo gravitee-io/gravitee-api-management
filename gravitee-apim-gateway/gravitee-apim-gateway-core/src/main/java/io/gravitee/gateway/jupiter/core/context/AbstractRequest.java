@@ -59,7 +59,6 @@ public abstract class AbstractRequest implements MutableRequest {
     protected String remoteAddress;
     protected String localAddress;
     protected SSLSession sslSession;
-    protected Metrics metrics;
     protected boolean ended;
     protected WebSocket webSocket;
 
@@ -164,11 +163,6 @@ public abstract class AbstractRequest implements MutableRequest {
     @Override
     public SSLSession sslSession() {
         return sslSession;
-    }
-
-    @Override
-    public Metrics metrics() {
-        return metrics;
     }
 
     @Override

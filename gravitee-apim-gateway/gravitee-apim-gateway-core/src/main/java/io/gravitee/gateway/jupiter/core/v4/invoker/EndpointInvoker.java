@@ -16,7 +16,8 @@
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -114,7 +115,9 @@ public class EndpointInvoker implements Invoker {
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
 
         if (managedEndpoint != null) {
-            return managedEndpoint.getConnector();
+            EndpointConnector endpointConnector = managedEndpoint.getConnector();
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, endpointConnector.id());
+            return (T) endpointConnector;
         }
 
         return null;

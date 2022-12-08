@@ -51,7 +51,6 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
         verify(mockRequest).transactionId(eq(requestId));
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyRequestHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
-        assertThat(metrics.getTransactionId()).isEqualTo(requestId);
         assertThat(spyResponseHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyResponseHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
     }
@@ -66,7 +65,6 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
         verify(mockRequest).transactionId(eq(transactionId));
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyRequestHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
-        assertThat(metrics.getTransactionId()).isEqualTo(transactionId);
         assertThat(spyResponseHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyResponseHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
     }
@@ -82,7 +80,6 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isNull();
         assertThat(spyRequestHeaders.get(CUSTOM_REQUEST_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyRequestHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isNull();
-        assertThat(metrics.getTransactionId()).isEqualTo(requestId);
         assertThat(spyResponseHeaders.get(CUSTOM_TRANSACTION_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isNull();
         assertThat(spyResponseHeaders.get(CUSTOM_REQUEST_ID_HEADER)).isEqualTo(requestId);
@@ -100,7 +97,6 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
         verify(mockRequest).transactionId(eq(transactionId));
         assertThat(spyRequestHeaders.get(CUSTOM_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyRequestHeaders.get(CUSTOM_REQUEST_ID_HEADER)).isEqualTo(requestId);
-        assertThat(metrics.getTransactionId()).isEqualTo(transactionId);
         assertThat(spyResponseHeaders.get(CUSTOM_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyResponseHeaders.get(CUSTOM_REQUEST_ID_HEADER)).isEqualTo(requestId);
     }

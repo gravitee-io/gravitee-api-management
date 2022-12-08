@@ -17,7 +17,6 @@ package io.gravitee.plugin.entrypoint.http.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
