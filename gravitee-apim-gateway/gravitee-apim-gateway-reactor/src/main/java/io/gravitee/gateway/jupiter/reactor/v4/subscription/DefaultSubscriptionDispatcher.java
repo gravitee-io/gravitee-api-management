@@ -31,6 +31,7 @@ import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableTransformer;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Predicate;
 import java.util.Calendar;
@@ -125,18 +126,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 if (type == null || type.trim().isEmpty()) {
                     LOGGER.error("Unable to handle subscription without known entrypoint id");
                 } else {
-                    MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
-
-                    // This attribute is used by connectors
-                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
-                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
-
-                    // Skip the security chain (currently requires to be an attribute as long as we support v3).
-                    context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
-
-                    context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
-
-                    Completable subscriptionObs = buildSubscriptionObservable(subscription, reactorHandler, context)
+                    Completable subscriptionObs = buildSubscriptionObservable(subscription, reactorHandler, type)
                         .doOnComplete(() -> activeDisposables.remove(subscription.getId()));
 
                     activeDisposables.put(subscription.getId(), subscriptionObs.subscribe());
@@ -150,9 +140,27 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         return null;
     }
 
-    private Completable buildSubscriptionObservable(Subscription subscription, ApiReactor reactorHandler, MutableExecutionContext context) {
-        return reactorHandler
-            .handle(context)
+    private Completable buildSubscriptionObservable(Subscription subscription, ApiReactor reactorHandler, String type) {
+        return Single
+            .fromCallable(
+                () -> {
+                    MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
+
+                    // This attribute is used by connectors
+                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
+                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+                    context.setAttribute(ContextAttributes.ATTR_PLAN, subscription.getPlan());
+                    context.setAttribute(ContextAttributes.ATTR_APPLICATION, subscription.getApplication());
+                    context.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, subscription.getId());
+
+                    // Skip the security chain (currently requires to be an attribute as long as we support v3).
+                    context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+
+                    context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
+                    return context;
+                }
+            )
+            .flatMapCompletable(reactorHandler::handle)
             // Apply a delay before starting the subscription if it has a starting date
             .compose(delayToStartDate(subscription))
             // Apply a timeout to the subscription if it has an ending date
