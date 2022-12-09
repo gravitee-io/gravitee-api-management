@@ -90,6 +90,38 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
+    void shouldNotOverrideAttributeWhenSecurityChainIsSkipped() {
+        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+        spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
+        spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
+        spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
+
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
+        obs.assertResult();
+
+        verify(mockMetrics).setPlan(PLAN_ID);
+        verify(mockMetrics).setApplication(APPLICATION_ID);
+        verify(mockMetrics).setSubscription(SUBSCRIPTION_ID);
+    }
+
+    @Test
+    void shouldSetUnknownAttributeWhenSecurityChainIsSkipped() {
+        String remoteAddress = "remoteAddress";
+        when(mockRequest.remoteAddress()).thenReturn(remoteAddress);
+        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
+        obs.assertResult();
+        assertThat(spyCtx.<String>getAttribute(ATTR_PLAN)).isEqualTo(PLAN_ANONYMOUS);
+        assertThat(spyCtx.<String>getAttribute(ATTR_APPLICATION)).isEqualTo(APPLICATION_ANONYMOUS);
+        assertThat(spyCtx.<String>getAttribute(ATTR_SUBSCRIPTION_ID)).isEqualTo(remoteAddress);
+
+        verify(mockMetrics).setPlan(PLAN_ANONYMOUS);
+        verify(mockMetrics).setApplication(APPLICATION_ANONYMOUS);
+        verify(mockMetrics).setSubscription(remoteAddress);
+    }
+
+    @Test
     void shouldAddSubscriptionVariableProviderWithCtxSubscription() {
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
 

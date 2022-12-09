@@ -87,14 +87,18 @@ public class SubscriptionProcessor implements Processor {
 
                 if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                     // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
-                    application = APPLICATION_ANONYMOUS;
-                    plan = PLAN_ANONYMOUS;
-                    subscriptionId = ctx.request().remoteAddress();
-
-                    // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
-                    ctx.setAttribute(ATTR_APPLICATION, application);
-                    ctx.setAttribute(ATTR_PLAN, plan);
-                    ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscriptionId);
+                    if (application == null) {
+                        application = APPLICATION_ANONYMOUS;
+                        ctx.setAttribute(ATTR_APPLICATION, application);
+                    }
+                    if (plan == null) {
+                        plan = PLAN_ANONYMOUS;
+                        ctx.setAttribute(ATTR_PLAN, plan);
+                    }
+                    if (subscriptionId == null) {
+                        subscriptionId = ctx.request().remoteAddress();
+                        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscriptionId);
+                    }
                 }
 
                 ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, clientIdentifier);
