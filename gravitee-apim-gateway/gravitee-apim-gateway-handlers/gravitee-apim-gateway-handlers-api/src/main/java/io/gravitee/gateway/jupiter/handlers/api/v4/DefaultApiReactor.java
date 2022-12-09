@@ -69,6 +69,7 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -171,7 +172,9 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     @Override
     public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
-        ctx.templateVariableProviders(ctxTemplateVariableProviders);
+        if (ctxTemplateVariableProviders != null) {
+            ctx.templateVariableProviders(new HashSet<>(ctxTemplateVariableProviders));
+        }
 
         // Prepare attributes and metrics before handling the request.
         prepareContextAttributes(ctx);
