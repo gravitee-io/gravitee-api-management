@@ -65,6 +65,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -91,7 +92,6 @@ class SyncApiReactorTest {
     @Mock
     ComponentProvider componentProvider;
 
-    @Mock
     List<TemplateVariableProvider> templateVariableProviders;
 
     @Mock
@@ -250,6 +250,7 @@ class SyncApiReactorTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(REQUEST_TIMEOUT);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(REQUEST_TIMEOUT_GRACE_DELAY);
 
+        templateVariableProviders = new ArrayList<>();
         cut =
             new SyncApiReactor(
                 api,

@@ -66,6 +66,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -151,7 +152,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     @Override
     public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
-        ctx.templateVariableProviders(templateVariableProviders);
+        if (templateVariableProviders != null) {
+            ctx.templateVariableProviders(new HashSet<>(templateVariableProviders));
+        }
 
         // Prepare attributes and metrics before handling the request.
         prepareContextAttributes(ctx);
