@@ -15,8 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
+import static io.netty.handler.codec.http.websocketx.WebSocketCloseStatus.INTERNAL_SERVER_ERROR;
+
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.reactivex.rxjava3.core.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -77,7 +80,7 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
         return Completable.defer(
             () -> {
                 if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return chunks().ignoreElements();
+                    return chunks().ignoreElements().andThen(ensureWebSocketClosed());
                 }
 
                 if (!opened()) {
@@ -104,6 +107,19 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
                 }
 
                 return nativeResponse.rxEnd();
+            }
+        );
+    }
+
+    private Completable ensureWebSocketClosed() {
+        return Completable.defer(
+            () -> {
+                final WebSocket webSocket = serverRequest.webSocket();
+                if (!webSocket.closed()) {
+                    return webSocket.close(INTERNAL_SERVER_ERROR.code(), INTERNAL_SERVER_ERROR.reasonText());
+                }
+
+                return Completable.complete();
             }
         );
     }

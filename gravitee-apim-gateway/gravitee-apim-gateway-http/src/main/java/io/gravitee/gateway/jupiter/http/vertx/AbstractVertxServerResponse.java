@@ -32,12 +32,16 @@ abstract class AbstractVertxServerResponse implements MutableResponse {
     protected final HttpHeaders trailers;
     protected final HttpServerResponse nativeResponse;
     protected HttpHeaders headers;
+    protected String reason;
+    protected int statusCode;
 
     public AbstractVertxServerResponse(AbstractVertxServerRequest serverRequest) {
         this.serverRequest = serverRequest;
         this.nativeResponse = serverRequest.nativeRequest.response();
         this.headers = new VertxHttpHeaders(nativeResponse.headers().getDelegate());
         this.trailers = new VertxHttpHeaders(nativeResponse.trailers().getDelegate());
+        this.statusCode = nativeResponse.getStatusCode();
+        this.reason = nativeResponse.getStatusMessage();
     }
 
     public HttpServerResponse getNativeResponse() {
@@ -50,25 +54,23 @@ abstract class AbstractVertxServerResponse implements MutableResponse {
 
     @Override
     public int status() {
-        return nativeResponse.getStatusCode();
+        return statusCode;
     }
 
     @Override
     public String reason() {
-        return nativeResponse.getStatusMessage();
+        return reason;
     }
 
     @Override
     public AbstractVertxServerResponse reason(String reason) {
-        if (reason != null) {
-            nativeResponse.setStatusMessage(reason);
-        }
+        this.reason = reason;
         return this;
     }
 
     @Override
     public AbstractVertxServerResponse status(int statusCode) {
-        nativeResponse.setStatusCode(statusCode);
+        this.statusCode = statusCode;
         return this;
     }
 
@@ -88,21 +90,29 @@ abstract class AbstractVertxServerResponse implements MutableResponse {
     }
 
     protected void prepareHeaders() {
-        if (!nativeResponse.headWritten() && HttpVersion.HTTP_2 == serverRequest.version()) {
-            if (
-                headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
-                headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-            ) {
-                // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
-                serverRequest.nativeRequest.connection().shutdown();
+        if (!nativeResponse.headWritten()) {
+            this.nativeResponse.setStatusCode(this.statusCode);
+
+            if (this.reason != null) {
+                this.nativeResponse.setStatusMessage(this.reason);
             }
 
-            // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
-            // connection-specific header fields must be removed from response headers
-            headers
-                .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
-                .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
-                .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+            if (HttpVersion.HTTP_2 == serverRequest.version()) {
+                if (
+                    headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
+                    headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
+                ) {
+                    // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
+                    serverRequest.nativeRequest.connection().shutdown();
+                }
+
+                // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
+                // connection-specific header fields must be removed from response headers
+                headers
+                    .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
+                    .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
+                    .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+            }
         }
     }
 

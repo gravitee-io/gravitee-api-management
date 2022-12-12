@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
+import static io.netty.handler.codec.http.websocketx.WebSocketCloseStatus.INTERNAL_SERVER_ERROR;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -370,13 +373,36 @@ class VertxHttpServerResponseTest {
 
     @Test
     void shouldNotSubscribeAndCompleteWhenRequestIsWebSocket() {
+        final WebSocket webSocket = mock(WebSocket.class);
+
         when(request.isWebSocketUpgraded()).thenReturn(true);
+        when(request.webSocket()).thenReturn(webSocket);
+        when(webSocket.closed()).thenReturn(true);
 
         final TestObserver<Void> obs = cut.end().test();
 
         obs.assertComplete();
-        verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));
-        verify(httpServerResponse, times(0)).rxEnd();
+        verify(httpServerResponse, never()).rxSend(any(Flowable.class));
+        verify(httpServerResponse, never()).rxEnd();
+        verify(webSocket, never()).close(anyInt(), anyString());
+        verify(webSocket, never()).close();
+    }
+
+    @Test
+    void shouldCloseWebSocketIfNotClosedWhenResponseCompletes() {
+        final WebSocket webSocket = mock(WebSocket.class);
+
+        when(request.isWebSocketUpgraded()).thenReturn(true);
+        when(request.webSocket()).thenReturn(webSocket);
+        when(webSocket.closed()).thenReturn(false);
+        when(webSocket.close(anyInt(), anyString())).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.end().test();
+
+        obs.assertComplete();
+        verify(httpServerResponse, never()).rxSend(any(Flowable.class));
+        verify(httpServerResponse, never()).rxEnd();
+        verify(webSocket).close(INTERNAL_SERVER_ERROR.code(), INTERNAL_SERVER_ERROR.reasonText());
     }
 
     @Test
@@ -397,6 +423,27 @@ class VertxHttpServerResponseTest {
         cut.unsetMessagesInterceptor();
 
         verify(messageFlow).unsetOnMessagesInterceptor();
+    }
+
+    @Test
+    void shouldWriteStatusAndReason() {
+        final int statusCode = 204;
+        final String reason = "No content";
+        cut.status(statusCode);
+        cut.reason(reason);
+
+        assertThat(cut.status()).isEqualTo(statusCode);
+        assertThat(cut.reason()).isEqualTo(reason);
+
+        cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+        cut.end().test().assertComplete();
+
+        verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+        chunksCaptor.getValue().test();
+
+        verify(httpServerResponse).setStatusCode(statusCode);
+        verify(httpServerResponse).setStatusMessage(reason);
     }
 
     private void mockWithEmpty() {
