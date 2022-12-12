@@ -311,7 +311,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         baseRoute: 'management.apis.detail.analytics.pathMappings',
       });
     }
-    if (this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       analyticsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.analytics.alerts',
