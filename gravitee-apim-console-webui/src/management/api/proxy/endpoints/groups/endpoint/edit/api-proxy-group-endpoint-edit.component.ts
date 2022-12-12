@@ -111,6 +111,11 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
               (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
             );
+          } else {
+            if (!api.proxy.groups[groupIndex].endpoints) {
+              api.proxy.groups[groupIndex].endpoints = [];
+            }
+            endpointIndex = api.proxy.groups[groupIndex].endpoints.length;
           }
 
           const updatedEndpoint = toProxyGroupEndpoint(

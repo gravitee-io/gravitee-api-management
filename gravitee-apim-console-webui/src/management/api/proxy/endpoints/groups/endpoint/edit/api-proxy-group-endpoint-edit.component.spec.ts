@@ -415,7 +415,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           groups: [
             {
               name: 'default-group',
-              endpoints: [],
             },
           ],
         },
