@@ -50,7 +50,7 @@
           <strong>{{ userNotification.title }}</strong>
         </div>
         <div mat-line>{{ userNotification.message }}</div>
-        <div mat-line>{{ userNotification.created_at }}</div>
+        <div mat-line>{{ userNotification.created_at | date: 'medium' }}</div>
       </mat-list-item>
     </mat-list>
   </mat-card>
