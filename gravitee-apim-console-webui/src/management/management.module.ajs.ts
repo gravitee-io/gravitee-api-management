@@ -528,6 +528,7 @@ import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.int
 import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 import { ApiCreationV4Component } from './api/creation/v4/steps/api-creation-v4.component';
+import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -697,6 +698,7 @@ graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesCont
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
+graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
 graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
@@ -962,6 +964,7 @@ graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricCompo
 
 // Analytics
 graviteeManagementModule.directive('ngApiLogsConfiguration', downgradeComponent({ component: ApiLogsConfigurationComponent }));
+graviteeManagementModule.directive('ngApiPathMappings', downgradeComponent({ component: ApiPathMappingsComponent }));
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);

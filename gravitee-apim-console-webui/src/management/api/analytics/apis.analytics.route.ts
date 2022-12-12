@@ -153,6 +153,19 @@ function apisAnalyticsRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.analytics.ng-pathMappings', {
+      url: '/ng-path-mappings',
+      useAngularMaterial: true,
+      component: 'ngApiPathMappings',
+      data: {
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-pathMappings',
+        },
+      },
+    })
     .state('management.apis.detail.analytics.alerts', {
       url: '/analytics/alerts',
       template: require('./alerts/api-alerts-dashboard.html'),
