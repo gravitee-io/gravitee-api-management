@@ -494,6 +494,10 @@ notifiers:
 #    username: ${email.username}
 #    password: ${email.password}
 #    starttls.enabled: false
+##   Authentication method restrictions for the notifier
+##   possible values are: XOAUTH2,NTLM,DIGEST-MD5,CRAM-SHA256,CRAM-SHA1,CRAM-MD5,LOGIN,PLAIN
+##   when not set, all authMethods are selected
+#    authMethods: LOGIN,PLAIN
 #    ssl:
 #      trustAll: false
 #      keyStore:

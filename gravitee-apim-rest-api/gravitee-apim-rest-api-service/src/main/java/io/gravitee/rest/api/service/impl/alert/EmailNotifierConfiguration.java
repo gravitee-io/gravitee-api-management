@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.alert;
 
 import io.gravitee.notifier.api.NotifierConfiguration;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,6 +40,11 @@ public class EmailNotifierConfiguration implements NotifierConfiguration, Serial
     private boolean sslTrustAll;
     private String sslKeyStore;
     private String sslKeyStorePassword;
+
+    /**
+     * Possible values at io.vertx.ext.mail.impl.sasl.AuthOperationFactory#ALGORITHMS
+     * */
+    private Set<String> authMethods;
 
     public String getHost() {
         return host;
@@ -134,5 +140,13 @@ public class EmailNotifierConfiguration implements NotifierConfiguration, Serial
 
     public void setSslKeyStorePassword(String sslKeyStorePassword) {
         this.sslKeyStorePassword = sslKeyStorePassword;
+    }
+
+    public Set<String> getAuthMethods() {
+        return authMethods;
+    }
+
+    public void setAuthMethods(Set<String> authMethods) {
+        this.authMethods = authMethods;
     }
 }
