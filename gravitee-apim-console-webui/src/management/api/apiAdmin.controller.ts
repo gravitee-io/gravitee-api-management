@@ -21,6 +21,7 @@ import FlowService from '../../services/flow.service';
 import NotificationService from '../../services/notification.service';
 import QualityRuleService from '../../services/qualityRule.service';
 import UserService from '../../services/user.service';
+import { IfMatchEtagInterceptor } from '../../shared/interceptors/if-match-etag.interceptor';
 
 class ApiAdminController {
   private api: any;
@@ -41,6 +42,7 @@ class ApiAdminController {
     private UserService: UserService,
     private Constants,
     private FlowService: FlowService,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
 
@@ -52,7 +54,7 @@ class ApiAdminController {
     this.hasPlatformPolicies = false;
 
     this.api = resolvedApi.data;
-    this.api.etag = resolvedApi.headers('etag');
+    this.ngIfMatchEtagInterceptor.updateLastEtag('api', resolvedApi.headers('etag'));
 
     this.resolvedApiGroups = resolvedApiGroups;
 
@@ -148,14 +150,14 @@ class ApiAdminController {
           if (response.accept) {
             this.ApiService.acceptReview(api, response.message).then((response) => {
               this.api.workflow_state = 'REVIEW_OK';
-              this.api.etag = response.headers('etag');
+              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
               this.NotificationService.show(`Changes accepted for API ${this.api.name}`);
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             });
           } else {
             this.ApiService.rejectReview(api, response.message).then((response) => {
               this.api.workflow_state = 'REQUEST_FOR_CHANGES';
-              this.api.etag = response.headers('etag');
+              this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
               this.NotificationService.show(`Changes rejected for API ${this.api.name}`);
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             });
@@ -168,7 +170,7 @@ class ApiAdminController {
     this.ApiService.deploy(api.id, { deploymentLabel }).then((deployedApi) => {
       this.NotificationService.show('API deployed');
       this.api = deployedApi.data;
-      this.api.etag = deployedApi.headers('etag');
+      this.ngIfMatchEtagInterceptor.updateLastEtag('api', deployedApi.headers('etag'));
       this.api.picture_url = api.picture_url;
       this.apiJustDeployed = true;
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
@@ -178,7 +180,7 @@ class ApiAdminController {
   update(api) {
     this.ApiService.update(api).then((updatedApi) => {
       this.api = updatedApi.data;
-      this.api.etag = updatedApi.headers('etag');
+      this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
       this.NotificationService.show("API '" + this.api.name + "' saved");
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     });
@@ -232,7 +234,7 @@ class ApiAdminController {
         if (response) {
           this.ApiService.rejectReview(this.api, response.message).then((response) => {
             this.api.workflow_state = 'REQUEST_FOR_CHANGES';
-            this.api.etag = response.headers('etag');
+            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             this.NotificationService.show(`Changes has been requested for API ${this.api.name}`);
           });

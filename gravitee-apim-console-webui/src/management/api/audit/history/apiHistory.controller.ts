@@ -422,7 +422,6 @@ class ApiHistoryController {
     delete payload.background_url;
     delete payload.categories;
     delete payload.groups;
-    delete payload.etag;
     delete payload.context_path;
     delete payload.disable_membership_notifications;
     delete payload.labels;

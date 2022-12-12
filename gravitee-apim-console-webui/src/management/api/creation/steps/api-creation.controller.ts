@@ -22,6 +22,7 @@ import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
 import NewApiImportController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiImport.controller';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 interface Page {
   fileName: string;
@@ -100,6 +101,7 @@ class ApiCreationController {
     private $state: StateService,
     private Constants: any,
     private $rootScope,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
     this.api = {
@@ -277,7 +279,7 @@ class ApiCreationController {
         if (readyForReview) {
           this.ApiService.askForReview(api.data).then((response) => {
             api.data.workflow_state = 'IN_REVIEW';
-            api.data.etag = response.headers('etag');
+            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.api = api.data;
             this.$rootScope.$broadcast('apiChangeSuccess', { api: api.data });
           });
