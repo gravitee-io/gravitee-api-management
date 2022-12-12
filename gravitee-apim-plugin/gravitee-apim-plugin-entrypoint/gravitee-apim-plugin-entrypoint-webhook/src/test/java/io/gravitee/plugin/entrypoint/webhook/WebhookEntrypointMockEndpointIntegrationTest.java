@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
  */
-@Ignore
 @GatewayTest
 @DeployApi({ "/apis/webhook-entrypoint.json" })
 class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
@@ -65,6 +65,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL")
+    @Disabled("Disabled for now as it is flaky on CI")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
@@ -86,6 +87,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
+    @Disabled("Disabled for now as it is flaky on CI")
     void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), WEBHOOK_URL_PATH));
