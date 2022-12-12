@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from "@angular/common";
-import { NgModule } from "@angular/core";
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatTableModule } from '@angular/material/table';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { ApiPathMappingsComponent } from "./api-path-mappings.component";
+import { ApiPathMappingsComponent } from './api-path-mappings.component';
+
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiPathMappingsComponent],
   exports: [ApiPathMappingsComponent],
-  imports: [CommonModule],
+  imports: [CommonModule, GioIconsModule, GioPermissionModule, MatButtonModule, MatIconModule, MatTableModule, MatTooltipModule],
 })
 export class ApiPathMappingsModule {}

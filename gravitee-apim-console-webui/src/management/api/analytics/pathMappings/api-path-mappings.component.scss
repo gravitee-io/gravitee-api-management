@@ -1,6 +1,15 @@
 @use 'sass:map';
 @use '../../../../scss/gio-layout' as gio-layout;
+@use 'node_modules/@angular/material' as mat;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+}
+
+.path-mappings {
+  @include mat.elevation(3);
+
+  &__table {
+    width: 100%;
+  }
 }

@@ -1,0 +1,120 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+
+import { ApiPathMappingsComponent } from './api-path-mappings.component';
+import { ApiPathMappingsModule } from './api-path-mappings.module';
+
+import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { User } from '../../../../entities/user';
+import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { Api } from '../../../../entities/api';
+
+describe('ApiPathMappingsComponent', () => {
+  const API_ID = 'apiId';
+
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
+
+  let fixture: ComponentFixture<ApiPathMappingsComponent>;
+  let loader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: AjsRootScope, useValue: null },
+      ],
+    });
+
+    fixture = TestBed.createComponent(ApiPathMappingsComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  describe('table tests', () => {
+    it('should display the api path mapping', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        path_mappings: ['/test', '/test/:id'],
+      });
+
+      expectApiGetRequest(api);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          path: 'Path',
+          actions: '',
+        },
+      ]);
+
+      expect(rowCells).toEqual([
+        ['/test', ''],
+        ['/test/:id', ''],
+      ]);
+    });
+
+    it('should display an empty table', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        path_mappings: [],
+      });
+      expectApiGetRequest(api);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          path: 'Path',
+          actions: '',
+        },
+      ]);
+
+      expect(rowCells).toEqual([['No Path Mappings']]);
+    });
+  });
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  async function computeApisTableCells() {
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#pathMappingsTable' }));
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    return { headerCells, rowCells };
+  }
+});
