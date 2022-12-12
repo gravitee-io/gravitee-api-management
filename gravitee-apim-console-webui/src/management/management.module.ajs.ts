@@ -535,6 +535,7 @@ import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy
 import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
+import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1088,6 +1089,8 @@ graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeCo
 
 // Promotions
 graviteeManagementModule.service('promotionService', PromotionService);
+
+graviteeManagementModule.factory('ngIfMatchEtagInterceptor', downgradeInjectable(IfMatchEtagInterceptor));
 
 graviteeManagementModule.filter('humanDateFilter', () => {
   return function (input) {

@@ -19,6 +19,7 @@ import * as _ from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 interface IApiPropertiesScope extends ng.IScope {
   formDynamicProperties: any;
@@ -48,6 +49,7 @@ class ApiPropertiesController {
     private NotificationService: NotificationService,
     private $scope: IApiPropertiesScope,
     private $rootScope,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
     this.dynamicPropertyProviders = [
@@ -156,7 +158,7 @@ class ApiPropertiesController {
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
     return this.ApiService.update(this.api).then((updatedApi) => {
       this.api = updatedApi.data;
-      this.api.etag = updatedApi.headers('etag');
+      this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
       this.NotificationService.show("API '" + (this.$scope as any).$parent.apiCtrl.api.name + "' saved");
     });

@@ -22,7 +22,9 @@ import { map } from 'rxjs/operators';
  * Add the If-Match header to the request if the response contains an ETag header for specific resources.
  * Only for Put and Post methods.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'platform',
+})
 export class IfMatchEtagInterceptor implements HttpInterceptor {
   private activatedFor: {
     key: 'api';
@@ -33,7 +35,15 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
       urlToMatch: new RegExp(`/management/organizations/(.*)/environments/(.*)/apis`),
     },
   ];
-  private lastEtag: Record<string, string> = {};
+  public lastEtag: Record<string, string> = {};
+
+  public updateLastEtag(key: string, etag: string) {
+    this.lastEtag[key] = etag;
+  }
+
+  public getLastEtag(key: string): string {
+    return this.lastEtag[key];
+  }
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     req = req.clone();
@@ -42,7 +52,7 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
       const activated = this.activatedFor.find((a) => req.url.match(a.urlToMatch));
 
       if (activated) {
-        const etag = this.lastEtag[activated.key];
+        const etag = this.getLastEtag(activated.key);
         if (etag) {
           req = req.clone({
             headers: req.headers.set('If-Match', etag),
@@ -57,7 +67,7 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
           const activated = this.activatedFor.find((a) => event.url.match(a.urlToMatch));
           if (activated) {
             if (event.headers.has('etag')) {
-              this.lastEtag[activated.key] = event.headers.get('etag');
+              this.updateLastEtag(activated.key, event.headers.get('etag'));
             }
           }
         }

@@ -19,11 +19,11 @@ import { ConfigureLoggingDialogController } from './configure-logging.dialog';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-expression-language';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-button';
+import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 class ApiLoggingConfigurationController {
   private initialApi: any;
@@ -42,6 +42,7 @@ class ApiLoggingConfigurationController {
     private $scope,
     private Constants,
     private spelGrammar: any,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
 
@@ -153,7 +154,7 @@ class ApiLoggingConfigurationController {
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Logging configuration has been updated');
       this.api = updatedApi.data;
-      this.api.etag = updatedApi.headers('etag');
+      this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
       this.initialApi = _.cloneDeep(updatedApi.data);
       this.$scope.formLogging.$setPristine();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });

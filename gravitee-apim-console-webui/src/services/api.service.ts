@@ -20,6 +20,7 @@ import { ApplicationExcludeFilter } from './application.service';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
+import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 
 export class LogsQuery {
   from: number;
@@ -38,7 +39,12 @@ interface IMembership {
 }
 
 export class ApiService {
-  constructor(private readonly $http: IHttpService, private readonly $rootScope: IRootScopeService, private readonly Constants: Constants) {
+  constructor(
+    private readonly $http: IHttpService,
+    private readonly $rootScope: IRootScopeService,
+    private readonly Constants: Constants,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
+  ) {
     'ngInject';
   }
 
@@ -170,12 +176,20 @@ export class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + '?group=' + group);
   }
 
-  start(api: { id: string; etag: string }): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=START', {}, { headers: { 'If-Match': api.etag } });
+  start(api: { id: string }): IHttpPromise<any> {
+    return this.$http.post(
+      `${this.Constants.env.baseURL}/apis/` + api.id + '?action=START',
+      {},
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
+    );
   }
 
-  stop(api: { id: string; etag: string }): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=STOP', {}, { headers: { 'If-Match': api.etag } });
+  stop(api: { id: string }): IHttpPromise<any> {
+    return this.$http.post(
+      `${this.Constants.env.baseURL}/apis/` + api.id + '?action=STOP',
+      {},
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
+    );
   }
 
   reload(name: string): IHttpPromise<any> {
@@ -218,7 +232,7 @@ export class ApiService {
         gravitee: api.gravitee,
         execution_mode: api.execution_mode,
       },
-      { headers: { 'If-Match': api.etag } },
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
     );
   }
 
@@ -724,27 +738,27 @@ export class ApiService {
     return endpointsName.filter((endpointName) => name === endpointName).length > 1;
   }
 
-  askForReview(api: { id: string; etag: any }, message?: any): IHttpPromise<any> {
+  askForReview(api: { id: string }, message?: any): IHttpPromise<any> {
     return this.$http.post(
       `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ASK`,
       { message },
-      { headers: { 'If-Match': api.etag } },
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
     );
   }
 
-  acceptReview(api: { id: string; etag: any }, message: any): IHttpPromise<any> {
+  acceptReview(api: { id: string }, message: any): IHttpPromise<any> {
     return this.$http.post(
       `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ACCEPT`,
       { message },
-      { headers: { 'If-Match': api.etag } },
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
     );
   }
 
-  rejectReview(api: { id: string; etag: any }, message: any): IHttpPromise<any> {
+  rejectReview(api: { id: string }, message: any): IHttpPromise<any> {
     return this.$http.post(
       `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=REJECT`,
       { message: message },
-      { headers: { 'If-Match': api.etag } },
+      { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
     );
   }
 

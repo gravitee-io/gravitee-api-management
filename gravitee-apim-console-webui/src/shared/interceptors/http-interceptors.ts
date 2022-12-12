@@ -25,5 +25,5 @@ export const httpInterceptorProviders = [
   { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true },
-  { provide: HTTP_INTERCEPTORS, useClass: IfMatchEtagInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useExisting: IfMatchEtagInterceptor, multi: true },
 ];

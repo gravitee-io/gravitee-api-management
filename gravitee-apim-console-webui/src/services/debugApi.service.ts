@@ -17,9 +17,14 @@ import { IHttpService, IPromise } from 'angular';
 
 import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
+import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 
 export class DebugApiService {
-  constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {
+  constructor(
+    private readonly $http: IHttpService,
+    private readonly Constants: Constants,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
+  ) {
     'ngInject';
   }
 
@@ -73,7 +78,7 @@ export class DebugApiService {
           gravitee: api.gravitee,
           request,
         },
-        { headers: { 'If-Match': api.etag } },
+        { headers: { 'If-Match': this.ngIfMatchEtagInterceptor.getLastEtag('api') } },
       )
       .then((value) => value.data);
   }

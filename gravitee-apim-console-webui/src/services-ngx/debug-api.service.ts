@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -49,37 +49,33 @@ export class DebugApiService {
       });
     }
 
-    return this.http.post<Event>(
-      `${this.constants.env.baseURL}/apis/${api.id}/_debug`,
-      {
-        version: api.version,
-        description: api.description,
-        proxy: api.proxy,
-        paths: api.paths,
-        flows: api.flows,
-        plans: api.plans,
-        visibility: api.visibility,
-        name: api.name,
-        services: api.services,
-        properties: api.properties,
-        tags: api.tags,
-        picture: api.picture,
-        picture_url: api.picture_url,
-        background: api.background,
-        background_url: api.background_url,
-        resources: api.resources,
-        categories: api.categories,
-        groups: api.groups,
-        labels: api.labels,
-        path_mappings: api.path_mappings,
-        response_templates: api.response_templates,
-        lifecycle_state: api.lifecycle_state,
-        disable_membership_notifications: api.disable_membership_notifications,
-        flow_mode: api.flow_mode,
-        gravitee: api.gravitee,
-        request,
-      },
-      { headers: new HttpHeaders({ ...(api.etag ? { 'If-Match': api.etag } : {}) }) },
-    );
+    return this.http.post<Event>(`${this.constants.env.baseURL}/apis/${api.id}/_debug`, {
+      version: api.version,
+      description: api.description,
+      proxy: api.proxy,
+      paths: api.paths,
+      flows: api.flows,
+      plans: api.plans,
+      visibility: api.visibility,
+      name: api.name,
+      services: api.services,
+      properties: api.properties,
+      tags: api.tags,
+      picture: api.picture,
+      picture_url: api.picture_url,
+      background: api.background,
+      background_url: api.background_url,
+      resources: api.resources,
+      categories: api.categories,
+      groups: api.groups,
+      labels: api.labels,
+      path_mappings: api.path_mappings,
+      response_templates: api.response_templates,
+      lifecycle_state: api.lifecycle_state,
+      disable_membership_notifications: api.disable_membership_notifications,
+      flow_mode: api.flow_mode,
+      gravitee: api.gravitee,
+      request,
+    });
   }
 }
