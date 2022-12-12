@@ -16,8 +16,8 @@ It will allow you to run these pipeline on CircleCI:
 
 To run the scripts, you need to have:
 
-* Node.js >= 16.0.0 (configured in link:.nvmrc[.nvmrc]] with v18.4.0 )
-* https://github.com/google/zx[zx]; to install it just run:
+* Node.js >= 16.0.0 (configured in link:.nvmrc[.nvmrc] with v18.4.0)
+* https://github.com/google/zx[zx], to install it you just have to run:
 
 [source,shell]
 ----
@@ -25,7 +25,21 @@ npm i -g zx
 # Check everything is ok:
 zx -v
 ----
-* A https://github.com/motdotla/dotenv#readme[dotenv] file containing the variable `CIRCLECI_TOKEN`, which is your personal token on CircleCI. (https://circleci.com/docs/2.0/managing-api-tokens#creating-a-personal-api-token[How to create your CircleCI personal token ?])
+* A https://github.com/motdotla/dotenv#readme[dotenv] file containing the variable `CIRCLECI_TOKEN`, which is your personal token on CircleCI:
+ - Go to https://app.circleci.com/settings/user/tokens, create a token and copy it
+ - Run the following command in the `release` folder to create a `.env` file with the token:
+
+[source,shell]
+----
+touch .env && echo "CIRCLECI_TOKEN=[YOUR_TOKEN]" > .env
+----
+
+* Some dependencies to run the scripts, you can install them with:
+[source, shell]
+----
+# In the `release` folder
+npm install
+----
 
 == 🏁 Usage
 
