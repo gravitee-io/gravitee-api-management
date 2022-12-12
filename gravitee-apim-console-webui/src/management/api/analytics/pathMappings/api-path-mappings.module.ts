@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { CommonModule } from "@angular/common";
+import { NgModule } from "@angular/core";
 
-import { ApiPathMappingsModule } from './pathMappings/api-path-mappings.module';
-import { ApiLogsModule } from './logs/api-logs.module';
+import { ApiPathMappingsComponent } from "./api-path-mappings.component";
 
 @NgModule({
-  imports: [ApiLogsModule, ApiPathMappingsModule],
+  declarations: [ApiPathMappingsComponent],
+  exports: [ApiPathMappingsComponent],
+  imports: [CommonModule],
 })
-export class ApiAnalyticsModule {}
+export class ApiPathMappingsModule {}

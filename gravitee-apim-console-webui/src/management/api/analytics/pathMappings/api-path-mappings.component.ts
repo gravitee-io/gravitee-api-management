@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { Component } from '@angular/core';
 
-import { ApiPathMappingsModule } from './pathMappings/api-path-mappings.module';
-import { ApiLogsModule } from './logs/api-logs.module';
-
-@NgModule({
-  imports: [ApiLogsModule, ApiPathMappingsModule],
+@Component({
+  selector: 'api-path-mappings',
+  template: require('./api-path-mappings.component.html'),
+  styles: [require('./api-path-mappings.component.scss')],
 })
-export class ApiAnalyticsModule {}
+export class ApiPathMappingsComponent {}
