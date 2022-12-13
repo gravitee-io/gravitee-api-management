@@ -11,6 +11,13 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.go-to-dashboard {
-  float: right;
+.api-proxy-health-check {
+  &__banner-info,
+  &__description {
+    margin: 0 0 12px;
+  }
+
+  &__go-to-dashboard {
+    float: right;
+  }
 }
