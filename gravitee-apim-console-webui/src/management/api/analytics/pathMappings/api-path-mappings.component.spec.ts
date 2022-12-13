@@ -20,6 +20,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsModule } from './api-path-mappings.module';
@@ -39,6 +42,7 @@ describe('ApiPathMappingsComponent', () => {
   let fixture: ComponentFixture<ApiPathMappingsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -46,12 +50,17 @@ describe('ApiPathMappingsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: null },
+        { provide: AjsRootScope, useValue: { $broadcast: jest.fn() } },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
 
     fixture = TestBed.createComponent(ApiPathMappingsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   });
@@ -102,8 +111,48 @@ describe('ApiPathMappingsComponent', () => {
     });
   });
 
+  describe('deletePathMapping', () => {
+    it('should delete a path mapping', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        path_mappings: ['/test', '/test/:id'],
+      });
+      expectApiGetRequest(api);
+
+      let { rowCells } = await computeApisTableCells();
+      expect(rowCells).toEqual([
+        ['/test', ''],
+        ['/test/:id', ''],
+      ]);
+
+      await loader
+        .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Button to delete a path mapping"]' }))
+        .then((elements) => elements[1].click());
+      await rootLoader
+        .getHarness(MatDialogHarness)
+        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+        .then((element) => element.click());
+
+      const updatedApi = { ...api, path_mappings: ['/test'] };
+      expectApiGetRequest(api);
+      expectApiPutRequest(updatedApi);
+      expectApiGetRequest(updatedApi);
+
+      ({ rowCells } = await computeApisTableCells());
+      expect(rowCells).toEqual([['/test', '']]);
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequest(api: Api) {
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
+    expect(req.request.body).toBeTruthy();
+    expect(req.request.body.path_mappings).toStrictEqual(api.path_mappings);
+    req.flush(api);
     fixture.detectChanges();
   }
 
