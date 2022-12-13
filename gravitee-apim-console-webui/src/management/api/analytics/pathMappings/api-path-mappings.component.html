@@ -40,6 +40,7 @@
             mat-icon-button
             aria-label="Button to delete a path mapping"
             matTooltip="Delete path mapping"
+            (click)="deletePathMapping(element.path)"
           >
             <mat-icon svgIcon="gio:trash"></mat-icon>
           </button>

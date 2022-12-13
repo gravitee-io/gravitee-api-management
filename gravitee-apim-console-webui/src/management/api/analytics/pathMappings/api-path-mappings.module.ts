@@ -20,6 +20,8 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 
@@ -28,6 +30,16 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 @NgModule({
   declarations: [ApiPathMappingsComponent],
   exports: [ApiPathMappingsComponent],
-  imports: [CommonModule, GioIconsModule, GioPermissionModule, MatButtonModule, MatIconModule, MatTableModule, MatTooltipModule],
+  imports: [
+    CommonModule,
+    GioIconsModule,
+    GioPermissionModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatTooltipModule,
+  ],
 })
 export class ApiPathMappingsModule {}

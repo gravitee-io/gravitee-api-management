@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
-import { sortBy } from 'lodash';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { remove, sortBy } from 'lodash';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { Api } from '../../../../entities/api';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 interface PathMappingDS {
   path: string;
@@ -37,7 +40,12 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   public pathMappingsDS: PathMappingDS[] = [];
   public isLoadingData = true;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiService: ApiService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit(): void {
     this.apiService
@@ -55,6 +63,40 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  public deletePathMapping(path: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Delete path mapping`,
+          content: `Are you sure you want to delete the path mapping <strong>${path}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deletePathMappingConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap((api) => {
+          remove(api.path_mappings, (p) => p === path);
+          return this.apiService.update(api);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => {
+          this.snackBarService.success(`The path mapping ${path} has been successfully deleted!`);
+          this.ngOnInit();
+        }),
+      )
+
+      .subscribe();
   }
 
   private toPathMappingDS(api: Api): PathMappingDS[] {
