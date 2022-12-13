@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.15.20
+      author: GraviteeSource Team
+      changes:
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}alert_event_rules
+            columnNames: alert_id, alert_event
+            tableName: ${gravitee_prefix}alert_event_rules
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}api_groups
+            columnNames: api_id, group_id
+            tableName: ${gravitee_prefix}api_groups
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}application_groups
+            columnNames: application_id, group_id
+            tableName: ${gravitee_prefix}application_groups
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}client_registration_provider_scopes
+            columnNames: client_registration_provider_id, scope
+            tableName: ${gravitee_prefix}client_registration_provider_scopes
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}custom_user_fields_values
+            columnNames: key, reference_id, reference_type
+            tableName: ${gravitee_prefix}custom_user_fields_values
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}databasechangelog
+            columnNames: ID
+            tableName: ${gravitee_prefix}databasechangelog
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}event_environments
+            columnNames: event_id, environment_id
+            tableName: ${gravitee_prefix}event_environments
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_steps
+            columnNames: flow_id, order, phase
+            tableName: ${gravitee_prefix}flow_steps
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}group_event_rules
+            columnNames: group_id, group_event
+            tableName: ${gravitee_prefix}group_event_rules
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}installation
+            columnNames: id
+            tableName: ${gravitee_prefix}installation
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}installation_informations
+            columnNames: installation_id, information_key
+            tableName: ${gravitee_prefix}installation_informations
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}node_monitoring
+            columnNames: id
+            tableName: ${gravitee_prefix}node_monitoring
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}notification_templates
+            columnNames: id
+            tableName: ${gravitee_prefix}notification_templates
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}promotions
+            columnNames: id
+            tableName: ${gravitee_prefix}promotions
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}tag_groups
+            columnNames: tag_id, group_id
+            tableName: ${gravitee_prefix}tag_groups
