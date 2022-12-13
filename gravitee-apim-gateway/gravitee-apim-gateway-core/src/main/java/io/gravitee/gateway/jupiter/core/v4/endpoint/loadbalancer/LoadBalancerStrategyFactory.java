@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.v4.endpoint.lb;
+package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
+import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoneLoadBalancerStrategy implements LoadBalancerStrategy {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class LoadBalancerStrategyFactory {
 
-    private final List<ManagedEndpoint> endpoints;
-
-    public NoneLoadBalancerStrategy(List<ManagedEndpoint> endpoints) {
-        this.endpoints = endpoints;
-    }
-
-    @Override
-    public ManagedEndpoint next() {
-        if (!endpoints.isEmpty()) {
-            return endpoints.get(0);
+    public static LoadBalancerStrategy create(LoadBalancerType type, List<ManagedEndpoint> endpoints) {
+        switch (type) {
+            case RANDOM:
+                return new RandomLoadBalancer(endpoints);
+            case WEIGHTED_ROUND_ROBIN:
+                return new WeightedRoundRobinLoadBalancer(endpoints);
+            case WEIGHTED_RANDOM:
+                return new WeightedRandomLoadBalancer(endpoints);
+            default:
+            case ROUND_ROBIN:
+                return new RoundRobinLoadBalancer(endpoints);
         }
-
-        return null;
     }
 }

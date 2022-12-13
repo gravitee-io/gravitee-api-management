@@ -50,7 +50,7 @@ public class EndpointGroup implements Serializable {
     @NotBlank
     private String type;
 
-    private LoadBalancer loadBalancer;
+    private LoadBalancer loadBalancer = new LoadBalancer();
 
     @Schema(implementation = Object.class)
     @JsonRawValue

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.lenient;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -91,14 +92,15 @@ public class EndpointGroupsValidationServiceImplTest {
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
         List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
-        assertThat(endpointGroups.size()).isEqualTo(1);
+        assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
         assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
         assertThat(validatedEndpointGroup.getEndpoints()).isEmpty();
         assertThat(validatedEndpointGroup.getServices()).isEqualTo(services);
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
-        assertThat(validatedEndpointGroup.getLoadBalancer()).isNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
     }
 
     @Test
@@ -122,7 +124,8 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpoint.getType()).isEqualTo("http");
         assertThat(validatedEndpointGroup.getServices()).isNull();
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
-        assertThat(validatedEndpointGroup.getLoadBalancer()).isNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
     }
 
     @Test
