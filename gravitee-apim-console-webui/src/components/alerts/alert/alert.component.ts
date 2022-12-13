@@ -125,7 +125,7 @@ const AlertComponent: ng.IComponentOptions = {
           .show(
             $mdDialog.confirm({
               title: 'Warning',
-              content: 'Are you sure you want to remove this alert?',
+              textContent: 'Are you sure you want to remove this alert?',
               ok: 'OK',
               cancel: 'Cancel',
             }),
