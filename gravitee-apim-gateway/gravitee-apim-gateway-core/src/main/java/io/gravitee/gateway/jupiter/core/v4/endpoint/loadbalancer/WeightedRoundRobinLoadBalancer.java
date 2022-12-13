@@ -21,8 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
- * This loadbalancer will choose an endpoint after another and verify that its remaining weigh is higher than 0, otherwise it will pick next one.
- * After a selection is made, the total remaining weigh is decreased.
+ * This loadbalancer will choose one endpoint after another and verify that its remaining weight is higher than 0, otherwise it will pick the next one.
+ * After a selection is made, the total remaining weight is decreased.
  *
  * For example, if you have the following two endpoints:
  * <ul>
