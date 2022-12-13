@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * This loadbalancer will randomly choose an endpoint based on total remaining weigh and verify that its remaining weigh is higher than 0, otherwise it will pick the next one.
- * After a selection is made, the total remaining weigh is decreased.
+ * This loadbalancer will randomly choose one endpoint based on total remaining weight and verify that its remaining weight is higher than 0, otherwise it will pick the next one.
+ * After a selection is made, the total remaining weight is decreased.
  *
  * For example, if you have the following two endpoints:
  * <ul>
