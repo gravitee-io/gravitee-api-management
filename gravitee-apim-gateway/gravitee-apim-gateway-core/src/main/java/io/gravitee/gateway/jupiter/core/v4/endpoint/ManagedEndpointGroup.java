@@ -20,8 +20,8 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.lb.LoadBalancerStrategy;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.lb.LoadBalancerStrategyFactory;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer.LoadBalancerStrategy;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer.LoadBalancerStrategyFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class ManagedEndpointGroup {
+public class ManagedEndpointGroup {
 
     private final EndpointGroup definition;
     private final List<ManagedEndpoint> primaries;
@@ -75,9 +75,11 @@ class ManagedEndpointGroup {
         if (endpointDefinition.isSecondary()) {
             secondaries.add(managedEndpoint);
             secondariesByName.put(endpointDefinition.getName(), managedEndpoint);
+            secondaryLB.refresh();
         } else {
             primaries.add(managedEndpoint);
             primariesByName.put(endpointDefinition.getName(), managedEndpoint);
+            primaryLB.refresh();
         }
 
         if (supportedModes == null) {
@@ -96,12 +98,14 @@ class ManagedEndpointGroup {
 
         if (managedEndpoint != null) {
             primaries.remove(managedEndpoint);
+            primaryLB.refresh();
         } else {
             managedEndpoint = secondariesByName.remove(name);
 
             if (managedEndpoint != null) {
                 secondaries.remove(managedEndpoint);
             }
+            secondaryLB.refresh();
         }
 
         return managedEndpoint;

@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.v4.endpoint.lb;
+package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
+import java.util.List;
+import java.util.Random;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface LoadBalancerStrategy {
-    ManagedEndpoint next();
+public class RandomLoadBalancer extends AbstractLoadBalancerStrategy {
+
+    private static final Random RANDOM = new Random(); //NOSONAR the random value is not used for security purposes here
+
+    public RandomLoadBalancer(final List<ManagedEndpoint> endpoints) {
+        super(endpoints);
+    }
+
+    protected ManagedEndpoint getManagedEndpoint() {
+        int size = endpoints.size();
+        if (size == 1) {
+            return endpoints.get(0);
+        }
+        return endpoints.get(RANDOM.nextInt(size));
+    }
 }

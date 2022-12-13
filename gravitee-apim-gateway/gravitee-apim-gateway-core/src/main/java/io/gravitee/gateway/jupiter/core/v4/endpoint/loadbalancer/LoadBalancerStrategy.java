@@ -13,28 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.core.v4.endpoint.lb;
+package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
-import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
-import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class LoadBalancerStrategyFactory {
+public interface LoadBalancerStrategy {
+    ManagedEndpoint next();
 
-    private LoadBalancerStrategyFactory() {}
-
-    public static LoadBalancerStrategy create(LoadBalancerType type, List<ManagedEndpoint> endpoints) {
-        switch (type) {
-            case ROUND_ROBIN:
-            case RANDOM:
-            case WEIGHTED_ROUND_ROBIN:
-            case WEIGHTED_RANDOM:
-            default:
-                return new NoneLoadBalancerStrategy(endpoints);
-        }
-    }
+    void refresh();
 }
