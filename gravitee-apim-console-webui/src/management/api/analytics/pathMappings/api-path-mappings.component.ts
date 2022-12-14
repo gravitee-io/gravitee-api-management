@@ -20,13 +20,19 @@ import { remove, sortBy } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
-import { ApiPathMappingsEditDialogData, PathMappingDS } from './api-path-mappings.model';
-import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
+import {
+  ApiPathMappingsEditDialogComponent,
+  ApiPathMappingsEditDialogData,
+} from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { Api } from '../../../../entities/api';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+
+export interface PathMappingDS {
+  path: string;
+}
 
 @Component({
   selector: 'api-path-mappings',
@@ -51,7 +57,6 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
@@ -87,16 +92,13 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
           remove(api.path_mappings, (p) => p === path);
           return this.apiService.update(api);
         }),
+        tap(() => this.snackBarService.success(`The path mapping ${path} has been successfully deleted!`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => {
-          this.snackBarService.success(`The path mapping ${path} has been successfully deleted!`);
-          this.ngOnInit();
-        }),
+        tap(() => this.ngOnInit()),
       )
-
       .subscribe();
   }
 
@@ -114,8 +116,11 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
         role: 'alertdialog',
         id: 'editPathMappingDialog',
       })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
+      .beforeClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.ngOnInit()),
+      )
       .subscribe();
   }
 }
