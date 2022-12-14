@@ -7,9 +7,7 @@ md-select + .hint {
 .hint {
   /* Position the hint */
   position: absolute;
-  left: 2px;
-  right: auto;
-  bottom: 7px;
+  top: 40px;
   /* Copy styles from ng-messages */
   font-size: 12px;
   line-height: 14px;
