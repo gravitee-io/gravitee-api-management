@@ -16,13 +16,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsModule } from './api-path-mappings.module';
@@ -46,17 +48,19 @@ describe('ApiPathMappingsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
+      imports: [BrowserAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: AjsRootScope, useValue: { $broadcast: jest.fn() } },
       ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-      },
-    });
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiPathMappingsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -140,6 +144,46 @@ describe('ApiPathMappingsComponent', () => {
 
       ({ rowCells } = await computeApisTableCells());
       expect(rowCells).toEqual([['/test', '']]);
+    });
+  });
+
+  describe('edit path mapping', () => {
+    it('should edit a path mapping', async () => {
+      const api = fakeApi({
+        id: API_ID,
+        path_mappings: ['/test', '/test/:id'],
+      });
+      expectApiGetRequest(api);
+
+      let { rowCells } = await computeApisTableCells();
+      expect(rowCells).toEqual([
+        ['/test', ''],
+        ['/test/:id', ''],
+      ]);
+
+      await loader
+        .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Button to edit a path mapping"]' }))
+        .then((elements) => elements[1].click());
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await dialog
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Path mapping input"]' }))
+        .then((input) => input.setValue('/updated/:id'));
+      await dialog.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then((element) => element.click());
+
+      expectApiGetRequest(api);
+
+      const updatedApi = { ...api, path_mappings: ['/test', '/updated/:id'] };
+      expectApiPutRequest(updatedApi);
+
+      const snackBars = await rootLoader.getAllHarnesses(MatSnackBarHarness);
+      expect(snackBars.length).toBe(1);
+
+      expectApiGetRequest(updatedApi);
+      ({ rowCells } = await computeApisTableCells());
+      expect(rowCells).toEqual([
+        ['/test', ''],
+        ['/updated/:id', ''],
+      ]);
     });
   });
 

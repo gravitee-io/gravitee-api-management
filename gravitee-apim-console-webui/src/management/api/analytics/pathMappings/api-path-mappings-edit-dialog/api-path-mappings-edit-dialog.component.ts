@@ -15,10 +15,21 @@
  */
 
 import { Component, Inject } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { remove } from 'lodash';
 
-import { ApiPathMappingsEditDialogData } from '../api-path-mappings.model';
+import { Api } from '../../../../../entities/api';
+import { ApiService } from '../../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { isUnique } from '../../../../../shared/utils';
+
+export interface ApiPathMappingsEditDialogData {
+  api: Api;
+  path: string;
+}
 
 @Component({
   selector: 'api-path-mappings-edit-dialog',
@@ -26,21 +37,48 @@ import { ApiPathMappingsEditDialogData } from '../api-path-mappings.model';
   styles: [require('./api-path-mappings-edit-dialog.component.scss')],
 })
 export class ApiPathMappingsEditDialogComponent {
+  private api: Api;
+  private readonly pathToUpdate: string;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
   public pathFormGroup: FormGroup;
-  constructor(@Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsEditDialogData) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsEditDialogData,
+    private readonly dialogRef: MatDialogRef<ApiPathMappingsEditDialogData>,
+    private readonly apiService: ApiService,
+    private readonly snackBarService: SnackBarService,
+  ) {
+    this.api = dialogData.api;
+    this.pathToUpdate = dialogData.path;
     this.pathFormGroup = new FormGroup({
-      path: new FormControl(dialogData.path, [Validators.required, this.isUnique(dialogData.api.path_mappings)]),
+      path: new FormControl(this.pathToUpdate, [Validators.required, isUnique(this.api.path_mappings)]),
     });
   }
 
-  public save(): void {
-    // Do something
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 
-  private isUnique(paths: string[]): ValidatorFn | null {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const formControlValue = control.value;
-      return paths.includes(formControlValue) ? { isUnique: true } : null;
-    };
+  public save(): void {
+    this.apiService
+      .get(this.api.id)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => {
+          remove(api.path_mappings, (p) => p === this.pathToUpdate);
+          api.path_mappings.push(this.pathFormGroup.getRawValue().path);
+          return this.apiService.update(api);
+        }),
+        catchError(() => {
+          this.snackBarService.error(`An error occurred while trying to update the path mapping ${this.pathToUpdate}.`);
+          return EMPTY;
+        }),
+        tap(() => {
+          this.snackBarService.success(`The path mapping has been successfully updated!`);
+          this.dialogRef.close();
+        }),
+      )
+      .subscribe();
   }
 }
