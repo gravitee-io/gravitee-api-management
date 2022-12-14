@@ -34,7 +34,7 @@
         <tbody md-body>
           <tr md-row ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
             <td md-cell>
-              <a ng-click="$ctrl.navigateToSubscription(subscription.id)">
+              <a ng-click="$ctrl.navigateToSubscription(subscription.id)" style="cursor: pointer">
                 {{ $ctrl.subscriptions.metadata[subscription.api].name }}
               </a>
             </td>
