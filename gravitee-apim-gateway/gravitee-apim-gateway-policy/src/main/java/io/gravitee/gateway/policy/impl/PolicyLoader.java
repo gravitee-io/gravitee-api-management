@@ -75,7 +75,7 @@ public class PolicyLoader {
 
                     classLoader.addClassLoader(
                         policyPlugin.policy().getCanonicalName(),
-                        () -> policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin)
+                        () -> policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, classLoader)
                     );
 
                     logger.debug("Loading policy {}", policy.getName());

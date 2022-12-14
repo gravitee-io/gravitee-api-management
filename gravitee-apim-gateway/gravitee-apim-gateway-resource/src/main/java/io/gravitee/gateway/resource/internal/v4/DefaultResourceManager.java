@@ -13,32 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.resource.internal;
+package io.gravitee.gateway.resource.internal.v4;
 
-import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
+import io.gravitee.gateway.resource.internal.ResourceLoader;
 import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Slf4j
-public class ResourceManagerImpl extends LegacyResourceManagerImpl {
+public class DefaultResourceManager extends LegacyResourceManagerImpl {
 
-    private final boolean legacyMode;
     private final ResourceLoader resourceLoader;
 
-    public ResourceManagerImpl(
-        final boolean legacyMode,
+    public DefaultResourceManager(
         final DefaultClassLoader classLoader,
         final Reactable reactable,
         final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
@@ -47,7 +45,6 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
         final ApplicationContext applicationContext
     ) {
         super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
-        this.legacyMode = legacyMode;
         this.resourceLoader =
             new ResourceLoader(
                 classLoader,
@@ -59,25 +56,22 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
     }
 
     protected void initialize() {
-        if (legacyMode) {
-            super.initialize();
-        } else {
-            // Unlike v4 resource, v2 Resource enabled flag has never been used. Keep this unchanged to avoid unexpected behavior or breaking changes.
-            reactable
-                .dependencies(Resource.class)
-                .forEach(
-                    resource -> {
-                        log.debug("Loading resource {} for {}", resource.getName(), reactable);
-                        final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
-                            resource.getType(),
-                            resource.getConfiguration()
-                        );
+        reactable
+            .dependencies(Resource.class)
+            .stream()
+            .filter(Resource::isEnabled)
+            .forEach(
+                resource -> {
+                    log.debug("Loading resource {} for {}", resource.getName(), reactable);
+                    final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
+                        resource.getType(),
+                        resource.getConfiguration()
+                    );
 
-                        if (resourceInstance != null) {
-                            resources.put(resource.getName(), resourceInstance);
-                        }
+                    if (resourceInstance != null) {
+                        resources.put(resource.getName(), resourceInstance);
                     }
-                );
-        }
+                }
+            );
     }
 }
