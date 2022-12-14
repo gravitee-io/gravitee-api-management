@@ -20,14 +20,13 @@ import { remove, sortBy } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
+import { ApiPathMappingsEditDialogData, PathMappingDS } from './api-path-mappings.model';
+import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
+
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { Api } from '../../../../entities/api';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-
-interface PathMappingDS {
-  path: string;
-}
 
 @Component({
   selector: 'api-path-mappings',
@@ -36,6 +35,7 @@ interface PathMappingDS {
 })
 export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private api: Api;
   public displayedColumns = ['path', 'actions'];
   public pathMappingsDS: PathMappingDS[] = [];
   public isLoadingData = true;
@@ -53,6 +53,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((api) => {
+          this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
         }),
@@ -101,5 +102,20 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
 
   private toPathMappingDS(api: Api): PathMappingDS[] {
     return sortBy(api.path_mappings).map((path) => ({ path }));
+  }
+
+  public editPathMapping(path: string): void {
+    this.matDialog
+      .open<ApiPathMappingsEditDialogComponent, ApiPathMappingsEditDialogData>(ApiPathMappingsEditDialogComponent, {
+        data: {
+          api: this.api,
+          path,
+        },
+        role: 'alertdialog',
+        id: 'editPathMappingDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
   }
 }

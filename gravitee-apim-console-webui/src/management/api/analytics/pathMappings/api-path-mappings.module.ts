@@ -22,21 +22,30 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
+import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiPathMappingsComponent],
+  declarations: [ApiPathMappingsComponent, ApiPathMappingsEditDialogComponent],
   exports: [ApiPathMappingsComponent],
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+
     GioIconsModule,
     GioPermissionModule,
+
     MatButtonModule,
     MatDialogModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
