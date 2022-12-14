@@ -17,10 +17,9 @@ package io.gravitee.gateway.jupiter.http.vertx;
 
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.core.context.AbstractResponse;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 
 /**
@@ -77,21 +76,27 @@ abstract class AbstractVertxServerResponse extends AbstractResponse {
     }
 
     protected void prepareHeaders() {
-        if (!nativeResponse.headWritten() && HttpVersion.HTTP_2 == serverRequest.version()) {
-            if (
-                headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
-                headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-            ) {
-                // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
-                serverRequest.nativeRequest.connection().shutdown();
+        if (!nativeResponse.headWritten()) {
+            if (HttpVersion.HTTP_2 == serverRequest.version()) {
+                if (
+                    headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
+                    headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
+                ) {
+                    // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
+                    serverRequest.nativeRequest.connection().shutdown();
+                }
+
+                // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
+                // connection-specific header fields must be removed from response headers
+                headers
+                    .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
+                    .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
+                    .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
             }
 
-            // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
-            // connection-specific header fields must be removed from response headers
-            headers
-                .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
-                .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
-                .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+            if (headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+                headers.remove(HttpHeaders.TRANSFER_ENCODING);
+            }
         }
     }
 }

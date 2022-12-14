@@ -129,6 +129,12 @@ public abstract class AbstractResponse implements MutableResponse {
     }
 
     @Override
+    public void contentLength(long contentLength) {
+        headers.set(io.vertx.core.http.HttpHeaders.CONTENT_LENGTH, Long.toString(contentLength));
+        headers.remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+    }
+
+    @Override
     public void messages(final Flowable<Message> messages) {
         lazyMessageFlow().messages(messages);
     }
