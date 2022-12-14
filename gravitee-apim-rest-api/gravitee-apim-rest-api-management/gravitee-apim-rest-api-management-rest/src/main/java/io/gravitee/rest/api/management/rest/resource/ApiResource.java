@@ -983,6 +983,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiDefinitionResource.class);
     }
 
+    @Path("definition-context")
+    public ApiDefinitionContextResource getApiDefinitionContextResource() {
+        return resourceContext.getResource(ApiDefinitionContextResource.class);
+    }
+
     private void setSynchronizationState(final ExecutionContext executionContext, ApiStateEntity apiStateEntity) {
         apiStateEntity.setIsSynchronized(apiService.isSynchronized(executionContext, apiStateEntity.getApiId()));
     }
