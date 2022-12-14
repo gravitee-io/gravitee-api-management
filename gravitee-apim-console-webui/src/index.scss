@@ -85,6 +85,10 @@ body {
   @include material-layout-compatibility();
 
   @import './scss/gio-global-style';
+
+  a {
+    cursor: pointer;
+  }
 }
 
 :where(.bootstrap) {
