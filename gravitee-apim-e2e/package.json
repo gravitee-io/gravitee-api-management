@@ -14,6 +14,7 @@
         "test:ui:e2e": "cypress open --config-file ui-test/integration/apim/e2e/cypress-config.json",
         "test:ui:platform": "cypress open --config-file ui-test/integration/platform/cypress-config.json",
         "test:api:mongo": "sh ./scripts/run-docker-compose.sh api-test mongo",
+        "test:api:bridge": "sh ./scripts/run-docker-compose.sh api-test bridge",
         "test:api:jdbc": "sh ./scripts/run-docker-compose.sh api-test jdbc",
         "test:api:dev": "jest --runInBand --no-cache",
         "test:api:ci": "jest --runInBand --ci -c jest.config.ci.js --no-cache",

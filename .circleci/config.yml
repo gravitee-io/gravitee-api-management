@@ -1580,6 +1580,7 @@ jobs:
             - notify-on-failure
             - store_test_results:
                   path: ~/test-results
+
     e2e-cypress:
         executor:
             name: ubuntu
@@ -2006,7 +2007,7 @@ workflows:
                   matrix:
                       parameters:
                           execution_mode: ["v3", "jupiter"]
-                          database: ["mongo", "jdbc"]
+                          database: ["mongo", "jdbc", "bridge"]
                   filters:
                       branches:
                           only:
