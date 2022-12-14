@@ -82,11 +82,11 @@
               </md-input-container>
               <md-input-container class="md-block" flex>
                 <label>Max requests</label>
-                <input type="number" ng-model="$ctrl.parent.rateLimit.limit" ng-required="$ctrl.parent.rateLimit.periodTime" />
+                <input type="number" min="0" ng-model="$ctrl.parent.rateLimit.limit" ng-required="$ctrl.parent.rateLimit.periodTime" />
               </md-input-container>
               <md-input-container class="md-block">
                 <label>Period time</label>
-                <input type="number" ng-model="$ctrl.parent.rateLimit.periodTime" ng-required="$ctrl.parent.rateLimit.limit" />
+                <input type="number" min="1" ng-model="$ctrl.parent.rateLimit.periodTime" ng-required="$ctrl.parent.rateLimit.limit" />
               </md-input-container>
               <md-input-container class="md-block" flex>
                 <label>Period time unit</label>
@@ -111,11 +111,11 @@
               </md-input-container>
               <md-input-container class="md-block" flex>
                 <label>Max requests</label>
-                <input type="number" ng-model="$ctrl.parent.quota.limit" ng-required="$ctrl.parent.quota.periodTime" />
+                <input type="number" min="0" ng-model="$ctrl.parent.quota.limit" ng-required="$ctrl.parent.quota.periodTime" />
               </md-input-container>
               <md-input-container class="md-block" flex>
                 <label>Period time</label>
-                <input type="number" ng-model="$ctrl.parent.quota.periodTime" ng-required="$ctrl.parent.quota.limit" />
+                <input type="number" min="1" ng-model="$ctrl.parent.quota.periodTime" ng-required="$ctrl.parent.quota.limit" />
               </md-input-container>
               <md-input-container class="md-block" flex>
                 <label>Period time unit</label>
