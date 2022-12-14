@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
@@ -326,6 +327,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected MediaService mediaService;
+
+    @Autowired
+    protected ApiDefinitionContextService definitionContextService;
 
     @Before
     public void setUp() throws Exception {
@@ -699,6 +703,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public EndpointConnectorPluginService endpointConnectorPluginService() {
             return mock(EndpointConnectorPluginService.class);
+        }
+
+        @Bean
+        public ApiDefinitionContextService definitionContextService() {
+            return mock(ApiDefinitionContextService.class);
         }
     }
 
