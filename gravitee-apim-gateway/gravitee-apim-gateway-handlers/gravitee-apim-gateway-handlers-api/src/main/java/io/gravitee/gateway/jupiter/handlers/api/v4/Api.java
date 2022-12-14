@@ -103,7 +103,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
     public <D> Set<D> dependencies(Class<D> type) {
         if (Policy.class.equals(type)) {
             return (Set<D>) policies();
-        } else if (Resource.class.equals(type)) {
+        } else if (Resource.class.equals(type) && definition.getResources() != null) {
             return (Set<D>) new HashSet<>(definition.getResources());
         }
 

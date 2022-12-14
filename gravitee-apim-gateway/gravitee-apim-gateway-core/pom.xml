@@ -20,7 +20,6 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>io.gravitee.apim.gateway</groupId>
         <artifactId>gravitee-apim-gateway</artifactId>
@@ -28,7 +27,12 @@
     </parent>
 
     <artifactId>gravitee-apim-gateway-core</artifactId>
+
     <name>Gravitee.io APIM - Gateway - Core</name>
+
+    <properties>
+        <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
+    </properties>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
@@ -111,6 +115,13 @@
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-buffer</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-api</artifactId>
+            <version>${gravitee-resource-api.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

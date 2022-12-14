@@ -52,6 +52,7 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
+import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -242,8 +243,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
             beanNamesForType[0]
         );
 
-        return new ResourceManagerImpl(
-            configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false),
+        return new DefaultResourceManager(
             applicationContext.getBean(DefaultClassLoader.class),
             api,
             cpm,
