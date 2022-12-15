@@ -19,7 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
@@ -57,18 +57,13 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
-        return target.search(apiCriteria, sortable, pageable, apiFieldExclusionFilter);
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        return target.search(apiCriteria, sortable, pageable, apiFieldFilter);
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return target.search(apiCriteria, apiFieldExclusionFilter);
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        return target.search(apiCriteria, apiFieldFilter);
     }
 
     @Override

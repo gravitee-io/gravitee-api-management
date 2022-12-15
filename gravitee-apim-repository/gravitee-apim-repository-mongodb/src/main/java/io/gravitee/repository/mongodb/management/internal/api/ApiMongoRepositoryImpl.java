@@ -48,13 +48,8 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public Page<ApiMongo> search(
-        ApiCriteria criteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
-        final Query query = buildQuery(apiFieldExclusionFilter, criteria == null ? emptyList() : List.of(criteria));
+    public Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
 
         if (sortable != null) {
             query.with(
@@ -106,14 +101,14 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         return new Page<>(apisIds, pageable.pageNumber(), apisIds.size(), total);
     }
 
-    private Query buildQuery(ApiFieldExclusionFilter apiFieldExclusionFilter, List<ApiCriteria> orApiCriteria) {
+    private Query buildQuery(ApiFieldFilter apiFieldFilter, List<ApiCriteria> orApiCriteria) {
         final Query query = new Query();
 
-        if (apiFieldExclusionFilter != null) {
-            if (apiFieldExclusionFilter.isDefinitionExcluded()) {
+        if (apiFieldFilter != null) {
+            if (apiFieldFilter.isDefinitionExcluded()) {
                 query.fields().exclude("definition");
             }
-            if (apiFieldExclusionFilter.isPictureExcluded()) {
+            if (apiFieldFilter.isPictureExcluded()) {
                 query.fields().exclude("picture");
                 query.fields().exclude("background");
             }

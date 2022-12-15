@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -103,7 +103,7 @@ public class ApiService_DeleteTagsTest {
         apiDefinition.setTags(new HashSet<>(apiEntity.getTags()));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), isA(ApiFieldExclusionFilter.class))).thenReturn(List.of(api));
+        when(apiRepository.search(any(), isA(ApiFieldFilter.class))).thenReturn(List.of(api));
         when(apiRepository.findById(any())).thenReturn(Optional.of(api));
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any(RoleScope.class))).thenReturn(new RoleEntity());

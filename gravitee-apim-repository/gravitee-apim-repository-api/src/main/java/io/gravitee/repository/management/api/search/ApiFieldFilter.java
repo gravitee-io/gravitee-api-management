@@ -21,21 +21,21 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiFieldExclusionFilter {
+public class ApiFieldFilter {
 
-    public static ApiFieldExclusionFilter noExclusion() {
-        return new ApiFieldExclusionFilter();
+    public static ApiFieldFilter allFields() {
+        return new ApiFieldFilter();
     }
 
     private final boolean definitionExcluded;
     private final boolean pictureExcluded;
 
-    private ApiFieldExclusionFilter() {
+    private ApiFieldFilter() {
         this.definitionExcluded = false;
         this.pictureExcluded = false;
     }
 
-    private ApiFieldExclusionFilter(ApiFieldExclusionFilter.Builder builder) {
+    private ApiFieldFilter(ApiFieldFilter.Builder builder) {
         this.definitionExcluded = builder.excludeDefinition;
         this.pictureExcluded = builder.excludePicture;
     }
@@ -51,8 +51,8 @@ public class ApiFieldExclusionFilter {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ApiFieldExclusionFilter)) return false;
-        ApiFieldExclusionFilter that = (ApiFieldExclusionFilter) o;
+        if (!(o instanceof ApiFieldFilter)) return false;
+        ApiFieldFilter that = (ApiFieldFilter) o;
         return definitionExcluded == that.definitionExcluded && pictureExcluded == that.pictureExcluded;
     }
 
@@ -66,18 +66,18 @@ public class ApiFieldExclusionFilter {
         private boolean excludeDefinition;
         private boolean excludePicture;
 
-        public ApiFieldExclusionFilter.Builder excludeDefinition() {
+        public ApiFieldFilter.Builder excludeDefinition() {
             this.excludeDefinition = true;
             return this;
         }
 
-        public ApiFieldExclusionFilter.Builder excludePicture() {
+        public ApiFieldFilter.Builder excludePicture() {
             this.excludePicture = true;
             return this;
         }
 
-        public ApiFieldExclusionFilter build() {
-            return new ApiFieldExclusionFilter(this);
+        public ApiFieldFilter build() {
+            return new ApiFieldFilter(this);
         }
     }
 }

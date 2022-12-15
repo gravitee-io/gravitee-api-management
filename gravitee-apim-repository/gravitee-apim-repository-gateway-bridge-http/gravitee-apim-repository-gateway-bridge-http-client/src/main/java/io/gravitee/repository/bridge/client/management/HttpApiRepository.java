@@ -20,7 +20,7 @@ import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
@@ -62,22 +62,17 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     }
 
     @Override
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         try {
             return blockingGet(
                 get("/apis", BodyCodecs.list(Api.class))
-                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinitionExcluded()))
-                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPictureExcluded()))
+                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldFilter.isDefinitionExcluded()))
+                    .addQueryParam("excludePicture", Boolean.toString(apiFieldFilter.isPictureExcluded()))
                     .send()
             )
                 .payload();

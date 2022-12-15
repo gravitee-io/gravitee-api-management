@@ -19,7 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
@@ -87,20 +87,15 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldExclusionFilter);
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter);
         final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
         return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldFilter);
         return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
     }
 

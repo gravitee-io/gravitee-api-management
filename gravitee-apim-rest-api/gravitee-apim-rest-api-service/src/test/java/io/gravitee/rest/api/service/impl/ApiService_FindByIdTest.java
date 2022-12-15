@@ -25,7 +25,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.*;
@@ -180,7 +180,7 @@ public class ApiService_FindByIdTest {
 
         when(membershipService.getMembersByReferencesAndRole(any(), any(), any(), any())).thenReturn(Set.of(mock(MemberEntity.class)));
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
-        when(apiRepository.search(any(), isA(ApiFieldExclusionFilter.class))).thenReturn(Arrays.asList(api));
+        when(apiRepository.search(any(), isA(ApiFieldFilter.class))).thenReturn(Arrays.asList(api));
 
         final Set<ApiEntity> apiEntities = apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID));
 
@@ -194,6 +194,6 @@ public class ApiService_FindByIdTest {
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
-        verify(apiRepository, times(0)).search(any(), isA(ApiFieldExclusionFilter.class));
+        verify(apiRepository, times(0)).search(any(), isA(ApiFieldFilter.class));
     }
 }

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
@@ -96,7 +96,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
     protected void fixApis(ExecutionContext executionContext) throws Exception {
         for (Api api : apiRepository.search(
             new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-            ApiFieldExclusionFilter.noExclusion()
+            ApiFieldFilter.allFields()
         )) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
