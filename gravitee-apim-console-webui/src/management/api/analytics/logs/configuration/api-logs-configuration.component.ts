@@ -18,6 +18,7 @@ import { StateService } from '@uirouter/angular';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { isEmpty } from 'lodash';
 
 import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './api-logs-configuration';
 
@@ -77,7 +78,6 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
         tap((api) => {
           this.api = api;
           this.initForm(api);
-          this.onEnabledChanges();
           this.cdr.detectChanges();
         }),
       )
@@ -135,7 +135,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
             },
           };
 
-          if (configurationValues.condition != null && configurationValues.condition.trim() === '') {
+          if (isEmpty(configurationValues.condition?.trim())) {
             delete updatedApi.proxy.logging.condition;
           }
 
@@ -177,5 +177,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       scope: this.scope,
     });
     this.defaultConfiguration = this.logsConfigurationForm.getRawValue();
+
+    this.onEnabledChanges();
   }
 }
