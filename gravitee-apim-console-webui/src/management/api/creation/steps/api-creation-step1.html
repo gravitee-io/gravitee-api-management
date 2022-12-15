@@ -17,11 +17,12 @@
 -->
 <md-step label="General" md-complete="$ctrl.parent.vm.stepData[0].data.completed">
   <md-step-body>
-    <md-content layout-padding class="gv-creation-general-content gv-creation-content">
-      <div ng-if="$ctrl.canUseAdvancedMode()" layout="row" layout-align="end start">
-        <a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a>
-      </div>
-      <form name="apiGeneralForm" ng-submit="$ctrl.parent.validFirstStep($ctrl.parent.vm.stepData[0].data)">
+    <form name="apiGeneralForm" ng-submit="$ctrl.parent.validFirstStep($ctrl.parent.vm.stepData[0].data)">
+      <md-content layout-padding class="gv-creation-general-content gv-creation-content">
+        <div ng-if="$ctrl.canUseAdvancedMode()" layout="row" layout-align="end start">
+          <a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a>
+        </div>
+
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
@@ -118,16 +119,15 @@
             <div class="hint">Groups that will be able to access the API.</div>
           </md-input-container>
         </div>
-
-        <md-step-actions layout="row">
-          <div flex>
-            <md-button ng-click="$ctrl.parent.moveToPreviousStep()">CANCEL</md-button>
-          </div>
-          <div layout="row" flex layout-align="end top">
-            <md-button type="submit" ng-disabled="apiGeneralForm.$invalid">NEXT</md-button>
-          </div>
-        </md-step-actions>
-      </form>
-    </md-content>
+      </md-content>
+      <md-step-actions layout="row">
+        <div flex>
+          <md-button ng-click="$ctrl.parent.moveToPreviousStep()">CANCEL</md-button>
+        </div>
+        <div layout="row" flex layout-align="end top">
+          <md-button type="submit" ng-disabled="apiGeneralForm.$invalid">NEXT</md-button>
+        </div>
+      </md-step-actions>
+    </form>
   </md-step-body>
 </md-step>
