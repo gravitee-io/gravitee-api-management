@@ -38,6 +38,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -119,7 +120,7 @@ public class ApiSearchServiceImplTest {
     private WorkflowService workflowService;
 
     @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
+    private CategoryMapper categoryMapper = new CategoryMapper(categoryService);
 
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
@@ -296,16 +297,24 @@ public class ApiSearchServiceImplTest {
         api.setId(API_ID);
         api.setEnvironmentId("DEFAULT");
         api.setDefinitionVersion(DefinitionVersion.V2);
+        api.setCategories(Set.of("cat1", "cat2"));
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
         when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
-
+        CategoryEntity category1 = new CategoryEntity();
+        category1.setId("cat1");
+        category1.setKey("category1");
+        CategoryEntity category2 = new CategoryEntity();
+        category2.setId("cat2");
+        category2.setKey("category2");
+        when(categoryService.findAll("DEFAULT")).thenReturn(List.of(category1, category2));
         final GenericApiEntity indexableApi = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
         assertThat(indexableApi).isNotNull();
         assertThat(indexableApi).isInstanceOf(io.gravitee.rest.api.model.api.ApiEntity.class);
+        assertThat(indexableApi.getCategories()).isEqualTo(Set.of("category1", "category2"));
     }
 
     @Test(expected = ApiNotFoundException.class)
