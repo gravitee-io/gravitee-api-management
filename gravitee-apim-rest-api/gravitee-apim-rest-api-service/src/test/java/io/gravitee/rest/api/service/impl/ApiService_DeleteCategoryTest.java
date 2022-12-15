@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
@@ -66,7 +67,8 @@ public class ApiService_DeleteCategoryTest {
         secondOrphan.setId(UuidString.generateRandom());
         secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build())).thenReturn(List.of(firstOrphan, secondOrphan));
+        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldExclusionFilter.noExclusion()))
+            .thenReturn(List.of(firstOrphan, secondOrphan));
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 

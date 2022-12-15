@@ -20,6 +20,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
@@ -51,7 +52,10 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
 
         verify(apiRepository, times(1))
-            .search(argThat(criteria -> criteria.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())));
+            .search(
+                argThat(criteria -> criteria.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
+                isA(ApiFieldExclusionFilter.class)
+            );
     }
 
     @Test(expected = AlertNotFoundException.class)
@@ -90,7 +94,7 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         final Api mock = mock(Api.class);
         final List<Api> apis = List.of(mock);
         when(mock.getId()).thenReturn(UUID.randomUUID().toString());
-        when(apiRepository.search(any())).thenReturn(apis);
+        when(apiRepository.search(any(), isA(ApiFieldExclusionFilter.class))).thenReturn(apis);
 
         alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
     }

@@ -28,6 +28,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.AccessControl;
@@ -153,7 +154,8 @@ public class GroupService_DeleteTest {
 
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build()
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
+                ApiFieldExclusionFilter.noExclusion()
             )
         )
             .thenReturn(Collections.emptyList());
@@ -229,7 +231,8 @@ public class GroupService_DeleteTest {
 
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build()
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
+                ApiFieldExclusionFilter.noExclusion()
             )
         )
             .thenReturn(Collections.emptyList());

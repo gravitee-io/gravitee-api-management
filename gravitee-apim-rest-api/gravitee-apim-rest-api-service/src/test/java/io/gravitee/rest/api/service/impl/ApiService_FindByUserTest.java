@@ -30,6 +30,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -133,7 +134,12 @@ public class ApiService_FindByUserTest {
 
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build(),
+                ApiFieldExclusionFilter.noExclusion()
+            )
+        )
             .thenReturn(singletonList(api));
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
@@ -221,7 +227,12 @@ public class ApiService_FindByUserTest {
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(new HashSet<>(Arrays.asList(membership1, membership2)));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build(),
+                ApiFieldExclusionFilter.noExclusion()
+            )
+        )
             .thenReturn(singletonList(api1));
 
         RoleEntity poRole = new RoleEntity();

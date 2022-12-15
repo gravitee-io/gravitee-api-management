@@ -214,7 +214,12 @@ public class ApiService_SearchTest {
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), any(Query.class))).thenReturn(searchResult);
 
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build(),
+                ApiFieldExclusionFilter.noExclusion()
+            )
+        )
             .thenReturn(Arrays.asList(api3, api1, api2));
 
         RoleEntity poRole = new RoleEntity();
