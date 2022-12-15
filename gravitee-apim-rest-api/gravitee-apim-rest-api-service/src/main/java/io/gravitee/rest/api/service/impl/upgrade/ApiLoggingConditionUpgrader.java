@@ -96,7 +96,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
     protected void fixApis(ExecutionContext executionContext) throws Exception {
         for (Api api : apiRepository.search(
             new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-            ApiFieldFilter.allFields()
+            new ApiFieldFilter.Builder().excludePicture().build()
         )) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
