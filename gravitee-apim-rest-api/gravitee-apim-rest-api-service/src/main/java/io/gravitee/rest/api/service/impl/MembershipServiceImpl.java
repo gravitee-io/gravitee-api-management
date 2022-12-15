@@ -32,8 +32,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
@@ -844,7 +843,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Metadata metadata = new Metadata();
             if (type.equals(MembershipReferenceType.API)) {
                 ApiCriteria.Builder criteria = new ApiCriteria.Builder();
-                ApiFieldExclusionFilter filter = (new ApiFieldExclusionFilter.Builder()).excludeDefinition().excludePicture().build();
+                ApiFieldFilter filter = (new ApiFieldFilter.Builder()).excludeDefinition().excludePicture().build();
                 criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
                 apiRepository
                     .search(criteria.build(), filter)

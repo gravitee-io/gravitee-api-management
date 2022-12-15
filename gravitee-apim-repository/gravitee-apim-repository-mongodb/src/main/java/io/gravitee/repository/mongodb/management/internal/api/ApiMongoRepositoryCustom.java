@@ -17,7 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -29,7 +29,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiMongoRepositoryCustom {
-    Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
+    Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
 
     /**
      * Find ids of APIs matching the given criteria.

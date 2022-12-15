@@ -30,7 +30,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -158,7 +158,7 @@ public class ApiService_SearchTest {
                 eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()),
                 any(),
                 any(),
-                eq(new ApiFieldExclusionFilter.Builder().excludePicture().build())
+                eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
         )
             .thenReturn(page);
@@ -217,7 +217,7 @@ public class ApiService_SearchTest {
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build(),
-                ApiFieldExclusionFilter.noExclusion()
+                ApiFieldFilter.allFields()
             )
         )
             .thenReturn(Arrays.asList(api3, api1, api2));

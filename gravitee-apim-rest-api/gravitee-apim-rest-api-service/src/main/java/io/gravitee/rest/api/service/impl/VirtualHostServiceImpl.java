@@ -19,17 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
-import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostNullHostException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -85,7 +83,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
         // Get all the API of the currentEnvironment, except the one to update
         Set<ApiEntity> apis = apiRepository
-            .search(null, ApiFieldExclusionFilter.noExclusion())
+            .search(null, ApiFieldFilter.allFields())
             .stream()
             .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(executionContext.getEnvironmentId()))
             .map(this::convert)

@@ -54,7 +54,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -1085,7 +1085,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             .environmentId(executionContext.getEnvironmentId())
                             .visibility(Visibility.valueOf(visibility.name()))
                             .build(),
-                        ApiFieldExclusionFilter.noExclusion()
+                        ApiFieldFilter.allFields()
                     )
                 )
             );
@@ -1104,7 +1104,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     executionContext,
                     apiRepository.search(
                         new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        ApiFieldExclusionFilter.noExclusion()
+                        ApiFieldFilter.allFields()
                     )
                 )
             );
@@ -1122,7 +1122,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return Collections.emptySet();
             }
             ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
-            return new HashSet<>(convert(executionContext, apiRepository.search(criteria, ApiFieldExclusionFilter.noExclusion())));
+            return new HashSet<>(convert(executionContext, apiRepository.search(criteria, ApiFieldFilter.allFields())));
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
             throw new TechnicalManagementException("An error occurs while trying to find APIs by environment and ids", e);
@@ -1136,16 +1136,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 "Find all APIs without some fields (definition, picture...) for environment {}",
                 executionContext.getEnvironmentId()
             );
-            final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
+            final ApiFieldFilter.Builder apiFieldFilterBuilder = new ApiFieldFilter.Builder().excludePicture();
             if (excludeDefinition) {
-                exclusionFilterBuilder.excludeDefinition();
+                apiFieldFilterBuilder.excludeDefinition();
             }
             return new HashSet<>(
                 convert(
                     executionContext,
                     apiRepository.search(
                         new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        exclusionFilterBuilder.build()
+                        apiFieldFilterBuilder.build()
                     )
                 )
             );
@@ -1366,10 +1366,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (groupIds.length > 0) {
-            return apiRepository.search(
-                queryToCriteria(executionContext, apiQuery).groups(groupIds).build(),
-                ApiFieldExclusionFilter.noExclusion()
-            );
+            return apiRepository.search(queryToCriteria(executionContext, apiQuery).groups(groupIds).build(), ApiFieldFilter.allFields());
         }
 
         return List.of();
@@ -1421,7 +1418,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (poGroupIds.length > 0) {
             return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), ApiFieldExclusionFilter.noExclusion())
+                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), ApiFieldFilter.allFields())
                 .stream()
                 .filter(
                     api -> {
@@ -2523,7 +2520,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
         apiRepository
-            .search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldExclusionFilter.noExclusion())
+            .search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldFilter.allFields())
             .forEach(api -> removeCategory(executionContext, api, categoryId));
     }
 
@@ -2676,7 +2673,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     queryToCriteria(executionContext, query).build(),
                     convert(sortable),
                     convert(pageable),
-                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                    new ApiFieldFilter.Builder().excludePicture().build()
                 )
             );
         } catch (TechnicalException ex) {
@@ -2710,7 +2707,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 query.setIds(targetIds);
             }
 
-            List<Api> apis = apiRepository.search(queryToCriteria(executionContext, query).build(), ApiFieldExclusionFilter.noExclusion());
+            List<Api> apis = apiRepository.search(queryToCriteria(executionContext, query).build(), ApiFieldFilter.allFields());
             return this.convert(executionContext, apis);
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
@@ -3580,10 +3577,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ? emptyList()
             : convert(
                 executionContext,
-                apiRepository.search(
-                    queryToCriteria(executionContext, null).ids(subsetApiIds).build(),
-                    ApiFieldExclusionFilter.noExclusion()
-                )
+                apiRepository.search(queryToCriteria(executionContext, null).ids(subsetApiIds).build(), ApiFieldFilter.allFields())
             );
         subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
@@ -3725,7 +3719,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         List<Api> apis = apiRepository.search(
             new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(),
-            new ApiFieldExclusionFilter.Builder().excludePicture().excludeDefinition().build()
+            new ApiFieldFilter.Builder().excludePicture().excludeDefinition().build()
         );
 
         return apis

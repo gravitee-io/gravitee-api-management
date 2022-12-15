@@ -172,19 +172,14 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         final List<Api> apis = findByCriteria(apiCriteria, sortable, null);
         return getResultAsPage(pageable, apis);
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, null, apiFieldExclusionFilter);
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        return findByCriteria(apiCriteria, null, apiFieldFilter);
     }
 
     @Override
@@ -358,7 +353,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
         final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
             CHILD_ADDER,
@@ -370,10 +365,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
             "a.visibility, a.lifecycle_state, a.api_lifecycle_state";
 
-        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinitionExcluded()) {
+        if (apiFieldFilter == null || !apiFieldFilter.isDefinitionExcluded()) {
             projection += ", a.definition";
         }
-        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isPictureExcluded()) {
+        if (apiFieldFilter == null || !apiFieldFilter.isPictureExcluded()) {
             projection += ", a.picture, a.background";
         }
 
