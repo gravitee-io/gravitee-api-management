@@ -43,6 +43,7 @@ import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.AlertTrigger;
@@ -429,7 +430,10 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
             if (referenceType == API) {
                 apiRepository
-                    .search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build())
+                    .search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        ApiFieldExclusionFilter.noExclusion()
+                    )
                     .stream()
                     .map(Api::getId)
                     .forEach(

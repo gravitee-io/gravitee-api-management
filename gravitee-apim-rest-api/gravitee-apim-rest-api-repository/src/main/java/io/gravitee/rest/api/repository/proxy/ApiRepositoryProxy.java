@@ -68,11 +68,6 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria) {
-        return target.search(apiCriteria);
-    }
-
-    @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return target.search(apiCriteria, apiFieldExclusionFilter);
     }

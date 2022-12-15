@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -149,7 +150,7 @@ public class ApiLoggingConditionUpgraderTest {
         Api apiBooleanCondition = new Api();
         apiBooleanCondition.setId("api6");
         apiBooleanCondition.setDefinition("{\"proxy\": {\"logging\": {\"condition\": \"true\"}}}");
-        when(apiRepository.search(any()))
+        when(apiRepository.search(any(), isA(ApiFieldExclusionFilter.class)))
             .thenReturn(
                 List.of(
                     apiEmpty,

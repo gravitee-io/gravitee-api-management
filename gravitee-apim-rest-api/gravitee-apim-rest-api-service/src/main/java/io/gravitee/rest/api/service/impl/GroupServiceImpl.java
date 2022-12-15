@@ -419,7 +419,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
-                    .search(null)
+                    .search(null, ApiFieldExclusionFilter.noExclusion())
                     .forEach(
                         new Consumer<Api>() {
                             @Override
@@ -576,7 +576,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove all applications or apis
             Date updatedDate = new Date();
             apiRepository
-                .search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build())
+                .search(
+                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                    ApiFieldExclusionFilter.noExclusion()
+                )
                 .forEach(
                     api -> {
                         api.getGroups().remove(groupId);
