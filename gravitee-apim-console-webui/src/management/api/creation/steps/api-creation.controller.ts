@@ -270,6 +270,7 @@ class ApiCreationController {
     if (deployAndStart) {
       this.api.lifecycle_state = 'PUBLISHED';
     }
+
     this.ApiService.import(null, this.api, this.api.gravitee, false)
       .then((api) => {
         this.vm.showBusyText = false;
@@ -288,7 +289,8 @@ class ApiCreationController {
       })
       .then((api) => {
         if (deployAndStart) {
-          this.ApiService.deploy(api.data.id).then(() => {
+          this.ApiService.deploy(api.data.id).then((response) => {
+            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.ApiService.start(api.data).then(() => {
               this.NotificationService.show('API created, deployed and started');
               this.$state.go('management.apis.detail.portal.general', { apiId: api.data.id });
