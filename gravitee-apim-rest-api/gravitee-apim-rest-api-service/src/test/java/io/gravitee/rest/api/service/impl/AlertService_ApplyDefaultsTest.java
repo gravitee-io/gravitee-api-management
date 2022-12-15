@@ -19,8 +19,11 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
@@ -49,13 +52,16 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
 
         when(alertTriggerRepository.findById("my-alert")).thenReturn(Optional.of(alertTrigger));
 
-        alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
+        when(
+            apiRepository.searchIds(
+                argThat(criteria -> criteria.get(0).getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
+                any(Pageable.class),
+                isNull()
+            )
+        )
+            .thenReturn(new Page<>(null, 0, 1, 0));
 
-        verify(apiRepository, times(1))
-            .search(
-                argThat(criteria -> criteria.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
-                isA(ApiFieldFilter.class)
-            );
+        alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
     }
 
     @Test(expected = AlertNotFoundException.class)
@@ -91,10 +97,8 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
-        final Api mock = mock(Api.class);
-        final List<Api> apis = List.of(mock);
-        when(mock.getId()).thenReturn(UUID.randomUUID().toString());
-        when(apiRepository.search(any(), isA(ApiFieldFilter.class))).thenReturn(apis);
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull()))
+            .thenReturn(new Page<>(List.of(UUID.randomUUID().toString()), 0, 1, 1));
 
         alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
     }

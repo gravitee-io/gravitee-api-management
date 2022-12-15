@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.alert.AlertReferenceType.API;
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
 import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ORGANIZATION;
+import static io.gravitee.rest.api.service.impl.AbstractService.convert;
 import static java.util.Comparator.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -51,6 +52,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
@@ -429,41 +431,45 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             }
 
             if (referenceType == API) {
-                apiRepository
-                    .search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        ApiFieldFilter.allFields()
+                List<String> apiIds = apiRepository
+                    .searchIds(
+                        List.of(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build()),
+                        convert(new PageableImpl(0, Integer.MAX_VALUE)),
+                        null
                     )
-                    .stream()
-                    .map(Api::getId)
-                    .forEach(
-                        apiId -> {
-                            try {
-                                boolean create = alertTriggerRepository
-                                    .findByReferenceAndReferenceId(API.name(), apiId)
-                                    .stream()
-                                    .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
+                    .getContent();
+                if (apiIds != null) {
+                    apiIds
+                        .stream()
+                        .forEach(
+                            apiId -> {
+                                try {
+                                    boolean create = alertTriggerRepository
+                                        .findByReferenceAndReferenceId(API.name(), apiId)
+                                        .stream()
+                                        .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
 
-                                if (create) {
-                                    AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(alert);
-                                    AlertTriggerEntity triggerEntity = alertTriggerConverter.toAlertTriggerEntity(trigger);
-                                    triggerEntity.setId(UUID.toString(UUID.random()));
-                                    triggerEntity.setReferenceType(API);
-                                    triggerEntity.setReferenceId(apiId);
-                                    triggerEntity.setTemplate(false);
-                                    triggerEntity.setEnabled(true);
-                                    triggerEntity.setEventRules(null);
-                                    triggerEntity.setParentId(alertId);
-                                    triggerEntity.setCreatedAt(new Date());
-                                    triggerEntity.setUpdatedAt(trigger.getCreatedAt());
+                                    if (create) {
+                                        AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(alert);
+                                        AlertTriggerEntity triggerEntity = alertTriggerConverter.toAlertTriggerEntity(trigger);
+                                        triggerEntity.setId(UUID.toString(UUID.random()));
+                                        triggerEntity.setReferenceType(API);
+                                        triggerEntity.setReferenceId(apiId);
+                                        triggerEntity.setTemplate(false);
+                                        triggerEntity.setEnabled(true);
+                                        triggerEntity.setEventRules(null);
+                                        triggerEntity.setParentId(alertId);
+                                        triggerEntity.setCreatedAt(new Date());
+                                        triggerEntity.setUpdatedAt(trigger.getCreatedAt());
 
-                                    create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
+                                        create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
+                                    }
+                                } catch (TechnicalException te) {
+                                    LOGGER.error("Unable to create default alert for API {}", apiId, te);
                                 }
-                            } catch (TechnicalException te) {
-                                LOGGER.error("Unable to create default alert for API {}", apiId, te);
                             }
-                        }
-                    );
+                        );
+                }
             }
         } catch (TechnicalException te) {
             final String msg = "An error occurs while trying to apply template alert " + alertId;
