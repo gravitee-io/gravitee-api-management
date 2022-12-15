@@ -114,7 +114,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
 
         int page = 0;
         int size = 100;
-        Pageable pageable = new PageableBuilder().pageNumber(page).pageNumber(size).build();
+        Pageable pageable = new PageableBuilder().pageNumber(page).pageSize(size).build();
         Sortable sortable = new SortableBuilder().field("updated_at").order(Order.DESC).build();
 
         List<String> apiIds = apiRepository
@@ -123,7 +123,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
 
         while (!apiIds.isEmpty()) {
             corruptedApiIds.addAll(findCorruptedApiIds(apiPrimaryOwnerRoleId, apiIds));
-            pageable = new PageableBuilder().pageNumber(page++).pageNumber(size).build();
+            pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
             apiIds =
                 apiRepository
                     .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
