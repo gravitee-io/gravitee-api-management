@@ -28,7 +28,6 @@ import static org.junit.Assert.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Order;
@@ -396,46 +395,6 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
-    }
-
-    @Test
-    public void shouldOnlyIncludeRequiredAndDefaultFields() {
-        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
-
-        Set<Api> apis = apiRepository.search(criteria, filter);
-        assertNotNull(apis);
-        assertFalse(apis.isEmpty());
-        assertEquals(3, apis.size());
-
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
-        assertTrue(apis.stream().map(Api::getName).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getDefinition).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getPicture).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getBackground).anyMatch(Objects::isNull));
-
-        List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
-        assertTrue(categories.contains("category-1"));
-    }
-
-    @Test
-    public void shouldNotIncludeCategories() {
-        ApiCriteria criteria = new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().build();
-
-        Set<Api> apis = apiRepository.search(criteria, filter);
-        assertNotNull(apis);
-        assertFalse(apis.isEmpty());
-        assertEquals(3, apis.size());
-
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api", "big-name")));
-        assertTrue(apis.stream().map(Api::getName).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getDefinition).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getPicture).anyMatch(Objects::isNull));
-        assertTrue(apis.stream().map(Api::getBackground).anyMatch(Objects::isNull));
-
-        List<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toList());
-        assertEquals(0, categories.size());
     }
 
     @Test

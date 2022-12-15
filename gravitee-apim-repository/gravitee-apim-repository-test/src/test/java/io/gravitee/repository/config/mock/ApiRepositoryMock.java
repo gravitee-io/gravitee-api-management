@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -216,17 +215,6 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         Api bigNameApiProjection = Mockito.mock(Api.class);
         when(bigNameApiProjection.getId()).thenReturn("big-name");
-
-        when(apiRepository.search(any(), argThat((ApiFieldInclusionFilter filter) -> null != filter && filter.hasCategories())))
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
-
-        when(
-            apiRepository.search(
-                any(),
-                argThat((ApiFieldInclusionFilter filter) -> null != filter && Boolean.FALSE.equals(filter.hasCategories()))
-            )
-        )
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
 
         Set<String> categories = new LinkedHashSet<>();
         categories.add("category-1");

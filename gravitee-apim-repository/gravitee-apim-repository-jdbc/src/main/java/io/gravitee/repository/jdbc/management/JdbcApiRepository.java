@@ -22,7 +22,6 @@ import static org.springframework.util.StringUtils.hasText;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.Api;
@@ -186,33 +185,6 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return findByCriteria(apiCriteria, null, apiFieldExclusionFilter);
-    }
-
-    @Override
-    public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        final StringBuilder sbQuery = new StringBuilder("select a.id");
-
-        if (apiFieldInclusionFilter.hasCategories()) {
-            sbQuery.append(", ac.*");
-        }
-
-        sbQuery.append(" from ").append(this.tableName).append(" a ");
-
-        if (apiFieldInclusionFilter.hasCategories()) {
-            sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
-        }
-
-        addCriteriaClauses(sbQuery, apiCriteria);
-
-        final JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            apiFieldInclusionFilter.hasCategories() ? CHILD_ADDER : (Api parent, ResultSet rs) -> {},
-            "id"
-        );
-
-        List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
-
-        return new HashSet<>(apis);
     }
 
     @Override
