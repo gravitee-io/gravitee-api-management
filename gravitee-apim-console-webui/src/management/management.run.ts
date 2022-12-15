@@ -250,7 +250,7 @@ function runBlock(
   $transitions.onSuccess({}, function (trans) {
     const toState = trans.to();
     const useAngularMaterial = toState.data && toState.data.useAngularMaterial;
-    const mainContainer = angular.element(document.querySelector('.gv-main-container, .gravitee-no-sidenav-container'));
+    const mainContainer = angular.element(document.querySelector('.gravitee-no-sidenav-container, .gv-sub-content'));
     if (useAngularMaterial) {
       mainContainer.removeClass('bootstrap');
     } else {
