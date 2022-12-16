@@ -17,16 +17,16 @@
 -->
 <div class="api-navigation">
   <div class="api-navigation__menu">
-    <api-navigation-title
-      *ngIf="hasTitle"
-      [apiName]="this.apiName"
-      [apiVersion]="this.apiVersion"
-      [apiState]="this.apiState"
-      [apiLifecycleState]="this.apiLifecycleState"
-      [apiIsSync]="this.apiIsSync"
-      [apiOrigin]="this.apiOrigin"
-    ></api-navigation-title>
     <gio-submenu class="api-navigation__submenu">
+      <api-navigation-title
+        gioSubmenuTitle
+        [apiName]="this.apiName"
+        [apiVersion]="this.apiVersion"
+        [apiState]="this.apiState"
+        [apiLifecycleState]="this.apiLifecycleState"
+        [apiIsSync]="this.apiIsSync"
+        [apiOrigin]="this.apiOrigin"
+      ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <gio-submenu-item
           *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"

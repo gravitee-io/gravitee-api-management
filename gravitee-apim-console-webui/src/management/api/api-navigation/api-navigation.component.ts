@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
 
@@ -43,7 +40,7 @@ interface GroupItem {
   template: require('./api-navigation.component.html'),
   styles: [require('./api-navigation.component.scss')],
 })
-export class ApiNavigationComponent implements OnInit, OnDestroy {
+export class ApiNavigationComponent implements OnInit {
   @Input()
   public apiName: string;
   @Input()
@@ -60,22 +57,16 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public subMenuItems: MenuItem[] = [];
   public groupItems: GroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
-  public hasTitle = true;
-  private unsubscribe$ = new Subject();
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
-    private readonly gioMenuService: GioMenuService,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
-      this.hasTitle = !reduced;
-    });
     this.subMenuItems.push({
       displayName: 'Design',
       targetRoute: 'management.apis.detail.design.policies',
@@ -98,11 +89,6 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.selectedItemWithTabs = this.findMenuItemWithTabs();
     });
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
   }
 
   private appendPortalGroup() {
