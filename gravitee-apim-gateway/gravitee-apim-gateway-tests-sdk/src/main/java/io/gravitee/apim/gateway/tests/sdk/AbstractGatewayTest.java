@@ -27,6 +27,7 @@ import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -42,6 +43,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApplicationContextAware {
 
     private int wiremockHttpsPort;
@@ -133,9 +137,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * Here we inject Vertx parameter even if it's not use:
      * when implementing the test cases, the developer will need a {@link io.vertx.ext.web.client.WebClient}, which is automatically resolved as a parameter if Vertx has already been resolved.
      * Injecting it in the BeforeEach at abstract class level allows to automatically inject it to ease the life of the developer.
-     *
+     * <p>
      * Ensure the testContext is completed before starting a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
      * Update endpoints for each apis deployed for the whole test class, see {@link AbstractGatewayTest#updateEndpointsOnDeployedApisForClassIfNeeded()}
+     * </p>
      * @param vertx this parameter is only used to let the VertxExtension initialize it. It will allow to use WebClient directly.
      * @param testContext
      */
@@ -255,7 +260,6 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     /**
      * Override api endpoints to replace port by the configured wiremock port.
-     * Only valid for API Definition versions 1.0.0 and 2.0.0
      * @param reactableApi is the api to override
      */
     private void updateEndpoints(ReactableApi<?> reactableApi) {
@@ -267,6 +271,33 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
                     final int port = endpoint.getTarget().contains("https") ? wiremockHttpsPort : wiremockPort;
                     endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
                 }
+            }
+        }
+
+        if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api) {
+            var api = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
+            var httpProxyEndpoints = api
+                .getEndpointGroups()
+                .stream()
+                .flatMap(eg -> eg.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getType().equals("http-proxy"))
+                .collect(Collectors.toList());
+
+            httpProxyEndpoints.forEach(
+                endpoint -> {
+                    var port = endpoint.getConfiguration().contains("https") ? wiremockHttpsPort : wiremockPort;
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(port)));
+                }
+            );
+
+            if (!httpProxyEndpoints.isEmpty()) {
+                // Workaround to re-deploy the api to update endpoint config:
+                // For the V4 apis, endpoints are connectors, they are instantiated at deployment time, meaning the
+                // configuration cannot be changed after deployment.
+                var manager = applicationContext.getBean(ApiManager.class);
+                manager.unregister(reactableApi.getId());
+                manager.register(reactableApi);
+                log.info("Redeploy api '{}' after overriding http-proxy endpoint port", api.getId());
             }
         }
     }
