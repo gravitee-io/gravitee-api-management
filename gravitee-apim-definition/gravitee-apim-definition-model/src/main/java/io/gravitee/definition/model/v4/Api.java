@@ -117,4 +117,8 @@ public class Api implements Serializable {
             this.plans = null;
         }
     }
+
+    public static ApiBuilder builder() {
+        return new ApiBuilder();
+    }
 }
