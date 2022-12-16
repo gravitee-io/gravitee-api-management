@@ -44,6 +44,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.*;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
@@ -239,5 +240,20 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
             )
         )
             .thenReturn(new Page<>(List.of("api-to-update", "api-to-delete"), 0, 2, 4));
+
+        when(apiRepository.search(null, null, ApiFieldFilter.allFields(), 2))
+            .thenReturn(
+                Stream.of(
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class)
+                )
+            );
     }
 }

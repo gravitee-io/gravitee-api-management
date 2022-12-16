@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -33,6 +34,7 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,6 +182,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         return findByCriteria(apiCriteria, null, apiFieldFilter);
+    }
+
+    @Override
+    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+        // As in JDBC, we do not paginate, we can not use the batch size
+        return findByCriteria(apiCriteria, sortable, apiFieldFilter).stream();
     }
 
     @Override

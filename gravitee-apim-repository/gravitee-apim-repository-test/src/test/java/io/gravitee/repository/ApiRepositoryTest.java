@@ -23,11 +23,13 @@ import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Order;
@@ -37,6 +39,8 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import org.junit.Test;
 
@@ -457,5 +461,14 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
+    }
+
+    @Test
+    public void shouldStreamSearch() throws NoSuchFieldException, IllegalAccessException {
+        List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).collect(toList());
+
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(9, apis.size());
     }
 }

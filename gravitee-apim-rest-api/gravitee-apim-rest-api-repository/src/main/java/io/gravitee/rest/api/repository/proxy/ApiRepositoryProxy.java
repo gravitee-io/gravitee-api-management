@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,6 +65,11 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         return target.search(apiCriteria, apiFieldFilter);
+    }
+
+    @Override
+    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+        return target.search(apiCriteria, sortable, apiFieldFilter, batchSize);
     }
 
     @Override

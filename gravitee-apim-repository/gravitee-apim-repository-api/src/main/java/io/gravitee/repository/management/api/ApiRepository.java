@@ -17,14 +17,13 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,9 +32,18 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiRepository extends CrudRepository<Api, String> {
+    /* Default batch size for streamed search. Indeed, the streamed search calls the paginated search*/
+    int DEFAULT_STREAM_BATCH_SIZE = 100;
+
     Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
 
     List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter);
+
+    default Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
+        return search(apiCriteria, sortable, apiFieldFilter, DEFAULT_STREAM_BATCH_SIZE);
+    }
+
+    Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize);
 
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
