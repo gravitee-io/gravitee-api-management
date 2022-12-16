@@ -25,19 +25,20 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -45,6 +46,7 @@ import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mock.AbstractRepositoryMock;
 import java.util.*;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.mockito.Mockito;
 import org.mockito.internal.util.collections.Sets;
 
@@ -146,58 +148,55 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
         final List<Api> searchedApisAfterDeletion = asList(mock(Api.class), mock(Api.class), mock(Api.class));
-        when(apiRepository.search(null)).thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
-        when(apiRepository.search(new ApiCriteria.Builder().build()))
+        when(apiRepository.search(null, ApiFieldFilter.allFields()))
+            .thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
+        when(apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.allFields()))
             .thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()))
-            .thenReturn(asList(apiToUpdate, apiToDelete));
-
-        when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build()))
-            .thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
-
         when(
-            apiRepository.searchIds(
-                eq(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()),
-                eq(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build()),
-                eq(new ApiCriteria.Builder().groups(asList("api-group", "unknown")).build())
+            apiRepository.search(
+                new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
+                ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(asList("api-to-delete", "api-to-update", "big-name", "grouped-api"));
+            .thenReturn(asList(apiToUpdate, apiToDelete));
+
+        when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build(), ApiFieldFilter.allFields()))
+            .thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
 
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build(), ApiFieldFilter.allFields()))
+            .thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.allFields()))
+            .thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(), ApiFieldFilter.allFields()))
             .thenReturn(singletonList(apiToFindById));
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().build()
+                new ApiFieldFilter.Builder().excludeDefinition().build()
             )
         )
             .thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build())).thenReturn(singletonList(groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build(), ApiFieldFilter.allFields()))
+            .thenReturn(singletonList(groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), ApiFieldFilter.allFields()))
             .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build(), ApiFieldFilter.allFields()))
+            .thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build(), ApiFieldFilter.allFields()))
             .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById, groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build()))
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.allFields()))
             .thenReturn(asList(apiToFindById, groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(0).pageSize(2).build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById), 0, 2, 4));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToUpdate, groupedApi), 1, 2, 4));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build()))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.allFields()))
+            .thenReturn(asList(apiToFindById, groupedApi));
 
-        when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build(), ApiFieldFilter.allFields()))
             .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
 
-        when(apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build())).thenReturn(asList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build(), ApiFieldFilter.allFields()))
+            .thenReturn(asList(apiToFindById));
 
         Api apiToUpdateProjection = Mockito.mock(Api.class);
         when(apiToUpdateProjection.getId()).thenReturn("api-to-update");
@@ -212,24 +211,23 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         Api bigNameApiProjection = Mockito.mock(Api.class);
         when(bigNameApiProjection.getId()).thenReturn("big-name");
 
-        when(apiRepository.search(any(), argThat((ApiFieldInclusionFilter filter) -> null != filter && filter.hasCategories())))
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjection, bigNameApiProjection));
-
-        when(
-            apiRepository.search(
-                any(),
-                argThat((ApiFieldInclusionFilter filter) -> null != filter && Boolean.FALSE.equals(filter.hasCategories()))
-            )
-        )
-            .thenReturn(Set.of(apiToUpdateProjection, groupedApiProjectionWithoutCategory, bigNameApiProjection));
-
         Api v4Api = Mockito.mock(Api.class);
         when(v4Api.getId()).thenReturn("async-api");
         when(v4Api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
 
-        when(apiRepository.search(new ApiCriteria.Builder().definitionVersion(singletonList(DefinitionVersion.V4)).build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().definitionVersion(singletonList(DefinitionVersion.V4)).build(),
+                ApiFieldFilter.allFields()
+            )
+        )
             .thenReturn(List.of(v4Api));
-        when(apiRepository.search(new ApiCriteria.Builder().definitionVersion(singletonList(null)).environmentId("DEV").build()))
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().definitionVersion(singletonList(null)).environmentId("DEV").build(),
+                ApiFieldFilter.allFields()
+            )
+        )
             .thenReturn(asList(apiToDelete, apiBigName));
 
         Set<String> categories = new LinkedHashSet<>();
@@ -247,6 +245,47 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "searched-crossId2")).thenReturn(Optional.of(apiToFindByCrossId));
 
         when(apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId")).thenThrow(new TechnicalException("test exception"));
+
+        when(
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(2).build(),
+                null
+            )
+        )
+            .thenReturn(new Page<>(List.of("api-to-delete", "api-to-findById"), 0, 2, 4));
+        when(
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null
+            )
+        )
+            .thenReturn(new Page<>(List.of("api-to-update", "grouped-api"), 0, 2, 4));
+        when(
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build()
+            )
+        )
+            .thenReturn(new Page<>(List.of("api-to-update", "api-to-delete"), 0, 2, 4));
+
+        when(apiRepository.search(null, null, ApiFieldFilter.allFields(), 2))
+            .thenReturn(
+                Stream.of(
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class),
+                    mock(Api.class)
+                )
+            );
 
         when(apiRepository.findIdByEnvironmentIdAndCrossId("ENV6", "searched-crossId2")).thenReturn(Optional.of("crossId-api"));
         when(apiRepository.existById("api-to-delete")).thenReturn(true);

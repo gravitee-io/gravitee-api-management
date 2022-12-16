@@ -21,11 +21,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -37,6 +40,8 @@ import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -140,8 +145,8 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
+
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -252,8 +257,7 @@ public class ApiAuthorizationServiceImplTest {
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -303,8 +307,7 @@ public class ApiAuthorizationServiceImplTest {
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -359,8 +362,7 @@ public class ApiAuthorizationServiceImplTest {
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        when(apiRepository.searchIds(null, apiCriteria)).thenReturn(singletonList("api-1"));
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");

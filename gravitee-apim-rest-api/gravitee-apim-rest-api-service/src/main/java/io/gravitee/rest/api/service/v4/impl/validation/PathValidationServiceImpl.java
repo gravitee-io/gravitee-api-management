@@ -22,6 +22,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -31,10 +33,8 @@ import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -84,43 +84,48 @@ public class PathValidationServiceImpl implements PathValidationService {
         validateDomainRestrictions(sanitizedPaths, currentEnv.getDomainRestrictions());
 
         // Get all the paths declared on all API of the currentEnvironment, except the one to update
-        Set<Path> existingPaths = apiRepository
-            .search(null)
-            .stream()
-            .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(executionContext.getEnvironmentId()))
+        apiRepository
+            .search(
+                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+            .filter(api -> !api.getId().equals(apiId))
             .map(this::extractPaths)
             .filter(extractedPaths -> extractedPaths != null && !extractedPaths.isEmpty())
-            .flatMap(Collection::stream)
-            .collect(Collectors.toSet());
+            .forEach(
+                existingPaths -> {
+                    // Extract all paths with a host
+                    Map<String, List<String>> registeredPathWithHosts = existingPaths
+                        .stream()
+                        .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
+                        .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
 
-        // Extract all paths with a host
-        Map<String, List<String>> registeredPathWithHosts = existingPaths
-            .stream()
-            .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
-            .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
+                    // Check only paths with a host and compare to registered virtual hosts
+                    if (!registeredPathWithHosts.isEmpty()) {
+                        sanitizedPaths
+                            .stream()
+                            .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
+                            .forEach(path -> checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost())));
+                    }
 
-        // Check only paths with a host and compare to registered virtual hosts
-        if (!registeredPathWithHosts.isEmpty()) {
-            sanitizedPaths
-                .stream()
-                .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
-                .forEach(path -> checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost())));
-        }
+                    // Extract all paths without host
+                    List<String> registeredPathWithoutHost = existingPaths
+                        .stream()
+                        .filter(path -> Strings.isNullOrEmpty(path.getHost()))
+                        .map(Path::getPath)
+                        .collect(Collectors.toList());
 
-        // Extract all paths without host
-        List<String> registeredPathWithoutHost = existingPaths
-            .stream()
-            .filter(path -> Strings.isNullOrEmpty(path.getHost()))
-            .map(Path::getPath)
-            .collect(Collectors.toList());
+                    // Then check remaining paths without a host and compare to registered paths without host
+                    if (!registeredPathWithoutHost.isEmpty()) {
+                        sanitizedPaths
+                            .stream()
+                            .filter(path -> Strings.isNullOrEmpty(path.getHost()))
+                            .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredPathWithoutHost));
+                    }
+                }
+            );
 
-        // Then check remaining paths without a host and compare to registered paths without host
-        if (!registeredPathWithoutHost.isEmpty()) {
-            sanitizedPaths
-                .stream()
-                .filter(path -> Strings.isNullOrEmpty(path.getHost()))
-                .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredPathWithoutHost));
-        }
         return sanitizedPaths;
     }
 

@@ -27,6 +27,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -104,7 +105,8 @@ public class ApiCategoryServiceImplTest {
         secondOrphan.setId(UuidString.generateRandom());
         secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build())).thenReturn(List.of(firstOrphan, secondOrphan));
+        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldFilter.allFields()))
+            .thenReturn(List.of(firstOrphan, secondOrphan));
         apiCategoryService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
         verify(apiRepository, times(1)).update(firstOrphan);

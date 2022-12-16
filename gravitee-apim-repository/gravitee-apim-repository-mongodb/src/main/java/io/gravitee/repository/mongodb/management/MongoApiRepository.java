@@ -17,12 +17,12 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,11 @@ public class MongoApiRepository implements ApiRepository {
 
     @Autowired
     private GraviteeMapper mapper;
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
+    }
 
     @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
@@ -83,35 +89,44 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldExclusionFilter);
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter);
         final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
         return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria) {
-        return findByCriteria(apiCriteria, null);
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldFilter);
+        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
     }
 
     @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+        var pageable = new PageableBuilder().pageSize(batchSize).pageNumber(0).build();
+        var page = search(apiCriteria, sortable, pageable, apiFieldFilter);
+        if (page == null || page.getContent() == null) {
+            return Stream.empty();
+        }
+        return Stream
+            .iterate(
+                page,
+                p -> !isEmpty(p),
+                p -> hasNext(p) ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter) : null
+            )
+            .flatMap(
+                p -> {
+                    if (p != null && p.getContent() != null) {
+                        return p.getContent().stream();
+                    }
+                    return Stream.empty();
+                }
+            );
     }
 
     @Override
-    public List<String> searchIds(ApiCriteria... apiCriteria) {
-        return internalApiRepo.searchIds(null, apiCriteria);
-    }
-
-    @Override
-    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
-        return internalApiRepo.searchIds(sortable, apiCriteria);
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
+        return internalApiRepo.searchIds(apiCriteria, pageable, sortable);
     }
 
     @Override
@@ -119,9 +134,9 @@ public class MongoApiRepository implements ApiRepository {
         return internalApiRepo.listCategories(apiCriteria);
     }
 
-    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldExclusionFilter);
-        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+        return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
     }
 
     private ApiMongo mapApi(Api api) {
@@ -132,19 +147,16 @@ public class MongoApiRepository implements ApiRepository {
         return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
     }
 
-    @Override
-    public Set<Api> findAll() throws TechnicalException {
-        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
+    private boolean isEmpty(Page page) {
+        return page == null || page.getContent() == null || page.getContent().isEmpty();
     }
 
-    @Override
-    public Set<Api> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
-        return internalApiRepo.search(criteria, apiFieldInclusionFilter).stream().map(this::mapApi).collect(Collectors.toSet());
+    private boolean hasNext(Page page) {
+        return (page.getPageNumber() + 1) * page.getPageElements() < page.getTotalElements();
     }
 
-    @Override
-    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
+    private Pageable nextPageable(Page currentPage, Pageable pageable) {
+        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
     }
 
     @Override

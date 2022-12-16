@@ -88,12 +88,16 @@ const PROPERTY_PROVIDERS = [
               mode: 'javascript',
             },
           },
+          default: `[{
+  "operation": "default",
+  "spec": {}
+}]`,
         },
       },
       required: ['url', 'specification'],
     },
     documentation:
-      '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
+      '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, you will need to edit the link:https://github.com/bazaarvoice/jolt#Documentation[JOLT transformation] accordingly. \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
   },
 ];
 const PROPERTY_PROVIDER_TITLES = PROPERTY_PROVIDERS.reduce((map, provider) => {
@@ -108,20 +112,13 @@ const DYNAMIC_PROPERTY_SCHEMA = {
       title: 'Enabled',
       description: ' This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.',
     },
-    trigger: {
-      type: 'object',
-      properties: {
-        rate: {
-          type: 'integer',
-          title: 'Polling frequency interval',
-        },
-        unit: {
-          type: 'string',
-          title: 'Time unit',
-          enum: ['SECONDS', 'MINUTES', 'HOURS'],
-        },
+    schedule: {
+      type: 'string',
+      title: 'Schedule',
+      'x-schema-form': {
+        'cron-expression': true,
       },
-      required: ['rate', 'unit'],
+      default: '0 */5 * * * *',
     },
     provider: {
       type: 'string',
@@ -133,7 +130,7 @@ const DYNAMIC_PROPERTY_SCHEMA = {
       },
     },
   },
-  required: ['trigger', 'provider'],
+  required: ['schedule', 'provider'],
 };
 
 @Injectable({

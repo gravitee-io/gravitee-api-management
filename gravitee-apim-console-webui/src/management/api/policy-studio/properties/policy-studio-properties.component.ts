@@ -76,7 +76,8 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onSaveProvider($event: SaveProviderEvent) {
-    this.apiDefinition.services['dynamic-property'] = $event.detail.provider;
+    const { provider } = $event.detail;
+    this.apiDefinition.services['dynamic-property'] = provider;
     this.policyStudioService.emitApiDefinition(this.apiDefinition);
   }
 

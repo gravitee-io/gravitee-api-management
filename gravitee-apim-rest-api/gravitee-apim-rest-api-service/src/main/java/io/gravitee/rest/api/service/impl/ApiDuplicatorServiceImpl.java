@@ -59,6 +59,7 @@ import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -102,7 +103,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         PlanService planService,
         GroupService groupService,
         UserService userService,
-        ApiService apiService,
+        @Lazy ApiService apiService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
         PermissionService permissionService

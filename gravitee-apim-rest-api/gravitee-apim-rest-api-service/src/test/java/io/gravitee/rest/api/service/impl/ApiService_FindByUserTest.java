@@ -39,6 +39,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -155,7 +156,12 @@ public class ApiService_FindByUserTest {
     @Test
     public void shouldFindByUser() {
         when(api.getId()).thenReturn("api-1");
-        when(apiRepository.search(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(api.getId()).build()))
+        when(
+            apiRepository.search(
+                getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(api.getId()).build(),
+                ApiFieldFilter.allFields()
+            )
+        )
             .thenReturn(singletonList(api));
         when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean())).thenReturn(Set.of("api-1"));
 
@@ -186,7 +192,12 @@ public class ApiService_FindByUserTest {
         UserEntity admin = new UserEntity();
         admin.setId("admin");
         when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
-        when(apiRepository.search(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(List.of(api1.getId())).build()))
+        when(
+            apiRepository.search(
+                getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(List.of(api1.getId())).build(),
+                ApiFieldFilter.allFields()
+            )
+        )
             .thenReturn(singletonList(api1));
 
         final Page<ApiEntity> apiPage = apiService.findByUser(

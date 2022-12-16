@@ -32,7 +32,7 @@ import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
@@ -426,7 +426,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
-                    .search(null)
+                    .search(null, ApiFieldFilter.allFields())
                     .forEach(
                         new Consumer<Api>() {
                             @Override
@@ -583,7 +583,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove all applications or apis
             Date updatedDate = new Date();
             apiRepository
-                .search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build())
+                .search(
+                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                    ApiFieldFilter.allFields()
+                )
                 .forEach(
                     api -> {
                         api.getGroups().remove(groupId);
@@ -812,7 +815,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return apiRepository
             .search(
                 new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
             )
             .stream()
             .map(

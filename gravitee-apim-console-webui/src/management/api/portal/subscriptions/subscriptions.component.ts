@@ -107,6 +107,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.getSubscriptionAnalytics();
 
       this.retrieveSelectedApplications();
+
+      this.doSearch();
     }
 
     onPaginate(page) {

@@ -19,16 +19,16 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,6 +37,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class HttpApiRepository extends AbstractRepository implements ApiRepository {
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 
     @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
@@ -63,28 +68,17 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     @ExcludeMethodFromGeneratedCoverage
-    public Page<Api> search(
-        ApiCriteria apiCriteria,
-        Sortable sortable,
-        Pageable pageable,
-        ApiFieldExclusionFilter apiFieldExclusionFilter
-    ) {
+    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         throw new IllegalStateException();
     }
 
     @Override
-    @ExcludeMethodFromGeneratedCoverage
-    public List<Api> search(ApiCriteria apiCriteria) {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         try {
             return blockingGet(
                 get("/apis", BodyCodecs.list(Api.class))
-                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
-                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPicture()))
+                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldFilter.isDefinitionExcluded()))
+                    .addQueryParam("excludePicture", Boolean.toString(apiFieldFilter.isPictureExcluded()))
                     .send()
             )
                 .payload();
@@ -96,19 +90,13 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     @ExcludeMethodFromGeneratedCoverage
-    public List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria) {
+    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
         throw new IllegalStateException();
     }
 
     @Override
     @ExcludeMethodFromGeneratedCoverage
-    public Set<Api> findAll() throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    @ExcludeMethodFromGeneratedCoverage
-    public Set<Api> search(ApiCriteria apiCriteria, ApiFieldInclusionFilter apiFieldInclusionFilter) {
+    public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         throw new IllegalStateException();
     }
 
