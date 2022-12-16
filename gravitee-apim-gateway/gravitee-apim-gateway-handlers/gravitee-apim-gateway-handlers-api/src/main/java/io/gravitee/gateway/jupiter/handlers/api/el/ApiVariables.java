@@ -15,9 +15,10 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.el;
 
-import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.common.util.TemplatedValueHashMap;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -26,6 +27,8 @@ import java.util.List;
 class ApiVariables {
 
     private final Api api;
+
+    private Map<String, String> apiProperties;
 
     ApiVariables(final Api api) {
         this.api = api;
@@ -43,7 +46,25 @@ class ApiVariables {
         return this.api.getApiVersion();
     }
 
-    public List<Property> getProperties() {
-        return this.api.getDefinition().getProperties();
+    public Map<String, String> getProperties() {
+        if (apiProperties == null) {
+            this.apiProperties =
+                api
+                    .getDefinition()
+                    .getProperties()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.definition.model.v4.property.Property::getKey,
+                            io.gravitee.definition.model.v4.property.Property::getValue,
+                            (v1, v2) -> {
+                                throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                            },
+                            TemplatedValueHashMap::new
+                        )
+                    );
+        }
+
+        return this.apiProperties;
     }
 }

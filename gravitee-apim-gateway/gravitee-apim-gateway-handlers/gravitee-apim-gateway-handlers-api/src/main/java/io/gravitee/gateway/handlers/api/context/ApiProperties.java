@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.context;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +42,7 @@ class ApiProperties {
         return this.api.getApiVersion();
     }
 
-    public io.gravitee.definition.model.Properties getProperties() {
-        return this.api.getDefinition().getProperties();
+    public Map<String, String> getProperties() {
+        return this.api.getDefinition().getProperties().getValues();
     }
 }
