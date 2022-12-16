@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -129,7 +130,8 @@ public class ApiService_CountTest {
 
         when(apiRepository.searchIds(anyList(), isA(Pageable.class), eq(null)))
             .thenReturn(new Page<>(Arrays.asList(api1.getId(), api2.getId(), api3.getId(), api4.getId()), 0, 4, 4));
-        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class))).thenReturn(List.of(api1, api2, api3, api4));
+        when(apiRepository.search(any(ApiCriteria.class), isNull(), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(api1, api2, api3, api4));
 
         Map<String, Long> expectedCounts = Map.of(category1.getId(), 3L, category2.getId(), 2L, category3.getId(), 1L);
         Map<String, Long> counts = apiService.countPublishedByUserGroupedByCategories(USER_ID);

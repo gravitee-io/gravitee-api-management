@@ -418,7 +418,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
-                    .search(null, ApiFieldFilter.allFields())
+                    .search(null, null, ApiFieldFilter.allFields())
                     .forEach(
                         new Consumer<Api>() {
                             @Override
@@ -577,6 +577,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             apiRepository
                 .search(
                     new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                    null,
                     ApiFieldFilter.allFields()
                 )
                 .forEach(
@@ -805,11 +806,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<ApiEntity> getApis(final String environmentId, String groupId) {
         return apiRepository
-            .search(
-                new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(),
-                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-            .stream()
+            .search(new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(), null, ApiFieldFilter.defaultFields())
             .map(
                 api -> {
                     ApiEntity apiEntity = new ApiEntity();
