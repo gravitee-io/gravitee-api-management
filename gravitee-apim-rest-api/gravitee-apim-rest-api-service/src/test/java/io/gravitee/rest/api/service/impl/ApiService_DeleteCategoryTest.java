@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -67,8 +68,8 @@ public class ApiService_DeleteCategoryTest {
         secondOrphan.setId(UuidString.generateRandom());
         secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldFilter.allFields()))
-            .thenReturn(List.of(firstOrphan, secondOrphan));
+        when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields()))
+            .thenReturn(Stream.of(firstOrphan, secondOrphan));
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(new ApiEntity());
 

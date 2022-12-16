@@ -843,10 +843,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Metadata metadata = new Metadata();
             if (type.equals(MembershipReferenceType.API)) {
                 ApiCriteria.Builder criteria = new ApiCriteria.Builder();
-                ApiFieldFilter filter = (new ApiFieldFilter.Builder()).excludeDefinition().excludePicture().build();
                 criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
                 apiRepository
-                    .search(criteria.build(), filter)
+                    .search(criteria.build(), null, ApiFieldFilter.defaultFields())
                     .forEach(
                         api -> {
                             metadata.put(api.getId(), "name", api.getName());

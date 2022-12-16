@@ -1418,8 +1418,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (poGroupIds.length > 0) {
             return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), ApiFieldFilter.allFields())
-                .stream()
+                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
                 .filter(
                     api -> {
                         PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, api);
@@ -2520,7 +2519,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
         apiRepository
-            .search(new ApiCriteria.Builder().category(categoryId).build(), ApiFieldFilter.allFields())
+            .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
             .forEach(api -> removeCategory(executionContext, api, categoryId));
     }
 
@@ -3717,13 +3716,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return Collections.emptyMap();
         }
 
-        List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(),
-            new ApiFieldFilter.Builder().excludePicture().excludeDefinition().build()
-        );
-
-        return apis
-            .stream()
+        return apiRepository
+            .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
             .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
