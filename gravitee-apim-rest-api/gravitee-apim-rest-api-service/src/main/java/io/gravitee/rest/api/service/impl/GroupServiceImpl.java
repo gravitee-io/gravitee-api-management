@@ -68,6 +68,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -418,7 +419,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
-                    .search(null, null, ApiFieldFilter.allFields())
+                    .search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        null,
+                        ApiFieldFilter.allFields()
+                    )
                     .forEach(
                         new Consumer<Api>() {
                             @Override
@@ -441,7 +446,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     );
             } else if ("application".equalsIgnoreCase(associationType)) {
                 applicationRepository
-                    .findAll()
+                    .findAllByEnvironment(executionContext.getEnvironmentId())
                     .forEach(
                         new Consumer<Application>() {
                             @Override
