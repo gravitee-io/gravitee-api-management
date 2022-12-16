@@ -20,12 +20,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -35,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,7 +82,14 @@ public class VirtualHostServiceTest {
 
     @Test
     public void shouldSucceed_create_noApi() {
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.emptyList());
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.empty());
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -88,8 +100,14 @@ public class VirtualHostServiceTest {
     @Test
     public void shouldSucceed_create_noMatchingPath() {
         Api api1 = createMock("mock1", "/existing");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
-
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
             Collections.singletonList(new VirtualHost("/context"))
@@ -99,7 +117,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldFail_create_existingPath() {
         Api api1 = createMock("mock1", "/context");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -110,8 +135,14 @@ public class VirtualHostServiceTest {
     @Test
     public void shouldFail_create_sameBasePath() {
         Api api1 = createMock("mock1", "/context2");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
-
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
             Collections.singletonList(new VirtualHost("/context"))
@@ -121,7 +152,6 @@ public class VirtualHostServiceTest {
     @Test
     public void shouldFail_create_sameBasePath2() {
         Api api1 = createMock("mock1", "/context");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -132,7 +162,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldFail_create_existingPath_trailingSlash() {
         Api api1 = createMock("mock1", "/context");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -143,7 +180,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldFail_create_existingPath_trailingSlash2() {
         Api api1 = createMock("mock1", "/context/");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -154,7 +198,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldFail_create_existingSubPath() {
         Api api1 = createMock("mock1", "/context/subpath");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -165,7 +216,14 @@ public class VirtualHostServiceTest {
     @Test
     public void shouldSucceed_create_virtualHostWithSamePath() {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -176,7 +234,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldSucceed_create_sameVirtualHostAndSamePath() {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -187,7 +252,14 @@ public class VirtualHostServiceTest {
     @Test(expected = ApiContextPathAlreadyExistsException.class)
     public void shouldSucceed_create_sameVirtualHostAndSameSubPath() {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
-        when(apiRepository.search(null, ApiFieldFilter.allFields())).thenReturn(Collections.singletonList(api1));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
 
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
@@ -277,7 +349,6 @@ public class VirtualHostServiceTest {
     private Api createMock(String api, String path, String host) {
         Api api1 = mock(Api.class);
         when(api1.getId()).thenReturn(api);
-        when(api1.getEnvironmentId()).thenReturn("DEFAULT");
         if (host == null) {
             when(api1.getDefinition())
                 .thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");

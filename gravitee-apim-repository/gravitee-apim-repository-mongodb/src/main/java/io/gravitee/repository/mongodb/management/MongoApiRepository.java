@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -100,6 +102,29 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
+    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+        var pageable = new PageableBuilder().pageSize(batchSize).pageNumber(0).build();
+        var page = search(apiCriteria, sortable, pageable, apiFieldFilter);
+        if (page == null || page.getContent() == null) {
+            return Stream.empty();
+        }
+        return Stream
+            .iterate(
+                page,
+                p -> !isEmpty(p),
+                p -> hasNext(p) ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter) : null
+            )
+            .flatMap(
+                p -> {
+                    if (p != null && p.getContent() != null) {
+                        return p.getContent().stream();
+                    }
+                    return Stream.empty();
+                }
+            );
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         return internalApiRepo.searchIds(apiCriteria, pageable, sortable);
     }
@@ -120,5 +145,17 @@ public class MongoApiRepository implements ApiRepository {
 
     private Api mapApi(ApiMongo apiMongo) {
         return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
+    }
+
+    private boolean isEmpty(Page page) {
+        return page == null || page.getContent() == null || page.getContent().isEmpty();
+    }
+
+    private boolean hasNext(Page page) {
+        return (page.getPageNumber() + 1) * page.getPageElements() < page.getTotalElements();
+    }
+
+    private Pageable nextPageable(Page currentPage, Pageable pageable) {
+        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
     }
 }
