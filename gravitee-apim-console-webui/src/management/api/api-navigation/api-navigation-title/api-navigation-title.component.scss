@@ -19,13 +19,13 @@
 
 $textColor: map.get(gio.$mat-dove-palette, default);
 
+:host {
+  width: 100%;
+}
+
 .api-navigation-title {
   display: flex;
   align-items: center;
-  width: 266px;
-  padding: 8px 16px 8px 20px;
-  background: map.get(gio.$mat-space-palette, default);
-  color: $textColor;
 
   &__icon {
     margin: 8px;
