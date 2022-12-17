@@ -76,7 +76,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
 
             if (
                 acceptMediaTypes != null &&
-                (acceptMediaTypes.contains(MediaType.MEDIA_APPLICATION_JSON) || acceptMediaTypes.contains(MediaType.MEDIA_TYPE_WILDCARD))
+                (acceptMediaTypes.contains(MediaType.MEDIA_APPLICATION_JSON) || acceptMediaTypes.contains(MediaType.MEDIA_ALL))
             ) {
                 // Write error as json when accepted by the client.
                 contentType = MediaType.APPLICATION_JSON;
