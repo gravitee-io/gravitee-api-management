@@ -135,7 +135,7 @@ class SimpleFailureProcessorTest {
         final String failureMessage = "Message";
         when(processorFailure.message()).thenReturn(failureMessage);
         when(processorFailure.contentType()).thenReturn(MediaType.APPLICATION_JSON);
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(List.of("application/json"));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(List.of(acceptHeader));
 
         cut.handle(executionContext);
 
@@ -159,7 +159,7 @@ class SimpleFailureProcessorTest {
         when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
         final String failureMessage = "Message";
         when(processorFailure.message()).thenReturn(failureMessage);
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(List.of("application/json"));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(List.of(acceptHeader));
 
         cut.handle(executionContext);
 
