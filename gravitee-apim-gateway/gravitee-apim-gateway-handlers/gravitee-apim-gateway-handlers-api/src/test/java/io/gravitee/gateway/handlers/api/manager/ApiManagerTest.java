@@ -443,8 +443,8 @@ public class ApiManagerTest {
 
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
-        boolean requireDeployment = apiManager.requireDeployment(api);
-        assertTrue(requireDeployment);
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.DEPLOY, actionOnApi);
     }
 
     @Test
@@ -455,16 +455,16 @@ public class ApiManagerTest {
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
-        boolean requireDeployment = apiManager.requireDeployment(api);
-        assertFalse(requireDeployment);
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.NONE, actionOnApi);
 
         final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
-        boolean requireDeployment2 = apiManager.requireDeployment(api2);
-        assertTrue(requireDeployment2);
+        ActionOnApi actionOnApi2 = apiManager.requiredActionFor(api2);
+        assertEquals(ActionOnApi.DEPLOY, actionOnApi2);
     }
 
     @Test
@@ -475,8 +475,8 @@ public class ApiManagerTest {
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
-        boolean requireDeployment = apiManager.requireDeployment(api);
-        assertFalse(requireDeployment);
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.NONE, actionOnApi);
     }
 
     @Test
@@ -485,19 +485,33 @@ public class ApiManagerTest {
         api.getDefinition().setTags(new HashSet<>(singletonList("test")));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-        boolean requireDeployment = apiManager.requireDeployment(api);
-        assertTrue(requireDeployment);
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.DEPLOY, actionOnApi);
     }
 
     @Test
-    public void shouldNotRequireDeploymentWithoutMatchingTag() {
+    public void shouldNotRequireDeploymentWithoutMatchingTagAndApiNotAlreadyDeployed() {
         final Api api = buildTestApi();
         api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-        boolean requireDeployment = apiManager.requireDeployment(api);
-        assertFalse(requireDeployment);
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.NONE, actionOnApi);
+    }
+
+    @Test
+    public void shouldRequireUndeploymentWithoutMatchingTagAndApiAlreadyDeployed() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        apiManager.register(api);
+
+        api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+
+        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+        assertEquals(ActionOnApi.UNDEPLOY, actionOnApi);
     }
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
