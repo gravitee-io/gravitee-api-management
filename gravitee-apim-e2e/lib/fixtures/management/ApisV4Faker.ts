@@ -21,6 +21,7 @@ import {
   NewApiEntityV4DefinitionVersionEnum,
   NewApiEntityV4FlowModeEnum,
   NewApiEntityV4TypeEnum,
+  SubscriptionListenerV4,
 } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 export class ApisV4Faker {
@@ -56,6 +57,17 @@ export class ApisV4Faker {
     return {
       // @ts-ignore
       type: 'http',
+      paths: [],
+      pathMappings: [],
+      entrypoints: [],
+      ...attributes,
+    };
+  }
+
+  static newSubscriptionListener(attributes?: Partial<SubscriptionListenerV4>): ListenerV4 {
+    return {
+      // @ts-ignore
+      type: 'subscription',
       paths: [],
       pathMappings: [],
       entrypoints: [],
