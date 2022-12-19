@@ -19,6 +19,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
@@ -146,16 +147,22 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     }
 
     @Override
-    public boolean requireDeployment(ReactableApi reactableApi) {
+    public ActionOnApi requiredActionFor(ReactableApi reactableApi) {
+        ReactableApi<?> deployedApi = get(reactableApi.getId());
         if (gatewayConfiguration.hasMatchingTags(reactableApi.getTags())) {
-            ReactableApi<?> deployedApi = get(reactableApi.getId());
             boolean apiToDeploy = deployedApi == null;
             boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(reactableApi.getDeployedAt());
 
             // API will be deployed or updated
-            return (apiToDeploy || apiToUpdate);
+            if (apiToDeploy || apiToUpdate) {
+                return ActionOnApi.DEPLOY;
+            }
+        } else if (deployedApi != null) {
+            // Undeploy if previously deployed with other tags
+            return ActionOnApi.UNDEPLOY;
         }
-        return false;
+        // Nothing to do
+        return ActionOnApi.NONE;
     }
 
     @Override
