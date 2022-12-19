@@ -128,7 +128,7 @@ export class GioSideNavComponent implements OnInit {
         icon: 'gio:building',
         targetRoute: 'organization',
         baseRoute: 'organization',
-        displayName: 'Organization settings',
+        displayName: 'Organization',
         permissions: ['organization-settings-r'],
       },
     ]);

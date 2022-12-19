@@ -690,7 +690,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/tags',
       component: 'moved',
       resolve: {
-        destinationName: () => 'Organization settings > Tags',
+        destinationName: () => 'Organization > Tags',
         permissions: () => ['organization-tag-r'],
         goTo: () => 'organization.settings.ng-tags',
         destinationIcon: () => 'settings_applications',
@@ -709,7 +709,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/tenants',
       component: 'moved',
       resolve: {
-        destinationName: () => 'Organization settings > Tenants',
+        destinationName: () => 'Organization > Tenants',
         permissions: () => ['organization-tenant-r'],
         goTo: () => 'organization.settings.ng-tenants',
         destinationIcon: () => 'settings_applications',

@@ -11,7 +11,7 @@ Here is a docker-compose to run APIM with two gateways:
 ## How to use ?
 
 In the Console UI:
-- Go to `Organization settings / Gateway / Sharding tags`
+- Go to `Organization / Gateway / Sharding tags`
 - Create two tags: `internal` and `external` 
 - Create your APIs and select configure them with tags (`YourAPI / Proxy / Deployments`)
 
