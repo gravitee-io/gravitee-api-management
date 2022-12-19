@@ -57,6 +57,7 @@ export class ApiNavigationComponent implements OnInit {
   public subMenuItems: MenuItem[] = [];
   public groupItems: GroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
+  public bannerState: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -67,6 +68,7 @@ export class ApiNavigationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.bannerState = localStorage.getItem('gv-api-navigation-banner');
     this.subMenuItems.push({
       displayName: 'Design',
       targetRoute: 'management.apis.detail.design.policies',
@@ -396,5 +398,10 @@ export class ApiNavigationComponent implements OnInit {
 
   isTabActive(tabs: MenuItem[]): boolean {
     return flatMap(tabs, (tab) => tab.baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+  }
+
+  closeBanner() {
+    this.bannerState = 'close';
+    localStorage.setItem('gv-api-navigation-banner', this.bannerState);
   }
 }

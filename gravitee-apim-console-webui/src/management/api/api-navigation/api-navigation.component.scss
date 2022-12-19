@@ -34,6 +34,21 @@
   &__submenu {
     z-index: 70;
     height: 100%;
+
+    &__banner {
+      &__message {
+        white-space: normal;
+        text-align: left;
+        margin: 6px;
+        text-transform: initial;
+      }
+
+      &__button {
+        height: 30px;
+        width: 30px;
+        line-height: 0;
+      }
+    }
   }
 
   &__content {
