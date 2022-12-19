@@ -474,7 +474,6 @@ require('angular-loading-bar');
 // Highcharts
 const Highcharts = require('highcharts');
 window.Highcharts = Highcharts;
-require('highcharts/modules/exporting')(Highcharts);
 require('highcharts/highcharts-more')(Highcharts);
 require('highcharts/modules/solid-gauge')(Highcharts);
 require('highcharts/modules/no-data-to-display')(Highcharts);
