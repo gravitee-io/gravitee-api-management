@@ -147,7 +147,7 @@ const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []
   let hostDomain = '';
 
   if (!isEmpty(domainRestrictions)) {
-    hostDomain = domainRestrictions.find((domain) => fullHost.endsWith(`.${domain}`));
+    hostDomain = fullHost && domainRestrictions.find((domain) => fullHost.endsWith(`.${domain}`));
 
     if (hostDomain) {
       host = fullHost.replace(new RegExp(`\\.${escapeRegExp(hostDomain)}$`), '');

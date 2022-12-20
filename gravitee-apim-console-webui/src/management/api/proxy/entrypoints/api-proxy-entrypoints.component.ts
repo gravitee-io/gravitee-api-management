@@ -57,7 +57,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
         tap(([api, environment]) => {
           this.apiProxy = api.proxy;
 
-          // virtual host mode is enabled if there domain restrictions or if there is more than one virtual host or if the first virtual host has a host
+          // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
           this.virtualHostModeEnabled =
             !isEmpty(environment.domainRestrictions) ||
             get(api, 'proxy.virtual_hosts', []) > 1 ||
@@ -94,7 +94,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  switchVirtualHostMode() {
+  switchEntrypointMode() {
     if (this.virtualHostModeEnabled) {
       this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
