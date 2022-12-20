@@ -17,7 +17,12 @@
 -->
 <div class="title">
   <h1>Entrypoints</h1>
-  <button *ngIf="!isReadOnly" (click)="switchVirtualHostMode()" mat-raised-button color="primary">
+  <button
+    *ngIf="!this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && !this.domainRestrictions.length))"
+    (click)="switchEntrypointMode()"
+    mat-raised-button
+    color="primary"
+  >
     {{ virtualHostModeEnabled ? 'Switch to context-path mode' : 'Switch to virtual-hosts mode' }}
   </button>
 </div>
