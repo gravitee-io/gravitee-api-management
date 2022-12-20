@@ -216,4 +216,7 @@ public class DummyMessageRequest implements Request {
     public Completable onMessages(FlowableTransformer<Message, Message> onMessages) {
         return Completable.complete();
     }
+
+    @Override
+    public void contentLength(long l) {}
 }

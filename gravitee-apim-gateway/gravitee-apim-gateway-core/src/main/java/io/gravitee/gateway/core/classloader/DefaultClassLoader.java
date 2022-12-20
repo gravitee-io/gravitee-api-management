@@ -17,29 +17,33 @@ package io.gravitee.gateway.core.classloader;
 
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 /**
- * A classloader that delegates first to the parent and then to a delegate loader
+ * A classloader that delegates first to the parent and then to a delegate loader.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DefaultClassLoader extends ClassLoader {
 
-    private final Map<String, ClassLoader> delegates;
-    private final ClassLoader mParentLoader;
+    private static final ThreadLocal<Set<String>> skipSelfForClasses = ThreadLocal.withInitial(HashSet::new);
 
-    /**
-     * Constructor for special classloader to give to proxy making code
-     *
-     * @param parent               the java-style classloader parent of this loader
-     */
+    private final ClassLoader mParentLoader;
+    private final Map<String, ClassLoader> delegates;
+    private final List<ClassLoader> orderedDelegates;
+
+    public DefaultClassLoader() {
+        this(null);
+    }
+
     public DefaultClassLoader(ClassLoader parent) {
         super(parent);
         delegates = new ConcurrentHashMap<>();
+        orderedDelegates = new CopyOnWriteArrayList<>();
         mParentLoader = (parent != null) ? parent : getSystemClassLoader();
     }
 
@@ -53,24 +57,37 @@ public class DefaultClassLoader extends ClassLoader {
     }
 
     public void addClassLoader(String id, ClassLoader childClassLoader) {
-        delegates.putIfAbsent(id, childClassLoader);
+        addClassLoader(id, () -> childClassLoader);
     }
 
     public void addClassLoader(String id, Supplier<ClassLoader> childClassLoader) {
-        delegates.computeIfAbsent(id, key -> childClassLoader.get());
+        delegates.computeIfAbsent(
+            id,
+            key -> {
+                final ClassLoader classLoader = childClassLoader.get();
+                if (classLoader != null) {
+                    orderedDelegates.add(classLoader);
+                }
+                return classLoader;
+            }
+        );
     }
 
     public void removeClassLoader(String id) throws IOException {
         final ClassLoader classLoader = delegates.remove(id);
 
-        if (classLoader != null && classLoader instanceof PluginClassLoader) {
+        if (classLoader != null) {
+            orderedDelegates.remove(classLoader);
+        }
+
+        if (classLoader instanceof PluginClassLoader) {
             ((PluginClassLoader) classLoader).close();
         }
     }
 
     @Override
-    protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class class2Load = findLoadedClass(name);
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        Class<?> class2Load = findLoadedClass(name);
 
         if (class2Load != null) {
             if (resolve) {
@@ -80,16 +97,17 @@ public class DefaultClassLoader extends ClassLoader {
             return class2Load;
         }
 
-        // Loading it locally first
-        // This means "search the shared classloaders first
+        // Loading it locally first. This means "search the shared classloaders first
         try {
-            class2Load = findClass(name);
-            if (class2Load != null) {
-                if (resolve) {
-                    resolveClass(class2Load);
-                }
+            if (!skipSelfForClasses.get().contains(name)) {
+                class2Load = findClass(name);
+                if (class2Load != null) {
+                    if (resolve) {
+                        resolveClass(class2Load);
+                    }
 
-                return class2Load;
+                    return class2Load;
+                }
             }
         } catch (ClassNotFoundException cnfe) {
             // ignore
@@ -110,25 +128,26 @@ public class DefaultClassLoader extends ClassLoader {
         throw new ClassNotFoundException(name);
     }
 
-    public Class findClass(String name) throws ClassNotFoundException {
+    @Override
+    public Class<?> findClass(String name) throws ClassNotFoundException {
         boolean found = false;
-        Class sharedClass = null;
+        Class<?> sharedClass = null;
 
-        for (ClassLoader classloader : delegates.values()) {
+        for (ClassLoader classloader : orderedDelegates) {
             try {
+                skipSelfForClasses.get().add(name);
                 sharedClass = classloader.loadClass(name);
-
-                // If we reach here, we've loaded the class
-                // and can stop looking further.
+                // If we reach here, we've loaded the class and can stop looking further.
                 found = true;
                 break;
-            } catch (ClassNotFoundException cnfe) {
-                continue;
+            } catch (ClassNotFoundException ignored) {
+                // Ignore and keep looking for the class.
+            } finally {
+                skipSelfForClasses.remove();
             }
         }
 
-        // if we reach here with found=false that means
-        // that the requested class was not in the shared classpath
+        // If we reach here with found=false that means that the requested class was not in the shared classpath
         if (!found) {
             throw new ClassNotFoundException(name);
         }

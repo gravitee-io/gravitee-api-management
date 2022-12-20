@@ -36,7 +36,6 @@ export class GioFormCardGroupComponent implements ControlValueAccessor {
 
   selection: string;
 
-  // TODO: not implemented
   disabled = false;
 
   _onChange: (value: any) => void = () => ({});
@@ -51,14 +50,19 @@ export class GioFormCardGroupComponent implements ControlValueAccessor {
     // NgModel occurs *after* the OnInit of the MatRadioGroup.
     // this._isInitialized = true;
     this.selectCardsList.forEach((card) => {
+      card.disabled = this.disabled;
+
       if (card.value === this.selection) {
         card.selected = true;
 
         this.changeDetector.markForCheck();
         card._markForCheck();
       }
+
       card.onSelectFn = (value) => {
-        this.updateCardsSelection(value);
+        if (!this.disabled) {
+          this.updateCardsSelection(value);
+        }
       };
     });
   }
@@ -82,8 +86,12 @@ export class GioFormCardGroupComponent implements ControlValueAccessor {
 
   // From ControlValueAccessor interface
   setDisabledState(isDisabled: boolean): void {
-    // TODO: not implemented
     this.disabled = isDisabled;
+    if (this.selectCardsList) {
+      this.selectCardsList.forEach((card) => {
+        card.disabled = this.disabled;
+      });
+    }
     this.changeDetector.markForCheck();
   }
 

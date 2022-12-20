@@ -152,7 +152,6 @@ import LogsFiltersComponent from '../components/logs/logs-filters.component';
 import LogsFiltersController from '../components/logs/logs-filters.controller';
 
 import { LogComponent } from './api/analytics/logs/log.component';
-import ApiLoggingConfigurationController from '../management/api/analytics/logs/logging-configuration.controller';
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
@@ -535,6 +534,7 @@ import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy
 import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
+import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -961,7 +961,6 @@ graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeCont
 graviteeManagementModule.component('log', LogComponent);
 graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
-graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
 graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
@@ -974,6 +973,9 @@ graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({
 graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
+
+// Analytics
+graviteeManagementModule.directive('ngApiLogsConfiguration', downgradeComponent({ component: ApiLogsConfigurationComponent }));
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);

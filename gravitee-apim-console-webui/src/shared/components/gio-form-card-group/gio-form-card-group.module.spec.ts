@@ -78,4 +78,16 @@ describe('GioFormCardGroupModule', () => {
     expect(component.selectControl.value).toEqual('C');
     expect(await formSelectCards.getUnselectedValues()).toEqual(['A', 'B', 'D', 'E']);
   });
+
+  it('should not be able to change selection when the form is disabled', async () => {
+    component.selectControl.setValue('A');
+    component.selectControl.disable();
+    fixture.detectChanges();
+
+    const formSelectCards = await loader.getHarness(GioFormCardGroupHarness);
+    expect(await formSelectCards.getSelectedValue()).toBe('A');
+
+    await formSelectCards.select('B');
+    expect(await formSelectCards.getSelectedValue()).toBe('A');
+  });
 });

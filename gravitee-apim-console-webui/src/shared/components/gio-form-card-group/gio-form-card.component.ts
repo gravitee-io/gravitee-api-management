@@ -18,14 +18,15 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
 @Component({
   selector: 'gio-form-card',
   template: `
-    <mat-card matRipple class="card" [class.selected]="selected">
-      <span class="selection-icon">
+    <mat-card matRipple [matRippleDisabled]="disabled" class="card" [class.selected]="selected" [class.disabled]="disabled">
+      <span class="selection-icon" [class.selection-icon__disabled]="disabled">
         <mat-icon>check_circle</mat-icon>
       </span>
       <mat-card-content class="card__content"><ng-content></ng-content></mat-card-content>
     </mat-card>
   `,
   host: {
+    '[class.disabled]': 'disabled',
     '[class.selected]': 'selected',
     '(click)': 'onSelectCard()',
   },
@@ -34,7 +35,7 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
 export class GioFormCardComponent {
   @Input()
   value: string;
-
+  disabled = false;
   selected = false;
 
   onSelectFn: (value: string) => void;
@@ -42,10 +43,12 @@ export class GioFormCardComponent {
   constructor(private readonly changeDetector: ChangeDetectorRef) {}
 
   onSelectCard() {
-    this.selected = !this.selected;
+    if (!this.disabled) {
+      this.selected = !this.selected;
 
-    if (this.onSelectFn) {
-      this.onSelectFn(this.value);
+      if (this.onSelectFn) {
+        this.onSelectFn(this.value);
+      }
     }
   }
 

@@ -19,7 +19,6 @@ import { Scope } from '../../../entities/alert';
 import AlertService from '../../../services/alert.service';
 import { ApiService } from '../../../services/api.service';
 import DashboardService from '../../../services/dashboard.service';
-import SpelService from '../../../services/spel.service';
 import TenantService from '../../../services/tenant.service';
 
 export default apisAnalyticsRouterConfig;
@@ -111,21 +110,17 @@ function apisAnalyticsRouterConfig($stateProvider) {
         tenants: (TenantService: TenantService) => TenantService.list(),
       },
     })
-    .state('management.apis.detail.analytics.logs.loggingconfigure', {
+    .state('management.apis.detail.analytics.logs.configuration', {
       url: '/configure',
-      template: require('./logs/logging-configuration.html'),
-      controller: 'ApiLoggingConfigurationController',
-      controllerAs: 'loggingCtrl',
+      component: 'ngApiLogsConfiguration',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-log-u'],
         },
         docs: {
           page: 'management-api-logging-configuration',
         },
-      },
-      resolve: {
-        spelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
     .state('management.apis.detail.analytics.logs.log', {
