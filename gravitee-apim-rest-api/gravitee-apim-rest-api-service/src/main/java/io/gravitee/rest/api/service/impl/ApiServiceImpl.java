@@ -1236,10 +1236,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // get user groups apis
-            final Set<String> userGroupApiIds = findApisByUserGroups(executionContext, userId, apiQuery, portal)
-                .stream()
-                .map(Api::getId)
-                .collect(toSet());
+            final Set<String> userGroupApiIds = findApiIdsByUserGroups(executionContext, userId, apiQuery, portal);
 
             // add dedicated criteria for groups apis
             if (!userGroupApiIds.isEmpty()) {
@@ -1320,8 +1317,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private Set<Api> findApisByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        Set<Api> apis = new HashSet<>();
+    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
+        Set<String> apis = new HashSet<>();
 
         // keep track of API roles mapped to their ID to avoid querying in a loop later
         Map<String, RoleEntity> apiRoles = roleService
@@ -1329,16 +1326,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .stream()
             .collect(toMap(RoleEntity::getId, Function.identity()));
 
-        List<Api> nonPOGroupApis = findApisByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
-        List<Api> poGroupApis = findApisByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
+        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
+        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
 
-        apis.addAll(nonPOGroupApis);
-        apis.addAll(poGroupApis);
+        apis.addAll(nonPOGroupApiIds);
+        apis.addAll(poGroupApiIds);
 
         return apis;
     }
 
-    private List<Api> findApisByGroupWithUserHavingNonPOApiRole(
+    private List<String> findApiIdsByGroupWithUserHavingNonPOApiRole(
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,
@@ -1366,7 +1363,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .toArray(String[]::new);
 
         if (groupIds.length > 0) {
-            return apiRepository.search(queryToCriteria(executionContext, apiQuery).groups(groupIds).build(), ApiFieldFilter.allFields());
+            List<String> apiIds = apiRepository
+                .searchIds(
+                    List.of(queryToCriteria(executionContext, apiQuery).groups(groupIds).build()),
+                    new PageableBuilder().pageSize(Integer.MAX_VALUE).build(),
+                    null
+                )
+                .getContent();
+            return apiIds != null ? apiIds : List.of();
         }
 
         return List.of();
@@ -1383,7 +1387,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
      *
      * see https://github.com/gravitee-io/issues/issues/6360
      */
-    private List<Api> findApisByGroupWithUserHavingPOApiRole(
+    private List<String> findApiIdsByGroupWithUserHavingPOApiRole(
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,
@@ -1445,6 +1449,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             );
                     }
                 )
+                .map(Api::getId)
                 .collect(toList());
         }
         return List.of();
