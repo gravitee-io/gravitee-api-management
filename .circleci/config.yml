@@ -283,7 +283,7 @@ commands:
                            --include \
                            --request POST \
                            --header "Content-Type: application/json; charset=utf-8" \
-                           --header "Authorization: token ${SNYK_API_KEY}" \
+                           --header "Authorization: token ${SNYK_API_TOKEN}" \
                            --data-binary "{
                         \"target\": {
                           \"name\": \"graviteeio/<< parameters.docker-image-name >>:<< parameters.version >>\"
@@ -451,8 +451,8 @@ jobs:
         resource_class: small
         steps:
             - keeper/env-export:
-                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/field/password
-                  var-name: SNYK_API_KEY
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
+                  var-name: SNYK_API_TOKEN
             - keeper/env-export:
                   secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
                   var-name: SNYK_ORG_ID

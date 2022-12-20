@@ -33,7 +33,7 @@ abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<
         super(prefix, tableName);
     }
 
-    Page<T> getResultAsPage(final Pageable page, final List<T> items) {
+    <U> Page<U> getResultAsPage(final Pageable page, final List<U> items) {
         if (page != null) {
             LOGGER.debug("Getting results as page {} for {}", page, items);
             int start = page.from();

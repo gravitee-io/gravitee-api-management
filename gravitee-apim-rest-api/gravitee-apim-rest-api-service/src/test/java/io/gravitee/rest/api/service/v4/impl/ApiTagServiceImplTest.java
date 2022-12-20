@@ -83,7 +83,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any())).thenReturn(List.of(api));
+        when(apiRepository.search(any(), any())).thenReturn(List.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
@@ -112,7 +112,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any())).thenReturn(List.of(api));
+        when(apiRepository.search(any(), any())).thenReturn(List.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)).thenReturn(apiDefinition);

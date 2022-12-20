@@ -24,6 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -37,6 +38,8 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -173,8 +176,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             return Set.of();
         }
         // Just one call to apiRepository to preserve sort
-        ApiCriteria[] apiCriteria = apiCriteriaList.toArray(new ApiCriteria[apiCriteriaList.size()]);
-        List<String> apiIds = apiRepository.searchIds(convert(sortable), apiCriteria);
+        // FIXME: Remove this hardcoded page size, it should be handled properly in the service
+        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), convert(sortable)).getContent();
         return new LinkedHashSet<>(apiIds);
     }
 
@@ -335,7 +339,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             .toArray(String[]::new);
 
         if (groupIds.length > 0) {
-            return apiRepository.search(queryToCriteria(executionContext, apiQuery).groups(groupIds).build());
+            return apiRepository.search(queryToCriteria(executionContext, apiQuery).groups(groupIds).build(), ApiFieldFilter.allFields());
         }
 
         return List.of();
@@ -387,7 +391,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
         if (poGroupIds.length > 0) {
             return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build())
+                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), ApiFieldFilter.allFields())
                 .stream()
                 .filter(
                     api -> {

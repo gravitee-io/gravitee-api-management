@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -352,7 +353,7 @@ public class ApiSearchServiceImplTest {
         po.setMemberId(USER_NAME);
 
         when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(API_ID, mock(PrimaryOwnerEntity.class)));
-        when(apiRepository.search(any())).thenReturn(Arrays.asList(api));
+        when(apiRepository.search(any(), eq(ApiFieldFilter.allFields()))).thenReturn(Arrays.asList(api));
 
         final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
             GraviteeContext.getExecutionContext(),
@@ -372,6 +373,6 @@ public class ApiSearchServiceImplTest {
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
-        verify(apiRepository, times(0)).search(any());
+        verify(apiRepository, times(0)).search(any(), eq(ApiFieldFilter.allFields()));
     }
 }

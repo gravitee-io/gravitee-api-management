@@ -13,9 +13,42 @@ const docApimChangelogFile = `${docApimChangelogFolder}changelog-${versions.trim
 
 const gitBranch = `release-apim-${releasingVersion}`;
 
+const computeCommitInfo = async (gitLogOutput) => {
+  const fetchPrInfo = await Promise.all(
+    gitLogOutput
+      .trim()
+      .split('\n')
+      .map(async (commitLine) => {
+        try {
+          const commitHash = commitLine.substring(0, commitLine.indexOf(' '));
+          const commitMessage = commitLine.substring(commitLine.indexOf(' ') + 1);
+          const foundPRCmd = await $`gh pr list --search "${commitHash}" --state merged --json url,title,number --jq '.[0]'`;
+
+          return {
+            ...JSON.parse(foundPRCmd.stdout),
+            commitMessage,
+          };
+        } catch (error) {
+          console.error('🚨 Error while searching PR for commit', commitHash, error);
+        }
+      }),
+  );
+
+  return Array.from(
+    fetchPrInfo
+      // Group by PR number
+      .reduce((entryMap, e) => entryMap.set(e, [...(entryMap.get(e.number) || []), e]), new Map())
+      .values(),
+  ).map((pr) => {
+    const info = pr[0].title ? `### [${pr[0].title} [${pr[0].number}]](${pr[0].url})\n` : '### Commit without found PR\n';
+
+    return info + pr.map((c) => `- ${c.commitMessage}`).join('\n');
+  });
+};
+
 echo(chalk.blue(`# Get feat & fix commits`));
-const allFeatCommits = await $`git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline --grep "^feat\\|^perf"`;
-const allFixCommits = await $`git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline --grep "^fix"`;
+const allCommitsCmd = await $`git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
 await $`mkdir -p changelog`;

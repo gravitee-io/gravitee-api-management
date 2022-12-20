@@ -47,6 +47,9 @@ public class VertxDebugConfiguration {
             .withEnvironment(environment)
             .withPort(Integer.parseInt(environment.getProperty("debug.port", "8482")))
             .withHost(environment.getProperty("debug.host", "localhost"))
+            .withDefaultSecured(Boolean.TRUE.equals(environment.getProperty("http.secured", Boolean.class)))
+            .withDefaultAlpn(Boolean.TRUE.equals(environment.getProperty("http.alpn", Boolean.class)))
+            .withDefaultOpenssl(Boolean.TRUE.equals(environment.getProperty("http.ssl.openssl", Boolean.class)))
             .build();
     }
 

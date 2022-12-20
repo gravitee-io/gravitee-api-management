@@ -23,12 +23,11 @@ import static org.mockito.Mockito.*;
 
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -106,7 +105,7 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        verify(mockApiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldInclusionFilter.class));
+        verify(mockApiRepository, never()).searchIds(any(), any(), any());
 
         assertTrue(references.isEmpty());
     }
@@ -161,10 +160,8 @@ public class MembershipService_FindUserMembershipTest {
         group1.setId("Group1Id");
         when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
 
-        Api api = new Api();
-        api.setId("apiGroup1Id");
-        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
-            .thenReturn(new HashSet<>(asList(api)));
+        when(mockApiRepository.searchIds(eq(asList((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull()))
+            .thenReturn(new Page(asList("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -202,10 +199,8 @@ public class MembershipService_FindUserMembershipTest {
         group1.setId("Group1Id");
         when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
 
-        Api api = new Api();
-        api.setId("apiGroup1Id");
-        when(mockApiRepository.search(eq(new ApiCriteria.Builder().groups("Group1Id").build()), (ApiFieldInclusionFilter) any()))
-            .thenReturn(new HashSet<>(asList(api)));
+        when(mockApiRepository.searchIds(eq(asList((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull()))
+            .thenReturn(new Page(asList("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),

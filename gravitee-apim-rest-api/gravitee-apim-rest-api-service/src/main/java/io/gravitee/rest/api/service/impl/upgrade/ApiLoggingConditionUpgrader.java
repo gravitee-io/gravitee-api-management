@@ -24,6 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
@@ -97,7 +98,10 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
     }
 
     protected void fixApis(ExecutionContext executionContext) throws Exception {
-        for (Api api : apiRepository.search(getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build())) {
+        for (Api api : apiRepository.search(
+            getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
+            new ApiFieldFilter.Builder().excludePicture().build()
+        )) {
             io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                 api.getDefinition(),
                 io.gravitee.definition.model.Api.class
