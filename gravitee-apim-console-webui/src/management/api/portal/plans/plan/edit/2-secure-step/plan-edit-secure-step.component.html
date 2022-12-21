@@ -24,16 +24,17 @@
   </mat-form-field>
 
   <ng-container *ngIf="securityConfigSchema">
-    <h2>Configuration</h2>
+    <h2>Authentication configuration</h2>
 
-    <gv-schema-form
+    <gv-schema-form-group
       class="securityConfigSchema-form"
       ngDefaultControl
       formControlName="securityConfig"
       [schema]="securityConfigSchema"
       [attr.readonly]="secureForm.get('securityConfig').enabled ? null : true"
-      (:gv-schema-form:fetch-resources)="onFetchResources($event)"
-    ></gv-schema-form>
+      (:gv-schema-form-group:error)="onSecurityConfigError($event)"
+      (:gv-schema-form-group:fetch-resources)="onFetchResources($event)"
+    ></gv-schema-form-group>
 
     <h2>Additional selection rule</h2>
 

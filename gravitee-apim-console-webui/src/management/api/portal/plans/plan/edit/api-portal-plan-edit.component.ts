@@ -17,7 +17,7 @@ import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -27,8 +27,8 @@ import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../../entities/api';
 import { ApiService } from '../../../../../../services-ngx/api.service';
 import { PlanService } from '../../../../../../services-ngx/plan.service';
-import { NewPlanEntity, PlanValidation } from '../../../../../../entities/plan';
-import { Step } from '../../../../../../entities/flow/flow';
+import { NewPlan, PlanValidation } from '../../../../../../entities/plan';
+import { Flow, Step } from '../../../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -44,6 +44,8 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 })
 export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  public mode: 'create' | 'edit' = 'create';
 
   public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
@@ -62,15 +64,42 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   ) {}
 
   ngOnInit() {
-    this.apiService.get(this.ajsStateParams.apiId).subscribe((api) => (this.api = api));
+    this.mode = this.ajsStateParams.planId ? 'edit' : 'create';
+
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => (this.api = api));
   }
 
   ngAfterViewInit(): void {
-    this.planForm = new FormGroup({
-      general: this.planEditGeneralStepComponent.generalForm,
-      secure: this.planEditSecureStepComponent.secureForm,
-      restriction: this.planEditRestrictionStepComponent.restrictionForm,
-    });
+    if (this.mode === 'edit') {
+      this.planService
+        .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((plan) => {
+          this.initPlanForm({
+            general: {
+              name: plan.name,
+              description: plan.description,
+              characteristics: plan.characteristics,
+              generalConditions: plan.general_conditions,
+              shardingTags: plan.tags,
+              commentRequired: plan.comment_required,
+              commentMessage: plan.comment_message,
+              validation: plan.validation,
+              excludedGroups: plan.excluded_groups,
+            },
+            secure: {
+              securityTypes: plan.security,
+              securityConfig: plan.securityDefinition ? JSON.parse(plan.securityDefinition) : {},
+              selectionRule: plan.selection_rule,
+            },
+          });
+        });
+    } else {
+      this.initPlanForm();
+    }
 
     // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError in test
     // Needed to have only one detectChanges() after load each step child component
@@ -83,6 +112,77 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   }
 
   onSubmit() {
+    const newPlan: NewPlan = {
+      api: this.api.id,
+      // General
+      name: this.planForm.get('general').get('name').value,
+      description: this.planForm.get('general').get('description').value,
+      characteristics: this.planForm.get('general').get('characteristics').value,
+      general_conditions: this.planForm.get('general').get('generalConditions').value,
+      tags: this.planForm.get('general').get('shardingTags').value,
+      comment_required: this.planForm.get('general').get('commentRequired').value,
+      comment_message: this.planForm.get('general').get('commentMessage').value,
+      validation: this.planForm.get('general').get('validation').value ? PlanValidation.AUTO : PlanValidation.MANUAL,
+      excluded_groups: this.planForm.get('general').get('excludedGroups').value,
+
+      // Secure
+      security: this.planForm.get('secure').get('securityTypes').value,
+      securityDefinition: JSON.stringify(this.planForm.get('secure').get('securityConfig').value),
+      selection_rule: this.planForm.get('secure').get('selectionRule').value,
+
+      // Restriction (only for create mode)
+      ...(this.mode === 'edit' ? {} : { flows: this.initFlowsWithRestriction() }),
+    };
+
+    (this.mode === 'edit'
+      ? this.planService
+          .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
+          .pipe(switchMap((planToUpdate) => this.planService.update(this.api, { ...planToUpdate, ...newPlan })))
+      : this.planService.create(this.api, newPlan)
+    )
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'An error occurs while saving configuration');
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private initPlanForm(value?: unknown) {
+    this.planForm = new FormGroup({
+      general: this.planEditGeneralStepComponent.generalForm,
+      secure: this.planEditSecureStepComponent.secureForm,
+      ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
+    });
+
+    // Disable unnecessary fields with KEY_LESS security type
+    this.planForm
+      .get('secure')
+      .get('securityTypes')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.planForm.get('secure').get('securityTypes').value))
+      .subscribe((securityType) => {
+        if (securityType === 'KEY_LESS') {
+          this.planForm.get('general').get('commentRequired').disable();
+          this.planForm.get('general').get('validation').disable();
+          return;
+        }
+        this.planForm.get('general').get('commentRequired').enable();
+        this.planForm.get('general').get('validation').enable();
+      });
+
+    if (value) {
+      this.planForm.patchValue(value);
+      this.planForm.get('secure').get('securityTypes').disable();
+      this.planForm.updateValueAndValidity();
+    }
+    this.initialPlanFormValue = this.planForm.getRawValue();
+  }
+
+  // Init flows with restriction step. Only used in create mode
+  private initFlowsWithRestriction(): Flow[] {
     const restrictionPolicies: Step[] = [
       ...(this.planForm.get('restriction').get('rateLimitEnabled').value
         ? [
@@ -116,48 +216,16 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
         : []),
     ];
 
-    const newPlan: NewPlanEntity = {
-      api: this.api.id,
-      // General
-      name: this.planForm.get('general').get('name').value,
-      description: this.planForm.get('general').get('description').value,
-      characteristics: this.planForm.get('general').get('characteristics').value,
-      general_conditions: this.planForm.get('general').get('generalConditions').value,
-      tags: this.planForm.get('general').get('shardingTags').value,
-      comment_required: this.planForm.get('general').get('commentRequired').value,
-      comment_message: this.planForm.get('general').get('commentMessage').value,
-      validation: this.planForm.get('general').get('validation').value ? PlanValidation.AUTO : PlanValidation.MANUAL,
-      excluded_groups: this.planForm.get('general').get('excludedGroups').value,
-
-      // Secure
-      security: this.planForm.get('secure').get('securityTypes').value,
-      securityDefinition: JSON.stringify(this.planForm.get('secure').get('securityConfig').value),
-      selection_rule: this.planForm.get('secure').get('selectionRule').value,
-
-      // Restriction
-      flows: [
-        {
-          'path-operator': {
-            path: '/',
-            operator: 'STARTS_WITH',
-          },
-          enabled: true,
-          pre: [...restrictionPolicies],
-          post: [],
+    return [
+      {
+        'path-operator': {
+          path: '/',
+          operator: 'STARTS_WITH',
         },
-      ],
-    };
-
-    this.planService
-      .create(this.api, newPlan)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError((error) => {
-          this.snackBarService.error(error.error?.message ?? 'An error occurs while saving configuration');
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+        enabled: true,
+        pre: [...restrictionPolicies],
+        post: [],
+      },
+    ];
   }
 }

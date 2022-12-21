@@ -18,7 +18,7 @@ import { camelCase } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import '@gravitee/ui-components/wc/gv-schema-form';
+import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 import { Constants } from '../../../../../../../entities/Constants';
 import { PlanSecurityType } from '../../../../../../../entities/plan/plan';
@@ -83,10 +83,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.secureForm = new FormGroup({
       securityTypes: new FormControl(),
-      securityConfig: new FormControl({
-        value: {},
-        disabled: false,
-      }),
+      securityConfig: new FormControl({}),
       selectionRule: new FormControl(),
     });
 
@@ -95,7 +92,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       .valueChanges.pipe(
         takeUntil(this.unsubscribe$),
         tap(() => (this.securityConfigSchema = undefined)),
-        filter((securityType) => securityType !== PlanSecurityType.KEY_LESS),
+        filter((securityType) => securityType && securityType !== PlanSecurityType.KEY_LESS),
         map((securityType) => this.securityTypes.find((type) => type.id === securityType).policy),
         switchMap((securityTypePolicy) => this.policyService.getSchema(securityTypePolicy)),
         catchError((error) => {
@@ -124,6 +121,13 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  onSecurityConfigError($event) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.secureForm.get('securityConfig').setErrors($event.detail ? { error: true } : null, { emitEvent: false });
+    }, 0);
   }
 
   onFetchResources(event) {

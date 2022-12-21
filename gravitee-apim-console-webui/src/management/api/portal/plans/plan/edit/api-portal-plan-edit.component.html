@@ -36,7 +36,7 @@
         <plan-edit-secure-step matStepContent [api]="api"></plan-edit-secure-step>
       </mat-step>
 
-      <mat-step state="restriction" [stepControl]="planForm.get('restriction')">
+      <mat-step *ngIf="mode === 'create'" state="restriction" [stepControl]="planForm.get('restriction')">
         <ng-template matStepperIcon="restriction">
           <mat-icon svgIcon="gio:shield-cross"></mat-icon>
         </ng-template>
@@ -48,7 +48,7 @@
 
   <gio-save-bar
     *ngIf="planForm"
-    [creationMode]="true"
+    [creationMode]="mode === 'create'"
     [form]="planForm"
     [formInitialValues]="initialPlanFormValue"
     (submitted)="onSubmit()"
