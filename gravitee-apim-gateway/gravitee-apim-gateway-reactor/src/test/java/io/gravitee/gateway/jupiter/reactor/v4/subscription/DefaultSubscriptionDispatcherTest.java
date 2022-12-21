@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
+import static io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionDispatcher.ATTR_INTERNAL_TRACING_SPAN;
+import static io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionDispatcher.TRACING_SPAN_NAME;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.util.Calendar.MILLISECOND;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -25,23 +27,30 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
+import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcessorChainFactory;
+import io.gravitee.tracing.api.Span;
+import io.gravitee.tracing.api.Tracer;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.vertx.core.Vertx;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -65,9 +74,38 @@ class DefaultSubscriptionDispatcherTest {
     @Mock
     private SubscriptionExecutionRequestFactory factory;
 
+    @Mock
+    private SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory;
+
+    @Mock
+    private ProcessorChain preProcessorChain;
+
+    @Mock
+    private ProcessorChain postProcessorChain;
+
+    @Mock
+    private MutableExecutionContext context;
+
+    @Mock
+    private ApiReactor reactor;
+
+    final TestScheduler testScheduler = new TestScheduler();
+
     @BeforeEach
     void init() {
-        dispatcher = new DefaultSubscriptionDispatcher(resolver, factory);
+        dispatcher = new DefaultSubscriptionDispatcher(resolver, factory, platformProcessorChainFactory, false, Vertx.vertx());
+
+        lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(preProcessorChain);
+        lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(postProcessorChain);
+
+        // by default, mock full subscription chain, that just completes
+        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
+        lenient().when(factory.create(any())).thenReturn(context);
+        lenient().when(acceptor.reactor()).thenReturn(reactor);
+        lenient().when(resolver.resolve(any())).thenReturn(acceptor);
+        lenient().when(reactor.handle(context)).thenReturn(Completable.complete());
+        lenient().when(preProcessorChain.execute(any(), any())).thenReturn(Completable.complete());
+        lenient().when(postProcessorChain.execute(any(), any())).thenReturn(Completable.complete());
     }
 
     @Test
@@ -108,13 +146,7 @@ class DefaultSubscriptionDispatcherTest {
     }
 
     @Test
-    void shouldHandleSubscriptionNoConfiguration() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        when(acceptor.reactor()).thenReturn(reactor);
-
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
-
+    void shouldNotHandleSubscriptionNoConfiguration() {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
@@ -126,13 +158,7 @@ class DefaultSubscriptionDispatcherTest {
     }
 
     @Test
-    void shouldHandleSubscriptionNoConfigurationType() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        when(acceptor.reactor()).thenReturn(reactor);
-
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
-
+    void shouldNotHandleSubscriptionNoConfigurationType() {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
@@ -146,33 +172,108 @@ class DefaultSubscriptionDispatcherTest {
 
     @Test
     void shouldHandleSubscriptionWithConfiguration() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
-        when(reactor.handle(context)).thenReturn(Completable.complete());
-
-        when(factory.create(subscription)).thenReturn(context);
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
+        when(reactor.handle(context)).thenReturn(mock(Completable.class));
 
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
 
-        dispatcher.dispatch(subscription);
+        try {
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
 
-        verify(resolver, times(1)).resolve(any());
-        verify(factory, times(1)).create(subscription);
-        verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, "webhook");
-        verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+            dispatcher.dispatch(subscription);
 
-        Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
-        assertEquals(1, activeSubscriptions.size());
-        assertSame(subscription, activeSubscriptions.get(SUBSCRIPTION_ID));
+            testScheduler.triggerActions();
 
-        assertEquals(1, dispatcher.getActiveDisposables().size());
+            verify(resolver, times(1)).resolve(any());
+            verify(factory, times(1)).create(subscription);
+            verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, "webhook");
+            verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
+            assertEquals(1, activeSubscriptions.size());
+            assertSame(subscription, activeSubscriptions.get(SUBSCRIPTION_ID));
+
+            assertEquals(1, dispatcher.getActiveDisposables().size());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    @DisplayName("Should execute pre processors, then api reactor, then postprocessors")
+    void shouldExecutePreprocessorsAndPostprocessors() {
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn("ACCEPTED");
+        when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
+
+        try {
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            dispatcher.dispatch(subscription);
+            testScheduler.triggerActions();
+
+            InOrder orderedChain = inOrder(reactor, preProcessorChain, postProcessorChain);
+            orderedChain.verify(preProcessorChain).execute(context, ExecutionPhase.REQUEST);
+            orderedChain.verify(reactor).handle(context);
+            orderedChain.verify(postProcessorChain).execute(context, ExecutionPhase.RESPONSE);
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    @DisplayName("Should init subscription tracing span when tracing is enabled")
+    void shouldHandleTracing() {
+        dispatcher.tracingEnabled = true;
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn("ACCEPTED");
+        when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
+
+        // mock Tracer component in context, and his frame
+        Tracer tracer = mock(Tracer.class);
+        when(context.getComponent(Tracer.class)).thenReturn(tracer);
+        Span span = mock(Span.class);
+        when(tracer.span(TRACING_SPAN_NAME)).thenReturn(span);
+
+        try {
+            TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            dispatcher.dispatch(subscription);
+            testScheduler.triggerActions();
+
+            // subscription span has been created and put in context attributes
+            verify(tracer).span(TRACING_SPAN_NAME);
+            verify(context).putInternalAttribute(ATTR_INTERNAL_TRACING_SPAN, span);
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    @DisplayName("Should not handle tracing span when tracing is not enabled")
+    void shouldNotHandleTracing() {
+        dispatcher.tracingEnabled = false;
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn("ACCEPTED");
+        when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
+        when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
+
+        try {
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            dispatcher.dispatch(subscription);
+            testScheduler.triggerActions();
+
+            // no interaction with tracer, nor tracing span
+            verify(context, never()).getComponent(Tracer.class);
+            verify(context, never()).putInternalAttribute(eq(ATTR_INTERNAL_TRACING_SPAN), any());
+        } finally {
+            RxJavaPlugins.reset();
+        }
     }
 
     @Test
@@ -209,16 +310,6 @@ class DefaultSubscriptionDispatcherTest {
     @Test
     @DisplayName("Should redispatch subscription with a configuration change : dispose the old subscription and activate the new one")
     void shouldRedispatchSubscriptionWithConfigurationChange() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
-
-        when(factory.create(any())).thenReturn(context);
-        when(resolver.resolve(any())).thenReturn(acceptor);
-        when(reactor.handle(context)).thenReturn(Completable.complete());
-
         Subscription originSubscription = new Subscription();
         originSubscription.setId(SUBSCRIPTION_ID);
         originSubscription.setStatus("ACCEPTED");
@@ -252,16 +343,6 @@ class DefaultSubscriptionDispatcherTest {
 
     @Test
     void shouldRedispatchSubscriptionWithForceDispatch() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
-
-        when(factory.create(any())).thenReturn(context);
-        when(resolver.resolve(any())).thenReturn(acceptor);
-        when(reactor.handle(context)).thenReturn(Completable.complete());
-
         Subscription originSubscription = new Subscription();
         originSubscription.setId(SUBSCRIPTION_ID);
         originSubscription.setStatus("ACCEPTED");
@@ -294,15 +375,7 @@ class DefaultSubscriptionDispatcherTest {
     @Test
     @DisplayName("Should dispose subscription when its end date is reached")
     void shouldDisposeSubscriptionWhenEndDateReached() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
         when(reactor.handle(context)).thenReturn(mock(Completable.class));
-
-        when(factory.create(subscription)).thenReturn(context);
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
 
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
@@ -325,14 +398,8 @@ class DefaultSubscriptionDispatcherTest {
     @DisplayName("Should dispose subscription when retried more times than the limit")
     void shouldDisposeSubscriptionWhenRetryFails() {
         try {
-            final TestScheduler testScheduler = new TestScheduler();
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
 
-            DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-            ApiReactor reactor = mock(ApiReactor.class);
-            MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-            when(acceptor.reactor()).thenReturn(reactor);
             AtomicInteger atomicCpt = new AtomicInteger(0);
             when(reactor.handle(context))
                 .thenReturn(
@@ -347,9 +414,6 @@ class DefaultSubscriptionDispatcherTest {
                         }
                     )
                 );
-
-            when(factory.create(subscription)).thenReturn(context);
-            when(resolver.resolve(subscription)).thenReturn(acceptor);
 
             when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
             when(subscription.getStatus()).thenReturn("ACCEPTED");
@@ -373,17 +437,9 @@ class DefaultSubscriptionDispatcherTest {
     @Test
     @DisplayName("Should subscribe when its start date is reached")
     void shouldSubscribeSubscriptionWhenStartDateReached() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
         AtomicBoolean subscribed = new AtomicBoolean(false);
         Completable completable = Completable.complete().doOnSubscribe(s -> subscribed.set(true));
         when(reactor.handle(context)).thenReturn(completable);
-
-        when(factory.create(subscription)).thenReturn(context);
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
 
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
@@ -403,16 +459,6 @@ class DefaultSubscriptionDispatcherTest {
 
     @Test
     void shouldDisposeSubscription() {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
-        when(reactor.handle(context)).thenReturn(Completable.complete());
-
-        when(factory.create(subscription)).thenReturn(context);
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
-
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
@@ -454,16 +500,6 @@ class DefaultSubscriptionDispatcherTest {
 
     @Test
     void shouldDisposeSubscriptions() throws Exception {
-        DefaultSubscriptionAcceptor acceptor = mock(DefaultSubscriptionAcceptor.class);
-        ApiReactor reactor = mock(ApiReactor.class);
-        MutableExecutionContext context = mock(MutableExecutionContext.class);
-
-        when(acceptor.reactor()).thenReturn(reactor);
-        when(reactor.handle(context)).thenReturn(Completable.complete());
-
-        when(factory.create(subscription)).thenReturn(context);
-        when(resolver.resolve(subscription)).thenReturn(acceptor);
-
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);

@@ -23,19 +23,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.core.hook.HookHelper;
+import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
+import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
+import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.Acceptor;
+import io.gravitee.tracing.api.Span;
+import io.gravitee.tracing.api.Tracer;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableTransformer;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Predicate;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -50,21 +63,37 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     public static final int ON_SUBSCRIPTION_ERROR_RETRY_COUNT = 5;
     public static final int ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS = 3_000;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
     private static final String SUBSCRIPTION_ENTRYPOINT_FIELD = "entrypointId";
+
+    protected static final String TRACING_SPAN_NAME = "SUBSCRIPTION";
+    protected static final String ATTR_INTERNAL_TRACING_SPAN = "subscription-tracing-span";
+
     private final Map<String, Subscription> activeSubscriptions = new ConcurrentHashMap<>();
     private final Map<String, Disposable> activeDisposables = new ConcurrentHashMap<>();
 
     private final SubscriptionAcceptorResolver subscriptionAcceptorResolver;
     private final ObjectMapper mapper = new ObjectMapper();
     private final SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory;
+    private final SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory;
+    private final Vertx vertx;
+    private final List<ChainHook> processorChainHooks;
+    protected boolean tracingEnabled;
 
     public DefaultSubscriptionDispatcher(
         SubscriptionAcceptorResolver subscriptionAcceptorResolver,
-        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory
+        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory,
+        SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory,
+        boolean tracingEnabled,
+        Vertx vertx
     ) {
         this.subscriptionAcceptorResolver = subscriptionAcceptorResolver;
         this.subscriptionExecutionRequestFactory = subscriptionExecutionRequestFactory;
+        this.platformProcessorChainFactory = platformProcessorChainFactory;
+        this.tracingEnabled = tracingEnabled;
+        this.processorChainHooks = tracingEnabled ? List.of(new TracingHook("processor-chain")) : new ArrayList<>();
+        this.vertx = vertx;
     }
 
     private static boolean statusIsAccepted(Subscription subscriptionToDispatch) {
@@ -126,11 +155,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 if (type == null || type.trim().isEmpty()) {
                     LOGGER.error("Unable to handle subscription without known entrypoint id");
                 } else {
-                    Completable subscriptionObs = buildSubscriptionObservable(subscription, reactorHandler, type)
-                        .doOnComplete(() -> activeDisposables.remove(subscription.getId()));
-
-                    activeDisposables.put(subscription.getId(), subscriptionObs.subscribe());
-
+                    activeDisposables.put(subscription.getId(), handleSubscription(subscription, reactorHandler, type));
                     return subscription;
                 }
             } catch (Exception ex) {
@@ -140,7 +165,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         return null;
     }
 
-    private Completable buildSubscriptionObservable(Subscription subscription, ApiReactor reactorHandler, String type) {
+    private Disposable handleSubscription(Subscription subscription, ApiReactor reactorHandler, String type) {
         return Single
             .fromCallable(
                 () -> {
@@ -160,7 +185,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                     return context;
                 }
             )
-            .flatMapCompletable(reactorHandler::handle)
+            .flatMapCompletable(ctx -> executeSubscriptionChain(reactorHandler, ctx))
             // Apply a delay before starting the subscription if it has a starting date
             .compose(delayToStartDate(subscription))
             // Apply a timeout to the subscription if it has an ending date
@@ -174,7 +199,75 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                     // Here, manage ERROR status for subscription and send command to repository
                     return Completable.complete();
                 }
-            );
+            )
+            .doOnComplete(() -> activeDisposables.remove(subscription.getId()))
+            .subscribeOn(Schedulers.computation())
+            .subscribe();
+    }
+
+    private Completable executeSubscriptionChain(ApiReactor reactorHandler, MutableExecutionContext ctx) {
+        Context vertxContext = vertx.getOrCreateContext();
+        // initialize tracing span if tracing is enabled
+        return initTracingSpan(ctx)
+            // execute pre processor chain
+            .andThen(executePreProcessorChain(ctx))
+            // execute reactor handler
+            .andThen(reactorHandler.handle(ctx))
+            // execute post processors
+            // we have to run it on the same vertx context as subscriber's, cause tracing mechanism is relying on vertx context
+            .doFinally(() -> vertxContext.runOnContext(v -> executePostProcessorChain(ctx).andThen(endTracingSpan(ctx)).subscribe()));
+    }
+
+    private Completable executePreProcessorChain(MutableExecutionContext ctx) {
+        ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
+        return HookHelper.hook(
+            () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
+            preProcessorChain.getId(),
+            processorChainHooks,
+            ctx,
+            ExecutionPhase.REQUEST
+        );
+    }
+
+    private Completable executePostProcessorChain(MutableExecutionContext ctx) {
+        ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+        return HookHelper
+            .hook(
+                () -> postProcessorChain.execute(ctx, ExecutionPhase.RESPONSE),
+                postProcessorChain.getId(),
+                processorChainHooks,
+                ctx,
+                ExecutionPhase.RESPONSE
+            )
+            .onErrorComplete();
+    }
+
+    private Completable initTracingSpan(MutableExecutionContext ctx) {
+        return Completable.fromRunnable(
+            () -> {
+                if (tracingEnabled) {
+                    Tracer tracer = ctx.getComponent(Tracer.class);
+                    if (tracer != null) {
+                        Span span = tracer.span(TRACING_SPAN_NAME);
+                        ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_SPAN, span);
+                    }
+                }
+            }
+        );
+    }
+
+    private Completable endTracingSpan(MutableExecutionContext ctx) {
+        return Completable.fromRunnable(
+            () -> {
+                if (tracingEnabled) {
+                    Span span = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_SPAN);
+                    if (span != null) {
+                        span.end();
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_TRACING_SPAN);
+                    }
+                }
+            }
+        );
     }
 
     private CompletableTransformer delayToStartDate(Subscription subscription) {

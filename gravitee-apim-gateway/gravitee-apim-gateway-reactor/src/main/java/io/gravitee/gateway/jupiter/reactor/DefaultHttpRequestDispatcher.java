@@ -40,8 +40,8 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -81,7 +81,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final IdGenerator idGenerator;
     private final RequestProcessorChainFactory requestProcessorChainFactory;
     private final ResponseProcessorChainFactory responseProcessorChainFactory;
-    private final PlatformProcessorChainFactory platformProcessorChainFactory;
+    private final DefaultPlatformProcessorChainFactory platformProcessorChainFactory;
     private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final Vertx vertx;
@@ -95,7 +95,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory requestProcessorChainFactory,
         ResponseProcessorChainFactory responseProcessorChainFactory,
-        PlatformProcessorChainFactory platformProcessorChainFactory,
+        DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,

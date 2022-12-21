@@ -20,10 +20,8 @@ import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.reactor.processor.alert.AlertProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.responsetime.ResponseTimeProcessor;
-import io.gravitee.gateway.jupiter.reactor.processor.tracing.TraceContextProcessor;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
@@ -35,10 +33,9 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlatformProcessorChainFactory {
+public abstract class AbstractPlatformProcessorChainFactory {
 
-    private final TransactionProcessorFactory transactionHandlerFactory;
-    private final boolean traceContext;
+    protected final TransactionProcessorFactory transactionHandlerFactory;
     private final ReporterService reporterService;
     private final AlertEventProducer eventProducer;
     private final Node node;
@@ -47,9 +44,10 @@ public class PlatformProcessorChainFactory {
     private ProcessorChain preProcessorChain;
     private ProcessorChain postProcessorChain;
 
-    public PlatformProcessorChainFactory(
+    protected abstract List<Processor> buildPreProcessorList();
+
+    public AbstractPlatformProcessorChainFactory(
         TransactionProcessorFactory transactionHandlerFactory,
-        boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
@@ -57,7 +55,6 @@ public class PlatformProcessorChainFactory {
         boolean tracing
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
-        this.traceContext = traceContext;
         this.reporterService = reporterService;
         this.eventProducer = eventProducer;
         this.node = node;
@@ -79,21 +76,6 @@ public class PlatformProcessorChainFactory {
         List<Processor> preProcessorList = buildPreProcessorList();
         preProcessorChain = new ProcessorChain("processor-chain-pre-platform", preProcessorList);
         preProcessorChain.addHooks(processorHooks);
-    }
-
-    protected List<Processor> buildPreProcessorList() {
-        List<Processor> preProcessorList = new ArrayList<>();
-
-        preProcessorList.add(new XForwardForProcessor());
-
-        // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
-        // transaction ID
-        if (traceContext) {
-            preProcessorList.add(new TraceContextProcessor());
-        }
-
-        preProcessorList.add(transactionHandlerFactory.create());
-        return preProcessorList;
     }
 
     public ProcessorChain postProcessorChain() {
