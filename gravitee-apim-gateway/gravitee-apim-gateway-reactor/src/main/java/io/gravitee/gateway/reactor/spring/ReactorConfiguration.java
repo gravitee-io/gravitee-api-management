@@ -29,8 +29,9 @@ import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.*;
@@ -114,7 +115,7 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public PlatformProcessorChainFactory globalProcessorChainFactory(
+    public DefaultPlatformProcessorChainFactory defaultPlatformProcessorChainFactory(
         io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
@@ -123,9 +124,28 @@ public class ReactorConfiguration {
         @Value("${http.port:8082}") String httpPort,
         @Value("${services.tracing.enabled:false}") boolean tracing
     ) {
-        return new PlatformProcessorChainFactory(
+        return new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
             traceContext,
+            reporterService,
+            eventProducer,
+            node,
+            httpPort,
+            tracing
+        );
+    }
+
+    @Bean
+    public SubscriptionPlatformProcessorChainFactory subscriptionPlatformProcessorChainFactory(
+        io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
+        ReporterService reporterService,
+        AlertEventProducer eventProducer,
+        Node node,
+        @Value("${http.port:8082}") String httpPort,
+        @Value("${services.tracing.enabled:false}") boolean tracing
+    ) {
+        return new SubscriptionPlatformProcessorChainFactory(
+            transactionHandlerFactory,
             reporterService,
             eventProducer,
             node,
@@ -142,7 +162,7 @@ public class ReactorConfiguration {
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
         ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
-        PlatformProcessorChainFactory platformProcessorChainFactory,
+        DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -176,9 +196,18 @@ public class ReactorConfiguration {
     @Bean
     public SubscriptionDispatcher subscriptionDispatcher(
         SubscriptionAcceptorResolver subscriptionAcceptorResolver,
-        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory
+        SubscriptionExecutionRequestFactory subscriptionExecutionRequestFactory,
+        SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory,
+        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
+        Vertx vertx
     ) {
-        return new DefaultSubscriptionDispatcher(subscriptionAcceptorResolver, subscriptionExecutionRequestFactory);
+        return new DefaultSubscriptionDispatcher(
+            subscriptionAcceptorResolver,
+            subscriptionExecutionRequestFactory,
+            platformProcessorChainFactory,
+            tracingEnabled,
+            vertx
+        );
     }
 
     @Bean

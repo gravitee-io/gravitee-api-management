@@ -22,11 +22,11 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.jupiter.debug.reactor.context.DebugExecutionContext;
+import io.gravitee.gateway.jupiter.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.jupiter.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.vertx.core.Vertx;
@@ -45,7 +45,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory requestProcessorChainFactory,
         ResponseProcessorChainFactory responseProcessorChainFactory,
-        PlatformProcessorChainFactory platformProcessorChainFactory,
+        DebugPlatformProcessorChainFactory platformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,

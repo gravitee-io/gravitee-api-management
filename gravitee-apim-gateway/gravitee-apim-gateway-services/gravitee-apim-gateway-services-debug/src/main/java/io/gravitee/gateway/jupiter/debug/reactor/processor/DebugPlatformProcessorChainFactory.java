@@ -17,7 +17,7 @@ package io.gravitee.gateway.jupiter.debug.reactor.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
@@ -29,7 +29,7 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugPlatformProcessorChainFactory extends PlatformProcessorChainFactory {
+public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessorChainFactory {
 
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;

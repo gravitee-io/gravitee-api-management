@@ -47,8 +47,8 @@ import io.gravitee.gateway.jupiter.policy.PolicyFactory;
 import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.processor.AbstractPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
@@ -270,7 +270,7 @@ public class DebugConfiguration {
         ComponentProvider globalComponentProvider,
         RequestProcessorChainFactory v3RequestProcessorChainFactory,
         @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
-        @Qualifier("debugPlatformProcessorChainFactory") PlatformProcessorChainFactory debugPlatformProcessorChainFactory,
+        @Qualifier("debugPlatformProcessorChainFactory") DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory,
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -299,7 +299,7 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public PlatformProcessorChainFactory debugPlatformProcessorChainFactory(
+    public DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory(
         io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,

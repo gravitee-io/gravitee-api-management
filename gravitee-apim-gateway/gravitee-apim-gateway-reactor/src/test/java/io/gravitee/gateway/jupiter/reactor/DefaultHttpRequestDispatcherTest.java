@@ -30,8 +30,8 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.jupiter.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.PlatformProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -88,7 +88,7 @@ class DefaultHttpRequestDispatcherTest {
     private ResponseProcessorChainFactory responseProcessorChainFactory;
 
     @Mock
-    private PlatformProcessorChainFactory platformProcessorChainFactory;
+    private DefaultPlatformProcessorChainFactory platformProcessorChainFactory;
 
     @Mock
     private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
