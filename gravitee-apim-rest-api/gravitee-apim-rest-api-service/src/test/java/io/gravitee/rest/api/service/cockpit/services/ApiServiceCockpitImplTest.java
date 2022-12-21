@@ -17,8 +17,8 @@ package io.gravitee.rest.api.service.cockpit.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.anyCollection;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.never;
@@ -63,7 +63,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -891,7 +890,7 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(), anyCollection(), eq(null))).thenReturn(List.of(virtualHost));
+        when(virtualHostService.sanitizeAndValidate(any(), anyList(), eq(null))).thenReturn(List.of(virtualHost));
         var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
 
         verify(virtualHostService).sanitizeAndValidate(any(), eq(List.of(virtualHost)), eq(null));
@@ -906,7 +905,7 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(), anyCollection(), eq(null)))
+        when(virtualHostService.sanitizeAndValidate(any(), anyList(), eq(null)))
             .thenThrow(new ApiContextPathAlreadyExistsException("contextPath"));
         var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
 
