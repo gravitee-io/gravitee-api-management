@@ -38,6 +38,8 @@ import { fakeTag } from '../../../../../../entities/tag/tag.fixture';
 import { Page } from '../../../../../../entities/page';
 import { fakeApi } from '../../../../../../entities/api/Api.fixture';
 import { Api } from '../../../../../../entities/api';
+import { Plan } from '../../../../../../entities/plan';
+import { fakePlan } from '../../../../../../entities/plan/plan.fixture';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -48,12 +50,12 @@ describe('ApiPortalPlanEditComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(() => {
+  const configureTestingModule = (planId?: string) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlanEditModule, MatIconTestingModule],
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId } },
         {
           provide: 'Constants',
           useFactory: () => {
@@ -67,138 +69,238 @@ describe('ApiPortalPlanEditComponent', () => {
         },
       ],
     });
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ApiPortalPlanEditComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should add new plan', async () => {
-    const TAG_1_ID = 'tag-1';
+  describe('New mode', () => {
+    beforeEach(() => {
+      configureTestingModule();
+    });
 
-    expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
-    expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-    expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
-    expectCurrentUserTagsRequest([TAG_1_ID]);
-    expectResourceGetRequest();
-    fixture.detectChanges();
+    it('should add new plan', async () => {
+      const TAG_1_ID = 'tag-1';
 
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-    expect(await saveBar.isVisible()).toBe(true);
+      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
+      expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      expectCurrentUserTagsRequest([TAG_1_ID]);
+      expectResourceGetRequest();
+      fixture.detectChanges();
 
-    // 1- General Step
-    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
-    await nameInput.setValue('🗺');
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(true);
 
-    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
-    await descriptionInput.setValue('Description');
+      // 1- General Step
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      await nameInput.setValue('🗺');
 
-    const characteristicsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
-    await characteristicsInput.addTag('C1');
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+      await descriptionInput.setValue('Description');
 
-    const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
-    await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+      const characteristicsInput = await loader.getHarness(
+        GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }),
+      );
+      await characteristicsInput.addTag('C1');
 
-    const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
-    await validationToggle.toggle();
+      const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
+      await generalConditionsInput.clickOptions({ text: 'Doc 1' });
 
-    const commentRequired = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
-    await commentRequired.toggle();
+      const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
+      await validationToggle.toggle();
 
-    const commentMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
-    await commentMessageInput.setValue('Comment message');
+      const commentRequired = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
+      await commentRequired.toggle();
 
-    const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
-    await shardingTagsInput.clickOptions({ text: /Tag 1/ });
-    await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+      const commentMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
+      await commentMessageInput.setValue('Comment message');
 
-    const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
-    await excludedGroupsInput.clickOptions({ text: 'Group A' });
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+      await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
 
-    // 2- Secure Step
-    const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
-    await securityTypesInput.clickOptions({ text: /JWT/ });
-    await securityTypesInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
-    expectPolicySchemaGetRequest('jwt', {});
+      const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
+      await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
-    const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
-    await selectionRuleInput.setValue('{ #el ...}');
+      // 2- Secure Step
+      const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
+      await securityTypesInput.clickOptions({ text: /JWT/ });
+      await securityTypesInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
+      expectPolicySchemaGetRequest('jwt', {});
 
-    // 3- Restriction Step
+      const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+      await selectionRuleInput.setValue('{ #el ...}');
 
-    const rateLimitEnabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="rateLimitEnabled"]' }));
-    await rateLimitEnabledInput.toggle();
-    expectPolicySchemaGetRequest('rate-limit', {});
+      // 3- Restriction Step
 
-    const quotaEnabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="quotaEnabled"]' }));
-    await quotaEnabledInput.toggle();
-    expectPolicySchemaGetRequest('quota', {});
+      const rateLimitEnabledInput = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="rateLimitEnabled"]' }),
+      );
+      await rateLimitEnabledInput.toggle();
+      expectPolicySchemaGetRequest('rate-limit', {});
 
-    const resourceFilteringEnabledInput = await loader.getHarness(
-      MatSlideToggleHarness.with({ selector: '[formControlName="resourceFilteringEnabled"]' }),
-    );
-    await resourceFilteringEnabledInput.toggle();
-    expectPolicySchemaGetRequest('resource-filtering', {});
+      const quotaEnabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="quotaEnabled"]' }));
+      await quotaEnabledInput.toggle();
+      expectPolicySchemaGetRequest('quota', {});
 
-    // Save
-    await saveBar.clickSubmit();
+      const resourceFilteringEnabledInput = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[formControlName="resourceFilteringEnabled"]' }),
+      );
+      await resourceFilteringEnabledInput.toggle();
+      expectPolicySchemaGetRequest('resource-filtering', {});
 
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans`, method: 'POST' });
+      // Save
+      await saveBar.clickSubmit();
 
-    expect(req.request.body).toEqual({
-      name: '🗺',
-      description: 'Description',
-      api: 'my-api',
-      characteristics: ['C1'],
-      comment_message: 'Comment message',
-      comment_required: true,
-      excluded_groups: ['group-a'],
-      general_conditions: 'doc-1',
-      security: 'JWT',
-      securityDefinition: '{}',
-      selection_rule: '{ #el ...}',
-      tags: [TAG_1_ID],
-      validation: 'AUTO',
-      flows: [
-        {
-          enabled: true,
-          'path-operator': {
-            operator: 'STARTS_WITH',
-            path: '/',
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans`, method: 'POST' });
+
+      expect(req.request.body).toEqual({
+        name: '🗺',
+        description: 'Description',
+        api: 'my-api',
+        characteristics: ['C1'],
+        comment_message: 'Comment message',
+        comment_required: true,
+        excluded_groups: ['group-a'],
+        general_conditions: 'doc-1',
+        security: 'JWT',
+        securityDefinition: '{}',
+        selection_rule: '{ #el ...}',
+        tags: [TAG_1_ID],
+        validation: 'AUTO',
+        flows: [
+          {
+            enabled: true,
+            'path-operator': {
+              operator: 'STARTS_WITH',
+              path: '/',
+            },
+            post: [],
+            pre: [
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Rate Limiting',
+                policy: 'rate-limit',
+              },
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Quota',
+                policy: 'quota',
+              },
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Resource Filtering',
+                policy: 'resource-filtering',
+              },
+            ],
           },
-          post: [],
-          pre: [
-            {
-              configuration: {},
-              enabled: true,
-              name: 'Rate Limiting',
-              policy: 'rate-limit',
-            },
-            {
-              configuration: {},
-              enabled: true,
-              name: 'Quota',
-              policy: 'quota',
-            },
-            {
-              configuration: {},
-              enabled: true,
-              name: 'Resource Filtering',
-              policy: 'resource-filtering',
-            },
-          ],
-        },
-      ],
+        ],
+      });
+    });
+  });
+
+  describe('Edit mode', () => {
+    const PLAN_ID = 'plan-1';
+
+    beforeEach(() => {
+      configureTestingModule(PLAN_ID);
+    });
+
+    it('should edit plan', async () => {
+      const TAG_1_ID = 'tag-1';
+      const planToUpdate = fakePlan({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+
+      expectPlanGetRequest(API_ID, planToUpdate);
+
+      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
+      expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      expectCurrentUserTagsRequest([TAG_1_ID]);
+      expectResourceGetRequest();
+      fixture.detectChanges();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      // 1- General Step
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      expect(await nameInput.getValue()).toBe('Old 🗺');
+      await nameInput.setValue('🗺');
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+      expect(await descriptionInput.getValue()).toBe('Old Description');
+      await descriptionInput.setValue('Description');
+
+      const characteristicsInput = await loader.getHarness(
+        GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }),
+      );
+      await characteristicsInput.addTag('C1');
+
+      const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
+      await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+
+      const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
+      expect(await validationToggle.isDisabled()).toEqual(true); // disable for Keyless plan
+
+      const commentRequired = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
+      expect(await commentRequired.isDisabled()).toEqual(true); // disable for Keyless plan
+
+      const commentMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
+      expect(await commentMessageInput.isDisabled()).toEqual(true);
+
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
+      await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1
+      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+
+      const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
+      await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+      // 2- Secure Step
+      const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
+      expect(await securityTypesInput.isDisabled()).toEqual(true);
+      expect(await securityTypesInput.getValueText()).toEqual('Keyless (public)');
+
+      const selectionRuleInput = await loader.getAllHarnesses(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+      expect(selectionRuleInput.length).toEqual(0); // no selection rule for keyless
+
+      // Save
+      await saveBar.clickSubmit();
+
+      expectPlanGetRequest(API_ID, fakePlan(planToUpdate));
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${PLAN_ID}`,
+        method: 'PUT',
+      });
+
+      expect(req.request.body).toEqual({
+        ...planToUpdate,
+        name: '🗺',
+        description: 'Description',
+        api: 'my-api',
+        characteristics: ['C1'],
+        excluded_groups: ['group-a'],
+        general_conditions: 'doc-1',
+        security: 'KEY_LESS',
+        securityDefinition: '{}',
+        selection_rule: undefined,
+        tags: [],
+        validation: 'MANUAL',
+      });
     });
   });
 
@@ -248,5 +350,9 @@ describe('ApiPortalPlanEditComponent', () => {
 
   function expectPolicySchemaGetRequest(type: string, schema: unknown) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/${type}/schema`, method: 'GET' }).flush(schema);
+  }
+
+  function expectPlanGetRequest(apiId: string, plan: Plan) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans/${plan.id}`, method: 'GET' }).flush(plan);
   }
 });

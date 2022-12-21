@@ -47,7 +47,7 @@ export interface NewPlan {
   characteristics?: string[];
   tags?: string[];
   order?: number;
-  paths?: object;
+  paths?: { [key: string]: Array<unknown> };
   flows?: Flow[];
   excluded_groups?: string[];
   comment_required?: boolean;

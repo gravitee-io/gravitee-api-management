@@ -95,6 +95,18 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.plan.edit', {
+      url: '/:planId/edit',
+      component: 'ngApiPortalPlanEdit',
+      data: {
+        perms: {
+          only: ['api-plan-u'],
+        },
+        docs: {
+          page: 'management-api-plans-wizard',
+        },
+      },
+    })
     .state('management.apis.detail.portal.plans', {
       abstract: true,
       url: '/plans',
