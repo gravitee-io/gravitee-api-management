@@ -36,6 +36,7 @@ import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
 import { GioFormSlideToggleModule } from '../../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioFormFocusInvalidModule } from '../../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
+import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiPortalPlanEditComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
@@ -62,6 +63,7 @@ import { GioFormFocusInvalidModule } from '../../../../../../shared/components/g
     GioSaveBarModule,
     GioFormFocusInvalidModule,
     GioBannerModule,
+    GioGoBackButtonModule,
   ],
 })
 export class ApiPortalPlanEditModule {}

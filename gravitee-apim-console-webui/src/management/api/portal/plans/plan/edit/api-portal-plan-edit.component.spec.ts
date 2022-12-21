@@ -28,7 +28,7 @@ import { set } from 'lodash';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
 
-import { CurrentUserService, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { Tag } from '../../../../../../entities/tag/tag';
@@ -44,6 +44,7 @@ import { fakePlan } from '../../../../../../entities/plan/plan.fixture';
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
+  const fakeUiRouter = { go: jest.fn() };
   currentUser.userPermissions = ['api-plan-u'];
 
   let fixture: ComponentFixture<ApiPortalPlanEditComponent>;
@@ -56,6 +57,7 @@ describe('ApiPortalPlanEditComponent', () => {
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId } },
+        { provide: UIRouterState, useValue: fakeUiRouter },
         {
           provide: 'Constants',
           useFactory: () => {
@@ -209,6 +211,8 @@ describe('ApiPortalPlanEditComponent', () => {
           },
         ],
       });
+      req.flush({});
+      expect(fakeUiRouter.go).toHaveBeenCalled();
     });
   });
 
@@ -300,7 +304,11 @@ describe('ApiPortalPlanEditComponent', () => {
         selection_rule: undefined,
         tags: [],
         validation: 'MANUAL',
+        comment_message: undefined,
+        comment_required: false,
       });
+      req.flush({});
+      expect(fakeUiRouter.go).toHaveBeenCalled();
     });
   });
 
