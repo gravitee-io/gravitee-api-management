@@ -23,13 +23,14 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../../entities/api';
 import { ApiService } from '../../../../../../services-ngx/api.service';
 import { PlanService } from '../../../../../../services-ngx/plan.service';
 import { NewPlan, PlanValidation } from '../../../../../../entities/plan';
 import { Flow, Step } from '../../../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { StateService } from '@uirouter/angularjs';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -58,6 +59,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   constructor(
     private readonly changeDetectorRef: ChangeDetectorRef,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiService,
     private readonly planService: PlanService,
     private readonly snackBarService: SnackBarService,
@@ -148,7 +150,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
           return EMPTY;
         }),
       )
-      .subscribe();
+      .subscribe(() => this.ajsState.go('management.apis.detail.portal.ng-plans'));
   }
 
   private initPlanForm(value?: unknown) {
@@ -166,7 +168,9 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
       .subscribe((securityType) => {
         if (securityType === 'KEY_LESS') {
           this.planForm.get('general').get('commentRequired').disable();
+          this.planForm.get('general').get('commentRequired').setValue(false);
           this.planForm.get('general').get('validation').disable();
+          this.planForm.get('general').get('validation').setValue(false);
           return;
         }
         this.planForm.get('general').get('commentRequired').enable();

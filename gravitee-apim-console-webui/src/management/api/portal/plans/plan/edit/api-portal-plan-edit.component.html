@@ -16,7 +16,9 @@
 
 -->
 
-<h1>Plan</h1>
+<h1>
+  <gio-go-back-button [ajsGo]="{ to: 'management.apis.detail.portal.ng-plans' }"></gio-go-back-button>
+  Plan</h1>
 <form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
   <mat-card>
     <mat-stepper>
