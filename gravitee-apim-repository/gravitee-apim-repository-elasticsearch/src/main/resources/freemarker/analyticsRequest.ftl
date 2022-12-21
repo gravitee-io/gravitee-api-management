@@ -26,7 +26,11 @@
       "by_date":{
          "date_histogram":{
             "field":"@timestamp",
-            "interval":"${interval}",
+<#if useFixedInterval??>
+            "fixed_interval": "${interval}",
+<#else>
+            "interval": "${interval}",
+</#if>
             "min_doc_count":0,
             "extended_bounds":{
                "min":${from},

@@ -34,7 +34,11 @@
     "by_date": {
       "date_histogram": {
         "field": "@timestamp",
+<#if useFixedInterval??>
+        "fixed_interval": "${query.timeRange().interval().toMillis()}ms",
+<#else>
         "interval": "${query.timeRange().interval().toMillis()}ms",
+</#if>
         "min_doc_count": 0,
         "extended_bounds": {
           "min": ${roundedFrom},

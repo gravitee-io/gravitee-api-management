@@ -31,7 +31,7 @@ import io.gravitee.repository.analytics.query.stats.StatsResponse;
  */
 public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsResponse> {
 
-    private static final String TEMPLATE = "stats.ftl";
+    private static final String TEMPLATE = "analytics/stats.ftl";
 
     @Override
     public Class<? extends Query<StatsResponse>> getSupportedQuery() {

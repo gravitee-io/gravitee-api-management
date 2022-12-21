@@ -81,7 +81,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 final Single<SearchResponse> result =
                     this.client.search(
                             this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
-                            !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
+                            !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                             this.createElasticsearchJsonQuery(query)
                         );
 
@@ -98,7 +98,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 Single<SearchResponse> result =
                     this.client.search(
                             this.indexNameGenerator.getIndexName(Type.LOG, from, to, clusters),
-                            !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.LOG.getType(),
+                            !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(),
                             sQuery
                         );
 
@@ -125,7 +125,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     result =
                         this.client.search(
                                 this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
-                                !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
+                                !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                                 this.createElasticsearchJsonQuery(requestQueryBuilder.build())
                             );
                 }
@@ -197,7 +197,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                         (timestamp == null)
                             ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST, clusters)
                             : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp), clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                         sQuery
                     );
 
@@ -219,12 +219,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 searchHitIndex = this.indexNameGenerator.getIndexName(Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
             }
 
-            result =
-                this.client.search(
-                        searchHitIndex,
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.LOG.getType(),
-                        sQuery
-                    );
+            result = this.client.search(searchHitIndex, !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(), sQuery);
             searchResponse = result.blockingGet();
 
             JsonNode log = null;
