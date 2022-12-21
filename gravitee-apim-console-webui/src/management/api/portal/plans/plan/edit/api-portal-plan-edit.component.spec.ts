@@ -257,15 +257,6 @@ describe('ApiPortalPlanEditComponent', () => {
       const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
       await generalConditionsInput.clickOptions({ text: 'Doc 1' });
 
-      const validationToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
-      expect(await validationToggle.isDisabled()).toEqual(true); // disable for Keyless plan
-
-      const commentRequired = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
-      expect(await commentRequired.isDisabled()).toEqual(true); // disable for Keyless plan
-
-      const commentMessageInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
-      expect(await commentMessageInput.isDisabled()).toEqual(true);
-
       const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
       expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
       await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1

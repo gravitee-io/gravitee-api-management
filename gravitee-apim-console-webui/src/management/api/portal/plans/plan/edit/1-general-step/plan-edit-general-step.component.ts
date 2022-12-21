@@ -42,6 +42,13 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     this.api$.next(api);
   }
 
+  @Input()
+  mode: 'create' | 'edit' = 'create';
+
+  // Allow to display subscriptions section when plan security is not KEY_LESS
+  @Input()
+  displaySubscriptionsSection = true;
+
   conditionPages$ = this.documentationService.apiSearch(this.ajsStateParams.apiId, {
     type: 'MARKDOWN',
     api: this.ajsStateParams.apiId,
