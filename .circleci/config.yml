@@ -1532,6 +1532,48 @@ jobs:
                             name: Version not set - nothing to run
                             command: exit 0
 
+    elastic-test-container:
+      parameters:
+        version:
+          type: string
+          description: version of elasticsearch to test
+          default: ""
+      executor:
+        name: ubuntu
+      steps:
+        - when:
+            condition: << parameters.version >>
+            steps:
+              - install-jdk-17-for-machine
+              - checkout
+              - attach_workspace:
+                  at: .
+              - restore-maven-job-cache:
+                  jobName: elastic-test-container
+              - run:
+                  name: Run Elasticsearch repository tests with version << parameters.version >>
+                  command: |
+                    cd gravitee-apim-repository
+                    mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -Delasticsearch.version=<< parameters.version>> -T 2C
+              - run:
+                  name: Save test results
+                  command: |
+                    mkdir -p ~/test-results/junit/
+                    find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                  when: always
+              - save-maven-job-cache:
+                  jobName: elastic-test-container
+              - store_test_results:
+                  path: ~/test-results
+              - notify-on-failure
+        - when:
+            condition:
+              not: << parameters.version >>
+            steps:
+              - run:
+                  name: Version not set - nothing to run
+                  command: exit 0
+
     e2e-test:
         executor:
             name: ubuntu
@@ -2190,6 +2232,13 @@ workflows:
                   matrix:
                       parameters:
                           version: ["3", "4", "5"]
+            - elastic-test-container:
+                context: cicd-orchestrator
+                requires:
+                  - setup
+                matrix:
+                  parameters:
+                    version: ["5.6.16", "6.8.23", "7.17.8"]
 
     release_notes_apim:
       when:
