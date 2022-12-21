@@ -18,6 +18,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit,
 import { FormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { StateService } from '@uirouter/angularjs';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -30,7 +31,6 @@ import { PlanService } from '../../../../../../services-ngx/plan.service';
 import { NewPlan, PlanValidation } from '../../../../../../entities/plan';
 import { Flow, Step } from '../../../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { StateService } from '@uirouter/angularjs';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -51,6 +51,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
   public api: Api;
+  public displaySubscriptionsSection = true;
 
   @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
   @ViewChild(PlanEditSecureStepComponent) planEditSecureStepComponent: PlanEditSecureStepComponent;
@@ -160,12 +161,15 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
-    // Disable unnecessary fields with KEY_LESS security type
     this.planForm
       .get('secure')
       .get('securityTypes')
       .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.planForm.get('secure').get('securityTypes').value))
       .subscribe((securityType) => {
+        // Display subscriptions section only for none KEY_LESS security type
+        this.displaySubscriptionsSection = securityType !== 'KEY_LESS';
+
+        // Disable unnecessary fields with KEY_LESS security type
         if (securityType === 'KEY_LESS') {
           this.planForm.get('general').get('commentRequired').disable();
           this.planForm.get('general').get('commentRequired').setValue(false);

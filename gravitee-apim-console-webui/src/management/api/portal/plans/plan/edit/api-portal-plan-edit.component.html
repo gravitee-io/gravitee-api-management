@@ -18,7 +18,8 @@
 
 <h1>
   <gio-go-back-button [ajsGo]="{ to: 'management.apis.detail.portal.ng-plans' }"></gio-go-back-button>
-  Plan</h1>
+  Plan
+</h1>
 <form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
   <mat-card>
     <mat-stepper>
@@ -27,7 +28,12 @@
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </ng-template>
         <ng-template matStepLabel>General</ng-template>
-        <plan-edit-general-step matStepContent [api]="api"></plan-edit-general-step>
+        <plan-edit-general-step
+          matStepContent
+          [api]="api"
+          [mode]="mode"
+          [displaySubscriptionsSection]="displaySubscriptionsSection"
+        ></plan-edit-general-step>
       </mat-step>
 
       <mat-step state="secure" [stepControl]="planForm.get('secure')">

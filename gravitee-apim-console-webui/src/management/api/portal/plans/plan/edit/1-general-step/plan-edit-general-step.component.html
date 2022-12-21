@@ -36,9 +36,9 @@
 
   <h2>Conditions</h2>
 
-  <!-- // TODO: For edit mode   
-    This plan is published, if you change the general conditions please remember to notify you API subscribers 
-  -->
+  <gio-banner-info *ngIf="mode === 'edit'">
+    This plan is published, if you change the general conditions please remember to notify you API subscribers
+  </gio-banner-info>
 
   <mat-form-field class="generalConditions-field" appearance="fill">
     <mat-label>Page of General Conditions</mat-label>
@@ -51,38 +51,38 @@
     </mat-select>
   </mat-form-field>
 
-  <h2>Subscriptions</h2>
+  <ng-container *ngIf="displaySubscriptionsSection">
+    <h2>Subscriptions</h2>
+    <p *ngIf="mode === 'create'">Only for plan without Keyless (public) authentication type</p>
 
-  <!-- // TODO: for edit mode disabled="plan.security == 'KEY_LESS'" -->
+    <gio-form-slide-toggle appearance="fill" class="validation-field">
+      Auto validate subscription
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="validation"
+        aria-label="Auto validate subscription toggle"
+        name="validation"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
-  <gio-form-slide-toggle appearance="fill" class="validation-field">
-    Auto validate subscription
-    <mat-slide-toggle
-      gioFormSlideToggle
-      formControlName="validation"
-      aria-label="Auto validate subscription toggle"
-      name="validation"
-    ></mat-slide-toggle>
-  </gio-form-slide-toggle>
+    <gio-form-slide-toggle appearance="fill" class="commentRequired-field">
+      Consumer must provide a comment when subscribing to the plan
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="commentRequired"
+        aria-label="Comment when subscribing to the plan toggle"
+        name="commentRequired"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
-  <gio-form-slide-toggle appearance="fill" class="commentRequired-field">
-    Consumer must provide a comment when subscribing to the plan
-    <mat-slide-toggle
-      gioFormSlideToggle
-      formControlName="commentRequired"
-      aria-label="Comment when subscribing to the plan toggle"
-      name="commentRequired"
-    ></mat-slide-toggle>
-  </gio-form-slide-toggle>
-
-  <mat-form-field class="commentMessage-field" appearance="fill">
-    <mat-label>Custom message to display to consumer</mat-label>
-    <input matInput formControlName="commentMessage" />
-    <mat-error *ngIf="generalForm.get('commentMessage').hasError('maxlength')"
-      >The comment message has to be less than 64 characters long.</mat-error
-    >
-  </mat-form-field>
-
+    <mat-form-field class="commentMessage-field" appearance="fill">
+      <mat-label>Custom message to display to consumer</mat-label>
+      <input matInput formControlName="commentMessage" />
+      <mat-error *ngIf="generalForm.get('commentMessage').hasError('maxlength')"
+        >The comment message has to be less than 64 characters long.</mat-error
+      >
+    </mat-form-field>
+  </ng-container>
   <h2>Deployment</h2>
 
   <mat-form-field appearance="fill">
