@@ -104,6 +104,9 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
         if (roundedTo != null) {
             data.put("roundedTo", roundedTo);
         }
+        if (info.getVersion().canUseDateHistogramFixedInterval()) {
+            data.put("useFixedInterval", true);
+        }
 
         final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 
@@ -125,14 +128,14 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
             result =
                 this.client.search(
                         this.indexNameGenerator.getIndexName(type, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         } else {
             result =
                 this.client.search(
                         this.indexNameGenerator.getTodayIndexName(type, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         }
@@ -153,14 +156,14 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
             result =
                 this.client.count(
                         this.indexNameGenerator.getIndexName(type, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         } else {
             result =
                 this.client.count(
                         this.indexNameGenerator.getTodayIndexName(type, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
                         sQuery
                     );
         }

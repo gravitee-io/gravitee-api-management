@@ -41,7 +41,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 @Import(ElasticsearchRepositoryConfiguration.class)
 public class ElasticsearchRepositoryConfigurationTest {
 
-    public static final String DEFAULT_ELASTICSEARCH_VERSION = "7.17.8";
+    public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.5.2";
     public static final String CLUSTER_NAME = "gravitee_test";
 
     @Value("${elasticsearch.version:" + DEFAULT_ELASTICSEARCH_VERSION + "}")
@@ -76,7 +76,6 @@ public class ElasticsearchRepositoryConfigurationTest {
         elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
         elasticConfiguration.setUsername("elastic");
         elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
-        environment.getSystemProperties().put("analytics.elasticsearch.index_per_type", "true");
         return elasticConfiguration;
     }
 
@@ -87,6 +86,9 @@ public class ElasticsearchRepositoryConfigurationTest {
         );
         elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
         elasticsearchContainer.withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+        if (elasticsearchVersion.startsWith("8")) {
+            elasticsearchContainer.withEnv("xpack.security.enabled", "false");
+        }
         elasticsearchContainer.start();
         return elasticsearchContainer;
     }

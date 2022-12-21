@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
 
-    private static final String TEMPLATE = "dateHistogram.ftl";
+    private static final String TEMPLATE = "analytics/dateHistogram.ftl";
     private static final String FIELD_STATUS = "status";
     private static final Map<String, Integer> aggregationSizeMapping;
 

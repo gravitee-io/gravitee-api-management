@@ -81,7 +81,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
             final Single<SearchResponse> result =
                 this.client.search(
                         this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );
 
