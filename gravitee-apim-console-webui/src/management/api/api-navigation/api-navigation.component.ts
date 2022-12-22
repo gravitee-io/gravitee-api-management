@@ -125,7 +125,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
-        targetRoute: 'management.apis.detail.portal.plans.list',
+        targetRoute: 'management.apis.detail.portal.plans',
         baseRoute: 'management.apis.detail.portal.plans',
       });
     }

@@ -130,11 +130,11 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   }
 
   public navigateToPlan(planId: string): void {
-    this.ajsState.go('management.apis.detail.portal.plans.plan', { planId });
+    this.ajsState.go('management.apis.detail.portal.plan.edit', { planId });
   }
 
   public navigateToNewPlan(): void {
-    this.ajsState.go('management.apis.detail.portal.plans.new');
+    this.ajsState.go('management.apis.detail.portal.plan.new');
   }
 
   public designPlan(planId: string): void {
@@ -270,7 +270,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   }
 
   private onInit(api, plans) {
-    this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
+    this.ajsState.go('management.apis.detail.portal.plans', { status: this.status }, { notify: false });
     this.api = api;
     this.isV2Api = api && api.gravitee === '2.0.0';
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
