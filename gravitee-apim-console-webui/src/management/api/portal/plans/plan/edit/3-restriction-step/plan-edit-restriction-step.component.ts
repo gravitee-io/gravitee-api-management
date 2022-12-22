@@ -83,4 +83,11 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
+
+  onGvSchemaFormError(formKey: string, error: unknown) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.restrictionForm.get(formKey).setErrors(error ? { error: true } : null);
+    }, 0);
+  }
 }

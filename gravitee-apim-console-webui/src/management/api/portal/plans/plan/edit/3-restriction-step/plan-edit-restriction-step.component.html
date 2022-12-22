@@ -28,14 +28,15 @@
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
 
-    <gv-schema-form
+    <gv-schema-form-group
       *ngIf="rateLimitSchema"
       class="rateLimit-card__schema-form"
       ngDefaultControl
       formControlName="rateLimitConfig"
       [schema]="rateLimitSchema"
       [attr.readonly]="restrictionForm.get('rateLimitConfig').enabled ? null : true"
-    ></gv-schema-form>
+      (:gv-schema-form-group:error)="onGvSchemaFormError('rateLimitConfig', $event.detail)"
+    ></gv-schema-form-group>
   </mat-card>
 
   <mat-card class="quota-card">
@@ -50,14 +51,15 @@
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
 
-    <gv-schema-form
+    <gv-schema-form-group
       *ngIf="quotaSchema"
       class="quota-card__schema-form"
       ngDefaultControl
       formControlName="quotaConfig"
       [schema]="quotaSchema"
       [attr.readonly]="restrictionForm.get('quotaConfig').enabled ? null : true"
-    ></gv-schema-form>
+      (:gv-schema-form-group:error)="onGvSchemaFormError('quotaConfig', $event.detail)"
+    ></gv-schema-form-group>
   </mat-card>
 
   <mat-card class="resourceFiltering-card">
@@ -72,14 +74,15 @@
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
 
-    <gv-schema-form
+    <gv-schema-form-group
       *ngIf="resourceFilteringSchema"
       class="resourceFiltering-card__schema-form"
       ngDefaultControl
       formControlName="resourceFilteringConfig"
       [schema]="resourceFilteringSchema"
       [attr.readonly]="restrictionForm.get('resourceFilteringConfig').enabled ? null : true"
-    ></gv-schema-form>
+      (:gv-schema-form-group:error)="onGvSchemaFormError('resourceFilteringConfig', $event.detail)"
+    ></gv-schema-form-group>
   </mat-card>
 </ng-container>
 
