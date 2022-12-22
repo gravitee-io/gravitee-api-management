@@ -298,8 +298,6 @@ describe('ApiProxyGroupEditComponent', () => {
 
         await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
 
-        expect(fixture.debugElement.nativeElement.querySelector('#sdSchemaForm')).toBeFalsy();
-
         await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
 
         await loader
@@ -311,7 +309,7 @@ describe('ApiProxyGroupEditComponent', () => {
       });
 
       it('should display service discovery gv-schema-form and save url', async () => {
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeTruthy();
 
         await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
 
@@ -327,17 +325,6 @@ describe('ApiProxyGroupEditComponent', () => {
             .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
             .then((select) => select.isDisabled()),
         ).toEqual(true);
-      });
-
-      it('should mark the form as invalid when the service discovery is enabled but the url is not set', async () => {
-        const component = fixture.componentInstance;
-        component.onServiceDiscoveryChange({
-          isSchemaValid: false,
-          serviceDiscoveryValues: {},
-        });
-
-        expect(component.groupForm.valid).toStrictEqual(false);
-        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toEqual(true);
       });
     });
 
@@ -542,19 +529,7 @@ describe('ApiProxyGroupEditComponent', () => {
   function expectServiceDiscoverySchemaRequest() {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/services-discovery/consul-service-discovery/schema`, method: 'GET' })
-      .flush({
-        id: 'urn:jsonschema:io:gravitee:discovery:consul:configuration:ConsulServiceDiscoveryConfiguration',
-        properties: {
-          url: {
-            title: 'Consul.io URL',
-            description: 'Address of the Consul.io agent',
-            type: 'string',
-            default: 'http://localhost:8500',
-          },
-          required: ['url', 'service', 'trustStoreType', 'keyStoreType'],
-          type: 'object',
-        },
-      });
+      .flush({});
     fixture.detectChanges();
   }
 

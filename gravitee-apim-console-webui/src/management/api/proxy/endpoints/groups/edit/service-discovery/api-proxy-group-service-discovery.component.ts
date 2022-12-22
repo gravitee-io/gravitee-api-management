@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { map, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-
-import { ServiceDiscoveryEvent } from './api-proxy-group-service-discovery.model';
+import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, of, Subject } from 'rxjs';
+import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
-import { ProxyGroup } from '../../../../../../../entities/proxy';
 import { ServiceDiscoveryService } from '../../../../../../../services-ngx/service-discovery.service';
-import { SchemaFormEvent } from '../../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-service-discovery',
@@ -35,9 +32,6 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
 
   @Input() serviceDiscoveryForm: FormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
-  @Input() group: ProxyGroup;
-  @Input() isReadOnly: boolean;
-  @Output() onServiceDiscoveryConfigurationChange = new EventEmitter<ServiceDiscoveryEvent>();
 
   public schema: unknown;
   public displaySchema: boolean;
@@ -45,21 +39,31 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
   constructor(private readonly serviceDiscoveryService: ServiceDiscoveryService) {}
 
   ngOnInit(): void {
-    if (this.group?.services?.discovery.enabled) {
-      this.onFormValuesChange(this.group.services.discovery.provider);
-    }
+    combineLatest([
+      this.serviceDiscoveryForm
+        .get('enabled')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.serviceDiscoveryForm.get('enabled').value)),
+      this.serviceDiscoveryForm
+        .get('type')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.serviceDiscoveryForm.get('type').value)),
+    ])
+      .pipe(
+        switchMap(([enabled, type]) => {
+          const typeControl = this.serviceDiscoveryForm.get('type');
+          enabled ? typeControl.enable({ emitEvent: false }) : typeControl.disable({ emitEvent: false });
 
-    this.serviceDiscoveryForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
-      const typeControl = this.serviceDiscoveryForm.get('type');
-      if (values.enabled) {
-        typeControl.enable({ emitEvent: false });
-        this.onFormValuesChange(typeControl.value);
-      } else {
-        typeControl.disable({ emitEvent: false });
-        this.displaySchema = false;
-        this.schema = null;
-      }
-    });
+          if (enabled && type) {
+            return this.serviceDiscoveryService.getSchema(type);
+          } else {
+            return of(null);
+          }
+        }),
+        tap((schema) => {
+          this.schema = schema;
+          this.displaySchema = !!schema;
+        }),
+      )
+      .subscribe();
   }
 
   ngOnDestroy(): void {
@@ -67,25 +71,10 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
     this.unsubscribe$.complete();
   }
 
-  onSchemaFormChange(event: SchemaFormEvent) {
-    this.onServiceDiscoveryConfigurationChange.emit({
-      isSchemaValid: !event.detail?.validation?.errors?.length,
-      serviceDiscoveryValues: event.detail?.values,
-    });
-  }
-
-  private onFormValuesChange(type: string) {
-    if (type) {
-      this.serviceDiscoveryService
-        .getSchema(type)
-        .pipe(
-          map((schema) => {
-            this.schema = schema;
-            this.displaySchema =
-              this.serviceDiscoveryForm.get('enabled').value === true && !!this.serviceDiscoveryForm.get('type').value && !!this.schema;
-          }),
-        )
-        .subscribe();
-    }
+  onConfigurationError(error: unknown) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.serviceDiscoveryForm.get('configuration').setErrors(error ? { error: true } : null);
+    }, 0);
   }
 }
