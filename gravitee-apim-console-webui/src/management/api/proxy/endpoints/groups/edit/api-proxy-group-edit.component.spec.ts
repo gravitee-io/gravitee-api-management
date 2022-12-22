@@ -90,8 +90,8 @@ describe('ApiProxyGroupEditComponent', () => {
         id: API_ID,
       });
       expectApiGetRequest(api);
-      expectConnectorRequest(connector);
       expectServiceDiscoveryRequest(serviceDiscovery);
+      expectConnectorRequest(connector);
 
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
@@ -117,8 +117,8 @@ describe('ApiProxyGroupEditComponent', () => {
           },
         });
         expectApiGetRequest(api);
-        expectConnectorRequest(connector);
         expectServiceDiscoveryRequest(serviceDiscovery);
+        expectConnectorRequest(connector);
 
         await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
         fixture.detectChanges();
@@ -218,53 +218,16 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
-        expectConnectorRequest(connector);
         expectServiceDiscoveryRequest(serviceDiscovery);
-      });
-
-      it('should mark form as invalid, touched and dirty', async () => {
-        const component = fixture.componentInstance;
-        expect(component.groupForm.valid).toStrictEqual(true);
-        expect(component.groupForm.touched).toStrictEqual(false);
-        expect(component.groupForm.dirty).toStrictEqual(false);
-
-        component.onConfigurationChange({
-          isSchemaValid: false,
-          configuration: {},
-        });
-
-        expect(component.groupForm.valid).toStrictEqual(false);
-        expect(component.groupForm.touched).toStrictEqual(true);
-        expect(component.groupForm.dirty).toStrictEqual(true);
-      });
-
-      it('should mark unset configuration error', async () => {
-        const component = fixture.componentInstance;
-        component.onConfigurationChange({
-          isSchemaValid: false,
-          configuration: {},
-        });
-
-        expect(component.groupForm.valid).toStrictEqual(false);
-        expect(component.groupForm.touched).toStrictEqual(true);
-        expect(component.groupForm.dirty).toStrictEqual(true);
-
-        component.onConfigurationChange({
-          isSchemaValid: true,
-          configuration: {},
-        });
-        expect(component.groupForm.valid).toStrictEqual(true);
+        expectConnectorRequest(connector);
       });
 
       it('should update api configuration', async () => {
         const component = fixture.componentInstance;
-        component.onConfigurationChange({
-          isSchemaValid: false,
-          configuration: {
-            http: {
-              ...api.proxy.groups[0].http,
-              connectTimeout: 1000,
-            },
+        component.groupForm.get('groupConfiguration').setValue({
+          http: {
+            ...api.proxy.groups[0].http,
+            connectTimeout: 1000,
           },
         });
 
@@ -293,8 +256,8 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
-        expectConnectorRequest(connector);
         expectServiceDiscoveryRequest(serviceDiscovery);
+        expectConnectorRequest(connector);
 
         await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
 
@@ -336,8 +299,8 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
-        expectConnectorRequest(connector);
         expectServiceDiscoveryRequest(serviceDiscovery);
+        expectConnectorRequest(connector);
       });
 
       it('should reset the forms', async () => {
@@ -356,7 +319,6 @@ describe('ApiProxyGroupEditComponent', () => {
         await gioSaveBar.clickReset();
 
         expectApiGetRequest(api);
-        expectConnectorRequest(connector);
         expectServiceDiscoveryRequest(serviceDiscovery);
         expect(await nameInput.getValue()).toStrictEqual('default-group');
         expect(await lbSelect.getValueText()).toStrictEqual('ROUND_ROBIN');
@@ -379,8 +341,8 @@ describe('ApiProxyGroupEditComponent', () => {
         id: API_ID,
       });
       expectApiGetRequest(api);
-      expectConnectorRequest(connector);
       expectServiceDiscoveryRequest(serviceDiscovery);
+      expectConnectorRequest(connector);
     });
 
     it('should create new group', async () => {
@@ -476,8 +438,8 @@ describe('ApiProxyGroupEditComponent', () => {
         },
       });
       expectApiGetRequest(api);
-      expectConnectorRequest(connector);
       expectServiceDiscoveryRequest(serviceDiscovery);
+      expectConnectorRequest(connector);
     });
 
     it('should not allow user to update the form', async () => {

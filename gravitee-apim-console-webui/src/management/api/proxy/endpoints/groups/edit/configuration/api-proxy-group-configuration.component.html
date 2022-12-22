@@ -15,11 +15,12 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <gv-schema-form
-    [attr.readonly]="isReadOnly ? isReadOnly : null"
+<mat-card *ngIf="schemaForm">
+  <gv-schema-form-group
+    ngDefaultControl
+    [formControl]="groupConfigurationControl"
     [schema]="schemaForm"
-    [values]="group"
-    (:gv-schema-form:change)="onChange($event)"
-  ></gv-schema-form>
+    [attr.readonly]="groupConfigurationControl.enabled ? null : true"
+    (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
+  ></gv-schema-form-group>
 </mat-card>
