@@ -21,11 +21,7 @@ import { DocumentationQuery, DocumentationService } from '../../../services/docu
 import FetcherService from '../../../services/fetcher.service';
 import GroupService from '../../../services/group.service';
 import MetadataService from '../../../services/metadata.service';
-import PolicyService from '../../../services/policy.service';
 import QualityRuleService from '../../../services/qualityRule.service';
-import ResourceService from '../../../services/resource.service';
-import TagService from '../../../services/tag.service';
-import UserService from '../../../services/user.service';
 import '@gravitee/ui-components/wc/gv-icon';
 
 export default apisPortalRouterConfig;
@@ -48,21 +44,8 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.portal.ng-plans', {
-      url: '/ng-plans',
-      component: 'ngApiPortalPlanList',
-      data: {
-        useAngularMaterial: true,
-        perms: {
-          only: ['api-plan-r'],
-        },
-        docs: {
-          page: 'management-api-plans',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.ng-plans.list', {
-      url: '?status',
+    .state('management.apis.detail.portal.plans', {
+      url: '/plans?status',
       component: 'ngApiPortalPlanList',
       data: {
         useAngularMaterial: true,
@@ -98,88 +81,6 @@ function apisPortalRouterConfig($stateProvider) {
     .state('management.apis.detail.portal.plan.edit', {
       url: '/:planId/edit',
       component: 'ngApiPortalPlanEdit',
-      data: {
-        perms: {
-          only: ['api-plan-u'],
-        },
-        docs: {
-          page: 'management-api-plans-wizard',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.plans', {
-      abstract: true,
-      url: '/plans',
-      template: '<div layout="column"><div ui-view></div></div>',
-      resolve: {
-        api: ($stateParams, ApiService: ApiService) => ApiService.get($stateParams.apiId).then((response) => response.data),
-      },
-    })
-    .state('management.apis.detail.portal.plans.list', {
-      url: '?state',
-      component: 'listPlans',
-      resolve: {
-        plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-      },
-      data: {
-        perms: {
-          only: ['api-plan-r'],
-        },
-        docs: {
-          page: 'management-api-plans',
-        },
-      },
-      params: {
-        state: {
-          type: 'string',
-          dynamic: true,
-        },
-      },
-    })
-    .state('management.apis.detail.portal.plans.new', {
-      url: '/new',
-      component: 'editPlan',
-      resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-        policies: (PolicyService: PolicyService) => PolicyService.list().then((response) => response.data),
-        resourceTypes: (ResourceService: ResourceService) => ResourceService.list(false, true).then((response) => response.data),
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
-        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          const q = new DocumentationQuery();
-          q.type = 'MARKDOWN';
-          q.api = $stateParams.apiId;
-          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      data: {
-        perms: {
-          only: ['api-plan-c'],
-        },
-        docs: {
-          page: 'management-api-plans-wizard',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.plans.plan', {
-      url: '/:planId/edit',
-      component: 'editPlan',
-      resolve: {
-        plan: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then((response) => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-        policies: (PolicyService: PolicyService) => PolicyService.list().then((response) => response.data),
-        resourceTypes: (ResourceService: ResourceService) => ResourceService.list(false, true).then((response) => response.data),
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
-        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          const q = new DocumentationQuery();
-          q.type = 'MARKDOWN';
-          q.api = $stateParams.apiId;
-          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
-        },
-      },
       data: {
         perms: {
           only: ['api-plan-u'],

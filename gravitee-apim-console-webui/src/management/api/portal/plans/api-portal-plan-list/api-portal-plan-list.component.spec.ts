@@ -170,7 +170,7 @@ describe('ApiPortalPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.edit', { planId: plan.id });
     });
 
     it('should navigate to new plan', async () => {
@@ -179,7 +179,7 @@ describe('ApiPortalPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.new');
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.new');
     });
 
     it('should navigate to edit when click on the name', async () => {
@@ -192,7 +192,7 @@ describe('ApiPortalPlanListComponent', () => {
         .then((btn) => btn.host())
         .then((host) => host.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.edit', { planId: plan.id });
     });
 
     it('should navigate to design when click on the design button', async () => {
@@ -310,7 +310,7 @@ describe('ApiPortalPlanListComponent', () => {
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
 
       expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plans.plan', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.edit', { planId: plan.id });
 
       const { headerCells, rowCells } = await computePlansTableCells();
       expect(headerCells).toEqual([

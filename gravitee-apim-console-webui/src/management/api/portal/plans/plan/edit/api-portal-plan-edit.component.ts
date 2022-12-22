@@ -151,7 +151,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
           return EMPTY;
         }),
       )
-      .subscribe(() => this.ajsState.go('management.apis.detail.portal.ng-plans'));
+      .subscribe(() => this.ajsState.go('management.apis.detail.portal.plans'));
   }
 
   private initPlanForm(value?: unknown) {
