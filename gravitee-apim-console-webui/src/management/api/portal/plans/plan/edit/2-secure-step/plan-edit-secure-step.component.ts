@@ -126,7 +126,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   onSecurityConfigError($event) {
     // Set error at the end of js task. Otherwise it will be reset on value change
     setTimeout(() => {
-      this.secureForm.get('securityConfig').setErrors($event.detail ? { error: true } : null, { emitEvent: false });
+      this.secureForm.get('securityConfig').setErrors($event.detail ? { error: true } : null);
     }, 0);
   }
 
