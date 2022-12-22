@@ -40,12 +40,13 @@
     </div>
 
     <div class="card__group-sd" *ngIf="displaySchema">
-      <gv-schema-form
-        [attr.readonly]="isReadOnly ? isReadOnly : null"
+      <gv-schema-form-group
+        ngDefaultControl
+        formControlName="configuration"
+        [attr.readonly]="serviceDiscoveryForm.get('configuration').enabled ? null : true"
+        (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
         [schema]="schema"
-        [values]="group?.services?.discovery?.configuration"
-        (:gv-schema-form:change)="onSchemaFormChange($event)"
-      ></gv-schema-form>
+      ></gv-schema-form-group>
     </div>
   </mat-card>
 </form>
