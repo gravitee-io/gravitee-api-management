@@ -43,9 +43,9 @@
       <gv-schema-form-group
         ngDefaultControl
         formControlName="configuration"
+        [schema]="schema"
         [attr.readonly]="serviceDiscoveryForm.get('configuration').enabled ? null : true"
         (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
-        [schema]="schema"
       ></gv-schema-form-group>
     </div>
   </mat-card>

@@ -13,26 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
+import '@gravitee/ui-components/wc/gv-schema-form-group';
 
-import { ProxyGroup } from '../../../../../../../entities/proxy';
-import { ConfigurationEvent, SchemaFormEvent } from '../../api-proxy-groups.model';
+import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
 
 @Component({
   selector: 'api-proxy-group-configuration',
   template: require('./api-proxy-group-configuration.component.html'),
   styles: [require('./api-proxy-group-configuration.component.scss')],
 })
-export class ApiProxyGroupConfigurationComponent {
-  @Input() schemaForm: unknown;
-  @Input() group: ProxyGroup;
-  @Input() isReadOnly: boolean;
-  @Output() onConfigurationChange = new EventEmitter<ConfigurationEvent>();
+export class ApiProxyGroupConfigurationComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public onChange(event: SchemaFormEvent): void {
-    this.onConfigurationChange.emit({
-      isSchemaValid: !event.detail?.validation?.errors?.length,
-      configuration: event.detail?.values,
-    });
+  @Input() groupConfigurationControl: FormControl;
+
+  public schemaForm: unknown;
+
+  constructor(private readonly connectorService: ConnectorService) {}
+
+  ngOnInit(): void {
+    this.connectorService
+      .list(true)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        map((connectors) => {
+          this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
+        }),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  onConfigurationError(error: unknown) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.groupConfigurationControl.setErrors(error ? { error: true } : null);
+    }, 0);
   }
 }

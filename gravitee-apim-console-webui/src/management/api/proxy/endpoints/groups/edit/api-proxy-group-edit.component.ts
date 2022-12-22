@@ -26,13 +26,11 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgrad
 import { ApiService } from '../../../../../../services-ngx/api.service';
 import { Api } from '../../../../../../entities/api';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { ConnectorService } from '../../../../../../services-ngx/connector.service';
 import { toProxyGroup } from '../api-proxy-groups.adapter';
-import { ProxyConfiguration, ProxyGroup } from '../../../../../../entities/proxy';
+import { ProxyConfiguration } from '../../../../../../entities/proxy';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
-import { ConfigurationEvent } from '../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -41,18 +39,15 @@ import { ConfigurationEvent } from '../api-proxy-groups.model';
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private updatedConfiguration: ProxyConfiguration;
   private mode: 'new' | 'edit';
 
   public apiId: string;
   public api: Api;
-  public group: ProxyGroup;
   public isReadOnly: boolean;
   public generalForm: FormGroup;
   public groupForm: FormGroup;
   public serviceDiscoveryForm: FormGroup;
   public initialGroupFormValue: unknown;
-  public schemaForm: unknown;
   public serviceDiscoveryItems: ResourceListItem[];
 
   constructor(
@@ -61,7 +56,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
-    private readonly connectorService: ConnectorService,
     private readonly serviceDiscoveryService: ServiceDiscoveryService,
     private readonly permissionService: GioPermissionService,
   ) {}
@@ -85,16 +79,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe();
-
-    this.connectorService
-      .list(true)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        map((connectors) => {
-          this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
-        }),
-      )
-      .subscribe();
   }
 
   public ngOnDestroy(): void {
@@ -114,7 +98,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
-            this.updatedConfiguration,
+            this.getProxyConfiguration(),
             this.getServiceDiscoveryConfiguration(),
           );
 
@@ -138,16 +122,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public onConfigurationChange(event: ConfigurationEvent): void {
-    this.groupForm.markAsDirty();
-    this.groupForm.markAsTouched();
-    if (this.groupForm.getError('invalidConfiguration') && event.isSchemaValid) {
-      delete this.groupForm.errors['invalidConfiguration'];
-      this.groupForm.updateValueAndValidity();
-    } else if (!event.isSchemaValid) {
-      this.groupForm.setErrors({ invalidConfiguration: true });
-    }
-    this.updatedConfiguration = event.configuration;
+  public getProxyConfiguration(): ProxyConfiguration {
+    return this.groupForm.get('groupConfiguration').value;
   }
 
   public getServiceDiscoveryConfiguration(): ProxyGroupServiceDiscoveryConfiguration {
@@ -172,46 +148,45 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
   public reset(): void {
     // here we the force reset for the two components containing a gv-schema-form
-    this.group = null;
-    this.schemaForm = null;
     this.serviceDiscoveryItems = null;
     this.ngOnInit();
   }
 
   private initForms(): void {
-    this.group = { ...this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName) };
+    const group = { ...this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName) };
 
     this.generalForm = this.formBuilder.group({
       name: [
-        { value: this.group?.name ?? null, disabled: this.isReadOnly },
+        { value: group?.name ?? null, disabled: this.isReadOnly },
         [
           Validators.required,
           Validators.pattern(/^[^:]*$/),
           isUniq(
             this.api.proxy.groups.reduce((acc, group) => [...acc, group.name], []),
-            this.group?.name,
+            group?.name,
           ),
         ],
       ],
-      loadBalancerType: [{ value: this.group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      loadBalancerType: [{ value: group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
-        enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
+        enabled: [{ value: group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
         type: [
           {
-            value: this.group?.services?.discovery.provider ?? null,
-            disabled: !this.group?.services?.discovery.enabled || this.isReadOnly,
+            value: group?.services?.discovery.provider ?? null,
+            disabled: !group?.services?.discovery.enabled || this.isReadOnly,
           },
         ],
-        configuration: [{ value: this.group?.services?.discovery?.configuration ?? {}, disabled: this.isReadOnly }],
+        configuration: [{ value: group?.services?.discovery?.configuration ?? {}, disabled: this.isReadOnly }],
       },
       { validators: [serviceDiscoveryValidator] },
     );
 
     this.groupForm = this.formBuilder.group({
       general: this.generalForm,
+      groupConfiguration: [{ value: group ?? {}, disabled: this.isReadOnly }],
       serviceDiscovery: this.serviceDiscoveryForm,
     });
 

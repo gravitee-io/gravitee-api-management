@@ -59,6 +59,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
           }
         }),
         tap((schema) => {
+          this.serviceDiscoveryForm.get('configuration').reset({});
           this.schema = schema;
           this.displaySchema = !!schema;
         }),
