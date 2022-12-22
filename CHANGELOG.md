@@ -1,3 +1,10 @@
+# [4.1.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.0...4.1.0-alpha.1) (2022-12-22)
+
+
+### Features
+
+* share all ES templates in gravitee-common-elasticsearch ([d8c55f6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/d8c55f6844f60dd3ab1d9d284210a50433dfdaad))
+
 # [4.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.4...4.0.0) (2022-12-09)
 
 
