@@ -15,12 +15,16 @@
  */
 package io.gravitee.gateway.handlers.api.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.springframework.expression.spel.SpelEvaluationException;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiTemplateVariableProviderTest {
@@ -58,6 +62,50 @@ class ApiTemplateVariableProviderTest {
         engine.eval("{#properties[prop2]}", String.class).test().assertValue("value2");
         engine.eval("{#api.properties[prop1]}", String.class).test().assertValue("value1");
         engine.eval("{#api.properties[prop2]}", String.class).test().assertValue("value2");
+    }
+
+    @Test
+    void should_return_no_value_when_evaluate_unknown_api_properties_in_EL() {
+        var apiDefinition = Api.builder().properties(Map.of("prop1", "value1", "prop2", "value2")).buildv2();
+
+        TemplateEngine engine = buildTemplateEngine(apiDefinition);
+        engine.eval("{#properties[unknown]}", String.class).test().assertNoValues();
+        engine.eval("{#api.properties[unknown]}", String.class).test().assertNoValues();
+    }
+
+    @Test
+    void should_throw_when_evaluate_null_api_properties_in_EL() {
+        var apiDefinition = Api.builder().buildv2();
+
+        TemplateEngine engine = buildTemplateEngine(apiDefinition);
+        engine
+            .eval("{#properties[prop2]}", String.class)
+            .test()
+            .assertError(
+                e -> {
+                    assertThat(e)
+                        .isInstanceOf(ExpressionEvaluationException.class)
+                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasStackTraceContaining("EL1007E: Property or field 'prop2' cannot be found on null");
+
+                    return true;
+                }
+            );
+        engine
+            .eval("{#api.properties[prop1]}", String.class)
+            .test()
+            .assertError(
+                e -> {
+                    assertThat(e)
+                        .isInstanceOf(ExpressionEvaluationException.class)
+                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasStackTraceContaining(
+                            "EL1021E: A problem occurred whilst attempting to access the property 'properties': 'Unable to access property 'properties' through getter method"
+                        );
+
+                    return true;
+                }
+            );
     }
 
     private static TemplateEngine buildTemplateEngine(io.gravitee.definition.model.Api apiDefinition) {
