@@ -1265,7 +1265,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     public Metadata getMetadata(ExecutionContext executionContext, SubscriptionMetadataQuery query) {
         Metadata metadata = new Metadata();
         Collection<SubscriptionEntity> subscriptions = query.getSubscriptions();
-        String environment = query.getEnvironment();
 
         final Optional<Map<String, ApplicationListItem>> applicationsById = query
             .ifApplications()

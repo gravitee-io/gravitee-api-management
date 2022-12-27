@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -180,7 +181,7 @@ public class ApiService_FindByIdTest {
 
         when(membershipService.getMembersByReferencesAndRole(any(), any(), any(), any())).thenReturn(Set.of(mock(MemberEntity.class)));
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
-        when(apiRepository.search(any(), isA(ApiFieldFilter.class))).thenReturn(Arrays.asList(api));
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
 
         final Set<ApiEntity> apiEntities = apiService.findByEnvironmentAndIdIn(GraviteeContext.getExecutionContext(), Set.of(API_ID));
 
