@@ -1136,37 +1136,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition) {
-        try {
-            LOGGER.debug(
-                "Find all APIs without some fields (definition, picture...) for environment {}",
-                executionContext.getEnvironmentId()
-            );
-            final ApiFieldFilter.Builder apiFieldFilterBuilder = new ApiFieldFilter.Builder().excludePicture();
-            if (excludeDefinition) {
-                apiFieldFilterBuilder.excludeDefinition();
-            }
-            return new HashSet<>(
-                convert(
-                    executionContext,
-                    apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        apiFieldFilterBuilder.build()
-                    )
-                )
-            );
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs light for environment {}", executionContext.getEnvironmentId(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs light for environment", ex);
-        }
-    }
-
-    @Override
-    public Set<ApiEntity> findAllLight(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, false);
-    }
-
-    @Override
     public Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
         return new HashSet<>(findByUser(executionContext, userId, apiQuery, null, null, portal).getContent());
     }
