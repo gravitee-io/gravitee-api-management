@@ -47,7 +47,7 @@ class ApiVariables {
     }
 
     public Map<String, String> getProperties() {
-        if (apiProperties == null) {
+        if (apiProperties == null && api.getDefinition().getProperties() != null) {
             this.apiProperties =
                 api
                     .getDefinition()
