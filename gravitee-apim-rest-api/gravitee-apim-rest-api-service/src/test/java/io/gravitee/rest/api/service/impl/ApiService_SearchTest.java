@@ -31,6 +31,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -217,10 +218,12 @@ public class ApiService_SearchTest {
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(3).build(),
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Arrays.asList(api3, api1, api2));
+            .thenReturn(new Page<>(Arrays.asList(api3, api1, api2), 0, 3, 3));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");

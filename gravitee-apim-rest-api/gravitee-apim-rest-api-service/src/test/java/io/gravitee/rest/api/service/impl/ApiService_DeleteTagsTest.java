@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -103,11 +104,8 @@ public class ApiService_DeleteTagsTest {
         apiDefinition.setTags(new HashSet<>(apiEntity.getTags()));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), isA(ApiFieldFilter.class))).thenReturn(List.of(api));
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.findById(any())).thenReturn(Optional.of(api));
-
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any(RoleScope.class))).thenReturn(new RoleEntity());
-        when(membershipService.getMembersByReferencesAndRole(any(), any(), anyList(), any())).thenReturn(Set.of(new MemberEntity()));
 
         when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
         when(apiConverter.toApiEntity(any(), any())).thenReturn(apiEntity);
