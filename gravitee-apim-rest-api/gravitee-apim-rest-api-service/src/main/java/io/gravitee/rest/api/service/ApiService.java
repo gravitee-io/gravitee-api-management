@@ -44,14 +44,6 @@ public interface ApiService {
 
     Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> ids);
 
-    default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, true);
-    }
-
-    Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition);
-
-    Set<ApiEntity> findAllLight(ExecutionContext executionContext);
-
     Page<ApiEntity> findByUser(
         ExecutionContext executionContext,
         String userId,
