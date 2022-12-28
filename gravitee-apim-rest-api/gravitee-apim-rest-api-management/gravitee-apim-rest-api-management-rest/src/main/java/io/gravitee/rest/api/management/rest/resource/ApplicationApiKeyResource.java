@@ -39,7 +39,7 @@ import javax.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 @Tag(name = "API Keys")
-public class ApplicationApiKeyResource extends AbstractResource {
+public class ApplicationApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -68,6 +68,7 @@ public class ApplicationApiKeyResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the application").build();
         }
 
+        checkApplicationUsesSharedApiKey(apiKeyEntity.getApplication());
         apiKeyService.revoke(executionContext, apiKeyEntity, true);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
