@@ -1074,47 +1074,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByVisibility(ExecutionContext executionContext, io.gravitee.rest.api.model.Visibility visibility) {
-        try {
-            LOGGER.debug("Find APIs by visibility {}", visibility);
-            return new HashSet<>(
-                convert(
-                    executionContext,
-                    apiRepository.search(
-                        new ApiCriteria.Builder()
-                            .environmentId(executionContext.getEnvironmentId())
-                            .visibility(Visibility.valueOf(visibility.name()))
-                            .build(),
-                        ApiFieldFilter.allFields()
-                    )
-                )
-            );
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
-        }
-    }
-
-    @Override
-    public Set<ApiEntity> findAllByEnvironment(final ExecutionContext executionContext) {
-        try {
-            LOGGER.debug("Find all APIs for environment {}", executionContext.getEnvironmentId());
-            return new HashSet<>(
-                convert(
-                    executionContext,
-                    apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                        ApiFieldFilter.allFields()
-                    )
-                )
-            );
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs for environment {}", executionContext.getEnvironmentId(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs for environment", ex);
-        }
-    }
-
-    @Override
     public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
         LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
         try {
@@ -3734,6 +3693,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
             .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+    }
+
+    @Override
+    public long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId) {
+        List<ApiCriteria> apiCriteriaList;
+
+        if (isEnvironmentAdmin()) {
+            apiCriteriaList = List.of(new ApiCriteria.Builder().category(categoryId).build());
+        } else {
+            ApiQuery apiQuery = new ApiQuery();
+            apiQuery.setCategory(categoryId);
+            // portal=false because we do not want to have visibility=public apis for authenticated users
+            apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, false);
+        }
+
+        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), null).getContent();
+
+        return apiIds == null ? 0 : apiIds.size();
     }
 
     private List<String> getUserGroupIdsWithApiRole(String userId) {

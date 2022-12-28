@@ -40,8 +40,6 @@ public interface ApiService {
 
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
-    Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext);
-
     Set<ApiEntity> findByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> ids);
 
     Page<ApiEntity> findByUser(
@@ -78,8 +76,6 @@ public interface ApiService {
     default Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId) {
         return findPublishedIdsByUser(executionContext, userId, null);
     }
-
-    Set<ApiEntity> findByVisibility(ExecutionContext executionContext, Visibility visibility);
 
     ApiEntity create(ExecutionContext executionContext, NewApiEntity api, String userId);
     ApiEntity createFromSwagger(
@@ -200,6 +196,8 @@ public interface ApiService {
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
+
+    long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId);
 
     void calculateEntrypoints(ExecutionContext executionContext, ApiEntity api);
 
