@@ -47,7 +47,6 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Page;
@@ -2680,10 +2679,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public void duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId) {
+    public Map<String, String> duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId) {
         final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
         pageEntityTreeNode.appendListToTree(pages);
-        duplicateChildrenPages(executionContext, apiId, null, pageEntityTreeNode.children);
+        return duplicateChildrenPages(executionContext, apiId, null, pageEntityTreeNode.children);
     }
 
     private NewPageEntity convertToEntity(String pageDefinition) throws JsonProcessingException {
@@ -2736,23 +2735,28 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void duplicateChildrenPages(
+    private Map<String, String> duplicateChildrenPages(
         final ExecutionContext executionContext,
         String apiId,
         String parentId,
         List<PageEntityTreeNode> children
     ) {
+        Map<String, String> idsMap = new HashMap<>();
+
         for (final PageServiceImpl.PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
             String newId = UuidString.generateForEnvironment(executionContext.getEnvironmentId(), apiId, pageEntityToImport.getId());
             createPage(executionContext, apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), newId);
+            idsMap.put(pageEntityToImport.getId(), newId);
 
             if (child.children != null && !child.children.isEmpty()) {
-                this.duplicateChildrenPages(executionContext, apiId, newId, child.children);
+                idsMap.putAll(this.duplicateChildrenPages(executionContext, apiId, newId, child.children));
             }
         }
+
+        return idsMap;
     }
 
     private enum PageSituation {

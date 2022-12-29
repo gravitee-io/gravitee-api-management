@@ -98,7 +98,15 @@ public interface PageService {
         boolean isForCreation
     );
 
-    void duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId);
+    /**
+     * Duplicate pages.
+     *
+     * @param executionContext
+     * @param pages
+     * @param apiId
+     * @return The map of old IDs - new IDs
+     */
+    Map<String, String> duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId);
 
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
