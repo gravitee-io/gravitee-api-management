@@ -27,7 +27,6 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
-import io.gravitee.reporter.elasticsearch.spring.context.*;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.Observable;
@@ -37,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,20 +62,11 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
             super.doStart();
             LOGGER.info("Starting Elastic reporter engine...");
 
-            ElasticsearchInfo elasticsearchInfo = retrieveElasticSearchInfo();
-            AbstractElasticBeanRegistrer elasticsearchBeanRegister = getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-            if (elasticsearchBeanRegister == null) {
-                LOGGER.error(
-                    "{} version {} is not supported by this connector",
-                    elasticsearchInfo.getVersion().isOpenSearch() ? "OpenSearch" : "ElasticSearch",
-                    elasticsearchInfo.getVersion().getNumber()
-                );
+            var beanRegister = new BeanRegister(applicationContext);
+            if (!beanRegister.registerBeans(retrieveElasticSearchInfo(), configuration)) {
                 LOGGER.info("Starting Elastic reporter engine... ERROR");
                 return;
             }
-
-            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-            elasticsearchBeanRegister.register(beanFactory, configuration);
 
             IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
             preparer
@@ -145,25 +134,5 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
             );
         elasticsearchInfoSingle.subscribe();
         return elasticsearchInfoSingle.blockingGet();
-    }
-
-    protected AbstractElasticBeanRegistrer getBeanRegistrerFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
-        if (elasticsearchInfo.getVersion().isOpenSearch()) {
-            if (elasticsearchInfo.getVersion().getMajorVersion() == 1) {
-                return new OpenSearchBeanRegistrer();
-            }
-            return null;
-        }
-
-        switch (elasticsearchInfo.getVersion().getMajorVersion()) {
-            case 5:
-                return new Elastic5xBeanRegistrer();
-            case 6:
-                return new Elastic6xBeanRegistrer();
-            case 7:
-                return new Elastic7xBeanRegistrer();
-            default:
-                return null;
-        }
     }
 }

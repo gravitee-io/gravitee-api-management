@@ -20,7 +20,7 @@ import io.gravitee.reporter.elasticsearch.indexer.AbstractIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.AbstractIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
 /**
  * @author GraviteeSource Team
@@ -33,7 +33,7 @@ public abstract class AbstractElasticBeanRegistrer {
 
     protected abstract Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(ReporterConfiguration configuration);
 
-    public void register(DefaultListableBeanFactory beanFactory, ReporterConfiguration configuration) {
+    public void register(BeanDefinitionRegistry beanFactory, ReporterConfiguration configuration) {
         beanFactory.registerBeanDefinition("indexer", BeanDefinitionBuilder.rootBeanDefinition(getIndexerClass()).getBeanDefinition());
         beanFactory.registerBeanDefinition(
             "indexPreparer",
