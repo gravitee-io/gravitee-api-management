@@ -15,37 +15,24 @@
  */
 package io.gravitee.reporter.elasticsearch.indexer;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.http.Metrics;
-import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
-import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.Map;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AbstractIndexerTest {
-
-    @Mock
-    private PipelineConfiguration pipelineConfiguration;
-
-    @Mock
-    private IndexNameGenerator indexNameGenerator;
-
-    @Mock
-    private Node node;
 
     @InjectMocks
     private AbstractIndexer indexer = new TestIndexer();
@@ -56,7 +43,7 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("72.16.254.1");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertEquals("72.16.254.1", data.getMap().get("remoteAddress"));
+        assertThat(data.getMap()).containsEntry("remoteAddress", "72.16.254.1");
     }
 
     @Test
@@ -65,7 +52,7 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("2001:db8:0:1234:0:567:8:1");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertEquals("2001:db8:0:1234:0:567:8:1", data.getMap().get("remoteAddress"));
+        assertThat(data.getMap()).containsEntry("remoteAddress", "2001:db8:0:1234:0:567:8:1");
     }
 
     @Test
@@ -74,10 +61,10 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("remoteAddress");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertEquals("0.0.0.0", data.getMap().get("remoteAddress"));
+        assertThat(data.getMap()).containsEntry("remoteAddress", "0.0.0.0");
     }
 
-    private class TestIndexer extends AbstractIndexer {
+    private static class TestIndexer extends AbstractIndexer {
 
         @Override
         protected Buffer generateData(String templateName, Map<String, Object> data) {

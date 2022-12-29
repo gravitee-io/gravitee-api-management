@@ -41,7 +41,6 @@
         <commons-validator.version>1.7</commons-validator.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <log4j-core.version>2.19.0</log4j-core.version>
-        <unitils-core.version>3.4.2</unitils-core.version>
         <testcontainers.version>1.17.6</testcontainers.version>
 
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
@@ -61,6 +60,12 @@
 	</dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Gravitee.io Elasticsearch -->
         <dependency>
             <groupId>io.gravitee.elasticsearch</groupId>
@@ -148,8 +153,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -180,26 +185,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.unitils</groupId>
-            <artifactId>unitils-core</artifactId>
-            <version>${unitils-core.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j-core.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>elasticsearch</artifactId>

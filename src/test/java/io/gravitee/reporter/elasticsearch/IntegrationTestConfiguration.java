@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.spring;
+package io.gravitee.reporter.elasticsearch;
 
 import io.gravitee.elasticsearch.config.Endpoint;
-import io.gravitee.reporter.elasticsearch.UnitTestConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +32,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
  */
 @Configuration
 @Import(UnitTestConfiguration.class)
-public class ElasticsearchReporterConfigurationTest {
+public class IntegrationTestConfiguration {
 
     public static final String ELASTICSEARCH_DEFAULT_VERSION = "7.17.8";
     public static final String CLUSTER_NAME = "gravitee_test";
