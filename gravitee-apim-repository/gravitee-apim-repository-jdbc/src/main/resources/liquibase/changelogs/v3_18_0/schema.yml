@@ -23,6 +23,7 @@ databaseChangeLog:
               - column:
                   name: organization_id
                   type: nvarchar(64)
+                  defaultValue: DEFAULT
                   constraints:
                     nullable: false
               - dropNotNullConstraint:
