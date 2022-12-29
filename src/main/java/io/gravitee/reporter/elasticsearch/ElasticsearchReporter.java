@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ElasticsearchReporter extends AbstractService implements Reporter {
+public class ElasticsearchReporter extends AbstractService<Reporter> implements Reporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchReporter.class);
 
@@ -113,7 +113,12 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
             reportable instanceof Metrics ||
             reportable instanceof EndpointStatus ||
             reportable instanceof Monitor ||
-            reportable instanceof Log
+            reportable instanceof Log ||
+            // Api V4
+            reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics ||
+            reportable instanceof io.gravitee.reporter.api.v4.metric.MessageMetrics ||
+            reportable instanceof io.gravitee.reporter.api.v4.log.Log ||
+            reportable instanceof io.gravitee.reporter.api.v4.log.MessageLog
         );
     }
 

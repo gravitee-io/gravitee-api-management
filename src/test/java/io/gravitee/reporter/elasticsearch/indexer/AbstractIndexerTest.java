@@ -43,7 +43,8 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("72.16.254.1");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertThat(data.getMap()).containsEntry("remoteAddress", "72.16.254.1");
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "72.16.254.1");
     }
 
     @Test
@@ -52,7 +53,8 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("2001:db8:0:1234:0:567:8:1");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertThat(data.getMap()).containsEntry("remoteAddress", "2001:db8:0:1234:0:567:8:1");
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "2001:db8:0:1234:0:567:8:1");
     }
 
     @Test
@@ -61,14 +63,132 @@ public class AbstractIndexerTest {
         metrics.setRemoteAddress("remoteAddress");
         Buffer buffer = indexer.transform(metrics);
         JsonObject data = buffer.toJsonObject();
-        assertThat(data.getMap()).containsEntry("remoteAddress", "0.0.0.0");
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "0.0.0.0");
+    }
+
+    @Test
+    public void shouldIndexReportableMetricsV4_validRemoteAddress_ipv4() {
+        io.gravitee.reporter.api.v4.metric.Metrics metrics = io.gravitee.reporter.api.v4.metric.Metrics
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+        metrics.setRemoteAddress("72.16.254.1");
+        Buffer buffer = indexer.transform(metrics);
+        JsonObject data = buffer.toJsonObject();
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "72.16.254.1");
+    }
+
+    @Test
+    public void shouldIndexReportableMetricsV4_validRemoteAddress_ipv6() {
+        io.gravitee.reporter.api.v4.metric.Metrics metrics = io.gravitee.reporter.api.v4.metric.Metrics
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+        metrics.setRemoteAddress("2001:db8:0:1234:0:567:8:1");
+        Buffer buffer = indexer.transform(metrics);
+        JsonObject data = buffer.toJsonObject();
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "2001:db8:0:1234:0:567:8:1");
+    }
+
+    @Test
+    public void shouldIndexReportableMetricsV4_invalidRemoteAddress() {
+        io.gravitee.reporter.api.v4.metric.Metrics metrics = io.gravitee.reporter.api.v4.metric.Metrics
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+        metrics.setRemoteAddress("remoteAddress");
+        Buffer buffer = indexer.transform(metrics);
+        JsonObject data = buffer.toJsonObject();
+        Map<String, Object> metricsMap = (Map<String, Object>) data.getMap().get("metrics");
+        assertThat(metricsMap).containsEntry("remoteAddress", "0.0.0.0");
+    }
+
+    @Test
+    public void shouldTransformReportableMetricsV4() {
+        io.gravitee.reporter.api.v4.metric.Metrics metrics = io.gravitee.reporter.api.v4.metric.Metrics
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .remoteAddress("2001:db8:0:1234:0:567:8:1")
+            .endpointResponseTimeMs(1)
+            .gatewayResponseTimeMs(2)
+            .gatewayLatencyMs(3)
+            .requestContentLength(4)
+            .responseContentLength(5)
+            .build();
+        Buffer buffer = indexer.transform(metrics);
+        JsonObject data = buffer.toJsonObject();
+
+        assertThat(data.getMap()).containsKey("index");
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.SPECIAL_TIMESTAMP);
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.GATEWAY);
+        assertThat(data.getMap()).containsKey("metrics");
+        assertThat(data.getMap()).containsEntry("endpointResponseTimeMs", 1);
+        assertThat(data.getMap()).containsEntry("gatewayResponseTimeMs", 2);
+        assertThat(data.getMap()).containsEntry("gatewayLatencyMs", 3);
+        assertThat(data.getMap()).containsEntry("requestContentLength", 4);
+        assertThat(data.getMap()).containsEntry("responseContentLength", 5);
+    }
+
+    @Test
+    public void shouldTransformReportableLogV4() {
+        io.gravitee.reporter.api.v4.log.Log log = io.gravitee.reporter.api.v4.log.Log
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+        Buffer buffer = indexer.transform(log);
+        JsonObject data = buffer.toJsonObject();
+
+        assertThat(data.getMap()).containsKey("index");
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.SPECIAL_TIMESTAMP);
+        assertThat(data.getMap()).containsKey("log");
+    }
+
+    @Test
+    public void shouldTransformReportableMessageMetricsV4() {
+        io.gravitee.reporter.api.v4.metric.MessageMetrics messageMetrics = io.gravitee.reporter.api.v4.metric.MessageMetrics
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .count(1)
+            .errorsCount(2)
+            .contentLength(3)
+            .gatewayLatencyMs(4)
+            .build();
+        Buffer buffer = indexer.transform(messageMetrics);
+        JsonObject data = buffer.toJsonObject();
+
+        assertThat(data.getMap()).containsKey("index");
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.SPECIAL_TIMESTAMP);
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.GATEWAY);
+        assertThat(data.getMap()).containsKey("metrics");
+
+        assertThat(data.getMap()).containsEntry("count", 1);
+        assertThat(data.getMap()).containsEntry("errorsCount", 2);
+        assertThat(data.getMap()).containsEntry("contentLength", 3);
+        assertThat(data.getMap()).containsEntry("gatewayLatencyMs", 4);
+    }
+
+    @Test
+    public void shouldTransformReportableMessageLogV4() {
+        io.gravitee.reporter.api.v4.log.MessageLog messageLog = io.gravitee.reporter.api.v4.log.MessageLog
+            .builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+        Buffer buffer = indexer.transform(messageLog);
+        JsonObject data = buffer.toJsonObject();
+
+        assertThat(data.getMap()).containsKey("index");
+        assertThat(data.getMap()).containsKey(AbstractIndexer.Fields.SPECIAL_TIMESTAMP);
+        assertThat(data.getMap()).containsKey("log");
     }
 
     private static class TestIndexer extends AbstractIndexer {
 
         @Override
         protected Buffer generateData(String templateName, Map<String, Object> data) {
-            return JsonObject.mapFrom(data.get("metrics")).toBuffer();
+            return JsonObject.mapFrom(data).toBuffer();
         }
     }
 }

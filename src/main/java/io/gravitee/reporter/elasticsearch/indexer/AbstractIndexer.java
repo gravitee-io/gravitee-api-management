@@ -120,6 +120,14 @@ public abstract class AbstractIndexer implements Indexer {
             return getSource((Monitor) reportable);
         } else if (reportable instanceof Log) {
             return getSource((Log) reportable);
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics) {
+            return getSource((io.gravitee.reporter.api.v4.metric.Metrics) reportable, pipelineConfiguration.getPipeline());
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.metric.MessageMetrics) {
+            return getSource((io.gravitee.reporter.api.v4.metric.MessageMetrics) reportable);
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.log.Log) {
+            return getSource((io.gravitee.reporter.api.v4.log.Log) reportable);
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.log.MessageLog) {
+            return getSource((io.gravitee.reporter.api.v4.log.MessageLog) reportable);
         }
 
         return null;
@@ -157,6 +165,58 @@ public abstract class AbstractIndexer implements Indexer {
     }
 
     /**
+     * Convert a {@link Metrics} into an ES bulk line.
+     *
+     * @param metrics A request metrics
+     * @return ES bulk line
+     */
+    protected Buffer getSource(final io.gravitee.reporter.api.v4.metric.Metrics metrics, String pipeline) {
+        final Map<String, Object> data = new HashMap<>(10);
+
+        // check remote address format
+        if (!InetAddressValidator.getInstance().isValid(metrics.getRemoteAddress())) {
+            metrics.setRemoteAddress("0.0.0.0");
+        }
+        data.put("index", indexNameGenerator.generate(metrics));
+        data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(metrics.timestamp()));
+        data.put(Fields.GATEWAY, node.id());
+        data.put("metrics", metrics);
+
+        if (pipeline != null) {
+            data.put("pipeline", pipeline);
+        }
+
+        data.put("endpointResponseTimeMs", metrics.getEndpointResponseTimeMs() >= 0 ? metrics.getEndpointResponseTimeMs() : null);
+        data.put("gatewayResponseTimeMs", metrics.getGatewayResponseTimeMs() >= 0 ? metrics.getGatewayResponseTimeMs() : null);
+        data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
+        data.put("requestContentLength", metrics.getRequestContentLength() >= 0 ? metrics.getRequestContentLength() : null);
+        data.put("responseContentLength", metrics.getResponseContentLength() >= 0 ? metrics.getResponseContentLength() : null);
+
+        return generateData("metrics-v4.ftl", data);
+    }
+
+    /**
+     * Convert a {@link io.gravitee.reporter.api.v4.metric.MessageMetrics} into an ES bulk line.
+     *
+     * @param metrics A request metrics
+     * @return ES bulk line
+     */
+    protected Buffer getSource(final io.gravitee.reporter.api.v4.metric.MessageMetrics metrics) {
+        final Map<String, Object> data = new HashMap<>(10);
+
+        data.put("index", indexNameGenerator.generate(metrics));
+        data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(metrics.timestamp()));
+        data.put(Fields.GATEWAY, node.id());
+        data.put("metrics", metrics);
+        data.put("contentLength", metrics.getContentLength() >= 0 ? metrics.getContentLength() : null);
+        data.put("count", metrics.getCount() >= 0 ? metrics.getCount() : null);
+        data.put("errorsCount", metrics.getErrorsCount() >= 0 ? metrics.getErrorsCount() : null);
+        data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
+
+        return generateData("message-metrics-v4.ftl", data);
+    }
+
+    /**
      * Convert a {@link io.gravitee.reporter.api.log.Log} into an ES bulk line.
      *
      * @param log A request log
@@ -173,6 +233,38 @@ public abstract class AbstractIndexer implements Indexer {
         data.put("log", log);
 
         return generateData("log.ftl", data);
+    }
+
+    /**
+     * Convert a {@link io.gravitee.reporter.api.v4.log.Log} into an ES bulk line.
+     *
+     * @param log A request log
+     * @return ES bulk line
+     */
+    protected Buffer getSource(final io.gravitee.reporter.api.v4.log.Log log) {
+        final Map<String, Object> data = new HashMap<>(5);
+
+        data.put("index", indexNameGenerator.generate(log));
+        data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(log.timestamp()));
+        data.put("log", log);
+
+        return generateData("log-v4.ftl", data);
+    }
+
+    /**
+     * Convert a {@link io.gravitee.reporter.api.v4.log.MessageLog} into an ES bulk line.
+     *
+     * @param log A request log
+     * @return ES bulk line
+     */
+    protected Buffer getSource(final io.gravitee.reporter.api.v4.log.MessageLog log) {
+        final Map<String, Object> data = new HashMap<>(5);
+
+        data.put("index", indexNameGenerator.generate(log));
+        data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(log.timestamp()));
+        data.put("log", log);
+
+        return generateData("message-log-v4.ftl", data);
     }
 
     /**

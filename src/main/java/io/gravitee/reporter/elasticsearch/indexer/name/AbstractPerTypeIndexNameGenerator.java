@@ -41,6 +41,14 @@ public abstract class AbstractPerTypeIndexNameGenerator extends AbstractIndexNam
             type = Type.MONITOR.getType();
         } else if (reportable instanceof EndpointStatus) {
             type = Type.HEALTH_CHECK.getType();
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.metric.Metrics) {
+            type = Type.METRICS_V4.getType();
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.log.Log) {
+            type = Type.LOG_V4.getType();
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.metric.MessageMetrics) {
+            type = Type.MESSAGE_METRICS_V4.getType();
+        } else if (reportable instanceof io.gravitee.reporter.api.v4.log.MessageLog) {
+            type = Type.MESSAGE_LOG_V4.getType();
         }
 
         return generate(type, reportable.timestamp());
