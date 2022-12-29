@@ -16,10 +16,8 @@
 package io.gravitee.reporter.elasticsearch.spring;
 
 import io.gravitee.elasticsearch.config.Endpoint;
-import io.gravitee.node.api.Node;
+import io.gravitee.reporter.elasticsearch.UnitTestConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.node.DummyNode;
-import io.vertx.core.Vertx;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +32,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
  * @author Sebastien Devaux
  */
 @Configuration
-@Import(ElasticsearchReporterConfiguration.class)
+@Import(UnitTestConfiguration.class)
 public class ElasticsearchReporterConfigurationTest {
 
     public static final String ELASTICSEARCH_DEFAULT_VERSION = "7.17.8";
@@ -44,22 +42,12 @@ public class ElasticsearchReporterConfigurationTest {
     private String elasticsearchVersion;
 
     @Bean
-    public Vertx vertx() {
-        return Vertx.vertx();
-    }
-
-    @Bean
     public ReporterConfiguration configuration(ElasticsearchContainer elasticSearchContainer) {
         ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
         elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
         elasticConfiguration.setUsername("elastic");
         elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
         return elasticConfiguration;
-    }
-
-    @Bean
-    public Node node() {
-        return new DummyNode();
     }
 
     @Bean(destroyMethod = "close")
