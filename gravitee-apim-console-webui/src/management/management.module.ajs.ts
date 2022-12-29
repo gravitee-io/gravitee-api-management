@@ -535,6 +535,7 @@ import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-l
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
+import ApiPortalController from './api/portal/general/apiPortal.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -693,6 +694,7 @@ graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
 
+graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
