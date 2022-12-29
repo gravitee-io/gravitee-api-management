@@ -22,6 +22,7 @@
   [api-lifecycle-state]="apiCtrl.api.lifecycle_state"
   [api-is-sync]="apiCtrl.apiIsSynchronized"
   [api-origin]="apiCtrl.api.definition_context.origin"
+  [gravitee-version]="apiCtrl.api.gravitee"
 >
   <div id="banner" class="top-api-banner">
     <div class="gravitee-api-banner" ng-class="{'gravitee-api-banner-min': reducedMode}" ng-if="apiCtrl.canReview()" ng-cloak="">
@@ -68,7 +69,7 @@
       flex
       ng-class="{
         'gv-sub-content-design': apiCtrl.$state.current.name.startsWith('management.apis.detail.design.flows'),
-        'gv-sub-content-fullscreen': apiCtrl.$state.current.data.useAngularMaterial, 
+        'gv-sub-content-fullscreen': apiCtrl.$state.current.data.useAngularMaterial,
         'gv-sub-content': !apiCtrl.$state.current.data.useAngularMaterial
       }"
       ui-view

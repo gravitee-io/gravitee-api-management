@@ -53,6 +53,8 @@ export class ApiNavigationComponent implements OnInit {
   public apiLifecycleState: string;
   @Input()
   public apiOrigin: string;
+  @Input()
+  public graviteeVersion: string;
 
   public subMenuItems: MenuItem[] = [];
   public groupItems: GroupItem[] = [];
@@ -69,11 +71,9 @@ export class ApiNavigationComponent implements OnInit {
 
   ngOnInit() {
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
-    this.subMenuItems.push({
-      displayName: 'Design',
-      targetRoute: 'management.apis.detail.design.policies',
-      baseRoute: 'management.apis.detail.design',
-    });
+
+    this.appendDesign();
+
     this.subMenuItems.push({
       displayName: 'Messages',
       targetRoute: 'management.apis.detail.messages',
@@ -90,6 +90,36 @@ export class ApiNavigationComponent implements OnInit {
 
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.selectedItemWithTabs = this.findMenuItemWithTabs();
+    });
+  }
+
+  private appendDesign() {
+    let tabs = undefined;
+    if (this.graviteeVersion === '1.0.0') {
+      tabs = [
+        {
+          displayName: 'Policies',
+          targetRoute: 'management.apis.detail.design.policies',
+          baseRoute: 'management.apis.detail.design.policies',
+        },
+        {
+          displayName: 'Resources',
+          targetRoute: 'management.apis.detail.design.resources',
+          baseRoute: 'management.apis.detail.design.resources',
+        },
+        {
+          displayName: 'Properties',
+          targetRoute: 'management.apis.detail.design.properties',
+          baseRoute: 'management.apis.detail.design.properties',
+        },
+      ];
+    }
+
+    this.subMenuItems.push({
+      displayName: 'Design',
+      targetRoute: 'management.apis.detail.design.policies',
+      baseRoute: 'management.apis.detail.design',
+      tabs,
     });
   }
 
