@@ -1,5 +1,0 @@
-{
-  "projectId": "ui-test",
-  "pluginsFile": "ui-test/plugins/index.ts",
-  "integrationFolder": "cypress/integration/platform"
-}
