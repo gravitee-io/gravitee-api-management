@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
+/// <reference types="cypress" />
+
 import './common/tools.commands';
 import './common/http.commands';
 import './common/ui.commands';
 import './common/api.commands';
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-require('cypress-terminal-report/src/installLogsCollector')({ enableExtendedCollector: Cypress.env('printLogsToConsole') === 'always' });
