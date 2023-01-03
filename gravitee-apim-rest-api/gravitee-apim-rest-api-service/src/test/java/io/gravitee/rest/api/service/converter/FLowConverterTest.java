@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.*;
 import io.gravitee.repository.management.model.flow.FlowOperator;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -91,7 +92,13 @@ public class FLowConverterTest {
         step.setName("IPFiltering");
         step.setPolicy("ip-filtering");
         step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
-        return List.of(step);
+
+        Step step2 = new Step();
+        step2.setEnabled(true);
+        step2.setName("HTTP Callout");
+        step2.setPolicy("http-callout");
+        step2.setConfiguration("{\"url\":\"http://localhost\"}");
+        return List.of(step, step2);
     }
 
     private static List<Step> post() {
@@ -101,5 +108,55 @@ public class FLowConverterTest {
         step.setPolicy("transform-headers");
         step.setConfiguration("{\"scope\":\"RESPONSE\",\"addHeaders\":[{\"name\":\"x-platform\",\"value\":\"true\"}]}");
         return List.of(step);
+    }
+
+    @Test
+    public void toModelShouldKeepTheStepOrder() {
+        Flow flowDefinition = new Flow();
+        flowDefinition.setPre(pre());
+        flowDefinition.setConsumers(consumers());
+
+        var model = converter.toModel(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
+
+        assertEquals(2, model.getPre().size());
+        assertEquals("IPFiltering", model.getPre().get(0).getName());
+        assertEquals(0, model.getPre().get(0).getOrder());
+        assertEquals("HTTP Callout", model.getPre().get(1).getName());
+        assertEquals(1, model.getPre().get(1).getOrder());
+    }
+
+    @Test
+    public void toDefinitionShouldKeepTheStepOrder() {
+        final PathOperator expectedOperator = pathOperator();
+
+        var flow = new io.gravitee.repository.management.model.flow.Flow();
+        flow.setPath("/");
+        flow.setOperator(FlowOperator.STARTS_WITH);
+        flow.setConsumers(List.of());
+        flow.setPre(definitionPre());
+
+        Flow flowDefinition = converter.toDefinition(flow);
+
+        assertEquals(2, flowDefinition.getPre().size());
+        assertEquals("IPFiltering", flowDefinition.getPre().get(0).getName());
+        assertEquals("HTTP Callout", flowDefinition.getPre().get(1).getName());
+    }
+
+    private static List<FlowStep> definitionPre() {
+        FlowStep flowStep = new FlowStep();
+        flowStep.setEnabled(true);
+        flowStep.setName("IPFiltering");
+        flowStep.setPolicy("ip-filtering");
+        flowStep.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
+        flowStep.setOrder(0);
+
+        FlowStep flowStep2 = new FlowStep();
+        flowStep2.setEnabled(true);
+        flowStep2.setName("HTTP Callout");
+        flowStep2.setPolicy("http-callout");
+        flowStep2.setConfiguration("{\"url\":\"http://localhost\"}");
+        flowStep2.setOrder(1);
+
+        return List.of(flowStep, flowStep2);
     }
 }
