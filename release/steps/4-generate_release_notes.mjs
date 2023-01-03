@@ -1,12 +1,13 @@
 #!/usr/bin/env zx
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
-import { extractVersion } from '../helpers/version-helper.mjs';
+import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { isDryRun } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
 const releasingVersion = await extractVersion();
+const versions = computeVersion(releasingVersion);
 
 console.log(chalk.blue(`Triggering Release Notes generation Pipeline`));
 
