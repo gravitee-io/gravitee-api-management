@@ -17,11 +17,19 @@ package io.gravitee.gateway.jupiter.reactor.v4.subscription;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.api.service.Subscription;
+import io.reactivex.rxjava3.core.Completable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface SubscriptionDispatcher extends LifecycleComponent<SubscriptionDispatcher> {
-    void dispatch(Subscription subscription);
+    /**
+     * Dispatches the subscription {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
+     *
+     * @param subscription the subscription .
+     *
+     * @return a {@link Completable} that completes when the subscription has been fully dispatched.
+     */
+    Completable dispatch(Subscription subscription);
 }

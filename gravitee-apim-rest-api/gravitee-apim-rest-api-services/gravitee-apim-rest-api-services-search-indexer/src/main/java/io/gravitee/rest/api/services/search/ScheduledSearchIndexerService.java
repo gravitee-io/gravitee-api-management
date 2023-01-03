@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
@@ -54,6 +55,7 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     private final Logger logger = LoggerFactory.getLogger(ScheduledSearchIndexerService.class);
 
     @Autowired
+    @Qualifier("searchIndexerTaskScheduler")
     private TaskScheduler scheduler;
 
     @Value("${services.search_indexer.cron:*/5 * * * * *}")

@@ -114,6 +114,8 @@ public class Subscription implements Serializable {
     private Map<String, String> metadata;
     private Type type = Type.STANDARD;
 
+    private String failureCause;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -351,6 +353,14 @@ public class Subscription implements Serializable {
         this.type = type;
     }
 
+    public String getFailureCause() {
+        return failureCause;
+    }
+
+    public void setFailureCause(String failureCause) {
+        this.failureCause = failureCause;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -402,6 +412,10 @@ public class Subscription implements Serializable {
          * Subscription has been paused
          */
         STOPPED,
+        /**
+         * Subscription has encountered a failure
+         */
+        FAILURE,
     }
 
     public enum Type {

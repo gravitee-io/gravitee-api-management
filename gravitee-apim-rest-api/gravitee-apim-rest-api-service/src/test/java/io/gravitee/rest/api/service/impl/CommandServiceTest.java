@@ -93,6 +93,14 @@ public class CommandServiceTest {
     }
 
     @Test
+    public void shouldSearchWithoutOrganizationAndWithoutEnvironmentWithEmptyQuery() {
+        commandService.search(new CommandQuery());
+
+        verify(commandRepository, times(1))
+            .search(argThat(criteria -> criteria.getOrganizationId() == null && criteria.getEnvironmentId() == null));
+    }
+
+    @Test
     public void shouldNotSearchByEnvironmentWithOrganizationContext() {
         final Organization organization = new Organization();
         organization.setId("GRAVITEE");

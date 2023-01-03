@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
-public enum SubscriptionConsumerStatus {
-    STARTED,
-    STOPPED,
-    FAILURE,
+class SubscriptionNotDispatchedExceptionTest {
+
+    @Test
+    void shouldGetMessageFromCause() {
+        final SubscriptionNotDispatchedException exception = new SubscriptionNotDispatchedException(new RuntimeException("Error! 💥"));
+        assertThat(exception).hasMessage("Error! 💥");
+    }
+
+    @Test
+    void shouldGetMessage() {
+        final SubscriptionNotDispatchedException exception = new SubscriptionNotDispatchedException("Error! 💥");
+        assertThat(exception).hasMessage("Error! 💥");
+    }
 }

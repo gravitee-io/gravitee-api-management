@@ -13,42 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.command;
+package io.gravitee.definition.model.command;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CommandQuery {
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Data
+public class SubscriptionFailureCommand {
 
-    private String to;
-    private List<CommandTags> tags;
-
-    private String notAckBy;
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
-    }
-
-    public List<CommandTags> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<CommandTags> tags) {
-        this.tags = tags;
-    }
-
-    public String getNotAckBy() {
-        return notAckBy;
-    }
-
-    public void setNotAckBy(String notAckBy) {
-        this.notAckBy = notAckBy;
-    }
+    private String subscriptionId;
+    private String failureCause;
 }

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.sync.spring;
 import io.gravitee.rest.api.services.sync.ApiManager;
 import io.gravitee.rest.api.services.sync.DictionaryManager;
 import io.gravitee.rest.api.services.sync.SyncManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -46,6 +47,7 @@ public class SyncConfiguration {
     }
 
     @Bean
+    @Qualifier("syncTaskScheduler")
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("sync-");

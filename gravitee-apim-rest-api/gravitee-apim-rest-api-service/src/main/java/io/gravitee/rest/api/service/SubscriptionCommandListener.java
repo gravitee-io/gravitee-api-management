@@ -15,22 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.event.EventListener;
 import io.gravitee.rest.api.model.command.CommandEntity;
-import io.gravitee.rest.api.model.command.CommandQuery;
-import io.gravitee.rest.api.model.command.NewCommandEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
+import io.gravitee.rest.api.service.event.CommandEvent;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CommandService {
-    void send(ExecutionContext executionContext, NewCommandEntity message);
-
-    List<CommandEntity> search(CommandQuery query);
-
-    List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query);
-    void ack(String messageId);
-    void delete(String commandId);
-}
+public interface SubscriptionCommandListener extends EventListener<CommandEvent, CommandEntity> {}

@@ -19,17 +19,36 @@ import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.API
 import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.CLIENT_ID;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.CommandTags;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.time.Instant;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SubscriptionService implements io.gravitee.gateway.api.service.SubscriptionService {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionService.class);
 
     private static final String CACHE_NAME_BY_API_AND_CLIENT_ID = "SUBSCRIPTIONS_BY_API_AND_CLIENT_ID";
     private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
@@ -41,11 +60,26 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     private final ApiKeyService apiKeyService;
     private final SubscriptionDispatcher subscriptionDispatcher;
 
-    public SubscriptionService(CacheManager cacheManager, ApiKeyService apiKeyService, SubscriptionDispatcher subscriptionDispatcher) {
+    private final CommandRepository commandRepository;
+    private final Node node;
+
+    private ObjectMapper objectMapper;
+
+    public SubscriptionService(
+        CacheManager cacheManager,
+        ApiKeyService apiKeyService,
+        SubscriptionDispatcher subscriptionDispatcher,
+        CommandRepository commandRepository,
+        Node node,
+        ObjectMapper objectMapper
+    ) {
         cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
         cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
         this.apiKeyService = apiKeyService;
         this.subscriptionDispatcher = subscriptionDispatcher;
+        this.commandRepository = commandRepository;
+        this.node = node;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -77,7 +111,48 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
             }
             saveInCacheBySubscriptionId(subscription);
         } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
-            subscriptionDispatcher.dispatch(subscription);
+            subscriptionDispatcher
+                .dispatch(subscription)
+                .doOnComplete(() -> LOGGER.debug("Subscription [{}] has been dispatched", subscription.getId()))
+                .onErrorResumeNext(t -> sendFailureCommand(subscription, t))
+                .subscribe();
+        }
+    }
+
+    private Completable sendFailureCommand(Subscription subscription, Throwable throwable) {
+        return Completable
+            .fromRunnable(
+                () -> {
+                    final Command command = new Command();
+                    Instant now = Instant.now();
+                    command.setId(UUID.random().toString());
+                    command.setFrom(node.id());
+                    command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+                    command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                    command.setCreatedAt(Date.from(now));
+                    command.setUpdatedAt(Date.from(now));
+
+                    convertSubscriptionCommand(subscription, command, throwable.getMessage());
+
+                    saveCommand(subscription, command);
+                }
+            )
+            .subscribeOn(Schedulers.io());
+    }
+
+    private void convertSubscriptionCommand(Subscription subscription, Command command, String errorMessage) {
+        try {
+            command.setContent(objectMapper.writeValueAsString(new SubscriptionFailureCommand(subscription.getId(), errorMessage)));
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Failed to convert subscription command [{}] to string", subscription.getId(), e);
+        }
+    }
+
+    private void saveCommand(Subscription subscription, Command command) {
+        try {
+            commandRepository.create(command);
+        } catch (TechnicalException e) {
+            LOGGER.error("Failed to create subscription command [{}]", subscription.getId(), e);
         }
     }
 

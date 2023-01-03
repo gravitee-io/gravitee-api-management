@@ -95,6 +95,8 @@ public class SubscriptionEntity {
 
     private Map<String, String> metadata;
 
+    private String failureCause;
+
     public String getId() {
         return id;
     }
@@ -285,6 +287,14 @@ public class SubscriptionEntity {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public void setFailureCause(String failureCause) {
+        this.failureCause = failureCause;
+    }
+
+    public String getFailureCause() {
+        return failureCause;
     }
 
     @Override

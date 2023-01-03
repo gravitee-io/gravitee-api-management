@@ -1,0 +1,108 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.service.impl;
+
+import io.gravitee.common.event.EventManager;
+import io.gravitee.common.service.AbstractService;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.model.MessageRecipient;
+import io.gravitee.rest.api.model.command.CommandEntity;
+import io.gravitee.rest.api.model.command.CommandQuery;
+import io.gravitee.rest.api.service.CommandService;
+import io.gravitee.rest.api.service.ScheduledCommandService;
+import io.gravitee.rest.api.service.event.CommandEvent;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Component
+public class ScheduledCommandServiceImpl
+    extends AbstractService<ScheduledCommandServiceImpl>
+    implements ScheduledCommandService<ScheduledCommandServiceImpl>, Runnable {
+
+    private final CommandService commandService;
+
+    private final Node node;
+
+    private final TaskScheduler scheduler;
+    private final String cronTrigger;
+    private final EventManager eventManager;
+
+    public ScheduledCommandServiceImpl(
+        CommandService commandService,
+        Node node,
+        @Qualifier("commandTaskScheduler") TaskScheduler scheduler,
+        @Value("${services.commands.cron:0/5 * * * * *}") String cronTrigger,
+        EventManager eventManager
+    ) {
+        this.commandService = commandService;
+        this.node = node;
+        this.scheduler = scheduler;
+        this.cronTrigger = cronTrigger;
+        this.eventManager = eventManager;
+    }
+
+    @Override
+    protected String name() {
+        return "Scheduled Command Service";
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        scheduler.schedule(this, new CronTrigger(cronTrigger));
+    }
+
+    @Override
+    public void run() {
+        final List<CommandEntity> commands = searchCommands();
+        processCastMode(commands);
+        commands.forEach(command -> eventManager.publishEvent(CommandEvent.TO_PROCESS, command));
+    }
+
+    private List<CommandEntity> searchCommands() {
+        CommandQuery commandQuery = new CommandQuery();
+        commandQuery.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        commandQuery.setNotAckBy(node.id());
+
+        return commandService.search(commandQuery);
+    }
+
+    /**
+     * A command can be applied on two different cast modes.
+     * - {@link io.gravitee.rest.api.model.command.CommandTags.CommandCastMode#UNICAST}: with this cast mode, command should be treated only once. That means it is directly deleted to not be processed by other instances.
+     * - {@link io.gravitee.rest.api.model.command.CommandTags.CommandCastMode#MULTICAST}: with this cast mode, command is meant to be processed by every instance targeted, so we only acknowledge it.
+     * @param commands to process
+     */
+    private void processCastMode(List<CommandEntity> commands) {
+        commands.forEach(
+            command -> {
+                if (command.getTags() != null && command.getTags().size() == 1 && command.getTags().get(0).isUnicast()) {
+                    commandService.delete(command.getId());
+                } else {
+                    commandService.ack(command.getId());
+                }
+            }
+        );
+    }
+}

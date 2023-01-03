@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+package io.gravitee.repository.management;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
-public enum SubscriptionConsumerStatus {
-    STARTED,
-    STOPPED,
-    FAILURE,
+public enum CommandTags {
+    DATA_TO_INDEX,
+    SUBSCRIPTION_FAILURE,
 }

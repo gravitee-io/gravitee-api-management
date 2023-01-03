@@ -13,24 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.service;
+package io.gravitee.gateway.handlers.api.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionService;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
 import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.cache.standalone.StandaloneCacheManager;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.CommandTags;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
+import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -50,15 +62,31 @@ public class SubscriptionServiceTest {
     @Mock
     private SubscriptionDispatcher subscriptionDispatcher;
 
+    @Mock
+    private CommandRepository commandRepository;
+
+    @Mock
+    private Node node;
+
+    private final ObjectMapper objectMapper = new GraviteeMapper();
+
     private SubscriptionService subscriptionService;
 
     @BeforeEach
     public void setup() {
-        subscriptionService = new SubscriptionService(new StandaloneCacheManager(), apiKeyService, subscriptionDispatcher);
+        subscriptionService =
+            new SubscriptionService(
+                new StandaloneCacheManager(),
+                apiKeyService,
+                subscriptionDispatcher,
+                commandRepository,
+                node,
+                objectMapper
+            );
     }
 
     @Test
-    public void should_add_and_getById_accepted_subscription_in_cache() {
+    void should_add_and_getById_accepted_subscription_in_cache() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
 
         subscriptionService.save(subscription);
@@ -74,7 +102,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_add_and_getByApiAndClientId_accepted_subscription_in_cache() {
+    void should_add_and_getByApiAndClientId_accepted_subscription_in_cache() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
 
         subscriptionService.save(subscription);
@@ -90,7 +118,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_add_and_getBySecurityToken_with_clientId() {
+    void should_add_and_getBySecurityToken_with_clientId() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
         subscriptionService.save(subscription);
 
@@ -106,7 +134,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_add_and_getBySecurityToken_with_apiKey() {
+    void should_add_and_getBySecurityToken_with_apiKey() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, null, PLAN_ID);
         subscriptionService.save(subscription);
 
@@ -127,7 +155,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_remove_rejected_subscription_from_cache() {
+    void should_remove_rejected_subscription_from_cache() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
 
         subscriptionService.save(subscription);
@@ -141,7 +169,7 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_update_subscription_clientId_in_cache() {
+    void should_update_subscription_clientId_in_cache() {
         Subscription oldSubscription = buildAcceptedSubscription(SUB_ID, API_ID, "old-client-id", PLAN_ID);
 
         subscriptionService.save(oldSubscription);
@@ -160,10 +188,11 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_dispatch_subscription_to_dispatcher() {
+    void should_dispatch_subscription_to_dispatcher() {
         Subscription subscription = mock(Subscription.class);
         lenient().when(subscription.getId()).thenReturn("sub-id");
         when(subscription.getType()).thenReturn(Subscription.Type.SUBSCRIPTION);
+        when(subscriptionDispatcher.dispatch(subscription)).thenReturn(Completable.complete());
 
         subscriptionService.save(subscription);
 
@@ -174,7 +203,57 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    public void should_evict_subscriptions_when_ids_match() {
+    @DisplayName("Should create a command when an error occurs during dispatching of subscription")
+    void should_send_command_when_dispatching_failure() throws TechnicalException, InterruptedException {
+        Subscription subscription = mock(Subscription.class);
+        lenient().when(subscription.getId()).thenReturn("sub-id");
+        when(subscription.getType()).thenReturn(Subscription.Type.SUBSCRIPTION);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        // When create(Command) is called, then the method is down, so we can count down the latch
+        doAnswer(
+                invocation -> {
+                    latch.countDown();
+                    return null;
+                }
+            )
+            .when(commandRepository)
+            .create(any());
+
+        when(subscriptionDispatcher.dispatch(subscription)).thenReturn(Completable.error(new RuntimeException("Error! 💥")));
+        when(node.id()).thenReturn("node-id");
+
+        subscriptionService.save(subscription);
+
+        latch.await();
+        verify(subscriptionDispatcher).dispatch(subscription);
+
+        final ArgumentCaptor<Command> commandArgumentCaptor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository).create(commandArgumentCaptor.capture());
+
+        final Command savedCommand = commandArgumentCaptor.getValue();
+        assertThat(savedCommand)
+            .satisfies(
+                c -> {
+                    assertThat(c.getTags()).hasSize(1).allMatch(t -> t.equals(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                    assertThat(c.getCreatedAt()).isEqualTo(c.getUpdatedAt());
+                    assertThat(c.getFrom()).isEqualTo("node-id");
+                    assertThat(c.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
+                    final SubscriptionFailureCommand subscriptionCommand = objectMapper.readValue(
+                        c.getContent(),
+                        SubscriptionFailureCommand.class
+                    );
+                    assertThat(subscriptionCommand.getSubscriptionId()).isEqualTo("sub-id");
+                    assertThat(subscriptionCommand.getFailureCause()).isEqualTo("Error! 💥");
+                }
+            );
+
+        Optional<Subscription> optSubscription = subscriptionService.getById("sub-id");
+        assertTrue(optSubscription.isEmpty());
+    }
+
+    @Test
+    void should_evict_subscriptions_when_ids_match() {
         Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
         Subscription subscription2 = buildAcceptedSubscription(SUB_ID_2, API_ID, CLIENT_ID, PLAN_ID);
 

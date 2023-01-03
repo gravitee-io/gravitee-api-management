@@ -3399,6 +3399,7 @@ components:
         enum:
           - STARTED
           - STOPPED
+          - FAILURE
 
     #Users filtering
     usersQueryParam:
@@ -4297,12 +4298,16 @@ components:
           description: Consumer status of the subscription.
           type: string
           enum:
-            - ACTIVE
-            - PAUSED
+            - STARTED
+            - STOPPED
+            - FAILURE
         consumerPausedAt:
           description: Paused date and time of the subscription for the customer.
           type: string
           format: date-time
+        failureCause:
+          description: The cause of the failure
+          type: string
         ###################
         # may be included #
         ###################

@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+package io.gravitee.rest.api.service.event;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true)
-public enum SubscriptionConsumerStatus {
-    STARTED,
-    STOPPED,
-    FAILURE,
+public enum CommandEvent {
+    TO_PROCESS,
 }

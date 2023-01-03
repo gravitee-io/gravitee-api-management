@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -43,6 +44,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     private final Logger logger = LoggerFactory.getLogger(ScheduledSubscriptionsService.class);
 
     @Autowired
+    @Qualifier("subscriptionsTaskScheduler")
     private TaskScheduler scheduler;
 
     @Value("${services.subscriptions.cron:0 1 * * * *}")

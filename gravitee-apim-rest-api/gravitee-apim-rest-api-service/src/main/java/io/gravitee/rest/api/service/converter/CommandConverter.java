@@ -56,7 +56,7 @@ public class CommandConverter {
         commandEntity.setTo(command.getTo());
         commandEntity.setContent(command.getContent());
         commandEntity.setTags(toCommandTags(command.getTags()));
-        commandEntity.setExpired(command.getExpiredAt().before(new Date()));
+        commandEntity.setExpired(command.getExpiredAt() != null && command.getExpiredAt().before(new Date()));
         commandEntity.setProcessedInCurrentNode(isProcessedInCurrentNode(command));
         return commandEntity;
     }

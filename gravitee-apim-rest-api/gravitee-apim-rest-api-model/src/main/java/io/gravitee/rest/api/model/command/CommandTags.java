@@ -15,14 +15,31 @@
  */
 package io.gravitee.rest.api.model.command;
 
+import static io.gravitee.rest.api.model.command.CommandTags.CommandCastMode.MULTICAST;
+import static io.gravitee.rest.api.model.command.CommandTags.CommandCastMode.UNICAST;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 
+@RequiredArgsConstructor
 @Schema(enumAsRef = true)
 public enum CommandTags {
-    DATA_TO_INDEX,
+    DATA_TO_INDEX(MULTICAST),
+    SUBSCRIPTION_FAILURE(UNICAST);
+
+    private final CommandCastMode castMode;
+
+    public boolean isUnicast() {
+        return this.castMode == UNICAST;
+    }
+
+    enum CommandCastMode {
+        UNICAST,
+        MULTICAST,
+    }
 }

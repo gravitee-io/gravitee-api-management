@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.services.fetcher.spring;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,7 @@ public class AutoFetchConfiguration {
     private boolean enabled;
 
     @Bean
+    @Qualifier("autoFetchTaskScheduler")
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("auto-fetch-");

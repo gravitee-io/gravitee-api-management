@@ -74,6 +74,11 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     }
 
     @Override
+    public List<CommandEntity> search(CommandQuery query) {
+        return search(null, query);
+    }
+
+    @Override
     public List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query) {
         //convert tags
         String[] tags = null;
@@ -81,12 +86,13 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
             tags = query.getTags().stream().map(Enum::name).toArray(String[]::new);
         }
 
-        CommandCriteria criteria = new CommandCriteria.Builder()
-            .to(query.getTo())
-            .tags(tags)
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null)
-            .build();
+        final CommandCriteria.Builder criteriaBuilder = new CommandCriteria.Builder().to(query.getTo()).tags(tags);
+        if (executionContext != null) {
+            criteriaBuilder
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null);
+        }
+        CommandCriteria criteria = criteriaBuilder.notAckBy(query.getNotAckBy()).build();
 
         return commandRepository.search(criteria).stream().map(commandConverter::toCommandEntity).collect(Collectors.toList());
     }

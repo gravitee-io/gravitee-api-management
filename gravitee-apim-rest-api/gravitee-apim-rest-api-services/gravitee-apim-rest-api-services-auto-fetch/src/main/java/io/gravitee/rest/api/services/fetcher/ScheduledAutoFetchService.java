@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
@@ -36,6 +37,7 @@ public class ScheduledAutoFetchService extends AbstractService implements Runnab
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledAutoFetchService.class);
 
     @Autowired
+    @Qualifier("autoFetchTaskScheduler")
     private TaskScheduler scheduler;
 
     @Autowired

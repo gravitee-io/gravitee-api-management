@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
@@ -79,13 +78,16 @@ public class Subscription {
     @JsonProperty("paused_at")
     private Date pausedAt;
 
-    @JsonProperty("consumer_paused_at")
+    @JsonProperty("consumerPausedAt")
     private Date consumerPausedAt;
 
     @JsonProperty("client_id")
     private String clientId;
 
     private Map<String, String> metadata;
+
+    @JsonProperty("failureCause")
+    private String failureCause;
 
     public String getId() {
         return id;
@@ -245,6 +247,14 @@ public class Subscription {
 
     public void setConsumerPausedAt(Date consumerPausedAt) {
         this.consumerPausedAt = consumerPausedAt;
+    }
+
+    public String getFailureCause() {
+        return failureCause;
+    }
+
+    public void setFailureCause(String failureCause) {
+        this.failureCause = failureCause;
     }
 
     @Override
