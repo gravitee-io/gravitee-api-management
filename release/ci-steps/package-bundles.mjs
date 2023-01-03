@@ -22,12 +22,12 @@ const resolveLinkedVersion = (allVersions, valueToResolve) => {
   const versionLinkMatch = valueToResolve.match(/\${(.*?)}/);
   return versionLinkMatch ? allVersions[versionLinkMatch[1]] : valueToResolve;
 };
-const eeProfile = jsonPom.project.profiles.profile.find((p) => p.id === 'distribution-ee')
+const eeProfile = jsonPom.project.profiles.profile.find((p) => p.id === 'distribution-ee');
 const distributionProperties = Object.fromEntries(
   Object.entries(jsonPom.project.properties).map(([key, value]) => [key, resolveLinkedVersion(jsonPom.project.properties, value)]),
 );
 const eeDistributionProperties = Object.fromEntries(
-    Object.entries(eeProfile.properties).map(([key, value]) => [key, resolveLinkedVersion(eeProfile.properties, value)]),
+  Object.entries(eeProfile.properties).map(([key, value]) => [key, resolveLinkedVersion(eeProfile.properties, value)]),
 );
 const distributionDependencies = jsonPom.project.dependencies.dependency.map((dependency) => ({
   ...dependency,
@@ -39,18 +39,18 @@ const distributionDependencies = jsonPom.project.dependencies.dependency.map((de
     dependency.version,
   ),
 }));
-const eeDistributionDependencies = eeProfile.dependencies.dependency.filter(
-    (d) => d.groupId !== 'com.graviteesource.policy'
-).map((dependency) => ({
-  ...dependency,
-  version: resolveLinkedVersion(
+const eeDistributionDependencies = eeProfile.dependencies.dependency
+  .filter((d) => d.groupId !== 'com.graviteesource.policy')
+  .map((dependency) => ({
+    ...dependency,
+    version: resolveLinkedVersion(
       {
         ...eeDistributionProperties,
         'project.version': releasingVersion,
       },
       dependency.version,
-  ),
-}));
+    ),
+  }));
 
 console.log(chalk.blue(`Step 2: Download all dependencies from artifactory`));
 await $`mkdir -p ${tmpPath}`;
@@ -60,7 +60,7 @@ console.log(chalk.yellow(`Dependencies:`));
 
 const allDependencies = [
   ...distributionDependencies,
-    ...eeDistributionDependencies,
+  ...eeDistributionDependencies,
   {
     groupId: 'io.gravitee.apim.ui',
     artifactId: 'gravitee-apim-console-webui',
@@ -212,7 +212,9 @@ await spinner('Add plugins to Rest API...', () =>
       .map(({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}/plugins`),
   ),
 );
-$`cp ${allDependencies.find(d => d.groupId == 'com.graviteesource.license').fileName} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}/lib`
+$`cp ${
+  allDependencies.find((d) => d.groupId == 'com.graviteesource.license').fileName
+} ${fullDistributionDir}/gravitee-apim-rest-api-${releasingVersion}/lib`;
 
 // Gateway
 await $`unzip -q -o ${gatewayComponentDir}/gravitee-apim-gateway-${releasingVersion}.zip -d ${fullDistributionDir}`;
@@ -240,7 +242,9 @@ await spinner('Add plugins to Gateway...', () =>
       .map(async ({ fileName }) => $`cp ${fileName} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}/plugins`),
   ),
 );
-$`cp ${allDependencies.find(d => d.groupId == 'com.graviteesource.license').fileName} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}/lib`
+$`cp ${
+  allDependencies.find((d) => d.groupId == 'com.graviteesource.license').fileName
+} ${fullDistributionDir}/gravitee-apim-gateway-${releasingVersion}/lib`;
 
 // TODO: Remove the following lines to align names of these components to match the naming convention `gravitee-*` and not `graviteeio-*`
 await $`mv ${fullDistributionDir}/gravitee-apim-console-webui-${releasingVersion} ${fullDistributionDir}/graviteeio-apim-console-ui-${releasingVersion}`;
@@ -256,10 +260,9 @@ await within(async () => {
   cd(`${fullDistributionDir}`);
   cd(`../`);
   await $`zip -q -r ../graviteeio-ee-full-${releasingVersion}.zip .`;
-
 });
 await within(async () => {
-  const eeFullDistributionDir = `dist-ee/distributions`
+  const eeFullDistributionDir = `dist-ee/distributions`;
   await $`rm -rf ${eeFullDistributionDir} && mkdir -p ${eeFullDistributionDir}`;
   await $`mv ./dist/distributions/graviteeio-ee-full-${releasingVersion}.zip ${eeFullDistributionDir}`;
 
@@ -267,20 +270,18 @@ await within(async () => {
   await createFileSum(`graviteeio-ee-full-${releasingVersion}.zip`);
 });
 
-
 console.log(chalk.blue(`Step 8: Packaging - Distribution / Full CE`));
 
 await spinner('Remove ee plugins & lib to Gateway & Rest API...', () =>
-    Promise.all(
-        eeDistributionDependencies
-            .map(async (dependency) => {
-              const fileName = `${dependency.artifactId}-${dependency.version}.${dependency.type ?? 'jar'}`;
-              await $`rm -f ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}/lib/${fileName}`;
-              await $`rm -f ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}/plugins/${fileName}`;
-              await $`rm -f ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}/lib/${fileName}`;
-              await $`rm -f ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}/plugins/${fileName}`;
-            }),
-    ),
+  Promise.all(
+    eeDistributionDependencies.map(async (dependency) => {
+      const fileName = `${dependency.artifactId}-${dependency.version}.${dependency.type ?? 'jar'}`;
+      await $`rm -f ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}/lib/${fileName}`;
+      await $`rm -f ${fullDistributionDir}/graviteeio-apim-gateway-${releasingVersion}/plugins/${fileName}`;
+      await $`rm -f ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}/lib/${fileName}`;
+      await $`rm -f ${fullDistributionDir}/graviteeio-apim-rest-api-${releasingVersion}/plugins/${fileName}`;
+    }),
+  ),
 );
 await within(async () => {
   cd(`${fullDistributionDir}`);
@@ -290,7 +291,6 @@ await within(async () => {
   await createFileSum(`graviteeio-full-${releasingVersion}.zip`);
   await $`rm -rf graviteeio-full-${releasingVersion}`;
 });
-
 
 console.log(chalk.blue(`Step 9: Packaging - Plugins / All Repositories`));
 const repositoriesPluginDir = `./dist/plugins/repositories`;
