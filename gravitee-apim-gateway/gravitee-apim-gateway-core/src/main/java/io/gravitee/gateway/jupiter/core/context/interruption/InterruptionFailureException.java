@@ -34,4 +34,9 @@ public class InterruptionFailureException extends RuntimeException {
     public ExecutionFailure getExecutionFailure() {
         return executionFailure;
     }
+
+    @Override
+    public String getMessage() {
+        return executionFailure.message();
+    }
 }

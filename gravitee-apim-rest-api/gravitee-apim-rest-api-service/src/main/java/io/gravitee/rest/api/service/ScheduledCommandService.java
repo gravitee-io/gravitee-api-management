@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.reactor.v4.subscription;
+package io.gravitee.rest.api.service;
 
-import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.common.component.LifecycleComponent;
 
-public class SubscriptionExpiredException extends Exception {
-
-    public SubscriptionExpiredException(Subscription subscription) {
-        super(
-            String.format(
-                "Subscription [%S] disabled because it has expired at [%tF %tH:%tM]",
-                subscription.getId(),
-                subscription.getEndingAt(),
-                subscription.getEndingAt(),
-                subscription.getEndingAt()
-            )
-        );
-    }
-}
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface ScheduledCommandService<T> extends LifecycleComponent<T> {}

@@ -101,6 +101,7 @@ import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedE
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionAlreadyProcessedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -121,6 +122,7 @@ import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -564,6 +566,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setConfiguration(subscriptionConfigEntity.getConfiguration());
             subscription.setUpdatedAt(new Date());
             subscription.setStatus(newSubscriptionStatus);
+            subscription.setConsumerStatus(previousSubscription.getConsumerStatus());
+            subscription.setFailureCause(null);
 
             subscription = subscriptionRepository.update(subscription);
 
@@ -912,6 +916,32 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
+    public SubscriptionEntity fail(String subscriptionId, String failureCause) {
+        try {
+            logger.debug("Fail subscription {}", subscriptionId);
+
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+
+            final Date now = new Date();
+            subscription.setUpdatedAt(now);
+            subscription.setConsumerPausedAt(null);
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+            subscription.setFailureCause(failureCause);
+
+            subscription = subscriptionRepository.update(subscription);
+
+            return convert(subscription);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to fail subscription %s", subscriptionId),
+                ex
+            );
+        }
+    }
+
+    @Override
     public SubscriptionEntity pauseConsumer(ExecutionContext executionContext, String subscriptionId) {
         try {
             logger.debug("Pause subscription {} by consumer", subscriptionId);
@@ -1088,6 +1118,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private static void validateConsumerStatus(Subscription subscription, GenericApiModel genericApiModel) {
+        if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.FAILURE) {
+            throw new SubscriptionFailureException(subscription);
+        }
         if (!DefinitionVersion.V4.equals(genericApiModel.getDefinitionVersion())) {
             throw new SubscriptionConsumerStatusNotUpdatableException(
                 subscription,
@@ -1697,6 +1730,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
         entity.setConfiguration(subscription.getConfiguration());
         entity.setMetadata(subscription.getMetadata());
+        entity.setFailureCause(subscription.getFailureCause());
 
         return entity;
     }

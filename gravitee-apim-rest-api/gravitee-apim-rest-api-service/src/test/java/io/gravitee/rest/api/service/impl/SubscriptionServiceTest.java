@@ -90,6 +90,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiK
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
@@ -103,6 +104,8 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -858,6 +861,89 @@ public class SubscriptionServiceTest {
         verify(notifierService).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
         verify(notifierService)
             .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApplicationHook.SUBSCRIPTION_CLOSED), nullable(String.class), anyMap());
+    }
+
+    @Test
+    public void shouldFailSubscription() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final long yesterday = Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli();
+        final Date initialUpdateDate = new Date(yesterday);
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+
+        final String failureCause = "💥 Endpoint not available";
+        subscriptionService.fail(SUBSCRIPTION_ID, failureCause);
+
+        verify(subscriptionRepository).findById(SUBSCRIPTION_ID);
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository).update(subscriptionCaptor.capture());
+
+        final Subscription subscriptionCaptured = subscriptionCaptor.getValue();
+        assertThat(subscriptionCaptured.getConsumerPausedAt()).isNull();
+        assertThat(subscriptionCaptured.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.FAILURE);
+        assertThat(subscriptionCaptured.getFailureCause()).isEqualTo(failureCause);
+        assertThat(subscriptionCaptured.getUpdatedAt()).isAfter(initialUpdateDate);
+    }
+
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotFailSubscriptionBecauseDoesNotExist() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final Date initialUpdateDate = new Date();
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available");
+
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldNotFailSubscriptionBecauseTechnicalException() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final Date initialUpdateDate = new Date();
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        final TechnicalException exceptionThrown = new TechnicalException("🛠 Technical exception");
+        when(subscriptionRepository.update(subscription)).thenThrow(exceptionThrown);
+
+        try {
+            subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available");
+        } catch (Exception e) {
+            assertThat(e)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageStartingWith("An error occurs while trying to fail subscription ")
+                .hasMessageEndingWith(SUBSCRIPTION_ID)
+                .hasCause(exceptionThrown);
+        }
+    }
+
+    @Test
+    public void shouldNotPauseByConsumerBecauseInFailure() throws Exception {
+        final String failureCause = "failure-cause";
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+        subscription.setFailureCause(failureCause);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+
+        try {
+            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        } catch (Exception e) {
+            assertThat(e)
+                .isInstanceOf(SubscriptionFailureException.class)
+                .hasMessage("Subscription [" + SUBSCRIPTION_ID + "] is in failure state: " + failureCause);
+        }
     }
 
     @Test(expected = SubscriptionNotFoundException.class)

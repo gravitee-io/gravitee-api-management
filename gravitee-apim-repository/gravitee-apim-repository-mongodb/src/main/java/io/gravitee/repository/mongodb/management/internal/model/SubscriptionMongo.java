@@ -116,6 +116,8 @@ public class SubscriptionMongo extends Auditable {
 
     private Map<String, String> metadata;
 
+    private String failureCause;
+
     /**
      * STANDARD, SUBSCRIPTION
      */
@@ -311,6 +313,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getFailureCause() {
+        return failureCause;
+    }
+
+    public void setFailureCause(String failureCause) {
+        this.failureCause = failureCause;
     }
 
     @Override

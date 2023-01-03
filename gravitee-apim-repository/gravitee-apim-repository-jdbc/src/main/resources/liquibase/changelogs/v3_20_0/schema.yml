@@ -52,3 +52,8 @@ databaseChangeLog:
                   type: timestamp(6)
                   constraints:
                     nullable: true
+              - column:
+                  name: failure_cause
+                  type: nvarchar(256)
+                  constraints:
+                    nullable: true

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.services.subscriptionpreexpirationnotif.spring;
+package io.gravitee.rest.api.service.spring;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -21,14 +21,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Configuration
-public class SubscriptionPreExpirationNotificationConfiguration {
+public class CommandConfiguration {
 
     @Bean
-    @Qualifier("subscriptionPreExpirationTaskScheduler")
-    public TaskScheduler taskScheduler() {
+    @Qualifier("commandTaskScheduler")
+    public TaskScheduler commandTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("subscription-pre-expiration-notification-");
+        scheduler.setThreadNamePrefix("commands-refresher-");
         return scheduler;
     }
 }

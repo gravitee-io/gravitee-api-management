@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -72,6 +73,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     private UserService userService;
 
     @Autowired
+    @Qualifier("subscriptionPreExpirationTaskScheduler")
     private TaskScheduler scheduler;
 
     @Value("#{'${services.subscription.pre-expiration-notification-schedule:90,45,30}'.split(',')}")

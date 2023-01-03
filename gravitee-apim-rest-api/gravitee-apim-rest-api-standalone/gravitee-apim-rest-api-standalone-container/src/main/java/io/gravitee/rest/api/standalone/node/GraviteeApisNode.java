@@ -21,6 +21,8 @@ import io.gravitee.node.container.AbstractNode;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.rest.api.service.InitializerService;
+import io.gravitee.rest.api.service.ScheduledCommandService;
+import io.gravitee.rest.api.service.impl.ScheduledCommandServiceImpl;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,7 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(JettyEmbeddedContainer.class);
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
+        components.add(ScheduledCommandService.class);
         return components;
     }
 }

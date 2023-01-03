@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -37,6 +38,7 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(ScheduledSyncService.class);
 
     @Autowired
+    @Qualifier("syncTaskScheduler")
     private TaskScheduler scheduler;
 
     @Value("${services.sync.cron:*/5 * * * * *}")

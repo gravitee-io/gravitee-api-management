@@ -93,6 +93,15 @@ public class CommandConverterTest {
     }
 
     @Test
+    public void commandEntityShouldNotBeExpiredWhenNoExpiredAt() {
+        final Command command = command(null);
+
+        CommandEntity commandEntity = converter.toCommandEntity(command);
+
+        assertFalse(commandEntity.isExpired());
+    }
+
+    @Test
     public void commandEntityShouldBeExpired() {
         final Command command = command(Instant.now().minus(5, ChronoUnit.SECONDS));
 
@@ -211,7 +220,7 @@ public class CommandConverterTest {
         command.setTo("MANAGEMENT_APIS");
         command.setContent("{}");
         command.setTags(tags);
-        command.setExpiredAt(Date.from(expireAt));
+        command.setExpiredAt(expireAt == null ? null : Date.from(expireAt));
         command.setAcknowledgments(acknowledgments);
         return command;
     }

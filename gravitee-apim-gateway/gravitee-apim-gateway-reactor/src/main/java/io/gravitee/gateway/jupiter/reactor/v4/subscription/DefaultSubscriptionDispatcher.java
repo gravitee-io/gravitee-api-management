@@ -27,6 +27,7 @@ import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.exception.MessageProcessingException;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.hook.HookHelper;
@@ -34,15 +35,17 @@ import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.jupiter.reactor.processor.SubscriptionPlatformProcessorChainFactory;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionConnectionException;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionExpiredException;
+import io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions.SubscriptionNotDispatchedException;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.tracing.api.Span;
 import io.gravitee.tracing.api.Tracer;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.CompletableTransformer;
-import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Predicate;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import java.util.ArrayList;
@@ -55,7 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -96,6 +98,45 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         this.vertx = vertx;
     }
 
+    @Override
+    public Completable dispatch(Subscription subscriptionToDispatch) {
+        return Completable.create(
+            emitter -> {
+                if (
+                    statusIsAccepted(subscriptionToDispatch) &&
+                    consumerStatusIsActive(subscriptionToDispatch) &&
+                    !isExpired(subscriptionToDispatch)
+                ) {
+                    try {
+                        activeSubscriptions.compute(
+                            subscriptionToDispatch.getId(),
+                            (subscriptionId, activeSubscription) -> {
+                                // activate subscription if not yet active
+                                if (activeSubscription == null) {
+                                    return activateSubscription(subscriptionToDispatch, emitter);
+                                }
+                                // if subscription already active modified, update it
+                                else if (!subscriptionToDispatch.equals(activeSubscription) || subscriptionToDispatch.isForceDispatch()) {
+                                    return updateSubscription(subscriptionToDispatch, emitter);
+                                }
+                                // otherwise, keep active subscription as it is
+                                emitter.onComplete();
+                                return activeSubscription;
+                            }
+                        );
+                    } catch (SubscriptionNotDispatchedException e) {
+                        emitter.onError(e);
+                    }
+                }
+                // dispose subscription if it's not accepted, or already expired
+                else {
+                    disposeSubscription(subscriptionToDispatch.getId());
+                    emitter.onComplete();
+                }
+            }
+        );
+    }
+
     private static boolean statusIsAccepted(Subscription subscriptionToDispatch) {
         return "ACCEPTED".equalsIgnoreCase(subscriptionToDispatch.getStatus());
     }
@@ -104,48 +145,10 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         return Subscription.ConsumerStatus.STARTED.equals(subscriptionToDispatch.getConsumerStatus());
     }
 
-    private static Predicate<Throwable> manageErrors() {
-        return throwable -> {
-            if (throwable instanceof SubscriptionExpiredException) {
-                LOGGER.debug(throwable.getMessage());
-                return true;
-            }
-            // manage functional error to complete normally here
-            return false;
-        };
-    }
-
-    @Override
-    public void dispatch(Subscription subscriptionToDispatch) {
-        if (
-            statusIsAccepted(subscriptionToDispatch) && consumerStatusIsActive(subscriptionToDispatch) && !isExpired(subscriptionToDispatch)
-        ) {
-            activeSubscriptions.compute(
-                subscriptionToDispatch.getId(),
-                (subscriptionId, activeSubscription) -> {
-                    // activate subscription if not yet active
-                    if (activeSubscription == null) {
-                        return activateSubscription(subscriptionToDispatch);
-                    }
-                    // if subscription already active modified, update it
-                    else if (!subscriptionToDispatch.equals(activeSubscription) || subscriptionToDispatch.isForceDispatch()) {
-                        return updateSubscription(subscriptionToDispatch);
-                    }
-                    // otherwise, keep active subscription as it is
-                    return activeSubscription;
-                }
-            );
-        }
-        // dispose subscription if it's not accepted, or already expired
-        else {
-            disposeSubscription(subscriptionToDispatch.getId());
-        }
-    }
-
-    private Subscription activateSubscription(Subscription subscription) {
+    private Subscription activateSubscription(Subscription subscription, CompletableEmitter emitter) {
         Acceptor<SubscriptionAcceptor> acceptor = subscriptionAcceptorResolver.resolve(subscription);
 
-        if (acceptor != null) {
+        if (acceptor != null && acceptor.reactor() != null) {
             ApiReactor reactorHandler = (ApiReactor) acceptor.reactor();
 
             String configuration = subscription.getConfiguration();
@@ -155,19 +158,34 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                 if (type == null || type.trim().isEmpty()) {
                     LOGGER.error("Unable to handle subscription without known entrypoint id");
                 } else {
-                    activeDisposables.put(subscription.getId(), handleSubscription(subscription, reactorHandler, type));
+                    Completable subscriptionObs = handleSubscription(subscription, reactorHandler, type)
+                        .onErrorComplete(
+                            throwable -> {
+                                emitter.onError(throwable);
+                                return true;
+                            }
+                        )
+                        .doOnComplete(
+                            () -> {
+                                activeDisposables.remove(subscription.getId());
+                                emitter.onComplete();
+                            }
+                        );
+
+                    activeDisposables.put(subscription.getId(), subscriptionObs.subscribe());
+
                     return subscription;
                 }
             } catch (Exception ex) {
-                LOGGER.error("Unable to dispatch subscription id[{}] api[{}]", subscription.getId(), subscription.getApi(), ex);
+                throw new SubscriptionNotDispatchedException(ex);
             }
         }
-        return null;
+        throw new SubscriptionNotDispatchedException(String.format("No acceptor available for subscription [%s]", subscription.getId()));
     }
 
-    private Disposable handleSubscription(Subscription subscription, ApiReactor reactorHandler, String type) {
-        return Single
-            .fromCallable(
+    private Completable handleSubscription(Subscription subscription, ApiReactor reactorHandler, String type) {
+        return Completable
+            .defer(
                 () -> {
                     MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
@@ -182,27 +200,24 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                     context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
 
                     context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
-                    return context;
+                    return executeSubscriptionChain(reactorHandler, context)
+                        // Apply a delay before starting the subscription if it has a starting date
+                        .compose(delayToStartDate(subscription))
+                        // Apply a timeout to the subscription if it has an ending date
+                        .compose(timeoutAtEndingDate(subscription))
+                        .compose(verifyHttpResponseError(subscription, context))
+                        // Manage functional errors, for example when a subscription expires
+                        .onErrorComplete(shouldCompleteOnError());
                 }
             )
-            .flatMapCompletable(ctx -> executeSubscriptionChain(reactorHandler, ctx))
-            // Apply a delay before starting the subscription if it has a starting date
-            .compose(delayToStartDate(subscription))
-            // Apply a timeout to the subscription if it has an ending date
-            .compose(timeoutAtEndingDate(subscription))
-            // Manage functional errors, for example when a subscription expires
-            .onErrorComplete(manageErrors())
-            // In case of unhandled exception, retry ON_SUBSCRIPTION_ERROR_RETRY_COUNT times with a delay of ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS between attempts
-            .compose(RxHelper.retry(ON_SUBSCRIPTION_ERROR_RETRY_COUNT, ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS, MILLISECONDS))
-            .onErrorResumeNext(
-                t -> {
-                    // Here, manage ERROR status for subscription and send command to repository
-                    return Completable.complete();
-                }
-            )
-            .doOnComplete(() -> activeDisposables.remove(subscription.getId()))
-            .subscribeOn(Schedulers.computation())
-            .subscribe();
+            .compose(
+                RxHelper.retry(
+                    ON_SUBSCRIPTION_ERROR_RETRY_COUNT,
+                    ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS,
+                    MILLISECONDS,
+                    isThrowableRetryable()
+                )
+            );
     }
 
     private Completable executeSubscriptionChain(ApiReactor reactorHandler, MutableExecutionContext ctx) {
@@ -215,7 +230,12 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
             .andThen(reactorHandler.handle(ctx))
             // execute post processors
             // we have to run it on the same vertx context as subscriber's, cause tracing mechanism is relying on vertx context
-            .doFinally(() -> vertxContext.runOnContext(v -> executePostProcessorChain(ctx).andThen(endTracingSpan(ctx)).subscribe()));
+            .doFinally(
+                () ->
+                    vertxContext.runOnContext(
+                        v -> executePostProcessorChain(ctx).andThen(endTracingSpan(ctx)).onErrorComplete().subscribe()
+                    )
+            );
     }
 
     private Completable executePreProcessorChain(MutableExecutionContext ctx) {
@@ -270,6 +290,13 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         );
     }
 
+    /**
+     * @return a Predicate testing if a throwable is retryable or not.
+     */
+    private java.util.function.Predicate<Throwable> isThrowableRetryable() {
+        return throwable -> !(throwable instanceof MessageProcessingException);
+    }
+
     private CompletableTransformer delayToStartDate(Subscription subscription) {
         return upstream -> {
             if (subscription.getStartingAt() != null) {
@@ -292,6 +319,37 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
             }
             return upstream;
         };
+    }
+
+    private static Predicate<Throwable> shouldCompleteOnError() {
+        return throwable -> {
+            if (throwable instanceof SubscriptionExpiredException) {
+                LOGGER.debug(throwable.getMessage());
+                return true;
+            }
+            // manage functional error to complete normally here
+            return false;
+        };
+    }
+
+    private CompletableTransformer verifyHttpResponseError(Subscription subscription, MutableExecutionContext context) {
+        return upstream ->
+            upstream.andThen(
+                Completable.defer(
+                    () -> {
+                        if (context.response().status() / 100 == 4 || context.response().status() / 100 == 5) {
+                            return context
+                                .response()
+                                .body()
+                                .flatMapCompletable(
+                                    buffer ->
+                                        Completable.error(new SubscriptionConnectionException(subscription.getId(), buffer.toString()))
+                                );
+                        }
+                        return Completable.complete();
+                    }
+                )
+            );
     }
 
     /**
@@ -324,15 +382,16 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
      * Update the specified subscription.
      *
      * @param subscription The subscription to update
+     * @param emitter
      * @return updated subscription
      */
-    private Subscription updateSubscription(Subscription subscription) {
+    private Subscription updateSubscription(Subscription subscription, CompletableEmitter emitter) {
         // dispose old subscription, but keep it in map
         // as it will be replaced by subsequent call to activateSubscription
         if (activeDisposables.containsKey(subscription.getId())) {
             activeDisposables.get(subscription.getId()).dispose();
         }
-        return activateSubscription(subscription);
+        return activateSubscription(subscription, emitter);
     }
 
     /**

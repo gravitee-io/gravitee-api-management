@@ -72,6 +72,7 @@ public interface SubscriptionService {
     SubscriptionEntity restore(ExecutionContext executionContext, String subscription);
 
     SubscriptionEntity close(ExecutionContext executionContext, String subscription);
+    SubscriptionEntity fail(String subscriptionId, String failureCause);
 
     void delete(ExecutionContext executionContext, String subscription);
 

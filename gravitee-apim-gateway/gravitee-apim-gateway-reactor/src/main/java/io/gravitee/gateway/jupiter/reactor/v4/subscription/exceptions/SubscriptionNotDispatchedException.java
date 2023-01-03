@@ -13,42 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.command;
-
-import java.util.List;
+package io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CommandQuery {
+public class SubscriptionNotDispatchedException extends RuntimeException {
 
-    private String to;
-    private List<CommandTags> tags;
+    private final String message;
 
-    private String notAckBy;
-
-    public String getTo() {
-        return to;
+    public SubscriptionNotDispatchedException(Throwable cause) {
+        this.initCause(cause);
+        this.message = this.getCause().getMessage();
     }
 
-    public void setTo(String to) {
-        this.to = to;
+    public SubscriptionNotDispatchedException(String message) {
+        this.message = message;
     }
 
-    public List<CommandTags> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<CommandTags> tags) {
-        this.tags = tags;
-    }
-
-    public String getNotAckBy() {
-        return notAckBy;
-    }
-
-    public void setNotAckBy(String notAckBy) {
-        this.notAckBy = notAckBy;
+    @Override
+    public String getMessage() {
+        return message;
     }
 }

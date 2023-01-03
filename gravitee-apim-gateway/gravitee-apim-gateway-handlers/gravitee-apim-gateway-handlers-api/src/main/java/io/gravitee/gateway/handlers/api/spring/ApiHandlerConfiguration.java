@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -56,11 +57,13 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.repository.management.api.CommandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -200,9 +203,12 @@ public class ApiHandlerConfiguration {
     public SubscriptionService subscriptionService(
         CacheManager cacheManager,
         ApiKeyService apiKeyService,
-        SubscriptionDispatcher subscriptionDispatcher
+        SubscriptionDispatcher subscriptionDispatcher,
+        @Lazy CommandRepository commandRepository,
+        Node node,
+        ObjectMapper objectMapper
     ) {
-        return new SubscriptionService(cacheManager, apiKeyService, subscriptionDispatcher);
+        return new SubscriptionService(cacheManager, apiKeyService, subscriptionDispatcher, commandRepository, node, objectMapper);
     }
 
     @Bean

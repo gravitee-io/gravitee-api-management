@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.gravitee.gateway.api.service.Subscription;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Schema(enumAsRef = true)
-public enum SubscriptionConsumerStatus {
-    STARTED,
-    STOPPED,
-    FAILURE,
+public class SubscriptionExpiredException extends Exception {
+
+    public SubscriptionExpiredException(Subscription subscription) {
+        super(
+            String.format(
+                "Subscription [%S] disabled because it has expired at [%tF %tH:%tM]",
+                subscription.getId(),
+                subscription.getEndingAt(),
+                subscription.getEndingAt(),
+                subscription.getEndingAt()
+            )
+        );
+    }
 }
