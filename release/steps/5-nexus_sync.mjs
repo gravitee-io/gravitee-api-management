@@ -2,7 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
-import { isDryRun } from "../helpers/option-helper.mjs";
+import { isDryRun } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
