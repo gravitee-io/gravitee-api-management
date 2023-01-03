@@ -13,51 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.impl;
+package io.gravitee.rest.api.service.impl;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import java.util.ArrayList;
+import io.gravitee.rest.api.service.v4.impl.ApiCategoryServiceImpl;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiCategoryServiceImplTest {
+public class ApiCategoryService_DeleteCategoryTest {
 
-    private ApiCategoryService apiCategoryService;
+    ApiCategoryService apiCategoryService;
 
-    @Mock
+    @Spy
     private ApiRepository apiRepository;
 
     @Mock
@@ -70,32 +63,12 @@ public class ApiCategoryServiceImplTest {
     private AuditService auditService;
 
     @Before
-    public void before() {
+    public void setUp() throws Exception {
         apiCategoryService = new ApiCategoryServiceImpl(apiRepository, categoryService, apiNotificationService, auditService);
     }
 
     @Test
-    public void shouldReturnCategories() throws TechnicalException {
-        Set<String> categories = Set.of("category1");
-        when(apiRepository.listCategories(any())).thenReturn(categories);
-        CategoryEntity categoryEntity = new CategoryEntity();
-        categoryEntity.setId("category1");
-        when(categoryService.findByIdIn("DEFAULT", categories)).thenReturn(Set.of(categoryEntity));
-        Set<CategoryEntity> categoryEntities = apiCategoryService.listCategories(List.of("api1"), "DEFAULT");
-        assertThat(categoryEntities).isNotNull();
-        assertThat(categoryEntities.size()).isEqualTo(1);
-        assertThat(categoryEntities.contains(categoryEntity)).isTrue();
-    }
-
-    @Test
-    public void shouldThrownManagementExceptionWhenTechnicalExceptionOccurred() throws TechnicalException {
-        when(apiRepository.listCategories(any())).thenThrow(new TechnicalException());
-        assertThatExceptionOfType(TechnicalManagementException.class)
-            .isThrownBy(() -> apiCategoryService.listCategories(List.of("api1"), "DEFAULT"));
-    }
-
-    @Test
-    public void shouldDeleteCategoryFromApis() throws TechnicalException {
+    public void shouldDeleteApiCategoryReferences() throws TechnicalException {
         final String categoryId = UuidString.generateRandom();
 
         Api firstOrphan = new Api();
@@ -108,10 +81,33 @@ public class ApiCategoryServiceImplTest {
 
         when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields()))
             .thenReturn(Stream.of(firstOrphan, secondOrphan));
+
         apiCategoryService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
         verify(apiRepository, times(1)).update(firstOrphan);
-        verify(apiRepository, times(1)).update(secondOrphan);
+        verify(apiRepository, times(1)).update(firstOrphan);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), firstOrphan);
+        verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), secondOrphan);
+        verify(auditService, times(1))
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(firstOrphan.getId()),
+                eq(Collections.emptyMap()),
+                eq(Api.AuditEvent.API_UPDATED),
+                any(),
+                any(),
+                any()
+            );
+        verify(auditService, times(1))
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(secondOrphan.getId()),
+                eq(Collections.emptyMap()),
+                eq(Api.AuditEvent.API_UPDATED),
+                any(),
+                any(),
+                any()
+            );
 
         assertEquals(0, firstOrphan.getCategories().size());
         assertEquals(1, secondOrphan.getCategories().size());

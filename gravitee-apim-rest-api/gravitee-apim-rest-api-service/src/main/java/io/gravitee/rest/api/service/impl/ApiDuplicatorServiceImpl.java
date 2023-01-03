@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
+import io.gravitee.rest.api.service.imports.ImportPlanJsonNode;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
@@ -256,13 +257,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
 
+        final Map<String, String> pagesIdsMap = new HashMap<>();
+
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PAGES)) {
             final List<PageEntity> pages = pageService.search(
                 executionContext.getEnvironmentId(),
                 new PageQuery.Builder().api(apiId).build(),
                 true
             );
-            pageService.duplicatePages(executionContext, pages, duplicatedApi.getId());
+            pagesIdsMap.putAll(pageService.duplicatePages(executionContext, pages, duplicatedApi.getId()));
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
@@ -272,6 +275,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     plan -> {
                         plan.setId(plansIdsMap.get(plan.getId()));
                         plan.setApi(duplicatedApi.getId());
+                        if (plan.getGeneralConditions() != null) {
+                            plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
+                        }
                         planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
                     }
                 );
@@ -795,11 +801,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private void recalculateIdsFromCrossId(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, ApiEntity api) {
         apiJsonNode.setId(api.getId());
-        recalculatePlanIdsFromCrossIds(executionContext, api, apiJsonNode.getPlans());
-        recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode.getPages());
+        Map<String, String> pagesIdsMap = recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode.getPages());
+        recalculatePlanIdsFromCrossIds(executionContext, api, apiJsonNode.getPlans(), pagesIdsMap);
     }
 
-    private void recalculatePlanIdsFromCrossIds(ExecutionContext executionContext, ApiEntity api, List<ImportJsonNodeWithIds> plansNodes) {
+    private void recalculatePlanIdsFromCrossIds(
+        ExecutionContext executionContext,
+        ApiEntity api,
+        List<ImportPlanJsonNode> plansNodes,
+        Map<String, String> pagesIdsMap
+    ) {
         Map<String, PlanEntity> plansByCrossId = planService
             .findByApi(executionContext, api.getId())
             .stream()
@@ -814,11 +825,26 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
                     plan.setApi(api.getId());
                     plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
+                    recalculateGeneralConditionsPageId(plan, pagesIdsMap);
                 }
             );
     }
 
-    private void recalculatePageIdsFromCrossIds(String environmentId, ApiEntity api, List<ImportJsonNodeWithIds> pagesNodes) {
+    /**
+     * Recalculate imported API pages ID, using crossID.
+     *
+     * @param environmentId
+     * @param api
+     * @param pagesNodes
+     * @return the map of old ID - new ID
+     */
+    private Map<String, String> recalculatePageIdsFromCrossIds(
+        String environmentId,
+        ApiEntity api,
+        List<ImportJsonNodeWithIds> pagesNodes
+    ) {
+        Map<String, String> idsMap = new HashMap<>();
+
         Map<String, PageEntity> pagesByCrossId = pageService
             .findByApi(environmentId, api.getId())
             .stream()
@@ -834,27 +860,36 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
                     page.setApi(api.getId());
                     if (matchingPage != null) {
+                        idsMap.put(pageId, matchingPage.getId());
                         page.setId(matchingPage.getId());
                         updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
                     } else {
                         String newPageId = UuidString.generateRandom();
+                        idsMap.put(pageId, newPageId);
                         page.setId(newPageId);
                         updatePagesHierarchy(pagesNodes, pageId, newPageId);
                     }
                 }
             );
+
+        return idsMap;
     }
 
     private void recalculateIdsFromDefinitionIds(String environmentId, ImportApiJsonNode apiJsonNode, String urlApiId) {
         if (canRegenerateId(apiJsonNode)) {
             String targetApiId = urlApiId == null ? UuidString.generateForEnvironment(environmentId, apiJsonNode.getId()) : urlApiId;
             apiJsonNode.setId(targetApiId);
-            recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, targetApiId);
-            recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, targetApiId);
+            Map<String, String> pagesIdsMap = recalculatePageIdsFromDefinitionIds(apiJsonNode.getPages(), environmentId, targetApiId);
+            recalculatePlanIdsFromDefinitionIds(apiJsonNode.getPlans(), environmentId, targetApiId, pagesIdsMap);
         }
     }
 
-    private void recalculatePlanIdsFromDefinitionIds(List<ImportJsonNodeWithIds> plansNodes, String environmentId, String apiId) {
+    private void recalculatePlanIdsFromDefinitionIds(
+        List<ImportPlanJsonNode> plansNodes,
+        String environmentId,
+        String apiId,
+        Map<String, String> pagesIdsMap
+    ) {
         plansNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasId)
@@ -862,23 +897,45 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 plan -> {
                     plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
                     plan.setApi(apiId);
+                    recalculateGeneralConditionsPageId(plan, pagesIdsMap);
                 }
             );
     }
 
-    private void recalculatePageIdsFromDefinitionIds(List<ImportJsonNodeWithIds> pagesNodes, String environmentId, String apiId) {
+    private static void recalculateGeneralConditionsPageId(ImportPlanJsonNode plan, Map<String, String> pagesIdsMap) {
+        if (plan.hasGeneralConditions()) {
+            plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
+        }
+    }
+
+    /**
+     * Recalculate imported API pages ID, using definition ID.
+     *
+     * @param pagesNodes
+     * @param environmentId
+     * @param apiId
+     * @return the map of old ID - new ID
+     */
+    private Map<String, String> recalculatePageIdsFromDefinitionIds(
+        List<ImportJsonNodeWithIds> pagesNodes,
+        String environmentId,
+        String apiId
+    ) {
+        Map<String, String> idsMap = new HashMap<>();
         pagesNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasId)
             .forEach(
                 page -> {
-                    String pageId = page.getId();
-                    String generatedPageId = UuidString.generateForEnvironment(environmentId, apiId, pageId);
-                    page.setId(generatedPageId);
+                    String oldPageId = page.getId();
+                    String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
+                    idsMap.put(oldPageId, newPageId);
+                    page.setId(newPageId);
                     page.setApi(apiId);
-                    updatePagesHierarchy(pagesNodes, pageId, generatedPageId);
+                    updatePagesHierarchy(pagesNodes, oldPageId, newPageId);
                 }
             );
+        return idsMap;
     }
 
     private boolean canRegenerateId(ImportApiJsonNode apiJsonNode) {

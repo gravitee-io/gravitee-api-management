@@ -2670,13 +2670,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return Collections.emptyMap();
         }
 
-        List<Api> apis = apiRepository.search(
-            getDefaultApiCriteriaBuilder().ids(foundApiIds.getContent()).build(),
-            new ApiFieldFilter.Builder().excludePicture().excludeDefinition().build()
-        );
-
-        return apis
-            .stream()
+        return apiRepository
+            .search(getDefaultApiCriteriaBuilder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
             .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));

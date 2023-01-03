@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,7 +84,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), any())).thenReturn(List.of(api));
+        when(apiRepository.search(any(), isNull(), any())).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
@@ -112,7 +113,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), any())).thenReturn(List.of(api));
+        when(apiRepository.search(any(), isNull(), any())).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)).thenReturn(apiDefinition);
