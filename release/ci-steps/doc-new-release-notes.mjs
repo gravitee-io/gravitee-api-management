@@ -14,25 +14,22 @@ const docApimChangelogFile = `${docApimChangelogFolder}changelog-${versions.trim
 const gitBranch = `release-apim-${releasingVersion}`;
 
 const computeCommitInfo = async (gitLogOutput) => {
-  const fetchPrInfo = await Promise.all(
-    gitLogOutput
-      .trim()
-      .split('\n')
-      .map(async (commitLine) => {
-        try {
-          const commitHash = commitLine.substring(0, commitLine.indexOf(' '));
-          const commitMessage = commitLine.substring(commitLine.indexOf(' ') + 1);
-          const foundPRCmd = await $`gh pr list --search "${commitHash}" --state merged --json url,title,number --jq '.[0]'`;
-
-          return {
-            ...JSON.parse(foundPRCmd.stdout),
-            commitMessage,
-          };
-        } catch (error) {
-          console.error('🚨 Error while searching PR for commit', commitHash, error);
-        }
-      }),
-  );
+  const commitLines = gitLogOutput.trim().split('\n');
+  const fetchPrInfo = [];
+  for (const commitLine of commitLines) {
+    const commitHash = commitLine.substring(0, commitLine.indexOf(' '));
+    const commitMessage = commitLine.substring(commitLine.indexOf(' ') + 1);
+    try {
+      const foundPRCmd = await $`gh pr list --search "${commitHash}" --state merged --json url,title,number --jq '.[0]'`;
+      fetchPrInfo.push({
+        ...JSON.parse(foundPRCmd.stdout),
+        commitMessage,
+      });
+    } catch (error) {
+      console.error('🚨 Error while searching PR for commit', commitHash, error);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 
   return Array.from(
     fetchPrInfo
