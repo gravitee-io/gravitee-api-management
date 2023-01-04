@@ -16,7 +16,6 @@
 
 -->
 <div class="plans__header">
-  <h1>Plans</h1>
   <div *ngIf="!isReadOnly && plansTableDS && !isLoadingData">
     <button
       *gioPermission="{ anyOf: ['api-plan-u'] }"

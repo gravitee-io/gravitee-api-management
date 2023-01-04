@@ -17,13 +17,15 @@
 -->
 
 <form *ngIf="responseTemplatesForm" [formGroup]="responseTemplatesForm" autocomplete="off" gioFormFocusInvalid>
-  <h1>
-    <gio-go-back-button
-      [ajsGo]="{ to: 'management.apis.detail.proxy.responsetemplates.list', params: { apiId: apiId } }"
-    ></gio-go-back-button>
-    <ng-container *ngIf="mode === 'new'">Create a new Response Template</ng-container>
-    <ng-container *ngIf="mode === 'edit'">{{ isReadOnly ? '' : 'Update ' }}Response Template</ng-container>
-  </h1>
+  <div>
+    <span class="md-headline">
+      <gio-go-back-button
+        [ajsGo]="{ to: 'management.apis.detail.proxy.responsetemplates.list', params: { apiId: apiId } }"
+      ></gio-go-back-button>
+      <ng-container *ngIf="mode === 'new'">Create a new Response Template</ng-container>
+      <ng-container *ngIf="mode === 'edit'">{{ isReadOnly ? '' : 'Update ' }}Response Template</ng-container>
+    </span>
+  </div>
 
   <mat-card>
     <!-- Key -->

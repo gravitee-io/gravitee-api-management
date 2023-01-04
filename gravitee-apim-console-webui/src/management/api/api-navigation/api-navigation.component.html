@@ -20,12 +20,14 @@
     <gio-submenu class="api-navigation__submenu">
       <api-navigation-title
         gioSubmenuTitle
+        class="api-navigation__submenu__title"
         [apiName]="this.apiName"
         [apiVersion]="this.apiVersion"
         [apiState]="this.apiState"
         [apiLifecycleState]="this.apiLifecycleState"
         [apiIsSync]="this.apiIsSync"
         [apiOrigin]="this.apiOrigin"
+        separator="pipe"
       ></api-navigation-title>
       <span *ngIf="this.bannerState !== 'close'" class="gio-badge-accent api-navigation__submenu__banner">
         <mat-icon class="api-navigation__submenu__banner__icon" svgIcon="gio:arrow-down"></mat-icon>
@@ -74,8 +76,30 @@
   </div>
   <div class="api-navigation__content">
     <ng-content select="#banner"></ng-content>
-    <api-navigation-tabs *ngIf="this.selectedItemWithTabs" [tabMenuItems]="this.selectedItemWithTabs.tabs"></api-navigation-tabs>
     <div class="api-navigation__content__view">
+      <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-navigation__breadcrumb">
+        <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">APIs</span>
+        <api-navigation-title
+          gioSubmenuTitle
+          class="api-navigation__submenu__title api-navigation__breadcrumb__item"
+          [apiName]="this.apiName"
+          [apiVersion]="this.apiVersion"
+          [apiState]="this.apiState"
+          [apiLifecycleState]="this.apiLifecycleState"
+          [apiIsSync]="this.apiIsSync"
+          [apiOrigin]="this.apiOrigin"
+          *gioBreadcrumbItem
+        ></api-navigation-title>
+        <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
+          <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">{{ item }}</span>
+        </ng-template>
+      </gio-breadcrumb>
+
+      <api-navigation-tabs
+        *ngIf="selectedItemWithTabs"
+        class="api-navigation__content__tabs"
+        [tabMenuItems]="this.selectedItemWithTabs.tabs"
+      ></api-navigation-tabs>
       <ng-content select="#view"></ng-content>
     </div>
   </div>

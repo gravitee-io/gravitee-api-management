@@ -18,6 +18,7 @@
 @use 'node_modules/@gravitee/ui-particles-angular/index' as gio;
 
 $textColor: map.get(gio.$mat-dove-palette, default);
+$borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
 
 :host {
   width: 100%;
@@ -27,30 +28,46 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   display: flex;
   align-items: center;
 
-  &__icon {
-    margin: 8px;
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
+  &__icons {
+    display: flex;
+    align-items: center;
+    margin: 0 4px;
+    border: 1px solid $borderColor;
+    border-radius: 4px;
 
-    &__play {
-      color: map.get(gio.$mat-success-palette, default);
-    }
+    &__icon {
+      margin: 4px;
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
 
-    &__stop {
-      color: map.get(gio.$mat-error-palette, default);
-    }
+      &__play {
+        color: map.get(gio.$mat-success-palette, default);
+      }
 
-    &__refresh {
-      color: map.get(gio.$mat-warning-palette, default);
+      &__stop {
+        color: map.get(gio.$mat-error-palette, default);
+      }
+
+      &__refresh {
+        color: map.get(gio.$mat-warning-palette, default);
+      }
     }
   }
 
+  &__icons-pipe {
+    border: 0;
+  }
+
   &__name {
-    border-left: 1px solid $textColor;
-    padding-left: 8px;
+    padding-left: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &__name-pipe {
+    border-left: 1px solid $textColor;
+    padding-left: 8px;
   }
 }

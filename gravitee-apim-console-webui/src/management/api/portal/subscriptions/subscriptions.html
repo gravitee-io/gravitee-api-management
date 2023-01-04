@@ -16,99 +16,94 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-  <h1>Subscriptions</h1>
-  <div class="gv-form">
-    <h2></h2>
-    <div class="gv-form-content" layout="column">
-      <div class="gv-filters" flex>
-        <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
-          <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-sm flex="20">
-              <label>Plan</label>
-              <md-select ng-model="$ctrl.query.plans" placeholder="Plans" multiple>
-                <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.plans track by plan.id">{{ plan.name }}</md-option>
-              </md-select>
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-sm flex="20">
-              <label>Application</label>
-              <md-select
-                ng-model="$ctrl.query.applications"
-                data-md-container-class="selectdemoSelectHeader"
-                md-on-open="$ctrl.applicationSearchTermSearch()"
-                placeholder="Applications"
-                multiple
-              >
-                <md-select-header class="demo-select-header">
-                  <input
-                    ng-model="$ctrl.applicationSearchTerm"
-                    ng-change="$ctrl.applicationSearchTermSearch()"
-                    ng-keydown="$event.stopPropagation()"
-                    type="search"
-                    placeholder="Search applications."
-                    class="demo-header-searchbox md-text"
-                  />
-                </md-select-header>
+  <div class="gv-form-content" layout="column">
+    <div class="gv-filters" flex>
+      <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Plan</label>
+            <md-select ng-model="$ctrl.query.plans" placeholder="Plans" multiple>
+              <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.plans track by plan.id">{{ plan.name }}</md-option>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Application</label>
+            <md-select
+              ng-model="$ctrl.query.applications"
+              data-md-container-class="selectdemoSelectHeader"
+              md-on-open="$ctrl.applicationSearchTermSearch()"
+              placeholder="Applications"
+              multiple
+            >
+              <md-select-header class="demo-select-header">
+                <input
+                  ng-model="$ctrl.applicationSearchTerm"
+                  ng-change="$ctrl.applicationSearchTermSearch()"
+                  ng-keydown="$event.stopPropagation()"
+                  type="search"
+                  placeholder="Search applications."
+                  class="demo-header-searchbox md-text"
+                />
+              </md-select-header>
 
-                <md-option ng-if="$ctrl.subscribers === null" disabled>Loading...</md-option>
-                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
+              <md-option ng-if="$ctrl.subscribers === null" disabled>Loading...</md-option>
+              <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id"
+                >{{ subscriber.name }}</md-option
+              >
+              <md-optgroup ng-if="$ctrl.subscribersSelected && $ctrl.subscribersSelected.length > 0" label="Selected">
+                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribersSelected track by subscriber.id"
                   >{{ subscriber.name }}</md-option
                 >
-                <md-optgroup ng-if="$ctrl.subscribersSelected && $ctrl.subscribersSelected.length > 0" label="Selected">
-                  <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribersSelected track by subscriber.id"
-                    >{{ subscriber.name }}</md-option
-                  >
-                </md-optgroup>
-              </md-select>
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-sm flex="20">
-              <label>Status</label>
-              <md-select ng-model="$ctrl.query.status" placeholder="Status" multiple>
-                <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
-              </md-select>
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-sm flex="20">
-              <label>API key</label>
-              <input ng-model="$ctrl.query.api_key" />
-            </md-input-container>
-            <div>
-              <md-button type="submit" class="md-raised md-primary"> Search </md-button>
-              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilter()">
-                Clear
-              </md-button>
-              <md-button
-                type="button"
-                class="md-raised"
-                ng-click="$ctrl.exportAsCSV()"
-                ng-disabled="!$ctrl.subscriptions.data || $ctrl.subscriptions.data.length === 0"
-              >
-                Export as CSV
-                <div id="hidden-export-container" style="display: none"></div>
-              </md-button>
-            </div>
+              </md-optgroup>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Status</label>
+            <md-select ng-model="$ctrl.query.status" placeholder="Status" multiple>
+              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>API key</label>
+            <input ng-model="$ctrl.query.api_key" />
+          </md-input-container>
+          <div>
+            <md-button type="submit" class="md-raised md-primary"> Search </md-button>
+            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilter()"> Clear </md-button>
+            <md-button
+              type="button"
+              class="md-raised"
+              ng-click="$ctrl.exportAsCSV()"
+              ng-disabled="!$ctrl.subscriptions.data || $ctrl.subscriptions.data.length === 0"
+            >
+              Export as CSV
+              <div id="hidden-export-container" style="display: none"></div>
+            </md-button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
+    </div>
 
-      <md-table-container ng-if="$ctrl.subscriptions.data.length > 0">
-        <table md-table class="gv-table-dense">
-          <thead md-head>
-            <tr md-row>
-              <th md-column>Plan</th>
-              <th md-column>Application</th>
-              <th md-column>Created at</th>
-              <th md-column>Processed at</th>
-              <th md-column>Start at</th>
-              <th md-column>End at</th>
-              <th md-column>Status</th>
-              <th md-column></th>
-            </tr>
-          </thead>
-          <tbody md-body>
-            <tr md-row ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
-              <td md-cell>
-                <a
-                  style="font-weight: bold"
-                  ui-sref="management.apis.detail.portal.subscriptions.subscription({
+    <md-table-container ng-if="$ctrl.subscriptions.data.length > 0">
+      <table md-table class="gv-table-dense">
+        <thead md-head>
+          <tr md-row>
+            <th md-column>Plan</th>
+            <th md-column>Application</th>
+            <th md-column>Created at</th>
+            <th md-column>Processed at</th>
+            <th md-column>Start at</th>
+            <th md-column>End at</th>
+            <th md-column>Status</th>
+            <th md-column></th>
+          </tr>
+        </thead>
+        <tbody md-body>
+          <tr md-row ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
+            <td md-cell>
+              <a
+                style="font-weight: bold"
+                ui-sref="management.apis.detail.portal.subscriptions.subscription({
               subscriptionId: subscription.id,
               page: $ctrl.query.page,
               size: $ctrl.query.size,
@@ -117,57 +112,56 @@
               plan: $ctrl.query.plans,
               api_key: $ctrl.query.api_key
             })"
-                >
-                  {{$ctrl.subscriptions.metadata[subscription.plan].name}}
-                </a>
-              </td>
-              <td md-cell>{{$ctrl.subscriptions.metadata[subscription.application].name}}</td>
-              <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.processed_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.starting_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell>{{subscription.ending_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-              <td md-cell style="text-transform: capitalize">
-                <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
-                {{subscription.status}}
-              </td>
-              <td md-cell>
-                <gravitee-chart options="subscription.chartData" type="sparkline" height="20" width="120"></gravitee-chart>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </md-table-container>
+              >
+                {{$ctrl.subscriptions.metadata[subscription.plan].name}}
+              </a>
+            </td>
+            <td md-cell>{{$ctrl.subscriptions.metadata[subscription.application].name}}</td>
+            <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td md-cell>{{subscription.processed_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td md-cell>{{subscription.starting_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td md-cell>{{subscription.ending_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td md-cell style="text-transform: capitalize">
+              <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
+              {{subscription.status}}
+            </td>
+            <td md-cell>
+              <gravitee-chart options="subscription.chartData" type="sparkline" height="20" width="120"></gravitee-chart>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
 
-      <md-table-pagination
-        ng-if="$ctrl.subscriptions.data.length > 0"
-        md-limit="$ctrl.query.size"
-        md-limit-options="[10, 25, 50, 75, 100]"
-        md-page="$ctrl.subscriptions.page.current"
-        md-total="{{$ctrl.subscriptions.page.total_elements}}"
-        md-on-paginate="$ctrl.onPaginate"
-        md-page-select
-        class="gv-table-dense"
-      >
-      </md-table-pagination>
+    <md-table-pagination
+      ng-if="$ctrl.subscriptions.data.length > 0"
+      md-limit="$ctrl.query.size"
+      md-limit-options="[10, 25, 50, 75, 100]"
+      md-page="$ctrl.subscriptions.page.current"
+      md-total="{{$ctrl.subscriptions.page.total_elements}}"
+      md-on-paginate="$ctrl.onPaginate"
+      md-page-select
+      class="gv-table-dense"
+    >
+    </md-table-pagination>
 
-      <gravitee-empty-state
-        ng-if="$ctrl.subscriptions.data.length === 0"
-        icon="vpn_key"
-        model="Subscription"
-        message="Your API Subscriptions will appear here"
-        create-mode="true"
-      ></gravitee-empty-state>
+    <gravitee-empty-state
+      ng-if="$ctrl.subscriptions.data.length === 0"
+      icon="vpn_key"
+      model="Subscription"
+      message="Your API Subscriptions will appear here"
+      create-mode="true"
+    ></gravitee-empty-state>
 
-      <md-button
-        permission
-        permission-only="'api-subscription-c'"
-        class="md-fab md-fab-bottom-right"
-        ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.subscriptions.data.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-        aria-label="Add"
-        ng-click="$ctrl.showAddSubscriptionModal()"
-      >
-        <ng-md-icon icon="add"></ng-md-icon>
-      </md-button>
-    </div>
+    <md-button
+      permission
+      permission-only="'api-subscription-c'"
+      class="md-fab md-fab-bottom-right"
+      ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.subscriptions.data.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+      aria-label="Add"
+      ng-click="$ctrl.showAddSubscriptionModal()"
+    >
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
   </div>
 </div>

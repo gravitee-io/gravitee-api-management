@@ -15,6 +15,9 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { GioMenuService } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
@@ -39,14 +42,21 @@ interface GroupItem {
 })
 export class SettingsNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];
+  public hasBreadcrumb = false;
+  private unsubscribe$ = new Subject();
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly gioMenuService: GioMenuService,
   ) {}
 
   ngOnInit() {
+    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+      this.hasBreadcrumb = reduced;
+    });
+
     this.groupItems = [
       {
         title: 'Portal',
@@ -191,5 +201,20 @@ export class SettingsNavigationComponent implements OnInit {
 
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
+  }
+
+  public computeBreadcrumbItems(): string[] {
+    const breadcrumbItems: string[] = [];
+
+    this.groupItems.forEach((groupItem) => {
+      groupItem.items.forEach((item) => {
+        if (this.isActive(item.baseRoute)) {
+          breadcrumbItems.push(groupItem.title);
+          breadcrumbItems.push(item.displayName);
+        }
+      });
+    });
+
+    return breadcrumbItems;
   }
 }

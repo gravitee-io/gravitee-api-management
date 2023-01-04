@@ -16,26 +16,9 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-  <div class="gv-forms-header">
-    <h1>Documentation</h1>
-    <a permission permission-only="['environment-documentation-c', 'api-documentation-c']" ng-click="$ctrl.importPages()">
-      Import multiple files
-    </a>
-    <md-button
-      class="md-raised md-primary"
-      type="button"
-      ng-if="$ctrl.hasExternalDoc()"
-      ng-click="$ctrl.fetch()"
-      ng-disabled="$ctrl.fetchAllInProgress"
-      permission
-      permission-only="['environment-documentation-u', 'api-documentation-u']"
-    >
-      Fetch all
-    </md-button>
-  </div>
   <div class="gv-form">
     <div layout="row" layout-align="space-between center" ng-if="!renameFolder">
-      <h2>
+      <h3>
         <span ng-repeat="folder in $ctrl.breadcrumb">
           <a ng-if="$ctrl.apiId && !$last" ui-sref="management.apis.detail.portal.documentation({apiId: $ctrl.apiId, parent: folder.id})"
             >{{folder.name}}</a
@@ -45,7 +28,7 @@
           <span ng-if="!$ctrl.apiId && $last">{{folder.name}}</span>
           <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>
         </span>
-      </h2>
+      </h3>
       <div ng-if="$ctrl.breadcrumb.length > 1 && $ctrl.currentFolder.type != 'SYSTEM_FOLDER'">
         <md-button
           type="button"
@@ -78,6 +61,23 @@
         >
           {{ translateFolder? 'Browse Folder' : 'Translate Folder' }}</md-button
         >
+      </div>
+
+      <div>
+        <a permission permission-only="['environment-documentation-c', 'api-documentation-c']" ng-click="$ctrl.importPages()">
+          Import multiple files
+        </a>
+        <md-button
+          class="md-raised md-primary"
+          type="button"
+          ng-if="$ctrl.hasExternalDoc()"
+          ng-click="$ctrl.fetch()"
+          ng-disabled="$ctrl.fetchAllInProgress"
+          permission
+          permission-only="['environment-documentation-u', 'api-documentation-u']"
+        >
+          Fetch all
+        </md-button>
       </div>
     </div>
     <div layout="row" layout-align="space-between center" ng-if="renameFolder">
