@@ -31,9 +31,12 @@ import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,8 +81,8 @@ public class FlowConverter {
         flow.setOrder(order);
         flow.setReferenceType(referenceType);
         flow.setReferenceId(referenceId);
-        flow.setPost(flowDefinition.getPost().stream().map(this::toRepositoryStep).collect(Collectors.toList()));
-        flow.setPre(flowDefinition.getPre().stream().map(this::toRepositoryStep).collect(Collectors.toList()));
+        flow.setPost(toRepositoryFlowSteps(flowDefinition.getPost()));
+        flow.setPre(toRepositoryFlowSteps(flowDefinition.getPre()));
         flow.setPath(flowDefinition.getPath());
         flow.setOperator(FlowOperator.valueOf(flowDefinition.getOperator().name()));
         flow.setName(flowDefinition.getName());
@@ -92,6 +95,18 @@ public class FlowConverter {
                 : Collections.emptyList()
         );
         return flow;
+    }
+
+    @NotNull
+    private List<FlowStep> toRepositoryFlowSteps(List<Step> steps) {
+        if (steps == null) {
+            return Collections.emptyList();
+        }
+
+        return IntStream
+            .range(0, steps.size())
+            .mapToObj(index -> this.toRepositoryStep(steps.get(index), index))
+            .collect(Collectors.toList());
     }
 
     private FlowConsumer toRepositoryConsumer(Consumer consumer) {
@@ -108,7 +123,8 @@ public class FlowConverter {
         return consumer;
     }
 
-    private FlowStep toRepositoryStep(Step step) {
+    @NotNull
+    private FlowStep toRepositoryStep(Step step, int order) {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy(step.getPolicy());
         flowStep.setName(step.getName());
@@ -116,6 +132,7 @@ public class FlowConverter {
         flowStep.setConfiguration(step.getConfiguration());
         flowStep.setDescription(step.getDescription());
         flowStep.setCondition(step.getCondition());
+        flowStep.setOrder(order);
         return flowStep;
     }
 
