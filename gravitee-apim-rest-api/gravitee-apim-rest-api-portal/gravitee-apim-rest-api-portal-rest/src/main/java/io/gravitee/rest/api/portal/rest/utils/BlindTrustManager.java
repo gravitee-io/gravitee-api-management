@@ -25,20 +25,20 @@ import javax.net.ssl.X509TrustManager;
  */
 public class BlindTrustManager implements X509TrustManager {
 
-    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     @Override
+    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     public X509Certificate[] getAcceptedIssuers() {
         return null;
     }
 
-    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     @Override
+    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         // Dummy implementation
     }
 
-    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     @Override
+    // deepcode ignore TooPermissiveTrustManager: This TrustManager is allowing everything by design
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         // Dummy implementation
     }
