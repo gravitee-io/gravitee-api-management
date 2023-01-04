@@ -20,13 +20,13 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
-import { Constants } from '../../../../../../../entities/Constants';
-import { PlanSecurityType } from '../../../../../../../entities/plan/plan';
-import { PolicyService } from '../../../../../../../services-ngx/policy.service';
-import { ResourceService } from '../../../../../../../services-ngx/resource.service';
-import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
-import { Api } from '../../../../../../../entities/api';
-import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
+import { Constants } from '../../../../../../entities/Constants';
+import { PlanSecurityType } from '../../../../../../entities/plan/plan';
+import { PolicyService } from '../../../../../../services-ngx/policy.service';
+import { ResourceService } from '../../../../../../services-ngx/resource.service';
+import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
+import { Api } from '../../../../../../entities/api';
+import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 
 const allSecurityTypes = [
   {

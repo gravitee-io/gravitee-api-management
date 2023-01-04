@@ -19,12 +19,12 @@ import { includes } from 'lodash';
 import { combineLatest, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../../../entities/api';
-import { CurrentUserService } from '../../../../../../../services-ngx/current-user.service';
-import { DocumentationService } from '../../../../../../../services-ngx/documentation.service';
-import { GroupService } from '../../../../../../../services-ngx/group.service';
-import { TagService } from '../../../../../../../services-ngx/tag.service';
+import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { Api } from '../../../../../../entities/api';
+import { CurrentUserService } from '../../../../../../services-ngx/current-user.service';
+import { DocumentationService } from '../../../../../../services-ngx/documentation.service';
+import { GroupService } from '../../../../../../services-ngx/group.service';
+import { TagService } from '../../../../../../services-ngx/tag.service';
 
 @Component({
   selector: 'plan-edit-general-step',
