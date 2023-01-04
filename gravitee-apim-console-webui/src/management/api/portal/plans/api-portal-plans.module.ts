@@ -25,7 +25,8 @@ import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiPortalPlanListComponent } from './api-portal-plan-list/api-portal-plan-list.component';
+import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
+import { ApiPortalPlanEditModule } from './edit/api-portal-plan-edit.module';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
@@ -44,6 +45,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,
+
+    ApiPortalPlanEditModule,
   ],
 })
 export class ApiPortalPlansModule {}

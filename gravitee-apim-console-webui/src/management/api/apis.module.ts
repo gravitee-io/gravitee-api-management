@@ -20,7 +20,6 @@ import { ApiListModule } from './list/api-list.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
-import { ApiPortalPlanEditModule } from './portal/plans/plan/edit/api-portal-plan-edit.module';
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 
 @NgModule({
@@ -29,7 +28,6 @@ import { ApiAnalyticsModule } from './analytics/api-analytics.module';
     ApiListModule,
     ApiNavigationModule,
     ApiPortalDetailsModule,
-    ApiPortalPlanEditModule,
     ApiPortalPlansModule,
     ApiProxyModule,
   ],
