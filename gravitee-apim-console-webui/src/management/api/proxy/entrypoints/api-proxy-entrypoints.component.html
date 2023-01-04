@@ -16,7 +16,6 @@
 
 -->
 <div class="title">
-  <h1>Entrypoints</h1>
   <button
     *ngIf="!this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && !this.domainRestrictions.length))"
     (click)="switchEntrypointMode()"

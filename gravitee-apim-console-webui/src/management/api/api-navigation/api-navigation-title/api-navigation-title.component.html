@@ -16,42 +16,49 @@
 
 -->
 <div class="api-navigation-title">
-  <mat-icon
-    *ngIf="apiState === 'STARTED'"
-    matTooltip="Started"
-    class="api-navigation-title__icon api-navigation-title__icon__play"
-    svgIcon="gio:play-circle"
-  ></mat-icon>
-  <mat-icon
-    *ngIf="apiState !== 'STARTED'"
-    matTooltip="Stopped"
-    class="api-navigation-title__icon api-navigation-title__icon__stop"
-    svgIcon="gio:stop-circle"
-  ></mat-icon>
-  <mat-icon
-    *ngIf="!apiIsSync"
-    matTooltip="API out of sync"
-    class="api-navigation-title__icon api-navigation-title__icon__refresh"
-    svgIcon="gio:refresh-cw"
+  <span class="api-navigation-title__icons" [class.api-navigation-title__icons-pipe]="separator === 'pipe'">
+    <mat-icon
+      *ngIf="apiState === 'STARTED'"
+      matTooltip="Started"
+      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__play"
+      svgIcon="gio:play-circle"
+    ></mat-icon>
+    <mat-icon
+      *ngIf="apiState !== 'STARTED'"
+      matTooltip="Stopped"
+      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__stop"
+      svgIcon="gio:stop-circle"
+    ></mat-icon>
+    <mat-icon
+      *ngIf="!apiIsSync"
+      matTooltip="API out of sync"
+      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__refresh"
+      svgIcon="gio:refresh-cw"
+    ></mat-icon>
+    <mat-icon
+      *ngIf="apiLifecycleState === 'PUBLISHED'"
+      matTooltip="Published"
+      class="api-navigation-title__icons__icon"
+      svgIcon="gio:cloud-published"
+    ></mat-icon>
+    <mat-icon
+      *ngIf="apiLifecycleState !== 'PUBLISHED'"
+      matTooltip="Unpublished"
+      class="api-navigation-title__icons__icon"
+      svgIcon="gio:cloud-unpublished"
+    ></mat-icon>
+    <mat-icon
+      *ngIf="apiOrigin === 'kubernetes'"
+      matTooltip="Kubernetes Origin"
+      class="api-navigation-title__icons__icon"
+      svgIcon="gio:kubernetes"
+    ></mat-icon>
+  </span>
+  <div
+    class="api-navigation-title__name"
+    [class.api-navigation-title__name-pipe]="separator === 'pipe'"
+    [matTooltip]="apiName + ' ( ' + apiVersion + ' )'"
   >
-  </mat-icon>
-  <mat-icon
-    *ngIf="apiLifecycleState === 'PUBLISHED'"
-    matTooltip="Published"
-    class="api-navigation-title__icon"
-    svgIcon="gio:cloud-published"
-  ></mat-icon>
-  <mat-icon
-    *ngIf="apiLifecycleState !== 'PUBLISHED'"
-    matTooltip="Unpublished"
-    class="api-navigation-title__icon"
-    svgIcon="gio:cloud-unpublished"
-  ></mat-icon>
-  <mat-icon
-    *ngIf="apiOrigin === 'kubernetes'"
-    matTooltip="Kubernetes Origin"
-    class="api-navigation-title__icon"
-    svgIcon="gio:kubernetes"
-  ></mat-icon>
-  <div class="api-navigation-title__name" [matTooltip]="apiName + ' ( ' + apiVersion + ' )'">{{ apiName }} ({{ apiVersion }})</div>
+    {{ apiName }} ({{ apiVersion }})
+  </div>
 </div>

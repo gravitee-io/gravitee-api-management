@@ -38,7 +38,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   @Input()
   public applicationName: string;
   public subMenuItems: MenuItem[] = [];
-  public hasTitle = true;
+  public hasBreadcrumb = false;
   private unsubscribe$ = new Subject();
 
   constructor(
@@ -49,7 +49,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
-      this.hasTitle = !reduced;
+      this.hasBreadcrumb = reduced;
     });
     this.subMenuItems = this.filterMenuByPermission([
       {
@@ -115,5 +115,17 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
 
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
+  }
+
+  public computeBreadcrumbItems(): string[] {
+    const breadcrumbItems: string[] = [];
+
+    this.subMenuItems.forEach((item) => {
+      if (this.isActive(item.baseRoute)) {
+        breadcrumbItems.push(item.displayName);
+      }
+    });
+
+    return breadcrumbItems;
   }
 }

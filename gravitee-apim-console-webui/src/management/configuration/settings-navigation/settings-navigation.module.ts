@@ -15,12 +15,12 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 
 import { SettingsNavigationComponent } from './settings-navigation.component';
 
 @NgModule({
-  imports: [CommonModule, GioSubmenuModule],
+  imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule],
   declarations: [SettingsNavigationComponent],
   exports: [SettingsNavigationComponent],
   entryComponents: [SettingsNavigationComponent],

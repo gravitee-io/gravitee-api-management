@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
 import { ApiNavigationComponent } from './api-navigation.component';
@@ -23,7 +23,15 @@ import { ApiNavigationTitleModule } from './api-navigation-title/api-navigation-
 import { ApiNavigationTabsModule } from './api-navigation-tabs/api-navigation-tabs.module';
 
 @NgModule({
-  imports: [CommonModule, GioSubmenuModule, ApiNavigationTitleModule, ApiNavigationTabsModule, GioIconsModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    GioSubmenuModule,
+    ApiNavigationTitleModule,
+    ApiNavigationTabsModule,
+    GioIconsModule,
+    MatButtonModule,
+    GioBreadcrumbModule,
+  ],
   declarations: [ApiNavigationComponent],
   exports: [ApiNavigationComponent],
   entryComponents: [ApiNavigationComponent],

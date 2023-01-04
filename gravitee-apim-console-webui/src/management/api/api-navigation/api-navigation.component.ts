@@ -17,6 +17,9 @@ import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
+import { takeUntil } from 'rxjs/operators';
+import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { Subject } from 'rxjs';
 
 import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -60,6 +63,9 @@ export class ApiNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
   public bannerState: string;
+  public hasBreadcrumb = false;
+  private unsubscribe$ = new Subject();
+  public breadcrumbItems: string[] = [];
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -67,9 +73,14 @@ export class ApiNavigationComponent implements OnInit {
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
+    private readonly gioMenuService: GioMenuService,
   ) {}
 
   ngOnInit() {
+    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+      this.hasBreadcrumb = reduced;
+    });
+
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
     this.appendDesign();
@@ -87,6 +98,7 @@ export class ApiNavigationComponent implements OnInit {
     this.appendNotificationsGroup();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
+    this.breadcrumbItems = this.computeBreadcrumbItems();
 
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.selectedItemWithTabs = this.findMenuItemWithTabs();
@@ -433,5 +445,23 @@ export class ApiNavigationComponent implements OnInit {
   closeBanner() {
     this.bannerState = 'close';
     localStorage.setItem('gv-api-navigation-banner', this.bannerState);
+  }
+
+  public computeBreadcrumbItems(): string[] {
+    const breadcrumbItems: string[] = [];
+
+    this.groupItems.forEach((groupItem) => {
+      groupItem.items.forEach((item) => {
+        if (this.isActive(item.baseRoute)) {
+          breadcrumbItems.push(groupItem.title);
+          breadcrumbItems.push(item.displayName);
+        } else if (item.tabs && this.isTabActive(item.tabs)) {
+          breadcrumbItems.push(groupItem.title);
+          breadcrumbItems.push(item.displayName);
+        }
+      });
+    });
+
+    return breadcrumbItems;
   }
 }

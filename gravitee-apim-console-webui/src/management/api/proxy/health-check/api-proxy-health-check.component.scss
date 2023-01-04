@@ -13,11 +13,15 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .api-proxy-health-check {
   &__banner-info,
-  &__description {
+  &__header {
     margin: 0 0 12px;
   }
 
-  &__go-to-dashboard {
-    float: right;
+  &__header {
+    display: flex;
+
+    &__description {
+      flex: 1;
+    }
   }
 }

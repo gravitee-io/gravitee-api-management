@@ -17,6 +17,8 @@
 @use 'node_modules/@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
+$textColor: map.get(gio.$mat-dove-palette, default);
+
 :host {
   height: 100%;
 }
@@ -34,6 +36,11 @@
   &__submenu {
     z-index: 70;
     height: 100%;
+    color: $textColor;
+
+    &__title {
+      padding: 2px;
+    }
 
     &__banner {
       &__message {
@@ -51,13 +58,28 @@
     }
   }
 
+  &__breadcrumb {
+    padding: 24px 32px 0 32px;
+
+    &__item {
+      display: contents;
+    }
+  }
+
   &__content {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
 
     &__view {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
       height: 100%;
+    }
+
+    &__tabs {
+      padding: 24px 32px;
     }
   }
 }
