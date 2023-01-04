@@ -15,18 +15,20 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker.INCOMPATIBLE_QOS_CAPABILITIES_KEY;
 import static io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker.INCOMPATIBLE_QOS_KEY;
 import static io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker.NO_ENDPOINT_FOUND_KEY;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
@@ -68,11 +70,19 @@ class EndpointInvokerTest {
     @Mock
     private ExecutionContext ctx;
 
+    @Mock
+    private TemplateEngine templateEngine;
+
     private EndpointInvoker cut;
 
     @BeforeEach
     void init() {
         cut = new EndpointInvoker(endpointManager);
+    }
+
+    @Test
+    void shouldReturnEndpointInvokerWhenGetId() {
+        assertThat(cut.getId()).isEqualTo("endpoint-invoker");
     }
 
     @Test
@@ -86,6 +96,62 @@ class EndpointInvokerTest {
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertNoValues();
+    }
+
+    @Test
+    void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute() {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("custom:");
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName().equals("custom")));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "");
+    }
+
+    @Test
+    void shouldConnectToNextEndpointConnectorWhenUrlEndpointAttributeIsDefined() {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://api.gravitee.io/echo");
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName() == null));
+    }
+
+    @Test
+    void shouldConnectAndReplaceWithEvaluatedEndpointAttributeWhenUrlEndpointAttributeIsDefined() {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("{#api.properties['url']}");
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenReturn("http://api.gravitee.io/echo");
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName() == null));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "http://api.gravitee.io/echo");
     }
 
     @Test

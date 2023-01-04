@@ -187,7 +187,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 deploymentContext.componentProvider(componentProvider);
                 deploymentContext.templateVariableProviders(commonTemplateVariableProviders(api));
 
-                final EndpointManager endpointManager = new DefaultEndpointManager(
+                final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
                     api.getDefinition(),
                     endpointConnectorPluginManager,
                     deploymentContext
@@ -204,11 +204,14 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 final DefaultDlqServiceFactory dlqServiceFactory = new DefaultDlqServiceFactory(api.getDefinition(), endpointManager);
                 customComponentProvider.add(DlqServiceFactory.class, dlqServiceFactory);
 
+                final List<TemplateVariableProvider> ctxTemplateVariableProviders = ctxTemplateVariableProviders(api);
+                ctxTemplateVariableProviders.add(endpointManager);
+
                 return new DefaultApiReactor(
                     api,
                     deploymentContext,
                     componentProvider,
-                    ctxTemplateVariableProviders(api),
+                    ctxTemplateVariableProviders,
                     policyManager,
                     entrypointConnectorPluginManager,
                     endpointConnectorPluginManager,
@@ -295,6 +298,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         if (api.getDefinition().getType() == ApiType.SYNC) {
             requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
         }
+
         return requestTemplateVariableProviders;
     }
 }

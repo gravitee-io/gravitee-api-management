@@ -15,10 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
@@ -35,12 +36,20 @@ import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointInvoker implements Invoker {
+
+    private static final String MATCH_GROUP_ENDPOINT = "endpoint";
+    private static final String MATCH_GROUP_PATH = "path";
+    private static final Pattern ENDPOINT_PATTERN = Pattern.compile(
+        "^(?<" + MATCH_GROUP_ENDPOINT + ">\\w+):(?<" + MATCH_GROUP_PATH + ">.*)$"
+    );
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
@@ -57,7 +66,7 @@ public class EndpointInvoker implements Invoker {
         return "endpoint-invoker";
     }
 
-    public Completable invoke(ExecutionContext ctx) {
+    public Completable invoke(final ExecutionContext ctx) {
         final EndpointConnector endpointConnector = resolveConnector(ctx);
 
         if (endpointConnector == null) {
@@ -65,44 +74,14 @@ public class EndpointInvoker implements Invoker {
                 new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(NO_ENDPOINT_FOUND_KEY).message("No endpoint available")
             );
         }
+
         if (endpointConnector.supportedApi() == ApiType.ASYNC) {
-            EndpointAsyncConnector endpointAsyncConnector = (EndpointAsyncConnector) endpointConnector;
-            EntrypointAsyncConnector entrypointAsyncConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-            QosRequirement qosRequirement = entrypointAsyncConnector.qosRequirement();
-
-            if (qosRequirement == null) {
-                return ctx.interruptWith(
-                    new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
-                );
-            }
-
-            Qos requiredQos = qosRequirement.getQos();
-            Set<QosCapability> requiredQosCapabilities = qosRequirement.getCapabilities();
-            Set<QosCapability> qosCapabilities = endpointAsyncConnector.supportedQosCapabilities();
-            if (endpointAsyncConnector.supportedQos() == null || qosCapabilities == null) {
-                return ctx.interruptWith(
-                    new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid endpoint QoS implementation: supportedQos cannot be null")
-                );
-            } else if (!endpointAsyncConnector.supportedQos().contains(requiredQos)) {
-                return ctx.interruptWith(
-                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                        .key(INCOMPATIBLE_QOS_KEY)
-                        .message("Incompatible Qos between entrypoint and endpoint")
-                );
-            } else if (!qosCapabilities.containsAll(requiredQosCapabilities)) {
-                return ctx.interruptWith(
-                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                        .key(INCOMPATIBLE_QOS_CAPABILITIES_KEY)
-                        .message("Incompatible Qos capabilities between entrypoint requirements and endpoint supports")
-                );
-            }
+            return validateQoSAndConnect((EndpointAsyncConnector) endpointConnector, ctx);
+        } else {
+            return connect(endpointConnector, ctx);
         }
-        return endpointConnector.connect(ctx);
     }
 
-    @SuppressWarnings("unchecked")
     private <T extends EndpointConnector> T resolveConnector(final ExecutionContext ctx) {
         final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
@@ -111,11 +90,73 @@ public class EndpointInvoker implements Invoker {
             entrypointConnector.supportedModes()
         );
 
+        final String endpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
+
+        if (endpointTarget != null) {
+            final String evaluatedTarget = ctx.getTemplateEngine().getValue(endpointTarget, String.class);
+            if (URIUtils.isAbsolute(evaluatedTarget)) {
+                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, evaluatedTarget);
+            } else {
+                final Matcher matcher = ENDPOINT_PATTERN.matcher(evaluatedTarget);
+
+                if (matcher.matches()) {
+                    // Set endpoint name into the criteria.
+                    endpointCriteria.setName(matcher.group(MATCH_GROUP_ENDPOINT));
+
+                    // Replace the attribute to remove the endpoint reference part ("my-endpoint:/foo/bar' -> '/foo/bar').
+                    ctx.setAttribute(ATTR_REQUEST_ENDPOINT, matcher.group(MATCH_GROUP_PATH));
+                }
+            }
+        }
+
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
 
         if (managedEndpoint != null) {
-            return (T) managedEndpoint.getConnector();
+            return managedEndpoint.getConnector();
         }
+
         return null;
+    }
+
+    private Completable validateQoSAndConnect(final EndpointAsyncConnector endpointConnector, final ExecutionContext ctx) {
+        final EntrypointAsyncConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+        final QosRequirement qosRequirement = entrypointConnector.qosRequirement();
+
+        if (qosRequirement == null) {
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
+            );
+        }
+
+        final Qos requiredQos = qosRequirement.getQos();
+        final Set<QosCapability> requiredQosCapabilities = qosRequirement.getCapabilities();
+        final Set<QosCapability> qosCapabilities = endpointConnector.supportedQosCapabilities();
+        final Set<Qos> supportedQos = endpointConnector.supportedQos();
+
+        if (supportedQos == null || qosCapabilities == null) {
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                .message("Invalid endpoint QoS implementation: supportedQos or qosCapabilities cannot be null")
+            );
+        } else if (!supportedQos.contains(requiredQos)) {
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                    .key(INCOMPATIBLE_QOS_KEY)
+                    .message("Incompatible Qos between entrypoint and endpoint")
+            );
+        } else if (!qosCapabilities.containsAll(requiredQosCapabilities)) {
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                    .key(INCOMPATIBLE_QOS_CAPABILITIES_KEY)
+                    .message("Incompatible Qos capabilities between entrypoint requirements and endpoint supports")
+            );
+        }
+
+        return connect(endpointConnector, ctx);
+    }
+
+    private Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
+        return endpointConnector.connect(ctx);
     }
 }

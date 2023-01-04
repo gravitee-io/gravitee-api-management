@@ -28,9 +28,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
-import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
-import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import java.util.List;
 import org.junit.Before;
@@ -137,6 +135,64 @@ public class EndpointGroupsValidationServiceImplTest {
     }
 
     @Test
+    public void shouldThrowValidationExceptionWithEndpointNameAlreadyExists() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("my name");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
+            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup)));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWithEndpointNameAlreadyExistsInAnotherGroup() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("group1");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("my name");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        EndpointGroup endpointGroup2 = new EndpointGroup();
+        endpointGroup2.setName("group2");
+        endpointGroup2.setType("http");
+        Endpoint endpoint2 = new Endpoint();
+        endpoint2.setName("my name");
+        endpoint2.setType("http");
+        endpointGroup2.setEndpoints(List.of(endpoint2));
+
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
+            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup, endpointGroup2)));
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWithEndpointGroupNameAlreadyExistsInAnotherGroup() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("group1");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("my name");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        EndpointGroup endpointGroup2 = new EndpointGroup();
+        endpointGroup2.setName("my name");
+        endpointGroup2.setType("http");
+        Endpoint endpoint2 = new Endpoint();
+        endpoint2.setName("endpoint2");
+        endpoint2.setType("http");
+        endpointGroup2.setEndpoints(List.of(endpoint2));
+
+        assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class)
+            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup, endpointGroup2)));
+    }
+
+    @Test
     public void shouldThrowValidationExceptionWithWrongEndpointGroupType() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
@@ -160,10 +216,10 @@ public class EndpointGroupsValidationServiceImplTest {
     @Test
     public void shouldThrowValidationExceptionWithWrongEndpointType() {
         EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("name");
+        endpointGroup.setName("group");
         endpointGroup.setType("http");
         Endpoint endpoint = new Endpoint();
-        endpoint.setName("name");
+        endpoint.setName("endpoint");
         endpointGroup.setEndpoints(List.of(endpoint));
         assertThatExceptionOfType(EndpointTypeInvalidException.class)
             .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup)));
@@ -172,10 +228,10 @@ public class EndpointGroupsValidationServiceImplTest {
     @Test
     public void shouldThrowValidationExceptionWithMismatch() {
         EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("name");
+        endpointGroup.setName("group");
         endpointGroup.setType("http");
         Endpoint endpoint = new Endpoint();
-        endpoint.setName("name");
+        endpoint.setName("endpoint");
         endpoint.setType("wrong");
         endpointGroup.setEndpoints(List.of(endpoint));
         assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class)
