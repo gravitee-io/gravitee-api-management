@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.18.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         # ################
         # Alert Changes
