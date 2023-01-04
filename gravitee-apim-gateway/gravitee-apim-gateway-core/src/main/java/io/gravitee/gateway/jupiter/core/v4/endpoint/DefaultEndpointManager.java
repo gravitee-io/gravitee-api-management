@@ -19,12 +19,17 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.reactivex.rxjava3.core.Single;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +37,10 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultEndpointManager extends AbstractService<EndpointManager> implements EndpointManager {
+public class DefaultEndpointManager extends AbstractService<EndpointManager> implements EndpointManager, TemplateVariableProvider {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultEndpointManager.class);
+    public static final String TEMPLATE_VARIABLE_ENDPOINTS = "endpoints";
 
     private final Api api;
     private final EndpointConnectorPluginManager endpointConnectorPluginManager;
@@ -42,6 +48,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     private ManagedEndpointGroup defaultGroup;
     private final Map<String, ManagedEndpointGroup> groupsByName;
     private final Map<String, ManagedEndpoint> endpointsByName;
+    private final Map<String, String> endpointVariables;
 
     public DefaultEndpointManager(
         final Api api,
@@ -51,6 +58,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         this.api = api;
         this.endpointsByName = new ConcurrentHashMap<>(1);
         this.groupsByName = new ConcurrentHashMap<>(1);
+        this.endpointVariables = new ConcurrentHashMap<>(1);
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.deploymentContext = deploymentContext;
     }
@@ -122,6 +130,11 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         groupsByName.clear();
     }
 
+    @Override
+    public void provide(TemplateContext templateContext) {
+        templateContext.setVariable(TEMPLATE_VARIABLE_ENDPOINTS, endpointVariables);
+    }
+
     private ManagedEndpointGroup createAndStartGroup(final EndpointGroup endpointGroup) {
         final ManagedEndpointGroup managedEndpointGroup = new ManagedEndpointGroup(endpointGroup);
         groupsByName.put(endpointGroup.getName(), managedEndpointGroup);
@@ -161,6 +174,8 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             final ManagedEndpoint managedEndpoint = new ManagedEndpoint(endpoint, managedEndpointGroup, connector);
             managedEndpointGroup.addManagedEndpoint(managedEndpoint);
             endpointsByName.put(endpoint.getName(), managedEndpoint);
+            endpointVariables.put(endpoint.getName(), endpoint.getName() + ":");
+            endpointVariables.put(managedEndpointGroup.getDefinition().getName(), managedEndpointGroup.getDefinition().getName() + ":");
         } catch (Exception e) {
             log.warn("Unable to properly start the endpoint connector {}: {}. Skipped.", endpoint.getName(), e.getMessage());
         }
@@ -169,6 +184,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     public void removeEndpoint(final String name) {
         try {
             final ManagedEndpoint managedEndpoint = endpointsByName.remove(name);
+            endpointVariables.remove(name);
 
             if (managedEndpoint != null) {
                 managedEndpoint.getGroup().removeManagedEndpoint(managedEndpoint);

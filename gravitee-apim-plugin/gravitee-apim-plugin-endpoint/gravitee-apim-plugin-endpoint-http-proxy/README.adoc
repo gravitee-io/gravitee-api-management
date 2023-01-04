@@ -135,6 +135,31 @@ Here are the attributes for configuring the keystore options (client certificate
 
 |===
 
+=== User Defined Endpoint
+
+The `http-proxy` endpoint connector support User Defined Endpoint. User Defined Endpoint relies on the use of the context attribute `gravitee.attribute.request.endpoint` offering the capability to dynamically select a particular endpoint (by name), modify its path and query parameters or completely override the endpoint url.
+
+The `gravitee.attribute.request.endpoint` attribute can be set using the *Assign Attribute policy*, or you can use *Dynamic Routing Policy* to apply more complex routing rules.
+
+This attribute is structured like following: `<endpoint>:<url>` or just `<url>`, where:
+
+* `<endpoint>` is either the name of an endpoint or a group of endpoints.
+* `<url>` is an absolute or relative url. Absolute url replaces the endpoint's target whereas relative url is appended to the endpoint's target.
+
+Given this format, it is possible to specify:
+
+* An *endpoint group name* followed by an optional path, ex: `my-group:/foo/bar` or just `my-group:`. The group with the same name is selected and the next endpoint is retrieved (with the load balancing strategy). The path is appended to the endpoint target.
+* An *endpoint name* followed by an optional path, ex: `my-endpoint:/foo/bar` or just `my-endpoint`. The endpoint having the exact same name is selected and the path is appended to the endpoint url.
+* A *complete url*, ex: `https://somewhere.com/foo/bar`. The next endpoint of the default group is selected (with load balanced strategy applied). The endpoint is only selected to use the underlying http client with the same options (timeout, ssl, …) and the complete url replaces the endpoint target. Note that a complete url prefixed with an endpoint or group name can be used to force usage of its associated http client and inherit from the same options (ssl, pool, ...), ex: `my-endpoint:https://somewhere.com/foo/bar`.
+* A *relative url*, ex: `/foo/bar`. The next endpoint is retrieved from the default group (with load balancing strategy). The path is appended to the endpoint target.
+* Some *query parameters*, ex: `?foo=bar`. The next endpoint is retrieved from the default group (with load balancing strategy). The query params are appended to the endpoint target and current request parameters.
+
+Note that, when having only 1 group with 1 endpoint named `default`, the following values for the `gravitee.attribute.request.endpoint` attribute are equivalent:
+
+* `default:`
+* (_empty_)
+* `{#endpoints['default']}`
+
 === Examples
 
 Bellow you will find a full `http-proxy` endpoint configuration example:

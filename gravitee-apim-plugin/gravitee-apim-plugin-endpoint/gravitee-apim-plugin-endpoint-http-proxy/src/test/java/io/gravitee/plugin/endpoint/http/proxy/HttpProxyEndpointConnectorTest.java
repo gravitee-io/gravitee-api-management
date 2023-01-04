@@ -16,8 +16,10 @@
 package io.gravitee.plugin.endpoint.http.proxy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.*;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.HOP_HEADERS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,7 +151,7 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
 
         requestHeaders = HttpHeaders.create();
-        lenient().when(request.pathInfo()).thenReturn("");
+        lenient().when(request.path()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
         lenient().when(request.metrics()).thenReturn(metrics);
         lenient().when(request.chunks()).thenReturn(Flowable.empty());
@@ -201,6 +203,152 @@ class HttpProxyEndpointConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+    }
+
+    @Test
+    void shouldExecuteGetRequestWithMergedQueryParameters() throws InterruptedException {
+        final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("foo", "otherBar");
+        parameters.add("other", "otherValue");
+
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.parameters()).thenReturn(parameters);
+        when(request.chunks()).thenReturn(Flowable.empty());
+
+        configuration.setTarget("http://localhost:" + wiremock.port() + "/team?foo=bar");
+        cut = new HttpProxyEndpointConnector(configuration);
+
+        wiremock.stubFor(get(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(
+            1,
+            getRequestedFor(urlPathEqualTo("/team"))
+                .withQueryParam("foo", equalTo("bar"))
+                .withQueryParam("foo", equalTo("otherBar"))
+                .withQueryParam("other", equalTo("otherValue"))
+                .withHost(equalTo("localhost"))
+        );
+    }
+
+    @Test
+    void shouldExecuteGetRequestWhenEndpointAttributeOverridenWithAbsoluteUrl() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port());
+
+        wiremock.stubFor(get("/").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/")).withHost(equalTo("127.0.0.1")));
+    }
+
+    @Test
+    void shouldExecuteGetRequestWhenEndpointAttributeOverridenWithAbsoluteUrlAndQueryParameters() throws InterruptedException {
+        final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("foo", "otherBar");
+        parameters.add("other", "otherValue");
+
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.parameters()).thenReturn(parameters);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/?foo=bar");
+
+        wiremock.stubFor(get(urlPathEqualTo("/")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(
+            1,
+            getRequestedFor(urlPathEqualTo("/"))
+                .withQueryParam("foo", equalTo("bar"))
+                .withQueryParam("foo", equalTo("otherBar"))
+                .withQueryParam("other", equalTo("otherValue"))
+                .withHost(equalTo("127.0.0.1"))
+        );
+    }
+
+    @Test
+    void shouldExecuteGetRequestWhenAttributeOverridenWithAbsoluteUrlAndPath() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath");
+
+        wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team/subPath")).withHost(equalTo("127.0.0.1")));
+    }
+
+    @Test
+    void shouldExecuteGetRequestWhenAttributeOverridenWithAbsoluteUrlAndPathAndQueryParameters() throws InterruptedException {
+        final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("foo", "otherBar");
+        parameters.add("other", "otherValue");
+
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.parameters()).thenReturn(parameters);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath?foo=bar");
+
+        wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(
+            1,
+            getRequestedFor(urlPathEqualTo("/team/subPath"))
+                .withQueryParam("foo", equalTo("bar"))
+                .withQueryParam("foo", equalTo("otherBar"))
+                .withQueryParam("other", equalTo("otherValue"))
+                .withHost(equalTo("127.0.0.1"))
+        );
+    }
+
+    @Test
+    void shouldExecuteGetRequestWhenAttributeOverridenWithRelativeUrlAndPathAndQueryParameters() throws InterruptedException {
+        final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("foo", "otherBar");
+        parameters.add("other", "otherValue");
+
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.parameters()).thenReturn(parameters);
+        when(request.chunks()).thenReturn(Flowable.empty());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("/subPath?foo=bar");
+
+        wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(
+            1,
+            getRequestedFor(urlPathEqualTo("/team/subPath"))
+                .withQueryParam("foo", equalTo("bar"))
+                .withQueryParam("foo", equalTo("otherBar"))
+                .withQueryParam("other", equalTo("otherValue"))
+                .withHost(equalTo("localhost")) // -> use the host defined by the configuration 'target'.
+        );
     }
 
     @Test

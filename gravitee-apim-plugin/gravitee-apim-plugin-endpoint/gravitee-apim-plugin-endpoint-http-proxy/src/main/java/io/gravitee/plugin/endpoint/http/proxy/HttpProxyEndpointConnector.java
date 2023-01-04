@@ -16,20 +16,20 @@
 package io.gravitee.plugin.endpoint.http.proxy;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.*;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient.buildUrl;
-import static io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
+import static io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper.*;
 
 import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.http.DefaultHttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
-import io.gravitee.gateway.jupiter.core.context.MutableResponse;
-import io.gravitee.gateway.jupiter.http.vertx.VertxHttpServerResponse;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -44,6 +44,7 @@ import io.vertx.rxjava3.core.http.HttpClientResponse;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -75,16 +76,20 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
     private final String relativeTarget;
+    private final MultiValueMap<String, String> targetParameters;
     private HttpClient httpClient;
 
     public HttpProxyEndpointConnector(HttpProxyEndpointConnectorConfiguration configuration) {
         this.configuration = configuration;
 
         final URL targetUrl = buildUrl(configuration.getTarget());
-        this.relativeTarget =
-            (targetUrl.getQuery() == null)
-                ? targetUrl.getPath()
-                : targetUrl.getPath() + URI_QUERY_DELIMITER_CHAR_SEQUENCE + targetUrl.getQuery();
+        this.relativeTarget = targetUrl.getPath();
+
+        if (targetUrl.getQuery() == null) {
+            targetParameters = null;
+        } else {
+            targetParameters = URIUtils.parameters(URI_QUERY_DELIMITER_CHAR_SEQUENCE + targetUrl.getQuery());
+        }
     }
 
     @Override
@@ -169,13 +174,11 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         }
 
         if (!configuration.getHttpOptions().isPropagateClientAcceptEncoding()) {
-            // Let the API Owner choose the Accept-Encoding between the gateway and the backend
+            // Let the API owner choose the Accept-Encoding between the gateway and the backend.
             requestHeaders.remove(HttpHeaders.ACCEPT_ENCODING);
         }
 
-        // Simply set the uri as 'absolute' to use the default target host and port defined on the http client.
-        // TODO: support for dynamic endpoint will be handled in a dedicated task.
-        VertxHttpClientHelper.configureAbsoluteUri(requestOptions, relativeTarget + request.pathInfo(), request.parameters());
+        prepareUriAndQueryParameters(ctx, requestOptions);
 
         // Override any request headers that are configured at endpoint level.
         final List<HttpHeader> configHeaders = configuration.getHeaders();
@@ -215,5 +218,46 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         }
 
         return httpClient;
+    }
+
+    private void prepareUriAndQueryParameters(final ExecutionContext ctx, final RequestOptions requestOptions) {
+        final Request request = ctx.request();
+        final MultiValueMap<String, String> requestParameters = request.parameters();
+        addParameters(requestParameters, targetParameters);
+
+        String customEndpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
+        String uri = relativeTarget;
+        boolean isRelative = true;
+
+        if (customEndpointTarget != null) {
+            final MultiValueMap<String, String> customEndpointParameters = URIUtils.parameters(customEndpointTarget);
+
+            if (!customEndpointParameters.isEmpty()) {
+                customEndpointTarget = customEndpointTarget.substring(0, customEndpointTarget.indexOf(URI_QUERY_DELIMITER_CHAR));
+                addParameters(requestParameters, customEndpointParameters);
+            }
+
+            if (URIUtils.isAbsolute(customEndpointTarget)) {
+                uri = customEndpointTarget;
+                isRelative = false;
+            } else {
+                uri = relativeTarget + customEndpointTarget;
+            }
+        } else {
+            // Just append the current request path.
+            uri = uri + request.path();
+        }
+
+        if (isRelative) {
+            VertxHttpClientHelper.configureRelativeUri(requestOptions, uri, requestParameters);
+        } else {
+            VertxHttpClientHelper.configureAbsoluteUri(requestOptions, uri, requestParameters);
+        }
+    }
+
+    private void addParameters(MultiValueMap<String, String> parameters, MultiValueMap<String, String> parametersToAdd) {
+        if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
+            parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
+        }
     }
 }

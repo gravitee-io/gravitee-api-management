@@ -18,25 +18,30 @@ package io.gravitee.gateway.jupiter.core.v4.endpoint;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class EndpointCriteria {
 
     public static final EndpointCriteria ENDPOINT_UP = new EndpointCriteria();
 
-    /* Name could be either:
+    /*
+     * Name could be either:
      * <ul>
      *     <li>the name of an endpoint</li>
      *     <li>the name of an endpoint group</li>
      * </ul>
      */
-    private final String name;
-    private final ApiType apiType;
-    private final Set<ConnectorMode> modes;
-    private final ManagedEndpoint.Status endpointStatus;
+    private String name;
+    private ApiType apiType;
+    private Set<ConnectorMode> modes;
+    private ManagedEndpoint.Status endpointStatus;
 
     public EndpointCriteria() {
         this(null, null);
@@ -75,21 +80,5 @@ public class EndpointCriteria {
         }
 
         return apiType == null || apiType.equals(managedEndpoint.getConnector().supportedApi());
-    }
-
-    public ApiType getApiType() {
-        return apiType;
-    }
-
-    public Set<ConnectorMode> getModes() {
-        return modes;
-    }
-
-    public ManagedEndpoint.Status getEndpointStatus() {
-        return endpointStatus;
-    }
-
-    public String getName() {
-        return name;
     }
 }

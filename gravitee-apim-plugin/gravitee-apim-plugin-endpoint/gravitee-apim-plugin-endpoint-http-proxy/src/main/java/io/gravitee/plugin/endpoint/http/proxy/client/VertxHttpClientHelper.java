@@ -22,6 +22,7 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.vertx.core.http.RequestOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.net.URL;
 import java.util.StringJoiner;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -60,6 +61,15 @@ public class VertxHttpClientHelper {
     }
 
     public static RequestOptions configureAbsoluteUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
+        final URL target = VertxHttpClient.buildUrl(buildFinalUri(uri, parameters));
+
+        return requestOptions
+            .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery())
+            .setPort(VertxHttpClient.getPort(target, VertxHttpClient.isSecureProtocol(target.getProtocol())))
+            .setHost(target.getHost());
+    }
+
+    public static RequestOptions configureRelativeUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
         return requestOptions.setURI(buildFinalUri(uri, parameters));
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
@@ -23,11 +24,11 @@ import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
-import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
-import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -50,9 +51,11 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             throw new EndpointMissingException();
         }
 
+        final Set<String> names = new HashSet<>();
+
         endpointGroups.forEach(
             endpointGroup -> {
-                validateName(endpointGroup.getName());
+                validateUniqueEndpointGroupName(endpointGroup.getName(), names);
                 validateEndpointGroupType(endpointGroup.getType());
                 validateServices(endpointGroup.getServices());
                 validateEndpointsExistence(endpointGroup);
@@ -61,16 +64,17 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                         .getEndpoints()
                         .forEach(
                             endpoint -> {
-                                validateName(endpoint.getName());
+                                validateUniqueEndpointName(endpoint.getName(), names);
                                 validateEndpointType(endpoint.getType());
                                 validateServices(endpoint.getServices());
+                                validateEndpointMatchType(endpointGroup, endpoint);
+
                                 endpoint.setConfiguration(
                                     endpointService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
                                 );
                             }
                         );
                 }
-                validateEndpointsMatchType(endpointGroup);
             }
         );
 
@@ -104,15 +108,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointsMatchType(final EndpointGroup endpointGroup) {
-        if (endpointGroup.getEndpoints() != null && !endpointGroup.getEndpoints().isEmpty()) {
-            boolean allMatchGroupType = endpointGroup
-                .getEndpoints()
-                .stream()
-                .allMatch(endpoint -> endpointGroup.getType().equals(endpoint.getType()));
-            if (!allMatchGroupType) {
-                throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
-            }
+    private void validateEndpointMatchType(final EndpointGroup endpointGroup, final Endpoint endpoint) {
+        if (!endpointGroup.getType().equals(endpoint.getType())) {
+            throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
         }
     }
 
@@ -125,6 +123,26 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         if (name != null && name.contains(":")) {
             throw new EndpointNameInvalidException(name);
         }
+    }
+
+    private void validateUniqueEndpointGroupName(final String name, final Set<String> names) {
+        validateName(name);
+
+        if (names.contains(name)) {
+            throw new EndpointGroupNameAlreadyExistsException(name);
+        }
+
+        names.add(name);
+    }
+
+    private void validateUniqueEndpointName(final String name, final Set<String> names) {
+        validateName(name);
+
+        if (names.contains(name)) {
+            throw new EndpointNameAlreadyExistsException(name);
+        }
+
+        names.add(name);
     }
 
     private void validateServices(EndpointGroupServices services) {

@@ -22,16 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.el.TemplateContext;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
@@ -41,10 +37,15 @@ import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.internal.DefaultEndpointConnectorPluginManager;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -106,6 +107,73 @@ class DefaultEndpointManagerTest {
         verify(connector2).start();
         verify(connector3).start();
         verify(connector4).start();
+    }
+
+    @Test
+    void shouldProvideEndpointsTemplateVariable() throws Exception {
+        final TemplateContext templateContext = mock(TemplateContext.class);
+        final Api api = buildApi();
+
+        // Rename groups and endpoint to ease assertions.
+        final AtomicInteger i = new AtomicInteger(0);
+
+        api.getEndpointGroups().forEach(g -> g.setName("group" + i.incrementAndGet()));
+
+        i.set(0);
+        Stream
+            .concat(api.getEndpointGroups().get(0).getEndpoints().stream(), api.getEndpointGroups().get(1).getEndpoints().stream())
+            .forEachOrdered(e -> e.setName("endpoint" + i.incrementAndGet()));
+
+        final EndpointConnector connector = mock(EndpointConnector.class);
+
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
+        final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+
+        cut.provide(templateContext);
+        verify(templateContext).setVariable("endpoints", Collections.emptyMap());
+        reset(templateContext);
+
+        cut.start();
+        cut.provide(templateContext);
+
+        final ArgumentCaptor<Map<String, String>> endpointsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
+
+        assertThat(endpointsCaptor.getValue()).containsEntry("group1", "group1:");
+        assertThat(endpointsCaptor.getValue()).containsEntry("endpoint1", "endpoint1:");
+        assertThat(endpointsCaptor.getValue()).containsEntry("endpoint2", "endpoint2:");
+        assertThat(endpointsCaptor.getValue()).containsEntry("group2", "group2:");
+        assertThat(endpointsCaptor.getValue()).containsEntry("endpoint3", "endpoint3:");
+        assertThat(endpointsCaptor.getValue()).containsEntry("endpoint4", "endpoint4:");
+    }
+
+    @Test
+    void shouldProvideUpdatedEndpointsTemplateVariableWhenEndpointIsRemoved() throws Exception {
+        final TemplateContext templateContext = mock(TemplateContext.class);
+        final Api api = buildApi();
+
+        final EndpointConnector connector = mock(EndpointConnector.class);
+
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
+        final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+
+        cut.start();
+        cut.provide(templateContext);
+
+        final ArgumentCaptor<Map<String, String>> endpointsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
+
+        final String endpointToRemove = api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
+        assertThat(endpointsCaptor.getValue()).hasSize(6);
+        assertThat(endpointsCaptor.getValue()).containsKey(endpointToRemove);
+
+        reset(templateContext);
+        cut.removeEndpoint(endpointToRemove);
+        cut.provide(templateContext);
+
+        verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
+        assertThat(endpointsCaptor.getValue()).hasSize(5);
+        assertThat(endpointsCaptor.getValue()).doesNotContainKey(endpointToRemove);
     }
 
     @Test
