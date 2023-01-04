@@ -25,6 +25,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
+import { castArray } from 'lodash';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
@@ -37,7 +38,7 @@ import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PlanSecurityType } from '../../../../../entities/plan';
+import { PlanSecurityType, PLAN_STATUS } from '../../../../../entities/plan';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -209,10 +210,12 @@ describe('ApiPortalPlanListComponent', () => {
       const plan = fakePlan({ name: 'publish me ☁️️', status: 'STAGING' });
       await initComponent([plan]);
 
+      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
+      expectApiPlansListRequest([plan], 'STAGING');
+
       let table = await computePlansTableCells();
       expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'STAGING', '', '']]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: 'STAGING' })).then((btn) => btn.toggle());
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
@@ -222,11 +225,10 @@ describe('ApiPortalPlanListComponent', () => {
       const updatedPlan: ApiPlan = { ...plan, status: 'PUBLISHED' };
       expectPlanGetRequest(updatedPlan);
       expectApiPlanPublishRequest(updatedPlan);
-      expectApiPlansListRequest([updatedPlan]);
+      expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
       table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'PUBLISHED', '', '']]);
-      expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'PUBLISHED' })).then((btn) => btn.isChecked())).toBe(true);
+      expect(table.rowCells).toEqual([['There is no plan (yet).']]);
     });
 
     it('should deprecate the published plan', async () => {
@@ -236,7 +238,6 @@ describe('ApiPortalPlanListComponent', () => {
       let table = await computePlansTableCells();
       expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'PUBLISHED', '', '']]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: 'PUBLISHED' })).then((btn) => btn.toggle());
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
@@ -246,11 +247,10 @@ describe('ApiPortalPlanListComponent', () => {
       const updatedPlan: ApiPlan = { ...plan, status: 'DEPRECATED' };
       expectPlanGetRequest(updatedPlan);
       expectApiPlanDeprecateRequest(updatedPlan);
-      expectApiPlansListRequest([updatedPlan], 'DEPRECATED');
+      expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
       table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'DEPRECATED', '', '']]);
-      expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'DEPRECATED' })).then((btn) => btn.isChecked())).toBe(true);
+      expect(table.rowCells).toEqual([['There is no plan (yet).']]);
     });
 
     describe('close plan', () => {
@@ -270,11 +270,10 @@ describe('ApiPortalPlanListComponent', () => {
 
         const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
         expectApiPlanCloseRequest(updatedPlan);
-        expectApiPlansListRequest([updatedPlan], 'CLOSED');
+        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'close me 🚪️', 'KEY_LESS', 'CLOSED', '', '']]);
-        expect(await loader.getHarness(MatButtonToggleHarness.with({ text: 'CLOSED' })).then((btn) => btn.isChecked())).toBe(true);
+        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
       });
 
       it('should change delete plan button message', async () => {
@@ -294,7 +293,7 @@ describe('ApiPortalPlanListComponent', () => {
 
         const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
         expectApiPlanCloseRequest(updatedPlan);
-        expectApiPlansListRequest([updatedPlan], 'CLOSED');
+        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
     });
   });
@@ -333,8 +332,8 @@ describe('ApiPortalPlanListComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    expectApiPlansListRequest(plans);
     expectApiGetRequest(api);
+    expectApiPlansListRequest(plans, [...PLAN_STATUS]);
 
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -352,10 +351,10 @@ describe('ApiPortalPlanListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApiPlansListRequest(plans: ApiPlan[] = [], status?: string, security?: string) {
+  function expectApiPlansListRequest(plans: ApiPlan[] = [], status?: string | string[], security?: string) {
     httpTestingController
       .expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${status}` : 'status=PUBLISHED'}${
+        `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${castArray(status).join(',')}` : 'status=PUBLISHED'}${
           security ? `security=${security}` : ''
         }`,
         'GET',

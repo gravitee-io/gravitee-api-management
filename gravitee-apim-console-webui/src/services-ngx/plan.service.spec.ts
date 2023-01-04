@@ -66,14 +66,14 @@ describe('PlanService', () => {
       const apiId = 'fox';
       const fakePlans = [fakePlan({ id: '1', name: '✈️', status: 'DEPRECATED' })];
 
-      planService.getApiPlans(apiId, 'deprecated').subscribe((response) => {
+      planService.getApiPlans(apiId, 'DEPRECATED').subscribe((response) => {
         expect(response).toMatchObject(fakePlans);
         done();
       });
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans?status=deprecated`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans?status=DEPRECATED`,
       });
 
       req.flush(fakePlans);
@@ -83,14 +83,14 @@ describe('PlanService', () => {
       const apiId = 'fox';
       const fakePlans = [fakePlan({ id: '1', name: '🙅🔑', security: PlanSecurityType.KEY_LESS })];
 
-      planService.getApiPlans(apiId, 'published', 'KEY_LESS').subscribe((response) => {
+      planService.getApiPlans(apiId, 'PUBLISHED', 'KEY_LESS').subscribe((response) => {
         expect(response).toMatchObject(fakePlans);
         done();
       });
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans?status=published&security=KEY_LESS`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans?status=PUBLISHED&security=KEY_LESS`,
       });
 
       req.flush(fakePlans);

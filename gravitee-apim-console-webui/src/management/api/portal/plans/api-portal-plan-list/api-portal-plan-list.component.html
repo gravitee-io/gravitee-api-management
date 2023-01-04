@@ -34,12 +34,12 @@
 <mat-button-toggle-group class="plans__filters" aria-label="Plan status filters" [value]="status">
   <mat-button-toggle
     *ngFor="let planStatus of apiPlanStatus"
-    [attr.aria-label]="'Filter on' + planStatus + 'plans'"
-    [matTooltip]="'Filter on' + planStatus + 'plans'"
+    [attr.aria-label]="'Filter on' + planStatus.name + 'plans'"
+    [matTooltip]="'Filter on' + planStatus.name + 'plans'"
     [value]="planStatus"
-    (click)="searchPlansByStatus(planStatus)"
+    (click)="searchPlansByStatus(planStatus.name)"
   >
-    {{ planStatus }}
+    {{ planStatus.name }}{{ planStatus.number ? ' (' + planStatus.number + ')' : '' }}
   </mat-button-toggle>
 </mat-button-toggle-group>
 <table
