@@ -25,6 +25,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -259,10 +260,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
 
             // get user groups apis
-            final Set<String> userGroupApiIds = findApisByUserGroups(executionContext, userId, apiQuery, portal)
-                .stream()
-                .map(Api::getId)
-                .collect(toSet());
+            final Set<String> userGroupApiIds = findApiIdsByUserGroups(executionContext, userId, apiQuery, portal);
 
             // add dedicated criteria for groups apis
             if (!userGroupApiIds.isEmpty()) {
@@ -293,8 +291,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return apiCriteriaList;
     }
 
-    private Set<Api> findApisByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        Set<Api> apis = new HashSet<>();
+    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
+        Set<String> apis = new HashSet<>();
 
         // keep track of API roles mapped to their ID to avoid querying in a loop later
         Map<String, RoleEntity> apiRoles = roleService
@@ -302,16 +300,16 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             .stream()
             .collect(toMap(RoleEntity::getId, Function.identity()));
 
-        List<Api> nonPOGroupApis = findApisByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
-        List<Api> poGroupApis = findApisByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
+        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
+        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
 
-        apis.addAll(nonPOGroupApis);
-        apis.addAll(poGroupApis);
+        apis.addAll(nonPOGroupApiIds);
+        apis.addAll(poGroupApiIds);
 
         return apis;
     }
 
-    private List<Api> findApisByGroupWithUserHavingNonPOApiRole(
+    private List<String> findApiIdsByGroupWithUserHavingNonPOApiRole(
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,
@@ -339,7 +337,14 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             .toArray(String[]::new);
 
         if (groupIds.length > 0) {
-            return apiRepository.search(queryToCriteria(executionContext, apiQuery).groups(groupIds).build(), ApiFieldFilter.allFields());
+            List<String> apiIds = apiRepository
+                .searchIds(
+                    List.of(queryToCriteria(executionContext, apiQuery).groups(groupIds).build()),
+                    new PageableBuilder().pageSize(Integer.MAX_VALUE).build(),
+                    null
+                )
+                .getContent();
+            return apiIds != null ? apiIds : List.of();
         }
 
         return List.of();
@@ -356,7 +361,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
      *
      * see https://github.com/gravitee-io/issues/issues/6360
      */
-    private List<Api> findApisByGroupWithUserHavingPOApiRole(
+    private List<String> findApiIdsByGroupWithUserHavingPOApiRole(
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,
@@ -391,8 +396,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
         if (poGroupIds.length > 0) {
             return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), ApiFieldFilter.allFields())
-                .stream()
+                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
                 .filter(
                     api -> {
                         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
@@ -419,6 +423,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                             );
                     }
                 )
+                .map(Api::getId)
                 .collect(toList());
         }
         return List.of();

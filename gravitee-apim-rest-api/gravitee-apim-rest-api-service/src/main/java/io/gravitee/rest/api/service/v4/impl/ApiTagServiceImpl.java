@@ -71,7 +71,7 @@ public class ApiTagServiceImpl implements ApiTagService {
             .flatMap(
                 context -> {
                     ApiCriteria criteria = new ApiCriteria.Builder().environmentId(context.getEnvironmentId()).build();
-                    return apiRepository.search(criteria, ApiFieldFilter.allFields()).stream();
+                    return apiRepository.search(criteria, null, ApiFieldFilter.allFields());
                 }
             )
             .forEach(api -> removeTag(executionContext, api, tagId));

@@ -23,8 +23,19 @@ import java.util.Objects;
  */
 public class ApiFieldFilter {
 
+    /**
+     * All fields are included even  consequent ones like Base64 images and apiDefinition
+     * /!\ This can cause performance issues.
+     */
     public static ApiFieldFilter allFields() {
         return new ApiFieldFilter();
+    }
+
+    /**
+     * Only include fields that would not cause performance issues.
+     */
+    public static ApiFieldFilter defaultFields() {
+        return new Builder().excludeDefinition().excludePicture().build();
     }
 
     private final boolean definitionExcluded;

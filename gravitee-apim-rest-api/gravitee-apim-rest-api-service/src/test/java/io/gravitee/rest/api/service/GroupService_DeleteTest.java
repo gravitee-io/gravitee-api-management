@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -149,10 +150,11 @@ public class GroupService_DeleteTest {
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
+                null,
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Collections.emptyList());
+            .thenReturn(Stream.empty());
 
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
@@ -226,10 +228,11 @@ public class GroupService_DeleteTest {
         when(
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
+                null,
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Collections.emptyList());
+            .thenReturn(Stream.empty());
 
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
