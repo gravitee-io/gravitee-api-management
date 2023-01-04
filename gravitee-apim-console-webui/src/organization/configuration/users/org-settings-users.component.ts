@@ -147,7 +147,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       email: u.email,
       source: u.source,
       status: u.status,
-      userPicture: u.picture,
+      userPicture: this.usersService.getUserAvatar(u.id),
       primary_owner: u.primary_owner,
       number_of_active_tokens: u.number_of_active_tokens,
       badgeCSSClass: UserHelper.getStatusBadgeCSSClass(u),
