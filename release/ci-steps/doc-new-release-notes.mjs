@@ -44,7 +44,8 @@ const computeCommitInfo = async (gitLogOutput) => {
 };
 
 echo(chalk.blue(`# Get feat & fix commits`));
-const allCommitsCmd = await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const allCommitsCmd =
+  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
 const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
@@ -146,29 +147,24 @@ const prBody = `
 # New APIM version ${releasingVersion} has been released
 📝 You can modify the changelog template online [here](https://github.com/gravitee-io/gravitee-docs/edit/${gitBranch}/${docApimChangelogFile})
 
-Here is some information to help with the writing: 
+Here is some information to help with the writing:
 
-## Commit messages 
+## Pull requests
 <details>
-  <summary>See all feats commit</summary>
+  <summary>See all Pull Requests</summary>
 
-${allFeatCommits.stdout}
+${prInfo}
 
-</details>
-
-<details>
-  <summary>See all fixs commit</summary>
-
-${allFixCommits.stdout}
 </details>
 
 ## Jira issues
 
-[See all Jira issues for ${versions.branch} version](https://gravitee.atlassian.net/jira/software/c/projects/APIM/issues/?jql=project%20%3D%20%22APIM%22%20and%20fixVersion%20%3D%20${versions.branch}%20and%20status%20%3D%20Done%20ORDER%20BY%20created%20DESC)
+[See all Jira issues for ${versions.branch} version](https://gravitee.atlassian.net/jira/software/c/projects/APIM/issues/?jql=project%20%3D%20%22APIM%22%20and%20fixVersion%20%3D%20${releasingVersion}%20and%20status%20%3D%20Done%20ORDER%20BY%20created%20DESC)
 `;
 echo(chalk.blue('# Create PR on Github Doc repository'));
 echo(prBody);
 process.env.PR_BODY = prBody;
 
-const releaseNotesPrUrl = await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
+const releaseNotesPrUrl =
+  await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
 $`echo ${releaseNotesPrUrl.stdout} > /tmp/releaseNotesPrUrl.txt`;
