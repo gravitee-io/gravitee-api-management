@@ -58,6 +58,8 @@ export class GioSideNavComponent implements OnInit {
     this.mainMenuItems = this.buildMainMenuItems();
     this.footerMenuItems = this.buildFooterMenuItems();
     this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+
+    // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
     this.updateCurrentEnv();
   }
 
@@ -128,7 +130,7 @@ export class GioSideNavComponent implements OnInit {
         icon: 'gio:building',
         targetRoute: 'organization',
         baseRoute: 'organization',
-        displayName: 'Organization settings',
+        displayName: 'Organization',
         permissions: ['organization-settings-r'],
       },
     ]);
@@ -149,14 +151,11 @@ export class GioSideNavComponent implements OnInit {
   updateCurrentEnv(): void {
     this.portalConfigService.get().then((response) => {
       this.constants.env.settings = response.data;
-      this.ajsRootScope.$broadcast('graviteePortalUrlRefresh', this.constants.env.settings.portal.url);
     });
   }
 
   changeCurrentEnv($event: string): void {
-    this.constants.org.currentEnv.id = $event;
-    this.updateCurrentEnv();
-    localStorage.setItem('gv-last-environment-loaded', this.constants.org.currentEnv.id);
+    localStorage.setItem('gv-last-environment-loaded', $event);
 
     this.currentUserService.refreshEnvironmentPermissions().then(() => {
       this.ajsState.go('management', { environmentId: $event }, { reload: true });

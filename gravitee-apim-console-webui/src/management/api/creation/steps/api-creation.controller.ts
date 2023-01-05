@@ -22,6 +22,7 @@ import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
 import NewApiImportController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiImport.controller';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
+import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 interface Page {
   fileName: string;
@@ -100,6 +101,7 @@ class ApiCreationController {
     private $state: StateService,
     private Constants: any,
     private $rootScope,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
     this.api = {
@@ -268,6 +270,7 @@ class ApiCreationController {
     if (deployAndStart) {
       this.api.lifecycle_state = 'PUBLISHED';
     }
+
     this.ApiService.import(null, this.api, this.api.gravitee, false)
       .then((api) => {
         this.vm.showBusyText = false;
@@ -277,7 +280,7 @@ class ApiCreationController {
         if (readyForReview) {
           this.ApiService.askForReview(api.data).then((response) => {
             api.data.workflow_state = 'IN_REVIEW';
-            api.data.etag = response.headers('etag');
+            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.api = api.data;
             this.$rootScope.$broadcast('apiChangeSuccess', { api: api.data });
           });
@@ -286,7 +289,8 @@ class ApiCreationController {
       })
       .then((api) => {
         if (deployAndStart) {
-          this.ApiService.deploy(api.data.id).then(() => {
+          this.ApiService.deploy(api.data.id).then((response) => {
+            this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.ApiService.start(api.data).then(() => {
               this.NotificationService.show('API created, deployed and started');
               this.$state.go('management.apis.detail.portal.general', { apiId: api.data.id });

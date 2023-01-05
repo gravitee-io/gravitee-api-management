@@ -28,7 +28,7 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface ApiManager {
-    boolean requireDeployment(ReactableApi reactableApi);
+    ActionOnApi requiredActionFor(ReactableApi reactableApi);
 
     /**
      * Register an API definition. It is a "create or update" operation, if the api was previously existing, the

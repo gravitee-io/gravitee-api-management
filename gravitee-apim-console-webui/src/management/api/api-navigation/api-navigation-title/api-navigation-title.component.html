@@ -18,26 +18,32 @@
 <div class="api-navigation-title">
   <mat-icon
     *ngIf="apiState === 'STARTED'"
-    [matTooltip]="apiState"
+    matTooltip="Started"
     class="api-navigation-title__icon api-navigation-title__icon__play"
     svgIcon="gio:play-circle"
   ></mat-icon>
   <mat-icon
     *ngIf="apiState !== 'STARTED'"
-    [matTooltip]="apiState"
+    matTooltip="Stopped"
     class="api-navigation-title__icon api-navigation-title__icon__stop"
     svgIcon="gio:stop-circle"
   ></mat-icon>
-  <mat-icon *ngIf="!apiIsSync" class="api-navigation-title__icon api-navigation-title__icon__refresh" svgIcon="gio:refresh-cw"></mat-icon>
+  <mat-icon
+    *ngIf="!apiIsSync"
+    matTooltip="API out of sync"
+    class="api-navigation-title__icon api-navigation-title__icon__refresh"
+    svgIcon="gio:refresh-cw"
+  >
+  </mat-icon>
   <mat-icon
     *ngIf="apiLifecycleState === 'PUBLISHED'"
-    [matTooltip]="apiLifecycleState"
+    matTooltip="Published"
     class="api-navigation-title__icon"
     svgIcon="gio:cloud-published"
   ></mat-icon>
   <mat-icon
     *ngIf="apiLifecycleState !== 'PUBLISHED'"
-    [matTooltip]="apiLifecycleState"
+    matTooltip="Unpublished"
     class="api-navigation-title__icon"
     svgIcon="gio:cloud-unpublished"
   ></mat-icon>

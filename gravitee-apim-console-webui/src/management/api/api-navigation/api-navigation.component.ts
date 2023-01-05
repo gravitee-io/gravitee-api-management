@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
 
@@ -43,7 +40,7 @@ interface GroupItem {
   template: require('./api-navigation.component.html'),
   styles: [require('./api-navigation.component.scss')],
 })
-export class ApiNavigationComponent implements OnInit, OnDestroy {
+export class ApiNavigationComponent implements OnInit {
   @Input()
   public apiName: string;
   @Input()
@@ -56,31 +53,27 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public apiLifecycleState: string;
   @Input()
   public apiOrigin: string;
+  @Input()
+  public graviteeVersion: string;
 
   public subMenuItems: MenuItem[] = [];
   public groupItems: GroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
-  public hasTitle = true;
-  private unsubscribe$ = new Subject();
+  public bannerState: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
-    private readonly gioMenuService: GioMenuService,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
-      this.hasTitle = !reduced;
-    });
-    this.subMenuItems.push({
-      displayName: 'Design',
-      targetRoute: 'management.apis.detail.design.policies',
-      baseRoute: 'management.apis.detail.design',
-    });
+    this.bannerState = localStorage.getItem('gv-api-navigation-banner');
+
+    this.appendDesign();
+
     this.subMenuItems.push({
       displayName: 'Messages',
       targetRoute: 'management.apis.detail.messages',
@@ -100,9 +93,34 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
+  private appendDesign() {
+    let tabs = undefined;
+    if (this.graviteeVersion === '1.0.0') {
+      tabs = [
+        {
+          displayName: 'Policies',
+          targetRoute: 'management.apis.detail.design.policies',
+          baseRoute: 'management.apis.detail.design.policies',
+        },
+        {
+          displayName: 'Resources',
+          targetRoute: 'management.apis.detail.design.resources',
+          baseRoute: 'management.apis.detail.design.resources',
+        },
+        {
+          displayName: 'Properties',
+          targetRoute: 'management.apis.detail.design.properties',
+          baseRoute: 'management.apis.detail.design.properties',
+        },
+      ];
+    }
+
+    this.subMenuItems.push({
+      displayName: 'Design',
+      targetRoute: 'management.apis.detail.design.policies',
+      baseRoute: 'management.apis.detail.design',
+      tabs,
+    });
   }
 
   private appendPortalGroup() {
@@ -311,7 +329,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         baseRoute: 'management.apis.detail.analytics.pathMappings',
       });
     }
-    if (this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       analyticsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.analytics.alerts',
@@ -410,5 +428,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
   isTabActive(tabs: MenuItem[]): boolean {
     return flatMap(tabs, (tab) => tab.baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+  }
+
+  closeBanner() {
+    this.bannerState = 'close';
+    localStorage.setItem('gv-api-navigation-banner', this.bannerState);
   }
 }

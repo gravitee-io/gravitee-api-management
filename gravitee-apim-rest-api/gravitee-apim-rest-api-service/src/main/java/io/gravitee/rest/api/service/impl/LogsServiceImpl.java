@@ -63,6 +63,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.gravitee.rest.api.service.exceptions.LogNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -418,36 +419,59 @@ public class LogsServiceImpl implements LogsService {
     }
 
     private String getSubscription(ExecutionContext executionContext, ExtendedLog log) {
-        if ("API_KEY".equals(log.getSecurityType())) {
+        if (PlanSecurityType.API_KEY.name().equals(log.getSecurityType())) {
             try {
-                ApiKeyEntity key = apiKeyService.findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi());
-                if (key != null) {
-                    return key
-                        .getSubscriptions()
-                        .stream()
-                        .filter(s -> s.getApi().equals(log.getApi()))
-                        .findFirst()
-                        .map(SubscriptionEntity::getId)
-                        .orElseThrow(() -> new ApiKeyNotFoundException());
-                }
+                return getApiKeySubscription(executionContext, log);
             } catch (ApiKeyNotFoundException e) {
-                // wrong apikey
+                logger.error("Unable to find API key for log [api={}, application={}]", log.getApi(), log.getApplication());
             }
         } else if (log.getPlan() != null && log.getApplication() != null) {
-            GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
-            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
-            if (PlanSecurityType.API_KEY != planSecurityType && PlanSecurityType.KEY_LESS != planSecurityType) {
-                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
-                    executionContext,
-                    log.getApplication(),
-                    log.getPlan()
+            try {
+                return getJwtOrOauth2Subscription(executionContext, log);
+            } catch (PlanNotFoundException | SubscriptionNotFoundException | IllegalStateException e) {
+                logger.error(
+                    String.format("Unable to find subscription for log [plan=%s, application=%s]", log.getPlan(), log.getApplication()),
+                    e
                 );
-                if (!subscriptions.isEmpty() && subscriptions.size() == 1) {
-                    return subscriptions.iterator().next().getId();
-                }
             }
         }
         return null;
+    }
+
+    private String getApiKeySubscription(ExecutionContext executionContext, ExtendedLog log) {
+        return apiKeyService
+            .findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi())
+            .getSubscriptions()
+            .stream()
+            .filter(s -> s.getApi().equals(log.getApi()))
+            .findFirst()
+            .map(SubscriptionEntity::getId)
+            .orElseThrow(ApiKeyNotFoundException::new);
+    }
+
+    private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
+        GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
+            plan.getPlanSecurity().getType()
+        );
+        if (
+            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.API_KEY == planSecurityType ||
+            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS == planSecurityType
+        ) {
+            return null;
+        }
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
+            executionContext,
+            log.getApplication(),
+            log.getPlan()
+        );
+
+        if (subscriptions.size() > 1) {
+            throw new IllegalStateException("Found more than one subscription for the same application and plan");
+        }
+
+        return subscriptions.stream().findFirst().map(SubscriptionEntity::getId).orElseThrow(() -> new SubscriptionNotFoundException(null));
     }
 
     @Override

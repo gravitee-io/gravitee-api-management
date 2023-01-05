@@ -16,9 +16,8 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
@@ -30,11 +29,17 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiMongoRepositoryCustom {
-    Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
+    Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
 
-    List<ApiMongo> search(ApiCriteria criteria, ApiFieldInclusionFilter apiFieldInclusionFilter);
-
-    List<String> searchIds(Sortable sortable, ApiCriteria... apiCriteria);
+    /**
+     * Find ids of APIs matching the given criteria.
+     *
+     * @param apiCriteria the search criteria
+     * @param pageable    the pagination criteria
+     * @param sortable    the sort criteria
+     * @return the list of matching APIs' ids
+     */
+    Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria);
 }

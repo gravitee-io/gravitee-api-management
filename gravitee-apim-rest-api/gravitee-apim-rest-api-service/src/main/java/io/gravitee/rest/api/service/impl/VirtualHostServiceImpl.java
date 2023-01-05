@@ -24,7 +24,6 @@ import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -43,23 +42,25 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
     }
 
     @Override
-    public Collection<VirtualHost> sanitizeAndValidate(
-        ExecutionContext executionContext,
-        Collection<VirtualHost> virtualHosts,
-        String apiId
-    ) {
+    public List<VirtualHost> sanitizeAndValidate(ExecutionContext executionContext, List<VirtualHost> virtualHosts, String apiId) {
         // Sanitize virtual hosts
+        // Result list has same order as input list
         List<Path> paths = virtualHosts
             .stream()
             .map(virtualHost -> new Path(virtualHost.getHost(), virtualHost.getPath()))
             .collect(Collectors.toList());
 
         try {
-            return pathValidationService
-                .validateAndSanitizePaths(executionContext, apiId, paths)
-                .stream()
-                .map(path -> new VirtualHost(path.getHost(), path.getPath()))
-                .collect(Collectors.toList());
+            int index = 0;
+            List<Path> sanitizedPaths = pathValidationService.validateAndSanitizePaths(executionContext, apiId, paths);
+            for (Path path : sanitizedPaths) {
+                // sanitized list of Path has same order as input list, so we can rely on index to update the input list.
+                // The goal here is to change only the path and host of the vHost and to keep the value of overrideEntrypoint.
+                VirtualHost virtualHost = virtualHosts.get(index++);
+                virtualHost.setHost(path.getHost());
+                virtualHost.setPath(path.getPath());
+            }
+            return virtualHosts;
         } catch (PathAlreadyExistsException e) {
             throw new ApiContextPathAlreadyExistsException(e.getPathValue());
         } catch (InvalidHostException e) {

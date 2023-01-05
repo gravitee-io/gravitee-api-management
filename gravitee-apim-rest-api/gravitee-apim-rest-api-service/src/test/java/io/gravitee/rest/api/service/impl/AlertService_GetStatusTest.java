@@ -15,38 +15,27 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.alert.api.trigger.TriggerProvider;
-import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.rest.api.model.alert.AlertStatusEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AlertService_GetStatusTest {
-
-    @InjectMocks
-    private AlertServiceImpl alertService = new AlertServiceImpl();
-
-    @Mock
-    private ParameterService parameterService;
-
-    @Mock
-    private AlertTriggerProviderManager alertTriggerProviderManager;
+public class AlertService_GetStatusTest extends AlertServiceTest {
 
     @Test
     public void getStatus_should_get_enabled_status() {
@@ -54,7 +43,7 @@ public class AlertService_GetStatusTest {
         when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
             .thenReturn(true);
 
-        AlertStatusEntity alertStatus = alertService.getStatus(GraviteeContext.getExecutionContext());
+        AlertStatusEntity alertStatus = alertService.getStatus(executionContext);
 
         assertTrue(alertStatus.isEnabled());
         assertEquals(2, alertStatus.getPlugins());
@@ -62,13 +51,13 @@ public class AlertService_GetStatusTest {
 
     @Test
     public void getStatus_should_get_disabled_status() {
-        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
+        when(alertTriggerProviderManager.findAll()).thenReturn(List.of());
         when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
             .thenReturn(false);
 
-        AlertStatusEntity alertStatus = alertService.getStatus(GraviteeContext.getExecutionContext());
+        AlertStatusEntity alertStatus = alertService.getStatus(executionContext);
 
         assertFalse(alertStatus.isEnabled());
-        assertEquals(2, alertStatus.getPlugins());
+        assertEquals(0, alertStatus.getPlugins());
     }
 }

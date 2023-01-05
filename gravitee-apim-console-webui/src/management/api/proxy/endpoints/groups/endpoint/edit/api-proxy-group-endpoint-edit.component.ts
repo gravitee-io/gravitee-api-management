@@ -111,6 +111,11 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
               (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
             );
+          } else {
+            if (!api.proxy.groups[groupIndex].endpoints) {
+              api.proxy.groups[groupIndex].endpoints = [];
+            }
+            endpointIndex = api.proxy.groups[groupIndex].endpoints.length;
           }
 
           const updatedEndpoint = toProxyGroupEndpoint(
@@ -170,6 +175,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       this.endpoint = {
         ...group.endpoints.find((endpoint) => endpoint.name === this.ajsStateParams.endpointName),
       };
+    } else {
+      this.endpoint = {};
     }
 
     this.generalForm = this.formBuilder.group({
@@ -181,10 +188,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         [
           Validators.required,
           Validators.pattern(/^[^:]*$/),
-          isUniq(
-            group.endpoints.reduce((acc, endpoint) => [...acc, endpoint.name], []),
-            this.endpoint?.name,
-          ),
+          isUniq(group.endpoints?.reduce((acc, endpoint) => [...acc, endpoint.name], []) ?? [], this.endpoint?.name),
         ],
       ],
       type: [{ value: this.endpoint?.type ?? 'http', disabled: this.isReadOnly }, [Validators.required]],

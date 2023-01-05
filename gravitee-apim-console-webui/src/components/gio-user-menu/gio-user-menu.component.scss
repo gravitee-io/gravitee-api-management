@@ -33,15 +33,26 @@
 
   &__header {
     display: flex;
+    align-items: center;
+    line-height: 0;
     cursor: auto;
+    min-width: 220px;
 
     &:hover {
       background-color: transparent;
     }
 
-    &__user-info {
-      line-height: 0;
+    &__user-avatar {
+      flex: 0 0 auto;
     }
+
+    &__user-info {
+      height: 48px;
+    }
+  }
+
+  &__button-avatar {
+    border-radius: 50%;
   }
 
   &__avatar {

@@ -15,25 +15,66 @@
  */
 package io.gravitee.gateway.jupiter.reactor.v4.subscription.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import org.junit.jupiter.api.Assertions;
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionResponseTest {
+class SubscriptionResponseTest {
+
+    public static final String NEW_CHUNK = "NEW_CHUNK";
+    private SubscriptionResponse cut;
+
+    @BeforeEach
+    void setUp() {
+        cut = new SubscriptionResponse();
+    }
 
     @Test
-    public void checkSubscriptionResponse() {
-        SubscriptionResponse response = new SubscriptionResponse();
+    void checkSubscriptionResponse() {
+        assertThat(cut.status()).isEqualTo(HttpStatusCode.OK_200);
+        assertThat(cut.reason()).isNull();
+        assertThat(cut.trailers()).isNull();
+        assertThat(cut.ended()).isFalse();
+        assertThat(cut.messages()).isNotNull();
+        assertThat(cut.chunks()).isNotNull();
+    }
 
-        Assertions.assertEquals(HttpStatusCode.OK_200, response.status());
-        Assertions.assertNull(response.reason());
-        Assertions.assertNull(response.trailers());
-        Assertions.assertFalse(response.ended());
-        Assertions.assertNotNull(response.messages());
+    @Test
+    void shouldSubscribeOnceWhenIgnoringAndReplacingExistingChunks() {
+        cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+        cut.end().test().assertComplete();
+        cut.body().test().assertComplete().assertValue(b -> NEW_CHUNK.equals(b.toString()));
+    }
+
+    @Test
+    void shouldEndProperlyWithoutHavingSetChunks() {
+        cut.end().test().assertComplete();
+        cut.body().test().assertComplete().assertNoValues();
+    }
+
+    @Test
+    void shouldSubscribeOnceWhenReplacingExistingChunksWithBody() {
+        cut
+            .chunks()
+            .ignoreElements()
+            .andThen(Completable.fromRunnable(() -> cut.body(Buffer.buffer(NEW_CHUNK))))
+            .andThen(Completable.defer(() -> cut.end()))
+            .test()
+            .assertComplete();
+
+        cut.body().test().assertComplete().assertValue(b -> NEW_CHUNK.equals(b.toString()));
+        cut.chunks().test().assertComplete().assertValue(b -> NEW_CHUNK.equals(b.toString()));
     }
 }

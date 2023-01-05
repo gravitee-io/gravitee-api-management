@@ -35,6 +35,7 @@ export class GioUserMenuComponent implements OnInit {
 
   public currentUser: User;
   public userShortName: string;
+  public userPicture: string;
   public supportEnabled: boolean;
   public newsletterProposed: boolean;
 
@@ -52,6 +53,7 @@ export class GioUserMenuComponent implements OnInit {
       !!window.localStorage.getItem('newsletterProposed') ||
       !this.constants.org.settings.newsletter.enabled;
     this.userShortName = this.getUserShortName();
+    this.userPicture = this.currentUserService.currentUserPicture();
     this.supportEnabled = this.constants.org.settings.management.support.enabled;
   }
 

@@ -464,7 +464,6 @@ require('angular-loading-bar');
 // Highcharts
 const Highcharts = require('highcharts');
 window.Highcharts = Highcharts;
-require('highcharts/modules/exporting')(Highcharts);
 require('highcharts/highcharts-more')(Highcharts);
 require('highcharts/modules/solid-gauge')(Highcharts);
 require('highcharts/modules/no-data-to-display')(Highcharts);
@@ -525,6 +524,8 @@ import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy
 import { ApiPortalPlanListComponent } from './api/portal/plans/api-portal-plan-list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
+import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
+import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 
 (<any>window).moment = moment;
@@ -684,6 +685,7 @@ graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
 
+graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
@@ -1072,6 +1074,8 @@ graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeCo
 
 // Promotions
 graviteeManagementModule.service('promotionService', PromotionService);
+
+graviteeManagementModule.factory('ngIfMatchEtagInterceptor', downgradeInjectable(IfMatchEtagInterceptor));
 
 graviteeManagementModule.filter('humanDateFilter', () => {
   return function (input) {

@@ -104,7 +104,8 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
     it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -230,10 +231,9 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([
-        ['', '🪐 Planets', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit'],
-      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
     it('should display bad quality score', fakeAsync(async () => {

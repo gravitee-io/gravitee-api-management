@@ -301,7 +301,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     });
   });
 
-  describe('Create mode', () => {
+  describe('Create mode with existing endpoints', () => {
     let api: Api;
 
     beforeEach(async () => {
@@ -379,6 +379,85 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 type: 'HTTP',
                 inherit: false,
               },
+              {
+                name: 'endpoint#3',
+                target: 'https//dummy.com',
+                tenants: null,
+                weight: 42,
+                backup: false,
+                type: 'http',
+                inherit: true,
+                healthcheck: {
+                  enabled: false,
+                },
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('Create mode without existing endpoints', () => {
+    let api: Api;
+
+    beforeEach(async () => {
+      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
+      TestBed.compileComponents();
+      fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+
+      api = fakeApi({
+        id: API_ID,
+        proxy: {
+          groups: [
+            {
+              name: 'default-group',
+            },
+          ],
+        },
+      });
+
+      expectApiGetRequest(api);
+      expectConnectorRequest();
+      expectTenantsRequest();
+    });
+
+    it('should create new endpoint', async () => {
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
+        .then((input) => input.setValue('endpoint#3'));
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
+        .then((select) => select.clickOptions({ text: 'http' }));
+
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
+        .then((input) => input.setValue('42'));
+
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      await loader
+        .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
+        .then((input) => input.setValue('https//dummy.com'));
+      expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
+      await saveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+      expect(req.request.body.proxy).toStrictEqual({
+        groups: [
+          {
+            name: 'default-group',
+            endpoints: [
               {
                 name: 'endpoint#3',
                 target: 'https//dummy.com',

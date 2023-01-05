@@ -42,8 +42,8 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
         return hasArray(PLANS);
     }
 
-    public List<ImportJsonNodeWithIds> getPlans() {
-        return getChildNodesWithIdByName(PLANS);
+    public List<ImportPlanJsonNode> getPlans() {
+        return getChildNodesByName(PLANS).stream().map(ImportPlanJsonNode::new).collect(toList());
     }
 
     public boolean hasPages() {

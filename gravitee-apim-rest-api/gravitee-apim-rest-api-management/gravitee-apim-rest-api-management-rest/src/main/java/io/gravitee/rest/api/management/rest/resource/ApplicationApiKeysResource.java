@@ -26,7 +26,6 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -38,7 +37,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -47,7 +50,7 @@ import javax.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 @Tag(name = "API Keys")
-public class ApplicationApiKeysResource extends AbstractResource {
+public class ApplicationApiKeysResource extends AbstractApiKeyResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -101,7 +104,7 @@ public class ApplicationApiKeysResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewApiKeyForApplicationSubscription() {
         ApplicationEntity applicationEntity = getApplication();
-        checkApplicationApiKeyModeAllowed(applicationEntity);
+        checkApplicationUsesSharedApiKey(applicationEntity);
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
@@ -109,7 +112,6 @@ public class ApplicationApiKeysResource extends AbstractResource {
 
     @Path("{apikey}")
     public ApplicationApiKeyResource getApplicationApiKeyResource() {
-        checkApplicationApiKeyModeAllowed(getApplication());
         return resourceContext.getResource(ApplicationApiKeyResource.class);
     }
 
@@ -119,11 +121,5 @@ public class ApplicationApiKeysResource extends AbstractResource {
             throw new ApplicationNotFoundException(application);
         }
         return applicationEntity;
-    }
-
-    private void checkApplicationApiKeyModeAllowed(ApplicationEntity applicationEntity) {
-        if (!applicationEntity.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException("Can't access ApiKey by Application cause it's not a shared Api Key");
-        }
     }
 }

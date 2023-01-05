@@ -15,67 +15,61 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
-import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AlertService_FindByIdTest {
-
-    private static final String ALERT_ID = "id-alert";
-
-    @InjectMocks
-    private AlertServiceImpl alertService = new AlertServiceImpl();
-
-    @Mock
-    private AlertTriggerRepository alertTriggerRepository;
-
-    @Mock
-    private AlertTriggerConverter alertTriggerConverter;
-
-    @Mock
-    private AlertTrigger alertTrigger;
-
-    @Mock
-    private AlertTriggerEntity alertTriggerEntity;
+public class AlertService_FindByIdTest extends AlertServiceTest {
 
     @Test
-    public void findById_should_find() throws TechnicalException {
-        when(alertTriggerRepository.findById(ALERT_ID)).thenReturn(Optional.of(alertTrigger));
-        when(alertTriggerConverter.toAlertTriggerEntity(alertTrigger)).thenReturn(alertTriggerEntity);
+    public void must_find_alert_trigger_entity_by_id() throws TechnicalException, JsonProcessingException {
+        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 
-        AlertTriggerEntity result = alertService.findById(ALERT_ID);
+        when(alertTriggerRepository.findById(any())).thenReturn(Optional.of(alertTrigger));
 
-        assertSame(result, alertTriggerEntity);
+        assertNotNull(alertService.findById(alert.getId()));
     }
 
     @Test(expected = AlertNotFoundException.class)
-    public void findById_should_throw_AlertNotFoundException_when_not_found() throws TechnicalException {
-        when(alertTriggerRepository.findById(ALERT_ID)).thenReturn(Optional.empty());
+    public void must_throw_AlertNotFoundException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
+        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        alertService.findById(ALERT_ID);
+        when(alertTriggerRepository.findById(any())).thenReturn(Optional.empty());
+
+        alertService.findById(alert.getId());
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void findById_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
-        when(alertTriggerRepository.findById(ALERT_ID)).thenThrow(TechnicalException.class);
+    public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
+        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        alertService.findById(ALERT_ID);
+        when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+
+        alertService.findById(alert.getId());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void must_throw_TechnicalManagementException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
+        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+
+        when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+
+        alertService.findById(alert.getId());
     }
 }

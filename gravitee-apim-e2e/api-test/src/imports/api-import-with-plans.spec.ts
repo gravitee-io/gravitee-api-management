@@ -17,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { succeed } from '@lib/jest-utils';
@@ -29,13 +30,20 @@ const apisResourceAsAdminUser = new APIsApi(forManagementAsAdminUser());
 
 const apiId = 'c4ddaa66-4646-4fca-a80b-284aa7407941';
 const expectedApiId = '7ab9bd67-5540-396b-91ca-91479994fdd6';
-const fakePlan1 = PlansFaker.plan({ name: faker.lorem.words(2), description: faker.lorem.sentence(10) });
-const fakePlan2 = PlansFaker.plan({ name: faker.lorem.words(2), description: faker.lorem.sentence(10) });
-const fakeApi = ApisFaker.apiImport({ id: apiId, plans: [fakePlan1, fakePlan2] });
+const generalConditionsPage = PagesFaker.page({ id: 'GC-page-id', name: 'general-conditions' });
+const fakePlan1 = PlansFaker.plan({ id: 'plan-1-id', name: faker.lorem.words(2), description: faker.lorem.sentence(10) });
+const fakePlan2 = PlansFaker.plan({
+  id: 'plan-2-id',
+  name: faker.lorem.words(2),
+  description: faker.lorem.sentence(10),
+  general_conditions: 'GC-page-id',
+});
+const fakeApi = ApisFaker.apiImport({ id: apiId, pages: [generalConditionsPage], plans: [fakePlan1, fakePlan2] });
 
 let api: ApiEntity;
 let planId1: string;
 let planId2: string;
+let generalConditionsPageId: string;
 
 describe('API - Imports with plans', () => {
   beforeAll(async () => {
@@ -63,10 +71,12 @@ describe('API - Imports with plans', () => {
     expect(plan.type).toStrictEqual(fakePlan1.type);
     expect(plan.status).toStrictEqual(fakePlan1.status);
     expect(plan.order).toStrictEqual(fakePlan1.order);
+    expect(plan.general_conditions).toBeUndefined();
   });
 
   test('should get plan2 with correct data', async () => {
     const plan = await succeed(apisResourceAsAdminUser.getApiPlanRaw({ orgId, envId, api: expectedApiId, plan: planId2 }));
+    const pages = await succeed(apisResourceAsAdminUser.getApiPagesRaw({ orgId, envId, api: expectedApiId, name: 'general-conditions' }));
     expect(plan).toBeTruthy();
     expect(plan.id).toStrictEqual(planId2);
     expect(plan.name).toStrictEqual(fakePlan2.name);
@@ -76,6 +86,7 @@ describe('API - Imports with plans', () => {
     expect(plan.type).toStrictEqual(fakePlan2.type);
     expect(plan.status).toStrictEqual(fakePlan2.status);
     expect(plan.order).toStrictEqual(fakePlan2.order);
+    expect(plan.general_conditions).toEqual(pages[0].id);
   });
 
   afterAll(async () => {

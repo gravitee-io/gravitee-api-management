@@ -28,13 +28,11 @@ import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
@@ -814,8 +812,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     groupApplications.forEach(application -> resourceIds.add(application.getId()));
                 } else if (type.equals(MembershipReferenceType.API) && groupIds.length > 0) {
                     ApiCriteria criteria = new ApiCriteria.Builder().groups(groupIds).build();
-                    Set<Api> groupApis = apiRepository.search(criteria, ApiFieldInclusionFilter.builder().build());
-                    groupApis.forEach(api -> resourceIds.add(api.getId()));
+                    List<String> groupApisIds = apiRepository
+                        .searchIds(List.of(criteria), convert(new PageableImpl(1, Integer.MAX_VALUE)), null)
+                        .getContent();
+                    if (groupApisIds != null) {
+                        resourceIds.addAll(groupApisIds);
+                    }
                 }
 
                 if (!resourceIds.isEmpty()) {
@@ -860,10 +862,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Metadata metadata = new Metadata();
             if (type.equals(MembershipReferenceType.API)) {
                 ApiCriteria.Builder criteria = new ApiCriteria.Builder();
-                ApiFieldExclusionFilter filter = (new ApiFieldExclusionFilter.Builder()).excludeDefinition().excludePicture().build();
                 criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
                 apiRepository
-                    .search(criteria.build(), filter)
+                    .search(criteria.build(), null, ApiFieldFilter.defaultFields())
                     .forEach(
                         api -> {
                             metadata.put(api.getId(), "name", api.getName());

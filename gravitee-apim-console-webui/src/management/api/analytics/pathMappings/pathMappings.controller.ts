@@ -22,6 +22,7 @@ import DialogImportPathMappingController from './modal/import-pathMapping.dialog
 import { ApiService } from '../../../../services/api.service';
 import { DocumentationQuery, DocumentationService } from '../../../../services/documentation.service';
 import NotificationService from '../../../../services/notification.service';
+import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 class ApiPathMappingsController {
   private api: any;
@@ -38,6 +39,7 @@ class ApiPathMappingsController {
     private $rootScope,
     DocumentationService: DocumentationService,
     private $state,
+    private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -138,7 +140,7 @@ class ApiPathMappingsController {
   private onSave(updatedApi) {
     this.api = updatedApi.data;
     this.api.path_mappings = _.sortBy(this.api.path_mappings);
-    this.api.etag = updatedApi.headers('etag');
+    this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
     this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     this.NotificationService.show("API '" + this.$scope.$parent.apiCtrl.api.name + "' saved");
   }

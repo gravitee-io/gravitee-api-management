@@ -19,16 +19,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -39,7 +36,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -48,7 +49,7 @@ import javax.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 @Tag(name = "API Keys")
-public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
+public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -58,9 +59,6 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
-
-    @Inject
-    private ApplicationService applicationService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -101,26 +99,16 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewApiKeyForApplicationSubscription() {
-        checkApplicationApiKeyModeAllowed(application);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkApplicationDoesntUseSharedApiKey(executionContext, application);
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity);
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(executionContext, subscriptionEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
     }
 
     @Path("{apikey}")
     public ApplicationSubscriptionApiKeyResource getApplicationSubscriptionApiKeyResource() {
-        checkApplicationApiKeyModeAllowed(application);
         return resourceContext.getResource(ApplicationSubscriptionApiKeyResource.class);
-    }
-
-    private void checkApplicationApiKeyModeAllowed(String applicationId) {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
-        if (applicationEntity == null) {
-            throw new ApplicationNotFoundException(applicationId);
-        }
-        if (applicationEntity.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException("Can't access API key by application subscription cause it's a shared API Key");
-        }
     }
 }

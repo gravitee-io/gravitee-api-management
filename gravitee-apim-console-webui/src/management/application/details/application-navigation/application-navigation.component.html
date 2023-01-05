@@ -16,8 +16,8 @@
 
 -->
 <div class="application-navigation">
-  <div *ngIf="hasTitle" class="application-navigation__title">{{ this.applicationName }}</div>
   <gio-submenu class="application-navigation__menu">
+    <div gioSubmenuTitle class="application-navigation__menu__title">{{ this.applicationName }}</div>
     <ng-container *ngFor="let item of this.subMenuItems">
       <gio-submenu-item *ngIf="item.targetRoute" tabIndex="1" (click)="navigateTo(item.targetRoute)" [active]="isActive(item.baseRoute)">{{
         item.displayName

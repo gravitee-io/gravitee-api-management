@@ -20,7 +20,7 @@ const currentVersion = await getCurrentVersion();
 const previousVersion = await getPreviousVersion();
 
 const tmpDir = path.join(__dirname, '..', '.tmp');
-const bundleDir = path.join(tmpDir, currentVersion, 'distributions');
+const bundleDir = path.join(tmpDir, currentVersion, 'dist', 'distributions');
 const bundleFile = path.join(bundleDir, `graviteeio-full-${currentVersion}.zip`);
 const slackMessageFile = path.join(tmpDir, 'bundle-size.md');
 

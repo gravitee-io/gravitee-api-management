@@ -192,6 +192,9 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             try {
                                 Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
                                 plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
+                                if (plan.getApi() == null) {
+                                    plan.setApi(api.getId());
+                                }
                                 plans.add(plan);
                             } catch (IOException e) {
                                 logger.error("Plan {} can not be de-serialized", jsonNode.asText());

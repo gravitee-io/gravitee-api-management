@@ -34,27 +34,4 @@ public class SubscriptionResponse extends AbstractResponse implements MutableRes
         this.headers = HttpHeaders.create();
         this.messageFlow = new MessageFlow();
     }
-
-    @Override
-    public Maybe<Buffer> body() {
-        // Subscription does not allow buffer body access.
-        return Maybe.empty();
-    }
-
-    @Override
-    public Single<Buffer> bodyOrEmpty() {
-        // Subscription does not allow buffer body access.
-        return Single.just(Buffer.buffer());
-    }
-
-    @Override
-    public void body(Buffer buffer) {
-        // Subscription does not allow buffer body access.
-    }
-
-    @Override
-    public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        // Subscription does not allow buffer body access.
-        return Completable.complete();
-    }
 }
