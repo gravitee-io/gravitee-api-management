@@ -55,7 +55,7 @@
   </mat-card>
 
   <gio-save-bar
-    *ngIf="planForm"
+    *ngIf="planForm && !isReadOnly"
     [creationMode]="mode === 'create'"
     [form]="planForm"
     [formInitialValues]="initialPlanFormValue"

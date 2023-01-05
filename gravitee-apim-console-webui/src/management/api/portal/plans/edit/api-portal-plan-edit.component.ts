@@ -16,7 +16,7 @@
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
 
@@ -31,6 +31,7 @@ import { PlanService } from '../../../../../services-ngx/plan.service';
 import { NewPlan, PlanValidation } from '../../../../../entities/plan';
 import { Flow, Step } from '../../../../../entities/flow/flow';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -52,6 +53,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
   public api: Api;
+  public isReadOnly = false;
   public displaySubscriptionsSection = true;
 
   @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
@@ -65,49 +67,58 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
     private readonly apiService: ApiService,
     private readonly planService: PlanService,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit() {
     this.mode = this.ajsStateParams.planId ? 'edit' : 'create';
-
-    this.apiService
-      .get(this.ajsStateParams.apiId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((api) => (this.api = api));
   }
 
   ngAfterViewInit(): void {
-    if (this.mode === 'edit') {
-      this.planService
-        .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((plan) => {
-          this.initPlanForm({
-            general: {
-              name: plan.name,
-              description: plan.description,
-              characteristics: plan.characteristics,
-              generalConditions: plan.general_conditions,
-              shardingTags: plan.tags,
-              commentRequired: plan.comment_required,
-              commentMessage: plan.comment_message,
-              validation: plan.validation,
-              excludedGroups: plan.excluded_groups,
-            },
-            secure: {
-              securityTypes: plan.security,
-              securityConfig: plan.securityDefinition ? JSON.parse(plan.securityDefinition) : {},
-              selectionRule: plan.selection_rule,
-            },
-          });
-        });
-    } else {
-      this.initPlanForm();
-    }
-
-    // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError in test
-    // Needed to have only one detectChanges() after load each step child component
-    this.changeDetectorRef.detectChanges();
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((api) => {
+          this.api = api;
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definition_context?.origin === 'kubernetes';
+        }),
+        switchMap(() =>
+          this.mode === 'edit' ? this.planService.get(this.ajsStateParams.apiId, this.ajsStateParams.planId) : of(undefined),
+        ),
+        tap((plan) => {
+          this.initPlanForm(
+            plan
+              ? {
+                  general: {
+                    name: plan.name,
+                    description: plan.description,
+                    characteristics: plan.characteristics,
+                    generalConditions: plan.general_conditions,
+                    shardingTags: plan.tags,
+                    commentRequired: plan.comment_required,
+                    commentMessage: plan.comment_message,
+                    validation: plan.validation,
+                    excludedGroups: plan.excluded_groups,
+                  },
+                  secure: {
+                    securityTypes: plan.security,
+                    securityConfig: plan.securityDefinition ? JSON.parse(plan.securityDefinition) : {},
+                    selectionRule: plan.selection_rule,
+                  },
+                }
+              : undefined,
+          );
+          // Manually trigger change detection to avoid ExpressionChangedAfterItHasBeenCheckedError in test
+          // Needed to have only one detectChanges() after load each step child component
+          this.changeDetectorRef.detectChanges();
+        }),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'An ');
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -162,6 +173,18 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
+    if (value) {
+      this.planForm.patchValue(value);
+      this.planForm.get('secure').get('securityTypes').disable();
+      this.planForm.updateValueAndValidity();
+    }
+    this.initialPlanFormValue = this.planForm.getRawValue();
+    this.isLoadingData = false;
+
+    if (this.isReadOnly) {
+      this.planForm.disable();
+    }
+
     this.planForm
       .get('secure')
       .get('securityTypes')
@@ -178,17 +201,9 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
           this.planForm.get('general').get('validation').setValue(false);
           return;
         }
-        this.planForm.get('general').get('commentRequired').enable();
-        this.planForm.get('general').get('validation').enable();
+        !this.isReadOnly && this.planForm.get('general').get('commentRequired').enable();
+        !this.isReadOnly && this.planForm.get('general').get('validation').enable();
       });
-
-    if (value) {
-      this.planForm.patchValue(value);
-      this.planForm.get('secure').get('securityTypes').disable();
-      this.planForm.updateValueAndValidity();
-    }
-    this.initialPlanFormValue = this.planForm.getRawValue();
-    this.isLoadingData = false;
   }
 
   // Init flows with restriction step. Only used in create mode

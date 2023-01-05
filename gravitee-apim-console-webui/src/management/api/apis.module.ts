@@ -23,13 +23,6 @@ import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 
 @NgModule({
-  imports: [
-    ApiAnalyticsModule,
-    ApiListModule,
-    ApiNavigationModule,
-    ApiPortalDetailsModule,
-    ApiPortalPlansModule,
-    ApiProxyModule,
-  ],
+  imports: [ApiAnalyticsModule, ApiListModule, ApiNavigationModule, ApiPortalDetailsModule, ApiPortalPlansModule, ApiProxyModule],
 })
 export class ApisModule {}

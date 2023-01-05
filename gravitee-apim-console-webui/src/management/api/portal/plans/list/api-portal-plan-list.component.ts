@@ -48,7 +48,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
   public plansTableDS: Plan[] = [];
   public isLoadingData = true;
-  public apiPlanStatus: { name: PlanStatus; number: number }[] = PLAN_STATUS.map((status) => ({ name: status, number: 0 }));
+  public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map((status) => ({ name: status, number: null }));
   public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;

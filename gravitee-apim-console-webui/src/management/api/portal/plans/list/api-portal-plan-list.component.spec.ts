@@ -113,7 +113,7 @@ describe('ApiPortalPlanListComponent', () => {
       const goldPlan = fakePlan({ name: 'gold plan ⭐️' });
       await initComponent([goldPlan]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: 'CLOSED' })).then((btn) => btn.toggle());
+      await loader.getHarness(MatButtonToggleHarness.with({ text: /CLOSED/ })).then((btn) => btn.toggle());
 
       const closedPlan = fakePlan({ name: 'closed plan 🚪', status: 'CLOSED' });
       expectApiPlansListRequest([closedPlan], 'CLOSED');
@@ -125,7 +125,7 @@ describe('ApiPortalPlanListComponent', () => {
     it('should search and not find any plan', fakeAsync(async () => {
       await initComponent([fakePlan()]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: 'STAGING' })).then((btn) => btn.toggle());
+      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
 
       expectApiPlansListRequest([], 'STAGING');
 
@@ -176,6 +176,7 @@ describe('ApiPortalPlanListComponent', () => {
 
     it('should navigate to new plan', async () => {
       await initComponent([]);
+      fixture.componentInstance.isLoadingData = false;
       fakeUiRouter.go.mockReset();
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());

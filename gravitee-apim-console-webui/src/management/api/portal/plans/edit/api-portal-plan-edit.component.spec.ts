@@ -227,9 +227,9 @@ describe('ApiPortalPlanEditComponent', () => {
       const TAG_1_ID = 'tag-1';
       const planToUpdate = fakePlan({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
 
+      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
       expectPlanGetRequest(API_ID, planToUpdate);
 
-      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
       expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
       expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
@@ -300,6 +300,63 @@ describe('ApiPortalPlanEditComponent', () => {
       });
       req.flush({});
       expect(fakeUiRouter.go).toHaveBeenCalled();
+    });
+  });
+
+  describe('Kubernetes mode', () => {
+    const PLAN_ID = 'plan-1';
+
+    beforeEach(() => {
+      configureTestingModule(PLAN_ID);
+    });
+
+    it('should access plan in read only ', async () => {
+      const TAG_1_ID = 'tag-1';
+      const planToUpdate = fakePlan({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+
+      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID], definition_context: { origin: 'kubernetes' } }));
+      expectPlanGetRequest(API_ID, planToUpdate);
+
+      expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      expectCurrentUserTagsRequest([TAG_1_ID]);
+      expectResourceGetRequest();
+      fixture.detectChanges();
+
+      const saveBar = await loader.getAllHarnesses(GioSaveBarHarness);
+      expect(saveBar.length).toEqual(0);
+
+      // 1- General Step
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      expect(await nameInput.getValue()).toBe('Old 🗺');
+      expect(await nameInput.isDisabled()).toBe(true);
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+      expect(await descriptionInput.getValue()).toBe('Old Description');
+      expect(await descriptionInput.isDisabled()).toBe(true);
+
+      const characteristicsInput = await loader.getHarness(
+        GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }),
+      );
+      expect(await characteristicsInput.isDisabled()).toBe(true);
+
+      const generalConditionsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
+      expect(await generalConditionsInput.isDisabled()).toBe(true);
+
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
+      expect(await shardingTagsInput.isDisabled()).toBe(true);
+
+      const excludedGroupsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
+      expect(await excludedGroupsInput.isDisabled()).toBe(true);
+
+      // 2- Secure Step
+      const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
+      expect(await securityTypesInput.isDisabled()).toEqual(true);
+
+      const selectionRuleInput = await loader.getAllHarnesses(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+      expect(selectionRuleInput.length).toEqual(0); // no selection rule for keyless
     });
   });
 
