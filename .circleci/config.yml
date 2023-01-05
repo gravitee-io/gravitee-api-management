@@ -445,6 +445,19 @@ jobs:
                   jobName: validate
             - notify-on-failure
 
+    danger-js:
+      executor:
+        class: small
+        name: node-lts
+      steps:
+        - checkout
+        - keeper/env-export:
+            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+            var-name: DANGER_GITHUB_API_TOKEN
+        - run:
+            name: Run Danger JS
+            command: cd .circleci/danger && yarn run danger
+
     add-docker-images-in-snyk:
         docker:
             - image: cimg/base:stable
@@ -1850,6 +1863,11 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - setup
+            - danger-js:
+                name: Run Danger JS
+                context: cicd-orchestrator
+                requires:
+                  - validate
             - build:
                   context: cicd-orchestrator
                   requires:
