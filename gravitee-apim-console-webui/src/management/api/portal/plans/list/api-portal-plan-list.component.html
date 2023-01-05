@@ -17,7 +17,7 @@
 -->
 <div class="plans__header">
   <h1>Plans</h1>
-  <div *ngIf="!isReadOnly && plansTableDS">
+  <div *ngIf="!isReadOnly && plansTableDS && !isLoadingData">
     <button
       *gioPermission="{ anyOf: ['api-plan-u'] }"
       mat-raised-button
@@ -36,10 +36,10 @@
     *ngFor="let planStatus of apiPlanStatus"
     [attr.aria-label]="'Filter on' + planStatus.name + 'plans'"
     [matTooltip]="'Filter on' + planStatus.name + 'plans'"
-    [value]="planStatus"
+    [value]="planStatus.name"
     (click)="searchPlansByStatus(planStatus.name)"
   >
-    {{ planStatus.name }}{{ planStatus.number ? ' (' + planStatus.number + ')' : '' }}
+    {{ planStatus.name }}{{ planStatus.number != null ? ' (' + planStatus.number + ')' : '' }}
   </mat-button-toggle>
 </mat-button-toggle-group>
 <table
