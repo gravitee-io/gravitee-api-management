@@ -61,14 +61,14 @@ async function getBranch() {
 async function getCurrentVersion() {
   log(blue(`Getting release tag`));
 
-  const currentVersion = await $`git tag -l --sort -version:refname| grep ${supportVersion}| head -1`;
+  const currentVersion = await $`git tag -l --sort -version:refname | grep -v alpha | grep ${supportVersion}| head -1`;
   return trim(currentVersion);
 }
 
 async function getPreviousVersion() {
   log(blue(`Getting previous tag for release`));
 
-  const lastTags = await $`git tag -l --sort -version:refname| grep ${supportVersion}| head -2`;
+  const lastTags = await $`git tag -l --sort -version:refname | grep -v alpha | grep ${supportVersion}| head -2`;
   const tagList = trim(lastTags).split(eol);
 
   if (tagList.length === 2) {
@@ -77,7 +77,7 @@ async function getPreviousVersion() {
 
   log(blue(`No previous tag for ${supportVersion}. Assuming this is the first release.`));
 
-  const previousVersion = await $`git tag -l --sort -version:refname| head -2 | tail -1`;
+  const previousVersion = await $`git tag -l --sort -version:refname | grep -v alpha | head -2 | tail -1`;
   return trim(previousVersion);
 }
 
