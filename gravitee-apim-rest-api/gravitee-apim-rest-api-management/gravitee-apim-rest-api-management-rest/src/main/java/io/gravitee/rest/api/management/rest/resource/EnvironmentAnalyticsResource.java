@@ -37,6 +37,9 @@ import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -145,7 +148,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 if (isAdmin()) {
-                    return buildCountStat(apiService.searchIds(executionContext, new ApiQuery()).size());
+                    return buildCountStat(
+                        // FIXME: This should use a count method instead of a search one
+                        apiService
+                            .searchIds(executionContext, new ApiQuery(), new PageableImpl(1, Integer.MAX_VALUE), null)
+                            .getTotalElements()
+                    );
                 } else {
                     return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false).size());
                 }

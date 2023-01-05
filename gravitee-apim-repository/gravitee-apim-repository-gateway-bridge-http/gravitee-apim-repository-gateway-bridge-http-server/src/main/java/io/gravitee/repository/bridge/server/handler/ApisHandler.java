@@ -17,7 +17,7 @@ package io.gravitee.repository.bridge.server.handler;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -43,7 +43,7 @@ public class ApisHandler extends AbstractHandler {
     public void search(RoutingContext ctx) {
         final boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
         final boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
-        final ApiFieldExclusionFilter.Builder builder = new ApiFieldExclusionFilter.Builder();
+        final ApiFieldFilter.Builder builder = new ApiFieldFilter.Builder();
 
         if (excludeDefinition) {
             builder.excludeDefinition();

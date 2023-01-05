@@ -47,10 +47,9 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void revoke_should_return_http_400_if_application_doesnt_use_shared_api_key() {
-        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
-
         ApplicationEntity applicationEntity = new ApplicationEntity();
         applicationEntity.setId(APPLICATION_ID);
+        applicationEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setApplication(applicationEntity);
@@ -60,15 +59,16 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
         Response response = envTarget().request().delete();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+
+        verify(apiKeyService).findById(GraviteeContext.getExecutionContext(), APIKEY_ID);
         verifyNoMoreInteractions(apiKeyService);
     }
 
     @Test
     public void revoke_should_return_http_400_if_application_doesnt_match_api_key() {
-        mockExistingApplication(ApiKeyMode.SHARED);
-
         ApplicationEntity applicationEntity = new ApplicationEntity();
         applicationEntity.setId("another-app");
+        applicationEntity.setApiKeyMode(ApiKeyMode.SHARED);
 
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setApplication(applicationEntity);
@@ -83,10 +83,9 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void revoke_should_call_revoke_service_and_return_http_204() {
-        mockExistingApplication(ApiKeyMode.SHARED);
-
         ApplicationEntity applicationEntity = new ApplicationEntity();
         applicationEntity.setId(APPLICATION_ID);
+        applicationEntity.setApiKeyMode(ApiKeyMode.SHARED);
 
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setApplication(applicationEntity);
@@ -98,11 +97,5 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
         verify(apiKeyService, times(1)).findById(GraviteeContext.getExecutionContext(), APIKEY_ID);
         verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
         verifyNoMoreInteractions(apiKeyService);
-    }
-
-    private void mockExistingApplication(ApiKeyMode apiKeyMode) {
-        ApplicationEntity application = new ApplicationEntity();
-        application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
     }
 }

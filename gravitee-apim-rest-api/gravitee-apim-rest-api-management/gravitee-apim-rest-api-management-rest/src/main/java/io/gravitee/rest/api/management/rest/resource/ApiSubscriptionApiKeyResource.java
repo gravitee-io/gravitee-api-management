@@ -21,11 +21,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,17 +38,26 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 /**
  * @author GraviteeSource Team
  */
 @Tag(name = "API Keys")
-public class ApiSubscriptionApiKeyResource extends AbstractResource {
+public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
     private ApiKeyService apiKeyService;
+
+    @Inject
+    private SubscriptionService subscriptionService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -76,7 +88,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
-
+        checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
         ApiKeyEntity reactivated = apiKeyService.reactivate(executionContext, apiKeyEntity);
         return Response.ok().entity(reactivated).build();
     }
@@ -92,7 +104,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
         }
-
+        checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
         apiKeyService.revoke(executionContext, apiKeyEntity, true);
         return Response.noContent().build();
     }
@@ -116,8 +128,13 @@ public class ApiSubscriptionApiKeyResource extends AbstractResource {
                 .entity("'apikey' parameter in path does not correspond to the api-key id to update")
                 .build();
         }
-
-        ApiKeyEntity updatedKeyEntity = apiKeyService.update(GraviteeContext.getExecutionContext(), apiKey);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        if (subscriptionEntity == null) {
+            throw new SubscriptionNotFoundException(subscription);
+        }
+        checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
+        ApiKeyEntity updatedKeyEntity = apiKeyService.update(executionContext, apiKey);
         return Response.ok(updatedKeyEntity).build();
     }
 }

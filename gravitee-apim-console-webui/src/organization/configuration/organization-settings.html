@@ -79,7 +79,10 @@
         </li>
       </ul>
 
-      <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notificationTemplates.perm">
+      <div
+        class="aui-nav-heading"
+        ng-if="$ctrl.settingsMenu.tags.perm || $ctrl.settingsMenu.tenants.perm || $ctrl.settingsMenu.policies.perm"
+      >
         <strong>Gateway</strong>
       </div>
       <ul class="aui-nav">

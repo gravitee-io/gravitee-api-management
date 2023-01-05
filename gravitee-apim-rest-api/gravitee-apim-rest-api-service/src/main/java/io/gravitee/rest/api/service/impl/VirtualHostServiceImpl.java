@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 

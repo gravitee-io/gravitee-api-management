@@ -24,6 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
@@ -96,23 +97,37 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
         }
     }
 
-    protected void fixApis(ExecutionContext executionContext) throws Exception {
-        for (Api api : apiRepository.search(getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build())) {
-            io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                api.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
-            if (
-                apiDefinition.getProxy() != null &&
-                apiDefinition.getProxy().getLogging() != null &&
-                apiDefinition.getProxy().getLogging().getCondition() != null
-            ) {
-                String condition = apiDefinition.getProxy().getLogging().getCondition().trim();
-                if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
-                    fixLoggingCondition(executionContext, api, apiDefinition, condition);
+    protected void fixApis(ExecutionContext executionContext) {
+        apiRepository
+            .search(
+                getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+            .forEach(
+                api -> {
+                    try {
+                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                            api.getDefinition(),
+                            io.gravitee.definition.model.Api.class
+                        );
+
+                        if (
+                            apiDefinition.getProxy() != null &&
+                            apiDefinition.getProxy().getLogging() != null &&
+                            apiDefinition.getProxy().getLogging().getCondition() != null
+                        ) {
+                            String condition = apiDefinition.getProxy().getLogging().getCondition().trim();
+                            if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
+                                fixLoggingCondition(executionContext, api, apiDefinition, condition);
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Unable to fix logging condition for API {}", api.getId(), e);
+                        throw new RuntimeException(e);
+                    }
                 }
-            }
-        }
+            );
     }
 
     protected void fixLoggingCondition(

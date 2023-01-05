@@ -38,7 +38,7 @@ import javax.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 @Tag(name = "API Keys")
-public class ApplicationSubscriptionApiKeyResource extends AbstractResource {
+public class ApplicationSubscriptionApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -66,6 +66,7 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplicationSubscription() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkApplicationDoesntUseSharedApiKey(executionContext, application);
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();

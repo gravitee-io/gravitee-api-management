@@ -1,0 +1,22 @@
+{
+  "id": "my-api-id",
+  "name": "my-api",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  },
+  "flows": [],
+  "plans": [
+    {
+      "id": "plan-1",
+      "name": "Plan 1",
+      "status": "PUBLISHED",
+      "security": "OAUTH2",
+      "securityDefinition": "",
+      "tags": [],
+      "flows": []
+    }
+  ]
+}
