@@ -44,7 +44,8 @@ const computeCommitInfo = async (gitLogOutput) => {
 };
 
 echo(chalk.blue(`# Get feat & fix commits`));
-const allCommitsCmd = await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const allCommitsCmd =
+  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
 const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
