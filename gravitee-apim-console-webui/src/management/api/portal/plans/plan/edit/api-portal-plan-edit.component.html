@@ -17,10 +17,10 @@
 -->
 
 <h1>
-  <gio-go-back-button [ajsGo]="{ to: 'management.apis.detail.portal.ng-plans' }"></gio-go-back-button>
+  <gio-go-back-button [ajsGo]="{ to: 'management.apis.detail.portal.plans' }"></gio-go-back-button>
   Plan
 </h1>
-<form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
+<form *ngIf="planForm" [hidden]="isLoadingData" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
   <mat-card>
     <mat-stepper>
       <mat-step state="general" [stepControl]="planForm.get('general')">

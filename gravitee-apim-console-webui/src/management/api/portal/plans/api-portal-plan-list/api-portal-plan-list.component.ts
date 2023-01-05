@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { EMPTY, of, Subject } from 'rxjs';
 import { StateService } from '@uirouter/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
@@ -48,7 +48,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
   public plansTableDS: Plan[] = [];
   public isLoadingData = true;
-  public apiPlanStatus = PLAN_STATUS;
+  public apiPlanStatus: { name: PlanStatus; number: number }[] = PLAN_STATUS.map((status) => ({ name: status, number: 0 }));
   public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;
@@ -68,15 +68,20 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
 
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.plansService.getApiPlans(this.ajsStateParams.apiId, this.status)])
+    this.apiService
+      .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(([api, plans]) => {
-          this.onInit(api, plans);
+        tap((api) => {
+          this.api = api;
+          this.isV2Api = api && api.gravitee === '2.0.0';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
+
           if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
             this.displayedColumns.unshift('drag-icon');
           }
         }),
+        tap(() => this.onInit(this.status, true)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -92,18 +97,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
   public searchPlansByStatus(status: PlanStatus): void {
     this.status = status;
-
-    this.plansService
-      .getApiPlans(this.ajsStateParams.apiId, status)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap((plans) => this.onInit(this.api, plans)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-      )
-      .subscribe();
+    this.onInit(this.status);
   }
 
   public dropRow(event: CdkDragDrop<string[]>) {
@@ -124,17 +118,17 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return of({});
         }),
-        tap(() => this.searchPlansByStatus('PUBLISHED')),
+        tap(() => this.onInit(this.status)),
       )
       .subscribe();
   }
 
   public navigateToPlan(planId: string): void {
-    this.ajsState.go('management.apis.detail.portal.plans.plan', { planId });
+    this.ajsState.go('management.apis.detail.portal.plan.edit', { planId });
   }
 
   public navigateToNewPlan(): void {
-    this.ajsState.go('management.apis.detail.portal.plans.new');
+    this.ajsState.go('management.apis.detail.portal.plan.new');
   }
 
   public designPlan(planId: string): void {
@@ -171,7 +165,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         map((plan) => {
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
           this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'PUBLISHED' });
-          this.searchPlansByStatus('PUBLISHED');
+          this.onInit(this.status, true);
         }),
       )
       .subscribe();
@@ -207,7 +201,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         map((plan) => {
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
           this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'DEPRECATED' });
-          this.searchPlansByStatus('DEPRECATED');
+          this.onInit(this.status, true);
         }),
       )
       .subscribe();
@@ -263,19 +257,48 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         map((plan) => {
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
           this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'CLOSED' });
-          this.searchPlansByStatus('CLOSED');
+          this.onInit(this.status, true);
         }),
       )
       .subscribe();
   }
 
-  private onInit(api, plans) {
-    this.ajsState.go('management.apis.detail.portal.ng-plans.list', { status: this.status }, { notify: false });
-    this.api = api;
-    this.isV2Api = api && api.gravitee === '2.0.0';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
+  private onInit(selectedStatus: PlanStatus, fullReload = false): void {
+    // For full reload, we need to reset the number of plans for each status
+    const getApiPlan$ = fullReload
+      ? this.plansService.getApiPlans(this.ajsStateParams.apiId, [...PLAN_STATUS]).pipe(
+          map((plans) => {
+            // Update the number of plans for each status
+            const plansNumber = plans.reduce((acc, plan) => {
+              const status = plan.status.toUpperCase();
+              acc[status] = acc[status] ? acc[status] + 1 : 1;
+              return acc;
+            }, {} as Record<PlanStatus, number>);
 
-    this.plansTableDS = orderBy(plans, 'order', 'asc');
-    this.isLoadingData = false;
+            this.apiPlanStatus.forEach((plan) => {
+              plan.number = plansNumber[plan.name.toUpperCase()] ?? 0;
+            });
+
+            // Filter plans by status
+            return plans.filter((p) => p.status === selectedStatus);
+          }),
+        )
+      : this.plansService.getApiPlans(this.ajsStateParams.apiId, selectedStatus);
+
+    getApiPlan$
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((plans) => {
+          this.ajsState.go('management.apis.detail.portal.plans', { status: this.status }, { notify: false });
+
+          this.plansTableDS = orderBy(plans, 'order', 'asc');
+          this.isLoadingData = false;
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return of({});
+        }),
+      )
+      .subscribe();
   }
 }

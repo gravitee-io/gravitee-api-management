@@ -47,6 +47,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public mode: 'create' | 'edit' = 'create';
+  public isLoadingData = true;
 
   public planForm = new FormGroup({});
   public initialPlanFormValue: unknown;
@@ -151,7 +152,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
           return EMPTY;
         }),
       )
-      .subscribe(() => this.ajsState.go('management.apis.detail.portal.ng-plans'));
+      .subscribe(() => this.ajsState.go('management.apis.detail.portal.plans'));
   }
 
   private initPlanForm(value?: unknown) {
@@ -187,6 +188,7 @@ export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDest
       this.planForm.updateValueAndValidity();
     }
     this.initialPlanFormValue = this.planForm.getRawValue();
+    this.isLoadingData = false;
   }
 
   // Init flows with restriction step. Only used in create mode

@@ -18,11 +18,12 @@ import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { IScope } from 'angular';
 import { map } from 'rxjs/operators';
+import { castArray } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { Api } from '../entities/api';
-import { NewPlan, Plan } from '../entities/plan';
+import { NewPlan, Plan, PlanStatus } from '../entities/plan';
 
 @Injectable({
   providedIn: 'root',
@@ -34,11 +35,11 @@ export class PlanService {
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
   ) {}
 
-  public getApiPlans(apiId: string, status?: string, security?: string): Observable<Plan[]> {
+  public getApiPlans(apiId: string, status?: PlanStatus | PlanStatus[], security?: string): Observable<Plan[]> {
     let params = new HttpParams();
 
     if (status) {
-      params = params.append('status', status);
+      params = params.append('status', castArray(status).join(','));
     }
 
     if (security) {
@@ -48,6 +49,7 @@ export class PlanService {
     return this.http.get<Plan[]>(`${this.constants.env.baseURL}/apis/${apiId}/plans`, { params });
   }
 
+  // FIXME: after migration, remove broadcast and change api to apiId
   public update(api: Api, plan: Plan): Observable<Plan> {
     return this.http.put<Plan>(`${this.constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, plan).pipe(
       map((plan) => {

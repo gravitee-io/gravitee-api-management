@@ -80,14 +80,6 @@ import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-
 import DialogConfirmDeploymentController from '../management/api/deploy/confirmDeploymentDialog.controller';
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
-import ApiEditPlanController from '../management/api/portal/plans/plan/edit-plan.controller';
-import ApiEditPlanComponent from '../management/api/portal/plans/plan/edit-plan.component';
-import ApiListPlansComponent from '../management/api/portal/plans/list-plans.component';
-import ApiListPlansController from '../management/api/portal/plans/list-plans.controller';
-import ApiEditPlanWizardGeneralComponent from '../management/api/portal/plans/plan/plan-wizard-general.component';
-import ApiEditPlanWizardSecurityComponent from '../management/api/portal/plans/plan/plan-wizard-security.component';
-import ApiEditPlanWizardRestrictionsComponent from '../management/api/portal/plans/plan/plan-wizard-restrictions.component';
-import ApiEditPlanWizardPoliciesComponent from '../management/api/portal/plans/plan/plan-wizard-policies.component';
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
 // API Subscription
@@ -186,7 +178,6 @@ import DialogSubscriptionTransferController from './api/portal/subscriptions/dia
 import DialogSubscriptionChangeEndDateController from './api/portal/subscriptions/dialog/subscription.change.end.date.dialog.controller';
 import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
-import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
 import TagService from '../services/tag.service';
 import MetadataController from '../components/metadata/metadata.controller';
 import MetadataService from '../services/metadata.service';
@@ -740,7 +731,6 @@ graviteeManagementModule.controller('DialogSubscriptionCreateController', Dialog
 graviteeManagementModule.controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController);
 graviteeManagementModule.controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController);
 graviteeManagementModule.controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController);
-graviteeManagementModule.controller('DialogPublishPlanController', DialogPublishPlanController);
 graviteeManagementModule.controller('MetadataController', MetadataController);
 graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
 graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
@@ -883,14 +873,6 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 // Plan
 graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
-graviteeManagementModule.component('editPlan', ApiEditPlanComponent);
-graviteeManagementModule.controller('ApiEditPlanController', ApiEditPlanController);
-graviteeManagementModule.component('listPlans', ApiListPlansComponent);
-graviteeManagementModule.controller('ApiListPlansController', ApiListPlansController);
-graviteeManagementModule.component('planWizardGeneral', ApiEditPlanWizardGeneralComponent);
-graviteeManagementModule.component('planWizardSecurity', ApiEditPlanWizardSecurityComponent);
-graviteeManagementModule.component('planWizardPolicies', ApiEditPlanWizardPoliciesComponent);
-graviteeManagementModule.component('planWizardRestrictions', ApiEditPlanWizardRestrictionsComponent);
 
 // API subscriptions
 graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
