@@ -22,7 +22,7 @@
         <timeline-event side="right">
           <timeline-badge class="{{eventTimeline.badgeClass}}">
             <div class="api-history-timeline__timeline-badge-container">
-              <gv-icon shape="{{eventTimeline.badgeIconClass}}" class="api-history-timeline__timeline-badge-container__icon"> </gv-icon>
+              <gv-icon ng-prop-shape="eventTimeline.badgeIconClass" class="api-history-timeline__timeline-badge-container__icon"> </gv-icon>
             </div>
           </timeline-badge>
           <a class="timeline-link" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">

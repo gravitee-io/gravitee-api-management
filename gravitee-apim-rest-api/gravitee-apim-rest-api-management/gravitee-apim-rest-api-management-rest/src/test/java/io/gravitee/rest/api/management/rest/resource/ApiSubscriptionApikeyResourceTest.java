@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Set;
@@ -61,30 +62,23 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void delete_should_call_revoke_service_and_return_http_204() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
-
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setId(SUBSCRIPTION_ID);
-        existingApiKey.setSubscriptions(Set.of(subscription));
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        ApiKeyEntity apikey = mockExistingApiKey(application, subscription);
 
         Response response = envTarget().request().delete();
 
-        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), existingApiKey, true);
+        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apikey, true);
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void delete_should_return_http_400_when_apikey_on_another_subscription() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("another-subscription");
-        existingApiKey.setSubscriptions(Set.of(subscription));
-
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget().request().delete();
 
@@ -94,11 +88,13 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void delete_should_return_http_500_on_exception() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
         doThrow(TechnicalManagementException.class)
             .when(apiKeyService)
-            .revoke(eq(GraviteeContext.getExecutionContext()), any(String.class), any(Boolean.class));
+            .revoke(any(ExecutionContext.class), any(ApiKeyEntity.class), any(Boolean.class));
 
         Response response = envTarget().request().delete();
 
@@ -107,8 +103,6 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_return_http_400_if_entity_id_does_not_match() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
-
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("another-api-key-id");
 
@@ -119,7 +113,9 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_call_service_update_and_return_http_200() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
@@ -132,7 +128,9 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_return_http_500_on_exception() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
@@ -156,7 +154,9 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_return_http_400_when_its_a_shared_api_key() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.SHARED);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.SHARED);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
@@ -168,30 +168,23 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void post_on_reactivate_should_call_reactivate_service_and_return_http_200() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
-
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setId(SUBSCRIPTION_ID);
-        existingApiKey.setSubscriptions(Set.of(subscription));
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        ApiKeyEntity apiKey = mockExistingApiKey(application, subscription);
 
         Response response = envTarget("/_reactivate").request().post(null);
 
-        verify(apiKeyService, times(1)).reactivate(GraviteeContext.getExecutionContext(), existingApiKey);
+        verify(apiKeyService, times(1)).reactivate(GraviteeContext.getExecutionContext(), apiKey);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void post_on_reactivate_should_return_http_400_when_apikey_on_another_subscription() {
-        mockExistingSubscriptionWithApplication(ApiKeyMode.EXCLUSIVE);
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("another-subscription");
-        existingApiKey.setSubscriptions(Set.of(subscription));
-
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
 
         Response response = envTarget("/_reactivate").request().post(null);
 
@@ -199,13 +192,39 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
-    private void mockExistingSubscriptionWithApplication(ApiKeyMode apiKeyMode) {
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setApplication(APPLICATION_ID);
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+    @Test
+    public void post_on_reactivate_should_return_http_400_when_its_a_shared_api_key() {
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.SHARED);
+        SubscriptionEntity subscription = mockExistingSubscription();
+        mockExistingApiKey(application, subscription);
 
+        Response response = envTarget("/_reactivate").request().post(null);
+
+        verify(apiKeyService, never()).reactivate(eq(GraviteeContext.getExecutionContext()), any(ApiKeyEntity.class));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    private ApplicationEntity mockExistingApplication(ApiKeyMode apiKeyMode) {
         ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
         application.setApiKeyMode(apiKeyMode);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        return application;
+    }
+
+    private SubscriptionEntity mockExistingSubscription() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+        return subscription;
+    }
+
+    private ApiKeyEntity mockExistingApiKey(ApplicationEntity application, SubscriptionEntity subscription) {
+        ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setApplication(application);
+        apiKey.setSubscriptions(Set.of(subscription));
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(apiKey);
+        return apiKey;
     }
 }

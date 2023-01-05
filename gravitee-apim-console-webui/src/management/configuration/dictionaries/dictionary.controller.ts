@@ -107,6 +107,11 @@ class DictionaryController {
   }
 
   $onInit() {
+    // If provider method isn't defined then set it to GET by default (same behavior as in the backend)
+    if (this.dictionary?.provider?.configuration) {
+      this.dictionary.provider.configuration.method = this.dictionary.provider.configuration.method ?? 'GET';
+    }
+
     this.updateMode = this.dictionary && this.dictionary.id;
     this.initialDictionary = _.cloneDeep(this.dictionary);
     this.dictProperties = this.computeProperties();

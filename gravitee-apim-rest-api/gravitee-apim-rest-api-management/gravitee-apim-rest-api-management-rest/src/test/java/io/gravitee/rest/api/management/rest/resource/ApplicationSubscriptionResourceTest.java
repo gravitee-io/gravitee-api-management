@@ -88,7 +88,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         JsonNode responseBody = response.readEntity(JsonNode.class);
-        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
+        assertEquals(PlanSecurityType.OAUTH2.name(), responseBody.get("plan").get("security").asText());
     }
 
     @Test

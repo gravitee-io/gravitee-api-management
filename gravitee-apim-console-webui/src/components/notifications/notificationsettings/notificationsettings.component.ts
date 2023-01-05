@@ -113,7 +113,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     this.delete = () => {
       const alert = this.$mdDialog.confirm({
         title: 'Warning',
-        content: 'Are you sure you want to remove this notification?',
+        textContent: 'Are you sure you want to remove this notification?',
         ok: 'OK',
         cancel: 'Cancel',
       });

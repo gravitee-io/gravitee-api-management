@@ -146,7 +146,7 @@ class ApplicationSubscribeController {
   onUnsubscribe(api, plan) {
     const alert = this.$mdDialog.confirm({
       title: 'Close subscription?',
-      content: 'Are you sure you want to close this subscription?',
+      textContent: 'Are you sure you want to close this subscription?',
       ok: 'CLOSE',
       cancel: 'CANCEL',
     });

@@ -15,25 +15,45 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Failover;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.LoadBalancerType;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingContent;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -479,16 +499,6 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(group);
     }
 
-    private void checkHeader(List<HttpHeader> headers, String headerName, String headerValue) {
-        Assert.assertNotNull(headers);
-        List<HttpHeader> expectedHeaders = headers
-            .stream()
-            .filter(httpHeader -> headerName.equals(httpHeader.getName()))
-            .collect(Collectors.toList());
-        assertEquals(expectedHeaders.size(), 1);
-        assertEquals(headerValue, expectedHeaders.get(0).getValue());
-    }
-
     @Test
     public void definition_withResponseTemplates() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-response-templates.json", Api.class);
@@ -673,5 +683,13 @@ public class ApiDeserializerTest extends AbstractTest {
         assertNotNull(definitionContext);
         assertEquals(DefinitionContext.ORIGIN_KUBERNETES, definitionContext.getOrigin());
         assertEquals(DefinitionContext.MODE_FULLY_MANAGED, definitionContext.getMode());
+    }
+
+    @Test
+    public void shouldSetPlanApiFromApiId() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-plan-without-apiId.json", Api.class);
+
+        assertEquals(1, api.getPlans().size());
+        assertEquals("my-api-id", api.getPlans().get(0).getApi());
     }
 }

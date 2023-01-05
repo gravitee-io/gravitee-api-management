@@ -124,12 +124,7 @@ public interface ApiService {
 
     Collection<ApiEntity> search(ExecutionContext executionContext, ApiQuery query);
 
-    Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query);
-
-    default Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters)
-        throws TechnicalException {
-        return searchIds(executionContext, query, filters, null);
-    }
+    Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable);
 
     Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
         throws TechnicalException;

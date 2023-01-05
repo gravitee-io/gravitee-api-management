@@ -15,15 +15,17 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,35 +33,38 @@ import java.util.List;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AlertService_FindAllTest {
-
-    @InjectMocks
-    private AlertServiceImpl alertService = new AlertServiceImpl();
-
-    @Mock
-    private AlertTriggerRepository alertTriggerRepository;
-
-    @Mock
-    private AlertTriggerConverter alertTriggerConverter;
+public class AlertService_FindAllTest extends AlertServiceTest {
 
     @Test
-    public void findAll_should_find() throws TechnicalException {
-        Set<AlertTrigger> alertsTriggers = new HashSet<>();
-        List<AlertTriggerEntity> alertTriggerEntities = new ArrayList<>();
-        when(alertTriggerRepository.findAll()).thenReturn(alertsTriggers);
-        when(alertTriggerConverter.toAlertTriggerEntities(eq(new ArrayList<>(alertsTriggers)))).thenReturn(alertTriggerEntities);
+    public void findAll_should_find() throws TechnicalException, JsonProcessingException {
+        NewAlertTriggerEntity newAlertTriggerEntity1 = getNewAlertTriggerEntity();
+        NewAlertTriggerEntity newAlertTriggerEntity2 = getNewAlertTriggerEntity();
+        NewAlertTriggerEntity newAlertTriggerEntity3 = getNewAlertTriggerEntity();
 
-        List<AlertTriggerEntity> result = alertService.findAll();
+        Set<AlertTrigger> alertTriggers = Set.of(
+            getAlertTriggerFromNew(newAlertTriggerEntity1),
+            getAlertTriggerFromNew(newAlertTriggerEntity2),
+            getAlertTriggerFromNew(newAlertTriggerEntity3)
+        );
 
-        assertSame(alertTriggerEntities, result);
+        when(alertTriggerRepository.findAll()).thenReturn(alertTriggers);
+
+        List<AlertTriggerEntity> results = alertService.findAll();
+
+        results
+            .stream()
+            .map(AlertTriggerEntity::getId)
+            .forEach(
+                id -> {
+                    assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id)));
+                }
+            );
     }
 
     @Test(expected = TechnicalManagementException.class)

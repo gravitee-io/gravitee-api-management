@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -37,6 +38,7 @@ import javax.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -117,5 +119,12 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         final Collection<ApplicationListItem> applicationsResponse = response.readEntity(new GenericType<>() {});
         assertNotNull(applicationsResponse);
         assertEquals(0, applicationsResponse.size());
+    }
+
+    @Test
+    public void shouldNotFilterOnSubscriptionStatus() {
+        envTarget(API_ID).path("subscribers").request().get();
+        verify(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
     }
 }

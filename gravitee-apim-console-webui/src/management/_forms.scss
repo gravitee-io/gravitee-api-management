@@ -87,7 +87,8 @@
   }
 }
 .gv-forms.gv-forms-fluid {
-  max-width: 100%;
+  max-width: 0;
+  min-width: 100%;
 }
 
 .custom-user-fields-values {

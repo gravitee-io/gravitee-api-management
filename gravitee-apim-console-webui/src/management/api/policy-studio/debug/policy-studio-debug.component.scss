@@ -4,7 +4,7 @@
 .policy-studio-debug {
   display: flex;
   flex-direction: row;
-  min-height: 100%;
+  height: var(--gv-policy-studio--h);
 
   &__request {
     flex: 0 1 356px;

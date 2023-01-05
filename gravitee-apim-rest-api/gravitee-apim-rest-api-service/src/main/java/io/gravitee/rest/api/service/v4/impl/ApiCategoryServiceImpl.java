@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -64,7 +65,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     @Override
     public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[0])).build();
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
             Set<String> categoryIds = apiRepository.listCategories(criteria);
             return categoryService.findByIdIn(environment, categoryIds);
         } catch (TechnicalException ex) {
@@ -76,7 +77,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
     @Override
     public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
         apiRepository
-            .search(new ApiCriteria.Builder().category(categoryId).build())
+            .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
             .forEach(api -> removeCategory(executionContext, api, categoryId));
     }
 

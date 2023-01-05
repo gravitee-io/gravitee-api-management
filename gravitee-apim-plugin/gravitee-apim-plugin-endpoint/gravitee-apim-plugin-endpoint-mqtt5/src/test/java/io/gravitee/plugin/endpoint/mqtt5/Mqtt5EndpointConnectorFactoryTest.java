@@ -32,7 +32,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Mqtt5EndpointConnectorFactoryTest {
+class Mqtt5EndpointConnectorFactoryTest {
 
     private Mqtt5EndpointConnectorFactory mqtt5EndpointConnectorFactory;
     private DeploymentContext deploymentContext;

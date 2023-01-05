@@ -22,18 +22,15 @@
   display: flex;
   flex-direction: column;
 
-  &__title {
-    width: 266px;
-    padding: 8px;
-    background: map.get(gio.$mat-space-palette, default);
-    color: map.get(gio.$mat-dove-palette, default);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   &__menu {
     z-index: 70;
     flex: 1 1 auto;
+
+    &__title {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }

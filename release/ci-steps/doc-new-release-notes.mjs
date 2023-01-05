@@ -13,9 +13,40 @@ const docApimChangelogFile = `${docApimChangelogFolder}changelog-${versions.trim
 
 const gitBranch = `release-apim-${releasingVersion}`;
 
+const computeCommitInfo = async (gitLogOutput) => {
+  const commitLines = gitLogOutput.trim().split('\n');
+  const fetchPrInfo = [];
+  for (const commitLine of commitLines) {
+    const commitHash = commitLine.substring(0, commitLine.indexOf(' '));
+    const commitMessage = commitLine.substring(commitLine.indexOf(' ') + 1);
+    try {
+      const foundPRCmd = await $`gh pr list --search "${commitHash}" --state merged --json url,title,number --jq '.[0]'`;
+      fetchPrInfo.push({
+        ...JSON.parse(foundPRCmd.stdout),
+        commitMessage,
+      });
+    } catch (error) {
+      console.error('🚨 Error while searching PR for commit', commitHash, error);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return Array.from(
+    fetchPrInfo
+      // Group by PR number
+      .reduce((entryMap, e) => entryMap.set(e, [...(entryMap.get(e.number) || []), e]), new Map())
+      .values(),
+  ).map((pr) => {
+    const info = pr[0].title ? `### [${pr[0].title} [${pr[0].number}]](${pr[0].url})\n` : '### Commit without found PR\n';
+
+    return info + pr.map((c) => `- ${c.commitMessage}`).join('\n');
+  });
+};
+
 echo(chalk.blue(`# Get feat & fix commits`));
-const allFeatCommits = await $`git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline --grep "^feat\\|^perf"`;
-const allFixCommits = await $`git log $(git describe --tags --abbrev=0)..HEAD --no-merges --oneline --grep "^fix"`;
+const allCommitsCmd =
+  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
 await $`mkdir -p changelog`;
@@ -116,29 +147,24 @@ const prBody = `
 # New APIM version ${releasingVersion} has been released
 📝 You can modify the changelog template online [here](https://github.com/gravitee-io/gravitee-docs/edit/${gitBranch}/${docApimChangelogFile})
 
-Here is some information to help with the writing: 
+Here is some information to help with the writing:
 
-## Commit messages 
+## Pull requests
 <details>
-  <summary>See all feats commit</summary>
+  <summary>See all Pull Requests</summary>
 
-${allFeatCommits.stdout}
+${prInfo}
 
-</details>
-
-<details>
-  <summary>See all fixs commit</summary>
-
-${allFixCommits.stdout}
 </details>
 
 ## Jira issues
 
-[See all Jira issues for ${versions.branch} version](https://gravitee.atlassian.net/jira/software/c/projects/APIM/issues/?jql=project%20%3D%20%22APIM%22%20and%20fixVersion%20%3D%20${versions.branch}%20and%20status%20%3D%20Done%20ORDER%20BY%20created%20DESC)
+[See all Jira issues for ${versions.branch} version](https://gravitee.atlassian.net/jira/software/c/projects/APIM/issues/?jql=project%20%3D%20%22APIM%22%20and%20fixVersion%20%3D%20${releasingVersion}%20and%20status%20%3D%20Done%20ORDER%20BY%20created%20DESC)
 `;
 echo(chalk.blue('# Create PR on Github Doc repository'));
 echo(prBody);
 process.env.PR_BODY = prBody;
 
-const releaseNotesPrUrl = await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
+const releaseNotesPrUrl =
+  await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
 $`echo ${releaseNotesPrUrl.stdout} > /tmp/releaseNotesPrUrl.txt`;

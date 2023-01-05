@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
@@ -152,10 +153,21 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<String> processApiRegisterEvents(Flowable<Event> upstream) {
         return upstream
             .flatMapMaybe(this::toApiDefinition)
-            .filter(reactableApi -> apiManager.requireDeployment(reactableApi))
-            .compose(this::fetchApiPlans)
-            .compose(this::fetchKeysAndSubscriptions)
-            .compose(this::registerApi);
+            .<ActionOnApi, ReactableApi<?>>groupBy(reactableApi -> apiManager.requiredActionFor(reactableApi), reactableApi -> reactableApi)
+            .flatMap(
+                groupedFlowable -> {
+                    if (groupedFlowable.getKey() == ActionOnApi.DEPLOY) {
+                        return groupedFlowable
+                            .compose(this::fetchApiPlans)
+                            .compose(this::fetchKeysAndSubscriptions)
+                            .compose(this::registerApi);
+                    } else if (groupedFlowable.getKey() == ActionOnApi.UNDEPLOY) {
+                        return groupedFlowable.map(ReactableApi::getId).compose(this::unRegisterApi);
+                    } else {
+                        return groupedFlowable.map(ReactableApi::getId);
+                    }
+                }
+            );
     }
 
     /**

@@ -44,7 +44,7 @@
           <timeline-event ng-repeat="apiStep in $ctrl.apiSteps" side="right">
             <timeline-badge class="{{apiStep.badgeClass}}">
               <div class="api-creation__timeline-badge-container">
-                <gv-icon shape="{{apiStep.badgeIconClass}}" class="api-creation__timeline-badge-container__icon"> </gv-icon>
+                <gv-icon ng-prop-shape="apiStep.badgeIconClass" class="api-creation__timeline-badge-container__icon"></gv-icon>
               </div>
             </timeline-badge>
             <timeline-panel class="{{apiStep.badgeClass}}">

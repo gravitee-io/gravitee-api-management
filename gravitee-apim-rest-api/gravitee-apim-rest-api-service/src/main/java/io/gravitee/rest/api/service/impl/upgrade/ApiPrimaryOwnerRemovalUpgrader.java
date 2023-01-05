@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -27,7 +28,14 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -102,17 +110,29 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
     private void checkOrganization(String organizationId) throws TechnicalException {
         String apiPrimaryOwnerRoleId = findApiPrimaryOwnerRoleId(organizationId);
         List<String> environmentIds = findEnvironmentIds(organizationId);
-        List<String> apiIds = apiRepository.searchIds(new ApiCriteria.Builder().environments(environmentIds).build());
-        List<String> unCorruptedApiIds = findApiPrimaryOwnerReferenceIds(apiPrimaryOwnerRoleId, apiIds);
-        if (shouldFix(apiIds, unCorruptedApiIds)) {
-            ArrayList<String> corruptedApiIds = new ArrayList<>(apiIds);
-            corruptedApiIds.removeAll(unCorruptedApiIds);
+        ArrayList<String> corruptedApiIds = new ArrayList<>();
+
+        int page = 0;
+        int size = 100;
+        Pageable pageable = new PageableBuilder().pageNumber(page).pageSize(size).build();
+        Sortable sortable = new SortableBuilder().field("updated_at").order(Order.DESC).build();
+
+        List<String> apiIds = apiRepository
+            .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
+            .getContent();
+
+        while (!apiIds.isEmpty()) {
+            corruptedApiIds.addAll(findCorruptedApiIds(apiPrimaryOwnerRoleId, apiIds));
+            pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
+            apiIds =
+                apiRepository
+                    .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
+                    .getContent();
+        }
+
+        if (!corruptedApiIds.isEmpty()) {
             warnOrFix(corruptedApiIds, apiPrimaryOwnerRoleId);
         }
-    }
-
-    private boolean shouldFix(List<String> apiIds, List<String> unCorruptedApiIds) {
-        return apiIds.size() > unCorruptedApiIds.size();
     }
 
     private void warnOrFix(List<String> apiIds, String apiPrimaryOwnerRoleId) throws TechnicalException {
@@ -174,12 +194,15 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader, Ordered {
         return environmentRepository.findByOrganization(organizationId).stream().map(Environment::getId).collect(toList());
     }
 
-    private List<String> findApiPrimaryOwnerReferenceIds(String apiPrimaryOwnerRoleId, List<String> apiIds) throws TechnicalException {
-        return membershipRepository
+    private List<String> findCorruptedApiIds(String apiPrimaryOwnerRoleId, List<String> apiIds) throws TechnicalException {
+        List<String> apiIdWithPrimaryOwner = membershipRepository
             .findByReferencesAndRoleId(MembershipReferenceType.API, apiIds, apiPrimaryOwnerRoleId)
             .stream()
             .map(Membership::getReferenceId)
             .collect(toList());
+        List<String> corruptedApiIds = new ArrayList<>(apiIds);
+        corruptedApiIds.removeAll(apiIdWithPrimaryOwner);
+        return corruptedApiIds;
     }
 
     private Membership prepareMembership(String poRoleId) throws TechnicalException {

@@ -345,7 +345,7 @@ public class PlanEntity implements GenericPlanEntity {
     public PlanSecurity getPlanSecurity() {
         PlanSecurity planSecurity = new PlanSecurity();
         if (security != null) {
-            planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(security.name()).getLabel());
+            planSecurity.setType(PlanSecurityType.valueOf(security.name()).name());
         }
         planSecurity.setConfiguration(securityDefinition);
         return planSecurity;

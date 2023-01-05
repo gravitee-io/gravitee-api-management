@@ -21,7 +21,7 @@
       <div ng-repeat="eventTimeline in apiEventsCtrl.eventsTimeline">
         <timeline-event>
           <timeline-badge class="{{eventTimeline.badgeClass}}">
-            <gv-icon class="api-events-timeline__timeline-icon" shape="{{eventTimeline.badgeIconClass}}"> </gv-icon>
+            <gv-icon class="api-events-timeline__timeline-icon" ng-prop-shape="eventTimeline.badgeIconClass"> </gv-icon>
           </timeline-badge>
           <timeline-panel class="{{eventTimeline.badgeClass}}">
             <timeline-heading>

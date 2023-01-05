@@ -15,14 +15,8 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4;
 
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
@@ -42,11 +36,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.GenericRequest;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -241,10 +231,12 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             .chainWithIf(executeProcessorChain(ctx, onMessageProcessors, MESSAGE_RESPONSE), isEventNative)
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
-            // Platform post flows must always be executed.
-            .chainWith(platformFlowChain.execute(ctx, RESPONSE))
-            .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
-            .chainWith(upstream -> timeout(upstream, ctx))
+            // Platform post flows must always be executed (whatever timeout or error).
+            .chainWith(
+                new CompletableReactorChain(platformFlowChain.execute(ctx, RESPONSE))
+                    .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
+                    .chainWith(upstream -> timeout(upstream, ctx))
+            )
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
             // Catch possible unexpected errors before executing after Handle Processors
@@ -367,9 +359,10 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         );
     }
 
-    private void setApiResponseTimeMetric(ExecutionContext ctx) {
-        if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-            ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
+    private void setApiResponseTimeMetric(final ExecutionContext ctx) {
+        final Metrics metrics = ctx.request().metrics();
+        if (metrics.getApiResponseTimeMs() > Integer.MAX_VALUE) {
+            metrics.setApiResponseTimeMs(System.currentTimeMillis() - metrics.getApiResponseTimeMs());
         }
     }
 

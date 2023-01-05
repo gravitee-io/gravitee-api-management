@@ -34,6 +34,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Comparator.comparing;
 import static java.util.Optional.of;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -62,11 +64,11 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiFieldInclusionFilter;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Audit;
@@ -224,6 +226,7 @@ import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -853,7 +856,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     getDefaultApiCriteriaBuilder()
                         .environmentId(executionContext.getEnvironmentId())
                         .visibility(Visibility.valueOf(visibility.name()))
-                        .build()
+                        .build(),
+                    ApiFieldFilter.allFields()
                 )
             )
         );
@@ -865,7 +869,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return new HashSet<>(
             convert(
                 executionContext,
-                apiRepository.search(getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build())
+                apiRepository.search(
+                    getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
+                    ApiFieldFilter.allFields()
+                )
             )
         );
     }
@@ -873,16 +880,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition) {
         LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", executionContext.getEnvironmentId());
-        final ApiFieldExclusionFilter.Builder exclusionFilterBuilder = new ApiFieldExclusionFilter.Builder().excludePicture();
+        final ApiFieldFilter.Builder apiFieldFilterBuilder = new ApiFieldFilter.Builder().excludePicture();
         if (excludeDefinition) {
-            exclusionFilterBuilder.excludeDefinition();
+            apiFieldFilterBuilder.excludeDefinition();
         }
         return new HashSet<>(
             convert(
                 executionContext,
                 apiRepository.search(
                     getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
-                    exclusionFilterBuilder.build()
+                    apiFieldFilterBuilder.build()
                 )
             )
         );
@@ -1991,7 +1998,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     queryToCriteria(executionContext, query).build(),
                     convert(sortable),
                     convert(pageable),
-                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                    new ApiFieldFilter.Builder().excludePicture().build()
                 )
             );
         } catch (TechnicalException ex) {
@@ -2024,28 +2031,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             query.setIds(targetIds);
         }
 
-        List<Api> apis = apiRepository.search(queryToCriteria(executionContext, query).build());
+        List<Api> apis = apiRepository.search(queryToCriteria(executionContext, query).build(), ApiFieldFilter.allFields());
         return this.convert(executionContext, apis);
     }
 
     @Override
-    public Collection<String> searchIds(ExecutionContext executionContext, ApiQuery query) {
+    public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
         try {
             LOGGER.debug("Search API ids by {}", query);
-            Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
-
-            if (optionalTargetIds.isPresent()) {
-                Collection<String> targetIds = optionalTargetIds.get();
-                if (targetIds.isEmpty()) {
-                    return Collections.emptySet();
-                }
-                query.setIds(targetIds);
-            }
-
-            return apiRepository.searchIds(queryToCriteria(executionContext, query).build());
+            ApiCriteria apiCriteria = queryToCriteria(executionContext, query).build();
+            return apiRepository.searchIds(List.of(apiCriteria), convert(pageable), convert(sortable));
         } catch (Exception ex) {
             final String errorMessage = "An error occurs while trying to search for API ids: " + query;
-            LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
         }
     }
@@ -2612,7 +2609,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Comparator<String> orderingComparator = Comparator.comparingInt(subsetApiIds::indexOf);
         List<ApiEntity> subsetApis = subsetApiIds.isEmpty()
             ? emptyList()
-            : convert(executionContext, apiRepository.search(queryToCriteria(executionContext, null).ids(subsetApiIds).build()));
+            : convert(
+                executionContext,
+                apiRepository.search(queryToCriteria(executionContext, null).ids(subsetApiIds).build(), ApiFieldFilter.allFields())
+            );
         subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
     }
@@ -2644,50 +2644,47 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
-        ApiCriteria criteria = getDefaultApiCriteriaBuilder()
-            .visibility(PUBLIC)
-            .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-            .build();
-        ApiFieldInclusionFilter filter = ApiFieldInclusionFilter.builder().includeCategories().build();
+        List<ApiCriteria> criteriaList = new ArrayList<>();
+        // Find all Public and published APIs
+        criteriaList.add(getDefaultApiCriteriaBuilder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build());
 
-        Set<Api> apis = apiRepository.search(criteria, filter);
+        // if user is not anonymous
+        if (userId != null) {
+            // Find all Published APIs for which the user is a member
+            List<String> userMembershipApiIds = getUserMembershipApiIds(userId);
+            if (!userMembershipApiIds.isEmpty()) {
+                criteriaList.add(
+                    getDefaultApiCriteriaBuilder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userMembershipApiIds).build()
+                );
+            }
 
-        apis.addAll(findUserApis(userId, filter));
-
-        Set<String> categories = apis.stream().map(Api::getCategories).filter(Objects::nonNull).flatMap(Set::stream).collect(toSet());
-
-        HashMap<String, Long> groups = new HashMap<>();
-
-        for (String category : categories) {
-            groups.put(category, categoryService.getTotalApisByCategoryId(apis, category));
+            // Find all Published APIs for which the user is a member of a group
+            List<String> userGroupIdsWithApiRole = getUserGroupIdsWithApiRole(userId);
+            if (!userGroupIdsWithApiRole.isEmpty()) {
+                criteriaList.add(
+                    getDefaultApiCriteriaBuilder()
+                        .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                        .groups(userGroupIdsWithApiRole)
+                        .build()
+                );
+            }
         }
 
-        return groups;
+        Page<String> foundApiIds = apiRepository.searchIds(criteriaList, new PageableBuilder().pageSize(Integer.MAX_VALUE).build(), null);
+
+        if (foundApiIds.getContent() == null || foundApiIds.getContent().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return apiRepository
+            .search(getDefaultApiCriteriaBuilder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
+            .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
+            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
+            .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
     }
 
-    private Set<Api> findUserApis(String userId, ApiFieldInclusionFilter filter) {
-        if (userId == null) {
-            return Set.of();
-        }
-
-        HashSet<Api> apis = new HashSet<>();
-
-        final String[] userApiIds = membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-            .stream()
-            .map(MembershipEntity::getReferenceId)
-            .toArray(String[]::new);
-
-        if (userApiIds.length > 0) {
-            ApiCriteria criteria = getDefaultApiCriteriaBuilder()
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .ids(userApiIds)
-                .build();
-            Set<Api> userApis = apiRepository.search(criteria, filter);
-            apis.addAll(userApis);
-        }
-
-        final String[] groupIds = membershipService
+    private List<String> getUserGroupIdsWithApiRole(String userId) {
+        return membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
             .stream()
             .filter(
@@ -2697,18 +2694,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             )
             .map(MembershipEntity::getReferenceId)
-            .toArray(String[]::new);
+            .collect(toList());
+    }
 
-        if (groupIds.length > 0 && groupIds[0] != null) {
-            ApiCriteria criteria = getDefaultApiCriteriaBuilder()
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .groups(groupIds)
-                .build();
-            Set<Api> groupApis = apiRepository.search(criteria, filter);
-            apis.addAll(groupApis);
-        }
-
-        return apis;
+    private List<String> getUserMembershipApiIds(String userId) {
+        return membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(toList());
     }
 
     @NotNull

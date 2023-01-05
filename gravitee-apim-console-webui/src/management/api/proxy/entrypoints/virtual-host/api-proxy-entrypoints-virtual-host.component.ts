@@ -36,15 +36,16 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   @Output()
   public apiProxySubmit = new EventEmitter<Api['proxy']>();
 
-  public virtualHostsFormArray: FormArray;
+  public virtualHostsForm: FormGroup;
+  private get virtualHostsFormArray(): FormArray {
+    return this.virtualHostsForm.get('virtualHosts') as FormArray;
+  }
 
   public get virtualHostsTableData(): unknown[] {
     // Create new array to trigger change detection
     return [...(this.virtualHostsFormArray?.controls ?? [])];
   }
   public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
-
-  public hostPattern: string;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
@@ -76,12 +77,15 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   }
 
   onResetClicked() {
-    // Nedded to re init all form controls
+    // Needed to re init all form controls
     this.initForm(this.apiProxy);
   }
 
   private initForm(apiProxy: Api['proxy']) {
-    this.virtualHostsFormArray = new FormArray([...apiProxy.virtual_hosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]);
+    // Wrap form array in a form group because angular doesn't support form array as root form control
+    this.virtualHostsForm = new FormGroup({
+      virtualHosts: new FormArray([...apiProxy.virtual_hosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]),
+    });
   }
 
   private newVirtualHostFormGroup(virtualHost?: Api['proxy']['virtual_hosts'][number]) {
@@ -93,7 +97,7 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
           value: hostObj.host ?? '',
           disabled: this.readOnly,
         },
-        [Validators.required, hostValidator(this.domainRestrictions)],
+        [hostValidator(this.domainRestrictions)],
       ),
       hostDomain: new FormControl(
         {
@@ -129,16 +133,22 @@ const hostValidator = (domainRestrictions: string[] = []): ValidatorFn => {
 
     const fullHost = hostControl?.value + domainControl?.value;
 
-    if (!fullHost || isEmpty(domainRestrictions)) {
-      // do not validate if domainRestrictions are not set or if host is empty
-      return null;
+    // When no domain restriction, host is required
+    if (isEmpty(domainRestrictions) && !hostControl?.value) {
+      const errors = { required: 'true' };
+      hostControl.setErrors(errors);
+      return errors;
     }
-    const isValid = domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
 
-    const errors = isValid ? null : { host: 'true' };
-
-    hostControl.setErrors(errors);
-    return errors;
+    if (!isEmpty(domainRestrictions)) {
+      const isValid = domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
+      const errors = isValid ? null : { host: 'true' };
+      hostControl.setErrors(errors);
+      return errors;
+    }
+    hostControl.setErrors(null);
+    domainControl.setErrors(null);
+    return null;
   };
 };
 
@@ -147,10 +157,10 @@ const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []
   let hostDomain = '';
 
   if (!isEmpty(domainRestrictions)) {
-    hostDomain = domainRestrictions.find((domain) => fullHost.endsWith(`.${domain}`));
+    hostDomain = fullHost && domainRestrictions.find((domain) => fullHost.endsWith(`${domain}`));
 
     if (hostDomain) {
-      host = fullHost.replace(new RegExp(`\\.${escapeRegExp(hostDomain)}$`), '');
+      host = fullHost.replace(new RegExp(`\\.?${escapeRegExp(hostDomain)}$`), '');
     }
   }
 
@@ -160,6 +170,9 @@ const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []
 const combineHostWithDomain = (host: string, hostDomain: string): string => {
   if (isEmpty(hostDomain)) {
     return host;
+  }
+  if (isEmpty(host)) {
+    return hostDomain;
   }
   return `${host}.${hostDomain}`;
 };

@@ -63,17 +63,17 @@ public class PageService_DuplicatePagesTest {
     @Test
     public void shouldDuplicatePages() throws TechnicalException {
         PageEntity page1 = new PageEntity();
-        page1.setId(UuidString.generateRandom());
+        page1.setId("page-1-id");
         page1.setName("Page 1");
         page1.setType("SWAGGER");
 
         PageEntity page2 = new PageEntity();
-        page2.setId(UuidString.generateRandom());
+        page2.setId("page-2-id");
         page2.setName("Page 2");
         page2.setType("MARKDOWN");
 
         PageEntity page3 = new PageEntity();
-        page3.setId(UuidString.generateRandom());
+        page3.setId("page-3-id");
         page3.setName("Sub Page 3");
         page3.setType("ASCIIDOC");
         page3.setParentId(page2.getId());
@@ -82,7 +82,11 @@ public class PageService_DuplicatePagesTest {
 
         when(pageConverter.toNewPageEntity(any(), eq(true))).thenCallRealMethod();
 
-        pageService.duplicatePages(GraviteeContext.getExecutionContext(), List.of(page1, page2, page3), API_ID);
+        Map<String, String> pagesIds = pageService.duplicatePages(
+            GraviteeContext.getExecutionContext(),
+            List.of(page1, page2, page3),
+            API_ID
+        );
 
         verify(pageRepository, times(3)).create(pageCaptor.capture());
 
@@ -94,5 +98,11 @@ public class PageService_DuplicatePagesTest {
 
         // New parent id of page 3 must be new id of page 2
         assertThat(createdPages.get(2)).extracting(Page::getParentId).isEqualTo(createdPages.get(1).getId());
+
+        // check resulting IDs map
+        assertThat(pagesIds.size()).isEqualTo(3);
+        assertThat(pagesIds.get(page1.getId())).isEqualTo("cb782a1f-ca8c-365c-9de6-15993c26f258");
+        assertThat(pagesIds.get(page2.getId())).isEqualTo("b928ef47-7b6a-31ff-b4e4-9d96f993ed39");
+        assertThat(pagesIds.get(page3.getId())).isEqualTo("eb983cee-8ad0-315a-91d2-6422980b1a6a");
     }
 }

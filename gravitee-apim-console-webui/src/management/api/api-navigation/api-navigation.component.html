@@ -17,16 +17,23 @@
 -->
 <div class="api-navigation">
   <div class="api-navigation__menu">
-    <api-navigation-title
-      *ngIf="hasTitle"
-      [apiName]="this.apiName"
-      [apiVersion]="this.apiVersion"
-      [apiState]="this.apiState"
-      [apiLifecycleState]="this.apiLifecycleState"
-      [apiIsSync]="this.apiIsSync"
-      [apiOrigin]="this.apiOrigin"
-    ></api-navigation-title>
     <gio-submenu class="api-navigation__submenu">
+      <api-navigation-title
+        gioSubmenuTitle
+        [apiName]="this.apiName"
+        [apiVersion]="this.apiVersion"
+        [apiState]="this.apiState"
+        [apiLifecycleState]="this.apiLifecycleState"
+        [apiIsSync]="this.apiIsSync"
+        [apiOrigin]="this.apiOrigin"
+      ></api-navigation-title>
+      <span *ngIf="this.bannerState !== 'close'" class="gio-badge-accent api-navigation__submenu__banner">
+        <mat-icon class="api-navigation__submenu__banner__icon" svgIcon="gio:arrow-down"></mat-icon>
+        <b class="api-navigation__submenu__banner__message">Design and Messages are now easier to access</b>
+        <button mat-icon-button class="api-navigation__submenu__banner__button" aria-label="Close" (click)="closeBanner()">
+          <mat-icon svgIcon="gio:cancel"></mat-icon>
+        </button>
+      </span>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <gio-submenu-item
           *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"
