@@ -144,7 +144,7 @@ export class ApiNavigationComponent implements OnInit {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
         targetRoute: 'management.apis.detail.portal.plans',
-        baseRoute: 'management.apis.detail.portal.plans',
+        baseRoute: ['management.apis.detail.portal.plans', 'management.apis.detail.portal.plan'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
