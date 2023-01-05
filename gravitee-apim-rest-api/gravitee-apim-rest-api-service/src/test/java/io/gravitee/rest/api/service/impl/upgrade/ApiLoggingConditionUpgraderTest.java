@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,9 +101,9 @@ public class ApiLoggingConditionUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
+    public void upgrade_should_run_and_set_failure_status_on_exception() {
         InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).fixApis(any());
+        doThrow(new RuntimeException("test exception")).when(upgrader).fixApis(any());
 
         boolean success = upgrader.upgrade();
 
@@ -149,9 +151,9 @@ public class ApiLoggingConditionUpgraderTest {
         Api apiBooleanCondition = new Api();
         apiBooleanCondition.setId("api6");
         apiBooleanCondition.setDefinition("{\"proxy\": {\"logging\": {\"condition\": \"true\"}}}");
-        when(apiRepository.search(any()))
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class)))
             .thenReturn(
-                List.of(
+                Stream.of(
                     apiEmpty,
                     apiProxyEmpty,
                     apiProxyLoggingEmpty,

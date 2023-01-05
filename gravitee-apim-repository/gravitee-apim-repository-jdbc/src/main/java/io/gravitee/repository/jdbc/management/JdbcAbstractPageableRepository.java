@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.Collections.emptyList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import java.util.List;
@@ -33,22 +35,26 @@ abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<
         super(prefix, tableName);
     }
 
-    Page<T> getResultAsPage(final Pageable page, final List<T> items) {
-        if (page != null) {
-            LOGGER.debug("Getting results as page {} for {}", page, items);
-            int start = page.from();
-            if ((start == 0) && (page.pageNumber() > 0)) {
-                start = page.pageNumber() * page.pageSize();
-            }
-            int rows = page.pageSize();
-            if ((rows == 0) && (page.to() > 0)) {
-                rows = page.to() - start;
-            }
-            if (start + rows > items.size()) {
-                rows = items.size() - start;
-            }
-            return new Page<>(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
+    static <U> Page<U> getResultAsPage(final Pageable page, final List<U> items) {
+        if (page == null) {
+            return new Page<>(items, 0, items.size(), items.size());
         }
-        return new Page<>(items, 0, items.size(), items.size());
+
+        LOGGER.debug("Getting results as page {} for {}", page, items);
+        int start = page.from();
+
+        // If the page is out of bounds, return an empty list
+        if (start > items.size()) {
+            return new Page<>(emptyList(), page.pageNumber(), 0, items.size());
+        }
+
+        if ((start == 0) && (page.pageNumber() > 0)) {
+            start = page.pageNumber() * page.pageSize();
+        }
+        int rows = page.pageSize();
+        if (start + rows > items.size()) {
+            rows = items.size() - start;
+        }
+        return new Page<>(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
     }
 }

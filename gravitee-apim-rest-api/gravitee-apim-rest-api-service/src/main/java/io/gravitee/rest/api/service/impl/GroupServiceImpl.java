@@ -32,7 +32,7 @@ import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
@@ -69,6 +69,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -426,7 +427,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             if ("api".equalsIgnoreCase(associationType)) {
                 apiRepository
-                    .search(null)
+                    .search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                        null,
+                        ApiFieldFilter.allFields()
+                    )
                     .forEach(
                         new Consumer<Api>() {
                             @Override
@@ -449,7 +454,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     );
             } else if ("application".equalsIgnoreCase(associationType)) {
                 applicationRepository
-                    .findAll()
+                    .findAllByEnvironment(executionContext.getEnvironmentId())
                     .forEach(
                         new Consumer<Application>() {
                             @Override
@@ -583,7 +588,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove all applications or apis
             Date updatedDate = new Date();
             apiRepository
-                .search(new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build())
+                .search(
+                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                    null,
+                    ApiFieldFilter.allFields()
+                )
                 .forEach(
                     api -> {
                         api.getGroups().remove(groupId);
@@ -810,11 +819,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<ApiEntity> getApis(final String environmentId, String groupId) {
         return apiRepository
-            .search(
-                new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-            .stream()
+            .search(new ApiCriteria.Builder().environmentId(environmentId).groups(groupId).build(), null, ApiFieldFilter.defaultFields())
             .map(
                 api -> {
                     ApiEntity apiEntity = new ApiEntity();

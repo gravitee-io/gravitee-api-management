@@ -22,6 +22,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -86,7 +87,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findApiById(executionContext, apiId, false);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        return genericApiMapper.toGenericApi(api, primaryOwner);
+        final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
+        return genericApiMapper.toGenericApi(executionContext, api, primaryOwner, categories);
     }
 
     @Override
@@ -118,14 +120,14 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             return Collections.emptySet();
         }
         ApiCriteria criteria = new ApiCriteria.Builder().ids(apiIds).environmentId(executionContext.getEnvironmentId()).build();
-        List<Api> apisFound = apiRepository.search(criteria);
+        List<Api> apisFound = apiRepository.search(criteria, ApiFieldFilter.allFields());
         return toGenericApis(executionContext, apisFound);
     }
 
     @Override
     public Set<GenericApiEntity> findAllGenericByEnvironment(final ExecutionContext executionContext) {
         ApiCriteria criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build();
-        List<Api> apisFound = apiRepository.search(criteria);
+        List<Api> apisFound = apiRepository.search(criteria, ApiFieldFilter.allFields());
         return toGenericApis(executionContext, apisFound);
     }
 

@@ -364,9 +364,4 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category) {
         return apis.stream().filter(api -> api.getCategories() != null && api.getCategories().contains(category.getKey())).count();
     }
-
-    @Override
-    public long getTotalApisByCategoryId(Set<Api> apis, String categoryId) {
-        return apis.stream().filter(api -> api.getCategories() != null && api.getCategories().contains(categoryId)).count();
-    }
 }

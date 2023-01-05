@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -70,7 +71,7 @@ public class ApiTagServiceImpl implements ApiTagService {
             .flatMap(
                 context -> {
                     ApiCriteria criteria = new ApiCriteria.Builder().environmentId(context.getEnvironmentId()).build();
-                    return apiRepository.search(criteria).stream();
+                    return apiRepository.search(criteria, null, ApiFieldFilter.allFields());
                 }
             )
             .forEach(api -> removeTag(executionContext, api, tagId));
