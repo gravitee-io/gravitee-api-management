@@ -35,15 +35,19 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class SubscriptionCommandListenerImpl implements SubscriptionCommandListener {
+public class SubscriptionFailureCommandListenerImpl implements SubscriptionCommandListener {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionCommandListenerImpl.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionFailureCommandListenerImpl.class);
 
     private final SubscriptionService subscriptionService;
 
     private final ObjectMapper objectMapper;
 
-    public SubscriptionCommandListenerImpl(EventManager eventManager, SubscriptionService subscriptionService, ObjectMapper objectMapper) {
+    public SubscriptionFailureCommandListenerImpl(
+        EventManager eventManager,
+        SubscriptionService subscriptionService,
+        ObjectMapper objectMapper
+    ) {
         this.subscriptionService = subscriptionService;
         this.objectMapper = objectMapper;
         eventManager.subscribeForEvents(this, CommandEvent.class);

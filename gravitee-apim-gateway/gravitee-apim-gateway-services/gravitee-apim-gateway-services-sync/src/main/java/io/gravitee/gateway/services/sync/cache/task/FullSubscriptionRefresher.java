@@ -35,4 +35,9 @@ public class FullSubscriptionRefresher extends SubscriptionRefresher {
     public Result<Boolean> call() {
         return doRefresh(new SubscriptionCriteria.Builder().status(Subscription.Status.ACCEPTED).plans(plans).build(), true);
     }
+
+    @Override
+    protected void handleSubscription(io.gravitee.gateway.api.service.Subscription subscription) {
+        subscriptionService.save(subscription);
+    }
 }

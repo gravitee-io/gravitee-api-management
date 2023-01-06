@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -68,6 +69,9 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     @Autowired
     private SubscriptionsCacheService subscriptionsCacheService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private ApiManager apiManager;
@@ -160,7 +164,8 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                         return groupedFlowable
                             .compose(this::fetchApiPlans)
                             .compose(this::fetchKeysAndSubscriptions)
-                            .compose(this::registerApi);
+                            .compose(this::registerApi)
+                            .compose(this::dispatchSubscriptionsForApis);
                     } else if (groupedFlowable.getKey() == ActionOnApi.UNDEPLOY) {
                         return groupedFlowable.map(ReactableApi::getId).compose(this::unRegisterApi);
                     } else {
@@ -328,6 +333,23 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 apis -> {
                     apiKeysCacheService.register(apis);
                     subscriptionsCacheService.register(apis);
+                }
+            )
+            .flatMapIterable(apis -> apis);
+    }
+
+    /**
+     * Dispatch all the subscriptions belonging to the apis
+     * @param upstream the apis id upstream which will be used to dispatch subscriptions of type {@link io.gravitee.gateway.api.service.Subscription.Type#SUBSCRIPTION}
+     * @return the same flow of apis id.
+     */
+    @NonNull
+    private Flowable<String> dispatchSubscriptionsForApis(Flowable<String> upstream) {
+        return upstream
+            .buffer(getBulkSize())
+            .doOnNext(
+                apis -> {
+                    subscriptionService.dispatchFor(apis);
                 }
             )
             .flatMapIterable(apis -> apis);

@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.List;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +45,7 @@ import org.springframework.scheduling.TaskScheduler;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ScheduledCommandServiceImplTest {
+public class ScheduledCommandsRefresherServiceImplTest {
 
     @Mock
     private CommandService commandService;
@@ -60,11 +59,11 @@ public class ScheduledCommandServiceImplTest {
     @Mock
     private TaskScheduler taskScheduler;
 
-    private ScheduledCommandServiceImpl cut;
+    private ScheduledCommandsRefresherServiceImpl cut;
 
     @Before
     public void setUp() {
-        cut = new ScheduledCommandServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager);
+        cut = new ScheduledCommandsRefresherServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager);
         when(node.id()).thenReturn("node-id");
     }
 

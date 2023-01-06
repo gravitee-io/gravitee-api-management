@@ -37,7 +37,9 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.json.JsonObject;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -52,10 +54,12 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
 
     private static final String CACHE_NAME_BY_API_AND_CLIENT_ID = "SUBSCRIPTIONS_BY_API_AND_CLIENT_ID";
     private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
+    private static final String CACHE_NAME_DISPATCHABLE_BY_API = "DISPATCHABLE_SUBSCRIPTIONS_BY_API";
 
     // Caches only contains active subscriptions
     private final Cache<String, Subscription> cacheByApiClientId;
     private final Cache<String, Subscription> cacheBySubscriptionId;
+    private final Cache<String, List<Subscription>> dispatchableSubscriptionsByApi;
 
     private final ApiKeyService apiKeyService;
     private final SubscriptionDispatcher subscriptionDispatcher;
@@ -75,6 +79,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     ) {
         cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
         cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
+        dispatchableSubscriptionsByApi = cacheManager.getOrCreateCache(CACHE_NAME_DISPATCHABLE_BY_API);
         this.apiKeyService = apiKeyService;
         this.subscriptionDispatcher = subscriptionDispatcher;
         this.commandRepository = commandRepository;
@@ -106,17 +111,61 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     @Override
     public void save(Subscription subscription) {
         if (Subscription.Type.STANDARD == subscription.getType()) {
-            if (subscription.getClientId() != null) {
-                saveInCacheByApiAndClientId(subscription);
-            }
-            saveInCacheBySubscriptionId(subscription);
+            cacheStandardSubscription(subscription);
         } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
-            subscriptionDispatcher
-                .dispatch(subscription)
-                .doOnComplete(() -> LOGGER.debug("Subscription [{}] has been dispatched", subscription.getId()))
-                .onErrorResumeNext(t -> sendFailureCommand(subscription, t))
-                .subscribe();
+            cacheDispatchableSubscription(subscription);
         }
+    }
+
+    @Override
+    public void saveOrDispatch(Subscription subscription) {
+        if (Subscription.Type.STANDARD == subscription.getType()) {
+            cacheStandardSubscription(subscription);
+        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+            dispatch(subscription);
+        }
+    }
+
+    @Override
+    public void dispatchFor(List<String> apis) {
+        apis.forEach(
+            api -> {
+                final List<Subscription> subscriptions = dispatchableSubscriptionsByApi.evict(api);
+                if (subscriptions != null) {
+                    subscriptions.forEach(this::dispatch);
+                }
+            }
+        );
+    }
+
+    private void cacheStandardSubscription(Subscription subscription) {
+        if (subscription.getClientId() != null) {
+            saveInCacheByApiAndClientId(subscription);
+        }
+        saveInCacheBySubscriptionId(subscription);
+    }
+
+    private void cacheDispatchableSubscription(Subscription subscription) {
+        final List<Subscription> subscriptions = dispatchableSubscriptionsByApi.get(subscription.getApi());
+        List<Subscription> subs = subscriptions;
+        if (subscriptions == null) {
+            subs = new ArrayList<>();
+        }
+        subs.add(subscription);
+        dispatchableSubscriptionsByApi.put(subscription.getApi(), subs);
+    }
+
+    private void dispatch(Subscription subscription) {
+        subscriptionDispatcher
+            .dispatch(subscription)
+            .doOnComplete(() -> LOGGER.debug("Subscription [{}] has been dispatched", subscription.getId()))
+            .onErrorResumeNext(
+                t -> {
+                    LOGGER.error("Subscription [{}] failed with cause: {}", subscription.getId(), t.getMessage());
+                    return sendFailureCommand(subscription, t);
+                }
+            )
+            .subscribe();
     }
 
     private Completable sendFailureCommand(Subscription subscription, Throwable throwable) {
@@ -145,6 +194,9 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
             command.setContent(objectMapper.writeValueAsString(new SubscriptionFailureCommand(subscription.getId(), errorMessage)));
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to convert subscription command [{}] to string", subscription.getId(), e);
+            JsonObject json = new JsonObject();
+            json.put("subscriptionId", subscription.getId()).put("failureCause", errorMessage);
+            command.setContent(json.encode());
         }
     }
 

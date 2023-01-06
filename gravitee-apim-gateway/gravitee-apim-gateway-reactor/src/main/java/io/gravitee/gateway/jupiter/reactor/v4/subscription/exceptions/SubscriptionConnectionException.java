@@ -17,20 +17,14 @@ package io.gravitee.gateway.jupiter.reactor.v4.subscription.exceptions;
 
 public class SubscriptionConnectionException extends Exception {
 
-    private final String subscriptionId;
     private final String errorMessage;
 
-    public SubscriptionConnectionException(String subscriptionId, String errorMessage) {
-        this.subscriptionId = subscriptionId;
+    public SubscriptionConnectionException(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
     @Override
     public String getMessage() {
-        return String.format(
-            "An error occurs while connecting to backend for subscription [%s] with error: %s",
-            subscriptionId,
-            errorMessage
-        );
+        return String.format("Connection error: %s", errorMessage);
     }
 }

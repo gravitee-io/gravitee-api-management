@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import java.util.Date;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
 
     private SubscriptionRepository subscriptionRepository;
 
-    private SubscriptionService subscriptionService;
+    protected SubscriptionService subscriptionService;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
         return doRefresh(criteria, false);
@@ -54,12 +53,14 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
                         return s;
                     }
                 )
-                .forEach(subscriptionService::save);
+                .forEach(this::handleSubscription);
             return Result.success(true);
         } catch (Exception ex) {
             return Result.failure(ex);
         }
     }
+
+    protected abstract void handleSubscription(Subscription subscription);
 
     public void setSubscriptionRepository(SubscriptionRepository subscriptionRepository) {
         this.subscriptionRepository = subscriptionRepository;

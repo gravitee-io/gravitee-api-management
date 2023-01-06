@@ -566,7 +566,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setConfiguration(subscriptionConfigEntity.getConfiguration());
             subscription.setUpdatedAt(new Date());
             subscription.setStatus(newSubscriptionStatus);
-            subscription.setConsumerStatus(previousSubscription.getConsumerStatus());
+            // Recover from failure or keep previous consumer status
+            subscription.setConsumerStatus(
+                previousSubscription.getConsumerStatus().equals(Subscription.ConsumerStatus.FAILURE)
+                    ? Subscription.ConsumerStatus.STARTED
+                    : previousSubscription.getConsumerStatus()
+            );
             subscription.setFailureCause(null);
 
             subscription = subscriptionRepository.update(subscription);

@@ -114,6 +114,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -888,7 +889,7 @@ public class SubscriptionServiceTest {
         assertThat(subscriptionCaptured.getUpdatedAt()).isAfter(initialUpdateDate);
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotFailSubscriptionBecauseDoesNotExist() throws TechnicalException {
         Subscription subscription = buildTestSubscription(ACCEPTED);
         subscription.setId(SUBSCRIPTION_ID);
@@ -897,7 +898,9 @@ public class SubscriptionServiceTest {
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available");
+        Assertions
+            .assertThatThrownBy(() -> subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available"))
+            .isInstanceOf(SubscriptionNotFoundException.class);
 
         verify(subscriptionRepository, never()).update(any());
     }
@@ -913,15 +916,11 @@ public class SubscriptionServiceTest {
         final TechnicalException exceptionThrown = new TechnicalException("🛠 Technical exception");
         when(subscriptionRepository.update(subscription)).thenThrow(exceptionThrown);
 
-        try {
-            subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available");
-        } catch (Exception e) {
-            assertThat(e)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessageStartingWith("An error occurs while trying to fail subscription ")
-                .hasMessageEndingWith(SUBSCRIPTION_ID)
-                .hasCause(exceptionThrown);
-        }
+        assertThatThrownBy(() -> subscriptionService.fail(SUBSCRIPTION_ID, "💥 Endpoint not available"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageStartingWith("An error occurs while trying to fail subscription ")
+            .hasMessageEndingWith(SUBSCRIPTION_ID)
+            .hasCause(exceptionThrown);
     }
 
     @Test
@@ -937,13 +936,9 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
-        try {
-            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        } catch (Exception e) {
-            assertThat(e)
-                .isInstanceOf(SubscriptionFailureException.class)
-                .hasMessage("Subscription [" + SUBSCRIPTION_ID + "] is in failure state: " + failureCause);
-        }
+        assertThatThrownBy(() -> subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID))
+            .isInstanceOf(SubscriptionFailureException.class)
+            .hasMessage("Subscription [" + SUBSCRIPTION_ID + "] is in failure state: " + failureCause);
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
@@ -1709,6 +1704,41 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
         subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionInFailure() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setValidation(AUTO);
+        PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType("key-less");
+        planV4.setSecurity(planSecurity);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Subscription subscription = new Subscription();
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setPlan(PLAN_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
+
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
+        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+
+        // verify subscription has been updated without any status change
+        verify(subscriptionRepository)
+            .update(
+                argThat(
+                    sub ->
+                        sub.getStatus() == ACCEPTED &&
+                        sub.getConfiguration().equals("{\"url\":\"my-url\"}") &&
+                        sub.getConsumerStatus().equals(Subscription.ConsumerStatus.STARTED)
+                )
+            );
     }
 
     @Test

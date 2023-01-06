@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -108,6 +109,9 @@ public class ApiSynchronizerTest extends TestCase {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private SubscriptionService subscriptionService;
+
     @Before
     public void setUp() {
         apiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
@@ -160,6 +164,7 @@ public class ApiSynchronizerTest extends TestCase {
         verify(planRepository, never()).findByApis(anyList());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+        verify(subscriptionService).dispatchFor(singletonList(mockApi.getId()));
     }
 
     @Test

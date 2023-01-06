@@ -26,10 +26,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author GraviteeSource Team
  */
 @Configuration
-public class CommandConfiguration {
+public class CommandRefresherConfiguration {
 
     @Bean
-    @Qualifier("commandTaskScheduler")
+    @Qualifier("commandRefresherTaskScheduler")
     public TaskScheduler commandTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("commands-refresher-");

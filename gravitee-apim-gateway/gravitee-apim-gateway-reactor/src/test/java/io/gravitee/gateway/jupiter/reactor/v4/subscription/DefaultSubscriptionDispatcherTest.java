@@ -223,7 +223,13 @@ class DefaultSubscriptionDispatcherTest {
             when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
             when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
             when(context.response()).thenReturn(response);
-            when(response.status()).thenReturn(responseStatus);
+            if (responseStatus == 400) {
+                when(response.isStatus4xx()).thenReturn(true);
+            }
+            if (responseStatus == 500) {
+                when(response.isStatus4xx()).thenReturn(false);
+                when(response.isStatus5xx()).thenReturn(true);
+            }
             when(response.body()).thenReturn(Maybe.just(Buffer.buffer("Error message")));
 
             final TestScheduler testScheduler = new TestScheduler();
@@ -247,12 +253,7 @@ class DefaultSubscriptionDispatcherTest {
 
             obs.assertError(
                 t -> {
-                    assertThat(t)
-                        .isInstanceOf(SubscriptionConnectionException.class)
-                        .hasMessageStartingWith(
-                            String.format("An error occurs while connecting to backend for subscription [%s]", subscription.getId())
-                        )
-                        .hasMessageEndingWith("with error: Error message");
+                    assertThat(t).isInstanceOf(SubscriptionConnectionException.class).hasMessage("Connection error: Error message");
                     return true;
                 }
             );
@@ -279,7 +280,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         dispatcher.dispatch(subscription).test().assertComplete();
 
@@ -314,7 +316,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         dispatcher.dispatch(subscription).test().assertComplete();
 
@@ -350,7 +353,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         // mock Tracer component in context, and his frame
         Tracer tracer = mock(Tracer.class);
@@ -418,7 +422,8 @@ class DefaultSubscriptionDispatcherTest {
         when(resolver.resolve(any())).thenReturn(acceptor);
         when(reactor.handle(context)).thenReturn(Completable.complete());
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         Subscription originSubscription = new Subscription();
         originSubscription.setId(SUBSCRIPTION_ID);
@@ -465,7 +470,8 @@ class DefaultSubscriptionDispatcherTest {
         when(resolver.resolve(any())).thenReturn(acceptor);
         when(reactor.handle(context)).thenReturn(Completable.complete());
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         Subscription originSubscription = new Subscription();
         originSubscription.setId(SUBSCRIPTION_ID);
@@ -650,7 +656,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getStartingAt()).thenReturn(addMillisecondsToCurrentDate(5000));
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         final TestScheduler testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
@@ -684,7 +691,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getStatus()).thenReturn("ACCEPTED");
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         // Dispatch accepted subscription
         dispatcher.dispatch(subscription).test().await().assertComplete();
@@ -739,7 +747,8 @@ class DefaultSubscriptionDispatcherTest {
         when(subscription.getConsumerStatus()).thenReturn(Subscription.ConsumerStatus.STARTED);
         when(subscription.getConfiguration()).thenReturn("{\"entrypointId\": \"webhook\"}");
         when(context.response()).thenReturn(response);
-        when(response.status()).thenReturn(200);
+        when(response.isStatus4xx()).thenReturn(false);
+        when(response.isStatus5xx()).thenReturn(false);
 
         // Dispatch accepted subscription
         dispatcher.dispatch(subscription).test().assertComplete();
