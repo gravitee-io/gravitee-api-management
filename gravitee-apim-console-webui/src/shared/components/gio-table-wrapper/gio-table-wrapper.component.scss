@@ -74,9 +74,10 @@ $typography: map.get(gio.$mat-theme, typography);
       }
     }
 
-    // ⚠️ Material deep override
+    // ⚠️ Material override on custom override
     // Remove form field padding provided to display mat-hint and mat-error. Not used here
-    .gio-table-wrapper__header-bar__search-field {
+    // For search field and mat-paginator
+    .gio-table-wrapper__header-bar {
       .mat-form-field-wrapper {
         padding-bottom: 0;
       }
