@@ -133,6 +133,33 @@ function apisRouterConfig($stateProvider: StateProvider) {
         },
       },
     })
+    .state('management.apis.create-v4', {
+      url: '/new/create/v4',
+      component: 'ngApiCreationV4Component',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['environment-api-c'],
+        },
+      },
+    })
+    .state('management.apis.create-v2', {
+      url: '/new/create/v2',
+      component: 'apiCreation',
+      resolve: {
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
+        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+      },
+      data: {
+        perms: {
+          only: ['environment-api-c'],
+        },
+        docs: {
+          page: 'management-apis-create-steps',
+        },
+      },
+    })
     .state('management.apis.create', {
       url: '/new/create/:definitionVersion',
       component: 'apiCreation',
