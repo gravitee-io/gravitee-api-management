@@ -527,6 +527,7 @@ import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
+import { ApiCreationV4Component } from './api/creation/v4/steps/api-creation-v4.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -859,6 +860,7 @@ graviteeManagementModule.component('apiCreation', ApiCreationComponent);
 graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
 graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
 graviteeManagementModule.directive('ngApiCreationGetStartedComponent', downgradeComponent({ component: ApiCreationGetStartedComponent }));
+graviteeManagementModule.directive('ngApiCreationV4Component', downgradeComponent({ component: ApiCreationV4Component }));
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
 graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);

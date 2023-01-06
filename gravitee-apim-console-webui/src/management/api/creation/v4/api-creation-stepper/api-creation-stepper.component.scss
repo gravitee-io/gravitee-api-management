@@ -1,0 +1,32 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.api-creation-stepper {
+  display: flex;
+  flex-direction: column;
+  min-width: 273px;
+  background-color: mat.get-color-from-palette(gio.$mat-content-palette, 'lighter');
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 12px;
+  }
+
+  &__title {
+    margin-bottom: 4px;
+  }
+
+  &__subtitle {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 12px;
+  padding: 12px 0;
+}

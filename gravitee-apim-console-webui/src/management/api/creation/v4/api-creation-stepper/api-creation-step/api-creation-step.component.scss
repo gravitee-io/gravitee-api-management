@@ -1,0 +1,68 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.api-creation-step {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  border-radius: 4px;
+  padding: 8px 16px;
+
+  &__info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__number {
+    display: flex;
+    justify-content: center;
+
+    width: 23px;
+    height: 23px;
+
+    border: 2px solid;
+    border-radius: 20px;
+
+    &-started {
+      background: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+      color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+
+      border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+    }
+
+    &-not-started {
+      background: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+
+      border-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+    }
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+
+    &-not-started {
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+    }
+  }
+
+  &__icon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    &-done {
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    }
+
+    &-current {
+      color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+    }
+  }
+}
