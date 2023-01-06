@@ -101,6 +101,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((schema) => {
+        this.secureForm.get('securityConfig').reset({});
         this.securityConfigSchema = schema;
       });
 
