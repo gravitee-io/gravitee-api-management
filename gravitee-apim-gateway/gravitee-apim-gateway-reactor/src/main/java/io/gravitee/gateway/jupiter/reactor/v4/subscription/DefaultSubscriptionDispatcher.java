@@ -337,14 +337,11 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
             upstream.andThen(
                 Completable.defer(
                     () -> {
-                        if (context.response().status() / 100 == 4 || context.response().status() / 100 == 5) {
+                        if (context.response().isStatus4xx() || context.response().isStatus5xx()) {
                             return context
                                 .response()
                                 .body()
-                                .flatMapCompletable(
-                                    buffer ->
-                                        Completable.error(new SubscriptionConnectionException(subscription.getId(), buffer.toString()))
-                                );
+                                .flatMapCompletable(buffer -> Completable.error(new SubscriptionConnectionException(buffer.toString())));
                         }
                         return Completable.complete();
                     }

@@ -58,4 +58,9 @@ public class IncrementalSubscriptionRefresher extends SubscriptionRefresher {
                 .build()
         );
     }
+
+    @Override
+    protected void handleSubscription(io.gravitee.gateway.api.service.Subscription subscription) {
+        subscriptionService.saveOrDispatch(subscription);
+    }
 }

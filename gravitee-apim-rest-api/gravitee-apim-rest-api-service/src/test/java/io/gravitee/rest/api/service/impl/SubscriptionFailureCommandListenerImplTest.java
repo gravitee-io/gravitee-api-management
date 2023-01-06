@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -40,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SubscriptionCommandListenerImplTest {
+public class SubscriptionFailureCommandListenerImplTest {
 
     public static final String VALID_COMMAND_CONTENT =
         "{\n" + "  \"subscriptionId\": \"subscription-id\",\n" + "  \"failureCause\": \"failure-cause\"\n" + "}";
@@ -56,11 +55,11 @@ public class SubscriptionCommandListenerImplTest {
 
     private ObjectMapper objectMapper = new GraviteeMapper();
 
-    private SubscriptionCommandListenerImpl cut;
+    private SubscriptionFailureCommandListenerImpl cut;
 
     @Before
     public void setUp() {
-        cut = new SubscriptionCommandListenerImpl(eventManager, subscriptionService, objectMapper);
+        cut = new SubscriptionFailureCommandListenerImpl(eventManager, subscriptionService, objectMapper);
     }
 
     @Test

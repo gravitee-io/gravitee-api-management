@@ -36,9 +36,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ScheduledCommandServiceImpl
-    extends AbstractService<ScheduledCommandServiceImpl>
-    implements ScheduledCommandService<ScheduledCommandServiceImpl>, Runnable {
+public class ScheduledCommandsRefresherServiceImpl
+    extends AbstractService<ScheduledCommandsRefresherServiceImpl>
+    implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
 
     private final CommandService commandService;
 
@@ -48,7 +48,7 @@ public class ScheduledCommandServiceImpl
     private final String cronTrigger;
     private final EventManager eventManager;
 
-    public ScheduledCommandServiceImpl(
+    public ScheduledCommandsRefresherServiceImpl(
         CommandService commandService,
         Node node,
         @Qualifier("commandTaskScheduler") TaskScheduler scheduler,
