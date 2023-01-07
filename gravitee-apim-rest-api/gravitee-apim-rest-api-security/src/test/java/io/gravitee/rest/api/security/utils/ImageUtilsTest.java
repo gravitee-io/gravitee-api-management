@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.utils;
+package io.gravitee.rest.api.security.utils;
 
 import io.gravitee.rest.api.exception.InvalidImageException;
-import io.gravitee.rest.api.security.utils.ImageUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
