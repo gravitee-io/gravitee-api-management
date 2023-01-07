@@ -43,6 +43,7 @@
         <module>gravitee-apim-rest-api-security</module>
         <module>gravitee-apim-rest-api-services</module>
         <module>gravitee-apim-rest-api-management</module>
+        <module>gravitee-apim-rest-api-management-v4</module>
         <module>gravitee-apim-rest-api-portal</module>
         <module>gravitee-apim-rest-api-standalone</module>
         <module>gravitee-apim-rest-api-spec-converter</module>

@@ -18,6 +18,8 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
+import io.gravitee.rest.api.management.v4.rest.GraviteeManagementV4Application;
+import io.gravitee.rest.api.management.v4.security.SecurityManagementV4Configuration;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
@@ -97,6 +99,14 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementConfiguration.class
             );
             contexts.add(managementContextHandler);
+
+            // REST configuration for Management API - V4
+            ServletContextHandler managementv4ContextHandler = configureAPI(
+                managementEntrypoint + "/v4",
+                GraviteeManagementV4Application.class.getName(),
+                SecurityManagementV4Configuration.class
+            );
+            contexts.add(managementv4ContextHandler);
         }
 
         if (contexts.isEmpty()) {
