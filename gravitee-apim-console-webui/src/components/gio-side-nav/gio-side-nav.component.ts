@@ -64,7 +64,7 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private buildMainMenuItems(): MenuItem[] {
-    return this.filterMenuByPermission([
+    const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
       { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'APIs' },
       {
@@ -95,33 +95,46 @@ export class GioSideNavComponent implements OnInit {
         displayName: 'Messages',
         permissions: ['environment-message-c'],
       },
-      {
-        icon: 'gio:settings',
-        targetRoute: 'management.settings.analytics.list',
-        baseRoute: 'management.settings',
-        displayName: 'Settings',
-        permissions: [
-          // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-          'environment-category-r',
-          'environment-metadata-r',
-          'environment-top_apis-r',
-          'environment-group-r',
-          'environment-tag-c',
-          'environment-tenant-c',
-          'environment-group-c',
-          'environment-documentation-c',
-          'environment-tag-u',
-          'environment-tenant-u',
-          'environment-group-u',
-          'environment-documentation-u',
-          'environment-tag-d',
-          'environment-tenant-d',
-          'environment-group-d',
-          'environment-documentation-d',
-          'environment-api_header-r',
-        ],
-      },
-    ]);
+    ];
+
+    if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
+      mainMenuItems.push({
+        icon: 'gio:alarm',
+        displayName: 'Alerts',
+        targetRoute: 'management.alerts.list',
+        baseRoute: 'management.alerts',
+        permissions: ['environment-alert-r'],
+      });
+    }
+
+    mainMenuItems.push({
+      icon: 'gio:settings',
+      targetRoute: 'management.settings.analytics.list',
+      baseRoute: 'management.settings',
+      displayName: 'Settings',
+      permissions: [
+        // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
+        'environment-category-r',
+        'environment-metadata-r',
+        'environment-top_apis-r',
+        'environment-group-r',
+        'environment-tag-c',
+        'environment-tenant-c',
+        'environment-group-c',
+        'environment-documentation-c',
+        'environment-tag-u',
+        'environment-tenant-u',
+        'environment-group-u',
+        'environment-documentation-u',
+        'environment-tag-d',
+        'environment-tenant-d',
+        'environment-group-d',
+        'environment-documentation-d',
+        'environment-api_header-r',
+      ],
+    });
+
+    return this.filterMenuByPermission(mainMenuItems);
   }
 
   private buildFooterMenuItems(): MenuItem[] {

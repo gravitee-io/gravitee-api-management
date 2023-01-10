@@ -170,7 +170,7 @@ const AlertComponent: ng.IComponentOptions = {
       } else if ($state.params.applicationId) {
         $state.go('management.applications.application.alerts.list', { applicationId: $state.params.applicationId });
       } else {
-        $state.go('management.settings.alerts.list');
+        $state.go('management.alerts.list');
       }
     };
 

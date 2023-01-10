@@ -55,11 +55,11 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.alerts', {
+    .state('management.alerts', {
       abstract: true,
       url: '/alerts',
     })
-    .state('management.settings.alerts.list', {
+    .state('management.alerts.list', {
       url: '/',
       component: 'alertsComponent',
       data: {
@@ -78,7 +78,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         mode: () => 'detail',
       },
     })
-    .state('management.settings.alerts.alertnew', {
+    .state('management.alerts.alertnew', {
       url: '/create',
       component: 'alertComponent',
       data: {
@@ -98,7 +98,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         mode: () => 'create',
       },
     })
-    .state('management.settings.alerts.alert', {
+    .state('management.alerts.alert', {
       url: '/:alertId?:tab',
       component: 'alertComponent',
       data: {

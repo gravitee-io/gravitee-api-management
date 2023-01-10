@@ -46,7 +46,7 @@ const AlertsComponent: ng.IComponentOptions = {
           alertId: alertId,
         });
       } else {
-        $state.go('management.settings.alerts.' + suffixState, { alertId: alertId });
+        $state.go('management.alerts.' + suffixState, { alertId: alertId });
       }
     };
 
