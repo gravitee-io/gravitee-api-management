@@ -59,7 +59,7 @@ public class ApiKeysCache {
      * @return cached value
      */
     public Optional<ApiKey> save(ApiKey apiKey) {
-        if (apiKey.isRevoked() || apiKey.isPaused() || apiKey.getSubscriptionStatus() != ACCEPTED) {
+        if (!apiKey.isActive()) {
             return saveInactive(apiKey);
         }
         return saveActive(apiKey);
