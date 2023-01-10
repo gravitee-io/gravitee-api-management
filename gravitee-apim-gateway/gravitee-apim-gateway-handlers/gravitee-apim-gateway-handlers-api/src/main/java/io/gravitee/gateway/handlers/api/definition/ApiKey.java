@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+
 import io.gravitee.repository.management.model.Subscription;
 
 /**
@@ -50,7 +52,7 @@ public class ApiKey extends io.gravitee.repository.management.model.ApiKey {
         return subscription;
     }
 
-    public Subscription.Status getSubscriptionStatus() {
-        return subscriptionStatus;
+    public boolean isActive() {
+        return !isRevoked() && !isPaused() && subscriptionStatus == ACCEPTED;
     }
 }

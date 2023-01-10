@@ -30,6 +30,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -96,6 +97,34 @@ public class ApiKeyRefresherTest {
         verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-1")));
         verify(cache, times(1)).save(argThat(apiKey -> apiKey.getId().equals("key-5") && apiKey.getSubscription().equals("sub-4")));
 
+        verifyNoMoreInteractions(cache);
+    }
+
+    @Test
+    public void doRefresh_should_cache_inactive_keys_first() throws TechnicalException {
+        ApiKeyCriteria apiKeyCriteria = mock(ApiKeyCriteria.class);
+
+        List<ApiKey> apiKeysList = List.of(buildTestApiKey("shared-api-key", List.of("sub-1", "sub-2", "sub-3")));
+
+        when(apiKeyRepository.findByCriteria(apiKeyCriteria)).thenReturn(apiKeysList);
+
+        when(subscriptionRepository.findByIdIn(Set.of("sub-1", "sub-2", "sub-3")))
+            .thenReturn(
+                List.of(
+                    buildTestSubscription("sub-1", CLOSED),
+                    buildTestSubscription("sub-2", ACCEPTED),
+                    buildTestSubscription("sub-3", CLOSED)
+                )
+            );
+
+        apiKeyRefresher.doRefresh(apiKeyCriteria);
+
+        // 3 API keys should have been saved in cache
+        // active API keys takes precedence over inactive, so, have to be saved after
+        InOrder inOrder = inOrder(cache);
+        inOrder.verify(cache).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-1")));
+        inOrder.verify(cache).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-3")));
+        inOrder.verify(cache).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-2")));
         verifyNoMoreInteractions(cache);
     }
 

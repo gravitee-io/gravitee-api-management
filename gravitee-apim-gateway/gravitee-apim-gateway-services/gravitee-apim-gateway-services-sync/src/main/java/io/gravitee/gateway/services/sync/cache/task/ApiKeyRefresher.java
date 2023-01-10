@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.cache.task;
 
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
 
 import io.gravitee.gateway.handlers.api.definition.ApiKey;
@@ -53,7 +54,7 @@ public abstract class ApiKeyRefresher implements Callable<Result<Boolean>> {
         logger.debug("Refresh api-keys");
 
         try {
-            findApiKeys(criteria).forEach(cache::save);
+            findApiKeys(criteria).stream().sorted(comparing(ApiKey::isActive)).forEach(cache::save);
             return Result.success(true);
         } catch (Exception ex) {
             return Result.failure(ex);
