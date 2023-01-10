@@ -178,14 +178,6 @@ export class SettingsNavigationComponent implements OnInit {
         },
       ],
     };
-    if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
-      notificationGroupItem.items.push({
-        displayName: 'Alerts',
-        targetRoute: 'management.settings.alerts.list',
-        baseRoute: 'management.settings.alerts',
-        permissions: ['environment-alert-r'],
-      });
-    }
     this.groupItems.push(notificationGroupItem);
 
     this.groupItems.forEach((groupItem) => {

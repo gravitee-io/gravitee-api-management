@@ -134,8 +134,8 @@ class AlertsDashboardComponent implements ng.IComponentController {
       default:
         return {
           scope: Scope.ENVIRONMENT,
-          alertCreationUiRef: 'management.settings.alerts.alertnew',
-          uiRef: 'management.settings.alerts.alert({alertId: alert.id, tab: "history"})',
+          alertCreationUiRef: 'management.alerts.alertnew',
+          uiRef: 'management.alerts.alert({alertId: alert.id, tab: "history"})',
           permission: 'environment-alert-r',
           hasPermission: this.UserService.currentUser?.userEnvironmentPermissions.includes('environment-alert-r'),
         };
