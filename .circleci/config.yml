@@ -2176,6 +2176,7 @@ workflows:
                       branches:
                           only:
                               - master
+                              - /^\d+\.\d+\.x$/
         jobs:
             - setup:
                   context: cicd-orchestrator
