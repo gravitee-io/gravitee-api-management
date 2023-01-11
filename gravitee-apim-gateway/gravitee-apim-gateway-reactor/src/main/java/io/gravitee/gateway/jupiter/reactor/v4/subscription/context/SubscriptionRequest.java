@@ -133,4 +133,9 @@ public class SubscriptionRequest extends AbstractRequest implements MutableReque
     public void unsetMessagesInterceptor() {
         // No message so no interceptor.
     }
+
+    @Override
+    public void method(HttpMethod method) {
+        // It is not possible to override a subscription request's method.
+    }
 }

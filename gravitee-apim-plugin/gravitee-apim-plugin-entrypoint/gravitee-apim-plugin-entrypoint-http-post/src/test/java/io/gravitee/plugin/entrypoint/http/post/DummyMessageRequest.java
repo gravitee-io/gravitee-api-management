@@ -59,6 +59,7 @@ public class DummyMessageRequest implements Request {
         return method;
     }
 
+    @Override
     public void method(HttpMethod method) {
         this.method = method;
     }
