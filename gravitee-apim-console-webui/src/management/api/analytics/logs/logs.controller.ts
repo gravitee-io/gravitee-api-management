@@ -31,6 +31,7 @@ class ApiLogsController {
   };
   private init: boolean;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private resolvedApi,
@@ -43,7 +44,6 @@ class ApiLogsController {
     private $timeout: ng.ITimeoutService,
     private AnalyticsService: AnalyticsService,
   ) {
-    'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.$state = $state;

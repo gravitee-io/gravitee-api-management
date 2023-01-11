@@ -17,8 +17,8 @@ class ApiAlertsDashboardController {
   private hasConfiguredAlerts: boolean;
   private hasAlertingPlugin: boolean;
 
+  /* @ngInject */
   constructor(private configuredAlerts, private alertingStatus) {
-    'ngInject';
     this.hasConfiguredAlerts = configuredAlerts?.length > 0;
     this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;
   }

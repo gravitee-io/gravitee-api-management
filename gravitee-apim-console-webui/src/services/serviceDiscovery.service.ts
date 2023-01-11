@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class ServiceDiscoveryService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list() {
     const url = `${this.Constants.env.baseURL}/services-discovery/`;

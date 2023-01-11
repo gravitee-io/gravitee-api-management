@@ -31,9 +31,8 @@ class EditPageFetchersComponentController implements IController {
 
   fetcherJsonSchemaForm: string[];
 
-  constructor(private $scope: IPageScope) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $scope: IPageScope) {}
 
   $onInit() {
     const fetcher = this.fetchers.find((f) => f.id === this.page?.source?.type);

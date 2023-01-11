@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 class ApiAuditController {
+  /* @ngInject */
   constructor(private resolvedEvents: string[], private $scope, private $state) {
-    'ngInject';
     this.$scope.api = this.$state.params.apiId;
     this.$scope.apis = [{ id: this.$state.params.apiId }];
     this.$scope.applications = [];

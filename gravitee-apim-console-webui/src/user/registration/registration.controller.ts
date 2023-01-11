@@ -20,13 +20,13 @@ class RegistrationController {
   user: { firstname?: string; lastname?: string; email?: string; customFields?: any } = {};
   fields: any[] = [];
 
+  /* @ngInject */
   constructor(
     private UserService: UserService,
     private $scope,
     private NotificationService: NotificationService,
     private ReCaptchaService: ReCaptchaService,
   ) {
-    'ngInject';
     this.UserService = UserService;
     this.$scope = $scope;
     this.NotificationService = NotificationService;

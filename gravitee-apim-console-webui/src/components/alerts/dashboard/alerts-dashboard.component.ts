@@ -41,9 +41,8 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private series: IPromise<unknown>;
   private options: any;
 
-  constructor(private $scope: IScope, private AlertService: AlertService, private UserService: UserService, private $state: StateService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $scope: IScope, private AlertService: AlertService, private UserService: UserService, private $state: StateService) {}
 
   $onInit() {
     this.timeframe = TimeframeRanges.LAST_MINUTE;

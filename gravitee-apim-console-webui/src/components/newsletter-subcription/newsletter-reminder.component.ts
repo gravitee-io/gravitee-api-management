@@ -21,8 +21,8 @@ import UserService from '../../services/user.service';
 const NewsletterReminderComponent: ng.IComponentOptions = {
   template: require('./newsletter-reminder.html'),
   bindings: {},
+  /* @ngInject */
   controller: function ($element, Constants: any, UserService: UserService, $scope: IScope, NotificationService: NotificationService) {
-    'ngInject';
     this.displayNewsletterSubscription = false;
     this.user = null;
     this.error = false;

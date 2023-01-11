@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DeleteTopApiDialogController($scope, $mdDialog, topApi, TopApiService, NotificationService) {
-  'ngInject';
-
   $scope.topApi = topApi;
 
   $scope.cancel = function () {

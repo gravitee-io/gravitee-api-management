@@ -28,9 +28,8 @@ class EditPageAclsComponentController implements IController {
   roles: any[];
   isApiPage: boolean;
 
-  constructor(private readonly RoleService: RoleService, private $scope: IPageScope) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly RoleService: RoleService, private $scope: IPageScope) {}
 
   $onInit() {
     const scope = this.isApiPage ? 'API' : 'ENVIRONMENT';

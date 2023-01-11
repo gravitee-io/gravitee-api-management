@@ -17,8 +17,8 @@ import ConsoleSettingsService from '../services/consoleSettings.service';
 
 export default organizationRouterConfig;
 
+/* @ngInject */
 function organizationRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('organization', {
       url: '/organization',

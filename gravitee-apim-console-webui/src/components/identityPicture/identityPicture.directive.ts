@@ -17,9 +17,8 @@
 import * as jdenticon from 'jdenticon';
 
 class IdentityPictureDirective {
+  /* @ngInject */
   constructor() {
-    'ngInject';
-
     const directive = {
       restrict: 'E',
       require: 'gvThemeElement',
@@ -44,8 +43,8 @@ class IdentityPictureDirective {
 }
 
 class IdentityPictureController {
+  /* @ngInject */
   constructor(private $scope) {
-    'ngInject';
     $scope.imgError = function () {
       document.querySelector('#avatar_' + $scope.imageId).classList.remove('show');
       const div: HTMLElement = document.querySelector('#jdenticon_' + $scope.imageId);

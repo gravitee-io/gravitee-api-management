@@ -25,8 +25,8 @@ const DashboardComponent: ng.IComponentOptions = {
     updateMode: '<',
     customTimeframe: '<',
   },
+  /* @ngInject */
   controller: function ($scope) {
-    'ngInject';
     this.initialEventCounter = 2;
     this.initialTimeFrame = undefined;
     this.initialQuery = undefined;

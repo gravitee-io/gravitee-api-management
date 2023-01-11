@@ -40,6 +40,7 @@ class ApiPropertiesController {
   private selectAll: boolean;
   private _initialDynamicPropertyService: any;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private resolvedApi,
@@ -51,7 +52,6 @@ class ApiPropertiesController {
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
-    'ngInject';
     this.dynamicPropertyProviders = [
       {
         id: 'HTTP',

@@ -27,10 +27,6 @@ export class PagedResult<T = any> {
   public metadata: Record<string, Record<string, any>> = {};
   public page: Page = new Page();
 
-  constructor() {
-    'ngInject';
-  }
-
   populate(responseData: any) {
     this.data = responseData.data;
     this.metadata = responseData.metadata;

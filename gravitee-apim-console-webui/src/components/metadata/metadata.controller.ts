@@ -29,6 +29,7 @@ class MetadataController {
   private canUpdate: boolean;
   private canDelete: boolean;
 
+  /* @ngInject */
   constructor(
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
@@ -37,7 +38,6 @@ class MetadataController {
     private $rootScope: IScope,
     private $state: StateService,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
 
     if ($state.params.apiId) {

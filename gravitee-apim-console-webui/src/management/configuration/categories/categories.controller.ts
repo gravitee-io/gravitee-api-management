@@ -28,6 +28,7 @@ class CategoriesController {
   private Constants: any;
   private settings: any;
 
+  /* @ngInject */
   constructor(
     private CategoryService: CategoryService,
     private NotificationService: NotificationService,
@@ -38,7 +39,6 @@ class CategoriesController {
     Constants: any,
     private $rootScope: IScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants.env.settings);
     this.Constants = Constants;

@@ -64,6 +64,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     private applicationSearchTerm: string;
 
+    /* @ngInject */
     constructor(
       private ApiService: ApiService,
       private ApplicationService: ApplicationService,
@@ -74,8 +75,6 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       public $rootScope: IScope,
       private $timeout: ng.ITimeoutService,
     ) {
-      'ngInject';
-
       this.onPaginate = this.onPaginate.bind(this);
       if (this.$state.params.status) {
         if (Array.isArray(this.$state.params.status)) {

@@ -28,8 +28,8 @@ import UserService from '../../services/user.service';
 
 export default apisRouterConfig;
 
+/* @ngInject */
 function apisRouterConfig($stateProvider: StateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.apis', {
       abstract: true,

@@ -32,9 +32,8 @@ class AnalyticsService {
   private analyticsURL: string;
   private logs: [any];
 
-  constructor(private $http, private Constants, public $stateParams) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants, public $stateParams) {}
 
   /*
    * Analytics

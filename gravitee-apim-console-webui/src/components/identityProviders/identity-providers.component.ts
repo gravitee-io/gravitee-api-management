@@ -34,6 +34,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     settings: '<',
   },
   template: require('./identity-providers.html'),
+  /* @ngInject */
   controller: function (
     $mdDialog: angular.material.IDialogService,
     IdentityProviderService: IdentityProviderService,
@@ -46,7 +47,6 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     Constants,
     $rootScope: IScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
     this.activatedIdps = {};
 

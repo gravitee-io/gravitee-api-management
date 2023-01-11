@@ -20,9 +20,8 @@ interface ISelectPageToLinkScope extends IScope {
   title: string;
   selectedPage: any;
 }
+/* @ngInject */
 function SelectPageDialogController($scope: ISelectPageToLinkScope, $mdDialog: angular.material.IDialogService, locals: any) {
-  'ngInject';
-
   $scope.pages = locals.pages;
   $scope.title = locals.title;
 

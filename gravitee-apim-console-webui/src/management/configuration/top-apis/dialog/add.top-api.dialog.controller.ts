@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+/* @ngInject */
 function AddTopApiDialogController($mdDialog: angular.material.IDialogService, ApiService, TopApiService, NotificationService, topApis) {
-  'ngInject';
-
   ApiService.list().then((response) => {
     this.apis = _.filter(response.data, (api: any) => {
       return !_.includes(_.map(topApis, 'api'), api.id);

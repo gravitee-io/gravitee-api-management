@@ -32,9 +32,8 @@ class EditPageContentComponentController implements IController {
   // for asciidoc & swagger
   codeMirrorOptions: any;
 
-  constructor(private $scope: IPageScope) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $scope: IPageScope) {}
 
   isAsciiDoc(): boolean {
     return PageType.ASCIIDOC === this.pageType;

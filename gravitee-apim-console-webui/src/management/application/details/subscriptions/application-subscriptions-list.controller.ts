@@ -44,8 +44,8 @@ class ApplicationSubscriptionsListController {
 
   private isFirstFilter = true;
 
+  /* @ngInject */
   constructor(private ApplicationService: ApplicationService, private $state: StateService) {
-    'ngInject';
     this.onPaginate = this.onPaginate.bind(this);
   }
 

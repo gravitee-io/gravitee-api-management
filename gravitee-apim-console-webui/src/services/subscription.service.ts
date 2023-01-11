@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class SubscriptionService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(plan, application) {
     let url = `${this.Constants.env.baseURL}/subscriptions/`;

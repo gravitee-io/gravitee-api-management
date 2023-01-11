@@ -36,6 +36,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     private backStateParams: any;
     private canUseCustomApiKey: boolean;
 
+    /* @ngInject */
     constructor(
       private $rootScope: ng.IRootScopeService,
       private $mdDialog: angular.material.IDialogService,
@@ -44,8 +45,6 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       private $state: StateService,
       private Constants: any,
     ) {
-      'ngInject';
-
       this.backStateParams = {
         application: $state.params.application,
         plan: $state.params.plan,

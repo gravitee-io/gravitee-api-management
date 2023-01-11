@@ -29,6 +29,7 @@ class AnalyticsDashboardController {
   private query: any;
   private dashboard: any;
 
+  /* @ngInject */
   constructor(
     private eventService: EventService,
     private AnalyticsService,
@@ -39,7 +40,6 @@ class AnalyticsDashboardController {
     private $state,
     private dashboards,
   ) {
-    'ngInject';
     this.eventLabels = {};
     this.eventTypes = [];
     this.selectedAPIs = [];

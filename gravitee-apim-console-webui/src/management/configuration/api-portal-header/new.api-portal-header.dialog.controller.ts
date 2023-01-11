@@ -16,9 +16,8 @@
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import ApiHeaderService from '../../../services/apiHeader.service';
 
+/* @ngInject */
 function NewApiPortalHeaderDialogController(ApiHeaderService: ApiHeaderService, $mdDialog: angular.material.IDialogService) {
-  'ngInject';
-
   this.header = new ApiPortalHeader();
 
   this.cancel = function () {

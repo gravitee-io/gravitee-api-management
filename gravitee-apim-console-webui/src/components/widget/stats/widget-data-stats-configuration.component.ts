@@ -39,9 +39,8 @@ class WidgetDataStatsConfigurationController implements IOnInit {
   selectedStatsKeys: string[] = [];
   availableStats: Stat[];
 
-  constructor(private readonly DashboardService: DashboardService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly DashboardService: DashboardService) {}
 
   $onInit(): void {
     if (!this.chart.data) {

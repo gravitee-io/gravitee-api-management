@@ -19,8 +19,8 @@ const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
+  /* @ngInject */
   controller: function () {
-    'ngInject';
     this.$onInit = () => {
       if (!this.chart.request) {
         _.merge(this.chart, {

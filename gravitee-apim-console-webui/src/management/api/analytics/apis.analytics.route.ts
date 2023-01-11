@@ -23,8 +23,8 @@ import TenantService from '../../../services/tenant.service';
 
 export default apisAnalyticsRouterConfig;
 
+/* @ngInject */
 function apisAnalyticsRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.apis.detail.analytics', {
       abstract: true,

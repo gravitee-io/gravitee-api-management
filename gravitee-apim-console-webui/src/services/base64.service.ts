@@ -18,10 +18,6 @@
 // https://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings/53433503#53433503
 // https://github.com/anonyco/BestBase64EncoderDecoder
 class Base64Service {
-  constructor() {
-    'ngInject';
-  }
-
   encode = (str) => {
     // first we use encodeURIComponent to get percent-encoded UTF-8,
     // then we convert the percent encodings into raw bytes which

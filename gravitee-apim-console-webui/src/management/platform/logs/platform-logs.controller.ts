@@ -30,9 +30,8 @@ class PlatformLogsController {
   private applications;
   private init: boolean;
 
+  /* @ngInject */
   constructor(private AnalyticsService: AnalyticsService, private Constants, private $state: StateService, private $scope: IScope) {
-    'ngInject';
-
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();

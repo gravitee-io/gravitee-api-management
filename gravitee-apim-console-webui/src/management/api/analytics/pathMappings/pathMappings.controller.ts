@@ -28,6 +28,7 @@ class ApiPathMappingsController {
   private api: any;
   private swaggerDocs: any;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private resolvedApi,
@@ -41,7 +42,6 @@ class ApiPathMappingsController {
     private $state,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
-    'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
     this.api.path_mappings = _.sortBy(this.api.path_mappings);
     const q = new DocumentationQuery();

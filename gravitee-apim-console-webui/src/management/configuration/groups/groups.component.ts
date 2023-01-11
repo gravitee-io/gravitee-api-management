@@ -26,6 +26,7 @@ const GroupsComponent: ng.IComponentOptions = {
     groups: '<',
   },
   template: require('./groups.html'),
+  /* @ngInject */
   controller: function (
     GroupService: GroupService,
     UserService: UserService,
@@ -34,7 +35,6 @@ const GroupsComponent: ng.IComponentOptions = {
     $state: StateService,
     $rootScope: IScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
 
     this.create = () => {

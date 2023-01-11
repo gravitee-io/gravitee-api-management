@@ -17,8 +17,4 @@ export class Notifier {
   public id: string;
   public type: string;
   public name: string;
-
-  constructor() {
-    'ngInject';
-  }
 }

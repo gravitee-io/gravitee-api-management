@@ -18,8 +18,8 @@ import TenantService from '../../../services/tenant.service';
 
 export default apisDesignRouterConfig;
 
+/* @ngInject */
 function apisDesignRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.apis.detail.design', {
       abstract: true,

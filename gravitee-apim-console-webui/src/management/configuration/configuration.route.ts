@@ -39,8 +39,8 @@ import TopApiService from '../../services/top-api.service';
 
 export default configurationRouterConfig;
 
+/* @ngInject */
 function configurationRouterConfig($stateProvider: StateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.settings', {
       abstract: true,

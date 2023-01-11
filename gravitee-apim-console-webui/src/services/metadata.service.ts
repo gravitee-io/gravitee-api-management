@@ -16,9 +16,8 @@
 class MetadataService {
   private metadataURL: string;
 
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   listFormats() {
     return ['STRING', 'NUMERIC', 'BOOLEAN', 'DATE', 'MAIL', 'URL'];

@@ -17,9 +17,8 @@
 import { IHttpPromise } from 'angular';
 
 class NotificationTemplatesService {
-  constructor(private $http: ng.IHttpService, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http: ng.IHttpService, private Constants) {}
 
   getNotificationTemplates(hook?: string, scope?: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/notification-templates/`, { params: { hook, scope } });

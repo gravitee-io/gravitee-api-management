@@ -19,8 +19,8 @@ class ApiEventsController {
   private events: any;
   private eventsTimeline: any;
 
+  /* @ngInject */
   constructor(resolvedEvents) {
-    'ngInject';
     this.events = resolvedEvents.data;
     this.eventsTimeline = [];
     this.initTimeline(this.events);

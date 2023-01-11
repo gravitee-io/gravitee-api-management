@@ -34,6 +34,7 @@ class ApplicationCreationController {
   private apis: any[] = [];
   private groups: any[];
 
+  /* @ngInject */
   constructor(
     private Constants,
     private $state,
@@ -43,7 +44,6 @@ class ApplicationCreationController {
     private $q,
     private ApiService: ApiService,
   ) {
-    'ngInject';
     this.steps = [
       {
         badgeClass: 'disable',

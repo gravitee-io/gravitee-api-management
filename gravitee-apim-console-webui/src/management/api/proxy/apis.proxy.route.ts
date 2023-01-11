@@ -17,8 +17,8 @@ import { ApiService } from '../../../services/api.service';
 
 export default apisProxyRouterConfig;
 
+/* @ngInject */
 function apisProxyRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {})
     .state('management.apis.detail.proxy.entrypoints', {

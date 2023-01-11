@@ -28,6 +28,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     dashboardsApplication: '<',
   },
   template: require('./analytics.html'),
+  /* @ngInject */
   controller: function (
     NotificationService: NotificationService,
     PortalSettingsService: PortalSettingsService,
@@ -37,7 +38,6 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     DashboardService: DashboardService,
     $rootScope,
   ) {
-    'ngInject';
     this.settings = _.cloneDeep(Constants.env.settings);
     this.$rootScope = $rootScope;
     this.providedConfigurationMessage = 'Configuration provided by the system';

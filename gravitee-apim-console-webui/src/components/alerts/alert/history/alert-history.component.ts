@@ -24,9 +24,8 @@ const AlertHistoryComponent: ng.IComponentOptions = {
     parent: '^alertComponent',
   },
   template: require('./alert-history.html'),
+  /* @ngInject */
   controller: function (AlertService: AlertService) {
-    'ngInject';
-
     this.query = {
       limit: 10,
       page: 1,

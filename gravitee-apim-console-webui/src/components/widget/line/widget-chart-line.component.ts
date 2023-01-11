@@ -26,9 +26,8 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
+  /* @ngInject */
   controller: function ($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, eventService: EventService) {
-    'ngInject';
-
     this.AnalyticsService = AnalyticsService;
     this.eventService = eventService;
     this.$scope = $scope;

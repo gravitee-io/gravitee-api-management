@@ -26,6 +26,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     settings: '<',
   },
   template: require('./api-portal-header.html'),
+  /* @ngInject */
   controller: function (
     ApiHeaderService: ApiHeaderService,
     NotificationService: NotificationService,
@@ -34,7 +35,6 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     Constants,
     $rootScope: IScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
 

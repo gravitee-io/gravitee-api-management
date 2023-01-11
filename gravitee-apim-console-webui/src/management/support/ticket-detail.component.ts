@@ -20,9 +20,8 @@ const TicketDetailComponent: ng.IComponentOptions = {
   bindings: {
     ticket: '<',
   },
+  /* @ngInject */
   controller: function ($state: StateService) {
-    'ngInject';
-
     this.backStateParams = {
       page: $state.params.page,
       size: $state.params.size,

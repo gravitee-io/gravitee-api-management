@@ -22,8 +22,8 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
+  /* @ngInject */
   controller: function (DashboardService: DashboardService) {
-    'ngInject';
     this.fields = DashboardService.getNumericFields();
 
     this.$onInit = () => {

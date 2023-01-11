@@ -19,6 +19,7 @@ import '@gravitee/ui-components/wc/gv-newsletter-subscription';
 class NewsletterSubscriptionController {
   newsletterPage;
 
+  /* @ngInject */
   constructor(
     private $state,
     private $scope,
@@ -29,8 +30,6 @@ class NewsletterSubscriptionController {
     private $rootScope,
     private taglines,
   ) {
-    'ngInject';
-
     $scope.user = UserService.currentUser;
 
     this.newsletterPage = document.querySelector('gv-newsletter-subscription');

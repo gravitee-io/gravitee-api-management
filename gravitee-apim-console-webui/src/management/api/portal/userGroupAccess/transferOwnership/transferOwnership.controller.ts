@@ -37,6 +37,7 @@ class ApiTransferOwnershipController {
   private newPrimaryOwnerGroup: string;
   private useGroupAsPrimaryOwner: boolean;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
@@ -52,7 +53,6 @@ class ApiTransferOwnershipController {
     private RoleService,
     private Constants,
   ) {
-    'ngInject';
     this.api = resolvedApi.data;
     this.poGroups = this.resolvedGroups.filter((group) => group.apiPrimaryOwner != null);
     if (this.api.owner.type === 'GROUP') {

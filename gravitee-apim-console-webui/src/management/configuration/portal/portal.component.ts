@@ -27,6 +27,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     settings: '<',
   },
   template: require('./portal.html'),
+  /* @ngInject */
   controller: function (
     NotificationService: NotificationService,
     PortalSettingsService: PortalSettingsService,
@@ -35,7 +36,6 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     $state: StateService,
     Constants: any,
   ) {
-    'ngInject';
     this.methods = CorsService.getHttpMethods();
     this.headers = ApiService.defaultHttpHeaders();
     this.searchHeaders = null;

@@ -28,8 +28,8 @@ export interface AverageableField {
 class DashboardService {
   private AnalyticsService: AnalyticsService;
 
+  /* @ngInject */
   constructor(private $http, private Constants, AnalyticsService: AnalyticsService) {
-    'ngInject';
     this.AnalyticsService = AnalyticsService;
   }
 

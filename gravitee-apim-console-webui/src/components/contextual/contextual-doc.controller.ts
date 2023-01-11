@@ -23,8 +23,8 @@ class ContextualDocController implements IOnInit, IOnDestroy {
 
   private openContextualDocumentationListener: () => void;
 
+  /* @ngInject */
   constructor(private $transitions, private $http, public $state, private $window, private $rootScope) {
-    'ngInject';
     if (window.pendo && window.pendo.isReady()) {
       // Do nothing, Pendo provide documentation
       this.isOpen = false;

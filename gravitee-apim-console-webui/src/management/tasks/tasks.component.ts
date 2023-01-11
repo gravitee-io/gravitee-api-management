@@ -27,13 +27,12 @@ class TasksComponentController implements IController, IOnInit, IOnDestroy {
   private tasks: PagedResult<Task>;
   private unsubscribe$ = new Subject();
 
+  /* @ngInject */
   constructor(
     private readonly $state: StateService,
     private readonly UserService: UserService,
     private readonly ngTaskService: TaskService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit(): void {
     this.ngTaskService

@@ -25,9 +25,8 @@ const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-condition-compare.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       this.metrics = _.filter(
         this.metrics as Metrics[],

@@ -35,6 +35,7 @@ class UserService {
   public currentUser: User;
   private isLogout = false;
 
+  /* @ngInject */
   constructor(
     private $http: ng.IHttpService,
     private $q: ng.IQService,
@@ -50,9 +51,7 @@ class UserService {
     private StringService: StringService,
     private Base64Service: Base64Service,
     private $rootScope: IScope,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
     let url = `${this.Constants.org.baseURL}/users/?page=${page}&size=${size}`;

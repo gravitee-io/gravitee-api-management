@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class ResourceService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(expandSchema = false, expandIcon = false) {
     const expandParams = [];

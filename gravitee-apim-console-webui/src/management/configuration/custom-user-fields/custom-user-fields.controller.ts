@@ -29,14 +29,13 @@ class CustomUserFieldsController {
 
   private fields: any;
 
+  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private UserService: UserService,
     private $state: StateService,
   ) {
-    'ngInject';
-
     const permissionPrefix = 'organization-custom_user_fields';
     this.canCreate = this.UserService.isUserHasPermissions([permissionPrefix + '-c']);
     this.canUpdate = this.UserService.isUserHasPermissions([permissionPrefix + '-u']);

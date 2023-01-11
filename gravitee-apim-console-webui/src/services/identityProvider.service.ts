@@ -19,9 +19,8 @@ import { IHttpPromise, IPromise } from 'angular';
 import { IdentityProvider } from '../entities/identity-provider/identityProvider';
 
 class IdentityProviderService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(): IPromise<IdentityProvider[]> {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/`).then((response) => response.data);

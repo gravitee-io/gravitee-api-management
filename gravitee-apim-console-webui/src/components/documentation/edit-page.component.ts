@@ -61,6 +61,7 @@ class EditPageComponentController implements IController {
   canUpdate: boolean;
   newName: any;
 
+  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -69,7 +70,6 @@ class EditPageComponentController implements IController {
     private $state: StateService,
     private $scope: IPageScope,
   ) {
-    'ngInject';
     this.apiId = $state.params.apiId;
     this.tabs = [
       {

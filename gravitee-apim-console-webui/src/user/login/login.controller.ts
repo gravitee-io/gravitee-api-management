@@ -30,6 +30,7 @@ class LoginController {
   userCreationEnabled: boolean;
   localLoginDisabled: boolean;
 
+  /* @ngInject */
   constructor(
     private AuthenticationService: AuthenticationService,
     private UserService: UserService,
@@ -44,7 +45,6 @@ class LoginController {
     private ReCaptchaService: ReCaptchaService,
     private ngGioPendoService: GioPendoService,
   ) {
-    'ngInject';
     this.userCreationEnabled = Constants.org.settings.management.userCreation.enabled;
     this.localLoginDisabled = !Constants.org.settings.authentication.localLogin.enabled || false;
     this.$state = $state;

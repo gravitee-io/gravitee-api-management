@@ -18,8 +18,4 @@ export class ApiPortalHeader {
   public name: string;
   public value: string;
   public order: number;
-
-  constructor() {
-    'ngInject';
-  }
 }

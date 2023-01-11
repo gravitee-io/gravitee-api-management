@@ -19,9 +19,8 @@ const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
     alert: '<',
   },
   template: require('./trigger-node-lifecycle-changed.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {

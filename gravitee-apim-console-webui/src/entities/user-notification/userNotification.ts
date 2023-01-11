@@ -18,8 +18,4 @@ export class UserNotification {
   public title: string;
   public message: string;
   public created_at: number;
-
-  constructor() {
-    'ngInject';
-  }
 }

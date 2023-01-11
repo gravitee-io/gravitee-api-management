@@ -74,9 +74,8 @@ export enum FolderSituation {
 }
 
 export class DocumentationService {
-  constructor(private readonly $http: ng.IHttpService, private readonly $q: ng.IQService, private readonly Constants: Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly $http: ng.IHttpService, private readonly $q: ng.IQService, private readonly Constants: Constants) {}
 
   buildPageList(pagesToFilter: any[], withRootFolder?: boolean, folderSituation?: FolderSituation) {
     const pageList = pagesToFilter

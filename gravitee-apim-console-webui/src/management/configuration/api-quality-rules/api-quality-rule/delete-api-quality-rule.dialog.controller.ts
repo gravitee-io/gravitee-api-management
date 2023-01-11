@@ -18,13 +18,13 @@ import { IScope } from 'angular';
 import { QualityRule } from '../../../../entities/qualityRule';
 import QualityRuleService from '../../../../services/qualityRule.service';
 
+/* @ngInject */
 function DeleteApiQualityRuleDialogController(
   $scope: IScope,
   $mdDialog: angular.material.IDialogService,
   qualityRule: QualityRule,
   QualityRuleService: QualityRuleService,
 ) {
-  'ngInject';
   this.qualityRule = qualityRule;
 
   this.cancel = function () {

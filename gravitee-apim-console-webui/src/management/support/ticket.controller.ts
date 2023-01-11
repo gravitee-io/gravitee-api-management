@@ -30,6 +30,7 @@ class SupportTicketController {
   private stateParams: any;
   private formTicket: any;
 
+  /* @ngInject */
   constructor(
     private TicketService: TicketService,
     private NotificationService: NotificationService,
@@ -38,8 +39,6 @@ class SupportTicketController {
     private ApplicationService: ApplicationService,
     private $stateParams,
   ) {
-    'ngInject';
-
     this.stateParams = $stateParams;
 
     if ((this.isAuthenticated = UserService.isAuthenticated())) {

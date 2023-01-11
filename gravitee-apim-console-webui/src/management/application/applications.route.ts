@@ -26,8 +26,8 @@ import UserService from '../../services/user.service';
 
 export default applicationsConfig;
 
+/* @ngInject */
 function applicationsConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.applications', {
       abstract: true,

@@ -22,9 +22,8 @@ class PromotionTaskComponentController {
   public task: PromotionTask;
   public taskHandled: () => void;
 
-  constructor(private readonly $mdDialog: angular.material.IDialogService, private readonly promotionService: PromotionService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly $mdDialog: angular.material.IDialogService, private readonly promotionService: PromotionService) {}
 
   public openRejectDialog(): IPromise<void> {
     return this.$mdDialog

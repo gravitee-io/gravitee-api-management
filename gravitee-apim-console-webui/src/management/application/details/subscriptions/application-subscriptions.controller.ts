@@ -44,9 +44,8 @@ class ApplicationSubscriptionsController {
     REJECTED: 'Rejected',
   };
 
-  constructor(private $state: StateService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $state: StateService) {}
 
   $onInit(): void {
     if (this.$state.params.status) {

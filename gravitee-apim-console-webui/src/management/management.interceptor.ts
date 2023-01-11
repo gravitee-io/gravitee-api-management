@@ -38,8 +38,8 @@ export class Future {
   }
 }
 
+/* @ngInject */
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
-  'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
   $httpProvider.defaults.withCredentials = true;

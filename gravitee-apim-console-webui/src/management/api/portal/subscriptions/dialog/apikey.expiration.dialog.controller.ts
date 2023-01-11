@@ -15,9 +15,8 @@
  */
 import * as moment from 'moment';
 
+/* @ngInject */
 function DialogApiKeyExpirationController($scope, $mdDialog, maxEndDate) {
-  'ngInject';
-
   const now = new Date();
   $scope.minDate = now;
   $scope.maxDate = maxEndDate ? new Date(maxEndDate) : new Date(2099, 11, 31);

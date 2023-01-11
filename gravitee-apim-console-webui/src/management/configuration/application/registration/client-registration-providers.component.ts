@@ -27,6 +27,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     settings: '<',
   },
   template: require('./client-registration-providers.html'),
+  /* @ngInject */
   controller: function (
     $mdDialog: angular.material.IDialogService,
     ClientRegistrationProviderService: ClientRegistrationProviderService,
@@ -35,8 +36,6 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     $state: StateService,
     Constants,
   ) {
-    'ngInject';
-
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.select = (provider: ClientRegistrationProvider) => {

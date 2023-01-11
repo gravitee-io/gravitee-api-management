@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class FetcherService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(onlyImportFromDirectory?: boolean) {
     const url = `${this.Constants.env.baseURL}/fetchers/?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');

@@ -22,6 +22,7 @@ class ApiResourcesController {
   private resource: any;
   private resourceJsonSchema: any;
 
+  /* @ngInject */
   constructor(
     private ApiService,
     private $mdSidenav,
@@ -33,7 +34,6 @@ class ApiResourcesController {
     private resolvedResources,
     private $timeout,
   ) {
-    'ngInject';
     this.creation = true;
     this.resourceJsonSchemaForm = ['*'];
 

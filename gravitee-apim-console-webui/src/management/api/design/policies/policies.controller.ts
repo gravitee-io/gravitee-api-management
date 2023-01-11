@@ -30,6 +30,7 @@ class ApiPoliciesController {
   private httpMethodsUpdated: boolean;
   private schemaByPolicyId: any;
 
+  /* @ngInject */
   constructor(
     private ApiService,
     private PolicyService,
@@ -43,8 +44,6 @@ class ApiPoliciesController {
     private UserService,
     private $state: StateService,
   ) {
-    'ngInject';
-
     this.pathsInitialized = [];
     this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
 

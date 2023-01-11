@@ -30,6 +30,7 @@ const AlertComponent: ng.IComponentOptions = {
     mode: '<',
   },
   template: require('./alert.html'),
+  /* @ngInject */
   controller: function (
     Constants: any,
     $scope: IScope,
@@ -39,8 +40,6 @@ const AlertComponent: ng.IComponentOptions = {
     $state,
     $mdDialog,
   ) {
-    'ngInject';
-
     this.$onInit = () => {
       this.tabs = ['general', 'notifications', 'history'];
       this.severities = ['INFO', 'WARNING', 'CRITICAL'];

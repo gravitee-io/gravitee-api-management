@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
+/* @ngInject */
 function DialogSubscriptionRenewController($scope, $mdDialog, locals) {
-  'ngInject';
-
   $scope.title = locals.title;
   $scope.msg = locals.msg;
   $scope.customMessage = locals.customMessage;

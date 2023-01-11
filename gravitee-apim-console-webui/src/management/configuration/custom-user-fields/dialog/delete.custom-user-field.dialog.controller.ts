@@ -15,9 +15,8 @@
  */
 import CustomUserFieldsService from '../../../../services/custom-user-fields.service';
 
+/* @ngInject */
 function DeleteFieldDialogController(CustomUserFieldsService: CustomUserFieldsService, $mdDialog: angular.material.IDialogService, field) {
-  'ngInject';
-
   this.field = field;
 
   this.cancel = function () {

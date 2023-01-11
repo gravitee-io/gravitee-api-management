@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogAddPropertyController($scope, $mdDialog) {
-  'ngInject';
-
   this.hide = function () {
     $mdDialog.hide();
   };

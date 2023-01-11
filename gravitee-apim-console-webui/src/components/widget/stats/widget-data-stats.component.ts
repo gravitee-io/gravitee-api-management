@@ -24,8 +24,8 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
+  /* @ngInject */
   controller: function ($scope, $element) {
-    'ngInject';
     this.$onInit = () => {
       this.chartData = _.cloneDeep(this.parent.widget.chart.data);
       checkFallback();

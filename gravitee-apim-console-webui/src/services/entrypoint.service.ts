@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class EntrypointService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   findById(entrypoint) {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/entrypoints/` + entrypoint);

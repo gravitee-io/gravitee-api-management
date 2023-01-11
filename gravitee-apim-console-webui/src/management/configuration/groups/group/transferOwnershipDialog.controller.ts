@@ -30,6 +30,7 @@ export interface OwnershipTransferResult {
 class DialogTransferOwnershipController {
   private readonly usersSelected: Partial<Member>[];
 
+  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private primaryOwner: Member,
@@ -37,7 +38,6 @@ class DialogTransferOwnershipController {
     private group: any,
     private transferType: ApiOwnershipTransferType,
   ) {
-    'ngInject';
     this.usersSelected = [];
     this.userFilterFn = this.userFilterFn.bind(this);
   }

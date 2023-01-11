@@ -25,6 +25,7 @@ import UserService from './user.service';
 import { IdentityProvider } from '../entities/identity-provider/identityProvider';
 
 class AuthenticationService {
+  /* @ngInject */
   constructor(
     private $rootScope: IScope,
     private Constants,
@@ -34,9 +35,7 @@ class AuthenticationService {
     private UserService: UserService,
     private RouterService: RouterService,
     private SatellizerConfig: SatellizerConfig,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   authenticate(provider: IdentityProvider, state?: string) {
     let satellizerProvider = this.SatellizerConfig.providers[provider.id];

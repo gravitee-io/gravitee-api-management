@@ -36,6 +36,7 @@ class ApplicationSubscribeController {
   private plans = [];
   private subscribedPlans = [];
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private Constants: Constants,
@@ -44,9 +45,7 @@ class ApplicationSubscribeController {
     private $mdDialog,
     private $state,
     private $transitions,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   async $onInit() {
     const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');

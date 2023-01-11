@@ -22,8 +22,8 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
+  /* @ngInject */
   controller: function (DashboardService: DashboardService) {
-    'ngInject';
     this.fields = DashboardService.getAggregateFields();
 
     this.$onInit = () => {

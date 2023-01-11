@@ -30,6 +30,7 @@ class ApiMembersController {
   private newPORole: any;
   private groupById: any;
   private displayGroups: any;
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private resolvedMembers,
@@ -42,7 +43,6 @@ class ApiMembersController {
     private GroupService,
     private RoleService,
   ) {
-    'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
     this.members = resolvedMembers.data;
     this.newPrimaryOwner = null;

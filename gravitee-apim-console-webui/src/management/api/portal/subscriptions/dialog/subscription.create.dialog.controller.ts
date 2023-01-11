@@ -19,6 +19,7 @@ import { ApiService } from '../../../../../services/api.service';
 import ApplicationService from '../../../../../services/application.service';
 import { PlanSecurityType } from '../../../../../entities/plan/plan';
 
+/* @ngInject */
 function DialogSubscriptionCreateController(
   $mdDialog: angular.material.IDialogService,
   plans,
@@ -27,7 +28,6 @@ function DialogSubscriptionCreateController(
   ApiService: ApiService,
   Constants: any,
 ) {
-  'ngInject';
   this.api = api;
   this.plans = plans;
   this.selectedApp = null;

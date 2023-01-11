@@ -33,9 +33,8 @@ export function getDefinitionVersionDescription(definitionVersion) {
 class NewApiImportController {
   definitionVersion = '2.0.0';
 
+  /* @ngInject */
   constructor(private readonly policies: unknown[], private $state: StateService, private $stateParams) {
-    'ngInject';
-
     this.definitionVersion = ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0';
   }
 

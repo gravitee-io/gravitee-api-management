@@ -15,9 +15,8 @@
  */
 
 class CategoryService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(include?: string[]) {
     const queryParam = include ? `?include=${include.join(',')}` : '';

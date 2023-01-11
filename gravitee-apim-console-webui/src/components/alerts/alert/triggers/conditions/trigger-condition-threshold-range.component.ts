@@ -19,9 +19,8 @@ const AlertTriggerConditionThresholdRangeComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-condition-threshold-range.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       /*
       // Delete properties which have nothing to do with threshold range condition

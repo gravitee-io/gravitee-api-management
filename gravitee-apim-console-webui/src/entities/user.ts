@@ -42,9 +42,6 @@ export class User {
   public picture: string;
   public picture_url: string;
   public number_of_active_tokens: number;
-  constructor() {
-    'ngInject';
-  }
 
   allowedTo(permissions: string[]): boolean {
     if (!permissions || !this.userPermissions) {

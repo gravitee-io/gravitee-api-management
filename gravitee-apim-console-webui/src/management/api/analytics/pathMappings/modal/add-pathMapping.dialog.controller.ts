@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogAddPathMappingController($scope, $mdDialog, pathMapping) {
-  'ngInject';
   $scope.path = pathMapping;
 
   this.hide = function () {

@@ -21,8 +21,8 @@ class AddPoliciesPathController {
   private rootCtrl: any;
   private canCopyFromRootPath: boolean;
 
+  /* @ngInject */
   constructor(private $mdDialog: ng.material.IDialogService, private locals) {
-    'ngInject';
     this.paths = locals.paths;
     this.rootCtrl = locals.rootCtrl;
     this.canCopyFromRootPath = this.paths['/'] !== undefined;

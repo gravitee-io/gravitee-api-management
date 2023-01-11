@@ -25,9 +25,8 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-condition.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       this.onMetricsChange(false);
     };

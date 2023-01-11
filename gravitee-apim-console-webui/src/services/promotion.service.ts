@@ -20,9 +20,8 @@ import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promot
 import { PromotionSearchParams } from '../entities/promotion/promotionSearchParams';
 
 export class PromotionService {
-  constructor(private $http: IHttpService, private Constants: Constants, private $q: IQService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http: IHttpService, private Constants: Constants, private $q: IQService) {}
 
   listPromotionTargets(): IPromise<PromotionTarget[]> {
     return this.$http.get<PromotionTarget[]>(`${this.Constants.env.baseURL}/promotion-targets`).then((response) => response.data);

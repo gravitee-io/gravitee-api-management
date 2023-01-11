@@ -31,6 +31,7 @@ class HomeDashboardController {
   private customTimeframeLastDay: any;
   private timeframe: ITimeframe;
 
+  /* @ngInject */
   constructor(
     private readonly eventService: EventService,
     private EnvironmentService,
@@ -38,7 +39,6 @@ class HomeDashboardController {
     private dashboards,
     private UserService,
   ) {
-    'ngInject';
     this.eventLabels = {};
     this.eventTypes = [];
     this.selectedAPIs = [];

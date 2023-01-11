@@ -89,6 +89,7 @@ class ApiCreationController {
   private tenants: any[];
   private groups: any[];
 
+  /* @ngInject */
   constructor(
     private $scope,
     private $timeout,
@@ -103,7 +104,6 @@ class ApiCreationController {
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
-    'ngInject';
     this.api = {
       gravitee: ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0',
       proxy: {

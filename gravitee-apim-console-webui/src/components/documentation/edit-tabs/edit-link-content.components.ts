@@ -24,9 +24,8 @@ class EditLinkContentComponentController implements IController {
   pageList: any[];
   systemFoldersById: any;
 
-  constructor(private readonly DocumentationService: DocumentationService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly DocumentationService: DocumentationService) {}
 
   checkIfFolder() {
     if (this.page.content) {

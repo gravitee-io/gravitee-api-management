@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogSubscriptionChangeEndDateController($scope, $mdDialog, subscription) {
-  'ngInject';
   this.subscription = subscription;
   this.endDate = subscription.endingAt;
   this.now = new Date();

@@ -24,13 +24,12 @@ class EditPageAttachedResourcesComponentController implements IController {
   page: any;
   onSave: () => void;
 
+  /* @ngInject */
   constructor(
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly DocumentationService: DocumentationService,
     private readonly NotificationService: NotificationService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   addAttachedResource() {
     this.$mdDialog

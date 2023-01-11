@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function delegatorConfig($sceDelegateProvider, Constants) {
-  'ngInject';
   $sceDelegateProvider.resourceUrlWhitelist(['self', Constants.org.baseURL + '/**']);
 }
 

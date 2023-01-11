@@ -34,6 +34,7 @@ class CategoryController {
   private addedAPIs: any[];
   private formChanged = false;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private CategoryService: CategoryService,
@@ -45,7 +46,6 @@ class CategoryController {
     private $mdDialog: angular.material.IDialogService,
     private $scope: IScope,
   ) {
-    'ngInject';
     this.createMode = $location.path().endsWith('new');
   }
 

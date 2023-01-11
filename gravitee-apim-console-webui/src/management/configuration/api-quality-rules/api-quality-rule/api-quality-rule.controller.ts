@@ -23,13 +23,13 @@ class ApiQualityRuleController {
   private createMode = false;
   private qualityRule: QualityRule;
 
+  /* @ngInject */
   constructor(
     private QualityRuleService: QualityRuleService,
     private NotificationService: NotificationService,
     private $state: StateService,
     private $location: ng.ILocationService,
   ) {
-    'ngInject';
     this.createMode = $location.path().endsWith('new');
   }
 

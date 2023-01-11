@@ -38,6 +38,7 @@ class ApplicationMembersController {
   private userFilterFn;
   private defaultUsersList: string[];
 
+  /* @ngInject */
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -47,8 +48,6 @@ class ApplicationMembersController {
     private GroupService: GroupService,
     private UserService: UserService,
   ) {
-    'ngInject';
-
     RoleService.list('APPLICATION').then((roles) => {
       this.roles = roles;
       this.newPORoles = _.filter(roles, (role: any) => {

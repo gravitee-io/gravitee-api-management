@@ -22,9 +22,8 @@ const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
     parent: '^alertComponent',
   },
   template: require('./trigger-missing-data.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {

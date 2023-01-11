@@ -20,9 +20,8 @@ class QuickTimeRangeController {
   private timeframes: ITimeframe[];
   private onTimeframeChange: any;
 
+  /* @ngInject */
   constructor() {
-    'ngInject';
-
     this.timeframes = [
       TimeframeRanges.LAST_MINUTE,
       TimeframeRanges.LAST_HOUR,

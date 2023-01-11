@@ -44,6 +44,7 @@ class ApiPortalController {
   private apiLabelsDictionary = [];
   private displayJupiterToggle: boolean;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private NotificationService,
@@ -63,8 +64,6 @@ class ApiPortalController {
     private qualityRules,
     private InstallationService: InstallationService,
   ) {
-    'ngInject';
-
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;

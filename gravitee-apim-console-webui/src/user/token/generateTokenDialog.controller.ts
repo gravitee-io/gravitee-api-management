@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, NotificationService, Constants, $location) {
-  'ngInject';
-
   this.title = locals.title;
   this.msg = locals.msg;
 

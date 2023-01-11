@@ -24,6 +24,7 @@ class DialogSubscriptionAcceptController {
   private customApiKeyInputState: string;
   private reason: string;
 
+  /* @ngInject */
   constructor(
     private apiId: string,
     private applicationId: string,
@@ -31,7 +32,6 @@ class DialogSubscriptionAcceptController {
     private sharedApiKeyMode: boolean,
     private $mdDialog: angular.material.IDialogService,
   ) {
-    'ngInject';
     this.now = moment().toDate();
     this.onApiKeyValueChange = this.onApiKeyValueChange.bind(this);
   }
