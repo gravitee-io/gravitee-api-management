@@ -117,7 +117,15 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
       pagination: { index: 1, size: 10 },
       searchTerm: '',
     },
-    auditFilters: {},
+    auditFilters: {
+      event: null,
+      referenceType: null,
+      environmentId: null,
+      applicationId: null,
+      apiId: null,
+      from: undefined,
+      to: undefined,
+    },
   });
 
   constructor(
@@ -129,25 +137,27 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.filtersForm.valueChanges.subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
-      this.filtersStream.next({
-        tableWrapper: {
-          ...this.filtersStream.value.tableWrapper,
-          // go to first page when filters change
-          pagination: { index: 1, size: this.filtersStream.value.tableWrapper.pagination.size },
-        },
-        auditFilters: {
-          ...this.filtersStream.value.auditFilters,
-          event,
-          referenceType,
-          environmentId,
-          applicationId,
-          apiId,
-          from: range?.start?.getTime() ?? undefined,
-          to: range?.end?.getTime() ?? undefined,
-        },
+    this.filtersForm.valueChanges
+      .pipe(takeUntil(this.unsubscribe$), distinctUntilChanged(isEqual))
+      .subscribe(({ event, referenceType, environmentId, applicationId, apiId, range }) => {
+        this.filtersStream.next({
+          tableWrapper: {
+            ...this.filtersStream.value.tableWrapper,
+            // go to first page when filters change
+            pagination: { index: 1, size: this.filtersStream.value.tableWrapper.pagination.size },
+          },
+          auditFilters: {
+            ...this.filtersStream.value.auditFilters,
+            event,
+            referenceType,
+            environmentId,
+            applicationId,
+            apiId,
+            from: range?.start?.getTime() ?? undefined,
+            to: range?.end?.getTime() ?? undefined,
+          },
+        });
       });
-    });
 
     this.filtersStream
       .pipe(

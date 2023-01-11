@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -53,7 +53,7 @@ describe('ApiPortalDetailsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [BrowserAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
@@ -77,6 +77,7 @@ describe('ApiPortalDetailsComponent', () => {
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
       },
     });
   });

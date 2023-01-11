@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -25,6 +24,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { Category } from '@uirouter/core';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { UIRouterState, UIRouterStateParams, CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../entities/api';
@@ -50,7 +50,7 @@ describe('ApiPortalDetailsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [BrowserAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },

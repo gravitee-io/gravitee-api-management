@@ -19,6 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './org-settings-add-tenant.component';
 
@@ -42,7 +43,7 @@ describe('GioConfirmDialogComponent', () => {
     beforeEach(() => {
       const dialogData: OrgSettingAddTenantDialogData = {};
       TestBed.configureTestingModule({
-        imports: [OrganizationSettingsModule],
+        imports: [NoopAnimationsModule, OrganizationSettingsModule],
         providers: [
           {
             provide: MAT_DIALOG_DATA,
@@ -88,7 +89,7 @@ describe('GioConfirmDialogComponent', () => {
         }),
       };
       TestBed.configureTestingModule({
-        imports: [OrganizationSettingsModule],
+        imports: [NoopAnimationsModule, OrganizationSettingsModule],
         providers: [
           {
             provide: MAT_DIALOG_DATA,

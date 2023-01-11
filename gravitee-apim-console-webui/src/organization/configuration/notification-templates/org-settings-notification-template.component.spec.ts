@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
 
@@ -39,7 +40,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
       providers: [
         {
           provide: 'Constants',

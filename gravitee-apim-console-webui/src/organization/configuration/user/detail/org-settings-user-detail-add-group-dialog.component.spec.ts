@@ -20,6 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import {
   OrgSettingsUserDetailAddGroupDialogComponent,
@@ -51,7 +52,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
       groupIdAlreadyAdded: [],
     };
     TestBed.configureTestingModule({
-      imports: [OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
       providers: [
         {
           provide: MAT_DIALOG_DATA,
