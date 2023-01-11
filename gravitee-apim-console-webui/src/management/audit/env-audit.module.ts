@@ -22,7 +22,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -34,7 +33,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
 @NgModule({
   imports: [
     CommonModule,
-    BrowserAnimationsModule,
     ReactiveFormsModule,
     MatSnackBarModule,
     MatFormFieldModule,

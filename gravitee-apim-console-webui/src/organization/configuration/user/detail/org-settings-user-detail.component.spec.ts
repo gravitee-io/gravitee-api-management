@@ -159,7 +159,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     // No flush to stop test here
   });
 
-  it('should not reset password if no firstname', async (done) => {
+  it('should not reset password if no firstname', async () => {
     const user = fakeUser({
       id: 'userId',
       source: 'gravitee',
@@ -175,13 +175,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('ORGANIZATION');
 
     const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
-    await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' })).catch((reason) => {
-      expect(reason.message).toEqual(
-        'Failed to find element matching one of the following queries:\n' +
-          '(MatButtonHarness with host element matching selector: "[mat-button],[mat-raised-button],[mat-flat-button],[mat-icon-button],[mat-stroked-button],[mat-fab],[mat-mini-fab]" satisfying the constraints: text = "Reset password")',
-      );
-      done();
-    });
+    expect(await userCard.getAllHarnesses(MatButtonHarness.with({ text: 'Reset password' }))).toHaveLength(0);
   });
 
   it('should accept user registration after confirm dialog', async () => {

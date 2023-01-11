@@ -546,9 +546,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       ).toBeTruthy();
 
       expect(
-        await loader
-          .getHarness(MatCheckboxHarness.with({ selector: '[aria-label="Secondary endpoint checkbox"]' }))
-          .then((input) => input.isDisabled()),
+        await loader.getHarness(MatCheckboxHarness.with({ selector: '[formControlName="backup"]' })).then((input) => input.isDisabled()),
       ).toBeTruthy();
 
       await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());

@@ -21,6 +21,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
 
@@ -48,7 +49,7 @@ describe('OrgSettingAddTagDialogComponent', () => {
     beforeEach(() => {
       const dialogData: OrgSettingAddTagDialogData = {};
       TestBed.configureTestingModule({
-        imports: [OrganizationSettingsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
         providers: [
           {
             provide: MAT_DIALOG_DATA,
@@ -100,7 +101,7 @@ describe('OrgSettingAddTagDialogComponent', () => {
         }),
       };
       TestBed.configureTestingModule({
-        imports: [OrganizationSettingsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
         providers: [
           {
             provide: MAT_DIALOG_DATA,

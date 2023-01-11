@@ -21,6 +21,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import {
   OrgSettingsUserGenerateTokenComponent,
@@ -53,7 +54,7 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
       userId: userId,
     };
     TestBed.configureTestingModule({
-      imports: [OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
       providers: [
         {
           provide: 'Constants',

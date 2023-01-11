@@ -61,6 +61,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);

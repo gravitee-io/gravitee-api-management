@@ -20,6 +20,7 @@ const _ = require('lodash');
 
 require('@uirouter/angularjs');
 require('angular-mocks');
+require('@angular/compiler');
 
 // Magic things for angular-schema-form
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });

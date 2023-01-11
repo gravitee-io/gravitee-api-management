@@ -16,13 +16,19 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'jest-preset-angular',
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.json',
+      stringifyContentPathRegex: '\\.(html|svg)$',
+    },
+  },
+
   testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).ts'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testRunner: 'jest-jasmine2',
   verbose: true,
-  moduleFileExtensions: ['js', 'ts', 'html'],
   moduleNameMapper: {
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
     '\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js',
@@ -35,6 +41,6 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Ensure these packages are transformed with babel as they contains some ES6+ features (as `await import` and spread operator)
-    '/node_modules/(?!(@gravitee/ui-components|lit|@lit/reactive-element|lit-element|lit-html|resize-observer-polyfill)).+\\.js$',
+    '/node_modules/(?!(.*\\.mjs$)|(@gravitee/ui-components/.*?\\.js)|lit|@lit/reactive-element|(lit-element/.*?\\.js)|(lit-html/.*?\\.js)|(resize-observer-polyfill/.*?\\.js)|(date-fns/.*?\\.js)$)',
   ],
 };
