@@ -56,7 +56,7 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
     return {
       ...baseApi,
       ...attributes,
-    };
+    } as UserMembership<T>;
   }
 
   if (type === 'application') {
@@ -81,10 +81,10 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
     return {
       ...baseApplication,
       ...attributes,
-    };
+    } as UserMembership<T>;
   }
 
-  const base: UserMembership<T> = {
+  const base: UserMembership<string> = {
     memberships: [
       {
         reference: '00783aa6-d0db-45d1-b83a-a6d0db05d1e1',
@@ -105,5 +105,5 @@ export function fakeUserMembership<T extends 'application' | 'api' | string = st
   return {
     ...base,
     ...attributes,
-  };
+  } as UserMembership<T>;
 }
