@@ -21,11 +21,9 @@ import io.gravitee.gateway.http.utils.WebSocketUtils;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.core.BufferFlow;
-import io.gravitee.gateway.jupiter.core.MessageFlow;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
-import java.util.function.Function;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

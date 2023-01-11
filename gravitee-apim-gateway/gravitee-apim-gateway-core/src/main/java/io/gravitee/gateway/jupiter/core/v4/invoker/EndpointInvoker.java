@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.invoker;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.jupiter.api.ApiType;
@@ -54,6 +55,7 @@ public class EndpointInvoker implements Invoker {
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
     public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
     public static final String INCOMPATIBLE_QOS_CAPABILITIES_KEY = "INCOMPATIBLE_QOS_CAPABILITIES";
+    public static final String INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
 
     private final EndpointManager endpointManager;
 
@@ -157,6 +159,40 @@ public class EndpointInvoker implements Invoker {
     }
 
     private Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
-        return endpointConnector.connect(ctx);
+        return computeRequest(ctx).andThen(endpointConnector.connect(ctx));
+    }
+
+    private Completable computeRequest(ExecutionContext ctx) {
+        return Completable.defer(
+            () -> {
+                final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
+                if (requestMethodAttribute != null) {
+                    final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
+                    if (httpMethod == null) {
+                        return ctx.interruptWith(
+                            new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                                .key(INVALID_HTTP_METHOD)
+                                .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
+                        );
+                    } else {
+                        ctx.request().method(httpMethod);
+                    }
+                }
+                return Completable.complete();
+            }
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpMethod computeHttpMethodFromAttribute(Object attributeMethod) {
+        if (attributeMethod instanceof HttpMethod) {
+            return (HttpMethod) attributeMethod;
+        } else if (attributeMethod instanceof io.vertx.core.http.HttpMethod) {
+            return HttpMethod.valueOf(((io.vertx.core.http.HttpMethod) attributeMethod).name());
+        } else if (attributeMethod instanceof String) {
+            return HttpMethod.valueOf((String) attributeMethod);
+        } else {
+            return null;
+        }
     }
 }

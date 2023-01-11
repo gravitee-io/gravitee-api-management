@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.invoker;
 
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker.INCOMPATIBLE_QOS_CAPABILITIES_KEY;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.ApiType;
@@ -35,6 +37,7 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosCapability;
 import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
@@ -44,10 +47,16 @@ import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -72,6 +81,9 @@ class EndpointInvokerTest {
 
     @Mock
     private TemplateEngine templateEngine;
+
+    @Mock
+    private Request request;
 
     private EndpointInvoker cut;
 
@@ -298,6 +310,65 @@ class EndpointInvokerTest {
                 assertNotNull(failureException.getExecutionFailure().message());
                 return true;
             }
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] {1}")
+    @MethodSource("provideOverrideMethodAttributes")
+    void shouldOverrideHttpMethodThanksToAttribute(Object attribute, String testName) {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        when(ctx.getAttribute(ATTR_REQUEST_METHOD)).thenReturn(attribute);
+        when(ctx.request()).thenReturn(request);
+
+        cut.invoke(ctx).test().assertComplete().assertNoValues();
+
+        verify(request).method(HttpMethod.PUT);
+    }
+
+    @Test
+    void shouldNotOverrideHttpMethodWhenAttributeIsNotValid() {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        // Here, return a random object from attribute and verify we end in error
+        when(ctx.getAttribute(eq(ATTR_REQUEST_METHOD))).thenReturn(List.of("PUT"));
+
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+
+        cut
+            .invoke(ctx)
+            .test()
+            .assertError(
+                e -> {
+                    assertTrue(e instanceof InterruptionFailureException);
+                    final InterruptionFailureException failureException = (InterruptionFailureException) e;
+                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                    assertThat(failureException.getExecutionFailure().message())
+                        .isNotNull()
+                        .isEqualTo("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid");
+                    assertThat(failureException.getExecutionFailure().key()).isEqualTo(EndpointInvoker.INVALID_HTTP_METHOD);
+                    return true;
+                }
+            );
+    }
+
+    private static Stream<Arguments> provideOverrideMethodAttributes() {
+        return Stream.of(
+            Arguments.of(HttpMethod.PUT, "Gravitee Common - HttpMethod"),
+            Arguments.of(io.vertx.core.http.HttpMethod.PUT, "Vertx Core Http - HttpMethod"),
+            Arguments.of("PUT", "Simple string")
         );
     }
 }
