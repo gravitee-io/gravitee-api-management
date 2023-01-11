@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function FileChooserDialogController($scope, $mdDialog, locals, Constants, NotificationService) {
-  'ngInject';
-
   $scope.title = locals.title;
   $scope.confirmButton = locals.confirmButton || 'OK';
   $scope.cancelButton = locals.cancelButton || 'Cancel';

@@ -31,9 +31,8 @@ class InstancesController {
   private lastFrom: any;
   private lastTo: any;
 
-  constructor(private $scope: IInstancesScope, private InstancesService: InstancesService, private $state: StateService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $scope: IInstancesScope, private InstancesService: InstancesService, private $state: StateService) {}
 
   $onInit() {
     this.query = {

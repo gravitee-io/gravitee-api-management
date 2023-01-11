@@ -28,13 +28,13 @@ class ApiKeysController {
   private listEvent: Observable<void>;
   private backStateParams: StateParams;
 
+  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private ApplicationService: ApplicationService,
     private $state: StateService,
   ) {
-    'ngInject';
     this.backStateParams = $state.params;
   }
 

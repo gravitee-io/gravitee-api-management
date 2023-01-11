@@ -24,9 +24,8 @@ class ApplicationAnalyticsController {
   private dashboard: any;
   private dashboards: any;
 
-  constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private $state: StateService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private $state: StateService) {}
 
   $onInit() {
     this.DashboardService.list('APPLICATION', true).then((response) => {

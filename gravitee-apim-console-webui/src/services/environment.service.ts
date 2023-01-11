@@ -21,9 +21,8 @@ import { EnvironmentPermissions } from '../entities/environment/environmentPermi
 import { IdentityProviderActivation } from '../entities/identity-provider';
 
 class EnvironmentService {
-  constructor(private $http, private Constants, private $q) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants, private $q) {}
 
   /*
    * Analytics

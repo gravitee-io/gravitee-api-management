@@ -23,9 +23,8 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
     parent: '^alertComponent',
   },
   template: require('./trigger-dampening.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       this.modes = DampeningMode.MODES;
       this.timeUnits = DurationTimeUnit.TIME_UNITS;

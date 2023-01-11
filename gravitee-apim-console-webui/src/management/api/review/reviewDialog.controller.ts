@@ -18,8 +18,8 @@ import * as _ from 'lodash';
 import { QualityRule } from '../../../entities/qualityRule';
 import QualityRuleService from '../../../services/qualityRule.service';
 
+/* @ngInject */
 function DialogReviewController($scope, $mdDialog, api, QualityRuleService: QualityRuleService, $q, apiQualityRules, qualityRules) {
-  'ngInject';
   this.apiQualityRules = apiQualityRules;
   this.qualityRules = qualityRules;
 

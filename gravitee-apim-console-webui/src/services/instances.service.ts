@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class InstancesService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number) {
     if (includeStopped === undefined) {

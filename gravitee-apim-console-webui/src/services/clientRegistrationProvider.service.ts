@@ -19,9 +19,8 @@ import { IHttpPromise, IPromise } from 'angular';
 import { ClientRegistrationProvider } from '../entities/clientRegistrationProvider';
 
 class ClientRegistrationProviderService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(): IPromise<ClientRegistrationProvider[]> {
     return this.$http

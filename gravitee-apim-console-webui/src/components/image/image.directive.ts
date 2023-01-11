@@ -17,9 +17,8 @@
 import NotificationService from '../../services/notification.service';
 
 class ImageDirective {
+  /* @ngInject */
   constructor() {
-    'ngInject';
-
     const directive = {
       restrict: 'E',
       require: 'graviteeIdentityPicture',
@@ -51,8 +50,8 @@ class ImageDirective {
 }
 
 class ImageController {
+  /* @ngInject */
   constructor(private $rootScope, private $scope, private Upload, private NotificationService: NotificationService) {
-    'ngInject';
     $scope.maxSize = '1MB';
     if ($scope.accept == null) {
       $scope.accept = 'image/*';

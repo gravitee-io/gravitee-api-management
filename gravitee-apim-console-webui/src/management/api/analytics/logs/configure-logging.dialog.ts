@@ -94,8 +94,8 @@ export class ConfigureLoggingDialogController implements IComponentController {
   ];
   private readonly $mdDialog: angular.material.IDialogService;
 
+  /* @ngInject */
   constructor($mdDialog: angular.material.IDialogService, plans, subscribers) {
-    'ngInject';
     this.$mdDialog = $mdDialog;
     this.plans = plans;
     this.subscribers = subscribers;

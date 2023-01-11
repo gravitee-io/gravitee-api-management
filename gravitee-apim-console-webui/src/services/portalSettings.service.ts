@@ -15,9 +15,8 @@
  */
 
 class PortalSettingsService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   save(config) {
     return this.$http.post(`${this.Constants.env.baseURL}/settings/`, config);

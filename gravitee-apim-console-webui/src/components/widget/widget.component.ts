@@ -27,8 +27,8 @@ const WidgetComponent: ng.IComponentOptions = {
     globalQuery: '<',
     customTimeframe: '<',
   },
+  /* @ngInject */
   controller: function ($scope, $state, AnalyticsService: AnalyticsService, eventService: EventService, ApiService: ApiService) {
-    'ngInject';
     this.$state = $state;
     this.AnalyticsService = AnalyticsService;
     this.eventService = eventService;

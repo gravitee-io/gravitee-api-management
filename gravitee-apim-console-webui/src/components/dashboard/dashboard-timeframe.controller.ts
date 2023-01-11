@@ -46,6 +46,7 @@ class DashboardTimeframeController {
   private displayModes: any[];
   private unRegisterTimeframeZoom: () => void;
 
+  /* @ngInject */
   constructor(
     private $scope,
     private $rootScope,
@@ -53,8 +54,6 @@ class DashboardTimeframeController {
     private $timeout: ng.ITimeoutService,
     private $interval: ng.IIntervalService,
   ) {
-    'ngInject';
-
     this.displayModes = [
       {
         field: '',

@@ -18,8 +18,8 @@ import { IScope } from 'angular';
 
 const SettingsComponent: ng.IComponentOptions = {
   template: require('./settings.html'),
+  /* @ngInject */
   controller: function ($rootScope: IScope, $state: StateService) {
-    'ngInject';
     this.$state = $state;
   },
 };

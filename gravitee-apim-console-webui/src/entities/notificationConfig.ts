@@ -25,8 +25,4 @@ export class NotificationConfig {
   public hooks: string[];
   public useSystemProxy: boolean;
   public config_type: string;
-
-  constructor() {
-    'ngInject';
-  }
 }

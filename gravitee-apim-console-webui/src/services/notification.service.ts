@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class NotificationService {
-  constructor(private $mdToast: ng.material.IToastService, private $state) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $mdToast: ng.material.IToastService, private $state) {}
 
   show(message: any, errorStatus?: number) {
     const msg = message.statusText || message;

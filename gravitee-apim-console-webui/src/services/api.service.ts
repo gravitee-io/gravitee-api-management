@@ -39,14 +39,13 @@ interface IMembership {
 }
 
 export class ApiService {
+  /* @ngInject */
   constructor(
     private readonly $http: IHttpService,
     private readonly $rootScope: IRootScopeService,
     private readonly Constants: Constants,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   defaultHttpHeaders(): string[] {
     return [

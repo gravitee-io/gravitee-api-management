@@ -20,8 +20,8 @@ class ApiAnalyticsController {
   private api: any;
   private dashboard: any;
 
+  /* @ngInject */
   constructor(private ApiService, private resolvedApi, private dashboards, private $scope, private $state: StateService) {
-    'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.api = resolvedApi.data;

@@ -25,6 +25,7 @@ import UserService from '../services/user.service';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import NotificationService from '../services/notification.service';
 
+/* @ngInject */
 function runBlock(
   $rootScope,
   $window,
@@ -44,8 +45,6 @@ function runBlock(
   NotificationService: NotificationService,
   ngGioPendoService: GioPendoService,
 ) {
-  'ngInject';
-
   $transitions.onStart(
     {
       to: (state) =>

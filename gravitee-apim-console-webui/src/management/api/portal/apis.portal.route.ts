@@ -26,8 +26,8 @@ import '@gravitee/ui-components/wc/gv-icon';
 
 export default apisPortalRouterConfig;
 
+/* @ngInject */
 function apisPortalRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.apis.detail.portal', {
       resolve: {

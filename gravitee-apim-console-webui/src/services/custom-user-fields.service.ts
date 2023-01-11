@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class CustomUserFieldsService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   valuesAsList = function (field: any) {
     const transformedField: any = {

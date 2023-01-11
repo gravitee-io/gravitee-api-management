@@ -131,6 +131,7 @@ class ApiHistoryController {
   private added: number;
   private removed: number;
 
+  /* @ngInject */
   constructor(
     private $mdDialog: ng.material.IDialogService,
     private $scope: any,
@@ -143,7 +144,6 @@ class ApiHistoryController {
     private ResourceService,
     private FlowService,
   ) {
-    'ngInject';
     this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
     this.events = resolvedEvents.data;
     this.eventsSelected = [];

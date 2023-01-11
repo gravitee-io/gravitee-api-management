@@ -23,9 +23,8 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     parent: '^createApplication',
   },
   template: require('./application-creation-step3.html'),
+  /* @ngInject */
   controller: function (ApiService: ApiService, $scope) {
-    'ngInject';
-
     this.onSelectAPI = (api) => {
       if (api) {
         const authorizedSecurity = this.getAuthorizedSecurity();

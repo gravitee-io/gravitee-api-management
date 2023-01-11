@@ -16,13 +16,12 @@
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import ApiHeaderService from '../../../services/apiHeader.service';
 
+/* @ngInject */
 function UpdateApiPortalHeaderDialogController(
   ApiHeaderService: ApiHeaderService,
   $mdDialog: angular.material.IDialogService,
   header: ApiPortalHeader,
 ) {
-  'ngInject';
-
   this.header = header;
 
   this.cancel = function () {

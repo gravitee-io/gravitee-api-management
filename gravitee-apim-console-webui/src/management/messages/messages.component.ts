@@ -27,14 +27,13 @@ const MessagesComponent: ng.IComponentOptions = {
     resolvedApiId: '<',
   },
   template: require('./messages.html'),
+  /* @ngInject */
   controller: function (
     $state: StateService,
     NotificationService: NotificationService,
     MessageService: MessageService,
     ApiService: ApiService,
   ) {
-    'ngInject';
-
     this.$onInit = () => {
       const roles = _.sortBy(this.resolvedRoles, ['name']);
       this.recipients = [];

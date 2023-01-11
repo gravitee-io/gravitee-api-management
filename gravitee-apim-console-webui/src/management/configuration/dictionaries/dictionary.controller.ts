@@ -44,6 +44,7 @@ class DictionaryController {
   private selectAll: boolean;
   private formDictionary: any;
 
+  /* @ngInject */
   constructor(
     private $scope: IDictionaryScope,
     private $state: StateService,
@@ -52,8 +53,6 @@ class DictionaryController {
     private NotificationService: NotificationService,
     private DictionaryService: DictionaryService,
   ) {
-    'ngInject';
-
     this.types = [
       {
         id: 'MANUAL',

@@ -21,8 +21,8 @@ const PlatformLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<',
   },
+  /* @ngInject */
   controller: function ($state: StateService, NotificationService: NotificationService, Constants: any) {
-    'ngInject';
     this.Constants = Constants;
     this.NotificationService = NotificationService;
 

@@ -22,9 +22,8 @@ const NotificationsComponent: ng.IComponentOptions = {
     application: '<',
   },
   template: require('./notifications.html'),
+  /* @ngInject */
   controller: function (Constants: any, $state: StateService) {
-    'ngInject';
-
     this.$onInit = () => {
       $state.go('^.notifications.notification', { notificationId: 'portal' });
     };

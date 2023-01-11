@@ -24,8 +24,8 @@ require('@gravitee/ui-components/wc/gv-state');
 
 const OrganizationSettingsComponent: ng.IComponentOptions = {
   template: require('./organization-settings.html'),
+  /* @ngInject */
   controller: function ($rootScope: IScope, $state: StateService, UserService: UserService, Constants, $transitions) {
-    'ngInject';
     this.$state = $state;
     this.Constants = Constants;
     this.settingsMenu = {

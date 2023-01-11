@@ -21,9 +21,8 @@ class ApiLoggingController {
   private formApiLogging: any;
   private settings: any;
 
-  constructor(private ConsoleSettingsService: ConsoleSettingsService, private NotificationService: NotificationService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private ConsoleSettingsService: ConsoleSettingsService, private NotificationService: NotificationService) {}
 
   save() {
     this.ConsoleSettingsService.save(this.settings).then(() => {

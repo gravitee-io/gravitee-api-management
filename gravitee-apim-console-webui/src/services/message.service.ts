@@ -15,9 +15,8 @@
  */
 
 class MessageService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   sendFromPortal(
     title: string,

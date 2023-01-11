@@ -18,9 +18,8 @@ import * as _ from 'lodash';
 class RoleService {
   private permissionsByScope: any;
 
-  constructor(private $http, private Constants, private $q) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants, private $q) {}
 
   listRights() {
     return ['c', 'r', 'u', 'd'];

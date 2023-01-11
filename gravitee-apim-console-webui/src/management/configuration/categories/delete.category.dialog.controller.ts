@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DeleteCategoryDialogController($scope, $mdDialog, category) {
-  'ngInject';
-
   $scope.category = category.name;
 
   $scope.cancel = function () {

@@ -17,8 +17,4 @@ export class Task {
   public type: string;
   public data: string;
   public created_at: number;
-
-  constructor() {
-    'ngInject';
-  }
 }

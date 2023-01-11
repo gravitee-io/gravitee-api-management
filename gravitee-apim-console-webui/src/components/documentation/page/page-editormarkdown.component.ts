@@ -26,15 +26,14 @@ class ComponentCtrl implements ng.IComponentController {
 
   private tuiEditor: any;
 
+  /* @ngInject */
   constructor(
     private $http,
     private readonly Constants,
     private $state: StateService,
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly NotificationService: NotificationService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : '';

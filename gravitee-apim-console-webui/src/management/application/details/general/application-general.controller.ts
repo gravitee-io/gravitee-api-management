@@ -28,15 +28,14 @@ class ApplicationGeneralController {
   private application: any;
   private initialApplication: any;
 
+  /* @ngInject */
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit() {
     if (!this.application.groups) {

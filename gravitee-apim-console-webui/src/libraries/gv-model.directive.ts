@@ -22,8 +22,6 @@
  */
 class GvModelDirective {
   constructor() {
-    'ngInject';
-
     return {
       restrict: 'A',
       require: '?ngModel',

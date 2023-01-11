@@ -22,8 +22,8 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
+  /* @ngInject */
   controller: function (DashboardService: DashboardService) {
-    'ngInject';
     this.fields = DashboardService.getIndexedFields();
     this.projections = _.concat(
       {

@@ -20,9 +20,8 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-filters.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.addFilter = () => {
       if (this.alert.filters === undefined) {
         this.alert.filters = [];

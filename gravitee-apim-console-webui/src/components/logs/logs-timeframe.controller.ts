@@ -34,9 +34,8 @@ class LogsTimeframeController {
   private onTimeframeChange: any;
   private unRegisterTimeframeZoom: () => void;
 
+  /* @ngInject */
   constructor(private $scope, private $rootScope, private $state: StateService, private $timeout: ng.ITimeoutService) {
-    'ngInject';
-
     this.timeframes = [
       {
         id: '5m',

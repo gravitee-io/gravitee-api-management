@@ -15,9 +15,8 @@
  */
 
 class PortalService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   searchApis(query?: string, opts?: any) {
     const url = `${this.Constants.env.baseURL}/portal/` + 'apis/_search?q=' + query;

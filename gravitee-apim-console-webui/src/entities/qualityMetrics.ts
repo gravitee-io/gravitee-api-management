@@ -16,8 +16,4 @@
 export class QualityMetrics {
   public score: number;
   public metrics_passed: Map<string, boolean>;
-
-  constructor() {
-    'ngInject';
-  }
 }

@@ -127,13 +127,13 @@ class LogsFiltersController {
     return '(' + params.join(' OR ') + ')';
   }
 
+  /* @ngInject */
   constructor(
     private $scope: ILogsFiltersScope,
     private $state: StateService,
     private $timeout: ITimeoutService,
     private $log: ILogService,
   ) {
-    'ngInject';
     this.$scope = $scope;
   }
 

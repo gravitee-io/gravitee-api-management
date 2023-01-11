@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogConfirmDeploymentController($scope, $mdDialog, locals) {
-  'ngInject';
-
   this.title = locals.title;
   this.msg = locals.msg;
   this.more = locals.more;

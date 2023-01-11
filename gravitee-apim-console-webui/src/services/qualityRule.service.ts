@@ -20,9 +20,8 @@ import { ApiQualityRule } from '../entities/apiQualityRule';
 import { QualityRule } from '../entities/qualityRule';
 
 class QualityRuleService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(): IHttpPromise<QualityRule[]> {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/quality-rules/`);

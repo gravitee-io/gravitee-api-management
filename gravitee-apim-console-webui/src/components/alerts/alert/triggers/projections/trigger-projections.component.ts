@@ -21,9 +21,8 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-projections.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.addProjection = () => {
       if (this.condition.projections === undefined) {
         this.condition.projections = [];

@@ -20,15 +20,14 @@ import { Constants } from '../../entities/Constants';
 import UserService from '../../services/user.service';
 
 class LogoutComponentController implements IOnInit {
+  /* @ngInject */
   constructor(
     private readonly UserService: UserService,
     private readonly $state: StateService,
     private readonly $rootScope: IScope,
     private readonly $window: IWindowService,
     private readonly Constants: Constants,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit(): void {
     delete this.Constants.org.currentEnv;

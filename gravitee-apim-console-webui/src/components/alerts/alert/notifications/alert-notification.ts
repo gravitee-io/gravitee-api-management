@@ -26,9 +26,8 @@ const AlertNotificationComponent: ng.IComponentOptions = {
     parent: '^gvAlertNotifications',
   },
   template: require('./alert-notification.html'),
+  /* @ngInject */
   controller: function (NotificationService: NotificationService, NotifierService: NotifierService) {
-    'ngInject';
-
     this.notifierJsonSchemaForm = ['*'];
 
     this.$onInit = () => {

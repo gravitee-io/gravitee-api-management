@@ -27,6 +27,7 @@ const AlertsComponent: ng.IComponentOptions = {
     application: '<',
   },
   template: require('./alerts.html'),
+  /* @ngInject */
   controller: function (
     $stateParams,
     $state: StateService,
@@ -35,7 +36,6 @@ const AlertsComponent: ng.IComponentOptions = {
     UserService: UserService,
     $mdDialog,
   ) {
-    'ngInject';
     this.alerts = this.alerts ?? [];
     this.goTo = (suffixState: string, alertId: string) => {
       if ($stateParams.apiId) {

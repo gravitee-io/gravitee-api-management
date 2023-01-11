@@ -18,8 +18,4 @@ export class Hook {
   public label: string;
   public description: string;
   public scope: string;
-
-  constructor() {
-    'ngInject';
-  }
 }

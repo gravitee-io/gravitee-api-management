@@ -47,6 +47,7 @@ const GroupComponent: ng.IComponentOptions = {
     tags: '<',
   },
   template: require('./group.html'),
+  /* @ngInject */
   controller: function (
     GroupService: GroupService,
     NotificationService: NotificationService,
@@ -56,7 +57,6 @@ const GroupComponent: ng.IComponentOptions = {
     UserService: UserService,
     $rootScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
 
     this.$onInit = () => {
@@ -376,6 +376,7 @@ const GroupComponent: ng.IComponentOptions = {
     this.showInviteMemberModal = () => {
       $mdDialog
         .show({
+          /* @ngInject */
           controller: function (
             $mdDialog,
             group,
@@ -387,7 +388,6 @@ const GroupComponent: ng.IComponentOptions = {
             canChangeDefaultApplicationRole,
             isApiRoleDisabled,
           ) {
-            'ngInject';
             this.group = group;
             this.group.api_role = group.api_role || defaultApiRole;
             this.group.application_role = group.application_role || defaultApplicationRole;

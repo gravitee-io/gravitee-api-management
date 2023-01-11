@@ -26,9 +26,8 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
+  /* @ngInject */
   controller: function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
-    'ngInject';
-
     this.AnalyticsService = AnalyticsService;
     this.$scope = $scope;
     this.$state = $state;

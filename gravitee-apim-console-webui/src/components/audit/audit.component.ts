@@ -25,8 +25,8 @@ const AuditComponent: ng.IComponentOptions = {
     applications: '<',
     events: '<',
   },
+  /* @ngInject */
   controller: function (AuditService: AuditService) {
-    'ngInject';
     this.$onInit = () => {
       this.events = _.map(this.events, (ev: string) => {
         return ev.toUpperCase();

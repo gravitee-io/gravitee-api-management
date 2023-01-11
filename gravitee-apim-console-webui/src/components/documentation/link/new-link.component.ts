@@ -25,9 +25,8 @@ class DocumentationNewLinkComponentController implements IController {
   pageList: any;
   onSave: () => void;
 
-  constructor(private readonly DocumentationService: DocumentationService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly DocumentationService: DocumentationService) {}
 
   checkIfFolder() {
     if (this.page.content) {

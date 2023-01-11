@@ -29,6 +29,7 @@ class ApiAdminController {
   private apiIsSynchronized: boolean;
   private hasPlatformPolicies: boolean;
 
+  /* @ngInject */
   constructor(
     private resolvedApi: any,
     private resolvedApiGroups: any,
@@ -44,8 +45,6 @@ class ApiAdminController {
     private FlowService: FlowService,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
-    'ngInject';
-
     this.$scope = $scope;
     this.$state = $state;
     this.$mdDialog = $mdDialog;
@@ -135,12 +134,12 @@ class ApiAdminController {
           api: api,
         },
         resolve: {
+          /* @ngInject */
           qualityRules: (QualityRuleService: QualityRuleService) => {
-            'ngInject';
             return QualityRuleService.list().then((response) => response.data);
           },
+          /* @ngInject */
           apiQualityRules: (QualityRuleService: QualityRuleService) => {
-            'ngInject';
             return QualityRuleService.listByApi(api.id).then((response) => response.data);
           },
         },

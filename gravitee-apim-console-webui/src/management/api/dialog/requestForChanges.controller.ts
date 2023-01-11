@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogRequestForChangesController($scope, $mdDialog) {
-  'ngInject';
-
   this.cancel = function () {
     $mdDialog.hide();
   };

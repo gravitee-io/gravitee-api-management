@@ -25,14 +25,13 @@ class EditPageTranslationsComponentController implements IController {
   pagesToLink: any[];
   page: any;
 
+  /* @ngInject */
   constructor(
     private readonly $mdDialog: angular.material.IDialogService,
     private $scope: IScope,
     private readonly DocumentationService: DocumentationService,
     private readonly NotificationService: NotificationService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit() {
     this.$scope.$on('saveTranslation', () => {

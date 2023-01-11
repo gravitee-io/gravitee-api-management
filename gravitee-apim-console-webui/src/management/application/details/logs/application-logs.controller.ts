@@ -29,8 +29,8 @@ class ApplicationLogsController {
   private application: any;
   private init: boolean;
 
+  /* @ngInject */
   constructor(private ApplicationService: ApplicationService, private $state: StateService, private $scope: IScope) {
-    'ngInject';
     this.ApplicationService = ApplicationService;
 
     this.onPaginate = this.onPaginate.bind(this);

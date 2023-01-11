@@ -15,9 +15,8 @@
  */
 
 class ThemeElementController {
-  constructor(private Theme) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private Theme) {}
 }
 
 const ThemeElementDirective: ng.IDirective = {

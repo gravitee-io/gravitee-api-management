@@ -19,9 +19,8 @@ interface IMoveToFolderScope extends IScope {
   folders: any[];
   title: string;
 }
+/* @ngInject */
 function SelectFolderDialogController($scope: IMoveToFolderScope, $mdDialog: angular.material.IDialogService, locals: any) {
-  'ngInject';
-
   $scope.folders = locals.folders;
   $scope.title = locals.title;
 

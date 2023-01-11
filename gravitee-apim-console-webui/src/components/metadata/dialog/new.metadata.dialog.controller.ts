@@ -16,6 +16,7 @@
 import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
 import MetadataService from '../../../services/metadata.service';
+/* @ngInject */
 function NewMetadataDialogController(
   MetadataService: MetadataService,
   ApiService: ApiService,
@@ -24,8 +25,6 @@ function NewMetadataDialogController(
   metadataFormats,
   $stateParams,
 ) {
-  'ngInject';
-
   if ($stateParams.apiId) {
     this.referenceType = 'API';
     this.referenceId = $stateParams.apiId;

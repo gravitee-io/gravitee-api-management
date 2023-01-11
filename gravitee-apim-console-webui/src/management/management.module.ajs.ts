@@ -572,15 +572,17 @@ angular.module('gravitee-management', [
 
 const graviteeManagementModule = angular.module('gravitee-management');
 
-graviteeManagementModule.config((cfpLoadingBarProvider) => {
-  'ngInject';
-  cfpLoadingBarProvider.includeSpinner = false;
-});
+graviteeManagementModule.config(
+  /* @ngInject */ (cfpLoadingBarProvider) => {
+    cfpLoadingBarProvider.includeSpinner = false;
+  },
+);
 
-graviteeManagementModule.config((localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
-  'ngInject';
-  localStorageServiceProvider.setPrefix('gravitee');
-});
+graviteeManagementModule.config(
+  /* @ngInject */ (localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
+    localStorageServiceProvider.setPrefix('gravitee');
+  },
+);
 graviteeManagementModule.config(config);
 graviteeManagementModule.config(routerConfig);
 graviteeManagementModule.config(authenticationConfig);

@@ -33,13 +33,13 @@ class ImportPagesComponentController implements IController {
   page: any;
   fetchers: any[];
   importInProgress: boolean;
+  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
     private $state: StateService,
     private $scope: IPageScope,
   ) {
-    'ngInject';
     this.apiId = this.$state.params.apiId;
   }
 

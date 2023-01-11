@@ -31,6 +31,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     notificationSettings: '=',
   },
   template: require('./notificationsettings.html'),
+  /* @ngInject */
   controller: function (
     $state: StateService,
     NotificationSettingsService: NotificationSettingsService,
@@ -39,7 +40,6 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     $timeout: ng.ITimeoutService,
     $rootScope: IScope,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
 

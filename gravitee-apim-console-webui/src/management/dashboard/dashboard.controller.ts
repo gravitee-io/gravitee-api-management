@@ -23,9 +23,8 @@ class DashboardController {
   private selectedIndex: number;
   private canViewAlerts: boolean;
 
-  constructor(private $state: StateService, private UserService: UserService, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $state: StateService, private UserService: UserService, private Constants) {}
 
   $onInit() {
     const tabs = ['management.dashboard.home'];

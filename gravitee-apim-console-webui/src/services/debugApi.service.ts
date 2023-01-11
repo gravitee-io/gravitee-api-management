@@ -20,13 +20,12 @@ import { Event } from '../entities/event/event';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 
 export class DebugApiService {
+  /* @ngInject */
   constructor(
     private readonly $http: IHttpService,
     private readonly Constants: Constants,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public debug(
     api: any,

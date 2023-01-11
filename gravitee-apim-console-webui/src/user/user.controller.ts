@@ -33,6 +33,7 @@ class UserController {
   private fields: any[] = [];
   private groups = '';
 
+  /* @ngInject */
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
@@ -42,9 +43,7 @@ class UserController {
     private TokenService: TokenService,
     private $mdDialog: angular.material.IDialogService,
     private Constants,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit() {
     this.UserService.customUserFieldsToRegister().then((resp) => (this.fields = resp.data));

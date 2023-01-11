@@ -18,8 +18,8 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
     parent: '^apiCreation',
   },
   template: require('./api-creation-step5.html'),
+  /* @ngInject */
   controller: function (Constants) {
-    'ngInject';
     if (Constants.org.settings.documentation && Constants.org.settings.documentation.url) {
       this.url = Constants.org.settings.documentation.url;
     } else {

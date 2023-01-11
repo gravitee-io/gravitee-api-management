@@ -16,10 +16,6 @@
 class ErrorController {
   private error: Record<string, any>;
 
-  constructor() {
-    'ngInject';
-  }
-
   $onChanges = function (changesObj) {
     if (changesObj.error != null && this.error != null) {
       this.title = this.error.title || '';

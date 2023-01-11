@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class FormDirective {
+  /* @ngInject */
   constructor() {
-    'ngInject';
-
     const directive = {
       restrict: 'A',
       require: 'ngModel',

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogSubscriptionTransferController($scope, $mdDialog, plans) {
-  'ngInject';
   this.plans = plans;
 
   this.hide = function () {

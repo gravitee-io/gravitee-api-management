@@ -31,9 +31,8 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
     onChange: '<',
   },
   template: require('./apiKeyValidatedInput.html'),
+  /* @ngInject */
   controller: function (ApiService: ApiService) {
-    'ngInject';
-
     this.value = '';
     this.state = CustomApiKeyInputState.EMPTY;
 

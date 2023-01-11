@@ -23,6 +23,7 @@ export class Role {
   system: boolean;
 }
 
+/* @ngInject */
 function DialogAddGroupMemberController(
   $mdDialog: angular.material.IDialogService,
   group: any,
@@ -34,8 +35,6 @@ function DialogAddGroupMemberController(
   canChangeDefaultApplicationRole,
   isApiRoleDisabled,
 ) {
-  'ngInject';
-
   this.group = group;
   this.apiRoles = apiRoles;
   this.applicationRoles = applicationRoles;

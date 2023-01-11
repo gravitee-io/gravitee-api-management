@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { UrlService } from '@uirouter/angularjs';
+/* @ngInject */
 function config($logProvider, $urlServiceProvider: UrlService, $permissionProvider, $qProvider) {
-  'ngInject';
   // Enable log
   $logProvider.debugEnabled(false);
 

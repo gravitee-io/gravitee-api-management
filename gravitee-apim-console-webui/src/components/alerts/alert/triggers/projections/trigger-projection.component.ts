@@ -28,9 +28,8 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-projection.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       // Metrics are depending on the source of the trigger
       if (this.alert.source === 'REQUEST') {

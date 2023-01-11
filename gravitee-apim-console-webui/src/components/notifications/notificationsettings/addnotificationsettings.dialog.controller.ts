@@ -15,8 +15,8 @@
  */
 import { Notifier } from '../../../entities/notifier';
 
+/* @ngInject */
 function DialogAddNotificationSettingsController($scope, $mdDialog: angular.material.IDialogService, notifiers: Notifier[]) {
-  'ngInject';
   this.notifiers = notifiers;
   this.selectedNotifier = notifiers[0];
   this.name = '';

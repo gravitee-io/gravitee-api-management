@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class MovedController implements ng.IComponentController {
-  constructor() {
-    'ngInject';
-  }
-}
+class MovedController implements ng.IComponentController {}
 
 const MovedComponent: ng.IComponentOptions = {
   bindings: {

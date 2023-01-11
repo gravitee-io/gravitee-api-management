@@ -17,9 +17,8 @@
 import { Theme } from '../entities/theme';
 
 class ThemeService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   get() {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/themes/default`);

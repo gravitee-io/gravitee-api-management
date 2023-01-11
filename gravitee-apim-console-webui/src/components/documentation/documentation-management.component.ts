@@ -41,6 +41,7 @@ class DocumentationManagementComponentController implements IController {
   newFolderName: string;
   currentTranslation: any;
   fetchAllInProgress: boolean;
+  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -48,7 +49,6 @@ class DocumentationManagementComponentController implements IController {
     private $scope: IDocumentationManagementScope,
     private readonly $mdDialog: angular.material.IDialogService,
   ) {
-    'ngInject';
     this.apiId = $state.params.apiId;
   }
 

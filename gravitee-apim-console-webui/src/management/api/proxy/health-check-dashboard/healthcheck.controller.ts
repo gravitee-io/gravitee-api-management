@@ -31,6 +31,7 @@ class ApiHealthCheckController {
   private transitionLogs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
 
+  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private $scope: IScope,
@@ -40,7 +41,6 @@ class ApiHealthCheckController {
     private UserService: UserService,
     private $window,
   ) {
-    'ngInject';
     this.api = (this.$scope.$parent as any).apiCtrl.api;
     this.gateway = { availabilities: {}, responsetimes: {} };
     this.endpoint = { availabilities: {}, responsetimes: {} };

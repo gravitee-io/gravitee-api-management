@@ -64,6 +64,7 @@ class LogComponentController {
     }
   }
 
+  /* @ngInject */
   constructor(
     public readonly Constants: any,
     private readonly $state: StateService,
@@ -71,7 +72,6 @@ class LogComponentController {
     private readonly AnalyticsService: AnalyticsService,
     private readonly ApiService: ApiService,
   ) {
-    'ngInject';
     this.backStateParams = {
       from: $state.params.from,
       to: $state.params.to,

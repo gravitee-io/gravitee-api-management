@@ -22,9 +22,8 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
     parent: '^alertComponent',
   },
   template: require('./alert-notifications.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.addNotification = () => {
       if (this.alert.notifications === undefined) {
         this.alert.notifications = [];

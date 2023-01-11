@@ -23,9 +23,8 @@ class EditPageConfigurationComponentController implements IController {
   shouldShowOpenApiDocFormat = false;
   settings: any;
 
-  constructor(private readonly Constants: any) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly Constants: any) {}
 
   isSwagger(): boolean {
     return PageType.SWAGGER === this.page.type;

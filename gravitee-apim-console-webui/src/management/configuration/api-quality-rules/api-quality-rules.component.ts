@@ -24,6 +24,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     qualityRules: '<',
   },
   template: require('./api-quality-rules.html'),
+  /* @ngInject */
   controller: function (
     Constants,
     $rootScope: IScope,
@@ -31,7 +32,6 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
   ) {
-    'ngInject';
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';

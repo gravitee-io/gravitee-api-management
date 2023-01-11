@@ -40,9 +40,8 @@ class ApisStatusDashboardController {
   private startedAPIsWithHC: any[];
   private displayedApis: any[];
 
+  /* @ngInject */
   constructor(private apis: any[], private ApiService: ApiService, private $q) {
-    'ngInject';
-
     this.apis = this.apis.sort((a, b) => (a.name + ' ' + a.version).localeCompare(b.name + ' ' + b.version));
     this.startedAPIsWithHC = this.apis.filter((api) => this.hasHealthcheck(api) && api.state === 'STARTED');
 

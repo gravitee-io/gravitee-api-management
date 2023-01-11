@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* @ngInject */
 function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialogService) {
-  'ngInject';
-
   this.cancel = $mdDialog.cancel;
 
   this.codeMirrorOptions = {

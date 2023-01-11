@@ -21,6 +21,7 @@ import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
+  /* @ngInject */
   controller: function (
     DashboardService: DashboardService,
     NotificationService: NotificationService,
@@ -30,7 +31,6 @@ const DashboardComponent: ng.IComponentOptions = {
     $mdDialog,
     $timeout,
   ) {
-    'ngInject';
     let previousPristine = true;
     this.fields = DashboardService.getIndexedFields();
     this.$rootScope = $rootScope;

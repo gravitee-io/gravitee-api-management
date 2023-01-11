@@ -18,11 +18,12 @@ import { StateProvider, UrlService } from '@uirouter/angularjs';
 import OrganizationService from './services/organization.service';
 import UserService from './services/user.service';
 
+/* @ngInject */
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
-  'ngInject';
   $stateProvider
     .state('root', {
       resolve: {
+        /* @ngInject */
         graviteeUser: (UserService: UserService) => UserService.current(),
       },
     })
@@ -57,6 +58,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       component: 'user',
       parent: 'withSidenav',
       resolve: {
+        /* @ngInject */
         user: (UserService: UserService) => UserService.refreshCurrent(),
       },
     })
@@ -72,6 +74,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         }
       },
       resolve: {
+        /* @ngInject */
         identityProviders: (OrganizationService: OrganizationService) =>
           OrganizationService.listSocialIdentityProviders().then((response) => response.data),
       },
@@ -114,6 +117,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controller: 'NewsletterSubscriptionController',
       controllerAs: '$ctrl',
       resolve: {
+        /* @ngInject */
         taglines: (UserService: UserService) => UserService.getNewsletterTaglines().then((response) => response.data),
       },
     });

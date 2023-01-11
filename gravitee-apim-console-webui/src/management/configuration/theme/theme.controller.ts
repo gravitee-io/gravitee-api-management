@@ -31,6 +31,7 @@ class ThemeController {
   private themeOptionalLogoURL: string;
   private themeBackgroundURL: string;
 
+  /* @ngInject */
   constructor(
     private $http,
     private $scope,
@@ -40,7 +41,6 @@ class ThemeController {
     private NotificationService: NotificationService,
     private $sce,
   ) {
-    'ngInject';
     $scope.themeForm = {};
     $scope.targetURL = Constants.env.settings.portal.url;
     $scope.maxSize = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;

@@ -30,9 +30,8 @@ class UserAutocompleteController {
   private minLength: number;
   private autofocus: boolean;
 
-  constructor(private UserService: UserService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private UserService: UserService) {}
 
   $onInit() {
     if (!this.placeHolder) {

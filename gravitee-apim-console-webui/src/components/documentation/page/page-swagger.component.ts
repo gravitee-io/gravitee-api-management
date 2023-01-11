@@ -41,14 +41,13 @@ class PageSwaggerComponentController implements IController {
   edit: boolean;
 
   cfg: Record<string, unknown>;
+  /* @ngInject */
   constructor(
     private readonly Constants,
     private readonly UserService: UserService,
     private $state: StateService,
     private $window: ng.IWindowService,
   ) {
-    'ngInject';
-
     this.cfg = {
       dom_id: '#swagger-container',
       presets: [SwaggerUIBundle.presets.apis],

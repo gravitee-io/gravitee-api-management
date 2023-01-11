@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 class StringService {
-  constructor() {
-    'ngInject';
-  }
-
   hashCode(str) {
     let hash = 0;
     if (str.length === 0) {

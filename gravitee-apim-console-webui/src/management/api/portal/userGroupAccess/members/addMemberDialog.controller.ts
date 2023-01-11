@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../../services/api.service';
 import RoleService from '../../../../../services/role.service';
 
+/* @ngInject */
 function DialogAddMemberApiController(
   $scope,
   $mdDialog,
@@ -27,8 +28,6 @@ function DialogAddMemberApiController(
   NotificationService,
   RoleService: RoleService,
 ) {
-  'ngInject';
-
   RoleService.list('API').then((roles) => {
     $scope.roles = roles;
   });

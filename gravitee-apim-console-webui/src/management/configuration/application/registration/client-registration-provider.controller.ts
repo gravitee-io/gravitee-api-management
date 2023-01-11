@@ -33,6 +33,7 @@ class ClientRegistrationProviderController {
   private initialAccessTokenTypes: any[];
   private renewClientSecretMethods: string[];
 
+  /* @ngInject */
   constructor(
     private $scope: IClientRegistrationProviderScope,
     private $state: StateService,
@@ -41,9 +42,7 @@ class ClientRegistrationProviderController {
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private ClientRegistrationProviderService: ClientRegistrationProviderService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   $onInit() {
     this.renewClientSecretMethods = ['POST', 'PATCH', 'PUT'];

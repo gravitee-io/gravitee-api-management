@@ -29,8 +29,8 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
     private useGroupAsPrimaryOwner: boolean;
     public shouldDisplayHint = shouldDisplayHint;
 
+    /* @ngInject */
     constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
-      'ngInject';
       this.advancedMode = false;
       this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
     }

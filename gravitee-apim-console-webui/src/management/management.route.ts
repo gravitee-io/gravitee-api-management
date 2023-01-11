@@ -27,8 +27,8 @@ import InstancesService from '../services/instances.service';
 import RoleService from '../services/role.service';
 import TicketService from '../services/ticket.service';
 
+/* @ngInject */
 function managementRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management', {
       redirectTo: 'management.dashboard',

@@ -26,9 +26,8 @@ export class AuditQuery {
 }
 
 class AuditService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private $http, private Constants) {}
 
   list(query?: AuditQuery, api?: string) {
     let url;

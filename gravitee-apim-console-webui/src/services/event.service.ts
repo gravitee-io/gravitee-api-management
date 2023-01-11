@@ -19,9 +19,8 @@ import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 
 export class EventService {
-  constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {}
 
   public search(type: string, apis: string, from: string, to: string, page: number | string, size: number | string): IHttpPromise<any> {
     return this.$http.get(

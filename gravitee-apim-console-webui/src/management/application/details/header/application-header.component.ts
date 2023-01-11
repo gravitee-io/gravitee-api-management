@@ -17,9 +17,8 @@ const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
   },
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = function () {
       this.hideSubscribeLink = this.application.status === 'ARCHIVED';
     };

@@ -25,9 +25,8 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-condition-string.html'),
+  /* @ngInject */
   controller: function ($injector, $state) {
-    'ngInject';
-
     this.$onInit = () => {
       // Get the metric field according to the condition property
       const metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);

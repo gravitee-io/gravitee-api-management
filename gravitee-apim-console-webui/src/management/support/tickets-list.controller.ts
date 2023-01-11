@@ -22,9 +22,8 @@ class TicketsListController {
   private query: TicketsQuery;
   private tickets: { totalElements: number; content: any[] };
 
-  constructor(private TicketService: TicketService, private $scope: IScope, private $state: StateService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private TicketService: TicketService, private $scope: IScope, private $state: StateService) {}
 
   $onInit() {
     this.onPaginate = this.onPaginate.bind(this);

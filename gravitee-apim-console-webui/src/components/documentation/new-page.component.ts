@@ -41,6 +41,7 @@ class NewPageComponentController implements IController {
   pageList: any[];
   templates: any[];
   selectedTemplate: any;
+  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -48,7 +49,6 @@ class NewPageComponentController implements IController {
     private $state: StateService,
     private $scope: IPageScope,
   ) {
-    'ngInject';
     this.apiId = this.$state.params.apiId;
     this.error = null;
     this.page = {

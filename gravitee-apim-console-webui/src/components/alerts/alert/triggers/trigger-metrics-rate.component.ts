@@ -25,9 +25,8 @@ const AlertTriggerMetricsRateComponent: ng.IComponentOptions = {
     parent: '^alertComponent',
   },
   template: require('./trigger-metrics-rate.html'),
+  /* @ngInject */
   controller: function () {
-    'ngInject';
-
     this.$onInit = () => {
       this.metrics = Metrics.filterByScope(
         Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics,

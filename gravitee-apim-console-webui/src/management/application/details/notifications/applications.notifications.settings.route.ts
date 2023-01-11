@@ -20,8 +20,8 @@ import { Scope as AlertScope } from '../../../../entities/alert';
 
 export default applicationsNotificationsRouterConfig;
 
+/* @ngInject */
 function applicationsNotificationsRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider
     .state('management.applications.application.notifications', {
       url: '/notifications',

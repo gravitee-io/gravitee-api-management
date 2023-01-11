@@ -18,8 +18,8 @@ const ApplicationCreationStep4Component: ng.IComponentOptions = {
     parent: '^createApplication',
   },
   template: require('./application-creation-step4.html'),
+  /* @ngInject */
   controller: function (Constants) {
-    'ngInject';
     if (Constants.env.settings.documentation && Constants.env.settings.documentation.url) {
       this.url = Constants.env.settings.documentation.url;
     } else {

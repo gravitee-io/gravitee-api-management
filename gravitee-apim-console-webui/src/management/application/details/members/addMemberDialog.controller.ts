@@ -19,6 +19,7 @@ import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 
+/* @ngInject */
 function DialogAddMemberController(
   $scope,
   $mdDialog,
@@ -28,8 +29,6 @@ function DialogAddMemberController(
   NotificationService: NotificationService,
   RoleService: RoleService,
 ) {
-  'ngInject';
-
   RoleService.list('APPLICATION').then((roles) => {
     $scope.roles = roles;
   });

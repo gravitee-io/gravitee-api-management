@@ -26,14 +26,13 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   private lastSource: any;
   private readonly filterItemChangeListener: () => void;
 
+  /* @ngInject */
   constructor(
     private readonly $rootScope: IRootScopeService,
     private readonly $state: StateService,
     private readonly AnalyticsService: AnalyticsService,
     private readonly $timeout: ng.ITimeoutService,
   ) {
-    'ngInject';
-
     this.fields = {};
     this.filters = [];
 

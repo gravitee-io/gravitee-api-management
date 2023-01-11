@@ -17,8 +17,8 @@ import RoleService from '../../../services/role.service';
 
 export default apisMessagesRouterConfig;
 
+/* @ngInject */
 function apisMessagesRouterConfig($stateProvider) {
-  'ngInject';
   $stateProvider.state('management.apis.detail.messages', {
     url: '/messages',
     component: 'messages',
