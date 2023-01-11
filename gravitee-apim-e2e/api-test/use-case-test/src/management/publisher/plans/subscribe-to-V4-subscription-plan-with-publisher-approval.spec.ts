@@ -70,7 +70,7 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
         ],
         endpointGroups: [
           {
-            name: 'default',
+            name: 'default-group',
             type: 'mock',
             endpoints: [
               {
