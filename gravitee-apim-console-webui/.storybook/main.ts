@@ -13,6 +13,9 @@ module.exports = {
     enableIvy: true,
   },
   webpackFinal: (config) => {
+    // Add polyfill to add angular compiler
+    config.entry.unshift(path.resolve(__dirname, 'angular-polyfill.js'));
+
     // First remove some rules we don't want anymore
     const filteredDefaultRules = config.module.rules.filter(
       (rule) => rule.test.toString() !== /\.html$/.toString() && rule.test.toString() !== /\.s(c|a)ss$/.toString(),
