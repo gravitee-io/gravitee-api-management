@@ -88,6 +88,11 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
+    public List<Api> findAllNames(ApiCriteria apiCriteria, Sortable sortable) throws TechnicalException {
+        return target.findAllNames(apiCriteria, sortable);
+    }
+
+    @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
         return target.findByEnvironmentIdAndCrossId(environmentId, crossId);
     }
