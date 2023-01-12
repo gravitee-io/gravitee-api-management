@@ -13,44 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.http.vertx;
+package io.gravitee.gateway.jupiter.core.context;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.IdGenerator;
-import io.vertx.rxjava3.core.MultiMap;
-import io.vertx.rxjava3.core.http.HttpServerRequest;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ExtendWith(MockitoExtension.class)
-class AbstractVertxServerRequestTest {
+class AbstractRequestTest {
 
-    @Mock
-    private HttpServerRequest nativeRequest;
-
-    @Mock
-    private IdGenerator idGenerator;
-
-    private AbstractVertxServerRequest cut;
+    private AbstractRequest cut;
 
     @BeforeEach
     void setUp() {
-        when(nativeRequest.host()).thenReturn("host");
-        when(nativeRequest.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
-        when(nativeRequest.method()).thenReturn(io.vertx.core.http.HttpMethod.GET);
-        cut = new AbstractVertxServerRequest(nativeRequest, idGenerator) {};
+        cut = new AbstractRequest() {};
     }
 
     @Test
