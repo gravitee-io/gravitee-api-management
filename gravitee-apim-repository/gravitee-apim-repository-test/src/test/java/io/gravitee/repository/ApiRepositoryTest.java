@@ -23,24 +23,17 @@ import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import io.gravitee.repository.management.model.*;
 import java.util.*;
 import org.junit.Test;
 
@@ -470,5 +463,71 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(9, apis.size());
+    }
+
+    @Test
+    public void shouldSearchAllApiNames() throws TechnicalException {
+        List<Api> apiNames = apiRepository.findAllNames(null, null);
+
+        assertNotNull(apiNames);
+        assertFalse(apiNames.isEmpty());
+        assertEquals(9, apiNames.size());
+        assertTrue(
+            apiNames
+                .stream()
+                .map(Api::getName)
+                .collect(toList())
+                .containsAll(
+                    asList(
+                        "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012",
+                        "api-to-delete name",
+                        "api-to-findById name",
+                        "api-to-update name",
+                        "api-with-categories name",
+                        "duplicated-crossId-api name",
+                        "duplicated-crossId-api name",
+                        "duplicated-crossId-api name",
+                        "grouped-api name"
+                    )
+                )
+        );
+    }
+
+    @Test
+    public void shouldSearchAllApiNamesByNameDesc() throws TechnicalException {
+        List<Api> apiNames = apiRepository.findAllNames(null, new SortableBuilder().field("name").order(Order.DESC).build());
+
+        assertNotNull(apiNames);
+        assertFalse(apiNames.isEmpty());
+        assertEquals(9, apiNames.size());
+        assertTrue(
+            apiNames
+                .stream()
+                .map(Api::getName)
+                .collect(toList())
+                .containsAll(
+                    asList(
+                        "grouped-api name",
+                        "duplicated-crossId-api name",
+                        "duplicated-crossId-api name",
+                        "duplicated-crossId-api name",
+                        "api-with-categories name",
+                        "api-to-update name",
+                        "api-to-findById name",
+                        "api-to-delete name",
+                        "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012"
+                    )
+                )
+        );
+    }
+
+    @Test
+    public void shouldSearchAllPublicApiNames() throws TechnicalException {
+        List<Api> apiNames = apiRepository.findAllNames(new ApiCriteria.Builder().visibility(PUBLIC).build(), null);
+
+        assertNotNull(apiNames);
+        assertFalse(apiNames.isEmpty());
+        assertEquals(2, apiNames.size());
+        assertTrue(apiNames.stream().map(Api::getName).collect(toList()).containsAll(asList("grouped-api name", "api-to-findById name")));
     }
 }

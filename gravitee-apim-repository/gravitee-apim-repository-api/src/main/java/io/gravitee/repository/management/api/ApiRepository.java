@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.*;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +47,8 @@ public interface ApiRepository extends CrudRepository<Api, String> {
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria) throws TechnicalException;
+
+    List<Api> findAllNames(ApiCriteria apiCriteria, Sortable sortable) throws TechnicalException;
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
 }

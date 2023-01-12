@@ -41,5 +41,7 @@ public interface ApiMongoRepositoryCustom {
      */
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
+    List<ApiMongo> findAllNames(ApiCriteria apiCriteria, Sortable sortable);
+
     Set<String> listCategories(ApiCriteria apiCriteria);
 }

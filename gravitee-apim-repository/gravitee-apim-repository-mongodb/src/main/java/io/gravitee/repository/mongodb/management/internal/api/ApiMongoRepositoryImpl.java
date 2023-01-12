@@ -86,7 +86,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         if (sortable == null) {
             sort = Sort.by(ASC, "name");
         } else {
-            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
+            Sort.Direction sortOrder = Order.ASC.equals(sortable.order()) ? ASC : Sort.Direction.DESC;
             sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
         }
 
@@ -99,6 +99,27 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         List<String> apisIds = mongoTemplate.find(query, ApiMongo.class).stream().map(ApiMongo::getId).collect(Collectors.toList());
 
         return new Page<>(apisIds, pageable.pageNumber(), apisIds.size(), total);
+    }
+
+    @Override
+    public List<ApiMongo> findAllNames(ApiCriteria apiCriteria, Sortable sortable) {
+        final Query query = new Query();
+        query.fields().include("_id", "name");
+
+        if (apiCriteria != null) {
+            fillQuery(query, List.of(apiCriteria));
+        }
+
+        Sort sort;
+        if (sortable == null) {
+            sort = Sort.by(ASC, "name");
+        } else {
+            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
+        }
+
+        query.with(sort);
+        return mongoTemplate.find(query, ApiMongo.class);
     }
 
     private Query buildQuery(ApiFieldFilter apiFieldFilter, List<ApiCriteria> orApiCriteria) {
