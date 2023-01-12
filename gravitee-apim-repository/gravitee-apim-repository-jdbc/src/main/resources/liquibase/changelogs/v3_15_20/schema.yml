@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.15.20
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}alert_event_rules
@@ -31,10 +32,6 @@ databaseChangeLog:
             constraintName: pk_${gravitee_prefix}event_environments
             columnNames: event_id, environment_id
             tableName: ${gravitee_prefix}event_environments
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}flow_steps
-            columnNames: flow_id, order, phase
-            tableName: ${gravitee_prefix}flow_steps
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}group_event_rules
             columnNames: group_id, group_event
