@@ -26,6 +26,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApiListItemPagedResult;
@@ -118,6 +119,37 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
         return getApis(apisParam, ids, null).getData();
+    }
+
+    @GET
+    @Path("names")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List APIs names", description = "List all the APIs names accessible to the current user.")
+    @ApiResponse(
+        responseCode = "200",
+        description = "List accessible APIs names for current user",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = ApiName.class)))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public Collection<ApiName> findAllNames(@BeanParam final ApisParam apisParam) throws TechnicalException {
+        Sortable sortable = null;
+        if (apisParam.getOrder() != null) {
+            sortable = new SortableImpl(apisParam.getOrder().getField(), apisParam.getOrder().isOrder());
+        }
+        List<ApiName> apiNames;
+        if (isAdmin()) {
+            apiNames = apiService.findAllNames(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, sortable, false);
+        } else {
+            final ApiQuery apiQuery = new ApiQuery();
+            if (isAuthenticated()) {
+                apiNames = apiService.findAllNames(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), null, sortable, true);
+            } else {
+                apiQuery.setVisibility(PUBLIC);
+                apiNames =
+                    apiService.findAllNames(GraviteeContext.getExecutionContext(), getAuthenticatedUser(), apiQuery, sortable, false);
+            }
+        }
+        return apiNames;
     }
 
     @GET

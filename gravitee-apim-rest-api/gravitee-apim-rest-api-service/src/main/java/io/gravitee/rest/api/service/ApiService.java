@@ -170,6 +170,14 @@ public interface ApiService {
     Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
         throws TechnicalException;
 
+    List<ApiName> findAllNames(
+        ExecutionContext executionContext,
+        String user,
+        ApiQuery apiQuery,
+        Sortable sortable,
+        boolean isSimpleUserAuthenticated
+    ) throws TechnicalException;
+
     Page<ApiEntity> search(
         ExecutionContext executionContext,
         String query,

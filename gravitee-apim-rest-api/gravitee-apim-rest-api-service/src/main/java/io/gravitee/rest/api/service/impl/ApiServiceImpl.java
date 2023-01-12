@@ -101,14 +101,7 @@ import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.api.NewApiEntity;
-import io.gravitee.rest.api.model.api.RollbackApiEntity;
-import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -2824,6 +2817,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable) {
         return this.searchInDefinition(executionContext, query, filters, sortable).getDocuments();
+    }
+
+    @Override
+    public List<ApiName> findAllNames(
+        ExecutionContext executionContext,
+        String user,
+        ApiQuery query,
+        Sortable sortable,
+        boolean isSimpleUserAuthenticated
+    ) throws TechnicalException {
+        ApiCriteria.Builder apiCriteria = queryToCriteria(executionContext, query);
+
+        if (isSimpleUserAuthenticated) {
+            apiCriteria.ids(findIdsByUser(executionContext, user, query, sortable, false));
+        }
+        return this.apiRepository.findAllNames(apiCriteria.build(), convert(sortable))
+            .stream()
+            .map(api -> new ApiName(api.getId(), api.getName()))
+            .collect(toList());
     }
 
     @Override
