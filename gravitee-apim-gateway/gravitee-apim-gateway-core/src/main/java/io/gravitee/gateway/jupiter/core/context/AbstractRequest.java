@@ -129,6 +129,14 @@ public abstract class AbstractRequest implements MutableRequest {
     }
 
     @Override
+    public void method(HttpMethod method) {
+        if (method == null) {
+            throw new IllegalStateException("Http method should not be null");
+        }
+        this.method = method;
+    }
+
+    @Override
     public String scheme() {
         return scheme;
     }

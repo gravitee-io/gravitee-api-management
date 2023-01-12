@@ -151,7 +151,7 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
 
         requestHeaders = HttpHeaders.create();
-        lenient().when(request.path()).thenReturn("");
+        lenient().when(request.pathInfo()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
         lenient().when(request.metrics()).thenReturn(metrics);
         lenient().when(request.chunks()).thenReturn(Flowable.empty());

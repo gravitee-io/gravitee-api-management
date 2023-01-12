@@ -114,14 +114,6 @@ abstract class AbstractVertxServerRequest extends AbstractRequest {
     }
 
     @Override
-    public void method(HttpMethod method) {
-        if (method == null) {
-            throw new IllegalStateException("Http method should not be null");
-        }
-        this.method = method;
-    }
-
-    @Override
     public String scheme() {
         if (scheme == null) {
             scheme = nativeRequest.scheme();

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.services.dlq;
 
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
 import io.reactivex.rxjava3.core.Flowable;
@@ -29,10 +28,5 @@ class DlqRequest extends AbstractRequest {
     protected DlqRequest(Flowable<Message> messages) {
         super();
         messages(messages);
-    }
-
-    @Override
-    public void method(HttpMethod method) {
-        // It is not possible to override DLQ request's method.
     }
 }

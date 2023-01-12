@@ -245,7 +245,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
             }
         } else {
             // Just append the current request path.
-            uri = uri + request.path();
+            uri = uri + request.pathInfo();
         }
 
         if (isRelative) {
