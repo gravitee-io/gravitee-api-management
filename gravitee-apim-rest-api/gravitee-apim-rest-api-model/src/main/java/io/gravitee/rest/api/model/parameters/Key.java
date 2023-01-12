@@ -172,7 +172,7 @@ public enum Key {
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
 
-    ALERT_ENABLED("alert.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    ALERT_ENABLED("alert.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
     LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

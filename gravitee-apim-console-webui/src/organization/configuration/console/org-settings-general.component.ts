@@ -88,7 +88,6 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
             tasks: [toFormState(this.settings, 'scheduler.tasks')],
             notifications: [toFormState(this.settings, 'scheduler.notifications')],
           }),
-          alert: this.fb.group({ enabled: [toFormState(this.settings, 'alert.enabled')] }),
           cors: this.fb.group({
             allowOrigin: [
               toFormState(this.settings, 'cors.allowOrigin', [], 'http.api.management.cors.allow-origin'),

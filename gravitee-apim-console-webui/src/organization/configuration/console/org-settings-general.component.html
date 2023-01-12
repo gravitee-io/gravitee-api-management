@@ -207,24 +207,6 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="alert">
-      <h2 gioTableOfContents>Alerting</h2>
-      <mat-card-content>
-        <gio-form-slide-toggle
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('alert.enabled')"
-          appearance="fill"
-          class="settings-general__form__card__form-field"
-        >
-          <mat-icon *ngIf="isReadonlySetting('alert.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
-            >lock</mat-icon
-          >
-          <gio-form-label>Enable Alerting</gio-form-label>
-          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Alerting enabled " name="alert"></mat-slide-toggle>
-        </gio-form-slide-toggle>
-      </mat-card-content>
-    </mat-card>
-
     <mat-card class="settings-general__form__card" formGroupName="cors">
       <h2 gioTableOfContents>CORS</h2>
       <mat-card-content>
