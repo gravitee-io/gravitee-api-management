@@ -1,6 +1,6 @@
 ## Issue
 
-https://graviteecommunity.atlassian.net/browse/APIM-XXX
+https://gravitee.atlassian.net/browse/APIM-XXX
 
 ## Description
 
