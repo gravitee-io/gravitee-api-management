@@ -273,42 +273,6 @@ describe('ConsoleSettingsComponent', () => {
     });
   });
 
-  describe('alert', () => {
-    it('should disable field when setting is readonly', async () => {
-      expectConsoleSettingsGetRequest({
-        alert: {
-          enabled: false,
-        },
-        metadata: {
-          readonly: ['alert.enabled'],
-        },
-      });
-
-      const enableAlertingSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'alert' }));
-      expect(await enableAlertingSlideToggle.isDisabled()).toEqual(true);
-    });
-
-    it('should save alert settings', async () => {
-      expectConsoleSettingsGetRequest({
-        alert: {
-          enabled: false,
-        },
-      });
-
-      const enableAlertingSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'alert' }));
-      await enableAlertingSlideToggle.check();
-
-      const saveButton = await loader.getHarness(GioSaveBarHarness);
-      await saveButton.clickSubmit();
-
-      expectConsoleSettingsSendRequest({
-        alert: {
-          enabled: true,
-        },
-      });
-    });
-  });
-
   describe('cors', () => {
     it('should disable field when setting is readonly', async () => {
       expectConsoleSettingsGetRequest({
