@@ -25,10 +25,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
@@ -270,6 +267,16 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             LOGGER.error("Failed to list categories api:", ex);
             throw new TechnicalException("Failed to list categories", ex);
         }
+    }
+
+    @Override
+    public List<Api> findAllNames(ApiCriteria apiCriteria, Sortable sortable) throws TechnicalException {
+        final StringBuilder sbQuery = new StringBuilder("select a.id, a.name from ").append(this.tableName).append(" a ");
+        if (null != apiCriteria) {
+            sbQuery.append("where ").append(convert(apiCriteria)).append(" ");
+        }
+        applySortable(sortable, sbQuery);
+        return jdbcTemplate.query(sbQuery.toString(), ps -> fillPreparedStatement(apiCriteria, ps, 1), getOrm().getRowMapper());
     }
 
     @Override
