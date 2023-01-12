@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.Order;
@@ -59,13 +59,14 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         promotion.setApiId("api#1");
 
         boolean presentBefore = promotionRepository.findById("promotion#new").isPresent();
-        assertFalse("must not exists before creation", presentBefore);
+
+        assertThat(presentBefore).withFailMessage("Promotion should not be present before creation").isFalse();
 
         Promotion createdPromotion = promotionRepository.create(promotion);
-        assertEquals(promotion, createdPromotion);
+        assertThat(createdPromotion).isEqualTo(promotion);
 
         Promotion storedPromotion = promotionRepository.findById("promotion#new").get();
-        assertEquals(promotion, storedPromotion);
+        assertThat(storedPromotion).isEqualTo(promotion);
     }
 
     @Test
@@ -94,9 +95,8 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         expectedPromotion.setCreatedAt(new Date());
         expectedPromotion.setAuthor(promotionAuthor);
 
-        assertEquals(expectedPromotion, storedPromotion);
-
-        assertEquals(expectedPromotion.getAuthor(), storedPromotion.getAuthor());
+        assertThat(storedPromotion).isEqualTo(expectedPromotion);
+        assertThat(storedPromotion.getAuthor()).isEqualTo(expectedPromotion.getAuthor());
     }
 
     @Test
@@ -107,10 +107,10 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         );
 
         Promotion updatedPromotion = promotionRepository.update(storedPromotion);
-        assertEquals(storedPromotion, updatedPromotion);
+        assertThat(updatedPromotion).isEqualTo(storedPromotion);
 
         Promotion dbPromotion = promotionRepository.findById("promotion#1").get();
-        assertEquals(storedPromotion, dbPromotion);
+        assertThat(dbPromotion).isEqualTo(storedPromotion);
     }
 
     @Test
@@ -118,12 +118,12 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         String idOfPromotionToDelete = "promotion#to-delete";
 
         boolean presentBefore = promotionRepository.findById(idOfPromotionToDelete).isPresent();
-        assertTrue("must exists before deletion", presentBefore);
+        assertThat(presentBefore).withFailMessage("Promotion should be present before deletion").isTrue();
 
         promotionRepository.delete(idOfPromotionToDelete);
 
         boolean presentAfter = promotionRepository.findById(idOfPromotionToDelete).isPresent();
-        assertFalse("must not exists anymore after deletion", presentAfter);
+        assertThat(presentAfter).withFailMessage("Promotion should not be present after deletion").isFalse();
     }
 
     @Test
@@ -131,12 +131,16 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
-        assertEquals("promotion#1", promotions.get(0).getId());
-        assertEquals("promotion#to-delete", promotions.get(1).getId());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+
+        assertThat(promotions).hasSize(4);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder(
+                "promotion#1",
+                "promotion#to-delete",
+                "promotion#to_be_validated_env_1",
+                "promotion#to_be_validated_env_2"
+            );
     }
 
     @Test
@@ -145,12 +149,16 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
-        assertEquals("promotion#1", promotions.get(0).getId());
-        assertEquals("promotion#to-delete", promotions.get(1).getId());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+
+        assertThat(promotions).hasSize(4);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder(
+                "promotion#1",
+                "promotion#to-delete",
+                "promotion#to_be_validated_env_1",
+                "promotion#to_be_validated_env_2"
+            );
     }
 
     @Test
@@ -159,9 +167,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 1, promotions.size());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
+
+        assertThat(promotions).hasSize(1);
+        assertThat(promotions).extracting(Promotion::getId).containsExactlyInAnyOrder("promotion#to_be_validated_env_1");
     }
 
     @Test
@@ -170,10 +178,11 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(1).getId());
+
+        assertThat(promotions).hasSize(2);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
@@ -184,12 +193,16 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
-        assertEquals("promotion#1", promotions.get(0).getId());
-        assertEquals("promotion#to-delete", promotions.get(1).getId());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+
+        assertThat(promotions).hasSize(4);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder(
+                "promotion#1",
+                "promotion#to-delete",
+                "promotion#to_be_validated_env_1",
+                "promotion#to_be_validated_env_2"
+            );
     }
 
     @Test
@@ -202,10 +215,11 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
             )
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(1).getId());
+
+        assertThat(promotions).hasSize(2);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
@@ -218,9 +232,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 1, promotions.size());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
+
+        assertThat(promotions).hasSize(1);
+        assertThat(promotions).extracting(Promotion::getId).containsExactlyInAnyOrder("promotion#to_be_validated_env_2");
     }
 
     @Test
@@ -229,11 +243,11 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 3, promotions.size());
-        assertEquals("promotion#1", promotions.get(0).getId());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(1).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(2).getId());
+
+        assertThat(promotions).hasSize(3);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder("promotion#1", "promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
@@ -242,9 +256,10 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
-        assertNotNull(promotions);
-        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
-        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
-        assertEquals("promotion#to_be_validated_env_2", promotions.get(1).getId());
+
+        assertThat(promotions).hasSize(2);
+        assertThat(promotions)
+            .extracting(Promotion::getId)
+            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 }
