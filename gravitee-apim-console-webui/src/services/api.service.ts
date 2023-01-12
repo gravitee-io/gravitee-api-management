@@ -144,6 +144,15 @@ export class ApiService {
     return this.$http.get(url, opts);
   }
 
+  findAllNames(order?: string, opts?: any): IHttpPromise<any> {
+    opts = opts || {};
+    opts.params = {
+      order,
+    };
+
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/names`, opts);
+  }
+
   searchApis(query?: string, page?: any, order?: string, opts?: any): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/_search/`;
 
