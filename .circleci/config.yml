@@ -311,6 +311,10 @@ jobs:
     sonarcloud-analysis:
         description: A job that run Sonarcloud analysis
         parameters:
+            component:
+                description: "Type of component analyzed"
+                default: "rest-api"
+                type: string
             working_directory:
                 description: "Directory where the Sonarcloud analysis will be run"
                 default: "gravitee-apim-rest-api"
@@ -327,9 +331,9 @@ jobs:
                   at: .
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v8-sonarcloud-analysis-{{ .Branch }}-
-                      - gravitee-api-management-v8-sonarcloud-analysis-
+                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-
+                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -342,7 +346,7 @@ jobs:
             - save_cache:
                   paths:
                       - /opt/sonar-scanner/.sonar/cache
-                  key: gravitee-api-management-v8-sonarcloud-analysis-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     validate:
@@ -1565,6 +1569,7 @@ workflows:
                               - gravitee-apim-gateway
                               - gravitee-apim-definition
                   context: cicd-orchestrator
+                  component: << matrix.working_directory >>
                   requires:
                       - test
             - test-repository:
@@ -1575,6 +1580,7 @@ workflows:
                   name: Sonar - gravitee-apim-repository
                   working_directory: gravitee-apim-repository
                   context: cicd-orchestrator
+                  component: gravitee-apim-repository
                   requires:
                       - test-repository
             - publish-on-artifactory:
@@ -1618,6 +1624,7 @@ workflows:
                   name: Sonar - gravitee-apim-console-webui
                   working_directory: gravitee-apim-console-webui
                   context: cicd-orchestrator
+                  component: gravitee-apim-console-webui
                   requires:
                       - Lint & test APIM Console
             - console-webui-build-storybook:
@@ -1670,6 +1677,7 @@ workflows:
                   name: Sonar - gravitee-apim-portal-webui
                   working_directory: gravitee-apim-portal-webui
                   context: cicd-orchestrator
+                  component: gravitee-apim-portal-webui
                   requires:
                       - Lint & test APIM Portal
             - webui-build:
