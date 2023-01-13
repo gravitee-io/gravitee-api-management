@@ -33,6 +33,7 @@ public interface ThemeService {
     ThemeEntity update(final ExecutionContext executionContext, UpdateThemeEntity theme);
     void delete(final ExecutionContext executionContext, String themeId);
     ThemeEntity findEnabled(final ExecutionContext executionContext);
+    ThemeEntity findOrCreateDefault(ExecutionContext executionContext);
     ThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId);
     PictureEntity getLogo(final ExecutionContext executionContext, String themeId);
     PictureEntity getOptionalLogo(final ExecutionContext executionContext, String themeId);

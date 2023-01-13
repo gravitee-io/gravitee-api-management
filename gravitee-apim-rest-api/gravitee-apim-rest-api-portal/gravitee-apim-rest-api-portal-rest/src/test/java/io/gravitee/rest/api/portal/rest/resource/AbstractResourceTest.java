@@ -259,6 +259,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
 
+    @Autowired
+    protected ThemeService themeService;
+
+    @Autowired
+    protected ThemeMapper themeMapper;
+
     public AbstractResourceTest() {
         super(
             new AuthenticationProviderManager() {
@@ -347,6 +353,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(authenticationProvider);
         reset(environmentService);
         reset(accessControlService);
+        reset(themeService);
+        reset(themeMapper);
     }
 
     @Configuration
@@ -686,6 +694,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AccessControlService accessControlService() {
             return mock(AccessControlService.class);
+        }
+
+        @Bean
+        public ThemeService themeService() {
+            return mock(ThemeService.class);
+        }
+
+        @Bean
+        public ThemeMapper themeMapper() {
+            return mock(ThemeMapper.class);
         }
     }
 

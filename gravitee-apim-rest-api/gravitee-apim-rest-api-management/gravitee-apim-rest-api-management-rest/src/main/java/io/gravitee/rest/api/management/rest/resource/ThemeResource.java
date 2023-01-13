@@ -55,7 +55,7 @@ public class ThemeResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
     public ThemeEntity getTheme() {
-        return themeService.findEnabled(GraviteeContext.getExecutionContext());
+        return themeService.findById(GraviteeContext.getExecutionContext(), themeId);
     }
 
     @PUT

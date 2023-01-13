@@ -278,6 +278,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected ApiDefinitionContextService definitionContextService;
 
+    @Autowired
+    protected ThemeService themeService;
+
     @Before
     public void setUp() throws Exception {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
@@ -650,6 +653,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ApiDefinitionContextService definitionContextService() {
             return mock(ApiDefinitionContextService.class);
+        }
+
+        @Bean
+        public ThemeService themeService() {
+            return mock(ThemeService.class);
         }
     }
 
