@@ -34,24 +34,30 @@ import io.gravitee.repository.management.model.Theme;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.theme.*;
+import io.gravitee.rest.api.model.theme.NewThemeEntity;
+import io.gravitee.rest.api.model.theme.ThemeCssDefinition;
+import io.gravitee.rest.api.model.theme.ThemeCssType;
+import io.gravitee.rest.api.model.theme.ThemeDefinition;
+import io.gravitee.rest.api.model.theme.ThemeEntity;
+import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import io.gravitee.rest.api.service.impl.ThemeServiceImpl.ThemeDefinitionMapper;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -62,7 +68,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @RunWith(MockitoJUnitRunner.class)
 public class ThemeServiceTest {
 
-    private static final String THEME_ID = "default";
+    private static final String THEME_ID = "my-theme-id";
     private static final String THEMES_PATH = "src/test/resources/themes";
 
     @InjectMocks
@@ -172,12 +178,85 @@ public class ThemeServiceTest {
         assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
     }
 
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldFindEnabledThrowTechnicalManagementExceptionOnRepositoryException() throws TechnicalException {
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+            .thenThrow(TechnicalException.class);
+
+        themeService.findEnabled(GraviteeContext.getExecutionContext());
+    }
+
+    @Test
+    public void shouldFindEnabledOverNotEnabled() throws TechnicalException {
+        Set<Theme> databaseThemes = new HashSet<>();
+
+        Theme theme1 = new Theme();
+        theme1.setId("theme-1");
+        theme1.setEnabled(false);
+        theme1.setDefinition("{}");
+        databaseThemes.add(theme1);
+
+        Theme theme2 = new Theme();
+        theme2.setId("theme-2");
+        theme2.setEnabled(true);
+        theme2.setDefinition("{}");
+        databaseThemes.add(theme2);
+
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+            .thenReturn(databaseThemes);
+
+        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        assertNotNull(resultTheme);
+        assertEquals("theme-2", resultTheme.getId());
+
+        verify(themeRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldFindNotEnabled() throws TechnicalException {
+        Set<Theme> databaseThemes = new HashSet<>();
+
+        Theme theme1 = new Theme();
+        theme1.setId("theme-1");
+        theme1.setEnabled(false);
+        theme1.setDefinition("{}");
+        databaseThemes.add(theme1);
+
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+            .thenReturn(databaseThemes);
+
+        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        assertNotNull(resultTheme);
+        assertEquals("theme-1", resultTheme.getId());
+
+        verify(themeRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldFindAndCreateDefaultTheme() throws TechnicalException {
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+            .thenReturn(new HashSet<>());
+        when(themeRepository.create(any())).thenAnswer(i -> i.getArgument(0));
+
+        ThemeEntity resultTheme = themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+        assertNotNull(resultTheme);
+        assertEquals("Default theme", resultTheme.getName());
+
+        verify(themeRepository).create(argThat(theme -> "Default theme".equals(theme.getName())));
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldFindOrCreateDefaultThrowTechnicalManagementExceptionOnRepositoryException() throws TechnicalException {
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
+            .thenThrow(TechnicalException.class);
+
+        themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
+    }
+
     @Test
     public void shouldGetDefaultIfNoThemeEnabled() throws TechnicalException {
-        final Theme theme = mock(Theme.class);
-        when(theme.isEnabled()).thenReturn(false);
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
-            .thenReturn(singleton(theme));
+            .thenReturn(new HashSet<>());
 
         assertNotNull(themeService.findEnabled(GraviteeContext.getExecutionContext()));
     }
@@ -354,7 +433,7 @@ public class ThemeServiceTest {
     }
 
     @Test
-    public void shouldResetToDefaultTheme() throws TechnicalException, JsonProcessingException {
+    public void shouldResetToDefaultTheme() throws TechnicalException {
         ThemeDefinition themeDefinition = new ThemeDefinition();
         themeDefinition.setData(Collections.EMPTY_LIST);
 
@@ -366,6 +445,9 @@ public class ThemeServiceTest {
         theme.setReferenceType(ENVIRONMENT.name());
         theme.setCreatedAt(new Date());
         theme.setUpdatedAt(new Date());
+
+        when(themeRepository.findById(THEME_ID)).thenReturn(Optional.of(theme));
+        when(themeRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         themeService.resetToDefaultTheme(GraviteeContext.getExecutionContext(), THEME_ID);
 
@@ -412,7 +494,7 @@ public class ThemeServiceTest {
     }
 
     @Test
-    public void shouldMergeThemeDefinition() throws IOException, TechnicalException {
+    public void shouldMergeThemeDefinition() throws IOException {
         ThemeDefinitionMapper mapper = new ThemeDefinitionMapper();
         String def = themeServiceImpl.getDefinition(THEMES_PATH + "/base-definition.json");
         ThemeDefinition baseDefinition = mapper.readValue(def, ThemeDefinition.class);
@@ -603,21 +685,15 @@ public class ThemeServiceTest {
     public void shouldGetBackgroundImageUrl() throws TechnicalException {
         final Theme theme = mock(Theme.class);
         when(theme.getBackgroundImage()).thenReturn("http://localhost/image");
-        when(theme.getId()).thenReturn(THEME_ID);
-        when(theme.getName()).thenReturn("NAME");
-        when(theme.isEnabled()).thenReturn(true);
-        when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
-        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name()))
-            .thenReturn(singleton(theme));
+        when(theme.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
+        when(themeRepository.findById(THEME_ID)).thenReturn(Optional.of(theme));
         PictureEntity backgroundImage = themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNotNull(backgroundImage);
         assertTrue(backgroundImage instanceof UrlPictureEntity);
     }
 
     @Test
-    public void shouldGetBackgroundImage() throws TechnicalException {
-        final Theme theme = mock(Theme.class);
-        Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
+    public void shouldGetBackgroundImage() {
         PictureEntity backgroundImage = themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNull(backgroundImage);
     }
@@ -625,9 +701,9 @@ public class ThemeServiceTest {
     @Test
     public void shouldGetLogo() throws TechnicalException {
         final Theme theme = mock(Theme.class, withSettings().lenient());
-        Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
-        when(theme.getReferenceId()).thenReturn("DEFAULT");
+        when(theme.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
         when(theme.getLogo()).thenReturn(themeServiceImpl.getDefaultLogo());
+        when(themeRepository.findById(THEME_ID)).thenReturn(Optional.of(theme));
 
         PictureEntity logo = themeService.getLogo(GraviteeContext.getExecutionContext(), THEME_ID);
         assertNotNull(logo);

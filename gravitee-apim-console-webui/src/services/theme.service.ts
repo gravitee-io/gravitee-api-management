@@ -20,8 +20,8 @@ class ThemeService {
   /* @ngInject */
   constructor(private $http, private Constants) {}
 
-  get() {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/themes/default`);
+  getCurrent() {
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/themes/current`);
   }
 
   restoreDefaultTheme(theme: Theme) {
@@ -74,7 +74,11 @@ class ThemeService {
   }
 
   private getImageUrl(theme, image) {
-    return `${this.Constants.env.baseURL}/configuration/themes/${theme.id}/${image}?${theme.updated_at}`;
+    let imageUrl = `${this.Constants.env.baseURL}/configuration/themes/${theme.id}/${image}?${theme.updated_at}`;
+    if (imageUrl.includes('{:envId}')) {
+      imageUrl = imageUrl.replace('{:envId}', this.Constants.org.currentEnv.id);
+    }
+    return imageUrl;
   }
 }
 
