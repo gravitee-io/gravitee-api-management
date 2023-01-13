@@ -45,11 +45,8 @@ public class ThemeResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalTheme() {
         ThemeEntity theme = themeService.findEnabled(GraviteeContext.getExecutionContext());
-        if (theme.getId() != null) {
-            String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
-            return Response.ok(themeMapper.convert(theme, themeURL)).build();
-        }
-        return Response.ok().build();
+        String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
+        return Response.ok(themeMapper.convert(theme, themeURL)).build();
     }
 
     @GET

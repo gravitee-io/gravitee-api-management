@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -54,6 +55,14 @@ public class ThemesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE) })
     public ThemeEntity createTheme(@Valid @NotNull final NewThemeEntity theme) {
         return themeService.create(GraviteeContext.getExecutionContext(), theme);
+    }
+
+    @Path("/_active")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
+    public ThemeEntity getActiveTheme() {
+        return themeService.findOrCreateDefault(GraviteeContext.getExecutionContext());
     }
 
     @Path("{themeId}")

@@ -354,7 +354,7 @@ class ThemeController {
   };
 
   loadTheme = () => {
-    return this.ThemeService.get().then((response) => {
+    return this.ThemeService.getActive().then((response) => {
       const theme: Theme = response.data;
       this.setTheme(theme);
     });
