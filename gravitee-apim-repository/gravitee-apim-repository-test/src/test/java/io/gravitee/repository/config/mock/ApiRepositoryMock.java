@@ -255,5 +255,55 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
                     mock(Api.class)
                 )
             );
+
+        Api longNameApi = new Api();
+        longNameApi.setName(
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012"
+        );
+        Api toDeleteApi = new Api();
+        toDeleteApi.setName("api-to-delete name");
+        Api toFindBydIdApi = new Api();
+        toFindBydIdApi.setName("api-to-findById name");
+        Api toUpdatedApi = new Api();
+        toUpdatedApi.setName("api-to-update name");
+        Api withCategoriesApi = new Api();
+        withCategoriesApi.setName("api-with-categories name");
+        Api duplicatedNameApi = new Api();
+        duplicatedNameApi.setName("duplicated-crossId-api name");
+        Api withGroupApi = new Api();
+        withGroupApi.setName("grouped-api name");
+
+        when(apiRepository.findAllNames(isNull(), isNull()))
+            .thenReturn(
+                List.of(
+                    longNameApi,
+                    toDeleteApi,
+                    toFindBydIdApi,
+                    toUpdatedApi,
+                    withCategoriesApi,
+                    duplicatedNameApi,
+                    duplicatedNameApi,
+                    duplicatedNameApi,
+                    withGroupApi
+                )
+            );
+
+        when(apiRepository.findAllNames(isNull(), eq(new SortableBuilder().field("name").order(Order.DESC).build())))
+            .thenReturn(
+                List.of(
+                    withGroupApi,
+                    duplicatedNameApi,
+                    duplicatedNameApi,
+                    duplicatedNameApi,
+                    withCategoriesApi,
+                    toUpdatedApi,
+                    toFindBydIdApi,
+                    toDeleteApi,
+                    longNameApi
+                )
+            );
+
+        when(apiRepository.findAllNames(eq(new ApiCriteria.Builder().visibility(PUBLIC).build()), isNull()))
+            .thenReturn(List.of(withGroupApi, toFindBydIdApi));
     }
 }
