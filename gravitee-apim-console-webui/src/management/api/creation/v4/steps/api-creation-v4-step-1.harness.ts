@@ -50,12 +50,24 @@ export class ApiCreationV4Step1Harness extends ComponentHarness {
     }),
   );
 
+  async getName(): Promise<string> {
+    return this.getNameInputElement().then((elt) => elt.getValue());
+  }
+
   async setName(name: string): Promise<void> {
     return this.getNameInputElement().then((elt) => elt.setValue(name));
   }
 
+  async getVersion(): Promise<string> {
+    return this.getVersionInputElement().then((elt) => elt.getValue());
+  }
+
   async setVersion(version: string): Promise<void> {
     return this.getVersionInputElement().then((elt) => elt.setValue(version));
+  }
+
+  async getDescription(): Promise<string> {
+    return this.getDescriptionInputElement().then((elt) => elt.getValue());
   }
 
   async setDescription(description: string): Promise<void> {

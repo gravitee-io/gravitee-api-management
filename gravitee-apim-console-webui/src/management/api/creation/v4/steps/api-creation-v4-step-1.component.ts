@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,13 +24,16 @@ import { ApiDetails } from '../models/api-details';
 @Component({
   selector: 'api-creation-v4-step-1',
   template: require('./api-creation-v4-step-1.component.html'),
-  styles: [require('./api-creation-v4-step-1.component.scss')],
+  styles: [require('./api-creation-v4-step-1.component.scss'), require('./api-creation-v4.component.scss')],
 })
 export class ApiCreationV4Step1Component implements OnInit {
   public form: FormGroup;
 
+  @Input()
+  public apiDetails: ApiDetails;
+
   @Output()
-  public saveApiDetails = new EventEmitter<ApiDetails>();
+  public apiDetailsChange = new EventEmitter<ApiDetails>();
 
   @Output()
   public exit = new EventEmitter<void>();
@@ -39,10 +42,13 @@ export class ApiCreationV4Step1Component implements OnInit {
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required]),
-      version: this.formBuilder.control('', [Validators.required]),
-      description: this.formBuilder.control('', [Validators.required]),
+      name: this.formBuilder.control(this.apiDetails?.name, [Validators.required]),
+      version: this.formBuilder.control(this.apiDetails?.version, [Validators.required]),
+      description: this.formBuilder.control(this.apiDetails?.description, [Validators.required]),
     });
+    if (this.apiDetails) {
+      this.form.markAsDirty();
+    }
   }
 
   onExit() {
@@ -68,6 +74,6 @@ export class ApiCreationV4Step1Component implements OnInit {
   }
 
   save() {
-    this.saveApiDetails.emit(this.form.value);
+    this.apiDetailsChange.emit(this.form.value);
   }
 }

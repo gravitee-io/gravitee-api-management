@@ -20,7 +20,7 @@ import { Component } from '@angular/core';
 import { ApiCreationStepHarness } from './api-creation-step.harness';
 import { ApiCreationStepComponent } from './api-creation-step.component';
 
-import { ApiCreationV4Module } from '../../api-creation-v4.module';
+import { ApiCreationV4Module } from '../../../api-creation-v4.module';
 
 @Component({
   template: `<api-creation-step [stepNumber]="stepNumber" [currentStep]="currentStep">step</api-creation-step>`,

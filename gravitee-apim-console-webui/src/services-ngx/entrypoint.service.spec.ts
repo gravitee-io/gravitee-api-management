@@ -20,6 +20,7 @@ import { EntrypointService } from './entrypoint.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeEntrypoint } from '../entities/entrypoint/entrypoint.fixture';
+import { fakeConnectorListItem } from '../entities/connector/connector-list-item.fixture';
 
 describe('EntrypointService', () => {
   let httpTestingController: HttpTestingController;
@@ -100,6 +101,24 @@ describe('EntrypointService', () => {
           method: 'DELETE',
         })
         .flush(null);
+    });
+  });
+
+  describe('v4ListEntrypointPlugins', () => {
+    it('should call the API', (done) => {
+      const fakeConnectors = [fakeConnectorListItem()];
+
+      entrypointService.v4ListEntrypointPlugins().subscribe((connectors) => {
+        expect(connectors).toMatchObject(fakeConnectors);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`,
+          method: 'GET',
+        })
+        .flush(fakeConnectors);
     });
   });
 

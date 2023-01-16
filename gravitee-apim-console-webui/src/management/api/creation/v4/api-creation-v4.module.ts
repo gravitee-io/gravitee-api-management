@@ -21,24 +21,42 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioConfirmDialogModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatListModule } from '@angular/material/list';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiCreationV4Component } from './steps/api-creation-v4.component';
 import { ApiCreationV4Step1Component } from './steps/api-creation-v4-step-1.component';
-import { ApiCreationStepperComponent } from './api-creation-stepper/api-creation-stepper.component';
-import { ApiCreationStepComponent } from './api-creation-stepper/api-creation-step/api-creation-step.component';
+import { ApiCreationStepperComponent } from './components/api-creation-stepper/api-creation-stepper.component';
+import { ApiCreationStepComponent } from './components/api-creation-stepper/api-creation-step/api-creation-step.component';
+import { ApiCreationV4Step2Component } from './steps/api-creation-v4-step-2.component';
 
+import { GioSelectionListOptionModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list-option.module';
 @NgModule({
   imports: [
     CommonModule,
     BrowserAnimationsModule,
+    ReactiveFormsModule,
+
     MatCardModule,
     MatButtonModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatListModule,
+    MatDialogModule,
+
     GioConfirmDialogModule,
     GioIconsModule,
-    MatInputModule,
-    ReactiveFormsModule,
+    GioSelectionListOptionModule,
+    GioConfirmDialogModule,
   ],
-  declarations: [ApiCreationV4Component, ApiCreationStepperComponent, ApiCreationStepComponent, ApiCreationV4Step1Component],
+  declarations: [
+    ApiCreationV4Component,
+    ApiCreationStepperComponent,
+    ApiCreationStepComponent,
+    ApiCreationV4Step1Component,
+    ApiCreationV4Step2Component,
+  ],
   exports: [ApiCreationV4Component],
 })
 export class ApiCreationV4Module {}

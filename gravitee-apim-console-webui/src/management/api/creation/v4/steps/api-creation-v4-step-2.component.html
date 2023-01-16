@@ -1,0 +1,69 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="api-creation-v4__step">
+  <div class="api-creation-v4__step__header">
+    <div class="api-creation-v4__step__step-number mat-h4">Step 2</div>
+    <div class="mat-h2 subtitle">Select your Event-Native API entrypoints</div>
+    <p class="paragraph-light">Choose how your users will consume your API</p>
+  </div>
+
+  <form [formGroup]="formGroup" (ngSubmit)="save()">
+    <mat-selection-list formControlName="selectedEntrypoints" class="gio-selection-list" disableRipple="true">
+      <mat-list-option
+        *ngFor="let entrypoint of entrypoints"
+        [value]="entrypoint.id"
+        checkboxPosition="before"
+        #listOption
+        [class.entrypoint-selected]="listOption.selected"
+      >
+        <gio-selection-list-option-layout>
+          <gio-selection-list-option-layout-title>
+            {{ entrypoint.name }}
+            <span class="gio-badge-primary strong-badge">New</span>
+            <span class="gio-badge-accent strong-badge">Enterprise</span>
+          </gio-selection-list-option-layout-title>
+
+          <gio-selection-list-option-layout-body>
+            {{ entrypoint.description }}
+          </gio-selection-list-option-layout-body>
+
+          <gio-selection-list-option-layout-action>
+            <button type="button" mat-raised-button (click)="onMoreInfoClick($event, entrypoint)">
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+              More information
+            </button>
+          </gio-selection-list-option-layout-action>
+        </gio-selection-list-option-layout>
+      </mat-list-option>
+    </mat-selection-list>
+
+    <mat-card class="api-creation-v4-step-2__banner">
+      <mat-card-content class="api-creation-v4-step-2__banner__container">
+        <h3 class="mat-h3 api-creation-v4-step-2__banner__title">
+          Explore Gravitee’s brand new plugin marketplace
+          <mat-icon svgIcon="gio:right-circle" class="api-creation-v4-step-2__banner__icon"></mat-icon>
+        </h3>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="api-creation-v4-step-2__footer">
+      <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
+      <button id="validate" mat-raised-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
+    </div>
+  </form>
+</mat-card>

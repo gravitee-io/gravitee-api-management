@@ -17,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
 import { Entrypoint } from '../entities/entrypoint/entrypoint';
 
@@ -40,5 +41,9 @@ export class EntrypointService {
 
   delete(entrypointId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/entrypoints/${entrypointId}`);
+  }
+
+  v4ListEntrypointPlugins(): Observable<ConnectorListItem[]> {
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/entrypoints`);
   }
 }
