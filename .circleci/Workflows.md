@@ -33,16 +33,9 @@ stateDiagram-v2
     webUILintConsole --> sonarConsole
 
     storybook: Build Console Storybook
-    setup --> storybook
-
-    state join_state_storybook <<join>>
-    storybook --> join_state_storybook
-    test --> join_state_storybook
-    testPlugin --> join_state_storybook
-    testRepository --> join_state_storybook
-
     chromatic: console-webui-chromatic-deployment
-    join_state_storybook --> chromatic
+    setup --> storybook
+    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole
@@ -111,16 +104,9 @@ stateDiagram-v2
     webUILintConsole --> sonarConsole
 
     storybook: Build Console Storybook
-    setup --> storybook
-
-    state join_state_storybook <<join>>
-    storybook --> join_state_storybook
-    test --> join_state_storybook
-    testPlugin --> join_state_storybook
-    testRepository --> join_state_storybook
-
     chromatic: console-webui-chromatic-deployment
-    join_state_storybook --> chromatic
+    setup --> storybook
+    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole
@@ -225,16 +211,9 @@ stateDiagram-v2
     webUILintConsole --> sonarConsole
 
     storybook: Build Console Storybook
-    setup --> storybook
-
-    state join_state_storybook <<join>>
-    storybook --> join_state_storybook
-    test --> join_state_storybook
-    testPlugin --> join_state_storybook
-    testRepository --> join_state_storybook
-
     chromatic: console-webui-chromatic-deployment
-    join_state_storybook --> chromatic
+    setup --> storybook
+    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole
