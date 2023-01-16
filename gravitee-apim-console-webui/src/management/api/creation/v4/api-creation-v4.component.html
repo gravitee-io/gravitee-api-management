@@ -16,19 +16,8 @@
 
 -->
 <div class="api-creation-v4__container">
-  <api-creation-stepper [currentStep]="currentStep"></api-creation-stepper>
-  <ng-container [ngSwitch]="currentStep">
-    <api-creation-v4-step-1
-      *ngSwitchCase="1"
-      class="api-creation-v4__current-step"
-      [(apiDetails)]="apiDetails"
-      (exit)="exit()"
-    ></api-creation-v4-step-1>
-    <api-creation-v4-step-2
-      *ngSwitchCase="2"
-      class="api-creation-v4__current-step"
-      [(selectedEntrypoints)]="selectedEntrypoints"
-      (goToPreviousStep)="goToPreviousStep()"
-    ></api-creation-v4-step-2>
-  </ng-container>
+  <api-creation-stepper [currentStep]="currentStep.number"></api-creation-stepper>
+  <div class="api-creation-v4__current-step">
+    <ng-container *ngComponentOutlet="currentStep.component; injector: currentStep.injector"></ng-container>
+  </div>
 </div>

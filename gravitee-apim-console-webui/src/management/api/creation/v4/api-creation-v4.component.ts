@@ -14,45 +14,56 @@
  * limitations under the License.
  */
 
-import { Component, Inject } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
-import { ApiCreationPayload } from './models/ApiCreationPayload';
-
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
+import { API_CREATION_PAYLOAD, ApiCreationStep, ApiCreationStepperService } from './models/ApiCreationStepperService';
+import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
+import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
 
 @Component({
   selector: 'api-creation-v4',
   template: require('./api-creation-v4.component.html'),
   styles: [require('./api-creation-v4.component.scss')],
 })
-export class ApiCreationV4Component {
-  constructor(@Inject(UIRouterState) readonly ajsState: StateService) {}
-  public currentStep = 1;
+export class ApiCreationV4Component implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
-  private _apiDetails: ApiCreationPayload;
-  set apiDetails(val: ApiCreationPayload) {
-    this._apiDetails = val;
-    this.currentStep++;
-  }
-  get apiDetails() {
-    return this._apiDetails;
+  public currentStep: ApiCreationStep & { injector: Injector };
+
+  public stepper = new ApiCreationStepperService([
+    {
+      number: 1,
+      component: ApiCreationV4Step1Component,
+    },
+    {
+      number: 2,
+      component: ApiCreationV4Step2Component,
+    },
+  ]);
+
+  constructor(private readonly injector: Injector) {}
+
+  ngOnInit(): void {
+    this.stepper.currentStep.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
+      this.currentStep = {
+        ...apiCreationStep,
+        injector: Injector.create({
+          providers: [
+            { provide: ApiCreationStepperService, useValue: this.stepper },
+            { provide: API_CREATION_PAYLOAD, useValue: apiCreationStep.payload },
+          ],
+          parent: this.injector,
+        }),
+      };
+    });
+    // Initialize stepper to step 0
+    this.stepper.goToStep(0);
   }
 
-  private _selectedEntrypoint: string[];
-  set selectedEntrypoints(val: string[]) {
-    this._selectedEntrypoint = val;
-    this.currentStep++;
-  }
-  get selectedEntrypoints() {
-    return this._selectedEntrypoint;
-  }
-
-  goToPreviousStep() {
-    this.currentStep--;
-  }
-
-  exit() {
-    this.ajsState.go('management.apis.new');
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 }

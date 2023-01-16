@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface ApiCreationPayload {
+export type ApiCreationPayload = Partial<{
   name: string;
   version: string;
   description: string;
-}
+  selectedEntrypoints: string[];
+}>;

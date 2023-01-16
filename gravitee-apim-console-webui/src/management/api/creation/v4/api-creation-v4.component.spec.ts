@@ -20,6 +20,7 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Harness } from './steps/step-1/api-creation-v4-step-1.harness';
@@ -46,7 +47,13 @@ describe('ApiCreationV4Component', () => {
       declarations: [ApiCreationV4Component],
       providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
       imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiCreationV4Component);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -71,26 +78,26 @@ describe('ApiCreationV4Component', () => {
     it('should save api details and move to next step', async () => {
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       expect(step1Harness).toBeDefined();
-      expect(component.currentStep).toEqual(1);
+      expect(component.currentStep.number).toEqual(1);
       await step1Harness.fillStep('test API', '1', 'description');
       await step1Harness.clickValidate();
-      expect(component.apiDetails).toEqual({ name: 'test API', version: '1', description: 'description' });
-      expect(component.currentStep).toEqual(2);
       expectEntrypointsGetRequest([]);
+
+      fixture.detectChanges();
+      expect(component.currentStep.payload).toEqual({ name: 'test API', version: '1', description: 'description' });
+      expect(component.currentStep.number).toEqual(2);
     });
 
     it('should exit without confirmation when no modification', async () => {
-      const ajsSpy = jest.spyOn(component.ajsState, 'go');
-
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       expect(step1Harness).toBeDefined();
       await step1Harness.clickExit();
-      expect(ajsSpy).toHaveBeenCalled();
+
+      fixture.detectChanges();
+      expect(fakeAjsState.go).toHaveBeenCalled();
     });
 
     it('should cancel exit in confirmation', async () => {
-      const ajsSpy = jest.spyOn(component.ajsState, 'go');
-
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       await step1Harness.fillStep();
       await step1Harness.clickExit();
@@ -100,14 +107,13 @@ describe('ApiCreationV4Component', () => {
       expect(await dialogHarness).toBeTruthy();
 
       await dialogHarness.cancel();
-      expect(component.currentStep).toEqual(1);
+      expect(component.currentStep.number).toEqual(1);
 
-      expect(ajsSpy).not.toHaveBeenCalled();
+      fixture.detectChanges();
+      expect(fakeAjsState.go).not.toHaveBeenCalled();
     });
 
     it('should not save data after exiting', async () => {
-      const ajsSpy = jest.spyOn(component.ajsState, 'go');
-
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       await step1Harness.fillStep();
 
@@ -118,9 +124,10 @@ describe('ApiCreationV4Component', () => {
       expect(await dialogHarness).toBeTruthy();
 
       await dialogHarness.confirm();
-      expect(component.apiDetails).toBeUndefined();
+      expect(component.currentStep.payload).toEqual({});
 
-      expect(ajsSpy).toHaveBeenCalled();
+      fixture.detectChanges();
+      expect(fakeAjsState.go).toHaveBeenCalled();
     });
   });
 
@@ -129,8 +136,10 @@ describe('ApiCreationV4Component', () => {
       await fillStepOneAndValidate('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
       expectEntrypointsGetRequest([]);
+
       await step2Harness.clickPrevious();
-      expect(component.currentStep).toEqual(1);
+      expect(component.currentStep.number).toEqual(1);
+
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       expect(step1Harness).toBeDefined();
       expect(await step1Harness.getName()).toEqual('API');
@@ -145,8 +154,9 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.fillStep(['sse', 'webhook']);
 
-      await step2Harness.clickValidate();
-      expect(component.selectedEntrypoints).toEqual(['sse', 'webhook']);
+      // WIP: To be uncommented in next commit when all steps are added
+      // await step2Harness.clickValidate();
+      // expect(component.currentStep.payload.selectedEntrypoints).toEqual(['sse', 'webhook']);
     });
   });
 
