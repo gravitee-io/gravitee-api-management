@@ -19,6 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Harness } from './steps/step-1/api-creation-v4-step-1.harness';
@@ -44,7 +45,7 @@ describe('ApiCreationV4Component', () => {
     await TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
       providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
-      imports: [ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiCreationV4Component);
