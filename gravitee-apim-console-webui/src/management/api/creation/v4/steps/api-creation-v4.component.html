@@ -20,9 +20,15 @@
   <ng-container [ngSwitch]="currentStep">
     <api-creation-v4-step-1
       *ngSwitchCase="1"
-      class="api-creation-current-step"
-      (saveApiDetails)="saveApiDetails($event)"
+      class="api-creation-v4__current-step"
+      [(apiDetails)]="apiDetails"
       (exit)="exit()"
     ></api-creation-v4-step-1>
+    <api-creation-v4-step-2
+      *ngSwitchCase="2"
+      class="api-creation-v4__current-step"
+      [(selectedEntrypoints)]="selectedEntrypoints"
+      (goToPreviousStep)="goToPreviousStep()"
+    ></api-creation-v4-step-2>
   </ng-container>
 </div>

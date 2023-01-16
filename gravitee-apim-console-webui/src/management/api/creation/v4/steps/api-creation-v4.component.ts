@@ -26,14 +26,29 @@ import { ApiDetails } from '../models/api-details';
   styles: [require('./api-creation-v4.component.scss')],
 })
 export class ApiCreationV4Component {
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
+  constructor(@Inject(UIRouterState) readonly ajsState: StateService) {}
   public currentStep = 1;
 
-  public apiDetails: ApiDetails;
-
-  saveApiDetails(apiDetails: ApiDetails) {
-    this.apiDetails = apiDetails;
+  private _apiDetails: ApiDetails;
+  set apiDetails(val: ApiDetails) {
+    this._apiDetails = val;
     this.currentStep++;
+  }
+  get apiDetails() {
+    return this._apiDetails;
+  }
+
+  private _selectedEntrypoint: string[];
+  set selectedEntrypoints(val: string[]) {
+    this._selectedEntrypoint = val;
+    this.currentStep++;
+  }
+  get selectedEntrypoints() {
+    return this._selectedEntrypoint;
+  }
+
+  goToPreviousStep() {
+    this.currentStep--;
   }
 
   exit() {

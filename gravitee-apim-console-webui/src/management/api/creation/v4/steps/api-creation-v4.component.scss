@@ -1,14 +1,44 @@
-.api-creation-v4__container {
-  margin: 0;
-  padding: 40px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 40px;
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.api-creation-v4 {
+  &__container {
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  &__current-step {
+    width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &__step {
+    max-width: 780px;
+    padding: 40px;
+
+    &__header {
+      padding-bottom: 24px;
+    }
+
+    &__step-number {
+      color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+    }
+  }
+}
+.paragraph-light {
+  @include mat.typography-level($typography, body-1);
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  margin-bottom: 8px;
 }
 
-.api-creation-current-step {
-  width: 780px;
-  margin-left: auto;
-  margin-right: auto;
+.subtitle {
+  margin-bottom: 8px;
 }
