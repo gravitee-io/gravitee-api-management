@@ -46,4 +46,8 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
     const listOption = await this.getListOptionByValue(id);
     await listOption.select();
   }
+
+  async fillStep(entrypointIds: string[]): Promise<void> {
+    await Promise.all(entrypointIds.map((id) => this.markEntrypointSelectedById(id)));
+  }
 }
