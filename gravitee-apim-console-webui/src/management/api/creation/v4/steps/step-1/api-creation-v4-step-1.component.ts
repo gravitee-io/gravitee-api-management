@@ -19,12 +19,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
-import { ApiDetails } from '../models/api-details';
+import { ApiDetails } from '../../models/api-details';
 
 @Component({
   selector: 'api-creation-v4-step-1',
   template: require('./api-creation-v4-step-1.component.html'),
-  styles: [require('./api-creation-v4-step-1.component.scss'), require('./api-creation-v4.component.scss')],
+  styles: [require('./api-creation-v4-step-1.component.scss'), require('../api-creation-v4.component.scss')],
 })
 export class ApiCreationV4Step1Component implements OnInit {
   public form: FormGroup;
