@@ -21,8 +21,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
-import { ApiCreationV4Step1Harness } from './api-creation-v4-step-1.harness';
-import { ApiCreationV4Step2Harness } from './api-creation-v4-step-2.harness';
+import { ApiCreationV4Step1Harness } from './step-1/api-creation-v4-step-1.harness';
+import { ApiCreationV4Step2Harness } from './step-2/api-creation-v4-step-2.harness';
 
 import { ApiCreationV4Module } from '../api-creation-v4.module';
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
