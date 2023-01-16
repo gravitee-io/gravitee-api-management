@@ -170,7 +170,7 @@ public class HelloCommandProducerTest {
         cut.handleReply(helloReply);
 
         verify(organizationService)
-            .createOrUpdate(
+            .updateOrganization(
                 argThat(executionContext -> executionContext.getOrganizationId().equals(defaultOrgId)),
                 argThat(
                     org ->
