@@ -19,7 +19,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
-import { ApiDetails } from '../../models/api-details';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'api-creation-v4-step-1',
@@ -30,10 +30,10 @@ export class ApiCreationV4Step1Component implements OnInit {
   public form: FormGroup;
 
   @Input()
-  public apiDetails: ApiDetails;
+  public apiDetails: ApiCreationPayload;
 
   @Output()
-  public apiDetailsChange = new EventEmitter<ApiDetails>();
+  public apiDetailsChange = new EventEmitter<ApiCreationPayload>();
 
   @Output()
   public exit = new EventEmitter<void>();
