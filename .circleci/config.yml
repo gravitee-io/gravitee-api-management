@@ -1699,10 +1699,9 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - refactor-distribution-build-process
-                              - 8386-refactor-context
                   requires:
                       - test
+                      - test-plugin
                       - test-repository
             - publish-on-nexus:
                   context: cicd-orchestrator
@@ -1711,9 +1710,9 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
-                              - refactor-distribution-build-process
                   requires:
                       - test
+                      - test-plugin
                       - test-repository
             - webui-lint-test:
                   name: Lint & test APIM Console
@@ -1738,6 +1737,7 @@ workflows:
                   requires:
                       - Build Console Storybook
                       - test-repository
+                      - test-plugin
                       - test
             - webui-build:
                   name: Build APIM Console
