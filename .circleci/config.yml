@@ -1736,9 +1736,6 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Build Console Storybook
-                      - test-repository
-                      - test-plugin
-                      - test
             - webui-build:
                   name: Build APIM Console
                   context: cicd-orchestrator
