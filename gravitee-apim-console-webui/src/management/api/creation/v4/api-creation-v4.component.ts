@@ -17,7 +17,7 @@
 import { Component, Inject } from '@angular/core';
 import { StateService } from '@uirouter/core';
 
-import { ApiDetails } from './models/api-details';
+import { ApiCreationPayload } from './models/ApiCreationPayload';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
@@ -30,8 +30,8 @@ export class ApiCreationV4Component {
   constructor(@Inject(UIRouterState) readonly ajsState: StateService) {}
   public currentStep = 1;
 
-  private _apiDetails: ApiDetails;
-  set apiDetails(val: ApiDetails) {
+  private _apiDetails: ApiCreationPayload;
+  set apiDetails(val: ApiCreationPayload) {
     this._apiDetails = val;
     this.currentStep++;
   }
