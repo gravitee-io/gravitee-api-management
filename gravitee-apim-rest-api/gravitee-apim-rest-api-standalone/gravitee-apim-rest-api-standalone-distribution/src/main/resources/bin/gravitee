@@ -88,9 +88,6 @@ JAVA_OPTS="$JAVA_OPTS -XX:+HeapDumpOnOutOfMemoryError"
 # space for a full heap dump.
 #JAVA_OPTS="$JAVA_OPTS -XX:HeapDumpPath=$GRAVITEE_HOME/logs/heapdump.hprof"
 
-# JVM exits on the first occurrence of an out-of-memory error.
-JAVA_OPTS="$JAVA_OPTS -XX:+ExitOnOutOfMemoryError"
-
 # Disables explicit GC
 JAVA_OPTS="$JAVA_OPTS -XX:+DisableExplicitGC"
 
