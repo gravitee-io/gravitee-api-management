@@ -81,4 +81,10 @@ export class ApiCreationV4Step1Harness extends ComponentHarness {
   async clickExit(): Promise<void> {
     return this.getExitButton().then((elt) => elt.click());
   }
+
+  async fillStep(name = 'API name', version = '1.0', description = 'description'): Promise<void> {
+    await this.setName(name);
+    await this.setVersion(version);
+    await this.setDescription(description);
+  }
 }

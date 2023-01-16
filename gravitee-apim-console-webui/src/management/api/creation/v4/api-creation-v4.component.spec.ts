@@ -72,7 +72,7 @@ describe('ApiCreationV4Component', () => {
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
       expect(step1Harness).toBeDefined();
       expect(component.currentStep).toEqual(1);
-      await fillStepOne('test API', '1', 'description');
+      await step1Harness.fillStep('test API', '1', 'description');
       await step1Harness.clickValidate();
       expect(component.apiDetails).toEqual({ name: 'test API', version: '1', description: 'description' });
       expect(component.currentStep).toEqual(2);
@@ -92,7 +92,7 @@ describe('ApiCreationV4Component', () => {
       const ajsSpy = jest.spyOn(component.ajsState, 'go');
 
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-      await fillStepOne();
+      await step1Harness.fillStep();
       await step1Harness.clickExit();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
@@ -109,7 +109,7 @@ describe('ApiCreationV4Component', () => {
       const ajsSpy = jest.spyOn(component.ajsState, 'go');
 
       const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-      await fillStepOne();
+      await step1Harness.fillStep();
 
       await step1Harness.clickExit();
 
@@ -143,8 +143,7 @@ describe('ApiCreationV4Component', () => {
 
       expectEntrypointsGetRequest([fakeConnectorListItem({ id: 'sse' }), fakeConnectorListItem({ id: 'webhook' })]);
 
-      await step2Harness.markEntrypointSelectedById('sse');
-      await step2Harness.markEntrypointSelectedById('webhook');
+      await step2Harness.fillStep(['sse', 'webhook']);
 
       await step2Harness.clickValidate();
       expect(component.selectedEntrypoints).toEqual(['sse', 'webhook']);
@@ -155,16 +154,9 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(connectors);
   }
 
-  async function fillStepOne(name = 'API name', version = '1.0', description = 'description') {
-    const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-    await step1Harness.setName(name);
-    await step1Harness.setVersion(version);
-    await step1Harness.setDescription(description);
-  }
-
   async function fillStepOneAndValidate(name = 'API name', version = '1.0', description = 'description') {
-    await fillStepOne(name, version, description);
     const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+    await step1Harness.fillStep(name, version, description);
     await step1Harness.clickValidate();
   }
 });
