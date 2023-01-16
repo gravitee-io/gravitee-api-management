@@ -1,3 +1,10 @@
+# [4.1.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.1...4.1.0-alpha.2) (2023-01-16)
+
+
+### Features
+
+* report v4 metrics & logs ([cf1ffd8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/cf1ffd82acea94234e5008b01773294118082342))
+
 # [4.1.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.0...4.1.0-alpha.1) (2022-12-22)
 
 
