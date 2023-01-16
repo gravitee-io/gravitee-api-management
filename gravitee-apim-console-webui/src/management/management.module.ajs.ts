@@ -527,7 +527,7 @@ import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
-import { ApiCreationV4Component } from './api/creation/v4/steps/api-creation-v4.component';
+import { ApiCreationV4Component } from './api/creation/v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
 
 (<any>window).moment = moment;

@@ -17,8 +17,9 @@
 import { Component, Inject } from '@angular/core';
 import { StateService } from '@uirouter/core';
 
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
-import { ApiDetails } from '../models/api-details';
+import { ApiDetails } from './models/api-details';
+
+import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-creation-v4',

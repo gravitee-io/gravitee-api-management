@@ -25,7 +25,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatListModule } from '@angular/material/list';
 import { MatDialogModule } from '@angular/material/dialog';
 
-import { ApiCreationV4Component } from './steps/api-creation-v4.component';
+import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
 import { ApiCreationStepperComponent } from './components/api-creation-stepper/api-creation-stepper.component';
 import { ApiCreationStepComponent } from './components/api-creation-stepper/api-creation-step/api-creation-step.component';
