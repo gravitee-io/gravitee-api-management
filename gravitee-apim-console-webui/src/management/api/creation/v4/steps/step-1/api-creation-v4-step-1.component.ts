@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { StateService } from '@uirouter/core';
 
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
+import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-creation-v4-step-1',
@@ -29,24 +32,24 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 export class ApiCreationV4Step1Component implements OnInit {
   public form: FormGroup;
 
-  @Input()
-  public apiDetails: ApiCreationPayload;
-
-  @Output()
-  public apiDetailsChange = new EventEmitter<ApiCreationPayload>();
-
   @Output()
   public exit = new EventEmitter<void>();
 
-  constructor(private formBuilder: FormBuilder, private confirmDialog: MatDialog) {}
+  constructor(
+    @Inject(UIRouterState) readonly ajsState: StateService,
+    private readonly formBuilder: FormBuilder,
+    private readonly confirmDialog: MatDialog,
+    private readonly stepper: ApiCreationStepperService,
+    @Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload,
+  ) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control(this.apiDetails?.name, [Validators.required]),
-      version: this.formBuilder.control(this.apiDetails?.version, [Validators.required]),
-      description: this.formBuilder.control(this.apiDetails?.description, [Validators.required]),
+      name: this.formBuilder.control(this.currentStepPayload?.name, [Validators.required]),
+      version: this.formBuilder.control(this.currentStepPayload?.version, [Validators.required]),
+      description: this.formBuilder.control(this.currentStepPayload?.description, [Validators.required]),
     });
-    if (this.apiDetails) {
+    if (this.currentStepPayload && Object.keys(this.currentStepPayload).length > 0) {
       this.form.markAsDirty();
     }
   }
@@ -65,15 +68,16 @@ export class ApiCreationV4Step1Component implements OnInit {
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {
-            this.exit.emit();
+            this.ajsState.go('management.apis.new');
           }
         });
       return;
     }
-    this.exit.emit();
+    this.ajsState.go('management.apis.new');
   }
 
   save() {
-    this.apiDetailsChange.emit(this.form.value);
+    const formValue = this.form.getRawValue();
+    this.stepper.goToNextStep({ name: formValue.name, description: formValue.description, version: formValue.version });
   }
 }

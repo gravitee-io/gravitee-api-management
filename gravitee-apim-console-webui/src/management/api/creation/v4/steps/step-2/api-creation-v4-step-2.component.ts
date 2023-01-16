@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -22,6 +22,8 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
+import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 type EntrypointVM = {
   id: string;
@@ -37,15 +39,6 @@ type EntrypointVM = {
 export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  @Input()
-  public selectedEntrypoints: string[];
-
-  @Output()
-  public selectedEntrypointsChange = new EventEmitter<string[]>();
-
-  @Output()
-  public goToPreviousStep = new EventEmitter<void>();
-
   public formGroup: FormGroup;
   public entrypoints: EntrypointVM[];
 
@@ -53,16 +46,16 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly entrypointService: EntrypointService,
     private readonly matDialog: MatDialog,
+
+    private readonly stepper: ApiCreationStepperService,
+
+    @Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload,
   ) {}
 
   ngOnInit(): void {
     this.formGroup = this.formBuilder.group({
-      selectedEntrypoints: this.formBuilder.control(this.selectedEntrypoints ?? [], [Validators.required]),
+      selectedEntrypoints: this.formBuilder.control(this.currentStepPayload.selectedEntrypoints ?? [], [Validators.required]),
     });
-
-    if (this.selectedEntrypoints) {
-      this.formGroup.markAsDirty();
-    }
 
     this.entrypointService
       .v4ListEntrypointPlugins()
@@ -82,11 +75,13 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   }
 
   save(): void {
-    this.selectedEntrypointsChange.emit(this.formGroup.getRawValue().selectedEntrypoints ?? []);
+    const selectedEntrypoints = this.formGroup.getRawValue().selectedEntrypoints ?? [];
+
+    this.stepper.goToNextStep({ ...this.currentStepPayload, selectedEntrypoints });
   }
 
   goBack(): void {
-    this.goToPreviousStep.emit();
+    this.stepper.goToPreviousStep();
   }
 
   onMoreInfoClick(event, entrypoint: EntrypointVM) {
