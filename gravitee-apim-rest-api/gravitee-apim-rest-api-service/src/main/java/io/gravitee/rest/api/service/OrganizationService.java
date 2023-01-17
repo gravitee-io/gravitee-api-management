@@ -33,7 +33,11 @@ public interface OrganizationService {
 
     OrganizationEntity updateOrganization(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
 
-    OrganizationEntity update(ExecutionContext executionContext, String organizationId, UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity updateOrganizationAndFlows(
+        ExecutionContext executionContext,
+        String organizationId,
+        UpdateOrganizationEntity organizationEntity
+    );
 
     void delete(String organizationId);
 
