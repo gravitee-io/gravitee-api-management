@@ -36,7 +36,7 @@ export class ApiCreationStepperService {
 
   private currentStepIndex = 0;
 
-  public currentStep = new Subject<ApiCreationStep>();
+  public currentStep$ = new Subject<ApiCreationStep>();
 
   constructor(payload: ApiCreationStepPayload[]) {
     this.steps = payload.map((stepPayload) => ({
@@ -54,7 +54,7 @@ export class ApiCreationStepperService {
     if (payload) {
       this.steps[this.currentStepIndex].payload = payload;
     }
-    this.currentStep.next(this.steps[this.currentStepIndex]);
+    this.currentStep$.next(this.steps[this.currentStepIndex]);
   }
 
   goToNextStep(_payload: ApiCreationPayload) {
