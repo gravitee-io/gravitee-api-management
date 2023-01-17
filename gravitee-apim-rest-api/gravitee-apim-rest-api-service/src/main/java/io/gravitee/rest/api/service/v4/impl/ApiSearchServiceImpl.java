@@ -66,8 +66,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
         final GenericApiMapper genericApiMapper,
-        final PrimaryOwnerService primaryOwnerService,
-        final CategoryService categoryService
+        @Lazy final PrimaryOwnerService primaryOwnerService,
+        @Lazy final CategoryService categoryService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
