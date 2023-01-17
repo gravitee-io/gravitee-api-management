@@ -189,6 +189,11 @@ public class BridgeService extends AbstractService {
             InstallationHandler installationHandler = new InstallationHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(installationHandler);
             bridgeRouter.get("/installation").handler(installationHandler::find);
+
+            // Commands handler
+            CommandsHandler commandsHandler = new CommandsHandler(bridgeWorkerExecutor);
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(commandsHandler);
+            bridgeRouter.post("/commands").handler(commandsHandler::create);
         }
     }
 
