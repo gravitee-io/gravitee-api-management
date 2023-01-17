@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable, InjectionToken, Type } from '@angular/core';
-import { Subject } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 import { cloneDeep } from 'lodash';
 
 import { ApiCreationPayload } from './ApiCreationPayload';
@@ -23,6 +23,7 @@ export const API_CREATION_PAYLOAD = new InjectionToken<ApiCreationPayload>('API_
 
 export interface ApiCreationStep {
   number: number;
+  label: string;
   component: Type<unknown>;
   payload: ApiCreationPayload;
   type: 'primary' | 'secondary';
@@ -36,7 +37,16 @@ export class ApiCreationStepperService {
 
   private currentStepIndex = 0;
 
+  /**
+   * Observable that emits an event every time the current step changes.
+   */
   public currentStep$ = new Subject<ApiCreationStep>();
+
+  /**
+   * Observable that emits an event every time the steps change. Emit current steps to new subscribers.
+   * This is useful when the steps are dynamically added or removed.
+   */
+  public steps$ = new ReplaySubject<ApiCreationStep[]>(1);
 
   constructor(payload: ApiCreationStepPayload[]) {
     this.steps = payload.map((stepPayload) => ({
@@ -44,6 +54,7 @@ export class ApiCreationStepperService {
       ...stepPayload,
       type: 'primary',
     }));
+    this.steps$.next(this.steps);
   }
 
   goToStep(index: number, payload?: ApiCreationPayload) {

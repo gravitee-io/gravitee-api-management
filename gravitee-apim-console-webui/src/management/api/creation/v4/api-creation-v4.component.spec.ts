@@ -146,6 +146,7 @@ describe('ApiCreationV4Component', () => {
       expect(await step1Harness.getVersion()).toEqual('1.0');
       expect(await step1Harness.getDescription()).toEqual('Description');
     });
+
     it('should select entrypoints in the list', async () => {
       await fillStepOneAndValidate('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
@@ -154,9 +155,8 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.fillStep(['sse', 'webhook']);
 
-      // WIP: To be uncommented in next commit when all steps are added
-      // await step2Harness.clickValidate();
-      // expect(component.currentStep.payload.selectedEntrypoints).toEqual(['sse', 'webhook']);
+      await step2Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual(['sse', 'webhook']);
     });
   });
 

@@ -15,6 +15,8 @@
  */
 import { Component, Input } from '@angular/core';
 
+import { ApiCreationStep } from '../../models/ApiCreationStepperService';
+
 @Component({
   selector: 'api-creation-stepper',
   template: require('./api-creation-stepper.component.html'),
@@ -22,5 +24,8 @@ import { Component, Input } from '@angular/core';
 })
 export class ApiCreationStepperComponent {
   @Input()
-  public currentStep: number;
+  public steps: ApiCreationStep[];
+
+  @Input()
+  public currentStep: ApiCreationStep;
 }
