@@ -1,34 +1,79 @@
+@use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 .api-creation-v4-step-6 {
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  &__step {
+    display: flex;
+    border: 1px solid mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
+    border-radius: 6px;
+    padding: 16px;
+    gap: 30px;
+
+    &__info {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 100%;
+
+      &__value {
+        font-weight: 700;
+        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+        margin-bottom: 8px;
+      }
+      &__row {
+        display: flex;
+        gap: 4px;
+      }
+    }
+
+    &__button {
+      margin-top: 48px;
+      margin-bottom: auto;
+      width: 85px;
+    }
+  }
+
   &__footer {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    margin-top: 56px;
 
-    &__info-icon {
-      width: 13px;
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    }
     &__message {
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       font-weight: 700;
       margin-bottom: 0;
       margin-right: 8px;
     }
-    &__button {
-      &__content {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        align-items: center;
-      }
-      &__content > mat-icon {
-        margin: 0;
-      }
+    &__actions {
+      display: flex;
+      gap: 8px;
+    }
+    &__button-icon {
+      vertical-align: text-bottom;
+      margin-left: 8px;
+      margin-right: 0;
     }
   }
+}
+.step-1-description {
+  display: flex;
+}
+
+.paragraph-light {
+  @include mat.typography-level($typography, body-1);
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  margin-bottom: 8px;
+}
+
+.badge-paragraph-align {
+  margin-bottom: 8px;
 }
