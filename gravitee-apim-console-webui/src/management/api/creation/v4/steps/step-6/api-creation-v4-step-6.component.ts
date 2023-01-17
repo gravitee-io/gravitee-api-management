@@ -22,7 +22,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 @Component({
   selector: 'api-creation-v4-step-6',
   template: require('./api-creation-v4-step-6.component.html'),
-  styles: [require('./api-creation-v4-step-6.component.scss'), require('../../api-creation-v4.component.scss')],
+  styles: [require('./api-creation-v4-step-6.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4Step6Component {
   constructor(@Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload) {}

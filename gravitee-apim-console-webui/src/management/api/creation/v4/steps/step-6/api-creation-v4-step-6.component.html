@@ -20,15 +20,92 @@
     <div class="mat-h2 subtitle">Review your API configuration</div>
     <p class="paragraph-light">Review your API before publishing</p>
   </div>
-  <div class="api-creation-v4-step-6__body"></div>
+  <div class="api-creation-v4-step-6__body">
+    <!--    Step 1 -->
+    <div class="api-creation-v4-step-6__step">
+      <div class="api-creation-v4-step-6__step__info">
+        <div class="mat-h3">API metadata</div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">API name:</p>
+          <p class="api-creation-v4-step-6__step__info__value">My new API</p>
+        </div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Version:</p>
+          <p class="api-creation-v4-step-6__step__info__value">1.0.0</p>
+        </div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Description:</p>
+          <p class="api-creation-v4-step-6__step__info__value">
+            This API uses Webhooks and a Kafka backend to provide a fast-moving async experience. For use by all org members.
+          </p>
+        </div>
+      </div>
+      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
+    </div>
+    <!--    Step 2 -->
+    <div class="api-creation-v4-step-6__step">
+      <div class="api-creation-v4-step-6__step__info">
+        <div class="mat-h3">Entrypoints</div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Path:</p>
+          <p class="api-creation-v4-step-6__step__info__value">/my-new-api</p>
+        </div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Type:</p>
+          <span class="gio-badge-accent badge-paragraph-align">Subscription</span>
+        </div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Entrypoints:</p>
+          <span class="gio-badge-accent badge-paragraph-align"><mat-icon svgIcon="gio:code-brackets"></mat-icon>REST API (HTTP)</span>
+          <span class="gio-badge-accent badge-paragraph-align"><mat-icon svgIcon="gio:websocket"></mat-icon>Websocket</span>
+        </div>
+      </div>
+      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
+    </div>
+    <!--    Step 3 -->
+    <div class="api-creation-v4-step-6__step">
+      <div class="api-creation-v4-step-6__step__info">
+        <div class="mat-h3">Endpoints</div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Field</p>
+          <p class="api-creation-v4-step-6__step__info__value">Value</p>
+        </div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Endpoints:</p>
+          <span class="gio-badge-primary badge-paragraph-align"><mat-icon svgIcon="gio:kafka"></mat-icon>Kafka</span>
+        </div>
+      </div>
+      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
+    </div>
+    <!--    Step 4 -->
+    <div class="api-creation-v4-step-6__step">
+      <div class="api-creation-v4-step-6__step__info">
+        <div class="mat-h3">Security</div>
+        🚧🚧🚧
+      </div>
+      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
+    </div>
+    <!--    Step 5 -->
+    <div class="api-creation-v4-step-6__step">
+      <div class="api-creation-v4-step-6__step__info">
+        <div class="mat-h3">Documentation</div>
+        <div class="api-creation-v4-step-6__step__info__row">
+          <p class="paragraph-light">Files:</p>
+          <p class="api-creation-v4-step-6__step__info__value">None</p>
+        </div>
+      </div>
+      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
+    </div>
+  </div>
   <div class="api-creation-v4-step-6__footer">
-    <mat-icon svgIcon="gio:info" class="api-creation-v4-step-6__footer__info-icon"></mat-icon>
-    <p class="api-creation-v4-step-6__footer__message">Your API will be saved and private</p>
-    <button mat-stroked-button type="button" (click)="createApi()">
-      <div class="api-creation-v4-step-6__footer__button__content">Create my API<mat-icon svgIcon="gio:info"></mat-icon></div>
-    </button>
-    <button color="primary" mat-raised-button type="button" (click)="deployApi()">
-      <div class="api-creation-v4-step-6__footer__button__content">Deploy my API<mat-icon svgIcon="gio:info"></mat-icon></div>
-    </button>
+    <div class="api-creation-v4-step-6__footer__actions">
+      <button mat-stroked-button type="button" (click)="createApi()">
+        Create my API<mat-icon svgIcon="gio:info" class="api-creation-v4-step-6__footer__button-icon"></mat-icon>
+      </button>
+      <button color="primary" mat-raised-button type="button" (click)="deployApi()">
+        Deploy my API<mat-icon svgIcon="gio:info" class="api-creation-v4-step-6__footer__button-icon"></mat-icon>
+      </button>
+    </div>
+    <p class="paragraph-light">Your API will be saved and remain private</p>
   </div>
 </mat-card>
