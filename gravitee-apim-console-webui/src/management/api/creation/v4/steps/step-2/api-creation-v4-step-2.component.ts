@@ -34,7 +34,7 @@ type EntrypointVM = {
 @Component({
   selector: 'api-creation-v4-step-2',
   template: require('./api-creation-v4-step-2.component.html'),
-  styles: [require('./api-creation-v4-step-2.component.scss'), require('../../api-creation-v4.component.scss')],
+  styles: [require('./api-creation-v4-step-2.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

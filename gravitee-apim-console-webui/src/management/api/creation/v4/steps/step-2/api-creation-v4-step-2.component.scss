@@ -2,14 +2,6 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 .api-creation-v4-step-2 {
-  &__footer {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 50px;
-    height: 44px;
-  }
-
   &__banner {
     // Note: WIP - to be removed when we complete the banner
     display: none;

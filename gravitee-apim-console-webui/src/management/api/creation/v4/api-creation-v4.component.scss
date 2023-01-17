@@ -19,26 +19,4 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-left: auto;
     margin-right: auto;
   }
-
-  &__step {
-    max-width: 780px;
-    padding: 40px;
-
-    &__header {
-      padding-bottom: 24px;
-    }
-
-    &__step-number {
-      color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
-    }
-  }
-}
-.paragraph-light {
-  @include mat.typography-level($typography, body-1);
-  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  margin-bottom: 8px;
 }
