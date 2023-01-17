@@ -27,7 +27,7 @@ import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/Ap
 @Component({
   selector: 'api-creation-v4-step-wip',
   template: require('./api-creation-v4-step-wip.component.html'),
-  styles: [require('./api-creation-v4-step-wip.component.scss')],
+  styles: [require('./api-creation-v4-step-wip.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4StepWipComponent implements OnInit {
   public form: FormGroup;

@@ -17,8 +17,8 @@
 -->
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__step-number mat-h4">Step 1</div>
-    <div class="mat-h2 subtitle">Provide some metadata on your API</div>
+    <div class="api-creation-v4__step__header__step-number">Step 1</div>
+    <div class="api-creation-v4__step__header__subtitle">Provide some metadata on your API</div>
   </div>
   <div class="mat-h3">API Details</div>
   <form [formGroup]="form" (ngSubmit)="save()">
@@ -45,7 +45,7 @@
         <mat-error *ngIf="form.controls.description.errors?.required">Description is required</mat-error>
       </mat-form-field>
     </div>
-    <div class="api-creation-v4-step-1__footer">
+    <div class="api-creation-v4__step__footer">
       <button id="exit" mat-stroked-button type="button" (click)="onExit()">Exit</button>
       <button id="validate" mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my API metadata</button>
     </div>

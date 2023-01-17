@@ -1,21 +1,8 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-.api-creation-v4-step-1 {
-  &__row {
-    display: flex;
-    flex-direction: row;
-    gap: 45px;
-
-    :first-child {
-      flex-grow: 1;
-    }
-  }
-
-  &__footer {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 24px;
+.api-creation-v4-step-wip {
+  .remove-me-wip {
+    display: none;
   }
 }

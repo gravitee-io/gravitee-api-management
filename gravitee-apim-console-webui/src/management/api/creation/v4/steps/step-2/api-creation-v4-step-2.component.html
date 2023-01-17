@@ -17,9 +17,9 @@
 -->
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__step-number mat-h4">Step 2</div>
-    <div class="mat-h2 subtitle">Select your Event-Native API entrypoints</div>
-    <p class="paragraph-light">Choose how your users will consume your API</p>
+    <div class="api-creation-v4__step__header__step-number">Step 2</div>
+    <div class="api-creation-v4__step__header__subtitle">Select your Event-Native API entrypoints</div>
+    <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
   </div>
 
   <form [formGroup]="formGroup" (ngSubmit)="save()">
@@ -61,7 +61,7 @@
       </mat-card-content>
     </mat-card>
 
-    <div class="api-creation-v4-step-2__footer">
+    <div class="api-creation-v4__step__footer">
       <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
       <button id="validate" mat-raised-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
     </div>
