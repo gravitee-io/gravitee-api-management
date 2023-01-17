@@ -46,7 +46,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   constructor(private readonly injector: Injector) {}
 
   ngOnInit(): void {
-    this.stepper.currentStep.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
+    this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
       this.currentStep = {
         ...apiCreationStep,
         injector: Injector.create({
