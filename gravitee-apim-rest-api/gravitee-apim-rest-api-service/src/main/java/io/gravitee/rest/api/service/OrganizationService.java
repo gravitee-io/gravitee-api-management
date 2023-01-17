@@ -32,7 +32,7 @@ public interface OrganizationService {
 
     OrganizationEntity updateOrganization(String organizationId, UpdateOrganizationEntity organizationEntity);
 
-    OrganizationEntity update(String organizationId, UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity updateOrganizationAndFlows(String organizationId, UpdateOrganizationEntity organizationEntity);
 
     void delete(String organizationId);
 
