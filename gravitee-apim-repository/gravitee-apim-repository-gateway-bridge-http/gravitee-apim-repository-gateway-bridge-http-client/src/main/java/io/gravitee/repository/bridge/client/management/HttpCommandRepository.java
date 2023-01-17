@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import io.vertx.ext.web.codec.BodyCodec;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,9 +46,8 @@ public class HttpCommandRepository extends AbstractRepository implements Command
     }
 
     @Override
-    @ExcludeMethodFromGeneratedCoverage
-    public Command create(Command item) throws TechnicalException {
-        throw new IllegalStateException();
+    public Command create(Command command) throws TechnicalException {
+        return blockingGet(post("/commands", BodyCodec.json(Command.class)).send(command)).payload();
     }
 
     @Override
