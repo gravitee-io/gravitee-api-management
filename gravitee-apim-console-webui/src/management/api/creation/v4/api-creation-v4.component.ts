@@ -22,6 +22,7 @@ import { API_CREATION_PAYLOAD, ApiCreationStep, ApiCreationStepperService } from
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
 import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-step-wip.component';
+import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 
 @Component({
   selector: 'api-creation-v4',
@@ -62,7 +63,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     {
       number: 6,
       label: 'Summary',
-      component: ApiCreationV4StepWipComponent,
+      component: ApiCreationV4Step6Component,
       payload: { lastStep: true },
     },
   ]);

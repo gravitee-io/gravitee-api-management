@@ -30,6 +30,7 @@ import { ApiCreationStepperComponent } from './components/api-creation-stepper/a
 import { ApiCreationStepComponent } from './components/api-creation-stepper/api-creation-step/api-creation-step.component';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-step-wip.component';
+import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 
 import { GioSelectionListOptionModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list-option.module';
 @NgModule({
@@ -56,6 +57,7 @@ import { GioSelectionListOptionModule } from '../../../../shared/components/gio-
     ApiCreationV4StepWipComponent,
     ApiCreationV4Step1Component,
     ApiCreationV4Step2Component,
+    ApiCreationV4Step6Component,
   ],
   exports: [ApiCreationV4Component],
 })
