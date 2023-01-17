@@ -11,16 +11,7 @@ execution report to this folder in a `jacoco.exec` file that can be used to gene
 ## Generating reports
 
 ```shell
-npm run test:api # tests must complete to generate execution data
-npm run test:report:dev
+JACOCO_OPTS="-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec" \
+  npm run test:api && npm run test:report:dev # tests must complete to generate execution data
 ```
-
-### Circle CI
-
-During the `Test APIM e2e` build step, a lightweight version of the reports is published as a build artifact attached
-to the step in circle CI. In order to reduce the time consumed uploading artifacts, this version only includes the 
-indexes of the report (meaning that only package and class level coverage is available).
-
-The `jacoco.exec` binary containing execution data is attached to the step as an artifact as well in order to be able
-to download this file to the `gravitee-apim-e2e/jacoco` directory and run `npm run test:report:dev` without having
-to run the test suites locally. This will generate a full report, including source files coverage and a XML report.
+> **_NOTE:_**  When `npm run test:api` is used in CircleCI, we do not want to use JaCoCo. That's why JACOCO_OPTS is not set by default. But you can set the JACOCO_OPTS env var to activate it locally

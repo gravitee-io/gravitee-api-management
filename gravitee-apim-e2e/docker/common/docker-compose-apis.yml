@@ -42,7 +42,7 @@ services:
       - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
       - gravitee_api_jupiterMode_default=always
       - gravitee_services_sync_cron=*/2 * * * * *
-      - "JAVA_OPTS=-javaagent:/opt/jacoco/lib/org.jacoco.agent-0.8.8-runtime.jar=destfile=/opt/jacoco/jacoco.exec"
+      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:admin@localhost:8083/management/organizations/DEFAULT/user" ]
       interval: 3s

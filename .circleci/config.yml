@@ -1510,7 +1510,7 @@ jobs:
     e2e-test:
         executor:
             name: ubuntu
-            class: large
+            class: medium
         parameters:
             execution_mode:
                 type: string
@@ -1536,15 +1536,6 @@ jobs:
                         export JUPITER_MODE_ENABLED=true
                       fi
                       APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$APIM_VERSION npm run test:api:<< parameters.database >>
-            - run:
-                  name: Rename Jacoco exec file
-                  command: |
-                      cd gravitee-apim-e2e/jacoco
-                      mv jacoco.exec jacoco-<< parameters.execution_mode >>-<< parameters.database >>.exec
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-e2e/jacoco/jacoco-*-*.exec
             - when:
                   condition:
                       and:
@@ -1561,90 +1552,13 @@ jobs:
                                 - gateway-docker-context
                                 - gravitee-api-management
                                 - gravitee-apim-e2e/package.json
-                                - gravitee-apim-e2e/jacoco/lib
-                                - gravitee-apim-e2e/jacoco/*.xml
             - notify-on-failure
             - store_test_results:
                   path: ~/test-results
-    e2e-report:
-        executor:
-            name: ubuntu
-        steps:
-            - attach_workspace:
-                  at: .
-            - keeper/env-export:
-                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-                  var-name: GITHUB_TOKEN
-            - run:
-                  name: Merge E2E exec files
-                  command: |
-                      cd gravitee-apim-e2e
-                      npm run test:report:merge
-            - run:
-                  name: Generate e2e coverage report
-                  command: |
-                      cd gravitee-apim-e2e
-                      npm run test:report
-            - run:
-                  name: Remove Report Details (Only keep index files)
-                  command: |
-                      cd gravitee-apim-e2e/jacoco/reports
-                      rm -f report.xml
-                      find . -type f -not -name 'index.html' -name '*.html' -delete
-            - store_artifacts:
-                  name: Upload jacoco report
-                  path: gravitee-apim-e2e/jacoco/reports
-            - store_artifacts:
-                  name: Upload jacoco exec file
-                  path: gravitee-apim-e2e/jacoco/jacoco.exec
-            - gh/setup
-            - run:
-                  name: Edit Pull Request Description
-                  command: |
-                      # First check there is an associated pull request, otherwise just stop the job here
-                      if ! gh pr view --json title;
-                      then
-                        echo "No PR found for this branch, stopping the job here."
-                        exit 0
-                      fi
-
-                      # If PR state is different from OPEN
-                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-                      then
-                        echo "PR is not opened, stopping the job here."
-                        exit 0
-                      fi
-
-                      pushd gravitee-apim-e2e/jacoco/reports
-                        export COVERAGE_SUMMARY=$(sed -nE 's/^.*<td>Total<([^>]+>){4}([^<]*)([^>]+>){4}([^<]*).*$/\2 | \4/p' index.html)
-                      popd
-
-                      export COVERAGE_URL="https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0/gravitee-apim-e2e/jacoco/reports/index.html"
-
-                      export PR_BODY_COVERAGE_SECTION="
-                      <!-- E2E Coverage placeholder -->
-                      ---
-                      ### 🧪 End-to-End Coverage
-
-                      | INSTRUCTIONS | BRANCHES |
-                      | :----------: | :------: |
-                      |   ${COVERAGE_SUMMARY}   |
-
-                      A more detailed report has been uploaded to [circleci](${COVERAGE_URL})
-                      <!-- E2E Coverage placeholder end -->
-                      "
-
-                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/E2E Coverage placeholder -->/,/E2E Coverage placeholder end -->/d')
-
-                      echo "
-                        Editing PR description with body:
-                          $CLEAN_BODY$PR_BODY_COVERAGE_SECTION
-                      "
-
-                      gh pr edit --body "$CLEAN_BODY$PR_BODY_COVERAGE_SECTION"
     e2e-cypress:
         executor:
             name: ubuntu
+            class: medium
         steps:
             - checkout
             - attach_workspace:
@@ -2028,17 +1942,6 @@ workflows:
                               - /.*-run-e2e.*/
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
-            - e2e-report:
-                  context: cicd-orchestrator
-                  name: Generate E2E Test Reports
-                  requires:
-                      - e2e-test
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /.*-run-e2e.*/
-                              - /^\d+\.\d+\.x$/
             - e2e-cypress:
                   context: cicd-orchestrator
                   name: Run Cypress UI tests
@@ -2052,7 +1955,6 @@ workflows:
                               - master
                               - /.*-run-e2e.*/
                               - /^\d+\.\d+\.x$/
-
             - perf-lint-build:
                   name: Lint & Build APIM perf
                   context: cicd-orchestrator
