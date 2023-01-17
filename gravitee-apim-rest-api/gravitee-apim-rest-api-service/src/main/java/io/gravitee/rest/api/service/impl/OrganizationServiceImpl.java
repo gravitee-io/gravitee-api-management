@@ -108,7 +108,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             try {
-                return this.update(organizationId, organizationEntity);
+                return this.updateOrganizationAndFlows(organizationId, organizationEntity);
             } catch (OrganizationNotFoundException e) {
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
@@ -132,7 +132,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity update(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity updateOrganizationAndFlows(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {

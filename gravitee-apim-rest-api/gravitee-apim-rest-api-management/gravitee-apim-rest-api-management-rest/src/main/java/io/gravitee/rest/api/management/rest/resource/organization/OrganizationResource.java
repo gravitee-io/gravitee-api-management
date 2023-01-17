@@ -143,7 +143,10 @@ public class OrganizationResource extends AbstractResource {
         }
     )
     public Response update(UpdateOrganizationEntity organizationEntity) {
-        OrganizationEntity updatedOrganization = organizationService.update(GraviteeContext.getCurrentOrganization(), organizationEntity);
+        OrganizationEntity updatedOrganization = organizationService.updateOrganizationAndFlows(
+            GraviteeContext.getCurrentOrganization(),
+            organizationEntity
+        );
         return Response.ok(updatedOrganization).status(204).build();
     }
 
