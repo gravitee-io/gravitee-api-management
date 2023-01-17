@@ -529,6 +529,7 @@ import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 import { ApiCreationV4Component } from './api/creation/v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
+import { ApiCreationV4ConfirmationComponent } from './api/creation/v4/api-creation-v4-confirmation.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -865,6 +866,10 @@ graviteeManagementModule.controller('ApiCreationController', ApiCreationControll
 graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
 graviteeManagementModule.directive('ngApiCreationGetStartedComponent', downgradeComponent({ component: ApiCreationGetStartedComponent }));
 graviteeManagementModule.directive('ngApiCreationV4Component', downgradeComponent({ component: ApiCreationV4Component }));
+graviteeManagementModule.directive(
+  'ngApiCreationV4ConfirmationComponent',
+  downgradeComponent({ component: ApiCreationV4ConfirmationComponent }),
+);
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
 graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);

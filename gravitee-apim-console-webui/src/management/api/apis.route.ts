@@ -133,6 +133,16 @@ function apisRouterConfig($stateProvider: StateProvider) {
         },
       },
     })
+    .state('management.apis.create-v4-confirmation', {
+      url: '/new/create/v4/confirmation/:apiId',
+      component: 'ngApiCreationV4ConfirmationComponent',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['environment-api-c'],
+        },
+      },
+    })
     .state('management.apis.create-v4', {
       url: '/new/create/v4',
       component: 'ngApiCreationV4Component',
