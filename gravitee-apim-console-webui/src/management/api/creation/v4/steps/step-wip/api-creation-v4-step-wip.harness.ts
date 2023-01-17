@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ApiCreationPayload = Partial<{
-  name: string;
-  version: string;
-  description: string;
-  selectedEntrypoints: string[];
+import { ComponentHarness } from '@angular/cdk/testing';
 
-  // Note: Only fo WIP. Remove it when not needed anymore
-  lastStep: boolean;
-}>;
+export class ApiCreationV4StepWipHarness extends ComponentHarness {
+  static hostSelector = 'api-creation-v4-step-wip';
+
+  async fillStep(): Promise<void> {
+    return Promise.resolve();
+  }
+}

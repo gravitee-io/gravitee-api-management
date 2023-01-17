@@ -21,6 +21,7 @@ import { Subject } from 'rxjs';
 import { API_CREATION_PAYLOAD, ApiCreationStep, ApiCreationStepperService } from './models/ApiCreationStepperService';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
+import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-step-wip.component';
 
 @Component({
   selector: 'api-creation-v4',
@@ -35,11 +36,34 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   public stepper = new ApiCreationStepperService([
     {
       number: 1,
+      label: 'API Metadata',
       component: ApiCreationV4Step1Component,
     },
     {
       number: 2,
+      label: 'Entrypoints',
       component: ApiCreationV4Step2Component,
+    },
+    {
+      number: 3,
+      label: 'Endpoints',
+      component: ApiCreationV4StepWipComponent,
+    },
+    {
+      number: 4,
+      label: 'Security',
+      component: ApiCreationV4StepWipComponent,
+    },
+    {
+      number: 5,
+      label: 'Document',
+      component: ApiCreationV4StepWipComponent,
+    },
+    {
+      number: 6,
+      label: 'Summary',
+      component: ApiCreationV4StepWipComponent,
+      payload: { lastStep: true },
     },
   ]);
 
