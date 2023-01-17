@@ -29,6 +29,7 @@ type EntrypointVM = {
   id: string;
   name: string;
   description: string;
+  isEnterprise: boolean;
 };
 
 @Component({
@@ -68,6 +69,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
           id: entrypoint.id,
           name: entrypoint.name,
           description: entrypoint.description,
+          isEnterprise: entrypoint.id.endsWith('-advanced'),
         }));
       });
   }
