@@ -21,4 +21,5 @@ export interface ConnectorListItem {
   schema?: string;
   icon?: string;
   supportedTypes: string[];
+  supportedApiType: 'sync' | 'async';
 }

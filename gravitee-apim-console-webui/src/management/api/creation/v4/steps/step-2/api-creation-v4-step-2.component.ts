@@ -19,7 +19,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
@@ -59,7 +59,10 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
 
     this.entrypointService
       .v4ListEntrypointPlugins()
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'async')),
+      )
       .subscribe((entrypointPlugins) => {
         this.entrypoints = entrypointPlugins.map((entrypoint) => ({
           id: entrypoint.id,

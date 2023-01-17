@@ -15,7 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatListOptionHarness } from '@angular/material/list/testing';
+import { MatListOptionHarness, MatSelectionListHarness } from '@angular/material/list/testing';
 
 export class ApiCreationV4Step2Harness extends ComponentHarness {
   static hostSelector = 'api-creation-v4-step-2';
@@ -42,12 +42,20 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
     return this.getValidateButton().then((elt) => elt.click());
   }
 
+  async fillStep(entrypointIds: string[]): Promise<void> {
+    await Promise.all(entrypointIds.map((id) => this.markEntrypointSelectedById(id)));
+  }
+
   async markEntrypointSelectedById(id: string): Promise<void> {
     const listOption = await this.getListOptionByValue(id);
     await listOption.select();
   }
 
-  async fillStep(entrypointIds: string[]): Promise<void> {
-    await Promise.all(entrypointIds.map((id) => this.markEntrypointSelectedById(id)));
+  async getEntrypointsList(): Promise<string[]> {
+    const list = await this.locatorFor(MatSelectionListHarness.with({ selector: '.gio-selection-list' }))();
+
+    const options = (await list.getItems()).map(async (option) => await (await option.host()).getAttribute('ng-reflect-value'));
+
+    return Promise.all(options);
   }
 }
