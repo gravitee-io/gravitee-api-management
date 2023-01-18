@@ -165,6 +165,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
                                 return true;
                             }
                         )
+                        .doOnSubscribe(disposable -> LOGGER.debug("Subscription [{}] activated", subscription.getId()))
                         .doOnComplete(
                             () -> {
                                 activeDisposables.remove(subscription.getId());
