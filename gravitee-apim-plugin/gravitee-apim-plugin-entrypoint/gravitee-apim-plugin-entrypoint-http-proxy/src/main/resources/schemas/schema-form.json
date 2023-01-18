@@ -1,6 +1,6 @@
 {
-  "type": "object",
-  "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:proxy:configuration:HttpProxyEntrypointConnectorConfiguration",
-  "properties": {},
-  "additionalProperties": false
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:proxy:configuration:HttpProxyEntrypointConnectorConfiguration",
+    "properties": {},
+    "additionalProperties": false
 }

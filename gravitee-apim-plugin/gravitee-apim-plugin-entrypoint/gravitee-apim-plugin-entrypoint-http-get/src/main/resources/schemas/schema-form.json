@@ -1,31 +1,31 @@
 {
-  "type": "object",
-  "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:get:configuration:HttpGetEntrypointConnectorConfiguration",
-  "properties": {
-    "messagesLimitCount": {
-      "type": "integer",
-      "title": "Limit messages count",
-      "description": "Maximum number of messages to retrieve. Default is 500.",
-      "default": 500
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:get:configuration:HttpGetEntrypointConnectorConfiguration",
+    "properties": {
+        "messagesLimitCount": {
+            "type": "integer",
+            "title": "Limit messages count",
+            "description": "Maximum number of messages to retrieve. Default is 500.",
+            "default": 500
+        },
+        "messagesLimitDurationMs": {
+            "type": "number",
+            "title": "Limit messages duration (in ms)",
+            "description": "Maximum duration in milliseconds to wait to retrieve the expected number of messages (See Limit messages count). The effective number of retrieved messages could be less than expected it maximum duration is reached.Default is 5000.",
+            "default": 5000
+        },
+        "headersInPayload": {
+            "type": "boolean",
+            "default": false,
+            "title": "Allow sending messages headers to client in payload.",
+            "description": "Allow sending messages headers to client in payload. Each header will be sent as extra field in payload. For JSON and XML, in a dedicated headers object. For plain text, following 'key=value' format. Default is false."
+        },
+        "metadataInPayload": {
+            "type": "boolean",
+            "default": false,
+            "title": "Allow sending messages metadata to client in payload.",
+            "description": "Allow sending messages metadata to client in payload. Each metadata will be sent as extra field in the payload. For JSON and XML, in a dedicated metadata object. For plain text, following 'key=value' format. Default is false."
+        }
     },
-    "messagesLimitDurationMs": {
-      "type": "number",
-      "title": "Limit messages duration (in ms)",
-      "description": "Maximum duration in milliseconds to wait to retrieve messages. Default is 5000.",
-      "default": 5000
-    },
-    "headersInPayload": {
-      "type": "boolean",
-      "default": "false",
-      "title": "Allow sending messages headers to client in payload.",
-      "description": "Allow sending messages headers to client in payload. Each header will be sent as extra field in payload. For JSON and XML, in a dedicated headers object. For plain text, following 'key=value' format. Default is false."
-    },
-    "metadataInPayload": {
-      "type": "boolean",
-      "default": "false",
-      "title": "Allow sending messages metadata to client in payload.",
-      "description": "Allow sending messages metadata to client in payload. Each metadata will be sent as extra field in the payload. For JSON and XML, in a dedicated metadata object. For plain text, following 'key=value' format. Default is false."
-    }
-  },
-  "additionalProperties": false
+    "additionalProperties": false
 }

@@ -64,9 +64,5 @@
             }
         }
     },
-    "required": [
-        "serverHost",
-        "serverPort",
-        "topic"
-    ]
+    "required": ["serverHost", "serverPort", "topic"]
 }
