@@ -962,7 +962,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             validateConsumerStatus(subscription, genericApiModel);
 
             // Here, do not care about the status managed by the publisher. The subscription will be active on the gateway if consumerStatus == ACTIVE and status == ACCEPTED
-            if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.STARTED) {
+            if (subscription.canConsumerStop()) {
                 Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);
@@ -1078,7 +1078,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             validateConsumerStatus(subscription, genericApiModel);
 
-            if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.STOPPED) {
+            if (subscription.canConsumerStart()) {
                 Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);

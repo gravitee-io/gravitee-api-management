@@ -361,6 +361,22 @@ public class Subscription implements Serializable {
         this.failureCause = failureCause;
     }
 
+    /**
+     * Consumer can start subscription only if its consumer status is {@link this#consumerStatus} is {@link ConsumerStatus#STOPPED} or {@link ConsumerStatus#STARTED}
+     * @return true when consumer can start the subscription
+     */
+    public boolean canConsumerStart() {
+        return ConsumerStatus.STOPPED.equals(consumerStatus) || ConsumerStatus.FAILURE.equals(consumerStatus);
+    }
+
+    /**
+     * Consumer can stop subscription only if its consumer status is {@link this#consumerStatus} is {@link ConsumerStatus#STARTED} or {@link ConsumerStatus#STARTED}
+     * @return true when consumer can stop the subscription
+     */
+    public boolean canConsumerStop() {
+        return ConsumerStatus.STARTED.equals(consumerStatus) || ConsumerStatus.FAILURE.equals(consumerStatus);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
