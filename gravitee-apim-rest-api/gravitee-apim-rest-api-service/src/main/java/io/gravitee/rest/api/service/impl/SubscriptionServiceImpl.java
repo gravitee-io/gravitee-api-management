@@ -122,7 +122,6 @@ import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -962,7 +961,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             validateConsumerStatus(subscription, genericApiModel);
 
             // Here, do not care about the status managed by the publisher. The subscription will be active on the gateway if consumerStatus == ACTIVE and status == ACCEPTED
-            if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.STARTED) {
+            if (subscription.canBeStoppedByConsumer()) {
                 Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);
@@ -1078,7 +1077,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             validateConsumerStatus(subscription, genericApiModel);
 
-            if (subscription.getConsumerStatus() == Subscription.ConsumerStatus.STOPPED) {
+            if (subscription.canBeStartedByConsumer()) {
                 Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);
