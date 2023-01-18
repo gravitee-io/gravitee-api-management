@@ -2,5 +2,5 @@
     "type": "object",
     "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebhookEntrypointConnectorConfiguration",
     "properties": {},
-    "required": []
+    "additionalProperties": false
 }
