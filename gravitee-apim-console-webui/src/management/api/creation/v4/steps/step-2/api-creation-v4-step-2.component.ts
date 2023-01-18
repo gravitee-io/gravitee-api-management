@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -22,8 +22,7 @@ import { Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
-import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 type EntrypointVM = {
   id: string;
@@ -47,15 +46,14 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly entrypointService: EntrypointService,
     private readonly matDialog: MatDialog,
-
-    private readonly stepper: ApiCreationStepperService,
-
-    @Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload,
+    private readonly stepService: ApiCreationStepService,
   ) {}
 
   ngOnInit(): void {
+    const currentStepPayload = this.stepService.payload;
+
     this.formGroup = this.formBuilder.group({
-      selectedEntrypoints: this.formBuilder.control(this.currentStepPayload.selectedEntrypoints ?? [], [Validators.required]),
+      selectedEntrypoints: this.formBuilder.control(currentStepPayload.selectedEntrypoints ?? [], [Validators.required]),
     });
 
     this.entrypointService
@@ -82,11 +80,11 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   save(): void {
     const selectedEntrypoints = this.formGroup.getRawValue().selectedEntrypoints ?? [];
 
-    this.stepper.goToNextStep({ ...this.currentStepPayload, selectedEntrypoints });
+    this.stepService.goToNextStep((previousPayload) => ({ ...previousPayload, selectedEntrypoints }));
   }
 
   goBack(): void {
-    this.stepper.goToPreviousStep();
+    this.stepService.goToPreviousStep();
   }
 
   onMoreInfoClick(event, entrypoint: EntrypointVM) {

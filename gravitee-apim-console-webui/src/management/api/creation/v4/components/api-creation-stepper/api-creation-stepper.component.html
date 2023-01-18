@@ -22,7 +22,7 @@
   </div>
 
   <div class="steps">
-    <api-creation-step *ngFor="let step of steps" [stepNumber]="step.number" [currentStep]="currentStep.number">{{
+    <api-creation-step *ngFor="let step of steps" [stepNumber]="step.position" [currentStep]="currentStep.position">{{
       step.label
     }}</api-creation-step>
   </div>

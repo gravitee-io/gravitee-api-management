@@ -20,9 +20,8 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
 
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
 import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
+import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 @Component({
   selector: 'api-creation-v4-step-1',
@@ -39,17 +38,18 @@ export class ApiCreationV4Step1Component implements OnInit {
     @Inject(UIRouterState) readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
     private readonly confirmDialog: MatDialog,
-    private readonly stepper: ApiCreationStepperService,
-    @Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload,
+    private readonly stepService: ApiCreationStepService,
   ) {}
 
   ngOnInit(): void {
+    const currentStepPayload = this.stepService.payload;
+
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control(this.currentStepPayload?.name, [Validators.required]),
-      version: this.formBuilder.control(this.currentStepPayload?.version, [Validators.required]),
-      description: this.formBuilder.control(this.currentStepPayload?.description, [Validators.required]),
+      name: this.formBuilder.control(currentStepPayload?.name, [Validators.required]),
+      version: this.formBuilder.control(currentStepPayload?.version, [Validators.required]),
+      description: this.formBuilder.control(currentStepPayload?.description, [Validators.required]),
     });
-    if (this.currentStepPayload && Object.keys(this.currentStepPayload).length > 0) {
+    if (currentStepPayload && Object.keys(currentStepPayload).length > 0) {
       this.form.markAsDirty();
     }
   }
@@ -78,6 +78,11 @@ export class ApiCreationV4Step1Component implements OnInit {
 
   save() {
     const formValue = this.form.getRawValue();
-    this.stepper.goToNextStep({ name: formValue.name, description: formValue.description, version: formValue.version });
+    this.stepService.goToNextStep((previousPayload) => ({
+      ...previousPayload,
+      name: formValue.name,
+      description: formValue.description,
+      version: formValue.version,
+    }));
   }
 }

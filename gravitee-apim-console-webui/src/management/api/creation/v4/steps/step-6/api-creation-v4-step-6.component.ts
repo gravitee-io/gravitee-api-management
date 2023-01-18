@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, Inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { API_CREATION_PAYLOAD } from '../../models/ApiCreationStepperService';
+import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 @Component({
   selector: 'api-creation-v4-step-6',
@@ -30,9 +29,10 @@ import { API_CREATION_PAYLOAD } from '../../models/ApiCreationStepperService';
 })
 export class ApiCreationV4Step6Component {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  constructor(@Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload, private readonly matDialog: MatDialog) {}
+  constructor(private readonly stepService: ApiCreationStepService, private readonly matDialog: MatDialog) {}
 
   createApi(): void {
+    alert(this.stepService.payload);
     // TODO: send info to correct endpoint to create, not publish, the new API
   }
 

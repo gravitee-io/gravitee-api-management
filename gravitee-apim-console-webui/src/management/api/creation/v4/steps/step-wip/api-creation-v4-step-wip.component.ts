@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/ApiCreationStepperService';
+import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 /**
  * Wip component for the API creation wizard.
@@ -32,11 +31,7 @@ import { API_CREATION_PAYLOAD, ApiCreationStepperService } from '../../models/Ap
 export class ApiCreationV4StepWipComponent implements OnInit {
   public form: FormGroup;
 
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly stepper: ApiCreationStepperService,
-    @Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload,
-  ) {}
+  constructor(private readonly formBuilder: FormBuilder, private readonly stepService: ApiCreationStepService) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({});
@@ -45,8 +40,8 @@ export class ApiCreationV4StepWipComponent implements OnInit {
   }
 
   save() {
-    if (!this.currentStepPayload.lastStep) {
-      this.stepper.goToNextStep(this.currentStepPayload);
+    if (this.stepService.step.position !== 6) {
+      this.stepService.goToNextStep((previousPayload) => previousPayload);
     }
   }
 }

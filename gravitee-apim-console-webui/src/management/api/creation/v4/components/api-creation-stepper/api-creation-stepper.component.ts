@@ -15,7 +15,7 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { ApiCreationStep } from '../../models/ApiCreationStepperService';
+import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
 @Component({
   selector: 'api-creation-stepper',

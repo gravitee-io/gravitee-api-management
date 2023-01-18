@@ -18,11 +18,13 @@ import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-import { API_CREATION_PAYLOAD, ApiCreationStep, ApiCreationStepperService } from './models/ApiCreationStepperService';
+import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
 import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-step-wip.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
+import { ApiCreationStepService } from './services/api-creation-step.service';
+import { ApiCreationPayload } from './models/ApiCreationPayload';
 
 @Component({
   selector: 'api-creation-v4',
@@ -32,39 +34,38 @@ import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step
 export class ApiCreationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public currentStep: ApiCreationStep & { injector: Injector };
+  public currentStep: ApiCreationStep & { injector: Injector; payload: ApiCreationPayload };
 
   public stepper = new ApiCreationStepperService([
     {
-      number: 1,
+      position: 1,
       label: 'API Metadata',
       component: ApiCreationV4Step1Component,
     },
     {
-      number: 2,
+      position: 2,
       label: 'Entrypoints',
       component: ApiCreationV4Step2Component,
     },
     {
-      number: 3,
+      position: 3,
       label: 'Endpoints',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      number: 4,
+      position: 4,
       label: 'Security',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      number: 5,
+      position: 5,
       label: 'Document',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      number: 6,
+      position: 6,
       label: 'Summary',
       component: ApiCreationV4Step6Component,
-      payload: { lastStep: true },
     },
   ]);
 
@@ -72,13 +73,13 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
+      const apiCreationStepService = new ApiCreationStepService(this.stepper, apiCreationStep);
+
       this.currentStep = {
         ...apiCreationStep,
+        payload: apiCreationStepService.payload,
         injector: Injector.create({
-          providers: [
-            { provide: ApiCreationStepperService, useValue: this.stepper },
-            { provide: API_CREATION_PAYLOAD, useValue: apiCreationStep.payload },
-          ],
+          providers: [{ provide: ApiCreationStepService, useValue: apiCreationStepService }],
           parent: this.injector,
         }),
       };
