@@ -17,6 +17,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 
+import { ApiService } from '../../../services/api.service';
 import AnalyticsService, { LogsQuery } from '../../../services/analytics.service';
 
 class PlatformLogsController {
@@ -30,7 +31,13 @@ class PlatformLogsController {
   private applications;
   private init: boolean;
 
-  constructor(private AnalyticsService: AnalyticsService, private Constants, private $state: StateService, private $scope: IScope) {
+  constructor(
+    private ApiService: ApiService,
+    private AnalyticsService: AnalyticsService,
+    private Constants,
+    private $state: StateService,
+    private $scope: IScope,
+  ) {
     'ngInject';
 
     this.onPaginate = this.onPaginate.bind(this);
@@ -53,9 +60,24 @@ class PlatformLogsController {
     });
 
     this.metadata = {
-      apis: this.apis.data,
+      apis: this.apis.data.data,
       applications: this.applications.data,
     };
+
+    this.loadApis();
+  }
+
+  loadApis() {
+    const promises = [];
+    for (let i = 2; i <= this.apis.data.page.total_pages; i++) {
+      promises.push(this.ApiService.list(null, false, i, null, null, null, 100));
+    }
+
+    Promise.all(promises).then((results) => {
+      results.forEach((result) => {
+        this.metadata.apis = this.metadata.apis.concat(result.data.data);
+      });
+    });
   }
 
   timeframeChange(timeframe) {
