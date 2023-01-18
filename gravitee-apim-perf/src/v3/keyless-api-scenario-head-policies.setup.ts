@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GatewayTestData, loadTestDataForSetup } from '../lib/test-api';
+import { GatewayTestData, loadTestDataForSetup } from '../../lib/test-api';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from 'gravitee-apim-e2e/lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { ExecutionMode, LifecycleAction, PlanStatus, UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models';
+import {
+  ExecutionMode,
+  LifecycleAction,
+  PathOperatorOperatorEnum,
+  PlanStatus,
+  UpdateApiEntityFromJSON,
+} from 'gravitee-apim-e2e/lib/management-webclient-sdk/src/lib/models';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const orgId = 'DEFAULT';
@@ -44,7 +50,55 @@ export async function init(): Promise<GatewayTestData> {
     await apiManagementApiAsApiUser.updateApi({
       orgId,
       envId,
-      updateApiEntity: UpdateApiEntityFromJSON({ ...api }),
+      updateApiEntity: UpdateApiEntityFromJSON({
+        ...api,
+        flows: [
+          {
+            name: '',
+            'path-operator': {
+              path: '/',
+              operator: 'STARTS_WITH',
+            },
+            condition: '',
+            consumers: [],
+            methods: [],
+            pre: [
+              {
+                name: 'Transform Headers',
+                description: '',
+                enabled: true,
+                policy: 'transform-headers',
+                configuration: {
+                  addHeaders: [
+                    {
+                      name: 'header-added-1',
+                      value: 'value-1',
+                    },
+                    {
+                      name: 'header-added-2',
+                      value: 'value-2',
+                    },
+                  ],
+                  scope: 'REQUEST',
+                },
+              },
+            ],
+            post: [
+              {
+                name: 'Transform Headers',
+                description: '',
+                enabled: true,
+                policy: 'transform-headers',
+                configuration: {
+                  scope: 'RESPONSE',
+                  removeHeaders: ['header-added-1'],
+                },
+              },
+            ],
+            enabled: true,
+          },
+        ],
+      }),
       api: api.id,
     });
 
