@@ -32,4 +32,13 @@ public class ConsoleAnalyticsPendo {
 
     @ParameterKey(Key.CONSOLE_ANALYTICS_PENDO_API_KEY)
     private String apiKey;
+
+    @ParameterKey(Key.CONSOLE_ANALYTICS_PENDO_ACCOUNT_ID)
+    private String accountId;
+
+    @ParameterKey(Key.CONSOLE_ANALYTICS_PENDO_ACCOUNT_HRID)
+    private String accountHrid;
+
+    @ParameterKey(Key.CONSOLE_ANALYTICS_PENDO_ACCOUNT_TYPE)
+    private String accountType;
 }
