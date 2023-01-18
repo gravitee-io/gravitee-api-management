@@ -15,9 +15,13 @@
  */
 
 import { Component, Inject } from '@angular/core';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { takeUntil } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
 
-import { API_CREATION_PAYLOAD } from '../../models/ApiCreationStepperService';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { API_CREATION_PAYLOAD } from '../../models/ApiCreationStepperService';
 
 @Component({
   selector: 'api-creation-v4-step-6',
@@ -25,7 +29,8 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
   styles: [require('./api-creation-v4-step-6.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4Step6Component {
-  constructor(@Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload) {}
+  private unsubscribe$: Subject<void> = new Subject<void>();
+  constructor(@Inject(API_CREATION_PAYLOAD) readonly currentStepPayload: ApiCreationPayload, private readonly matDialog: MatDialog) {}
 
   createApi(): void {
     // TODO: send info to correct endpoint to create, not publish, the new API
@@ -33,5 +38,22 @@ export class ApiCreationV4Step6Component {
 
   deployApi(): void {
     // TODO: send info to correct endpoint to create and publish the new API
+  }
+
+  onChangeStepInfo(stepNumber: number) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Change information`,
+          content: `🚧 Going back to Step ${stepNumber} is under construction 🚧`,
+          confirmButton: `Ok`,
+        },
+        role: 'alertdialog',
+        id: 'changeStepInfoDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
   }
 }

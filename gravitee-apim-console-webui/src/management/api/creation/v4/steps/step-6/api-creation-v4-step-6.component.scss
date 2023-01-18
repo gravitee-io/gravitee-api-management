@@ -10,33 +10,39 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
     gap: 16px;
   }
+
   &__step {
     display: flex;
     border: 1px solid mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
     border-radius: 6px;
     padding: 16px;
-    gap: 30px;
+    flex-direction: column;
+
+    &__body {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
 
     &__info {
       display: flex;
       flex-direction: column;
       flex: 1 1 100%;
+      gap: 8px;
+
+      &__key {
+        @include mat.typography-level($typography, body-1);
+        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      }
 
       &__value {
-        font-weight: 700;
+        @include mat.typography-level($typography, body-2);
         color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
-        margin-bottom: 8px;
       }
       &__row {
         display: flex;
         gap: 4px;
       }
-    }
-
-    &__button {
-      margin-top: 48px;
-      margin-bottom: auto;
-      width: 85px;
     }
   }
 
@@ -48,10 +54,8 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-top: 56px;
 
     &__message {
+      @include mat.typography-level($typography, body-1);
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      font-weight: 700;
-      margin-bottom: 0;
-      margin-right: 8px;
     }
     &__actions {
       display: flex;
@@ -63,17 +67,4 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-right: 0;
     }
   }
-}
-.step-1-description {
-  display: flex;
-}
-
-.paragraph-light {
-  @include mat.typography-level($typography, body-1);
-  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  margin-bottom: 8px;
-}
-
-.badge-paragraph-align {
-  margin-bottom: 8px;
 }
