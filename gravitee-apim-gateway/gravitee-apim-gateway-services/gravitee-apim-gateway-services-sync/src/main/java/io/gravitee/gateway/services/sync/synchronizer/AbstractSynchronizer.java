@@ -40,18 +40,20 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
 
     public static final int DEFAULT_BULK_SIZE = 100;
 
-    @Autowired
     protected EventRepository eventRepository;
 
-    @Autowired
     protected ObjectMapper objectMapper;
 
-    @Autowired
-    @Qualifier("syncExecutor")
     protected ExecutorService executor;
 
-    @Value("${services.sync.bulk_items:100}")
     protected int bulkItems;
+
+    protected AbstractSynchronizer(EventRepository eventRepository, ObjectMapper objectMapper, ExecutorService executor, int bulkItems) {
+        this.eventRepository = eventRepository;
+        this.objectMapper = objectMapper;
+        this.executor = executor;
+        this.bulkItems = bulkItems;
+    }
 
     @Override
     protected void doStart() throws Exception {

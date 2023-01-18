@@ -18,17 +18,7 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -44,19 +34,8 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.Organization;
-import io.gravitee.repository.management.model.Plan;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import io.gravitee.repository.management.model.*;
+import java.util.*;
 import java.util.concurrent.Executors;
 import junit.framework.TestCase;
 import org.junit.Before;
@@ -64,7 +43,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -82,8 +60,7 @@ public class ApiSynchronizerTest extends TestCase {
     private static final String ORGANIZATION_HRID = "default-org";
     private static final String API_ID = "api-test";
 
-    @InjectMocks
-    private ApiSynchronizer apiSynchronizer = new ApiSynchronizer();
+    private ApiSynchronizer apiSynchronizer;
 
     @Mock
     private EventRepository eventRepository;
@@ -114,7 +91,20 @@ public class ApiSynchronizerTest extends TestCase {
 
     @Before
     public void setUp() {
-        apiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        apiSynchronizer =
+            new ApiSynchronizer(
+                eventRepository,
+                objectMapper,
+                Executors.newFixedThreadPool(1),
+                100,
+                planRepository,
+                apiKeysCacheService,
+                subscriptionsCacheService,
+                subscriptionService,
+                apiManager,
+                environmentRepository,
+                organizationRepository
+            );
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.DEPLOY);
     }
 

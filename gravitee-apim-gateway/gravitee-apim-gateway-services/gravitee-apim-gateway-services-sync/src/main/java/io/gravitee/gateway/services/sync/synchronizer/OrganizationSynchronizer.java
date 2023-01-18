@@ -25,6 +25,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +50,25 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(OrganizationSynchronizer.class);
 
-    @Autowired
-    private OrganizationManager organizationManager;
+    private final OrganizationManager organizationManager;
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
+    private final GatewayConfiguration gatewayConfiguration;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public OrganizationSynchronizer(
+        EventRepository eventRepository,
+        ObjectMapper objectMapper,
+        ExecutorService executor,
+        int bulkItems,
+        OrganizationManager organizationManager,
+        GatewayConfiguration gatewayConfiguration
+    ) {
+        super(eventRepository, objectMapper, executor, bulkItems);
+        this.organizationManager = organizationManager;
+        this.gatewayConfiguration = gatewayConfiguration;
+        this.objectMapper = objectMapper;
+    }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();

@@ -15,8 +15,16 @@
  */
 package io.gravitee.gateway.services.sync.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.services.sync.SyncManager;
+import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
+import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService;
@@ -24,12 +32,15 @@ import io.gravitee.gateway.services.sync.synchronizer.*;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.reactivex.rxjava3.annotations.NonNull;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -86,23 +97,74 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public ApiSynchronizer apiSynchronizer() {
-        return new ApiSynchronizer();
+    public ApiSynchronizer apiSynchronizer(
+        ObjectMapper objectMapper,
+        @Qualifier("syncExecutor") ExecutorService executor,
+        @Value("${services.sync.bulk_items:100}") int bulkItems,
+        EventRepository eventRepository,
+        PlanRepository planRepository,
+        EnvironmentRepository environmentRepository,
+        OrganizationRepository organizationRepository,
+        ApiKeysCacheService apiKeysCacheService,
+        SubscriptionsCacheService subscriptionsCacheService,
+        SubscriptionService subscriptionService,
+        ApiManager apiManager
+    ) {
+        return new ApiSynchronizer(
+            eventRepository,
+            objectMapper,
+            executor,
+            bulkItems,
+            planRepository,
+            apiKeysCacheService,
+            subscriptionsCacheService,
+            subscriptionService,
+            apiManager,
+            environmentRepository,
+            organizationRepository
+        );
     }
 
     @Bean
-    public DebugApiSynchronizer debugApiSynchronizer() {
-        return new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
+    public DebugApiSynchronizer debugApiSynchronizer(
+        ObjectMapper objectMapper,
+        @Qualifier("syncExecutor") ExecutorService executor,
+        @Value("${services.sync.bulk_items:100}") int bulkItems,
+        EventRepository eventRepository
+    ) {
+        return new DebugApiSynchronizer(
+            eventRepository,
+            objectMapper,
+            executor,
+            bulkItems,
+            eventManager,
+            pluginRegistry,
+            configuration,
+            node
+        );
     }
 
     @Bean
-    public DictionarySynchronizer dictionarySynchronizer() {
-        return new DictionarySynchronizer();
+    public DictionarySynchronizer dictionarySynchronizer(
+        ObjectMapper objectMapper,
+        @Qualifier("syncExecutor") ExecutorService executor,
+        @Value("${services.sync.bulk_items:100}") int bulkItems,
+        EventRepository eventRepository,
+        DictionaryManager dictionaryManager
+    ) {
+        return new DictionarySynchronizer(eventRepository, objectMapper, executor, bulkItems, dictionaryManager);
     }
 
     @Bean
-    public OrganizationSynchronizer organizationSynchronizer() {
-        return new OrganizationSynchronizer();
+    public OrganizationSynchronizer organizationSynchronizer(
+        ObjectMapper objectMapper,
+        @Qualifier("syncExecutor") ExecutorService executor,
+        @Value("${services.sync.bulk_items:100}") int bulkItems,
+        EventRepository eventRepository,
+        OrganizationManager organizationManager,
+        GatewayConfiguration gatewayConfiguration
+    ) {
+        return new OrganizationSynchronizer(eventRepository, objectMapper, executor, bulkItems, organizationManager, gatewayConfiguration);
     }
 
     @Bean

@@ -30,7 +30,6 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -41,8 +40,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DictionarySynchronizerTest extends TestCase {
 
-    @InjectMocks
-    private DictionarySynchronizer dictionarySynchronizer = new DictionarySynchronizer();
+    private DictionarySynchronizer dictionarySynchronizer;
 
     @Mock
     private EventRepository eventRepository;
@@ -57,7 +55,8 @@ public class DictionarySynchronizerTest extends TestCase {
 
     @Before
     public void setUp() {
-        dictionarySynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        dictionarySynchronizer =
+            new DictionarySynchronizer(eventRepository, objectMapper, Executors.newFixedThreadPool(1), 100, dictionaryManager);
     }
 
     @Test
