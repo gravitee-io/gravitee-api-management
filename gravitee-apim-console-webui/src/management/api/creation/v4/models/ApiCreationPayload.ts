@@ -17,5 +17,8 @@ export type ApiCreationPayload = Partial<{
   name?: string;
   version?: string;
   description?: string;
-  selectedEntrypoints?: string[];
+  selectedEntrypoints?: {
+    id: string;
+    name: string;
+  }[];
 }>;

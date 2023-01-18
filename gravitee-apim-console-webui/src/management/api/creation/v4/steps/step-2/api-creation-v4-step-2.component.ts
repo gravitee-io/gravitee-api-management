@@ -25,8 +25,10 @@ import { EntrypointService } from '../../../../../../services-ngx/entrypoint.ser
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 type EntrypointVM = {
-  id: string;
-  name: string;
+  value: {
+    id: string;
+    name: string;
+  };
   description: string;
   isEnterprise: boolean;
 };
@@ -40,6 +42,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
+
   public entrypoints: EntrypointVM[];
 
   constructor(
@@ -64,8 +67,10 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
       )
       .subscribe((entrypointPlugins) => {
         this.entrypoints = entrypointPlugins.map((entrypoint) => ({
-          id: entrypoint.id,
-          name: entrypoint.name,
+          value: {
+            id: entrypoint.id,
+            name: entrypoint.name,
+          },
           description: entrypoint.description,
           isEnterprise: entrypoint.id.endsWith('-advanced'),
         }));
@@ -93,7 +98,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: entrypoint.name,
+          title: entrypoint.value.name,
           content: `${entrypoint.description} <br> 🚧 More information coming soon 🚧`,
           confirmButton: `Ok`,
         },

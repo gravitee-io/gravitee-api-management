@@ -32,7 +32,7 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
     }),
   );
 
-  protected getListOptionByValue = (id: string) => this.locatorFor(MatListOptionHarness.with({ selector: `[ng-reflect-value="${id}"]` }))();
+  protected getListOptionById = (id: string) => this.locatorFor(MatListOptionHarness.with({ selector: `#${id}` }))();
 
   async clickPrevious(): Promise<void> {
     return this.getPreviousButton().then((elt) => elt.click());
@@ -47,14 +47,14 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
   }
 
   async markEntrypointSelectedById(id: string): Promise<void> {
-    const listOption = await this.getListOptionByValue(id);
+    const listOption = await this.getListOptionById(id);
     await listOption.select();
   }
 
   async getEntrypointsList(): Promise<string[]> {
     const list = await this.locatorFor(MatSelectionListHarness.with({ selector: '.gio-selection-list' }))();
 
-    const options = (await list.getItems()).map(async (option) => await (await option.host()).getAttribute('ng-reflect-value'));
+    const options = (await list.getItems()).map(async (option) => await (await option.host()).getAttribute('id'));
 
     return Promise.all(options);
   }
