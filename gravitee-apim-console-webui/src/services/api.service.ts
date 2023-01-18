@@ -124,7 +124,7 @@ export class ApiService {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
-  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any, ids?: string[]): IHttpPromise<any> {
+  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any, ids?: string[], size?: number): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/`;
 
     // Fallback to paginated list if a page parameter is provided.
@@ -137,6 +137,7 @@ export class ApiService {
       category: category,
       portal: portal,
       page: page,
+      size: size,
       order: order,
       ids: ids,
     };
