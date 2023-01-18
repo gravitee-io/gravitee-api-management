@@ -100,12 +100,20 @@
   <div class="api-creation-v4-step-6__footer">
     <div class="api-creation-v4-step-6__footer__actions">
       <button mat-stroked-button type="button" (click)="createApi()">
-        Create my API<mat-icon svgIcon="gio:info" class="api-creation-v4-step-6__footer__button-icon"></mat-icon>
+        Create my API<mat-icon
+          svgIcon="gio:info"
+          class="api-creation-v4-step-6__footer__button-icon"
+          matTooltip="Your API can't be consumed"
+        ></mat-icon>
       </button>
       <button color="primary" mat-raised-button type="button" (click)="deployApi()">
-        Deploy my API<mat-icon svgIcon="gio:info" class="api-creation-v4-step-6__footer__button-icon"></mat-icon>
+        Deploy my API<mat-icon
+          svgIcon="gio:info"
+          class="api-creation-v4-step-6__footer__button-icon"
+          matTooltip="Your API can be consumed"
+        ></mat-icon>
       </button>
     </div>
-    <p class="paragraph-light">Your API will be saved and remain private</p>
+    <span class="api-creation-v4-step-6__footer__message">Your API will be saved and remain private</span>
   </div>
 </mat-card>
