@@ -17,84 +17,102 @@
 -->
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
-    <div class="mat-h2 subtitle">Review your API configuration</div>
-    <p class="paragraph-light">Review your API before publishing</p>
+    <div class="api-creation-v4__step__header__subtitle">Review your API configuration</div>
+    <p class="api-creation-v4__step__header__paragraph-light">Review your API before publishing</p>
   </div>
   <div class="api-creation-v4-step-6__body">
     <!--    Step 1 -->
     <div class="api-creation-v4-step-6__step">
-      <div class="api-creation-v4-step-6__step__info">
-        <div class="mat-h3">API metadata</div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">API name:</p>
-          <p class="api-creation-v4-step-6__step__info__value">My new API</p>
+      <div class="mat-h3">API metadata</div>
+      <div class="api-creation-v4-step-6__step__body">
+        <div class="api-creation-v4-step-6__step__info">
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">API name:</span>
+            <span class="api-creation-v4-step-6__step__info__value">My new API</span>
+          </div>
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Version:</span>
+            <span class="api-creation-v4-step-6__step__info__value">1.0.0</span>
+          </div>
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Description:</span>
+            <span class="api-creation-v4-step-6__step__info__value">
+              This API uses Webhooks and a Kafka backend to provide a fast-moving async experience. For use by all org members.
+            </span>
+          </div>
         </div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Version:</p>
-          <p class="api-creation-v4-step-6__step__info__value">1.0.0</p>
-        </div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Description:</p>
-          <p class="api-creation-v4-step-6__step__info__value">
-            This API uses Webhooks and a Kafka backend to provide a fast-moving async experience. For use by all org members.
-          </p>
+        <div>
+          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
         </div>
       </div>
-      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
     </div>
     <!--    Step 2 -->
     <div class="api-creation-v4-step-6__step">
-      <div class="api-creation-v4-step-6__step__info">
-        <div class="mat-h3">Entrypoints</div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Path:</p>
-          <p class="api-creation-v4-step-6__step__info__value">/my-new-api</p>
+      <div class="mat-h3">Entrypoints</div>
+      <div class="api-creation-v4-step-6__step__body">
+        <div class="api-creation-v4-step-6__step__info">
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Path:</span>
+            <span class="api-creation-v4-step-6__step__info__value">/my-new-api</span>
+          </div>
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Type:</span>
+            <span class="gio-badge-accent">Subscription</span>
+          </div>
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Entrypoints:</span>
+            <span class="gio-badge-accent"><mat-icon svgIcon="gio:code-brackets"></mat-icon>REST API (HTTP)</span>
+            <span class="gio-badge-accent"><mat-icon svgIcon="gio:websocket"></mat-icon>Websocket</span>
+          </div>
         </div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Type:</p>
-          <span class="gio-badge-accent badge-paragraph-align">Subscription</span>
-        </div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Entrypoints:</p>
-          <span class="gio-badge-accent badge-paragraph-align"><mat-icon svgIcon="gio:code-brackets"></mat-icon>REST API (HTTP)</span>
-          <span class="gio-badge-accent badge-paragraph-align"><mat-icon svgIcon="gio:websocket"></mat-icon>Websocket</span>
+        <div>
+          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
         </div>
       </div>
-      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
     </div>
     <!--    Step 3 -->
     <div class="api-creation-v4-step-6__step">
-      <div class="api-creation-v4-step-6__step__info">
-        <div class="mat-h3">Endpoints</div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Field</p>
-          <p class="api-creation-v4-step-6__step__info__value">Value</p>
+      <div class="mat-h3">Endpoints</div>
+      <div class="api-creation-v4-step-6__step__body">
+        <div class="api-creation-v4-step-6__step__info">
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Field</span>
+            <span class="api-creation-v4-step-6__step__info__value">Value</span>
+          </div>
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Endpoints:</span>
+            <span class="gio-badge-primary"><mat-icon svgIcon="gio:kafka"></mat-icon>Kafka</span>
+          </div>
         </div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Endpoints:</p>
-          <span class="gio-badge-primary badge-paragraph-align"><mat-icon svgIcon="gio:kafka"></mat-icon>Kafka</span>
+        <div>
+          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
         </div>
       </div>
-      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
     </div>
     <!--    Step 4 -->
     <div class="api-creation-v4-step-6__step">
-      <div class="api-creation-v4-step-6__step__info">
-        <div class="mat-h3">Security</div>
-        🚧🚧🚧
+      <div class="mat-h3">Security</div>
+      <div class="api-creation-v4-step-6__step__body">
+        <div class="api-creation-v4-step-6__step__info">🚧🚧🚧</div>
+        <div>
+          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
+        </div>
       </div>
-      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
     </div>
     <!--    Step 5 -->
     <div class="api-creation-v4-step-6__step">
-      <div class="api-creation-v4-step-6__step__info">
-        <div class="mat-h3">Documentation</div>
-        <div class="api-creation-v4-step-6__step__info__row">
-          <p class="paragraph-light">Files:</p>
-          <p class="api-creation-v4-step-6__step__info__value">None</p>
+      <div class="mat-h3 api-creation-v4-step-6__step__title">Documentation</div>
+      <div class="api-creation-v4-step-6__step__body">
+        <div class="api-creation-v4-step-6__step__info">
+          <div class="api-creation-v4-step-6__step__info__row">
+            <span class="api-creation-v4-step-6__step__info__key">Files:</span>
+            <span class="api-creation-v4-step-6__step__info__value">None</span>
+          </div>
+        </div>
+        <div>
+          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
         </div>
       </div>
-      <button mat-stroked-button class="api-creation-v4-step-6__step__button">Change</button>
     </div>
   </div>
   <div class="api-creation-v4-step-6__footer">
