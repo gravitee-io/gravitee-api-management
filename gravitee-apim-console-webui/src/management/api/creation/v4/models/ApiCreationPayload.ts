@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 export type ApiCreationPayload = Partial<{
-  name: string;
-  version: string;
-  description: string;
-  selectedEntrypoints: string[];
-
-  // Note: Only fo WIP. Remove it when not needed anymore
-  lastStep: boolean;
+  name?: string;
+  version?: string;
+  description?: string;
+  selectedEntrypoints?: string[];
 }>;
