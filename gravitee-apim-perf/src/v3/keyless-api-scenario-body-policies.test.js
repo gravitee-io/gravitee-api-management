@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { check } from 'k6';
+import http from 'k6/http';
+import { k6Options } from '../../config/k6-options.js';
 
-import { ApiEntity, ApiEntityV4, PlanEntity, PlanEntityV4 } from '@gravitee/management-webclient-sdk/src/lib/models';
+export const options = k6Options;
 
-export interface GatewayTestData {
-  api?: ApiEntity | ApiEntityV4;
-  plan?: PlanEntity | PlanEntityV4;
-  waitGateway?: { contextPath: string };
-}
+const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
+const url = `${__ENV.GATEWAY_BASE_URL}${data.waitGateway.contextPath}`;
 
-export async function loadTestDataForSetup() {
-  return await import(`../${process.env.TEST_DATA_PATH}`);
-}
+export default () => {
+  const res = http.get(url);
+  check(res, {
+    'status is 200': () => res.status === 200,
+    'contains header': () => res.headers['Content-Type'] === 'application/xml;charset=UTF-8',
+  });
+};

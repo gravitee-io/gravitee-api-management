@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GatewayTestData, loadTestDataForSetup } from '../lib/test-api';
+import { GatewayTestData, loadTestDataForSetup } from '../../lib/test-api';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from 'gravitee-apim-e2e/lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import {
   ExecutionMode,
@@ -23,7 +23,7 @@ import {
   PathOperatorOperatorEnum,
   PlanStatus,
   UpdateApiEntityFromJSON,
-} from '@gravitee/management-webclient-sdk/src/lib/models';
+} from 'gravitee-apim-e2e/lib/management-webclient-sdk/src/lib/models';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const orgId = 'DEFAULT';

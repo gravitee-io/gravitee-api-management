@@ -15,17 +15,18 @@
  */
 import { check } from 'k6';
 import http from 'k6/http';
-import { k6Options } from '../config/k6-options.js';
+import { k6Options } from '../../config/k6-options.js';
 
 export const options = k6Options;
 
 const data = JSON.parse(open(__ENV.TEST_DATA_PATH));
-const url = `${__ENV.GATEWAY_BASE_URL}${data.api.context_path}`;
+const url = `${__ENV.GATEWAY_BASE_URL}${data.waitGateway.contextPath}`;
 
 export default () => {
   const res = http.get(url);
   check(res, {
     'status is 200': () => res.status === 200,
-    'contains header': () => res.json('headers.header-added-1') === 'value-1',
+    'contains header': () => res.headers['Content-Type'] === 'application/json',
+    'contains header added header': () => res.headers['response-header-added-1'] === 'value-1',
   });
 };
