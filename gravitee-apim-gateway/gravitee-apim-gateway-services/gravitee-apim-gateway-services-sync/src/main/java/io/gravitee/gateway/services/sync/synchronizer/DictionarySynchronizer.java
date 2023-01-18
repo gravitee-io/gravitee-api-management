@@ -27,13 +27,10 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -47,6 +44,8 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
 
     private final ObjectMapper objectMapper;
 
+    private final ExecutorService executor;
+
     public DictionarySynchronizer(
         EventRepository eventRepository,
         ObjectMapper objectMapper,
@@ -54,9 +53,10 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         int bulkItems,
         DictionaryManager dictionaryManager
     ) {
-        super(eventRepository, objectMapper, executor, bulkItems);
-        this.dictionaryManager = dictionaryManager;
+        super(eventRepository, bulkItems);
         this.objectMapper = objectMapper;
+        this.executor = executor;
+        this.dictionaryManager = dictionaryManager;
     }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {

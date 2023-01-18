@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELAY;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -32,11 +31,9 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -51,15 +48,13 @@ public class DebugApiSynchronizer extends AbstractSynchronizer {
 
     public DebugApiSynchronizer(
         EventRepository eventRepository,
-        ObjectMapper objectMapper,
-        ExecutorService executor,
         int bulkItems,
         EventManager eventManager,
         PluginRegistry pluginRegistry,
         Configuration configuration,
         Node node
     ) {
-        super(eventRepository, objectMapper, executor, bulkItems);
+        super(eventRepository, bulkItems);
         this.eventManager = eventManager;
         this.node = node;
 

@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELAY;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -27,10 +26,6 @@ import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -42,16 +37,10 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
 
     protected EventRepository eventRepository;
 
-    protected ObjectMapper objectMapper;
-
-    protected ExecutorService executor;
-
     protected int bulkItems;
 
-    protected AbstractSynchronizer(EventRepository eventRepository, ObjectMapper objectMapper, ExecutorService executor, int bulkItems) {
+    protected AbstractSynchronizer(EventRepository eventRepository, int bulkItems) {
         this.eventRepository = eventRepository;
-        this.objectMapper = objectMapper;
-        this.executor = executor;
         this.bulkItems = bulkItems;
     }
 
@@ -113,9 +102,5 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
 
     public int getBulkSize() {
         return bulkItems > 0 ? bulkItems : DEFAULT_BULK_SIZE;
-    }
-
-    public void setExecutor(ExecutorService executor) {
-        this.executor = executor;
     }
 }

@@ -127,21 +127,10 @@ public class SyncConfiguration {
 
     @Bean
     public DebugApiSynchronizer debugApiSynchronizer(
-        ObjectMapper objectMapper,
-        @Qualifier("syncExecutor") ExecutorService executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository
     ) {
-        return new DebugApiSynchronizer(
-            eventRepository,
-            objectMapper,
-            executor,
-            bulkItems,
-            eventManager,
-            pluginRegistry,
-            configuration,
-            node
-        );
+        return new DebugApiSynchronizer(eventRepository, bulkItems, eventManager, pluginRegistry, configuration, node);
     }
 
     @Bean
