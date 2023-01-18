@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4;
 
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ApiBuilder {
@@ -25,6 +26,7 @@ public class ApiBuilder {
     private String name;
     private String apiVersion;
     private Map<String, String> properties;
+    private Set<String> tags;
 
     public static ApiBuilder anApiV4() {
         return new ApiBuilder();
@@ -50,11 +52,17 @@ public class ApiBuilder {
         return this;
     }
 
+    public ApiBuilder tags(Set<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
     public Api build() {
         var api = new Api();
         api.setId(apiId);
         api.setName(name);
         api.setApiVersion(apiVersion);
+        api.setTags(tags);
 
         if (properties != null) {
             api.setProperties(

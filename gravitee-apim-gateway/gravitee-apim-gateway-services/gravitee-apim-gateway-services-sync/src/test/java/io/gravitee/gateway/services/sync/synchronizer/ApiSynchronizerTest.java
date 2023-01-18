@@ -15,13 +15,14 @@
  */
 package io.gravitee.gateway.services.sync.synchronizer;
 
+import static io.gravitee.definition.model.ApiBuilder.anApiV1;
+import static io.gravitee.definition.model.ApiBuilder.anApiV2;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
@@ -83,7 +84,6 @@ public class ApiSynchronizerTest {
     @Mock
     private SubscriptionsCacheService subscriptionsCacheService;
 
-    @Mock
     private ObjectMapper objectMapper;
 
     @Mock
@@ -91,6 +91,8 @@ public class ApiSynchronizerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = new ObjectMapper();
+
         apiSynchronizer =
             new ApiSynchronizer(
                 eventRepository,
@@ -110,16 +112,9 @@ public class ApiSynchronizerTest {
 
     @Test
     void initialSynchronize() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -156,22 +151,16 @@ public class ApiSynchronizerTest {
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionService).dispatchFor(singletonList(mockApi.getId()));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
     }
 
     @Test
     void initialSynchronizeWithNoEnvironment() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -210,30 +199,23 @@ public class ApiSynchronizerTest {
             .register(
                 argThat(
                     (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
-                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi))
+                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(apiDefinition))
                 )
             );
         verify(subscriptionsCacheService)
             .register(
                 argThat(
                     (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
-                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi))
+                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(apiDefinition))
                 )
             );
     }
 
     @Test
     void initialSynchronize_withEnvironmentAndOrganization_withoutHrId_shouldSetHrIdToNull() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -271,16 +253,9 @@ public class ApiSynchronizerTest {
 
     @Test
     void initialSynchronizeWithNoOrganization() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -322,22 +297,15 @@ public class ApiSynchronizerTest {
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
     }
 
     @Test
     void publishWithDefinitionV2() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -359,26 +327,18 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager).register(new Api(mockApi));
+        verify(apiManager).register(new Api(apiDefinition));
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
     }
 
     @Test
     void publishWithDefinitionV1() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV1().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        mockApi.setDefinitionVersion(DefinitionVersion.V1);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -398,7 +358,7 @@ public class ApiSynchronizerTest {
 
         final Plan plan = new Plan();
         plan.setId("planId");
-        plan.setApi(mockApi.getId());
+        plan.setApi(apiDefinition.getId());
         plan.setStatus(Plan.Status.PUBLISHED);
         when(planRepository.findByApis(anyList())).thenReturn(singletonList(plan));
         mockEnvironmentAndOrganization();
@@ -411,40 +371,26 @@ public class ApiSynchronizerTest {
         SoftAssertions.assertSoftly(
             softly -> {
                 softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                softly.assertThat(verifyApi.getDefinition().getPlan("planId").getApi()).isEqualTo(mockApi.getId());
+                softly.assertThat(verifyApi.getDefinition().getPlan("planId").getApi()).isEqualTo(apiDefinition.getId());
             }
         );
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, times(1)).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
     }
 
     @Test
     void publishWithPagination() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition(API_ID)
-            .environment(ENVIRONMENT_ID)
-            .build();
-
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-            .id("api2-test")
-            .updatedAt(new Date())
-            .definition("api2-test")
-            .environment(ENVIRONMENT_ID)
-            .build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
+        var apiDefinition1 = anApiV2().id(API_ID).build();
+        var apiDefinition2 = anApiV2().id("api2-test").build();
 
         // Force bulk size to 1.
         apiSynchronizer.bulkItems = 1;
 
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition1, EventType.PUBLISH_API);
+        final Event mockEvent2 = anEvent(apiDefinition2, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -483,42 +429,26 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, times(1)).register(new Api(mockApi));
-        verify(apiManager, times(1)).register(new Api(mockApi2));
+        verify(apiManager, times(1)).register(new Api(apiDefinition1));
+        verify(apiManager, times(1)).register(new Api(apiDefinition2));
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi2)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi2)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition1)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition2)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition1)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition2)));
     }
 
     @Test
     void publishWithPaginationAndDefinitionV1AndV2() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition(API_ID)
-            .environment(ENVIRONMENT_ID)
-            .build();
-
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-            .id("api2-test")
-            .updatedAt(new Date())
-            .definition("api2-test")
-            .environment(ENVIRONMENT_ID)
-            .build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        mockApi.setDefinitionVersion(DefinitionVersion.V1);
-        final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
-        mockApi2.setDefinitionVersion(DefinitionVersion.V2);
+        var apiDefinition1 = anApiV1().id(API_ID).build();
+        var apiDefinition2 = anApiV2().id("api2-test").build();
 
         // Force bulk size to 1.
         apiSynchronizer.bulkItems = 1;
 
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition1, EventType.PUBLISH_API);
+        final Event mockEvent2 = anEvent(apiDefinition2, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -554,33 +484,27 @@ public class ApiSynchronizerTest {
             .thenReturn(singletonList(mockEvent2));
 
         final Plan plan = new Plan();
-        plan.setApi(mockApi.getId());
+        plan.setApi(apiDefinition1.getId());
         when(planRepository.findByApis(singletonList(plan.getApi()))).thenReturn(singletonList(plan));
         mockEnvironmentAndOrganization();
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, times(1)).register(new Api(mockApi));
-        verify(apiManager, times(1)).register(new Api(mockApi2));
+        verify(apiManager, times(1)).register(new Api(apiDefinition1));
+        verify(apiManager, times(1)).register(new Api(apiDefinition2));
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, times(1)).findByApis(singletonList(plan.getApi()));
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
-        verify(apiKeysCacheService).register(singletonList(new Api(mockApi2)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(mockApi2)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition1)));
+        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition2)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition1)));
+        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition2)));
     }
 
     @Test
     void unpublish() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.UNPUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.UNPUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -600,37 +524,23 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, never()).register(new Api(mockApi));
-        verify(apiManager).unregister(mockApi.getId());
+        verify(apiManager, never()).register(new Api(apiDefinition));
+        verify(apiManager).unregister(apiDefinition.getId());
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
     }
 
     @Test
     void unpublishWithPagination() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition(API_ID)
-            .build();
-
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-            .id("api2-test")
-            .updatedAt(new Date())
-            .definition("api2-test")
-            .build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        mockApi.setDefinitionVersion(DefinitionVersion.V1);
-        final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
-        mockApi2.setDefinitionVersion(DefinitionVersion.V2);
+        var apiDefinition1 = anApiV1().id(API_ID).build();
+        var apiDefinition2 = anApiV2().id("api2-test").build();
 
         // Force bulk size to 1.
         apiSynchronizer.bulkItems = 1;
 
-        final Event mockEvent = mockEvent(api, EventType.UNPUBLISH_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.UNPUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition1, EventType.UNPUBLISH_API);
+        final Event mockEvent2 = anEvent(apiDefinition2, EventType.UNPUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -667,12 +577,12 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, never()).register(new Api(mockApi));
-        verify(apiManager).unregister(mockApi.getId());
-        verify(apiManager).unregister(mockApi2.getId());
+        verify(apiManager, never()).register(new Api(apiDefinition1));
+        verify(apiManager).unregister(apiDefinition1.getId());
+        verify(apiManager).unregister(apiDefinition2.getId());
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition1)));
+        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition1)));
     }
 
     @Test
@@ -681,20 +591,12 @@ public class ApiSynchronizerTest {
         List<Event> eventAccumulator = new ArrayList<>(100);
 
         for (int i = 1; i <= 500; i++) {
-            io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-                .id("api" + i + "-test")
-                .updatedAt(new Date())
-                .definition("api" + i + "-test")
-                .environment(ENVIRONMENT_ID)
-                .build();
-
-            final io.gravitee.definition.model.Api mockApi = mockApi(api);
-            mockApi.setDefinitionVersion(DefinitionVersion.V1);
+            var apiDefinition = anApiV1().id("api" + i + "-test").build();
 
             if (i % 2 == 0) {
-                eventAccumulator.add(mockEvent(api, EventType.START_API));
+                eventAccumulator.add(anEvent(apiDefinition, EventType.START_API));
             } else {
-                eventAccumulator.add(mockEvent(api, EventType.STOP_API));
+                eventAccumulator.add(anEvent(apiDefinition, EventType.STOP_API));
             }
 
             if (i % 100 == 0) {
@@ -740,16 +642,9 @@ public class ApiSynchronizerTest {
     void shouldNotDeployWhichDoesntRequireRedeployment() throws Exception {
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
 
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -771,27 +666,20 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, never()).register(new Api(mockApi));
+        verify(apiManager, never()).register(new Api(apiDefinition));
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
     }
 
     @Test
     void shouldUnDeployWhichDoesRequireUndeployment() throws Exception {
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
 
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id(API_ID)
-            .updatedAt(new Date())
-            .definition("test")
-            .environment(ENVIRONMENT_ID)
-            .build();
+        var apiDefinition = anApiV2().id(API_ID).build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
+        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
                 argThat(
@@ -813,39 +701,33 @@ public class ApiSynchronizerTest {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(apiManager, never()).register(new Api(mockApi));
+        verify(apiManager, never()).register(new Api(apiDefinition));
         verify(apiManager, times(1)).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
+        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
+        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
     }
 
-    private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
-        return mockApi(api, new String[] {});
-    }
-
-    private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags)
-        throws Exception {
-        final io.gravitee.definition.model.Api mockApi = new io.gravitee.definition.model.Api();
-        mockApi.setId(api.getId());
-        mockApi.setTags(new HashSet<>(asList(tags)));
-        mockApi.setDefinitionVersion(DefinitionVersion.V2);
-        lenient().when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
-        return mockApi;
-    }
-
-    private Event mockEvent(final io.gravitee.repository.management.model.Api api, EventType eventType) throws Exception {
+    private Event anEvent(final io.gravitee.definition.model.Api apiDefinition, EventType eventType) throws Exception {
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
+        properties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
 
         Event event = new Event();
         event.setType(eventType);
         event.setCreatedAt(new Date());
         event.setProperties(properties);
-        event.setPayload(api.getId());
+        event.setPayload(apiDefinition.getId());
         event.setEnvironments(singleton(ENVIRONMENT_ID));
-
-        lenient().when(objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class)).thenReturn(api);
+        event.setPayload(
+            objectMapper.writeValueAsString(
+                new RepositoryApiBuilder()
+                    .id(apiDefinition.getId())
+                    .updatedAt(new Date())
+                    .definition(objectMapper.writeValueAsString(apiDefinition))
+                    .environment(ENVIRONMENT_ID)
+                    .build()
+            )
+        );
 
         return event;
     }

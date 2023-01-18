@@ -36,6 +36,10 @@ public class ApiBuilder {
         return new ApiBuilder(DefinitionVersion.V2);
     }
 
+    public static ApiBuilder anApiV1() {
+        return new ApiBuilder(DefinitionVersion.V1);
+    }
+
     public ApiBuilder id(String id) {
         this.apiId = id;
         return this;
