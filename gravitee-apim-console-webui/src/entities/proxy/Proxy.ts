@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Cors } from '../cors';
 import { HealthCheck } from '../health-check';
+import { Logging } from '../logging';
 import { Services } from '../services';
 
 export interface Proxy {
   virtual_hosts?: ProxyVirtualHost[];
   groups?: ProxyGroup[];
   failover?: ProxyFailover;
-  cors?: ProxyCors;
-  logging?: ProxyLogging;
+  cors?: Cors;
+  logging?: Logging;
   strip_context_path?: boolean;
   preserve_host?: boolean;
 }
@@ -107,22 +109,4 @@ export interface ProxyFailover {
   maxAttempts?: number;
   retryTimeout?: number;
   cases?: 'TIMEOUT';
-}
-
-export interface ProxyCors {
-  enabled?: boolean;
-  allowOrigin?: string[];
-  exposeHeaders?: string[];
-  maxAge?: number;
-  allowCredentials?: boolean;
-  allowMethods?: string[];
-  allowHeaders?: string[];
-  runPolicies?: boolean;
-}
-
-export interface ProxyLogging {
-  mode: 'NONE' | 'CLIENT' | 'PROXY' | 'CLIENT_PROXY';
-  scope: 'NONE' | 'REQUEST' | 'RESPONSE' | 'REQUEST_RESPONSE';
-  content: 'NONE' | 'HEADERS' | 'PAYLOADS' | 'HEADERS_PAYLOADS';
-  condition?: string;
 }
