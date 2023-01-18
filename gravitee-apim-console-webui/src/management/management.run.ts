@@ -58,14 +58,16 @@ function runBlock(
       if (!UserService.isAuthenticated()) {
         return trans.router.stateService.target('login');
       }
+
       ngGioPendoService.initialize(
         {
           id: `${UserService.currentUser.sourceId}`,
           email: `${UserService.currentUser.email}`,
         },
         {
-          id: `${UserService.currentUser.sourceId}`,
-          userSource: UserService.currentUser.source,
+          id: Constants.org?.settings?.analyticsPendo?.accountId,
+          hrid: Constants.org?.settings?.analyticsPendo?.accountHrid,
+          type: Constants.org?.settings?.analyticsPendo?.accountType,
         },
       );
       if (

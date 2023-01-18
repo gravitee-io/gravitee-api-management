@@ -101,8 +101,9 @@ class LoginController {
         email: `${user.email}`,
       },
       {
-        id: `${user.sourceId}`,
-        userSource: user.source,
+        id: this.Constants.org?.settings?.analyticsPendo?.accountId,
+        hrid: this.Constants.org?.settings?.analyticsPendo?.accountHrid,
+        type: this.Constants.org?.settings?.analyticsPendo?.accountType,
       },
     );
     this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
