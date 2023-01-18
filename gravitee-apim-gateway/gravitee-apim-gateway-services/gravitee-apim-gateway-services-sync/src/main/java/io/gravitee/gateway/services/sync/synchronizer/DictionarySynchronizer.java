@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.DICT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -28,6 +29,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +43,21 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(DictionarySynchronizer.class);
 
-    @Autowired
-    private DictionaryManager dictionaryManager;
+    private final DictionaryManager dictionaryManager;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public DictionarySynchronizer(
+        EventRepository eventRepository,
+        ObjectMapper objectMapper,
+        ExecutorService executor,
+        int bulkItems,
+        DictionaryManager dictionaryManager
+    ) {
+        super(eventRepository, objectMapper, executor, bulkItems);
+        this.dictionaryManager = dictionaryManager;
+        this.objectMapper = objectMapper;
+    }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();

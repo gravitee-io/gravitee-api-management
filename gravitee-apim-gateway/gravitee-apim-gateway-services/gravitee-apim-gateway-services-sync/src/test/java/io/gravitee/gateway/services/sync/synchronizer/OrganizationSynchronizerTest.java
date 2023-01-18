@@ -46,8 +46,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class OrganizationSynchronizerTest extends TestCase {
 
-    @InjectMocks
-    private OrganizationSynchronizer organizationSynchronizer = new OrganizationSynchronizer();
+    private OrganizationSynchronizer organizationSynchronizer;
 
     @Mock
     private EventRepository eventRepository;
@@ -67,7 +66,15 @@ public class OrganizationSynchronizerTest extends TestCase {
 
     @Before
     public void setUp() {
-        organizationSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        organizationSynchronizer =
+            new OrganizationSynchronizer(
+                eventRepository,
+                objectMapper,
+                Executors.newFixedThreadPool(1),
+                100,
+                organizationManager,
+                gatewayConfiguration
+            );
     }
 
     @Test
