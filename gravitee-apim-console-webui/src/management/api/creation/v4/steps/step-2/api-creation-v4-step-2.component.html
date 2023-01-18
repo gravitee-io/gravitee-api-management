@@ -26,14 +26,15 @@
     <mat-selection-list formControlName="selectedEntrypoints" class="gio-selection-list" disableRipple="true">
       <mat-list-option
         *ngFor="let entrypoint of entrypoints"
-        [value]="entrypoint.id"
+        [id]="entrypoint.value.id"
+        [value]="entrypoint.value"
         checkboxPosition="before"
         #listOption
         [class.entrypoint-selected]="listOption.selected"
       >
         <gio-selection-list-option-layout>
           <gio-selection-list-option-layout-title>
-            {{ entrypoint.name }}
+            {{ entrypoint.value.name }}
             <span class="gio-badge-primary strong-badge">New</span>
             <span class="gio-badge-accent strong-badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
           </gio-selection-list-option-layout-title>

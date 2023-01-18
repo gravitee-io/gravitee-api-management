@@ -154,9 +154,9 @@ describe('ApiCreationV4Component', () => {
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
-        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async' }),
-        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async' }),
-        fakeConnectorListItem({ id: 'http', supportedApiType: 'sync' }),
+        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async', name: 'SSE' }),
+        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async', name: 'Webhook' }),
+        fakeConnectorListItem({ id: 'http', supportedApiType: 'sync', name: 'HTTP' }),
       ]);
 
       expect(await step2Harness.getEntrypointsList()).toEqual(['sse', 'webhook']);
@@ -167,14 +167,17 @@ describe('ApiCreationV4Component', () => {
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
-        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async' }),
-        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async' }),
+        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async', name: 'SSE' }),
+        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async', name: 'Webhook' }),
       ]);
 
       await step2Harness.fillStep(['sse', 'webhook']);
 
       await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual(['sse', 'webhook']);
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+        { id: 'sse', name: 'SSE' },
+        { id: 'webhook', name: 'Webhook' },
+      ]);
     });
   });
 

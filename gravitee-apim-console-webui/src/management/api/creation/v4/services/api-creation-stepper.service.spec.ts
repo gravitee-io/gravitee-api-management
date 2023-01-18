@@ -40,7 +40,7 @@ describe('ApiCreationStepperService', () => {
       },
     ],
     {
-      selectedEntrypoints: ['initial value'],
+      selectedEntrypoints: [{ id: '1', name: 'initial value' }],
     },
   );
 
@@ -79,14 +79,14 @@ describe('ApiCreationStepperService', () => {
       name: 'Step 1',
       description: 'Step 2',
       version: 'Step 3',
-      selectedEntrypoints: ['initial value'],
+      selectedEntrypoints: [{ id: '1', name: 'initial value' }],
     });
   });
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStep(0);
     apiCreationStepperService.goToNextStep((previousPayload) => {
-      previousPayload.selectedEntrypoints.push('new value');
+      previousPayload.selectedEntrypoints.push({ id: '2', name: 'new value' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
     });
@@ -101,7 +101,10 @@ describe('ApiCreationStepperService', () => {
       name: 'Step 1 - edited',
       description: 'Step 2',
       version: 'Step 3',
-      selectedEntrypoints: ['initial value', 'new value'],
+      selectedEntrypoints: [
+        { id: '1', name: 'initial value' },
+        { id: '2', name: 'new value' },
+      ],
     });
   });
 });
