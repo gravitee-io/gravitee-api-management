@@ -19,7 +19,6 @@ import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -28,20 +27,17 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginRegistry;
-import io.gravitee.plugin.core.internal.PluginDependencyImpl;
-import io.gravitee.plugin.core.internal.PluginImpl;
 import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiDebugStatus;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -76,20 +72,10 @@ public class DebugApiSynchronizerTest extends TestCase {
     public void setup() {
         Plugin debugPlugin = mock(Plugin.class);
         when(debugPlugin.id()).thenReturn("gateway-debug");
-        when(pluginRegistry.plugins()).thenReturn((Collection) List.of(debugPlugin));
+        when(pluginRegistry.plugins()).thenReturn(List.of(debugPlugin));
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
 
-        debugApiSynchronizer =
-            new DebugApiSynchronizer(
-                eventRepository,
-                mock(ObjectMapper.class),
-                Executors.newFixedThreadPool(1),
-                100,
-                eventManager,
-                pluginRegistry,
-                configuration,
-                node
-            );
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
         when(node.id()).thenReturn(GATEWAY_ID);
     }
 
@@ -128,17 +114,7 @@ public class DebugApiSynchronizerTest extends TestCase {
     @Test
     public void shouldNotSyncIfDebugModeServiceIsDisabled() {
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(false);
-        debugApiSynchronizer =
-            new DebugApiSynchronizer(
-                eventRepository,
-                mock(ObjectMapper.class),
-                Executors.newFixedThreadPool(1),
-                100,
-                eventManager,
-                pluginRegistry,
-                configuration,
-                node
-            );
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
@@ -149,17 +125,7 @@ public class DebugApiSynchronizerTest extends TestCase {
     @Test
     public void shouldNotSyncIfDebugModePluginIsAbsent() {
         when(pluginRegistry.plugins()).thenReturn((Collection) List.of());
-        debugApiSynchronizer =
-            new DebugApiSynchronizer(
-                eventRepository,
-                mock(ObjectMapper.class),
-                Executors.newFixedThreadPool(1),
-                100,
-                eventManager,
-                pluginRegistry,
-                configuration,
-                node
-            );
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 

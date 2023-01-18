@@ -34,13 +34,11 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,6 +54,8 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
 
     private final ObjectMapper objectMapper;
 
+    private final ExecutorService executor;
+
     public OrganizationSynchronizer(
         EventRepository eventRepository,
         ObjectMapper objectMapper,
@@ -64,17 +64,17 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
         OrganizationManager organizationManager,
         GatewayConfiguration gatewayConfiguration
     ) {
-        super(eventRepository, objectMapper, executor, bulkItems);
+        super(eventRepository, bulkItems);
+        this.objectMapper = objectMapper;
+        this.executor = executor;
         this.organizationManager = organizationManager;
         this.gatewayConfiguration = gatewayConfiguration;
-        this.objectMapper = objectMapper;
     }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
         final Long count;
 
-        Map<String, Event> organizationEvents;
         if (lastRefreshAt == -1) {
             count = initialSynchronizeOrganizations(nextLastRefreshAt, environments);
         } else {
@@ -143,7 +143,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
                                             Set<String> flowTags = consumers
                                                 .stream()
                                                 .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
-                                                .map(consumer -> consumer.getConsumerId())
+                                                .map(Consumer::getConsumerId)
                                                 .collect(Collectors.toSet());
                                             return gatewayConfiguration.hasMatchingTags(flowTags);
                                         }
