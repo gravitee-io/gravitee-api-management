@@ -20,8 +20,6 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Organization;
-import io.gravitee.gateway.dictionary.DictionaryManager;
-import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.repository.management.api.EventRepository;
@@ -29,22 +27,18 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class OrganizationSynchronizerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+public class OrganizationSynchronizerTest {
 
     private OrganizationSynchronizer organizationSynchronizer;
 
@@ -64,8 +58,8 @@ public class OrganizationSynchronizerTest extends TestCase {
     static final String ORGANISATION_TEST = "organisation-test";
     static final String ORGANISATION_TEST_2 = "organisation-test_2";
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         organizationSynchronizer =
             new OrganizationSynchronizer(
                 eventRepository,
@@ -78,17 +72,17 @@ public class OrganizationSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void initialSynchronize() throws Exception {
+    void initialSynchronize() throws Exception {
         Organization organization = new Organization();
         organization.setId(ORGANISATION_TEST);
 
-        final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
+        final Event mockEvent = mockEvent(organization);
         when(
             eventRepository.searchLatest(
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
@@ -105,17 +99,17 @@ public class OrganizationSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publish() throws Exception {
+    void publish() throws Exception {
         Organization organization = new Organization();
         organization.setId(ORGANISATION_TEST);
 
-        final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
+        final Event mockEvent = mockEvent(organization);
         when(
             eventRepository.searchLatest(
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
@@ -132,7 +126,7 @@ public class OrganizationSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithPagination() throws Exception {
+    void publishWithPagination() throws Exception {
         Organization organization = new Organization();
         organization.setId(ORGANISATION_TEST);
 
@@ -142,14 +136,14 @@ public class OrganizationSynchronizerTest extends TestCase {
         // Force bulk size to 1.
         organizationSynchronizer.bulkItems = 1;
 
-        final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
-        final Event mockEvent2 = mockEvent(organization2, EventType.PUBLISH_ORGANIZATION);
+        final Event mockEvent = mockEvent(organization);
+        final Event mockEvent2 = mockEvent(organization2);
         when(
             eventRepository.searchLatest(
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
@@ -164,7 +158,7 @@ public class OrganizationSynchronizerTest extends TestCase {
                 argThat(
                     criteria ->
                         criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
                         criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
@@ -184,7 +178,7 @@ public class OrganizationSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void synchronizeWithLotOfOrganizationEvents() throws Exception {
+    void synchronizeWithLotOfOrganizationEvents() throws Exception {
         long page = 0;
         List<Event> eventAccumulator = new ArrayList<>(100);
 
@@ -192,7 +186,7 @@ public class OrganizationSynchronizerTest extends TestCase {
             Organization organization = new Organization();
             organization.setId("dictionary" + i + "-test");
 
-            eventAccumulator.add(mockEvent(organization, EventType.PUBLISH_ORGANIZATION));
+            eventAccumulator.add(mockEvent(organization));
 
             if (i % 100 == 0) {
                 when(
@@ -200,7 +194,7 @@ public class OrganizationSynchronizerTest extends TestCase {
                         argThat(
                             criteria ->
                                 criteria != null &&
-                                criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                                criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
                                 criteria.getEnvironments().containsAll(ENVIRONMENTS)
                         ),
                         eq(Event.EventProperties.ORGANIZATION_ID),
@@ -221,12 +215,12 @@ public class OrganizationSynchronizerTest extends TestCase {
         verify(organizationManager, never()).unregister(anyString());
     }
 
-    private Event mockEvent(final Organization organization, EventType eventType) throws Exception {
+    private Event mockEvent(final Organization organization) throws Exception {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organization.getId());
 
         Event event = new Event();
-        event.setType(eventType);
+        event.setType(EventType.PUBLISH_ORGANIZATION);
         event.setCreatedAt(new Date());
         event.setProperties(properties);
         event.setPayload(organization.getId());

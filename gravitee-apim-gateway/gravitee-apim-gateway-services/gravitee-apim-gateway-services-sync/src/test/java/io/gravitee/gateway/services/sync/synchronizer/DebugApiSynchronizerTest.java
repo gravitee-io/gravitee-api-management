@@ -33,19 +33,18 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DebugApiSynchronizerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+public class DebugApiSynchronizerTest {
 
     private static final String GATEWAY_ID = "gateway-id";
 
@@ -68,26 +67,26 @@ public class DebugApiSynchronizerTest extends TestCase {
 
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         Plugin debugPlugin = mock(Plugin.class);
         when(debugPlugin.id()).thenReturn("gateway-debug");
         when(pluginRegistry.plugins()).thenReturn(List.of(debugPlugin));
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
 
         debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
-        when(node.id()).thenReturn(GATEWAY_ID);
+        lenient().when(node.id()).thenReturn(GATEWAY_ID);
     }
 
     @Test
-    public void shouldSynchronizeDebugEvents() {
+    void shouldSynchronizeDebugEvents() {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id("api-test")
             .updatedAt(new Date())
             .definition("test")
             .build();
 
-        final Event mockEvent = mockEvent(api, EventType.DEBUG_API);
+        final Event mockEvent = mockEvent(api);
 
         when(
             eventRepository.search(
@@ -112,7 +111,7 @@ public class DebugApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void shouldNotSyncIfDebugModeServiceIsDisabled() {
+    void shouldNotSyncIfDebugModeServiceIsDisabled() {
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(false);
         debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
 
@@ -123,8 +122,8 @@ public class DebugApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void shouldNotSyncIfDebugModePluginIsAbsent() {
-        when(pluginRegistry.plugins()).thenReturn((Collection) List.of());
+    void shouldNotSyncIfDebugModePluginIsAbsent() {
+        when(pluginRegistry.plugins()).thenReturn(List.of());
         debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
@@ -133,12 +132,12 @@ public class DebugApiSynchronizerTest extends TestCase {
         verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
     }
 
-    private Event mockEvent(final Api api, EventType eventType) {
+    private Event mockEvent(final Api api) {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name());
         properties.put(Event.EventProperties.GATEWAY_ID.getValue(), node.id());
         Event event = new Event();
-        event.setType(eventType);
+        event.setType(EventType.DEBUG_API);
         event.setCreatedAt(new Date());
         event.setProperties(properties);
         event.setPayload(api.getId());

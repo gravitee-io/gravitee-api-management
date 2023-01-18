@@ -26,19 +26,18 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 import java.util.concurrent.Executors;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DictionarySynchronizerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+public class DictionarySynchronizerTest {
 
     private DictionarySynchronizer dictionarySynchronizer;
 
@@ -53,14 +52,14 @@ public class DictionarySynchronizerTest extends TestCase {
 
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         dictionarySynchronizer =
             new DictionarySynchronizer(eventRepository, objectMapper, Executors.newFixedThreadPool(1), 100, dictionaryManager);
     }
 
     @Test
-    public void initialSynchronize() throws Exception {
+    void initialSynchronize() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -87,7 +86,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publish() throws Exception {
+    void publish() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -114,7 +113,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithPagination() throws Exception {
+    void publishWithPagination() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -164,7 +163,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void unpublish() throws Exception {
+    void unpublish() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -191,7 +190,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void unpublishWithPagination() throws Exception {
+    void unpublishWithPagination() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -241,7 +240,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void synchronizeWithLotOfDictionaryEvents() throws Exception {
+    void synchronizeWithLotOfDictionaryEvents() throws Exception {
         long page = 0;
         List<Event> eventAccumulator = new ArrayList<>(100);
 
@@ -285,7 +284,7 @@ public class DictionarySynchronizerTest extends TestCase {
     }
 
     @Test
-    public void shouldNotDeployIfProblemWhileReadingFromEvent() throws Exception {
+    void shouldNotDeployIfProblemWhileReadingFromEvent() throws Exception {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("dictionary-test");
 
@@ -320,7 +319,7 @@ public class DictionarySynchronizerTest extends TestCase {
         event.setProperties(properties);
         event.setPayload(dictionary.getId());
 
-        when(objectMapper.readValue(event.getPayload(), Dictionary.class)).thenReturn(dictionary);
+        lenient().when(objectMapper.readValue(event.getPayload(), Dictionary.class)).thenReturn(dictionary);
 
         return event;
     }

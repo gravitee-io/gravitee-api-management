@@ -37,21 +37,21 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
 import java.util.concurrent.Executors;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ApiSynchronizerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+public class ApiSynchronizerTest {
 
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
     private static final String ENVIRONMENT_ID = "env#1";
@@ -89,8 +89,8 @@ public class ApiSynchronizerTest extends TestCase {
     @Mock
     private SubscriptionService subscriptionService;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         apiSynchronizer =
             new ApiSynchronizer(
                 eventRepository,
@@ -109,7 +109,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void initialSynchronize() throws Exception {
+    void initialSynchronize() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -144,11 +144,15 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager).register(apiCaptor.capture());
 
         Api verifyApi = apiCaptor.getValue();
-        assertEquals(API_ID, verifyApi.getId());
-        assertEquals(ENVIRONMENT_ID, verifyApi.getEnvironmentId());
-        assertEquals(ENVIRONMENT_HRID, verifyApi.getEnvironmentHrid());
-        assertEquals(ORGANIZATION_ID, verifyApi.getOrganizationId());
-        assertEquals(ORGANIZATION_HRID, verifyApi.getOrganizationHrid());
+        SoftAssertions.assertSoftly(
+            softly -> {
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+            }
+        );
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
@@ -158,7 +162,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void initialSynchronizeWithNoEnvironment() throws Exception {
+    void initialSynchronizeWithNoEnvironment() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -190,40 +194,36 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager).register(apiCaptor.capture());
 
         Api verifyApi = apiCaptor.getValue();
-        assertEquals(API_ID, verifyApi.getId());
-        assertNull(verifyApi.getEnvironmentId());
-        assertNull(verifyApi.getEnvironmentHrid());
-        assertNull(verifyApi.getOrganizationId());
-        assertNull(verifyApi.getOrganizationHrid());
+        SoftAssertions.assertSoftly(
+            softly -> {
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+            }
+        );
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
         verify(apiKeysCacheService)
             .register(
                 argThat(
-                    new ArgumentMatcher<List<ReactableApi<?>>>() {
-                        @Override
-                        public boolean matches(List<ReactableApi<?>> reactableApis) {
-                            return reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi));
-                        }
-                    }
+                    (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
+                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi))
                 )
             );
         verify(subscriptionsCacheService)
             .register(
                 argThat(
-                    new ArgumentMatcher<List<ReactableApi<?>>>() {
-                        @Override
-                        public boolean matches(List<ReactableApi<?>> reactableApis) {
-                            return reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi));
-                        }
-                    }
+                    (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
+                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(mockApi))
                 )
             );
     }
 
     @Test
-    public void initialSynchronize_withEnvironmentAndOrganization_withoutHrId_shouldSetHrIdToNull() throws Exception {
+    void initialSynchronize_withEnvironmentAndOrganization_withoutHrId_shouldSetHrIdToNull() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -231,7 +231,7 @@ public class ApiSynchronizerTest extends TestCase {
             .environment(ENVIRONMENT_ID)
             .build();
 
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
+        mockApi(api);
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
@@ -258,15 +258,19 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager).register(apiCaptor.capture());
 
         Api verifyApi = apiCaptor.getValue();
-        assertEquals(API_ID, verifyApi.getId());
-        assertEquals(ENVIRONMENT_ID, verifyApi.getEnvironmentId());
-        assertNull(verifyApi.getEnvironmentHrid());
-        assertEquals(ORGANIZATION_ID, verifyApi.getOrganizationId());
-        assertNull(verifyApi.getOrganizationHrid());
+        SoftAssertions.assertSoftly(
+            softly -> {
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+            }
+        );
     }
 
     @Test
-    public void initialSynchronizeWithNoOrganization() throws Exception {
+    void initialSynchronizeWithNoOrganization() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -295,7 +299,7 @@ public class ApiSynchronizerTest extends TestCase {
         final Environment environment = new Environment();
         environment.setId(ENVIRONMENT_ID);
         environment.setOrganizationId(ORGANIZATION_ID);
-        environment.setHrids(asList(ENVIRONMENT_HRID));
+        environment.setHrids(List.of(ENVIRONMENT_HRID));
         when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
         when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.empty());
 
@@ -306,11 +310,15 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager).register(apiCaptor.capture());
 
         Api verifyApi = apiCaptor.getValue();
-        assertEquals(API_ID, verifyApi.getId());
-        assertEquals(ENVIRONMENT_ID, verifyApi.getEnvironmentId());
-        assertEquals(ENVIRONMENT_HRID, verifyApi.getEnvironmentHrid());
-        assertNull(verifyApi.getOrganizationId());
-        assertNull(verifyApi.getOrganizationHrid());
+        SoftAssertions.assertSoftly(
+            softly -> {
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+            }
+        );
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, never()).findByApis(anyList());
@@ -319,7 +327,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithDefinitionV2() throws Exception {
+    void publishWithDefinitionV2() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -359,7 +367,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithDefinitionV1() throws Exception {
+    void publishWithDefinitionV1() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -400,8 +408,12 @@ public class ApiSynchronizerTest extends TestCase {
         ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
         verify(apiManager).register(apiCaptor.capture());
         Api verifyApi = apiCaptor.getValue();
-        assertEquals(API_ID, verifyApi.getId());
-        assertEquals(verifyApi.getDefinition().getPlan("planId").getApi(), mockApi.getId());
+        SoftAssertions.assertSoftly(
+            softly -> {
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getDefinition().getPlan("planId").getApi()).isEqualTo(mockApi.getId());
+            }
+        );
 
         verify(apiManager, never()).unregister(any(String.class));
         verify(planRepository, times(1)).findByApis(anyList());
@@ -410,7 +422,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithPagination() throws Exception {
+    void publishWithPagination() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -482,7 +494,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void publishWithPaginationAndDefinitionV1AndV2() throws Exception {
+    void publishWithPaginationAndDefinitionV1AndV2() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -559,7 +571,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void unpublish() throws Exception {
+    void unpublish() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -596,7 +608,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void unpublishWithPagination() throws Exception {
+    void unpublishWithPagination() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
             .id(API_ID)
             .updatedAt(new Date())
@@ -664,7 +676,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void synchronizeWithLotOfApiEvents() throws Exception {
+    void synchronizeWithLotOfApiEvents() throws Exception {
         long page = 0;
         List<Event> eventAccumulator = new ArrayList<>(100);
 
@@ -725,7 +737,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void shouldNotDeployWhichDoesntRequireRedeployment() throws Exception {
+    void shouldNotDeployWhichDoesntRequireRedeployment() throws Exception {
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
 
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
@@ -767,7 +779,7 @@ public class ApiSynchronizerTest extends TestCase {
     }
 
     @Test
-    public void shouldUnDeployWhichDoesRequireUndeployment() throws Exception {
+    void shouldUnDeployWhichDoesRequireUndeployment() throws Exception {
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
 
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
@@ -818,7 +830,7 @@ public class ApiSynchronizerTest extends TestCase {
         mockApi.setId(api.getId());
         mockApi.setTags(new HashSet<>(asList(tags)));
         mockApi.setDefinitionVersion(DefinitionVersion.V2);
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
+        lenient().when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
         return mockApi;
     }
 
@@ -833,17 +845,17 @@ public class ApiSynchronizerTest extends TestCase {
         event.setPayload(api.getId());
         event.setEnvironments(singleton(ENVIRONMENT_ID));
 
-        when(objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class)).thenReturn(api);
+        lenient().when(objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class)).thenReturn(api);
 
         return event;
     }
 
     private void mockEnvironmentAndOrganizationWithoutHrIds() throws io.gravitee.repository.exceptions.TechnicalException {
-        mockEnvironmentAndOrganization(asList(), asList());
+        mockEnvironmentAndOrganization(List.of(), List.of());
     }
 
     private void mockEnvironmentAndOrganization() throws io.gravitee.repository.exceptions.TechnicalException {
-        mockEnvironmentAndOrganization(asList(ENVIRONMENT_HRID), asList(ORGANIZATION_HRID));
+        mockEnvironmentAndOrganization(List.of(ENVIRONMENT_HRID), List.of(ORGANIZATION_HRID));
     }
 
     private void mockEnvironmentAndOrganization(List<String> envHrIds, List<String> orgHrIds)
