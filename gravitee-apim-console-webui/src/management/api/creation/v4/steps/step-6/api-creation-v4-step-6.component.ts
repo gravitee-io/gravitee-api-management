@@ -16,11 +16,16 @@
 
 import { Component } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { takeUntil } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
+import { kebabCase } from 'lodash';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { ApiV4Service } from '../../../../../../services-ngx/api-v4.service';
+import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { fakeNewApiEntity } from '../../../../../../entities/api-v4/NewApiEntity.fixture';
+import { HttpListener } from '../../../../../../entities/api-v4';
 
 @Component({
   selector: 'api-creation-v4-step-6',
@@ -29,11 +34,48 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 })
 export class ApiCreationV4Step6Component {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  constructor(private readonly stepService: ApiCreationStepService, private readonly matDialog: MatDialog) {}
+  constructor(
+    private readonly stepService: ApiCreationStepService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+    private readonly apiV4Service: ApiV4Service,
+  ) {}
 
   createApi(): void {
-    alert(this.stepService.payload);
-    // TODO: send info to correct endpoint to create, not publish, the new API
+    const apiCreationPayload = this.stepService.payload;
+    // eslint-disable-next-line
+    console.info('API Creation Payload', apiCreationPayload);
+
+    this.apiV4Service
+      .create(
+        // Note : WIP 🚧
+        // Use the fakeNewApiEntity to create a new API temporarily
+        // The real API creation will be done when we complete other api creation steps
+        fakeNewApiEntity((api) => {
+          const listener = api.listeners[0] as HttpListener;
+          listener.paths = [{ path: `/fake/${kebabCase(apiCreationPayload.name + '-' + apiCreationPayload.version)}` }];
+          return {
+            ...api,
+            name: apiCreationPayload.name,
+          };
+        }),
+      )
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(
+          (api) => {
+            // eslint-disable-next-line
+            console.info('API created successfully', api);
+            // TODO: add redirection when api details page work with v4
+            this.snackBarService.success('API created successfully!');
+          },
+          catchError((err) => {
+            this.snackBarService.error(err.error?.message ?? 'An error occurred while created the API.');
+            return EMPTY;
+          }),
+        ),
+      )
+      .subscribe();
   }
 
   deployApi(): void {
