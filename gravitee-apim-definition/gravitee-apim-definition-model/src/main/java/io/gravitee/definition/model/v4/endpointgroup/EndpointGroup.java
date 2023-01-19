@@ -26,15 +26,13 @@ import java.io.Serializable;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -50,6 +48,7 @@ public class EndpointGroup implements Serializable {
     @NotBlank
     private String type;
 
+    @Builder.Default
     private LoadBalancer loadBalancer = new LoadBalancer();
 
     @Schema(implementation = Object.class)

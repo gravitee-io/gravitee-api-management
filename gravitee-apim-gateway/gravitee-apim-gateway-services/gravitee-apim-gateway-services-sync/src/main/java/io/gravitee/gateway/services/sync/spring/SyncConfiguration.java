@@ -125,7 +125,8 @@ public class SyncConfiguration {
         SubscriptionService subscriptionService,
         ApiManager apiManager,
         EventToReactableApiAdapter eventToReactableApiAdapter,
-        PlanFetcher planFetcher
+        PlanFetcher planFetcher,
+        GatewayConfiguration gatewayConfiguration
     ) {
         return new ApiSynchronizer(
             eventRepository,
@@ -136,7 +137,8 @@ public class SyncConfiguration {
             subscriptionService,
             apiManager,
             eventToReactableApiAdapter,
-            planFetcher
+            planFetcher,
+            gatewayConfiguration
         );
     }
 

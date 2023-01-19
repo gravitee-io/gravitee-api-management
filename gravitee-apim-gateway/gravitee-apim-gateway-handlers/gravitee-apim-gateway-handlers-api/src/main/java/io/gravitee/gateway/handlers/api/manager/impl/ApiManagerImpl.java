@@ -113,6 +113,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         ReactableApi<?> deployedApi = get(api.getId());
 
         // Does the API have a matching sharding tags ?
+        // Keep the check of Sharding Tags for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
         if (gatewayConfiguration.hasMatchingTags(api.getTags())) {
             boolean apiToDeploy = deployedApi == null || force;
             boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(api.getDeployedAt());
