@@ -24,6 +24,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatListModule } from '@angular/material/list';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
@@ -46,6 +47,7 @@ import { GioSelectionListOptionModule } from '../../../../shared/components/gio-
     MatCheckboxModule,
     MatListModule,
     MatDialogModule,
+    MatSnackBarModule,
 
     GioConfirmDialogModule,
     GioIconsModule,
