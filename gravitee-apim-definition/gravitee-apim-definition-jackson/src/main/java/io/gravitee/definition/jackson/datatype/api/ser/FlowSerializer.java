@@ -43,6 +43,7 @@ public class FlowSerializer extends StdScalarSerializer<Flow> {
     public void serialize(Flow flow, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
+        jgen.writeStringField("id", flow.getId());
         jgen.writeStringField("name", flow.getName());
 
         final PathOperator pathOperator = flow.getPathOperator();

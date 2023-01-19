@@ -54,6 +54,8 @@ public class FlowConverter {
 
     public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow model) {
         Flow flow = new Flow();
+        flow.setId(model.getId());
+
         flow.setCondition(model.getCondition());
         flow.setEnabled(model.isEnabled());
         flow.setMethods(model.getMethods());
@@ -143,5 +145,22 @@ public class FlowConverter {
             log.error("Failed to convert repository flow step to model", e);
             return null;
         }
+    }
+
+    public io.gravitee.repository.management.model.flow.Flow toRepositoryUpdate(
+        io.gravitee.repository.management.model.flow.Flow dbFlow,
+        Flow flowDefinition,
+        int order
+    ) {
+        io.gravitee.repository.management.model.flow.Flow flow = toRepository(
+            flowDefinition,
+            dbFlow.getReferenceType(),
+            dbFlow.getReferenceId(),
+            order
+        );
+        flow.setId(dbFlow.getId());
+        flow.setCreatedAt(dbFlow.getCreatedAt());
+        flow.setUpdatedAt(new Date());
+        return flow;
     }
 }

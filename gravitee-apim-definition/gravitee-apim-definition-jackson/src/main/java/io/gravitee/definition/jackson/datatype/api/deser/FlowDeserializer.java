@@ -46,6 +46,12 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
 
         Flow flow = new Flow();
 
+        JsonNode jsonId = node.path("id");
+
+        if (jsonId != null && !jsonId.asText().isEmpty()) {
+            flow.setId(jsonId.asText());
+        }
+
         flow.setName(node.path("name").asText());
         flow.setEnabled(node.path("enabled").asBoolean(true));
 
