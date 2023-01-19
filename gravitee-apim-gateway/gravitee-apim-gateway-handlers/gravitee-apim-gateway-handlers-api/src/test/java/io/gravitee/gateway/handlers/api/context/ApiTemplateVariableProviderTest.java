@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.context;
 
+import static io.gravitee.definition.model.ApiBuilder.anApiV2;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import java.util.Map;
@@ -31,7 +31,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_id_in_EL() {
-        var apiDefinition = Api.builder().id("api#id").buildv2();
+        var apiDefinition = anApiV2().id("api#id").build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#api.id}", String.class).test().assertValue("api#id");
@@ -39,7 +39,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_name_in_EL() {
-        var apiDefinition = Api.builder().name("api#name").buildv2();
+        var apiDefinition = anApiV2().name("api#name").build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#api.name}", String.class).test().assertValue("api#name");
@@ -47,7 +47,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_version_in_EL() {
-        var apiDefinition = Api.builder().apiVersion("api#version").buildv2();
+        var apiDefinition = anApiV2().apiVersion("api#version").build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#api.version}", String.class).test().assertValue("api#version");
@@ -55,7 +55,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_properties_in_EL() {
-        var apiDefinition = Api.builder().properties(Map.of("prop1", "value1", "prop2", "value2")).buildv2();
+        var apiDefinition = anApiV2().properties(Map.of("prop1", "value1", "prop2", "value2")).build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#properties[prop1]}", String.class).test().assertValue("value1");
@@ -66,7 +66,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_return_no_value_when_evaluate_unknown_api_properties_in_EL() {
-        var apiDefinition = Api.builder().properties(Map.of("prop1", "value1", "prop2", "value2")).buildv2();
+        var apiDefinition = anApiV2().properties(Map.of("prop1", "value1", "prop2", "value2")).build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#properties[unknown]}", String.class).test().assertNoValues();
@@ -75,7 +75,7 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_throw_when_evaluate_null_api_properties_in_EL() {
-        var apiDefinition = Api.builder().buildv2();
+        var apiDefinition = anApiV2().build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine

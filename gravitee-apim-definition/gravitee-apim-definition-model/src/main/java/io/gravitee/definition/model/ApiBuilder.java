@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4;
+package io.gravitee.definition.model;
 
-import io.gravitee.definition.model.v4.property.Property;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ApiBuilder {
 
+    private final DefinitionVersion definitionVersion;
     private String apiId;
     private String name;
     private String apiVersion;
     private Map<String, String> properties;
+    private Set<String> tags;
 
-    public static ApiBuilder anApiV4() {
-        return new ApiBuilder();
+    public ApiBuilder(DefinitionVersion definitionVersion) {
+        this.definitionVersion = definitionVersion;
+    }
+
+    public static ApiBuilder anApiV2() {
+        return new ApiBuilder(DefinitionVersion.V2);
     }
 
     public ApiBuilder id(String id) {
@@ -50,16 +56,29 @@ public class ApiBuilder {
         return this;
     }
 
+    public ApiBuilder tags(Set<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
     public Api build() {
         var api = new Api();
+        api.setDefinitionVersion(definitionVersion);
         api.setId(apiId);
         api.setName(name);
-        api.setApiVersion(apiVersion);
+        api.setVersion(apiVersion);
+        api.setTags(tags);
 
         if (properties != null) {
-            api.setProperties(
-                properties.entrySet().stream().map(p -> new Property(p.getKey(), p.getValue(), false, false)).collect(Collectors.toList())
+            var props = new Properties();
+            props.setProperties(
+                properties
+                    .entrySet()
+                    .stream()
+                    .map(p -> new io.gravitee.definition.model.Property(p.getKey(), p.getValue(), false))
+                    .collect(Collectors.toList())
             );
+            api.setProperties(props);
         }
 
         return api;
