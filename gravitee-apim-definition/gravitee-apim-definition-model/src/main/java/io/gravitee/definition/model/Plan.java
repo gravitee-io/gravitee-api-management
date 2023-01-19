@@ -19,11 +19,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
 import java.io.Serializable;
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Plan implements Serializable {
 
     @JsonProperty("id")
@@ -38,6 +44,7 @@ public class Plan implements Serializable {
     @JsonProperty("securityDefinition")
     private String securityDefinition;
 
+    @Builder.Default
     @JsonProperty("paths")
     private Map<String, List<Rule>> paths = new HashMap<>();
 
@@ -47,6 +54,7 @@ public class Plan implements Serializable {
     @JsonProperty("selectionRule")
     private String selectionRule;
 
+    @Builder.Default
     @JsonProperty("flows")
     private List<Flow> flows = new ArrayList<>();
 

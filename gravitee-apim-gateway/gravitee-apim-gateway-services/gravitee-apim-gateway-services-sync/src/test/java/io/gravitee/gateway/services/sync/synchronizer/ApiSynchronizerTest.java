@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.synchronizer;
 
 import static io.gravitee.definition.model.ApiBuilder.anApiV1;
 import static io.gravitee.definition.model.ApiBuilder.anApiV2;
+import static io.gravitee.definition.model.v4.ApiBuilder.aSyncApiV4;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELAY;
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 import static java.util.Collections.singleton;
@@ -26,8 +27,11 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -64,6 +68,7 @@ import org.mockito.stubbing.Answer;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiSynchronizerTest {
 
     private static final Integer BULK_SIZE = 5;
@@ -102,6 +107,9 @@ public class ApiSynchronizerTest {
     @Mock
     private SubscriptionService subscriptionService;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
@@ -119,9 +127,11 @@ public class ApiSynchronizerTest {
                 subscriptionService,
                 apiManager,
                 eventToReactableApiAdapter,
-                planFetcher
+                planFetcher,
+                gatewayConfiguration
             );
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.DEPLOY);
+        lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
     }
 
     @AfterEach
@@ -235,168 +245,506 @@ public class ApiSynchronizerTest {
     }
 
     @Nested
-    class ApiRegisterEventsProcessing {
+    class ApiV2 {
 
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_process_api_register_events(Boolean initialSync) throws Exception {
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+        @Nested
+        class RegisterEventsProcessing {
 
-            givenEvents(List.of(publishEvent));
-            givenAnOrganizationWithHrid();
-            givenAnEnvironmentWithHrid();
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_process_api_register_events(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
 
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+                givenEvents(List.of(publishEvent));
+                givenAnOrganizationWithHrid();
+                givenAnEnvironmentWithHrid();
 
-            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-            verify(apiManager).register(apiCaptor.capture());
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    Api verifyApi = apiCaptor.getValue();
-                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
-                }
-            );
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
 
-            verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-            verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-            verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+                ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        Api verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                        softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                        softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+                    }
+                );
+
+                verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+                verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+                verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_process_api_register_events_with_environment_and_organization_without_hrid(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+                givenAnOrganizationWithoutHrid();
+                givenAnEnvironmentWithoutHrid();
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        Api verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_register_an_api_with_no_environment(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        Api verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                        softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+
+                verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+                verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+                verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_register_an_api_with_no_organization(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+                givenAnEnvironmentWithHrid();
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        Api verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_has_no_published_plans(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("STAGING").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_tags_does_not_match_with_gateway(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .tags(Set.of("gw1"))
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                when(gatewayConfiguration.hasMatchingTags(Set.of("gw1"))).thenReturn(false);
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_plan_tags_does_not_match_with_gateway(Boolean initialSync) throws Exception {
+                var apiDefinition = anApiV2()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.Plan.builder().status("PUBLISHED").tags(Set.of("gw1")).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                when(gatewayConfiguration.hasMatchingTags(Set.of("gw1"))).thenReturn(false);
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_has_not_changed(Boolean initialSync) throws Exception {
+                lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
+
+                var apiDefinition = anApiV2().id(API_ID).build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_undeploy_when_new_configuration_require(Boolean initialSync) throws Exception {
+                lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
+
+                var apiDefinition = anApiV2().id(API_ID).build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager).unregister(apiDefinition.getId());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
         }
 
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_process_api_register_events_with_environment_and_organization_without_hrid(Boolean initialSync) throws Exception {
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+        @Nested
+        class UnregisterEventsProcessing {
 
-            givenEvents(List.of(publishEvent));
-            givenAnOrganizationWithoutHrid();
-            givenAnEnvironmentWithoutHrid();
+            @Test
+            void should_process_api_unregister_events() throws Exception {
+                var apiDefinition1 = anApiV2().id("api1").build();
+                var apiDefinition2 = anApiV2().id("api2").build();
 
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+                givenEvents(List.of(anEvent(apiDefinition1, EventType.UNPUBLISH_API), anEvent(apiDefinition2, EventType.STOP_API)));
 
-            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-            verify(apiManager).register(apiCaptor.capture());
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    Api verifyApi = apiCaptor.getValue();
-                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                }
-            );
-        }
+                apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_register_an_api_with_no_environment(Boolean initialSync) throws Exception {
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-
-            givenEvents(List.of(publishEvent));
-
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
-
-            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-            verify(apiManager).register(apiCaptor.capture());
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    Api verifyApi = apiCaptor.getValue();
-                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                    softly.assertThat(verifyApi.getEnvironmentId()).isNull();
-                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                }
-            );
-
-            verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-            verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-            verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_register_an_api_with_no_organization(Boolean initialSync) throws Exception {
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-
-            givenEvents(List.of(publishEvent));
-            givenAnEnvironmentWithHrid();
-
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
-
-            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-            verify(apiManager).register(apiCaptor.capture());
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    Api verifyApi = apiCaptor.getValue();
-                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                }
-            );
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_do_nothing_when_api_has_not_changed(Boolean initialSync) throws Exception {
-            lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
-
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-
-            givenEvents(List.of(publishEvent));
-
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
-
-            verify(apiManager, never()).register(any());
-            verify(apiManager, never()).unregister(any());
-            verify(apiKeysCacheService, never()).register(anyList());
-            verify(subscriptionsCacheService, never()).register(anyList());
-        }
-
-        @ParameterizedTest
-        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
-        void should_undeploy_when_new_configuration_require(Boolean initialSync) throws Exception {
-            lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
-
-            var apiDefinition = anApiV2().id(API_ID).build();
-            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-
-            givenEvents(List.of(publishEvent));
-
-            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
-            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
-
-            verify(apiManager, never()).register(any());
-            verify(apiManager).unregister(apiDefinition.getId());
-            verify(apiKeysCacheService, never()).register(anyList());
-            verify(subscriptionsCacheService, never()).register(anyList());
+                verify(apiManager).unregister("api1");
+                verify(apiManager).unregister("api2");
+            }
         }
     }
 
     @Nested
-    class ApiUnregisterEventsProcessing {
+    class ApiV4 {
 
-        @Test
-        void should_process_api_unregister_events() throws Exception {
-            var apiDefinition1 = anApiV2().id("api1").build();
-            var apiDefinition2 = anApiV2().id("api2").build();
+        @Nested
+        class RegisterEventsProcessing {
 
-            givenEvents(List.of(anEvent(apiDefinition1, EventType.UNPUBLISH_API), anEvent(apiDefinition2, EventType.STOP_API)));
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_process_api_register_events(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
 
-            apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+                givenEvents(List.of(publishEvent));
+                givenAnOrganizationWithHrid();
+                givenAnEnvironmentWithHrid();
 
-            verify(apiManager).unregister("api1");
-            verify(apiManager).unregister("api2");
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                );
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        var verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                        softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                        softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+                    }
+                );
+
+                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(subscriptionsCacheService)
+                    .register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_process_api_register_events_with_environment_and_organization_without_hrid(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+                givenAnOrganizationWithoutHrid();
+                givenAnEnvironmentWithoutHrid();
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                );
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        var verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_register_an_api_with_no_environment(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                );
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        var verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                        softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+
+                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(subscriptionsCacheService)
+                    .register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_register_an_api_with_no_organization(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+                givenAnEnvironmentWithHrid();
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                );
+                verify(apiManager).register(apiCaptor.capture());
+                SoftAssertions.assertSoftly(
+                    softly -> {
+                        var verifyApi = apiCaptor.getValue();
+                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                    }
+                );
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_has_no_published_plans(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.STAGING).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_tags_does_not_match_with_gateway(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .tags(Set.of("gw1"))
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                when(gatewayConfiguration.hasMatchingTags(Set.of("gw1"))).thenReturn(false);
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_plan_tags_does_not_match_with_gateway(Boolean initialSync) throws Exception {
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(
+                        List.of(
+                            io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).tags(Set.of("gw1")).build()
+                        )
+                    )
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                when(gatewayConfiguration.hasMatchingTags(Set.of("gw1"))).thenReturn(false);
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_api_has_not_changed(Boolean initialSync) throws Exception {
+                lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
+
+                var apiDefinition = aSyncApiV4().id(API_ID).build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_undeploy_when_new_configuration_require(Boolean initialSync) throws Exception {
+                lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
+
+                var apiDefinition = aSyncApiV4().id(API_ID).build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager).unregister(apiDefinition.getId());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
+            }
+        }
+
+        @Nested
+        class UnregisterEventsProcessing {
+
+            @Test
+            void should_process_api_unregister_events() throws Exception {
+                var apiDefinition1 = aSyncApiV4().id("api1").build();
+                var apiDefinition2 = aSyncApiV4().id("api2").build();
+
+                givenEvents(List.of(anEvent(apiDefinition1, EventType.UNPUBLISH_API), anEvent(apiDefinition2, EventType.STOP_API)));
+
+                apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager).unregister("api1");
+                verify(apiManager).unregister("api2");
+            }
         }
     }
 
@@ -492,21 +840,40 @@ public class ApiSynchronizerTest {
     }
 
     Event anEvent(final io.gravitee.definition.model.Api apiDefinition, EventType eventType) throws Exception {
+        return anEvent(
+            apiDefinition.getId(),
+            apiDefinition.getDefinitionVersion(),
+            objectMapper.writeValueAsString(apiDefinition),
+            eventType
+        );
+    }
+
+    Event anEvent(final io.gravitee.definition.model.v4.Api apiDefinition, EventType eventType) throws Exception {
+        return anEvent(
+            apiDefinition.getId(),
+            apiDefinition.getDefinitionVersion(),
+            objectMapper.writeValueAsString(apiDefinition),
+            eventType
+        );
+    }
+
+    Event anEvent(final String apiId, final DefinitionVersion definitionVersion, final String apiDefinition, EventType eventType)
+        throws Exception {
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
+        properties.put(Event.EventProperties.API_ID.getValue(), apiId);
 
         Event event = new Event();
         event.setType(eventType);
         event.setCreatedAt(new Date());
         event.setProperties(properties);
-        event.setPayload(apiDefinition.getId());
         event.setEnvironments(singleton(ENVIRONMENT_ID));
         event.setPayload(
             objectMapper.writeValueAsString(
                 new RepositoryApiBuilder()
-                    .id(apiDefinition.getId())
+                    .id(apiId)
+                    .definitionVersion(definitionVersion)
                     .updatedAt(new Date())
-                    .definition(objectMapper.writeValueAsString(apiDefinition))
+                    .definition(apiDefinition)
                     .environment(ENVIRONMENT_ID)
                     .build()
             )

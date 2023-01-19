@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.builder;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import java.util.Date;
@@ -36,6 +37,11 @@ public class RepositoryApiBuilder {
     public RepositoryApiBuilder updatedAt(Date updatedAt) {
         this.api.setUpdatedAt(updatedAt);
         this.api.setDeployedAt(updatedAt);
+        return this;
+    }
+
+    public RepositoryApiBuilder definitionVersion(DefinitionVersion definitionVersion) {
+        this.api.setDefinitionVersion(definitionVersion);
         return this;
     }
 

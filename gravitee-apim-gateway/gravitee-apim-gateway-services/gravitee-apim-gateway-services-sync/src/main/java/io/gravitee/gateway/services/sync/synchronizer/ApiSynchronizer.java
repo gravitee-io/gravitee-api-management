@@ -18,7 +18,11 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static io.gravitee.gateway.services.sync.spring.SyncConfiguration.PARALLELISM;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -34,7 +38,9 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,8 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final ApiManager apiManager;
 
+    private final GatewayConfiguration gatewayConfiguration;
+
     private final ExecutorService executor;
 
     private final EventToReactableApiAdapter eventToReactableApiAdapter;
@@ -68,7 +76,8 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         SubscriptionService subscriptionService,
         ApiManager apiManager,
         EventToReactableApiAdapter eventToReactableApiAdapter,
-        PlanFetcher planFetcher
+        PlanFetcher planFetcher,
+        GatewayConfiguration gatewayConfiguration
     ) {
         super(eventRepository, bulkItems);
         this.apiKeysCacheService = apiKeysCacheService;
@@ -78,6 +87,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         this.executor = executor;
         this.eventToReactableApiAdapter = eventToReactableApiAdapter;
         this.planFetcher = planFetcher;
+        this.gatewayConfiguration = gatewayConfiguration;
     }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
@@ -115,13 +125,10 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * Run the initial synchronization which focus on api PUBLISH and START events only.
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
-        final Long count =
-            this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
-                .compose(this::processApiRegisterEvents)
-                .count()
-                .blockingGet();
-
-        return count;
+        return this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+            .compose(this::processApiRegisterEvents)
+            .count()
+            .blockingGet();
     }
 
     @NonNull
@@ -155,12 +162,13 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<String> processApiRegisterEvents(Flowable<Event> upstream) {
         return upstream
             .flatMapMaybe(eventToReactableApiAdapter::toReactableApi)
-            .<ActionOnApi, ReactableApi<?>>groupBy(reactableApi -> apiManager.requiredActionFor(reactableApi), reactableApi -> reactableApi)
+            .<ActionOnApi, ReactableApi<?>>groupBy(apiManager::requiredActionFor, reactableApi -> reactableApi)
             .flatMap(
                 groupedFlowable -> {
                     if (groupedFlowable.getKey() == ActionOnApi.DEPLOY) {
                         return groupedFlowable
                             .compose(g -> planFetcher.fetchApiPlans(g, getBulkSize()))
+                            .compose(this::filterByTags)
                             .compose(this::fetchKeysAndSubscriptions)
                             .compose(this::registerApi)
                             .compose(this::dispatchSubscriptionsForApis);
@@ -174,7 +182,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     }
 
     /**
-     * Process events related to api unregistrations.
+     * Process events related to api un-registrations.
      * This process is divided into following steps:
      *  - Extract the api id to unregister from event
      *  - invoke ApiManager to unregister each api
@@ -232,6 +240,70 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return Maybe.just(apiId);
     }
 
+    @NonNull
+    private Flowable<ReactableApi<?>> filterByTags(Flowable<ReactableApi<?>> upstream) {
+        return upstream
+            .filter(api -> gatewayConfiguration.hasMatchingTags(api.getTags()))
+            .map(
+                api -> {
+                    if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+                        var plans = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlans();
+                        if (plans != null) {
+                            ((io.gravitee.definition.model.Api) api.getDefinition()).setPlans(
+                                    plans
+                                        .stream()
+                                        .filter(p -> p.getStatus() != null)
+                                        .filter(p -> filterPlanStatus(p.getStatus()))
+                                        .filter(p -> filterShardingTag(p.getName(), api.getName(), p.getTags()))
+                                        .collect(Collectors.toList())
+                                );
+                        }
+                        return api;
+                    }
+
+                    var plans = ((Api) api.getDefinition()).getPlans();
+                    if (plans != null) {
+                        ((Api) api.getDefinition()).setPlans(
+                                plans
+                                    .stream()
+                                    .filter(p -> p.getStatus() != null)
+                                    .filter(p -> filterPlanStatus(p.getStatus().getLabel()))
+                                    .filter(p -> filterShardingTag(p.getName(), api.getName(), p.getTags()))
+                                    .collect(Collectors.toList())
+                            );
+                    }
+                    return api;
+                }
+            )
+            .filter(
+                api -> {
+                    if (api.getDefinition() instanceof Api) {
+                        return !((Api) api.getDefinition()).getPlans().isEmpty();
+                    } else if (api.getDefinition() instanceof io.gravitee.definition.model.Api) {
+                        return !((io.gravitee.definition.model.Api) api.getDefinition()).getPlans().isEmpty();
+                    }
+                    return false;
+                }
+            );
+    }
+
+    private boolean filterPlanStatus(final String planStatus) {
+        return (
+            PlanStatus.PUBLISHED.getLabel().equalsIgnoreCase(planStatus) || PlanStatus.DEPRECATED.getLabel().equalsIgnoreCase(planStatus)
+        );
+    }
+
+    protected boolean filterShardingTag(final String planName, final String apiName, final Set<String> tags) {
+        if (tags != null && !tags.isEmpty()) {
+            boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(tags);
+            if (!hasMatchingTags) {
+                logger.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags", planName, apiName);
+            }
+            return hasMatchingTags;
+        }
+        return true;
+    }
+
     /**
      * Allows to start fetching api keys and subscription in a bulk fashion way.
      * @param upstream the api upstream which will be chunked into packs of 50 in order to fetch api keys and subscriptions.
@@ -257,13 +329,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      */
     @NonNull
     private Flowable<String> dispatchSubscriptionsForApis(Flowable<String> upstream) {
-        return upstream
-            .buffer(getBulkSize())
-            .doOnNext(
-                apis -> {
-                    subscriptionService.dispatchFor(apis);
-                }
-            )
-            .flatMapIterable(apis -> apis);
+        return upstream.buffer(getBulkSize()).doOnNext(subscriptionService::dispatchFor).flatMapIterable(apis -> apis);
     }
 }

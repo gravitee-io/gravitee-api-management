@@ -46,6 +46,8 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
     public void initialize(final Api api) {
         // Filter plans according to the sharding tags and the plan status
         io.gravitee.definition.model.Api apiDefinition = api.getDefinition();
+
+        // Keep the plan filtering for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
         if (apiDefinition.getPlans() != null) {
             apiDefinition.setPlans(filterPlan(api));
         } else {
