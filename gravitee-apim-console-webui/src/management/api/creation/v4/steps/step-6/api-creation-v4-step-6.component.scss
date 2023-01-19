@@ -11,6 +11,20 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 16px;
   }
 
+  &__entrypoints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .gio-badge-accent {
+      margin: 0;
+    }
+
+    &__icon {
+      margin-right: 3px;
+    }
+  }
+
   &__step {
     display: flex;
     border: 1px solid mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
@@ -33,6 +47,7 @@ $typography: map.get(gio.$mat-theme, typography);
       &__key {
         @include mat.typography-level($typography, body-1);
         color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        align-self: center;
       }
 
       &__value {
@@ -42,6 +57,7 @@ $typography: map.get(gio.$mat-theme, typography);
       &__row {
         display: flex;
         gap: 4px;
+        flex-wrap: wrap;
       }
     }
   }

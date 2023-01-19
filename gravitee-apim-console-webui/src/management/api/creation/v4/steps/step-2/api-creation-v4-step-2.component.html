@@ -23,18 +23,18 @@
   </div>
 
   <form [formGroup]="formGroup" (ngSubmit)="save()">
-    <mat-selection-list formControlName="selectedEntrypoints" class="gio-selection-list" disableRipple="true">
+    <mat-selection-list *ngIf="entrypoints" formControlName="selectedEntrypointsIds" class="gio-selection-list" disableRipple="true">
       <mat-list-option
         *ngFor="let entrypoint of entrypoints"
-        [id]="entrypoint.value.id"
-        [value]="entrypoint.value"
+        [id]="entrypoint.id"
+        [value]="entrypoint.id"
         checkboxPosition="before"
         #listOption
         [class.entrypoint-selected]="listOption.selected"
       >
         <gio-selection-list-option-layout>
           <gio-selection-list-option-layout-title>
-            {{ entrypoint.value.name }}
+            {{ entrypoint.name }}
             <span class="gio-badge-primary strong-badge">New</span>
             <span class="gio-badge-accent strong-badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
           </gio-selection-list-option-layout-title>

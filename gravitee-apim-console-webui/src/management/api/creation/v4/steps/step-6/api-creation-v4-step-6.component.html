@@ -22,22 +22,22 @@
   </div>
   <div class="api-creation-v4-step-6__body">
     <!--    Step 1 -->
-    <div class="api-creation-v4-step-6__step">
+    <div id="step-1" class="api-creation-v4-step-6__step">
       <div class="mat-h3">API metadata</div>
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">API name:</span>
-            <span class="api-creation-v4-step-6__step__info__value">My new API</span>
+            <span class="api-creation-v4-step-6__step__info__value">{{ currentStepPayload.name }}</span>
           </div>
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Version:</span>
-            <span class="api-creation-v4-step-6__step__info__value">1.0.0</span>
+            <span class="api-creation-v4-step-6__step__info__value">{{ currentStepPayload.version }}</span>
           </div>
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Description:</span>
             <span class="api-creation-v4-step-6__step__info__value">
-              This API uses Webhooks and a Kafka backend to provide a fast-moving async experience. For use by all org members.
+              {{ currentStepPayload.description }}
             </span>
           </div>
         </div>
@@ -47,7 +47,7 @@
       </div>
     </div>
     <!--    Step 2 -->
-    <div class="api-creation-v4-step-6__step">
+    <div id="step-2" class="api-creation-v4-step-6__step">
       <div class="mat-h3">Entrypoints</div>
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">
@@ -61,17 +61,27 @@
           </div>
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Entrypoints:</span>
-            <span class="gio-badge-accent"><mat-icon svgIcon="gio:code-brackets"></mat-icon>REST API (HTTP)</span>
-            <span class="gio-badge-accent"><mat-icon svgIcon="gio:websocket"></mat-icon>Websocket</span>
+            <div class="api-creation-v4-step-6__entrypoints">
+              <!--              TODO: Fix when all options are selected. See how description is affected-->
+              <ng-container *ngFor="let entrypoint of currentStepPayload.selectedEntrypoints">
+                <span class="gio-badge-accent"
+                  ><mat-icon
+                    [svgIcon]="'gio:' + getEntrypointIconName(entrypoint.id)"
+                    class="api-creation-v4-step-6__entrypoints__icon"
+                  ></mat-icon
+                  >{{ entrypoint.name }}</span
+                >
+              </ng-container>
+            </div>
           </div>
         </div>
         <div>
-          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
+          <button mat-stroked-button (click)="onChangeStepInfo(2)">Change</button>
         </div>
       </div>
     </div>
     <!--    Step 3 -->
-    <div class="api-creation-v4-step-6__step">
+    <div id="step-3" class="api-creation-v4-step-6__step">
       <div class="mat-h3">Endpoints</div>
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">
@@ -90,7 +100,7 @@
       </div>
     </div>
     <!--    Step 4 -->
-    <div class="api-creation-v4-step-6__step">
+    <div id="step-4" class="api-creation-v4-step-6__step">
       <div class="mat-h3">Security</div>
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">🚧🚧🚧</div>
@@ -100,7 +110,7 @@
       </div>
     </div>
     <!--    Step 5 -->
-    <div class="api-creation-v4-step-6__step">
+    <div id="step-5" class="api-creation-v4-step-6__step">
       <div class="mat-h3 api-creation-v4-step-6__step__title">Documentation</div>
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">

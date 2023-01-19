@@ -25,10 +25,8 @@ import { EntrypointService } from '../../../../../../services-ngx/entrypoint.ser
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 type EntrypointVM = {
-  value: {
-    id: string;
-    name: string;
-  };
+  id: string;
+  name: string;
   description: string;
   isEnterprise: boolean;
 };
@@ -56,7 +54,10 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     const currentStepPayload = this.stepService.payload;
 
     this.formGroup = this.formBuilder.group({
-      selectedEntrypoints: this.formBuilder.control(currentStepPayload.selectedEntrypoints ?? [], [Validators.required]),
+      selectedEntrypointsIds: this.formBuilder.control(
+        (currentStepPayload.selectedEntrypoints ?? []).map((p) => p.id),
+        [Validators.required],
+      ),
     });
 
     this.entrypointService
@@ -67,10 +68,8 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
       )
       .subscribe((entrypointPlugins) => {
         this.entrypoints = entrypointPlugins.map((entrypoint) => ({
-          value: {
-            id: entrypoint.id,
-            name: entrypoint.name,
-          },
+          id: entrypoint.id,
+          name: entrypoint.name,
           description: entrypoint.description,
           isEnterprise: entrypoint.id.endsWith('-advanced'),
         }));
@@ -83,9 +82,13 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   }
 
   save(): void {
-    const selectedEntrypoints = this.formGroup.getRawValue().selectedEntrypoints ?? [];
+    const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
+    const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
 
-    this.stepService.goToNextStep((previousPayload) => ({ ...previousPayload, selectedEntrypoints }));
+    this.stepService.goToNextStep((previousPayload) => ({
+      ...previousPayload,
+      selectedEntrypoints,
+    }));
   }
 
   goBack(): void {
@@ -98,7 +101,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
-          title: entrypoint.value.name,
+          title: entrypoint.name,
           content: `${entrypoint.description} <br> 🚧 More information coming soon 🚧`,
           confirmButton: `Ok`,
         },

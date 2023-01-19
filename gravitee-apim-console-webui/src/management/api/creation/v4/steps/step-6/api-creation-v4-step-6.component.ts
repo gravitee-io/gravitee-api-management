@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,20 +26,28 @@ import { ApiV4Service } from '../../../../../../services-ngx/api-v4.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { fakeNewApiEntity } from '../../../../../../entities/api-v4/NewApiEntity.fixture';
 import { HttpListener } from '../../../../../../entities/api-v4';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'api-creation-v4-step-6',
   template: require('./api-creation-v4-step-6.component.html'),
   styles: [require('./api-creation-v4-step-6.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class ApiCreationV4Step6Component {
+export class ApiCreationV4Step6Component implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
+
+  public currentStepPayload: ApiCreationPayload;
+
   constructor(
     private readonly stepService: ApiCreationStepService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private readonly apiV4Service: ApiV4Service,
   ) {}
+
+  ngOnInit(): void {
+    this.currentStepPayload = this.stepService.payload;
+  }
 
   createApi(): void {
     const apiCreationPayload = this.stepService.payload;
@@ -97,5 +105,21 @@ export class ApiCreationV4Step6Component {
       .afterClosed()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe();
+  }
+
+  getEntrypointIconName(id: string): string {
+    if (id.startsWith('sse')) {
+      return 'cloud-server';
+    }
+    if (id.startsWith('http')) {
+      return 'language';
+    }
+    if (id.startsWith('webhook')) {
+      return 'webhook';
+    }
+    if (id.startsWith('websocket')) {
+      return 'websocket';
+    }
+    return 'layers';
   }
 }
