@@ -259,9 +259,9 @@ parameters:
         type: string
         description: "Version of APIM to be used in docker images"
     gio_milestone_version:
-      type: string
-      default: $GIO_MILESTONE_VERSION
-      description: "The Gravitee.io Milestone version https://github.com/gravitee-io/issues/milestones for which we want to generate Changelog"
+        type: string
+        default: $GIO_MILESTONE_VERSION
+        description: "The Gravitee.io Milestone version https://github.com/gravitee-io/issues/milestones for which we want to generate Changelog"
 
 jobs:
     setup:
@@ -1463,65 +1463,65 @@ jobs:
                             to: "s3://gravitee-releases-downloads/graviteeio-apim"
 
     release_notes_apim:
-      executor:
-        name: node-lts
-        class: medium
-      environment:
-        VERSION: << pipeline.parameters.graviteeio_version >>
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
-            var-name: GIT_USER_NAME
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
-            var-name: GIT_USER_EMAIL
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - keeper/env-export:
-              secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-              var-name: SLACK_ACCESS_TOKEN
-        - add_ssh_keys:
-            fingerprints:
-              - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
-        - run:
-            name: Git config
-            command: |
-              git config --global user.name "${GIT_USER_NAME}"
-              git config --global user.email "${GIT_USER_EMAIL}"
-        - gh/setup
-        - run:
-            name: Install dependencies
-            command: npm install
-            working_directory: "./release"
-        - run:
-            name: "Open a PR to create release notes into docs repository"
-            working_directory: "./release"
-            command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
-        - when:
-              condition:
-                  not: << pipeline.parameters.dry_run>>
-              steps:
-                  - run:
-                        name: Get RELEASE_NOTES_PR_URL
-                        command: |
-                            echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
-                  - slack/notify:
-                        channel: C02NGT20S4W
-                        event: always
-                        custom: |
-                            {
-                              "blocks": [
+        executor:
+            name: node-lts
+            class: medium
+        environment:
+            VERSION: << pipeline.parameters.graviteeio_version >>
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                  var-name: GIT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                  var-name: GIT_USER_EMAIL
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - keeper/env-export:
+                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                  var-name: SLACK_ACCESS_TOKEN
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - run:
+                  name: Git config
+                  command: |
+                      git config --global user.name "${GIT_USER_NAME}"
+                      git config --global user.email "${GIT_USER_EMAIL}"
+            - gh/setup
+            - run:
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: "./release"
+            - run:
+                  name: "Open a PR to create release notes into docs repository"
+                  working_directory: "./release"
+                  command: npm run zx -- ci-steps/doc-new-release-notes.mjs --version=${VERSION}
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - run:
+                            name: Get RELEASE_NOTES_PR_URL
+                            command: |
+                                echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
+                      - slack/notify:
+                            channel: C02NGT20S4W
+                            event: always
+                            custom: |
                                 {
-                                  "type": "section",
-                                  "text": {
-                                    "type": "mrkdwn",
-                                    "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
-                                  }
+                                  "blocks": [
+                                    {
+                                      "type": "section",
+                                      "text": {
+                                        "type": "mrkdwn",
+                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                      }
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
 
 workflows:
     pull_requests:
@@ -1896,8 +1896,8 @@ workflows:
                           version: ["3", "4", "5"]
 
     release_notes_apim:
-      when:
-        equal: [ release_notes_apim, << pipeline.parameters.gio_action >> ]
-      jobs:
-        - release_notes_apim:
-            context: cicd-orchestrator
+        when:
+            equal: [release_notes_apim, << pipeline.parameters.gio_action >>]
+        jobs:
+            - release_notes_apim:
+                  context: cicd-orchestrator
