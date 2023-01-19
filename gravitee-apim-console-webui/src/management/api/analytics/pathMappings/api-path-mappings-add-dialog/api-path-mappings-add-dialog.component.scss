@@ -1,0 +1,32 @@
+.content {
+  width: 600px;
+
+  &__path__form-field {
+    width: 100%;
+  }
+
+  .mat-error {
+    padding: 8px 0;
+  }
+
+  &__tab {
+    padding-top: 16px;
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+
+      .mat-radio-button {
+        padding: 8px;
+      }
+
+      &__button {
+        margin: 8px 0 0 0;
+      }
+    }
+  }
+}
+
+.actions {
+  justify-content: end;
+}

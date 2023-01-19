@@ -16,7 +16,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioFormFilePickerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -25,14 +25,17 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
+import { ApiPathMappingsAddDialogComponent } from './api-path-mappings-add-dialog/api-path-mappings-add-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiPathMappingsComponent, ApiPathMappingsEditDialogComponent],
+  declarations: [ApiPathMappingsComponent, ApiPathMappingsAddDialogComponent, ApiPathMappingsEditDialogComponent],
   exports: [ApiPathMappingsComponent],
   imports: [
     CommonModule,
@@ -49,6 +52,9 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
+    MatTabsModule,
+    GioFormFilePickerModule,
+    MatRadioModule,
   ],
 })
 export class ApiPathMappingsModule {}
