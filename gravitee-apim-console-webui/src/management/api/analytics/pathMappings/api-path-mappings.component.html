@@ -15,7 +15,22 @@
     limitations under the License.
 
 -->
-<h2>Path Mappings</h2>
+<div class="path-mappings__header">
+  <h2>Path Mappings</h2>
+  <div>
+    <button
+      *gioPermission="{ anyOf: ['api-definition-u'] }"
+      mat-raised-button
+      type="button"
+      color="primary"
+      [disabled]="isReadOnly"
+      (click)="addPathMapping()"
+    >
+      <mat-icon svgIcon="gio:plus"></mat-icon>
+      Add New Path Mapping
+    </button>
+  </div>
+</div>
 
 <div class="path-mappings">
   <table mat-table id="pathMappingsTable" aria-label="Path mappings table" class="path-mappings__table" [dataSource]="pathMappingsDS">
@@ -37,6 +52,7 @@
             aria-label="Button to edit a path mapping"
             matTooltip="Edit path mapping"
             *gioPermission="{ anyOf: ['api-definition-u'] }"
+            [disabled]="isReadOnly"
             (click)="editPathMapping(element.path)"
           >
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
@@ -46,6 +62,7 @@
             mat-icon-button
             aria-label="Button to delete a path mapping"
             matTooltip="Delete path mapping"
+            [disabled]="isReadOnly"
             (click)="deletePathMapping(element.path)"
           >
             <mat-icon svgIcon="gio:trash"></mat-icon>

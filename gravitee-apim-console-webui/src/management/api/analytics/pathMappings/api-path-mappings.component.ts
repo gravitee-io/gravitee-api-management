@@ -24,11 +24,17 @@ import {
   ApiPathMappingsEditDialogComponent,
   ApiPathMappingsEditDialogData,
 } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
+import {
+  ApiPathMappingsAddDialogComponent,
+  ApiPathMappingsAddDialogData,
+} from './api-path-mappings-add-dialog/api-path-mappings-add-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
-import { Api } from '../../../../entities/api';
+import { Api, ApiOrigin } from '../../../../entities/api';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { DocumentationService } from '../../../../services-ngx/documentation.service';
+import { Page } from '../../../../entities/page';
 
 export interface PathMappingDS {
   path: string;
@@ -45,12 +51,15 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   public displayedColumns = ['path', 'actions'];
   public pathMappingsDS: PathMappingDS[] = [];
   public isLoadingData = true;
+  public isReadOnly = true;
+  private swaggerDocs: Page[];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private documentationService: DocumentationService,
   ) {}
 
   public ngOnInit(): void {
@@ -61,9 +70,20 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
+
+          this.isReadOnly = api.definition_context.origin === ('kubernetes' as ApiOrigin);
         }),
       )
       .subscribe();
+
+    this.documentationService
+      .apiSearch(this.ajsStateParams.apiId, {
+        type: 'SWAGGER',
+        api: this.ajsStateParams.apiId,
+      })
+      .subscribe((response) => {
+        this.swaggerDocs = response;
+      });
   }
 
   public ngOnDestroy(): void {
@@ -104,6 +124,24 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
 
   private toPathMappingDS(api: Api): PathMappingDS[] {
     return sortBy(api.path_mappings).map((path) => ({ path }));
+  }
+
+  addPathMapping() {
+    this.matDialog
+      .open<ApiPathMappingsAddDialogComponent, ApiPathMappingsAddDialogData>(ApiPathMappingsAddDialogComponent, {
+        data: {
+          api: this.api,
+          swaggerDocs: this.swaggerDocs,
+        },
+        role: 'alertdialog',
+        id: 'addPathMappingDialog',
+      })
+      .beforeClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
   }
 
   public editPathMapping(path: string): void {

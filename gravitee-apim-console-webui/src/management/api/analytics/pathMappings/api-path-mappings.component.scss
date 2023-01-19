@@ -9,7 +9,18 @@
 .path-mappings {
   @include mat.elevation(3);
 
+  &__table__actions {
+    float: right;
+  }
+
   &__table {
     width: 100%;
+    margin: 8px 0;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }

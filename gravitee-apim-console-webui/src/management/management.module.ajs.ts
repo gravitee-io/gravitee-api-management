@@ -702,7 +702,6 @@ graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
 graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
-graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
