@@ -915,12 +915,14 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                   var-name: GITHUB_TOKEN
+            - keeper/env-export:
+                  secret-url: keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password
+                  var-name: CHROMATIC_PROJECT_TOKEN
             - run:
                   name: Running Chromatic
                   # TODO:
                   #  - Handle npx chromatic command failure, make the job fails
                   #  - Create a new project in Chromatic and update the token
-                  #  - Move CHROMATIC_PROJECT_TOKEN token in keeper instead of env var
                   command: |
                       SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
                       echo "export SB_URL=$SB_URL" >> $BASH_ENV
@@ -971,10 +973,11 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
                   var-name: AZURE_APPLICATION_SECRET
+            - keeper/env-export:
+                  secret-url: keeper://IHtIJSHgDV-Zhpfjs1Zk5w/field/password
+                  var-name: AZURE_STORAGE_CONNECTION_STRING
             - run:
                   name: Login into Azure Storage and upload dist
-                  # TODO:
-                  #  - Update CircleCI env var AZURE_STORAGE_CONNECTION_STRING (one for Console, one for Portal)
                   command: |
                       export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
