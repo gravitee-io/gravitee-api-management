@@ -26,6 +26,7 @@ import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Harness } from './steps/step-1/api-creation-v4-step-1.harness';
 import { ApiCreationV4Step2Harness } from './steps/step-2/api-creation-v4-step-2.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
+import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -181,6 +182,25 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
+  describe('step6', () => {
+    it('should display payload info', async () => {
+      await fillAllSteps();
+      fixture.detectChanges();
+
+      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+
+      const step1Summary = await step6Harness.getStepSummaryTextContent(1);
+      expect(step1Summary).toContain('API name:' + 'API name');
+      expect(step1Summary).toContain('Version:' + '1.0');
+      expect(step1Summary).toContain('Description:' + ' description');
+
+      const step2Summary = await step6Harness.getStepSummaryTextContent(2);
+      expect(step2Summary).toContain('Path:' + '/my-new-api');
+      expect(step2Summary).toContain('Type:' + 'Subscription');
+      expect(step2Summary).toContain('Entrypoints:' + 'initial entrypoint' + 'new entrypoint');
+    });
+  });
+
   function expectEntrypointsGetRequest(connectors: ConnectorListItem[]) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(connectors);
   }
@@ -189,5 +209,22 @@ describe('ApiCreationV4Component', () => {
     const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
     await step1Harness.fillStep(name, version, description);
     await step1Harness.clickValidate();
+  }
+
+  async function fillStepTwoAndValidate(
+    entrypoints: Partial<ConnectorListItem>[] = [
+      { id: 'entrypoint-1', name: 'initial entrypoint' },
+      { id: 'entrypoint-2', name: 'new entrypoint' },
+    ],
+  ) {
+    const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+    expectEntrypointsGetRequest(entrypoints.map((entrypoint) => fakeConnectorListItem({ ...entrypoint, supportedApiType: 'async' })));
+    await step2Harness.fillStep(entrypoints.map((entrypoint) => entrypoint.id));
+    await step2Harness.clickValidate();
+  }
+
+  async function fillAllSteps() {
+    await fillStepOneAndValidate();
+    await fillStepTwoAndValidate();
   }
 });
