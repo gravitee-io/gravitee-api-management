@@ -41,4 +41,30 @@ public class GatewayConfigurationBuilder {
     public Properties build() {
         return properties;
     }
+
+    // Provide some often used properties
+    public GatewayConfigurationBuilder jupiterModeEnabled(boolean enabled) {
+        this.set("api.jupiterMode.enabled", enabled);
+        return this;
+    }
+
+    public GatewayConfigurationBuilder jupiterModeDefault(String mode) {
+        this.set("api.jupiterMode.default", mode);
+        return this;
+    }
+
+    public GatewayConfigurationBuilder httpSecured(boolean enabled) {
+        this.set("http.secured", enabled);
+        return this;
+    }
+
+    public GatewayConfigurationBuilder httpAlpn(boolean enabled) {
+        this.set("http.alpn", enabled);
+        return this;
+    }
+
+    public GatewayConfigurationBuilder httpSslKeystoreType(String type) {
+        this.set("http.ssl.keystore.type", type);
+        return this;
+    }
 }
