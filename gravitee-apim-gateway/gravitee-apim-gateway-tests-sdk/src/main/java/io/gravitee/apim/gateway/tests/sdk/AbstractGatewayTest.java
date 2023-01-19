@@ -313,12 +313,14 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     /**
      * Override api endpoints
-     * @param api is the api on which the endpoints will be transformed
+     * @param api is the api on which the endponts will be transformed
      * @param endpointConsumer is the consumer used to transform the endpoints
      */
     protected void updateEndpoints(Api api, Consumer<Endpoint> endpointConsumer) {
-        for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-            endpointConsumer.accept(endpoint);
+        if (api.getProxy() != null && api.getProxy().getGroups() != null) {
+            for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
+                endpointConsumer.accept(endpoint);
+            }
         }
     }
 
@@ -352,5 +354,23 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         } catch (IOException e) {
             throw new AssertionError(e);
         }
+    }
+
+    /**
+     * Check if API is legacy (v3 engine) according to its definition class
+     * @param definitionClass
+     * @return true if it's a legacy api
+     */
+    protected boolean isLegacyApi(Class<?> definitionClass) {
+        return Api.class.isAssignableFrom(definitionClass);
+    }
+
+    /**
+     * Check if API is V4 according to its definition class
+     * @param definitionClass
+     * @return true if it's a V4 api
+     */
+    protected boolean isV4Api(Class<?> definitionClass) {
+        return io.gravitee.definition.model.v4.Api.class.isAssignableFrom(definitionClass);
     }
 }

@@ -1,0 +1,29 @@
+{
+  "id": "api-hello-world",
+  "name": "hello-world",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/helloworld.Greeter",
+    "endpoints": [
+      {
+        "name": "endpoint",
+        "type": "grpc",
+        "target": "grpc://localhost:50051/helloworld.Greeter"
+      }
+    ],
+    "strip_context_path": false
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": []
+    }
+  ]
+}

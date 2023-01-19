@@ -30,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.gateway.tests.sdk.protocolhandlers.grpc.Handler;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.impl.SimpleEvent;
@@ -66,6 +67,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.net.URLStreamHandler;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -77,6 +79,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -107,6 +110,7 @@ public class GatewayRunner {
     private final Map<String, ReactableApi<?>> deployedForTestClass;
     private final Map<String, ReactableApi<?>> deployedForTest;
     private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
+    private final Properties configuredSystemProperties;
     private Organization deployedOrganization = null;
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
@@ -119,6 +123,7 @@ public class GatewayRunner {
         graviteeMapper = new GraviteeMapper();
         deployedForTestClass = new HashMap<>();
         deployedForTest = new HashMap<>();
+        configuredSystemProperties = new Properties();
 
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(deployedForTestClass);
@@ -190,7 +195,16 @@ public class GatewayRunner {
         System.setProperty("gravitee.home", graviteeHome);
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
-        gatewayConfigurationBuilder.build().forEach((k, v) -> System.setProperty(String.valueOf(k), String.valueOf(v)));
+        registerCustomProtocolHandlers(Handler.class);
+
+        gatewayConfigurationBuilder
+            .build()
+            .forEach(
+                (k, v) -> {
+                    configuredSystemProperties.put(k, v);
+                    System.setProperty(String.valueOf(k), String.valueOf(v));
+                }
+            );
         System.setProperty("http.port", String.valueOf(gatewayPort));
         System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
         System.setProperty("services.core.http.enabled", String.valueOf(false));
@@ -229,6 +243,8 @@ public class GatewayRunner {
      * @throws InterruptedException
      */
     public void stop() throws InterruptedException {
+        // unset system properties set by user to avoid conflict in tests
+        configuredSystemProperties.forEach((k, v) -> System.clearProperty(k.toString()));
         stopServer(gatewayContainer, vertxContainer);
     }
 
@@ -630,6 +646,31 @@ public class GatewayRunner {
             return DefinitionVersion.valueOfLabel(apiAsJson.get("gravitee").asText());
         } else {
             return DefinitionVersion.V2;
+        }
+    }
+
+    /**
+     * {@link URL} class looks in system property "java.protocol.handler.pkgs" for {@link URLStreamHandler} to register to be able to support other protocols.
+     * New {@link URLStreamHandler} have to be named <code>Handler</code> in a package of the name of the protocol.
+     * The separator of the system property to register multiple handlers is "|"
+     * @param handlerClass to register, must extends {@link URLStreamHandler}
+     */
+    @SuppressWarnings("java:S1872")
+    private static void registerCustomProtocolHandlers(Class<? extends URLStreamHandler> handlerClass) {
+        String originalProperty = System.getProperty("java.protocol.handler.pkgs", "");
+        String pkg = handlerClass.getPackage().getName();
+        int lastDot = pkg.lastIndexOf('.');
+        assert lastDot != -1 : "You can't add url handlers in the base package";
+        // Ignore java:S1872 which explains that class names are not unique, they are only when they are within a package.
+        // Here, we just enforce the class name is "Handler" because system property "java.protocol.handler.pkgs" will only look for class of this name and inherting from URLStreamHandler
+        assert handlerClass.getSimpleName().equals("Handler") : "A URLStreamHandler must be in a class named 'Handler'; not " +
+        handlerClass.getSimpleName();
+
+        final String protocolHandlersPackage =
+            handlerClass.getPackage().getName().substring(0, lastDot) + (originalProperty.isEmpty() ? "" : "|" + originalProperty);
+        // As we will put our custom protocols in the same package, add it only once.
+        if (!originalProperty.contains(protocolHandlersPackage)) {
+            System.setProperty("java.protocol.handler.pkgs", protocolHandlersPackage);
         }
     }
 }

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import testcases.ClientAuthenticationPEMInlineTestCase;
 import testcases.ConditionalPolicyTestCase;
+import testcases.GrpcTestCase;
 import testcases.Http2HeadersTestCase;
 import testcases.InvalidApiClassLevelTestCase;
 import testcases.InvalidGatewayConfigFolderTestCase;
@@ -200,6 +201,21 @@ class GatewayTestingExtensionTest {
             .assertStatistics(
                 stats -> {
                     stats.started(3).succeeded(3).failed(0);
+                }
+            );
+    }
+
+    @Test
+    @DisplayName("Should success grpc tests")
+    void shouldSuccessGrpcTest() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(GrpcTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(
+                stats -> {
+                    stats.started(1).succeeded(1).failed(0);
                 }
             );
     }
