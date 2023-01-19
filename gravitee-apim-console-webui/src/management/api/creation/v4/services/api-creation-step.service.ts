@@ -37,4 +37,9 @@ export class ApiCreationStepService {
   public goToPreviousStep(): void {
     this.stepper.goToPreviousStep();
   }
+
+  public goToStepPosition(stepNumber: number) {
+    // Position is equal to the step index + 1
+    this.stepper.goToStep(stepNumber - 1);
+  }
 }

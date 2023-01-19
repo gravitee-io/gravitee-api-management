@@ -155,9 +155,9 @@ describe('ApiCreationV4Component', () => {
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
-        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async', name: 'SSE' }),
-        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async', name: 'Webhook' }),
-        fakeConnectorListItem({ id: 'http', supportedApiType: 'sync', name: 'HTTP' }),
+        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+        { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
       ]);
 
       expect(await step2Harness.getEntrypointsList()).toEqual(['sse', 'webhook']);
@@ -168,8 +168,8 @@ describe('ApiCreationV4Component', () => {
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
-        fakeConnectorListItem({ id: 'sse', supportedApiType: 'async', name: 'SSE' }),
-        fakeConnectorListItem({ id: 'webhook', supportedApiType: 'async', name: 'Webhook' }),
+        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
       ]);
 
       await step2Harness.fillStep(['sse', 'webhook']);
@@ -199,10 +199,54 @@ describe('ApiCreationV4Component', () => {
       expect(step2Summary).toContain('Type:' + 'Subscription');
       expect(step2Summary).toContain('Entrypoints:' + 'initial entrypoint' + 'new entrypoint');
     });
+
+    it('should go back to step 1 after clicking Change button', async () => {
+      await fillAllSteps();
+      fixture.detectChanges();
+
+      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      await step6Harness.clickChangeButton(1);
+
+      fixture.detectChanges();
+      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      expect(await step1Harness.getName()).toEqual('API name');
+      expect(await step1Harness.getVersion()).toEqual('1.0');
+      expect(await step1Harness.getDescription()).toEqual('description');
+    });
+
+    it('should go back to step 2 after clicking Change button', async () => {
+      await fillAllSteps();
+      fixture.detectChanges();
+
+      let step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      await step6Harness.clickChangeButton(2);
+      fixture.detectChanges();
+
+      const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      expectEntrypointsGetRequest([
+        { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
+        { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+      ]);
+
+      expect(await step2Harness.getEntrypointsList({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
+      await step2Harness.deselectEntrypointById('entrypoint-1');
+      fixture.detectChanges();
+
+      await step2Harness.clickValidate();
+      fixture.detectChanges();
+
+      // Reinitialize step6Harness after step2 validation
+      step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step2Summary = await step6Harness.getStepSummaryTextContent(2);
+
+      expect(step2Summary).toContain('Entrypoints:' + 'new entrypoint');
+    });
   });
 
-  function expectEntrypointsGetRequest(connectors: ConnectorListItem[]) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(connectors);
+  function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+    const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
+
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
   }
 
   async function fillStepOneAndValidate(name = 'API name', version = '1.0', description = 'description') {
@@ -213,12 +257,12 @@ describe('ApiCreationV4Component', () => {
 
   async function fillStepTwoAndValidate(
     entrypoints: Partial<ConnectorListItem>[] = [
-      { id: 'entrypoint-1', name: 'initial entrypoint' },
-      { id: 'entrypoint-2', name: 'new entrypoint' },
+      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
+      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
   ) {
     const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
-    expectEntrypointsGetRequest(entrypoints.map((entrypoint) => fakeConnectorListItem({ ...entrypoint, supportedApiType: 'async' })));
+    expectEntrypointsGetRequest(entrypoints);
     await step2Harness.fillStep(entrypoints.map((entrypoint) => entrypoint.id));
     await step2Harness.clickValidate();
   }

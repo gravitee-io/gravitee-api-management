@@ -15,9 +15,7 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { MatDialog } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { kebabCase } from 'lodash';
 
@@ -40,7 +38,6 @@ export class ApiCreationV4Step6Component implements OnInit {
 
   constructor(
     private readonly stepService: ApiCreationStepService,
-    private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private readonly apiV4Service: ApiV4Service,
   ) {}
@@ -91,20 +88,8 @@ export class ApiCreationV4Step6Component implements OnInit {
   }
 
   onChangeStepInfo(stepNumber: number) {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Change information`,
-          content: `🚧 Going back to Step ${stepNumber} is under construction 🚧`,
-          confirmButton: `Ok`,
-        },
-        role: 'alertdialog',
-        id: 'changeStepInfoDialog',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe();
+    // Change current step to step number
+    this.stepService.goToStepPosition(stepNumber);
   }
 
   getEntrypointIconName(id: string): string {
