@@ -62,7 +62,6 @@
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Entrypoints:</span>
             <div class="api-creation-v4-step-6__entrypoints">
-              <!--              TODO: Fix when all options are selected. See how description is affected-->
               <ng-container *ngFor="let entrypoint of currentStepPayload.selectedEntrypoints">
                 <span class="gio-badge-accent"
                   ><mat-icon
@@ -95,7 +94,7 @@
           </div>
         </div>
         <div>
-          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
+          <button mat-stroked-button (click)="onChangeStepInfo(3)">Change</button>
         </div>
       </div>
     </div>
@@ -105,7 +104,7 @@
       <div class="api-creation-v4-step-6__step__body">
         <div class="api-creation-v4-step-6__step__info">🚧🚧🚧</div>
         <div>
-          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
+          <button mat-stroked-button (click)="onChangeStepInfo(4)">Change</button>
         </div>
       </div>
     </div>
@@ -120,7 +119,7 @@
           </div>
         </div>
         <div>
-          <button mat-stroked-button (click)="onChangeStepInfo(1)">Change</button>
+          <button mat-stroked-button (click)="onChangeStepInfo(5)">Change</button>
         </div>
       </div>
     </div>

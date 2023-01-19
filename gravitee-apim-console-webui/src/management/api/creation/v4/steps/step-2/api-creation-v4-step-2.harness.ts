@@ -51,10 +51,17 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
     await listOption.select();
   }
 
-  async getEntrypointsList(): Promise<string[]> {
+  async deselectEntrypointById(id: string): Promise<void> {
+    const listOption = await this.getListOptionById(id);
+    await listOption.deselect();
+  }
+
+  async getEntrypointsList(filters?: { selected?: boolean }): Promise<string[]> {
     const list = await this.locatorFor(MatSelectionListHarness.with({ selector: '.gio-selection-list' }))();
 
-    const options = (await list.getItems()).map(async (option) => await (await option.host()).getAttribute('id'));
+    const options = (await list.getItems(filters?.selected ? { selected: true } : {})).map(
+      async (option) => await (await option.host()).getAttribute('id'),
+    );
 
     return Promise.all(options);
   }

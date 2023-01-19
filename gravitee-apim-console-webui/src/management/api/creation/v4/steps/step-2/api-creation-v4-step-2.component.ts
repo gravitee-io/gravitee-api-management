@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -48,6 +48,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     private readonly entrypointService: EntrypointService,
     private readonly matDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +74,8 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
           description: entrypoint.description,
           isEnterprise: entrypoint.id.endsWith('-advanced'),
         }));
+
+        this.changeDetectorRef.detectChanges();
       });
   }
 

@@ -20,13 +20,15 @@ export class ApiCreationV4Step6Harness extends ComponentHarness {
   static hostSelector = 'api-creation-v4-step-6';
 
   protected getStepById = (stepNumber: number) => this.locatorFor(`#step-${stepNumber}`);
-  protected getButtonByStepId = (stepNumber: number) => this.locatorFor(MatButtonHarness, `#step-${stepNumber} button`);
+  protected getButtonByStepId = (stepNumber: number) =>
+    this.locatorFor(MatButtonHarness.with({ selector: `#step-${stepNumber} button`, text: 'Change' }));
 
   async getStepSummaryTextContent(stepNumber: number) {
     return this.getStepById(stepNumber)().then((el) => el.text());
   }
 
-  async goBackToStep(stepNumber: number) {
-    return this.getButtonByStepId(stepNumber)().then((el) => el.click());
+  async clickChangeButton(stepNumber: number) {
+    const button: MatButtonHarness = await this.getButtonByStepId(stepNumber)();
+    await button.click();
   }
 }
