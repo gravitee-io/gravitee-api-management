@@ -83,6 +83,28 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
+    public OrganizationEntity updateOrganization(final String organizationId, final UpdateOrganizationEntity organizationEntity) {
+        try {
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
+            if (organizationOptional.isPresent()) {
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationOptional.get().getId());
+                OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
+                createPublishOrganizationEvent(updatedOrganization);
+                return updatedOrganization;
+            } else {
+                throw new OrganizationNotFoundException(organizationId);
+            }
+        } catch (TechnicalException | JsonProcessingException ex) {
+            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
+        }
+    }
+
+    @Override
     public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             try {
