@@ -132,7 +132,13 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             // Update API
             try {
                 LOGGER.debug("Updating API [{}]", latestApi.getId());
-                apiService.update(GraviteeContext.getExecutionContext(), latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi));
+                apiService.update(
+                    GraviteeContext.getExecutionContext(),
+                    latestApi.getId(),
+                    apiConverter.toUpdateApiEntity(latestApi),
+                    false,
+                    false
+                );
                 LOGGER.debug("API [{}] has been updated", latestApi.getId());
 
                 // Do not deploy if there are manual changes to push

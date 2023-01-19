@@ -98,7 +98,7 @@ public class DynamicPropertyUpdaterTest {
 
         poller.handle(1L);
 
-        verify(apiService, times(1)).update(any(), any(), any());
+        verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
         verify(apiService, times(1)).deploy(any(), any(), eq("dynamic-property-updater"), any(), any());
     }
 
@@ -118,7 +118,7 @@ public class DynamicPropertyUpdaterTest {
 
         poller.handle(1L);
 
-        verify(apiService, times(1)).update(any(), any(), any());
+        verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
         verify(apiService, never()).deploy(eq(GraviteeContext.getExecutionContext()), eq("api-id"), eq(null), any(), any());
     }
 }

@@ -100,6 +100,7 @@ public interface ApiService {
 
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api);
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans);
+    ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans, boolean updatePlansAndFlows);
 
     ApiEntity updateFromSwagger(
         ExecutionContext executionContext,

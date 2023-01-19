@@ -1652,6 +1652,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity updateApiEntity, boolean checkPlans) {
+        return update(executionContext, apiId, updateApiEntity, checkPlans, true);
+    }
+
+    @Override
+    public ApiEntity update(
+        ExecutionContext executionContext,
+        String apiId,
+        UpdateApiEntity updateApiEntity,
+        boolean checkPlans,
+        boolean updatePlansAndFlows
+    ) {
         try {
             LOGGER.debug("Update API {}", apiId);
 
@@ -1816,18 +1827,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api updatedApi = apiRepository.update(api);
 
-            // update API flows
-            flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
+            if (updatePlansAndFlows) {
+                // update API flows
+                flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
 
-            // update API plans
-            updateApiEntity
-                .getPlans()
-                .forEach(
-                    plan -> {
-                        plan.setApi(api.getId());
-                        planService.createOrUpdatePlan(executionContext, plan);
-                    }
-                );
+                // update API plans
+                updateApiEntity
+                    .getPlans()
+                    .forEach(
+                        plan -> {
+                            plan.setApi(api.getId());
+                            planService.createOrUpdatePlan(executionContext, plan);
+                        }
+                    );
+            }
 
             // Audit
             auditService.createApiAuditLog(
