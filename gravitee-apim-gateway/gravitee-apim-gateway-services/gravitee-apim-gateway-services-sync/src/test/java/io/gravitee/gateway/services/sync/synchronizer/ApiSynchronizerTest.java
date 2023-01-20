@@ -31,6 +31,7 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
+import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -93,6 +94,8 @@ public class ApiSynchronizerTest {
     void setUp() {
         objectMapper = new ObjectMapper();
 
+        var eventToReactableApiAdapter = new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository);
+
         apiSynchronizer =
             new ApiSynchronizer(
                 eventRepository,
@@ -104,8 +107,7 @@ public class ApiSynchronizerTest {
                 subscriptionsCacheService,
                 subscriptionService,
                 apiManager,
-                environmentRepository,
-                organizationRepository
+                eventToReactableApiAdapter
             );
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.DEPLOY);
     }
