@@ -18,10 +18,6 @@ package io.gravitee.gateway.services.sync.synchronizer;
 import static io.gravitee.gateway.services.sync.spring.SyncConfiguration.PARALLELISM;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -29,23 +25,16 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.gateway.services.sync.synchronizer.api.PlanFetcher;
 import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.Plan;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +46,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(ApiSynchronizer.class);
 
-    private final PlanRepository planRepository;
-
     private final ApiKeysCacheService apiKeysCacheService;
 
     private final SubscriptionsCacheService subscriptionsCacheService;
@@ -67,33 +54,30 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final ApiManager apiManager;
 
-    private final ObjectMapper objectMapper;
-
     private final ExecutorService executor;
 
     private final EventToReactableApiAdapter eventToReactableApiAdapter;
+    private final PlanFetcher planFetcher;
 
     public ApiSynchronizer(
         EventRepository eventRepository,
-        ObjectMapper objectMapper,
         ExecutorService executor,
         int bulkItems,
-        PlanRepository planRepository,
         ApiKeysCacheService apiKeysCacheService,
         SubscriptionsCacheService subscriptionsCacheService,
         SubscriptionService subscriptionService,
         ApiManager apiManager,
-        EventToReactableApiAdapter eventToReactableApiAdapter
+        EventToReactableApiAdapter eventToReactableApiAdapter,
+        PlanFetcher planFetcher
     ) {
         super(eventRepository, bulkItems);
-        this.planRepository = planRepository;
         this.apiKeysCacheService = apiKeysCacheService;
         this.subscriptionsCacheService = subscriptionsCacheService;
         this.subscriptionService = subscriptionService;
         this.apiManager = apiManager;
         this.executor = executor;
-        this.objectMapper = objectMapper;
         this.eventToReactableApiAdapter = eventToReactableApiAdapter;
+        this.planFetcher = planFetcher;
     }
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
@@ -173,7 +157,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             .flatMap(groupedFlowable -> {
                 if (groupedFlowable.getKey() == ActionOnApi.DEPLOY) {
                     return groupedFlowable
-                        .compose(this::fetchApiPlans)
+                        .compose(g -> planFetcher.fetchApiPlans(g, getBulkSize()))
                         .compose(this::fetchKeysAndSubscriptions)
                         .compose(this::registerApi)
                         .compose(this::dispatchSubscriptionsForApis);
@@ -269,97 +253,5 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 subscriptionService.dispatchFor(apis);
             })
             .flatMapIterable(apis -> apis);
-    }
-
-    /**
-     * Allows to start fetching plans in a bulk fashion way.
-     * @param upstream the api upstream which will be chunked into packs of 50 in order to fetch plan v1.
-     * @return he same flow of apis.
-     */
-    @NonNull
-    private Flowable<ReactableApi<?>> fetchApiPlans(Flowable<ReactableApi<?>> upstream) {
-        return upstream
-            .groupBy(ReactableApi::getDefinitionVersion)
-            .flatMap(apisByDefinitionVersion -> {
-                if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
-                    return apisByDefinitionVersion.buffer(getBulkSize()).flatMap(this::fetchV1ApiPlans);
-                } else {
-                    return apisByDefinitionVersion;
-                }
-            });
-    }
-
-    private Flowable<ReactableApi<?>> fetchV1ApiPlans(List<ReactableApi<?>> apiDefinitions) {
-        final Map<String, io.gravitee.gateway.handlers.api.definition.Api> apisById = apiDefinitions
-            .stream()
-            .map(reactableApi -> (io.gravitee.gateway.handlers.api.definition.Api) reactableApi)
-            .collect(Collectors.toMap(io.gravitee.gateway.handlers.api.definition.Api::getId, api -> api));
-
-        // Get the api id to load plan only for V1 api definition.
-        final List<String> apiV1Ids = new ArrayList<>(apisById.keySet());
-
-        try {
-            final Map<String, List<Plan>> plansByApi = planRepository
-                .findByApis(apiV1Ids)
-                .stream()
-                .collect(Collectors.groupingBy(Plan::getApi));
-
-            plansByApi.forEach((key, value) -> {
-                final io.gravitee.gateway.handlers.api.definition.Api api = apisById.get(key);
-
-                if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-                    // Deploy only published plan
-                    api
-                        .getDefinition()
-                        .setPlans(
-                            value
-                                .stream()
-                                .filter(plan ->
-                                    Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
-                                )
-                                .map(this::convert)
-                                .collect(Collectors.toList())
-                        );
-                }
-            });
-        } catch (TechnicalException te) {
-            logger.error("Unexpected error while loading plans of APIs: [{}]", apiV1Ids, te);
-        }
-
-        return Flowable.fromIterable(apiDefinitions);
-    }
-
-    private io.gravitee.definition.model.Plan convert(Plan repoPlan) {
-        io.gravitee.definition.model.Plan plan = new io.gravitee.definition.model.Plan();
-
-        plan.setId(repoPlan.getId());
-        plan.setName(repoPlan.getName());
-        plan.setSecurityDefinition(repoPlan.getSecurityDefinition());
-        plan.setSelectionRule(repoPlan.getSelectionRule());
-        plan.setTags(repoPlan.getTags());
-        plan.setStatus(repoPlan.getStatus().name());
-        plan.setApi(repoPlan.getApi());
-
-        if (repoPlan.getSecurity() != null) {
-            plan.setSecurity(repoPlan.getSecurity().name());
-        } else {
-            // TODO: must be handle by a migration script
-            plan.setSecurity("api_key");
-        }
-
-        try {
-            if (repoPlan.getDefinition() != null && !repoPlan.getDefinition().trim().isEmpty()) {
-                HashMap<String, List<Rule>> paths = objectMapper.readValue(
-                    repoPlan.getDefinition(),
-                    new TypeReference<HashMap<String, List<Rule>>>() {}
-                );
-
-                plan.setPaths(paths);
-            }
-        } catch (IOException ioe) {
-            logger.error("Unexpected error while converting plan: {}", plan, ioe);
-        }
-
-        return plan;
     }
 }
