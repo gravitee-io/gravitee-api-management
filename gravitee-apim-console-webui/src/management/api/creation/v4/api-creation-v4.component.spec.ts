@@ -32,6 +32,7 @@ import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ConnectorListItem } from '../../../../entities/connector/connector-list-item';
 import { fakeConnectorListItem } from '../../../../entities/connector/connector-list-item.fixture';
+import { fakeApiEntity } from '../../../../entities/api-v4';
 
 describe('ApiCreationV4Component', () => {
   const fakeAjsState = {
@@ -240,6 +241,26 @@ describe('ApiCreationV4Component', () => {
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
       expect(step2Summary).toContain('Entrypoints:' + 'new entrypoint');
+    });
+
+    it('should go to confirmation page after clicking Create my API', async () => {
+      await fillAllSteps();
+      fixture.detectChanges();
+
+      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      await step6Harness.clickCreateMyApiButton();
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+
+      // Todo: complete with all the expected fields
+      expect(req.request.body).toEqual(
+        expect.objectContaining({
+          name: 'API name',
+        }),
+      );
+      req.flush(fakeApiEntity({ id: 'api-id' }));
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: 'api-id' });
     });
   });
 

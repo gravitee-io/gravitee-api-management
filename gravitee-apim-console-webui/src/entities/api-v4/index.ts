@@ -22,4 +22,6 @@ export * from './Flow';
 export * from './FlowMode';
 export * from './Listener';
 export * from './NewApiEntity';
+export * from './NewApiEntity.fixture';
 export * from './ApiEntity';
+export * from './ApiEntity.fixture';

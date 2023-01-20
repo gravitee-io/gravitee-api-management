@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
 import { kebabCase } from 'lodash';
+import { StateService } from '@uirouter/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiV4Service } from '../../../../../../services-ngx/api-v4.service';
@@ -25,6 +26,7 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 import { fakeNewApiEntity } from '../../../../../../entities/api-v4/NewApiEntity.fixture';
 import { HttpListener } from '../../../../../../entities/api-v4';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-creation-v4-step-6',
@@ -40,6 +42,7 @@ export class ApiCreationV4Step6Component implements OnInit {
     private readonly stepService: ApiCreationStepService,
     private readonly snackBarService: SnackBarService,
     private readonly apiV4Service: ApiV4Service,
+    @Inject(UIRouterState) readonly ajsState: StateService,
   ) {}
 
   ngOnInit(): void {
@@ -71,8 +74,9 @@ export class ApiCreationV4Step6Component implements OnInit {
           (api) => {
             // eslint-disable-next-line
             console.info('API created successfully', api);
-            // TODO: add redirection when api details page work with v4
+
             this.snackBarService.success('API created successfully!');
+            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
           },
           catchError((err) => {
             this.snackBarService.error(err.error?.message ?? 'An error occurred while created the API.');

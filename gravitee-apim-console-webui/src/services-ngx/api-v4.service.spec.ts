@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiV4Service } from './api-v4.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeNewApiEntity } from '../entities/api-v4/NewApiEntity.fixture';
+import { fakeApiEntity, fakeNewApiEntity } from '../entities/api-v4';
 
 describe('ApiV4Service', () => {
   let httpTestingController: HttpTestingController;
@@ -42,7 +42,8 @@ describe('ApiV4Service', () => {
     it('should call the API', (done) => {
       const newApiEntity = fakeNewApiEntity();
 
-      apiV4Service.create(newApiEntity).subscribe(() => {
+      apiV4Service.create(newApiEntity).subscribe((api) => {
+        expect(api.name).toEqual(newApiEntity.name);
         done();
       });
 
@@ -51,7 +52,7 @@ describe('ApiV4Service', () => {
         method: 'POST',
       });
 
-      req.flush(newApiEntity);
+      req.flush(fakeApiEntity());
     });
   });
 });
