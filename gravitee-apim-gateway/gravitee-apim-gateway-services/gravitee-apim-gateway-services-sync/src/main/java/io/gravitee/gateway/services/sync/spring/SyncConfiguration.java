@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfigura
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService;
 import io.gravitee.gateway.services.sync.synchronizer.*;
+import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -97,18 +98,26 @@ public class SyncConfiguration {
     }
 
     @Bean
+    public EventToReactableApiAdapter eventToReactableApiAdapter(
+        ObjectMapper objectMapper,
+        EnvironmentRepository environmentRepository,
+        OrganizationRepository organizationRepository
+    ) {
+        return new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository);
+    }
+
+    @Bean
     public ApiSynchronizer apiSynchronizer(
         ObjectMapper objectMapper,
         @Qualifier("syncExecutor") ExecutorService executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository,
         PlanRepository planRepository,
-        EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository,
         ApiKeysCacheService apiKeysCacheService,
         SubscriptionsCacheService subscriptionsCacheService,
         SubscriptionService subscriptionService,
-        ApiManager apiManager
+        ApiManager apiManager,
+        EventToReactableApiAdapter eventToReactableApiAdapter
     ) {
         return new ApiSynchronizer(
             eventRepository,
@@ -120,8 +129,7 @@ public class SyncConfiguration {
             subscriptionsCacheService,
             subscriptionService,
             apiManager,
-            environmentRepository,
-            organizationRepository
+            eventToReactableApiAdapter
         );
     }
 
