@@ -1139,7 +1139,7 @@ jobs:
                   steps:
                       - slack/notify:
                             channel: C02NGT20S4W
-                            event: always
+                            event: pass
                             custom: |
                                 {
                                   "blocks": [
@@ -1290,7 +1290,7 @@ jobs:
                                 echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
                       - slack/notify:
                             channel: C02NGT20S4W
-                            event: always
+                            event: pass
                             custom: |
                                 {
                                   "blocks": [
