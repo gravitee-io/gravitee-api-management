@@ -23,12 +23,25 @@ export class ApiCreationV4Step6Harness extends ComponentHarness {
   protected getButtonByStepId = (stepNumber: number) =>
     this.locatorFor(MatButtonHarness.with({ selector: `#step-${stepNumber} button`, text: 'Change' }));
 
+  protected getButtonCreateMyApi = this.locatorFor(MatButtonHarness.with({ text: /Create my API/ }));
+  protected getButtonDeployMyApi = this.locatorFor(MatButtonHarness.with({ text: /Deploy my API/ }));
+
   async getStepSummaryTextContent(stepNumber: number) {
     return this.getStepById(stepNumber)().then((el) => el.text());
   }
 
   async clickChangeButton(stepNumber: number) {
     const button: MatButtonHarness = await this.getButtonByStepId(stepNumber)();
+    await button.click();
+  }
+
+  async clickCreateMyApiButton(): Promise<void> {
+    const button: MatButtonHarness = await this.getButtonCreateMyApi();
+    await button.click();
+  }
+
+  async clickDeployMyApiButton(): Promise<void> {
+    const button: MatButtonHarness = await this.getButtonDeployMyApi();
     await button.click();
   }
 }

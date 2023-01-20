@@ -24,11 +24,11 @@ export interface ApiEntity {
   name: string;
   apiVersion: string;
   type: ApiType;
-  deployedAt: string;
   createdAt: string;
   updatedAt: string;
   definitionVersion: '4.0.0';
 
+  deployedAt?: string;
   crossId?: string;
   description?: string;
   tags?: string[];
