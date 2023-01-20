@@ -105,20 +105,24 @@ public class EventToReactableApiAdapter {
                     environmentId,
                     envId -> {
                         try {
-                            final Environment environment = environmentRepository.findById(envId).get();
+                            var environment = environmentRepository.findById(envId);
 
-                            organizationMap.computeIfAbsent(
-                                environment.getOrganizationId(),
-                                orgId -> {
-                                    try {
-                                        return organizationRepository.findById(orgId).get();
-                                    } catch (Exception e) {
-                                        return null;
+                            if (environment.isPresent()) {
+                                organizationMap.computeIfAbsent(
+                                    environment.get().getOrganizationId(),
+                                    orgId -> {
+                                        try {
+                                            return organizationRepository.findById(orgId).orElse(null);
+                                        } catch (Exception e) {
+                                            return null;
+                                        }
                                     }
-                                }
-                            );
+                                );
 
-                            return environment;
+                                return environment.get();
+                            }
+
+                            return null;
                         } catch (Exception e) {
                             logger.warn("An error occurred fetching the environment {} and its organization.", envId, e);
                             return null;

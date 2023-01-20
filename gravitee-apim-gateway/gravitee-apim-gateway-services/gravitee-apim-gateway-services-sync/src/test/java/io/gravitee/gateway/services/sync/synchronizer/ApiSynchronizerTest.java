@@ -17,9 +17,11 @@ package io.gravitee.gateway.services.sync.synchronizer;
 
 import static io.gravitee.definition.model.ApiBuilder.anApiV1;
 import static io.gravitee.definition.model.ApiBuilder.anApiV2;
-import static java.util.Arrays.asList;
+import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELAY;
+import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,7 +31,6 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
@@ -39,16 +40,21 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -60,9 +66,10 @@ import org.mockito.stubbing.Answer;
 @ExtendWith(MockitoExtension.class)
 public class ApiSynchronizerTest {
 
-    static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
+    private static final Integer BULK_SIZE = 5;
+    private static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
     private static final String ENVIRONMENT_ID = "env#1";
-    private static final String ORGANIZATION_ID = "orga#1";
+    private static final String ORGANIZATION_ID = "org#1";
     private static final String ENVIRONMENT_HRID = "default-env";
     private static final String ORGANIZATION_HRID = "default-org";
     private static final String API_ID = "api-test";
@@ -106,7 +113,7 @@ public class ApiSynchronizerTest {
             new ApiSynchronizer(
                 eventRepository,
                 Executors.newFixedThreadPool(1),
-                100,
+                BULK_SIZE,
                 apiKeysCacheService,
                 subscriptionsCacheService,
                 subscriptionService,
@@ -117,575 +124,374 @@ public class ApiSynchronizerTest {
         lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.DEPLOY);
     }
 
-    @Test
-    void initialSynchronize() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
-
-        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-
-        verify(apiManager).register(apiCaptor.capture());
-
-        Api verifyApi = apiCaptor.getValue();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-            softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-            softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-            softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
-        });
-
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+    @AfterEach
+    void tearDown() {
+        reset(eventRepository, environmentRepository, organizationRepository);
     }
 
-    @Test
-    void initialSynchronizeWithNoEnvironment() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
+    @Nested
+    class InitialSynchronization {
 
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
-
-        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-
-        verify(apiManager).register(apiCaptor.capture());
-
-        Api verifyApi = apiCaptor.getValue();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-            softly.assertThat(verifyApi.getEnvironmentId()).isNull();
-            softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-            softly.assertThat(verifyApi.getOrganizationId()).isNull();
-            softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-        });
-
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService)
-            .register(
-                argThat(
-                    (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
-                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(apiDefinition))
-                )
-            );
-        verify(subscriptionsCacheService)
-            .register(
-                argThat(
-                    (ArgumentMatcher<List<ReactableApi<?>>>) reactableApis ->
-                        reactableApis.size() == 1 && reactableApis.get(0).equals(new Api(apiDefinition))
-                )
-            );
-    }
-
-    @Test
-    void initialSynchronize_withEnvironmentAndOrganization_withoutHrId_shouldSetHrIdToNull() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        mockEnvironmentAndOrganizationWithoutHrIds();
-
-        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
-
-        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-
-        verify(apiManager).register(apiCaptor.capture());
-
-        Api verifyApi = apiCaptor.getValue();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-            softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-            softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-            softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-        });
-    }
-
-    @Test
-    void initialSynchronizeWithNoOrganization() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        final Environment environment = new Environment();
-        environment.setId(ENVIRONMENT_ID);
-        environment.setOrganizationId(ORGANIZATION_ID);
-        environment.setHrids(List.of(ENVIRONMENT_HRID));
-        when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
-        when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.empty());
-
-        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
-
-        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-
-        verify(apiManager).register(apiCaptor.capture());
-
-        Api verifyApi = apiCaptor.getValue();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-            softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-            softly.assertThat(verifyApi.getOrganizationId()).isNull();
-            softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-        });
-
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-    }
-
-    @Test
-    void publishWithDefinitionV2() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager).register(new Api(apiDefinition));
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-    }
-
-    @Test
-    void publishWithDefinitionV1() throws Exception {
-        var apiDefinition = anApiV1().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        plansFor(List.of(apiDefinition.getId()));
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
-        verify(apiManager).register(apiCaptor.capture());
-        Api verifyApi = apiCaptor.getValue();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-            softly.assertThat(verifyApi.getDefinition().getPlan("plan-" + apiDefinition.getId()).getApi()).isEqualTo(apiDefinition.getId());
-        });
-
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, times(1)).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
-    }
-
-    @Test
-    void publishWithPagination() throws Exception {
-        var apiDefinition1 = anApiV2().id(API_ID).build();
-        var apiDefinition2 = anApiV2().id("api2-test").build();
-
-        // Force bulk size to 1.
-        apiSynchronizer.bulkItems = 1;
-
-        final Event mockEvent = anEvent(apiDefinition1, EventType.PUBLISH_API);
-        final Event mockEvent2 = anEvent(apiDefinition2, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(1L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent2));
-
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager, times(1)).register(new Api(apiDefinition1));
-        verify(apiManager, times(1)).register(new Api(apiDefinition2));
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition1)));
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition2)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition1)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition2)));
-    }
-
-    @Test
-    void publishWithPaginationAndDefinitionV1AndV2() throws Exception {
-        var apiDefinition1 = anApiV1().id(API_ID).build();
-        var apiDefinition2 = anApiV2().id("api2-test").build();
-
-        // Force bulk size to 1.
-        apiSynchronizer.bulkItems = 1;
-
-        final Event mockEvent = anEvent(apiDefinition1, EventType.PUBLISH_API);
-        final Event mockEvent2 = anEvent(apiDefinition2, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(1L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent2));
-
-        plansFor(List.of(apiDefinition1.getId()));
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager, times(1)).register(new Api(apiDefinition1));
-        verify(apiManager, times(1)).register(new Api(apiDefinition2));
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, times(1)).findByApis(singletonList(apiDefinition1.getId()));
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition1)));
-        verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition2)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition1)));
-        verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition2)));
-    }
-
-    @Test
-    void unpublish() throws Exception {
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.UNPUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager, never()).register(new Api(apiDefinition));
-        verify(apiManager).unregister(apiDefinition.getId());
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
-    }
-
-    @Test
-    void unpublishWithPagination() throws Exception {
-        var apiDefinition1 = anApiV1().id(API_ID).build();
-        var apiDefinition2 = anApiV2().id("api2-test").build();
-
-        // Force bulk size to 1.
-        apiSynchronizer.bulkItems = 1;
-
-        final Event mockEvent = anEvent(apiDefinition1, EventType.UNPUBLISH_API);
-        final Event mockEvent2 = anEvent(apiDefinition2, EventType.UNPUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(1L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent2));
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager, never()).register(new Api(apiDefinition1));
-        verify(apiManager).unregister(apiDefinition1.getId());
-        verify(apiManager).unregister(apiDefinition2.getId());
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition1)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition1)));
-    }
-
-    @Test
-    void synchronizeWithLotOfApiEvents() throws Exception {
-        long page = 0;
-        List<String> v1ApiIds = new ArrayList<>(500);
-        List<Event> eventAccumulator = new ArrayList<>(100);
-
-        for (int i = 1; i <= 500; i++) {
-            var apiDefinition = anApiV1().id("api" + i + "-test").build();
-            v1ApiIds.add(apiDefinition.getId());
-
-            if (i % 2 == 0) {
-                eventAccumulator.add(anEvent(apiDefinition, EventType.START_API));
-            } else {
-                eventAccumulator.add(anEvent(apiDefinition, EventType.STOP_API));
-            }
-
-            if (i % 100 == 0) {
-                when(
-                    eventRepository.searchLatest(
-                        argThat(criteria ->
-                            criteria != null &&
-                            criteria
-                                .getTypes()
-                                .containsAll(
-                                    asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)
-                                ) &&
-                            criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                        ),
-                        eq(Event.EventProperties.API_ID),
-                        eq(page),
-                        eq(100L)
+        @Test
+        void should_fetch_only_api_register_events() throws Exception {
+            // 6 events to return in 2 calls because the bulkSize is 5
+            when(eventRepository.searchLatest(any(), any(), anyLong(), anyLong()))
+                .thenReturn(
+                    List.of(
+                        anEvent(anApiV2().id("api-1").build(), EventType.PUBLISH_API),
+                        anEvent(anApiV2().id("api-2").build(), EventType.START_API),
+                        anEvent(anApiV2().id("api-3").build(), EventType.PUBLISH_API),
+                        anEvent(anApiV2().id("api-4").build(), EventType.START_API),
+                        anEvent(anApiV2().id("api-5").build(), EventType.PUBLISH_API)
                     )
                 )
-                    .thenReturn(eventAccumulator);
+                .thenReturn(List.of(anEvent(anApiV2().id("api-6").build(), EventType.START_API)));
 
-                page++;
-                eventAccumulator = new ArrayList<>();
-            }
+            var nextLastRefresh = System.currentTimeMillis();
+
+            apiSynchronizer.synchronize(-1L, nextLastRefresh, ENVIRONMENTS);
+
+            var criteriaCaptor = ArgumentCaptor.forClass(EventCriteria.class);
+            var eventPropertiesCaptor = ArgumentCaptor.forClass(Event.EventProperties.class);
+            var pageCaptor = ArgumentCaptor.forClass(Long.class);
+            var pageSizeCaptor = ArgumentCaptor.forClass(Long.class);
+            verify(eventRepository, times(2))
+                .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
+
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    var criteria = criteriaCaptor.getValue();
+                    softly.assertThat(criteria.getTypes()).containsAll(List.of(EventType.PUBLISH_API, EventType.START_API));
+                    softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
+                    softly.assertThat(criteria.isStrictMode()).isTrue();
+                    softly.assertThat(criteria.getFrom()).isZero();
+                    softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
+
+                    softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
+                    softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
+                    softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
+                }
+            );
         }
-        plansFor(v1ApiIds);
-        mockEnvironmentAndOrganization();
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(planRepository, times(3)).findByApis(anyList());
-        verify(apiKeysCacheService, times(3)).register(anyList());
-        verify(subscriptionsCacheService, times(3)).register(anyList());
-        verify(apiManager, times(250)).register(any(Api.class));
-        verify(apiManager, times(250)).unregister(anyString());
-
-        // Check that only one call to env and org repositories have been made, others should hit the cache.
-        verify(environmentRepository, times(1)).findById(ENVIRONMENT_ID);
-        verify(organizationRepository, times(1)).findById(ORGANIZATION_ID);
     }
 
-    @Test
-    void shouldNotDeployWhichDoesntRequireRedeployment() throws Exception {
-        lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
+    @Nested
+    class IncrementalSynchronization {
 
-        var apiDefinition = anApiV2().id(API_ID).build();
+        @Test
+        void should_fetch_api_register_and_unregister_events() throws Exception {
+            // 6 events to return in 2 calls because the bulkSize is 5
+            when(eventRepository.searchLatest(any(), any(), anyLong(), anyLong()))
+                .thenReturn(
+                    List.of(
+                        anEvent(anApiV2().id(API_ID).build(), EventType.PUBLISH_API),
+                        anEvent(anApiV2().id(API_ID).build(), EventType.START_API),
+                        anEvent(anApiV2().id(API_ID).build(), EventType.UNPUBLISH_API),
+                        anEvent(anApiV2().id(API_ID).build(), EventType.UNPUBLISH_API),
+                        anEvent(anApiV2().id(API_ID).build(), EventType.STOP_API)
+                    )
+                )
+                .thenReturn(List.of(anEvent(anApiV2().id(API_ID).build(), EventType.STOP_API)));
 
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
+            var lastRefreshAt = System.currentTimeMillis() - 5000;
+            var nextLastRefresh = System.currentTimeMillis();
+            apiSynchronizer.synchronize(lastRefreshAt, nextLastRefresh, ENVIRONMENTS);
 
-        mockEnvironmentAndOrganization();
+            var criteriaCaptor = ArgumentCaptor.forClass(EventCriteria.class);
+            var eventPropertiesCaptor = ArgumentCaptor.forClass(Event.EventProperties.class);
+            var pageCaptor = ArgumentCaptor.forClass(Long.class);
+            var pageSizeCaptor = ArgumentCaptor.forClass(Long.class);
+            verify(eventRepository, times(2))
+                .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
 
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    var criteria = criteriaCaptor.getValue();
+                    softly
+                        .assertThat(criteria.getTypes())
+                        .containsAll(List.of(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API));
+                    softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
+                    softly.assertThat(criteria.isStrictMode()).isTrue();
+                    softly.assertThat(criteria.getFrom()).isEqualTo(lastRefreshAt - TIMEFRAME_BEFORE_DELAY);
+                    softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
 
-        verify(apiManager, never()).register(new Api(apiDefinition));
-        verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
+                    softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
+                    softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
+                    softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
+                }
+            );
+        }
     }
 
-    @Test
-    void shouldUnDeployWhichDoesRequireUndeployment() throws Exception {
-        lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
+    static class ApiRegisterEventsProcessingProvider implements ArgumentsProvider {
 
-        var apiDefinition = anApiV2().id(API_ID).build();
-
-        final Event mockEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(criteria ->
-                    criteria != null &&
-                    criteria
-                        .getTypes()
-                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                ),
-                eq(Event.EventProperties.API_ID),
-                anyLong(),
-                anyLong()
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        mockEnvironmentAndOrganization();
-
-        apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(apiManager, never()).register(new Api(apiDefinition));
-        verify(apiManager, times(1)).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
-        verify(apiKeysCacheService, never()).register(singletonList(new Api(apiDefinition)));
-        verify(subscriptionsCacheService, never()).register(singletonList(new Api(apiDefinition)));
+        @Override
+        public Stream<Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                arguments(Named.named("initial synchronization", true)),
+                arguments(Named.named("incremental synchronization", false))
+            );
+        }
     }
 
-    private Event anEvent(final io.gravitee.definition.model.Api apiDefinition, EventType eventType) throws Exception {
+    @Nested
+    class ApiRegisterEventsProcessing {
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_process_api_register_events(Boolean initialSync) throws Exception {
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+            givenAnOrganizationWithHrid();
+            givenAnEnvironmentWithHrid();
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(apiManager).register(apiCaptor.capture());
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+                }
+            );
+
+            verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_process_api_register_events_with_environment_and_organization_without_hrid(Boolean initialSync) throws Exception {
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+            givenAnOrganizationWithoutHrid();
+            givenAnEnvironmentWithoutHrid();
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(apiManager).register(apiCaptor.capture());
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                }
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_register_an_api_with_no_environment(Boolean initialSync) throws Exception {
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(apiManager).register(apiCaptor.capture());
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                }
+            );
+
+            verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_register_an_api_with_no_organization(Boolean initialSync) throws Exception {
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+            givenAnEnvironmentWithHrid();
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(apiManager).register(apiCaptor.capture());
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                }
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_do_nothing_when_api_has_not_changed(Boolean initialSync) throws Exception {
+            lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.NONE);
+
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            verify(apiManager, never()).register(any());
+            verify(apiManager, never()).unregister(any());
+            verify(apiKeysCacheService, never()).register(anyList());
+            verify(subscriptionsCacheService, never()).register(anyList());
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_undeploy_when_new_configuration_require(Boolean initialSync) throws Exception {
+            lenient().when(apiManager.requiredActionFor(any())).thenReturn(ActionOnApi.UNDEPLOY);
+
+            var apiDefinition = anApiV2().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenEvents(List.of(publishEvent));
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            verify(apiManager, never()).register(any());
+            verify(apiManager).unregister(apiDefinition.getId());
+            verify(apiKeysCacheService, never()).register(anyList());
+            verify(subscriptionsCacheService, never()).register(anyList());
+        }
+    }
+
+    @Nested
+    class ApiUnregisterEventsProcessing {
+
+        @Test
+        void should_process_api_unregister_events() throws Exception {
+            var apiDefinition1 = anApiV2().id("api1").build();
+            var apiDefinition2 = anApiV2().id("api2").build();
+
+            givenEvents(List.of(anEvent(apiDefinition1, EventType.UNPUBLISH_API), anEvent(apiDefinition2, EventType.STOP_API)));
+
+            apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
+
+            verify(apiManager).unregister("api1");
+            verify(apiManager).unregister("api2");
+        }
+    }
+
+    @Nested
+    class ApiV1Support {
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_process_api_register_events_for_v1_by_loading_plans_from_repository(Boolean initialSync) throws Exception {
+            var apiDefinition = anApiV1().id(API_ID).build();
+            final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+            givenPlansFor(List.of(apiDefinition.getId()));
+            givenEvents(List.of(publishEvent));
+            givenAnOrganizationWithHrid();
+            givenAnEnvironmentWithHrid();
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(apiManager).register(apiCaptor.capture());
+            SoftAssertions.assertSoftly(
+                softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+
+                    var plan = verifyApi.getDefinition().getPlan("plan-" + apiDefinition.getId());
+                    softly.assertThat(plan.getApi()).isEqualTo(apiDefinition.getId());
+                    softly.assertThat(plan.getStatus()).isEqualTo("PUBLISHED");
+                    softly.assertThat(plan.getPaths()).isNotEmpty();
+                }
+            );
+
+            verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
+            verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+        void should_optimize_calls_to_handle_lots_of_events(Boolean initialSync) throws Exception {
+            long page = 0;
+            var bulkSize = 100;
+            List<String> v1ApiIds = new ArrayList<>(500);
+            List<Event> eventAccumulator = new ArrayList<>(100);
+
+            apiSynchronizer.bulkItems = bulkSize;
+            for (int i = 1; i <= 500; i++) {
+                var apiDefinition = anApiV1().id("api" + i + "-test").build();
+                v1ApiIds.add(apiDefinition.getId());
+
+                eventAccumulator.add(anEvent(apiDefinition, EventType.START_API));
+
+                if (i % bulkSize == 0) {
+                    when(
+                        eventRepository.searchLatest(
+                            any(EventCriteria.class),
+                            eq(Event.EventProperties.API_ID),
+                            eq(page),
+                            eq((long) bulkSize)
+                        )
+                    )
+                        .thenReturn(eventAccumulator);
+
+                    page++;
+                    eventAccumulator = new ArrayList<>();
+                }
+            }
+            givenAnEnvironmentWithHrid();
+            givenAnOrganizationWithHrid();
+            givenPlansFor(v1ApiIds);
+
+            long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+            apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+            // register all apis
+            verify(apiManager, times(500)).register(any(Api.class));
+
+            // Fetch plans and register subscriptions only once by page
+            verify(planRepository, times(5)).findByApis(anyList());
+            verify(apiKeysCacheService, times(5)).register(anyList());
+            verify(subscriptionsCacheService, times(5)).register(anyList());
+
+            // Check that only one call to env and org repositories have been made, others should hit the cache.
+            verify(environmentRepository, times(1)).findById(ENVIRONMENT_ID);
+            verify(organizationRepository, times(1)).findById(ORGANIZATION_ID);
+        }
+    }
+
+    Event anEvent(final io.gravitee.definition.model.Api apiDefinition, EventType eventType) throws Exception {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
 
@@ -709,21 +515,23 @@ public class ApiSynchronizerTest {
         return event;
     }
 
-    private void plansFor(List<String> apiIds) throws Exception {
+    private void givenPlansFor(List<String> apiIds) throws Exception {
         var plans = apiIds
             .stream()
-            .map(id -> {
-                try {
-                    final Plan plan = new Plan();
-                    plan.setId("plan-" + id);
-                    plan.setApi(id);
-                    plan.setStatus(Plan.Status.PUBLISHED);
-                    plan.setDefinition(objectMapper.writeValueAsString(Map.of("/", List.of(new Rule()))));
-                    return plan;
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
+            .map(
+                id -> {
+                    try {
+                        final Plan plan = new Plan();
+                        plan.setId("plan-" + id);
+                        plan.setApi(id);
+                        plan.setStatus(Plan.Status.PUBLISHED);
+                        plan.setDefinition(objectMapper.writeValueAsString(Map.of("/", List.of(new Rule()))));
+                        return plan;
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            })
+            )
             .collect(Collectors.toList());
 
         when(planRepository.findByApis(anyList()))
@@ -736,24 +544,38 @@ public class ApiSynchronizerTest {
             );
     }
 
-    private void mockEnvironmentAndOrganizationWithoutHrIds() throws io.gravitee.repository.exceptions.TechnicalException {
-        mockEnvironmentAndOrganization(List.of(), List.of());
+    void givenEvents(List<Event> events) {
+        when(eventRepository.searchLatest(any(EventCriteria.class), eq(Event.EventProperties.API_ID), anyLong(), anyLong()))
+            .thenReturn(events);
     }
 
-    private void mockEnvironmentAndOrganization() throws io.gravitee.repository.exceptions.TechnicalException {
-        mockEnvironmentAndOrganization(List.of(ENVIRONMENT_HRID), List.of(ORGANIZATION_HRID));
+    void givenAnOrganizationWithHrid() throws Exception {
+        final Organization organization = new Organization();
+        organization.setId(ORGANIZATION_ID);
+        organization.setHrids(List.of(ApiSynchronizerTest.ORGANIZATION_HRID));
+        lenient().when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.of(organization));
     }
 
-    private void mockEnvironmentAndOrganization(List<String> envHrIds, List<String> orgHrIds)
-        throws io.gravitee.repository.exceptions.TechnicalException {
+    void givenAnOrganizationWithoutHrid() throws Exception {
+        final Organization organization = new Organization();
+        organization.setId(ORGANIZATION_ID);
+        organization.setHrids(List.of());
+        lenient().when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.of(organization));
+    }
+
+    void givenAnEnvironmentWithHrid() throws Exception {
         final Environment environment = new Environment();
         environment.setId(ENVIRONMENT_ID);
         environment.setOrganizationId(ORGANIZATION_ID);
-        environment.setHrids(envHrIds);
-        when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
-        final Organization organization = new Organization();
-        organization.setId(ORGANIZATION_ID);
-        organization.setHrids(orgHrIds);
-        when(organizationRepository.findById(ORGANIZATION_ID)).thenReturn(Optional.of(organization));
+        environment.setHrids(List.of(ApiSynchronizerTest.ENVIRONMENT_HRID));
+        lenient().when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
+    }
+
+    void givenAnEnvironmentWithoutHrid() throws Exception {
+        final Environment environment = new Environment();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        environment.setHrids(List.of());
+        lenient().when(environmentRepository.findById(ENVIRONMENT_ID)).thenReturn(Optional.of(environment));
     }
 }
