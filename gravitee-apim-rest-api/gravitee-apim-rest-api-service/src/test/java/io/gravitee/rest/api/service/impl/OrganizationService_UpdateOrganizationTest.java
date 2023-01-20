@@ -37,7 +37,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import javassist.tools.rmi.ObjectNotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
