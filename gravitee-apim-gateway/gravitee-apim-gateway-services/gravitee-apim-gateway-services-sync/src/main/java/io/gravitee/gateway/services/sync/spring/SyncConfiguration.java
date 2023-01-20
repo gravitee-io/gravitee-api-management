@@ -28,8 +28,12 @@ import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService;
-import io.gravitee.gateway.services.sync.synchronizer.*;
+import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DebugApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
+import io.gravitee.gateway.services.sync.synchronizer.api.PlanFetcher;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
@@ -98,6 +102,11 @@ public class SyncConfiguration {
     }
 
     @Bean
+    public PlanFetcher planFetcher(ObjectMapper objectMapper, PlanRepository planRepository) {
+        return new PlanFetcher(objectMapper, planRepository);
+    }
+
+    @Bean
     public EventToReactableApiAdapter eventToReactableApiAdapter(
         ObjectMapper objectMapper,
         EnvironmentRepository environmentRepository,
@@ -108,28 +117,26 @@ public class SyncConfiguration {
 
     @Bean
     public ApiSynchronizer apiSynchronizer(
-        ObjectMapper objectMapper,
         @Qualifier("syncExecutor") ExecutorService executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository,
-        PlanRepository planRepository,
         ApiKeysCacheService apiKeysCacheService,
         SubscriptionsCacheService subscriptionsCacheService,
         SubscriptionService subscriptionService,
         ApiManager apiManager,
-        EventToReactableApiAdapter eventToReactableApiAdapter
+        EventToReactableApiAdapter eventToReactableApiAdapter,
+        PlanFetcher planFetcher
     ) {
         return new ApiSynchronizer(
             eventRepository,
-            objectMapper,
             executor,
             bulkItems,
-            planRepository,
             apiKeysCacheService,
             subscriptionsCacheService,
             subscriptionService,
             apiManager,
-            eventToReactableApiAdapter
+            eventToReactableApiAdapter,
+            planFetcher
         );
     }
 
