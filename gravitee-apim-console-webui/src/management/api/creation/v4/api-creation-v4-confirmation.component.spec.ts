@@ -71,8 +71,8 @@ describe('ApiCreationV4ConfirmationComponent', () => {
   });
 
   describe('API created', () => {
-    it('should display API name', async () => {
-      const createdApi = fakeApiEntity({ id: API_ID, name: 'my brand new API' });
+    it('should display API name and created', async () => {
+      const createdApi = fakeApiEntity({ id: API_ID, name: 'my brand new API', lifecycleState: 'CREATED' });
 
       httpTestingController
         .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${createdApi.id}`, method: 'GET' })
@@ -81,6 +81,20 @@ describe('ApiCreationV4ConfirmationComponent', () => {
       const mainCard = await rootLoader.getHarness(MatCardHarness);
       const innerText = await mainCard.getText();
       expect(innerText.startsWith('my brand new API' + ' has been created')).toBeTruthy();
+    });
+  });
+
+  describe('API deployed', () => {
+    it('should display API name and deployed', async () => {
+      const createdApi = fakeApiEntity({ id: API_ID, name: 'my brand new API', lifecycleState: 'PUBLISHED' });
+
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${createdApi.id}`, method: 'GET' })
+        .flush(createdApi);
+
+      const mainCard = await rootLoader.getHarness(MatCardHarness);
+      const innerText = await mainCard.getText();
+      expect(innerText.startsWith('my brand new API' + ' has been deployed')).toBeTruthy();
     });
   });
 });

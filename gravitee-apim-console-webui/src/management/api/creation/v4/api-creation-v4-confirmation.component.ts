@@ -15,8 +15,8 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
@@ -41,7 +41,6 @@ export class ApiCreationV4ConfirmationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // call service to get item
     this.apiV4Service
       .get(this.ajsStateParams.apiId)
       .pipe(takeUntil(this.unsubscribe$))
