@@ -16,7 +16,7 @@
 
 -->
 <div class="api-creation-v4__container">
-  <api-creation-stepper [steps]="primarySteps$ | async" [currentStep]="currentStep"></api-creation-stepper>
+  <api-creation-stepper [steps]="stepper.steps$ | async" [currentStep]="currentStep"></api-creation-stepper>
   <div class="api-creation-v4__current-step">
     <ng-container *ngComponentOutlet="currentStep.component; injector: currentStep.injector"></ng-container>
   </div>

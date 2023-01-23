@@ -20,7 +20,6 @@ import { cloneDeep } from 'lodash';
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
 export interface ApiCreationStep {
-  position: number;
   label: string;
   component: Type<unknown>;
   patchPayload: (lastPayload: ApiCreationPayload) => ApiCreationPayload;

@@ -15,7 +15,7 @@
  */
 
 import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { map, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
@@ -38,38 +38,30 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   public stepper = new ApiCreationStepperService([
     {
-      position: 1,
       label: 'API Metadata',
       component: ApiCreationV4Step1Component,
     },
     {
-      position: 2,
       label: 'Entrypoints',
       component: ApiCreationV4Step2Component,
     },
     {
-      position: 3,
       label: 'Endpoints',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      position: 4,
       label: 'Security',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      position: 5,
       label: 'Document',
       component: ApiCreationV4StepWipComponent,
     },
     {
-      position: 6,
       label: 'Summary',
       component: ApiCreationV4Step6Component,
     },
   ]);
-
-  public primarySteps$ = this.stepper.steps$.pipe(map((steps) => steps.filter((step) => step.type === 'primary')));
 
   constructor(private readonly injector: Injector) {}
 

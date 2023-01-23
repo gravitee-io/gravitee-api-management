@@ -92,7 +92,6 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     this.stepService.addSecondaryStep({
       label: 'Entrypoints/Configuration',
       component: ApiCreationV4Step21Component,
-      position: 2.1,
     });
 
     this.stepService.goToNextStep((previousPayload) => ({
