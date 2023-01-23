@@ -24,6 +24,7 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.google.errorprone.annotations.DoNotMock;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.Connector;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
@@ -204,6 +205,11 @@ public class EntrypointConnectorPluginServiceImplTest {
 
         @Override
         public Set<ConnectorMode> supportedModes() {
+            return null;
+        }
+
+        @Override
+        public ListenerType supportedListenerType() {
             return null;
         }
 

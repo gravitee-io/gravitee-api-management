@@ -38,6 +38,7 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
     static final ApiType SUPPORTED_API = ApiType.EVENT_NATIVE;
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.values());
+    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
 
     private FakeEntrypointConnectorConfiguration configuration;
 
@@ -48,7 +49,7 @@ public class FakeEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public ListenerType supportedListenerType() {
-        return ListenerType.HTTP;
+        return SUPPORTED_LISTENER_TYPE;
     }
 
     @Override

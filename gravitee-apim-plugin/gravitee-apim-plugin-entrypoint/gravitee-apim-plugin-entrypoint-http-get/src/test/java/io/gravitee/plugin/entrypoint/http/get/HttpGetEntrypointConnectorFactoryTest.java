@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
@@ -48,6 +49,11 @@ class HttpGetEntrypointConnectorFactoryTest {
     @Test
     void shouldSupportQos() {
         assertThat(httpGetEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    }
+
+    @Test
+    void shouldSupportListenerType() {
+        assertThat(httpGetEntrypointConnectorFactory.supportedListenerType()).isEqualTo(ListenerType.HTTP);
     }
 
     @ParameterizedTest

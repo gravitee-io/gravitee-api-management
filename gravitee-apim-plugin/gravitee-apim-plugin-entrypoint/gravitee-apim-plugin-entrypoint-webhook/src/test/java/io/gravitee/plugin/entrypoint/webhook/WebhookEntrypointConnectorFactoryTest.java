@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
@@ -61,6 +62,11 @@ class WebhookEntrypointConnectorFactoryTest {
     @Test
     void shouldSupportQos() {
         assertThat(webhookEntrypointConnectorFactory.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    }
+
+    @Test
+    void shouldSupportListenerType() {
+        assertThat(webhookEntrypointConnectorFactory.supportedListenerType()).isEqualTo(ListenerType.SUBSCRIPTION);
     }
 
     @ParameterizedTest
