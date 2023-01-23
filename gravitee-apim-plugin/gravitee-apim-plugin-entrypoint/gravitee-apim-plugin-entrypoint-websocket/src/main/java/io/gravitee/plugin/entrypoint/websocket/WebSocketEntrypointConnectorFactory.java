@@ -18,6 +18,7 @@ package io.gravitee.plugin.entrypoint.websocket;
 import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
@@ -45,6 +46,11 @@ public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConne
     @Override
     public Set<Qos> supportedQos() {
         return SUPPORTED_QOS;
+    }
+
+    @Override
+    public ListenerType supportedListenerType() {
+        return WebSocketEntrypointConnector.SUPPORTED_LISTENER_TYPE;
     }
 
     @Override
