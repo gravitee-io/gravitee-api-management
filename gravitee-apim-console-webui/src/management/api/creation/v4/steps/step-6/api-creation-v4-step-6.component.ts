@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
 import { kebabCase } from 'lodash';
 import { StateService } from '@uirouter/core';
@@ -49,10 +49,8 @@ export class ApiCreationV4Step6Component implements OnInit {
     this.currentStepPayload = this.stepService.payload;
   }
 
-  createApi(): void {
+  createApi(deploy: boolean) {
     const apiCreationPayload = this.stepService.payload;
-    // eslint-disable-next-line
-    console.info('API Creation Payload', apiCreationPayload);
 
     this.apiV4Service
       .create(
@@ -72,13 +70,13 @@ export class ApiCreationV4Step6Component implements OnInit {
         takeUntil(this.unsubscribe$),
         tap(
           (api) => {
-            this.snackBarService.success('API created successfully!');
+            this.snackBarService.success(`API ${deploy ? 'deployed' : 'created'} successfully!`);
             this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
           },
-          catchError((err) => {
-            this.snackBarService.error(err.error?.message ?? 'An error occurred while created the API.');
+          (err) => {
+            this.snackBarService.error(err.error?.message ?? `An error occurred while ${deploy ? 'deploying' : 'creating'} the API.`);
             return EMPTY;
-          }),
+          },
         ),
       )
       .subscribe();

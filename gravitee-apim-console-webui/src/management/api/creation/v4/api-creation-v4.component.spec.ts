@@ -257,6 +257,23 @@ describe('ApiCreationV4Component', () => {
 
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: 'api-id' });
     });
+
+    it('should go to confirmation page after clicking Deploy my API', async () => {
+      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      await step6Harness.clickDeployMyApiButton();
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+
+      // Todo: complete with all the expected fields
+      expect(req.request.body).toEqual(
+        expect.objectContaining({
+          name: 'API name',
+        }),
+      );
+      req.flush(fakeApiEntity({ id: 'api-id' }));
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: 'api-id' });
+    });
   });
 
   function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
