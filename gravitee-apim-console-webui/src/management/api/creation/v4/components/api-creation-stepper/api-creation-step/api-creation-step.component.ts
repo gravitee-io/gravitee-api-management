@@ -30,8 +30,8 @@ export class ApiCreationStepComponent implements OnChanges {
   public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED';
 
   private getStepStatus() {
+    if (this.stepNumber === Math.floor(this.currentStep)) return 'ACTIVE';
     if (this.stepNumber < this.currentStep) return 'FILLED';
-    if (this.stepNumber === this.currentStep) return 'ACTIVE';
     return 'INACTIVE';
   }
 

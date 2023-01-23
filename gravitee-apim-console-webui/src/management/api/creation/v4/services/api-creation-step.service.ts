@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 
-import { ApiCreationStep, ApiCreationStepperService } from './api-creation-stepper.service';
+import { ApiCreationStep, ApiCreationStepperService, NewApiCreationStep } from './api-creation-stepper.service';
 
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
@@ -41,5 +41,9 @@ export class ApiCreationStepService {
   public goToStepPosition(stepNumber: number) {
     // Position is equal to the step index + 1
     this.stepper.goToStep(stepNumber - 1);
+  }
+
+  public addSecondaryStep(step: NewApiCreationStep): void {
+    this.stepper.addSecondaryStep(step);
   }
 }

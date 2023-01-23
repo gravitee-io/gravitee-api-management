@@ -23,6 +23,7 @@ import { map, takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { ApiCreationV4Step21Component } from '../step-2-1/api-creation-v4-step-2-1.component';
 
 type EntrypointVM = {
   id: string;
@@ -87,6 +88,12 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
   save(): void {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
     const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
+
+    this.stepService.addSecondaryStep({
+      label: 'Entrypoints/Configuration',
+      component: ApiCreationV4Step21Component,
+      position: 2.1,
+    });
 
     this.stepService.goToNextStep((previousPayload) => ({
       ...previousPayload,

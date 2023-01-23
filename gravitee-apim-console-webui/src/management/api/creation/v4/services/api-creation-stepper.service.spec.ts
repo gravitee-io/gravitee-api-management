@@ -62,23 +62,35 @@ describe('ApiCreationStepperService', () => {
     expect(currentStep.position).toEqual(2);
   });
 
+  it('should add secondary step ', () => {
+    apiCreationStepperService.addSecondaryStep({
+      position: 2.1,
+      label: 'Step 2.1',
+      component: undefined,
+    });
+  });
+
+  it('should save and go to next step(2.1)', () => {
+    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
+
+    expect(currentStep.position).toEqual(2.1);
+  });
+
   it('should save and go to next step(3)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, description: 'Step 2' }));
+    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
 
     expect(currentStep.position).toEqual(3);
   });
 
   it('should save and go to next step(4)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, version: 'Step 3' }));
+    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
 
     expect(currentStep.position).toEqual(4);
   });
 
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
-      name: 'Step 1',
-      description: 'Step 2',
-      version: 'Step 3',
+      name: 'Step 1 > Step 2 > Step 2.1 > Step 3',
       selectedEntrypoints: [{ id: '1', name: 'initial value' }],
     });
   });
@@ -98,9 +110,7 @@ describe('ApiCreationStepperService', () => {
 
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
-      name: 'Step 1 - edited',
-      description: 'Step 2',
-      version: 'Step 3',
+      name: 'Step 1 - edited > Step 2 > Step 2.1 > Step 3',
       selectedEntrypoints: [
         { id: '1', name: 'initial value' },
         { id: '2', name: 'new value' },
