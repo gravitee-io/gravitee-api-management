@@ -42,7 +42,6 @@ public class Step implements Serializable {
     @NotEmpty
     private String name;
 
-    @NotEmpty
     private String description;
 
     private boolean enabled = true;
