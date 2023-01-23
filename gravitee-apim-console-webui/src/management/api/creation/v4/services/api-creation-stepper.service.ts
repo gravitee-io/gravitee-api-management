@@ -87,23 +87,31 @@ export class ApiCreationStepperService {
     this.steps$.next(this.steps);
   }
 
-  public goToStep(index: number) {
-    if (index < 0 || index >= this.steps.length) {
-      throw new Error('Step index is out of bounds: ' + index);
-    }
-    this.currentStepIndex = index;
-    this.currentStep$.next(this.steps[this.currentStepIndex]);
-  }
-
   public goToNextStep(patchPayload: ApiCreationStep['patchPayload']) {
     // Save payload to current step & Force new object mutation for updated payload
     this.steps[this.currentStepIndex].patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
 
     // Give current payload to next step
-    this.goToStep(this.currentStepIndex + 1);
+    this.goToStepIndex(this.currentStepIndex + 1);
   }
 
   public goToPreviousStep() {
-    this.goToStep(this.currentStepIndex - 1);
+    this.goToStepIndex(this.currentStepIndex - 1);
+  }
+
+  public goToStepLabel(label: string) {
+    const stepIndex = this.steps.findIndex((step) => step.label === label);
+    if (stepIndex === -1) {
+      throw new Error('Step not found: ' + label);
+    }
+    this.goToStepIndex(stepIndex);
+  }
+
+  private goToStepIndex(index: number) {
+    if (index < 0 || index >= this.steps.length) {
+      throw new Error('Step index is out of bounds: ' + index);
+    }
+    this.currentStepIndex = index;
+    this.currentStep$.next(this.steps[this.currentStepIndex]);
   }
 }

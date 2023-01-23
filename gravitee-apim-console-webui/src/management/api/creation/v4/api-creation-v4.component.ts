@@ -87,7 +87,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       };
     });
     // Initialize stepper to step 0
-    this.stepper.goToStep(0);
+    this.stepper.goToStepLabel('API Metadata');
   }
 
   ngOnDestroy() {
