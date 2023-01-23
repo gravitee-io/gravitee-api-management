@@ -19,22 +19,18 @@ describe('ApiCreationStepperService', () => {
   const apiCreationStepperService = new ApiCreationStepperService(
     [
       {
-        position: 1,
         label: 'Step 1',
         component: undefined,
       },
       {
-        position: 2,
         label: 'Step 2',
         component: undefined,
       },
       {
-        position: 3,
         label: 'Step 3',
         component: undefined,
       },
       {
-        position: 4,
         label: 'Step 4',
         component: undefined,
       },
@@ -53,18 +49,17 @@ describe('ApiCreationStepperService', () => {
   it('should got to fist step', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
 
-    expect(currentStep.position).toEqual(1);
+    expect(currentStep.label).toEqual('Step 1');
   });
 
   it('should save and go to next step(2)', () => {
     apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
 
-    expect(currentStep.position).toEqual(2);
+    expect(currentStep.label).toEqual('Step 2');
   });
 
   it('should add secondary step ', () => {
     apiCreationStepperService.addSecondaryStep({
-      position: 2.1,
       label: 'Step 2.1',
       component: undefined,
     });
@@ -73,19 +68,19 @@ describe('ApiCreationStepperService', () => {
   it('should save and go to next step(2.1)', () => {
     apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
 
-    expect(currentStep.position).toEqual(2.1);
+    expect(currentStep.label).toEqual('Step 2.1');
   });
 
   it('should save and go to next step(3)', () => {
     apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
 
-    expect(currentStep.position).toEqual(3);
+    expect(currentStep.label).toEqual('Step 3');
   });
 
   it('should save and go to next step(4)', () => {
     apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
 
-    expect(currentStep.position).toEqual(4);
+    expect(currentStep.label).toEqual('Step 4');
   });
 
   it('should have compiled payload from step 1 2 3', () => {

@@ -40,8 +40,6 @@ export class ApiCreationV4StepWipComponent implements OnInit {
   }
 
   save() {
-    if (this.stepService.step.position !== 6) {
-      this.stepService.goToNextStep((previousPayload) => previousPayload);
-    }
+    this.stepService.goToNextStep((previousPayload) => previousPayload);
   }
 }

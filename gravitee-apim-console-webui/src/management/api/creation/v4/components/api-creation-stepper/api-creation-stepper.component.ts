@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
@@ -22,10 +22,30 @@ import { ApiCreationStep } from '../../services/api-creation-stepper.service';
   template: require('./api-creation-stepper.component.html'),
   styles: [require('./api-creation-stepper.component.scss')],
 })
-export class ApiCreationStepperComponent {
+export class ApiCreationStepperComponent implements OnChanges {
   @Input()
   public steps: ApiCreationStep[];
 
   @Input()
   public currentStep: ApiCreationStep;
+
+  public lastPrimaryStepIndex = 0;
+
+  public primarySteps: ApiCreationStep[] = [];
+
+  ngOnChanges() {
+    if (!this.steps || !this.currentStep) {
+      return;
+    }
+
+    this.primarySteps = this.steps.filter((s) => s.type === 'primary');
+
+    const currentStepIndex = this.steps.findIndex((s) => s.label === this.currentStep.label);
+
+    this.lastPrimaryStepIndex = this.steps
+      .map((step, index) => ({ index, ...step }))
+      .slice(0, currentStepIndex + 1)
+      .reverse()
+      .find((s) => s.type === 'primary').index;
+  }
 }

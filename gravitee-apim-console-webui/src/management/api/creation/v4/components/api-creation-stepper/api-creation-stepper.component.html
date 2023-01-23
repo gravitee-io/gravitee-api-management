@@ -22,8 +22,11 @@
   </div>
 
   <div class="steps">
-    <api-creation-step *ngFor="let step of steps" [stepNumber]="step.position" [currentStep]="currentStep.position">{{
-      step.label
-    }}</api-creation-step>
+    <api-creation-step
+      *ngFor="let step of primarySteps; index as stepIndex"
+      [stepNumber]="stepIndex + 1"
+      [currentStep]="lastPrimaryStepIndex + 1"
+      >{{ step.label }}</api-creation-step
+    >
   </div>
 </mat-card>
