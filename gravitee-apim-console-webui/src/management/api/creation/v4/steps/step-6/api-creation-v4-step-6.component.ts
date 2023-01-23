@@ -72,9 +72,6 @@ export class ApiCreationV4Step6Component implements OnInit {
         takeUntil(this.unsubscribe$),
         tap(
           (api) => {
-            // eslint-disable-next-line
-            console.info('API created successfully', api);
-
             this.snackBarService.success('API created successfully!');
             this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
           },

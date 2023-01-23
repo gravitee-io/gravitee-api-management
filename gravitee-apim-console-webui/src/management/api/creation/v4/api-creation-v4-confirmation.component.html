@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<mat-card>
+<mat-card *ngIf="api">
   <div class="api-creation-confirmation__content">
     <div class="api-creation-confirmation__content__header">
       <div class="api-creation-confirmation__content__header__icon">
         <mat-icon svgIcon="gio:check"></mat-icon>
       </div>
-      <h2 *ngIf="api">{{ api.name }} has been created</h2>
+      <h2>{{ api.name }} has been {{ api.lifecycleState === 'PUBLISHED' ? 'deployed' : 'created' }}</h2>
       <button mat-flat-button color="primary" (click)="navigate('management.apis.detail.portal.general')">
         Open my API in API Management
       </button>
