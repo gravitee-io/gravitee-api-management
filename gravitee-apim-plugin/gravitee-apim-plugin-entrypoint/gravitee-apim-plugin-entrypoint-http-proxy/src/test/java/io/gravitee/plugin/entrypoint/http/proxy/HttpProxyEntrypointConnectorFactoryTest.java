@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,11 @@ class HttpProxyEntrypointConnectorFactoryTest {
     @Test
     void shouldSupportRequestReponseMode() {
         assertThat(cut.supportedModes()).containsOnly(ConnectorMode.REQUEST_RESPONSE);
+    }
+
+    @Test
+    void shouldSupportListenerType() {
+        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
     }
 
     @ParameterizedTest

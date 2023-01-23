@@ -46,6 +46,7 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
+    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
     private static final String ENTRYPOINT_ID = "websocket";
     protected WebSocketEntrypointConnectorConfiguration configuration;
     private QosRequirement qosRequirement;
@@ -73,7 +74,7 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public ListenerType supportedListenerType() {
-        return ListenerType.HTTP;
+        return SUPPORTED_LISTENER_TYPE;
     }
 
     @Override

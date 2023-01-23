@@ -64,6 +64,7 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     static final String LIMIT_QUERY_PARAM = "limit";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
+    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
     private static final String ENTRYPOINT_ID = "http-get";
     protected HttpGetEntrypointConnectorConfiguration configuration;
     private QosRequirement qosRequirement;
@@ -106,7 +107,7 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public ListenerType supportedListenerType() {
-        return ListenerType.HTTP;
+        return SUPPORTED_LISTENER_TYPE;
     }
 
     @Override

@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpProxyEntrypointConnector extends EntrypointSyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
+    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
     private static final String ENTRYPOINT_ID = "http-proxy";
 
     private final HttpProxyEntrypointConnectorConfiguration configuration;
@@ -45,7 +46,7 @@ public class HttpProxyEntrypointConnector extends EntrypointSyncConnector {
 
     @Override
     public ListenerType supportedListenerType() {
-        return ListenerType.HTTP;
+        return SUPPORTED_LISTENER_TYPE;
     }
 
     @Override

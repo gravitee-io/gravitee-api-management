@@ -18,6 +18,7 @@ package io.gravitee.plugin.entrypoint.http.get;
 import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
@@ -46,6 +47,11 @@ public class HttpGetEntrypointConnectorFactory implements EntrypointAsyncConnect
     @Override
     public Set<Qos> supportedQos() {
         return SUPPORTED_QOS;
+    }
+
+    @Override
+    public ListenerType supportedListenerType() {
+        return HttpGetEntrypointConnector.SUPPORTED_LISTENER_TYPE;
     }
 
     @Override

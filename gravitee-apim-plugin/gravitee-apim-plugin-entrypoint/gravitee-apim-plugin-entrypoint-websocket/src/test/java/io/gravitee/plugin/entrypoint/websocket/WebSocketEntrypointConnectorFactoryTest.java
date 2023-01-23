@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
@@ -68,6 +69,11 @@ class WebSocketEntrypointConnectorFactoryTest {
     @Test
     void shouldSupportQos() {
         assertThat(cut.supportedQos()).containsOnly(Qos.NONE, Qos.AUTO);
+    }
+
+    @Test
+    void shouldSupportListenerType() {
+        assertThat(cut.supportedListenerType()).isEqualTo(ListenerType.HTTP);
     }
 
     @Test
