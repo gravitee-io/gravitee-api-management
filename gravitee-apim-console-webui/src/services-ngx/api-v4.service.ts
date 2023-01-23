@@ -29,4 +29,8 @@ export class ApiV4Service {
   create(newApiEntity: NewApiEntity): Observable<ApiEntity> {
     return this.http.post<ApiEntity>(`${this.constants.env.baseURL}/v4/apis`, newApiEntity);
   }
+
+  get(id: string): Observable<ApiEntity> {
+    return this.http.get<ApiEntity>(`${this.constants.env.baseURL}/v4/apis/${id}`);
+  }
 }

@@ -13,20 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
+import { ApiEntity } from '../../../../entities/api-v4';
 
 @Component({
   selector: 'api-creation-v4-confirmation',
   template: require('./api-creation-v4-confirmation.component.html'),
   styles: [require('./api-creation-v4-confirmation.component.scss')],
 })
-export class ApiCreationV4ConfirmationComponent {
-  constructor(@Inject(UIRouterState) readonly ajsState: StateService) {}
+export class ApiCreationV4ConfirmationComponent implements OnInit {
+  private unsubscribe$: Subject<void> = new Subject<void>();
+  public api: ApiEntity;
+  constructor(
+    @Inject(UIRouterState) readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly apiV4Service: ApiV4Service,
+  ) {}
 
   navigate(urlState: string) {
-    return this.ajsState.go(urlState, { apiId: this.ajsState.params.apiId }, { reload: true });
+    return this.ajsState.go(urlState, { apiId: this.ajsStateParams.apiId }, { reload: true });
+  }
+
+  ngOnInit(): void {
+    // call service to get item
+    this.apiV4Service
+      .get(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.api = api;
+      });
   }
 }

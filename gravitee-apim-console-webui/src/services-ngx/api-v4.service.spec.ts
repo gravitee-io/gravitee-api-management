@@ -55,4 +55,22 @@ describe('ApiV4Service', () => {
       req.flush(fakeApiEntity());
     });
   });
+
+  describe('get', () => {
+    it('should call the API', (done) => {
+      const apiEntity = fakeApiEntity();
+
+      apiV4Service.get(apiEntity.id).subscribe((api) => {
+        expect(api.name).toEqual(apiEntity.name);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiEntity.id}`,
+        method: 'GET',
+      });
+
+      req.flush(fakeApiEntity());
+    });
+  });
 });
