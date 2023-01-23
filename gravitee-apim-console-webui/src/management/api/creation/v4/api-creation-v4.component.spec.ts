@@ -184,10 +184,13 @@ describe('ApiCreationV4Component', () => {
   });
 
   describe('step6', () => {
-    it('should display payload info', async () => {
+    beforeEach(async () => {
       await fillAllSteps();
       fixture.detectChanges();
+      fixture.detectChanges(); // TODO: remove this when fill step 2-1 exist
+    });
 
+    it('should display payload info', async () => {
       const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
 
       const step1Summary = await step6Harness.getStepSummaryTextContent(1);
@@ -202,9 +205,6 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
-      await fillAllSteps();
-      fixture.detectChanges();
-
       const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
       await step6Harness.clickChangeButton(1);
 
@@ -216,9 +216,6 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go back to step 2 after clicking Change button', async () => {
-      await fillAllSteps();
-      fixture.detectChanges();
-
       let step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
       await step6Harness.clickChangeButton(2);
       fixture.detectChanges();
@@ -235,6 +232,7 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.clickValidate();
       fixture.detectChanges();
+      fixture.autoDetectChanges(true); // TODO: remove this when fill step 2-1 exist
 
       // Reinitialize step6Harness after step2 validation
       step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
@@ -244,9 +242,6 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {
-      await fillAllSteps();
-      fixture.detectChanges();
-
       const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
       await step6Harness.clickCreateMyApiButton();
 

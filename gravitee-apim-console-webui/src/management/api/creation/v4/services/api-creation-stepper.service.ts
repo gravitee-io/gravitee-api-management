@@ -27,7 +27,7 @@ export interface ApiCreationStep {
   type: 'primary' | 'secondary';
 }
 
-type NewApiCreationStep = Omit<ApiCreationStep, 'type' | 'patchPayload'>;
+export type NewApiCreationStep = Omit<ApiCreationStep, 'type' | 'patchPayload'>;
 
 /**
  * Service that manages the steps of the API creation process.
@@ -75,7 +75,19 @@ export class ApiCreationStepperService {
     return [...previousSteps, step].reduce((payload, previousStep) => previousStep.patchPayload(payload), this.initialPayload);
   }
 
-  goToStep(index: number) {
+  /**
+   * Add a secondary step after the current step.
+   */
+  public addSecondaryStep(step: NewApiCreationStep) {
+    this.steps.splice(this.currentStepIndex + 1, 0, {
+      ...step,
+      patchPayload: (p) => p,
+      type: 'secondary',
+    });
+    this.steps$.next(this.steps);
+  }
+
+  public goToStep(index: number) {
     if (index < 0 || index >= this.steps.length) {
       throw new Error('Step index is out of bounds: ' + index);
     }
@@ -83,7 +95,7 @@ export class ApiCreationStepperService {
     this.currentStep$.next(this.steps[this.currentStepIndex]);
   }
 
-  goToNextStep(patchPayload: ApiCreationStep['patchPayload']) {
+  public goToNextStep(patchPayload: ApiCreationStep['patchPayload']) {
     // Save payload to current step & Force new object mutation for updated payload
     this.steps[this.currentStepIndex].patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
 
@@ -91,7 +103,7 @@ export class ApiCreationStepperService {
     this.goToStep(this.currentStepIndex + 1);
   }
 
-  goToPreviousStep() {
+  public goToPreviousStep() {
     this.goToStep(this.currentStepIndex - 1);
   }
 }
