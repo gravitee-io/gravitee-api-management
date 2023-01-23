@@ -38,9 +38,8 @@ export class ApiCreationStepService {
     this.stepper.goToPreviousStep();
   }
 
-  public goToStepPosition(stepNumber: number) {
-    // Position is equal to the step index + 1
-    this.stepper.goToStep(stepNumber - 1);
+  public goToStepLabel(stepLabel: string) {
+    this.stepper.goToStepLabel(stepLabel);
   }
 
   public addSecondaryStep(step: NewApiCreationStep): void {

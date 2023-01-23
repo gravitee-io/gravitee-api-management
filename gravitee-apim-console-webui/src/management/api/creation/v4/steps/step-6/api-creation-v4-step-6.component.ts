@@ -86,9 +86,8 @@ export class ApiCreationV4Step6Component implements OnInit {
     // TODO: send info to correct endpoint to create and publish the new API
   }
 
-  onChangeStepInfo(stepNumber: number) {
-    // Change current step to step number
-    this.stepService.goToStepPosition(stepNumber);
+  onChangeStepInfo(stepLabel: string) {
+    this.stepService.goToStepLabel(stepLabel);
   }
 
   getEntrypointIconName(id: string): string {

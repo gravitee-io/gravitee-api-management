@@ -51,7 +51,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should got to fist step', () => {
-    apiCreationStepperService.goToStep(0);
+    apiCreationStepperService.goToStepLabel('Step 1');
 
     expect(currentStep.position).toEqual(1);
   });
@@ -96,7 +96,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should go to step 1 and change patch payload', () => {
-    apiCreationStepperService.goToStep(0);
+    apiCreationStepperService.goToStepLabel('Step 1');
     apiCreationStepperService.goToNextStep((previousPayload) => {
       previousPayload.selectedEntrypoints.push({ id: '2', name: 'new value' });
 
@@ -105,7 +105,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should go to step 4', () => {
-    apiCreationStepperService.goToStep(3);
+    apiCreationStepperService.goToStepLabel('Step 4');
   });
 
   it('should have compiled payload from step 1 2 3', () => {
