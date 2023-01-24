@@ -1,0 +1,10 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.endpoint-selected {
+  border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+}
+
+.strong-badge {
+  font-weight: 700;
+}

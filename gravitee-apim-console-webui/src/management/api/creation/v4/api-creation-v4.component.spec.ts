@@ -27,6 +27,7 @@ import { ApiCreationV4Step1Harness } from './steps/step-1/api-creation-v4-step-1
 import { ApiCreationV4Step2Harness } from './steps/step-2/api-creation-v4-step-2.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
+import { ApiCreationV4Step3Harness } from './steps/step-3/api-creation-v4-step-3.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -180,6 +181,65 @@ describe('ApiCreationV4Component', () => {
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
       ]);
+      expectEndpointsGetRequest([]);
+    });
+  });
+
+  describe('step3', () => {
+    it('should go back to step2 with API details restored when clicking on previous', async () => {
+      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillStepTwoAndValidate();
+
+      const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+      expectEndpointsGetRequest([]);
+
+      await step3Harness.clickPrevious();
+
+      // TODO: Remove after entrypoints configuration integrated
+      expectEndpointsGetRequest([]);
+
+      // TODO: Integrate lines below when entrypoints configuration is integrated
+      // expect(component.currentStep.position).toEqual(2);
+      // const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      // expect(step2Harness).toBeDefined();
+      // expect(await step2Harness.getEntrypointsList({ selected: true })).toEqual([
+      //   { id: 'entrypoint-1', name: 'initial entrypoint' },
+      //   { id: 'entrypoint-2', name: 'new entrypoint' },
+      // ]);
+    });
+
+    it('should display only async endpoints in the list', async () => {
+      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillStepTwoAndValidate();
+      const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+
+      expectEndpointsGetRequest([
+        { id: 'http-post', supportedApiType: 'sync', name: 'HTTP Post' },
+        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+      ]);
+
+      expect(await step3Harness.getEndpointsList()).toEqual(['kafka', 'mock']);
+    });
+
+    it('should select endpoints in the list', async () => {
+      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillStepTwoAndValidate();
+
+      const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+
+      expectEndpointsGetRequest([
+        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+      ]);
+
+      await step3Harness.fillStep(['mock', 'kafka']);
+
+      await step3Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEndpoints).toEqual([
+        { id: 'kafka', name: 'Kafka' },
+        { id: 'mock', name: 'Mock' },
+      ]);
     });
   });
 
@@ -202,6 +262,9 @@ describe('ApiCreationV4Component', () => {
       expect(step2Summary).toContain('Path:' + '/my-new-api');
       expect(step2Summary).toContain('Type:' + 'Subscription');
       expect(step2Summary).toContain('Entrypoints:' + 'initial entrypoint' + 'new entrypoint');
+
+      const step3Summary = await step6Harness.getStepSummaryTextContent(3);
+      expect(step3Summary).toContain('Field' + 'Value');
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
@@ -234,11 +297,32 @@ describe('ApiCreationV4Component', () => {
       fixture.detectChanges();
       fixture.autoDetectChanges(true); // TODO: remove this when fill step 2-1 exist
 
-      // Reinitialize step6Harness after step2 validation
+      await fillStepThreeAndValidate();
+
+      // Reinitialize step6Harness after last step validation
       step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
       expect(step2Summary).toContain('Entrypoints:' + 'new entrypoint');
+    });
+
+    it('should go back to step 3 after clicking Change button', async () => {
+      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      await step6Harness.clickChangeButton(3);
+      fixture.detectChanges();
+
+      const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+      expectEndpointsGetRequest([
+        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+      ]);
+
+      expect(await step3Harness.getEndpointsList({ selected: true })).toEqual(['kafka', 'mock']);
+      await step3Harness.deselectEndpointById('kafka');
+      fixture.detectChanges();
+
+      await step3Harness.clickValidate();
+      fixture.detectChanges();
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {
@@ -282,6 +366,12 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
   }
 
+  function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+    const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
+
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
+  }
+
   async function fillStepOneAndValidate(name = 'API name', version = '1.0', description = 'description') {
     const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
     await step1Harness.fillStep(name, version, description);
@@ -300,8 +390,21 @@ describe('ApiCreationV4Component', () => {
     await step2Harness.clickValidate();
   }
 
+  async function fillStepThreeAndValidate(
+    endpoints: Partial<ConnectorListItem>[] = [
+      { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+      { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+    ],
+  ) {
+    const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+    expectEndpointsGetRequest(endpoints);
+    await step3Harness.fillStep(endpoints.map((endpoint) => endpoint.id));
+    await step3Harness.clickValidate();
+  }
+
   async function fillAllSteps() {
     await fillStepOneAndValidate();
     await fillStepTwoAndValidate();
+    await fillStepThreeAndValidate();
   }
 });

@@ -28,6 +28,7 @@ import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
+import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
 
 @Component({
   selector: 'api-creation-v4',
@@ -51,7 +52,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       label: 'Endpoints',
-      component: ApiCreationV4StepWipComponent,
+      component: ApiCreationV4Step3Component,
     },
     {
       label: 'Security',
