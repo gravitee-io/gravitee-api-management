@@ -16,11 +16,11 @@
 import { Component, Input, OnChanges } from '@angular/core';
 
 @Component({
-  selector: 'api-creation-step',
-  template: require('./api-creation-step.component.html'),
-  styles: [require('./api-creation-step.component.scss')],
+  selector: 'stepper-menu-step',
+  template: require('./stepper-menu-step.component.html'),
+  styles: [require('./stepper-menu-step.component.scss')],
 })
-export class ApiCreationStepComponent implements OnChanges {
+export class StepperMenuStepComponent implements OnChanges {
   @Input()
   public stepNumber: number;
 
