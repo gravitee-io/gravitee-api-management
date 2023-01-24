@@ -23,7 +23,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatRadioModule } from '@angular/material/radio';
@@ -39,8 +39,10 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   exports: [ApiPathMappingsComponent],
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
 
+    GioFormFilePickerModule,
     GioIconsModule,
     GioPermissionModule,
 
@@ -49,12 +51,11 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatRadioModule,
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatTabsModule,
-    GioFormFilePickerModule,
-    MatRadioModule,
   ],
 })
 export class ApiPathMappingsModule {}
