@@ -25,7 +25,8 @@
     <stepper-menu-step
       *ngFor="let step of lastStepPerLabelNumber"
       [stepNumber]="step.labelNumber"
-      [currentStep]="currentStep.labelNumber"
+      [step]="step"
+      [activeStep]="currentStep.labelNumber === step.labelNumber"
       >{{ step.label }}</stepper-menu-step
     >
   </div>

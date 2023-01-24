@@ -53,7 +53,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should save and go to next step(2)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
+    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
 
     expect(currentStep.label).toEqual('Step 2');
   });
@@ -66,19 +66,19 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should save and go to next step(2.1)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
+    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
 
     expect(currentStep.label).toEqual('Step 2.1');
   });
 
   it('should save and go to next step(3)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
+    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
 
     expect(currentStep.label).toEqual('Step 3');
   });
 
   it('should save and go to next step(4)', () => {
-    apiCreationStepperService.goToNextStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
+    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
 
     expect(currentStep.label).toEqual('Step 4');
   });
@@ -92,7 +92,7 @@ describe('ApiCreationStepperService', () => {
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
-    apiCreationStepperService.goToNextStep((previousPayload) => {
+    apiCreationStepperService.validStepAndGoNext((previousPayload) => {
       previousPayload.selectedEntrypoints.push({ id: '2', name: 'new value' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };

@@ -30,8 +30,8 @@ export class ApiCreationStepService {
     return this.stepper.compileStepPayload(this.step);
   }
 
-  public goToNextStep(patchPayload: ApiCreationStep['patchPayload']): void {
-    this.stepper.goToNextStep(patchPayload);
+  public validStepAndGoNext(patchPayload: ApiCreationStep['patchPayload']): void {
+    this.stepper.validStepAndGoNext(patchPayload);
   }
 
   public goToPreviousStep(): void {

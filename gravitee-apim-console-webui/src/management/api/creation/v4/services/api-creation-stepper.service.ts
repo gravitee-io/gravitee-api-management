@@ -27,6 +27,7 @@ export interface NewApiCreationStep {
 export interface ApiCreationStep extends NewApiCreationStep {
   /* Main label number. Start to 1 */
   labelNumber: number;
+  state: 'initial' | 'valid' | 'invalid';
   patchPayload: (lastPayload: ApiCreationPayload) => ApiCreationPayload;
 }
 
@@ -56,6 +57,7 @@ export class ApiCreationStepperService {
     this.steps = creationStepPayload.map((stepPayload, index) => ({
       ...stepPayload,
       labelNumber: index + 1,
+      state: 'initial',
       patchPayload: (p) => p,
     }));
     this.steps$.next(this.steps);
@@ -83,15 +85,19 @@ export class ApiCreationStepperService {
     const currentStep = this.steps[this.currentStepIndex];
     this.steps.splice(this.currentStepIndex + 1, 0, {
       ...step,
+      state: 'initial',
       patchPayload: (p) => p,
       labelNumber: currentStep.labelNumber,
     });
     this.steps$.next(this.steps);
   }
 
-  public goToNextStep(patchPayload: ApiCreationStep['patchPayload']) {
+  public validStepAndGoNext(patchPayload: ApiCreationStep['patchPayload']) {
+    const currentStep = this.steps[this.currentStepIndex];
+
     // Save payload to current step & Force new object mutation for updated payload
-    this.steps[this.currentStepIndex].patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
+    currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
+    currentStep.state = 'valid';
 
     // Give current payload to next step
     this.goToStepIndex(this.currentStepIndex + 1);
