@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 
 @Component({
   selector: 'api-proxy-entrypoints-context-path',
   template: require('./api-proxy-entrypoints-context-path.component.html'),
   styles: [require('./api-proxy-entrypoints-context-path.component.scss')],
 })
-export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
+export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   readOnly: boolean;
 
@@ -34,10 +37,24 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
   @Output()
   public apiProxySubmit = new EventEmitter<Api['proxy']>();
 
+  public contextPathPrefix: string;
+
   public entrypointsForm: FormGroup;
   public initialEntrypointsFormValue: unknown;
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
-  constructor(private readonly apiService: ApiService) {}
+  constructor(private readonly apiService: ApiService, private readonly portalSettingsService: PortalSettingsService) {}
+
+  ngOnInit(): void {
+    this.portalSettingsService
+      .get()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((settings) => {
+        this.contextPathPrefix = settings.portal.entrypoint.endsWith('/')
+          ? settings.portal.entrypoint.slice(0, -1)
+          : settings.portal.entrypoint;
+      });
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
@@ -47,6 +64,11 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
 
   onSubmit() {
     this.apiProxySubmit.emit({ ...this.apiProxy, virtual_hosts: [{ path: this.entrypointsForm.value.contextPath }] });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
   }
 
   private initForm(apiProxy: Api['proxy']) {

@@ -17,8 +17,13 @@
 -->
 <form *ngIf="entrypointsForm" [formGroup]="entrypointsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card *ngIf="!virtualHostModeEnabled" class="form-card">
-    <mat-form-field class="form-card__context-path-field">
-      <mat-label>Gateway context-path</mat-label>
+    <div><strong>Context path</strong></div>
+    <div>
+      The URL location of your API. So if your URL is <strong>[{{ contextPathPrefix }}/myAPI]</strong>, then <strong>[/myAPI]</strong> is
+      the context path.
+    </div>
+    <mat-form-field appearance="outline" class="form-card__context-path-field">
+      <span matPrefix>{{ contextPathPrefix }}</span>
       <input matInput formControlName="contextPath" required />
       <mat-hint
         >Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or
