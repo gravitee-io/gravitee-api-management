@@ -54,7 +54,7 @@ export const FormField: Story = {
   render: () => {
     return {
       template: `
-      <mat-form-field  appearance="fill">
+      <mat-form-field>
         <mat-label>Default animal</mat-label>
         <input #animalInput matInput value="🦊"/>
         <gio-clipboard-copy-icon matSuffix [contentToCopy]="animalInput.value"></gio-clipboard-copy-icon>

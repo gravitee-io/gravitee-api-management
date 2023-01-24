@@ -20,7 +20,7 @@
 </div>
 
 <mat-card class="org-settings-audit__filters" [formGroup]="filtersForm">
-  <mat-form-field class="org-settings-audit__filters__field" appearance="fill">
+  <mat-form-field class="org-settings-audit__filters__field">
     <mat-label>Event</mat-label>
     <mat-select formControlName="event">
       <mat-option></mat-option>
@@ -28,7 +28,7 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field class="org-settings-audit__filters__field" appearance="fill">
+  <mat-form-field class="org-settings-audit__filters__field">
     <mat-label>Type</mat-label>
     <mat-select formControlName="referenceType">
       <mat-option></mat-option>
@@ -39,7 +39,7 @@
     </mat-select>
   </mat-form-field>
   <ng-container [ngSwitch]="filtersForm.get('referenceType').value">
-    <mat-form-field *ngSwitchCase="'ENVIRONMENT'" class="org-settings-audit__filters__field" appearance="fill">
+    <mat-form-field *ngSwitchCase="'ENVIRONMENT'" class="org-settings-audit__filters__field">
       <mat-label>Environments</mat-label>
       <mat-select formControlName="environmentId">
         <mat-option></mat-option>
@@ -47,7 +47,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field *ngSwitchCase="'APPLICATION'" class="org-settings-audit__filters__field" appearance="fill">
+    <mat-form-field *ngSwitchCase="'APPLICATION'" class="org-settings-audit__filters__field">
       <mat-label>Applications</mat-label>
       <mat-select formControlName="applicationId">
         <mat-option></mat-option>
@@ -62,7 +62,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field *ngSwitchCase="'API'" class="org-settings-audit__filters__field" appearance="fill">
+    <mat-form-field *ngSwitchCase="'API'" class="org-settings-audit__filters__field">
       <mat-label>APIs</mat-label>
       <mat-select formControlName="apiId">
         <mat-option></mat-option>
@@ -75,7 +75,7 @@
     </mat-form-field>
   </ng-container>
 
-  <mat-form-field appearance="fill" class="org-settings-audit__filters__field right">
+  <mat-form-field class="org-settings-audit__filters__field right">
     <mat-label>Enter a date range</mat-label>
     <mat-date-range-input formGroupName="range" [rangePicker]="picker">
       <input matStartDate formControlName="start" placeholder="Start date" />

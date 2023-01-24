@@ -22,7 +22,7 @@
     <!-- Tab - Export Json -->
     <mat-tab label="Gravitee API definition">
       <div *ngIf="exportJsonFrom" class="content__json" [formGroup]="exportJsonFrom">
-        <mat-form-field class="content__json__select" appearance="fill">
+        <mat-form-field class="content__json__select">
           <mat-label>Target APIM version</mat-label>
           <mat-select #exportVersionSelect formControlName="exportVersion" name="exportVersion">
             <mat-select-trigger *ngIf="getJsonOptions(exportVersionSelect.value) as option">

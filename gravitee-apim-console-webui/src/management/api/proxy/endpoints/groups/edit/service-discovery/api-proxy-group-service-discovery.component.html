@@ -17,7 +17,7 @@
 -->
 <form *ngIf="!!serviceDiscoveryForm && !!serviceDiscoveryItems" [formGroup]="serviceDiscoveryForm" gioFormFocusInvalid>
   <mat-card>
-    <gio-form-slide-toggle appearance="fill" class="card__group-sd__enable">
+    <gio-form-slide-toggle class="card__group-sd__enable">
       <gio-form-label>Enabled service discovery</gio-form-label>
       By enabling service discovery, endpoints will be dynamically added or removed (without downtime).
       <mat-slide-toggle
@@ -31,7 +31,7 @@
     <!-- Type -->
     <div class="card__group-sd">
       <div class="card__group-sd__type__label">Type</div>
-      <mat-form-field class="card__group-sd__type__form-field" appearance="fill">
+      <mat-form-field class="card__group-sd__type__form-field">
         <mat-label>Type</mat-label>
         <mat-select aria-label="Service discovery type" formControlName="type">
           <mat-option *ngFor="let sd of serviceDiscoveryItems" [value]="sd.id">{{ sd.name }}</mat-option>

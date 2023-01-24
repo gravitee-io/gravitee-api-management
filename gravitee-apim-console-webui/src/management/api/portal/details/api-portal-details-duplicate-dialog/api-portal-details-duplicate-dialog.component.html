@@ -19,7 +19,7 @@
 
 <mat-dialog-content *ngIf="duplicateApiForm" class="content" [formGroup]="duplicateApiForm">
   <div class="content__row">
-    <mat-form-field class="content__row__contextPath-field" appearance="fill">
+    <mat-form-field class="content__row__contextPath-field">
       <mat-label>Context path</mat-label>
       <input #apiName matInput formControlName="contextPath" [placeholder]="contextPathPlaceholder" required />
       <mat-error *ngIf="duplicateApiForm.controls.contextPath.hasError('required')">Context path is required.</mat-error>
@@ -28,7 +28,7 @@
       }}</mat-error>
     </mat-form-field>
 
-    <mat-form-field class="content__row__version-field" appearance="fill">
+    <mat-form-field class="content__row__version-field">
       <mat-label>Version</mat-label>
       <input #apiName matInput formControlName="version" [placeholder]="versionPlaceholder" required />
       <mat-error *ngIf="duplicateApiForm.controls.version.hasError('required')">Version is required.</mat-error>

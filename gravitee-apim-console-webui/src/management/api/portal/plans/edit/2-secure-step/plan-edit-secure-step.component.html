@@ -16,7 +16,7 @@
 
 -->
 <ng-container *ngIf="secureForm" [formGroup]="secureForm">
-  <mat-form-field class="securityTypes-field" appearance="fill">
+  <mat-form-field class="securityTypes-field">
     <mat-label>Authentication type</mat-label>
     <mat-select formControlName="securityTypes" required>
       <mat-option *ngFor="let type of securityTypes" [value]="type.id">{{ type.name }}</mat-option>
@@ -44,7 +44,7 @@
         For example, if you want to check the issuer of a jwt token: &#123; #context.attributes['jwt'].claims['iss'] == 'my-issuer' &#125;
       </span>
     </gio-banner-info>
-    <mat-form-field class="selectionRule-field" appearance="fill">
+    <mat-form-field class="selectionRule-field">
       <mat-label>Selection Rule</mat-label>
       <input matInput formControlName="selectionRule" />
       <mat-hint> Support EL (e.g: &#123; #context.attributes['jwt'].claims['iss'] == 'my-issuer' &#125;)</mat-hint>

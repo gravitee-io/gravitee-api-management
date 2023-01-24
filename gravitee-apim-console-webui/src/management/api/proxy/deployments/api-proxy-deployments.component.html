@@ -19,7 +19,7 @@
   <mat-card>
     <p>Use sharding tags to control where the API must be deployed.</p>
 
-    <mat-form-field class="deployments-card__form-field" appearance="fill">
+    <mat-form-field class="deployments-card__form-field">
       <mat-label>Sharding tags</mat-label>
       <mat-select formControlName="tags" multiple>
         <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"

@@ -17,7 +17,7 @@
 -->
 <form *ngIf="entrypointsForm" [formGroup]="entrypointsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card *ngIf="!virtualHostModeEnabled" class="form-card">
-    <mat-form-field appearance="fill" class="form-card__context-path-field">
+    <mat-form-field class="form-card__context-path-field">
       <mat-label>Gateway context-path</mat-label>
       <input matInput formControlName="contextPath" required />
       <mat-hint

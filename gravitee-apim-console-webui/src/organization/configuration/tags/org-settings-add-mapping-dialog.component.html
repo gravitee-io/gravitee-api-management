@@ -25,13 +25,13 @@
 <form autocomplete="off" [formGroup]="mappingForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form">
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Entrypoint url</mat-label>
         <input matInput formControlName="value" type="url" placeholder="https://api.mycompany.com" required />
         <mat-error *ngIf="mappingForm.get('value').hasError('required')">Entrypoint Url is required.</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Sharding tags</mat-label>
         <mat-select formControlName="tags" aria-label="Sharding tags selection" multiple required>
           <mat-option *ngFor="let tag of tags$ | async" [value]="tag.id"

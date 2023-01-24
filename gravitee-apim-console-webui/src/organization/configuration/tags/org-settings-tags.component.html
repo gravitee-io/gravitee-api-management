@@ -123,7 +123,7 @@
       </button>
     </div>
 
-    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')" appearance="fill">
+    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')">
       <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="org-settings-tags__entrypoints-card__form-field__icon" matPrefix
         >lock</mat-icon
       >

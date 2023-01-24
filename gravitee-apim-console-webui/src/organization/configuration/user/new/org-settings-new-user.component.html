@@ -38,19 +38,19 @@
   <mat-card class="org-settings-new-user__card">
     <mat-card-content *ngIf="userForm.get('type').value === UserType.EXTERNAL_USER">
       <h2>User</h2>
-      <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+      <mat-form-field class="org-settings-new-user__card__form-field">
         <mat-label>First Name</mat-label>
         <input matInput formControlName="firstName" required data-testid="firstName" />
         <mat-error *ngIf="userForm.get('firstName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
-      <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+      <mat-form-field class="org-settings-new-user__card__form-field">
         <mat-label>Last Name</mat-label>
         <input matInput formControlName="lastName" required data-testid="lastName" />
         <mat-error *ngIf="userForm.get('lastName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
-      <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+      <mat-form-field class="org-settings-new-user__card__form-field">
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" type="email" required data-testid="email" />
         <mat-error *ngIf="userForm.get('email').errors?.required">This field is required.</mat-error>
@@ -60,7 +60,7 @@
       <ng-container *ngIf="identityProviders && identityProviders.length > 1">
         <h2>Identity Provider</h2>
 
-        <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+        <mat-form-field class="org-settings-new-user__card__form-field">
           <mat-label>Name</mat-label>
           <mat-select formControlName="source" required>
             <mat-option *ngFor="let idp of identityProviders" [value]="idp.id"> {{ idp.name }}</mat-option>
@@ -70,11 +70,7 @@
           <mat-error *ngIf="userForm.get('email').errors?.email">This field should be a valid email.</mat-error>
         </mat-form-field>
 
-        <mat-form-field
-          *ngIf="userForm.get('source').value !== 'gravitee'"
-          appearance="fill"
-          class="org-settings-new-user__card__form-field"
-        >
+        <mat-form-field *ngIf="userForm.get('source').value !== 'gravitee'" class="org-settings-new-user__card__form-field">
           <mat-label>Identifier</mat-label>
           <input matInput formControlName="sourceId" required />
           <mat-error *ngIf="userForm.get('sourceId').errors?.required">This field is required.</mat-error>
@@ -85,14 +81,14 @@
     <mat-card-content *ngIf="userForm.get('type').value === UserType.SERVICE_ACCOUNT">
       <h2>Service Account</h2>
 
-      <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+      <mat-form-field class="org-settings-new-user__card__form-field">
         <mat-label>Service Name</mat-label>
         <input matInput formControlName="lastName" required data-testid="lastName" />
         <mat-hint>Choose a meaningful name for your service account.</mat-hint>
         <mat-error *ngIf="userForm.get('lastName').errors?.required">This field is required.</mat-error>
       </mat-form-field>
 
-      <mat-form-field class="org-settings-new-user__card__form-field" appearance="fill">
+      <mat-form-field class="org-settings-new-user__card__form-field">
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" type="email" data-testid="email" />
         <mat-error *ngIf="userForm.get('email').errors?.email">This field should be a valid email.</mat-error>

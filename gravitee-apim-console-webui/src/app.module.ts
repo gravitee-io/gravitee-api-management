@@ -21,6 +21,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
+import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 
 import {
   uiRouterStateProvider,
@@ -51,6 +52,7 @@ import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
     UIRouterUpgradeModule,
     OrganizationSettingsModule,
     ManagementModule,
+    GioMatConfigModule,
     GioPendoModule.forRoot(),
     GioSideNavModule,
     GioTopNavModule,

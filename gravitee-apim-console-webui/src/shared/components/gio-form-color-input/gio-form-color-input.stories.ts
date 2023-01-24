@@ -61,7 +61,7 @@ export const Simple: Story = {
 
     return {
       template: `
-        <mat-form-field appearance="fill" style="width:100%">
+        <mat-form-field style="width:100%">
           <mat-label>Select color</mat-label>
           <gio-form-color-input [required]="required" [placeholder]="placeholder" [formControl]="colorControl">
           </gio-form-color-input>

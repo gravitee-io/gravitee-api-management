@@ -53,13 +53,13 @@
     <div class="details-card__header">
       <div class="details-card__header__info-inputs">
         <div class="details-card__header__info-inputs__first-row">
-          <mat-form-field class="details-card__header__info-inputs__first-row__name-field" appearance="fill">
+          <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
             <mat-label>Name</mat-label>
             <input #apiName matInput formControlName="name" required />
             <mat-error *ngIf="apiDetailsForm.controls.name.hasError('required')">Name is required.</mat-error>
           </mat-form-field>
 
-          <mat-form-field class="details-card__header__info-inputs__first-row__version-field" appearance="fill">
+          <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
             <mat-label>Version</mat-label>
             <input matInput formControlName="version" required />
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('required')">Version is required.</mat-error>
@@ -69,13 +69,13 @@
           </mat-form-field>
         </div>
         <div class="details-card__header__info-inputs__second-row">
-          <mat-form-field class="details-card__header__info-inputs__second-row__description-field" appearance="fill">
+          <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
             <mat-label>Description</mat-label>
             <textarea matInput formControlName="description" required></textarea>
             <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
           </mat-form-field>
 
-          <mat-form-field class="etails-card__header__info-inputs__second-row__labels-field" appearance="fill">
+          <mat-form-field class="etails-card__header__info-inputs__second-row__labels-field">
             <mat-label>Labels</mat-label>
             <gio-form-tags-input
               formControlName="labels"
@@ -84,7 +84,7 @@
             ></gio-form-tags-input>
           </mat-form-field>
 
-          <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field" appearance="fill">
+          <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field">
             <mat-label>Categories</mat-label>
             <mat-select formControlName="categories" multiple>
               <mat-option *ngIf="apiCategories.length === 0" disabled>No categories available</mat-option>
@@ -94,11 +94,7 @@
             </mat-select>
           </mat-form-field>
 
-          <gio-form-slide-toggle
-            *ngIf="canDisplayJupiterToggle"
-            appearance="fill"
-            class="etails-card__header__info-inputs__second-row__jupiter-field"
-          >
+          <gio-form-slide-toggle *ngIf="canDisplayJupiterToggle" class="etails-card__header__info-inputs__second-row__jupiter-field">
             Enable Jupiter mode
             <mat-slide-toggle
               gioFormSlideToggle

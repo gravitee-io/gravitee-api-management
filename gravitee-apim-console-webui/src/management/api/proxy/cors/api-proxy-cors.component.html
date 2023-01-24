@@ -19,7 +19,7 @@
   <mat-card>
     <mat-card-content>
       <!-- Enable Cors -->
-      <gio-form-slide-toggle appearance="fill" class="cors-card__enable-toggle">
+      <gio-form-slide-toggle class="cors-card__enable-toggle">
         <gio-form-label>Enable Cors</gio-form-label>
         CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the
         domain from which the first resource was served. If you enable the try-it feature of a Swagger page you probably have to enable and
@@ -42,7 +42,7 @@
           <em>same-origin</em> definition. <br />
           If you choose to enable '*' it means that is allows all requests, regardless of origin.
         </p>
-        <mat-form-field class="cors-card__allow-origin__form-field" appearance="fill">
+        <mat-form-field class="cors-card__allow-origin__form-field">
           <mat-label>Allow-Origin</mat-label>
           <gio-form-tags-input
             formControlName="allowOrigin"
@@ -64,7 +64,7 @@
         <p class="cors-card__allow-methods__hint">
           Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
         </p>
-        <mat-form-field class="cors-card__allow-methods__form-field" appearance="fill">
+        <mat-form-field class="cors-card__allow-methods__form-field">
           <mat-label>Access-Control-Allow-Methods</mat-label>
           <mat-select formControlName="allowMethods" multiple>
             <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
@@ -76,7 +76,7 @@
       <div class="cors-card__allow-headers" [class.disabled]="!corsForm.get('enabled').value">
         <div class="cors-card__allow-headers__label">Access-Control-Allow-Headers</div>
         <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
-        <mat-form-field class="cors-card__allow-headers__form-field" appearance="fill">
+        <mat-form-field class="cors-card__allow-headers__form-field">
           <mat-label>Allow-Headers</mat-label>
           <gio-form-tags-input
             aria-label="Allow-Headers selection"
@@ -91,7 +91,7 @@
 
       <!-- Allow Credentials -->
       <div class="cors-card__allow-credentials" [class.disabled]="!corsForm.get('enabled').value">
-        <gio-form-slide-toggle appearance="fill" class="cors-card__allow-credentials__enable-toggle">
+        <gio-form-slide-toggle class="cors-card__allow-credentials__enable-toggle">
           <gio-form-label>Access-Control-Allow-Credentials</gio-form-label>
           Indicates whether or not the response to the request can be exposed when the credentials flag is true.
           <mat-slide-toggle
@@ -109,7 +109,7 @@
         <p class="cors-card__max-age__hint">
           This header indicates how long the results of a preflight request can be cached (-1 if disabled).
         </p>
-        <mat-form-field class="cors-card__max-age__form-field" appearance="fill">
+        <mat-form-field class="cors-card__max-age__form-field">
           <mat-label>Max Age</mat-label>
           <input matInput formControlName="maxAge" type="number" min="-1" />
           <mat-hint>(seconds)</mat-hint>
@@ -120,7 +120,7 @@
       <div class="cors-card__expose-headers" [class.disabled]="!corsForm.get('enabled').value">
         <div class="cors-card__expose-headers__label">Access-Control-Expose-Headers</div>
         <p class="cors-card__expose-headers__hint">This header lets a server whitelist headers that browsers are allowed to access.</p>
-        <mat-form-field class="cors-card__expose-headers__form-field" appearance="fill">
+        <mat-form-field class="cors-card__expose-headers__form-field">
           <mat-label>Expose-Headers</mat-label>
           <gio-form-tags-input
             aria-label="Expose-Headers selection"
@@ -135,7 +135,7 @@
 
       <!-- Run policies -->
       <div class="cors-card__run-policies" [class.disabled]="!corsForm.get('enabled').value">
-        <gio-form-slide-toggle appearance="fill" class="cors-card__run-policies__enable-toggle">
+        <gio-form-slide-toggle class="cors-card__run-policies__enable-toggle">
           <gio-form-label>Run policies for preflight requests</gio-form-label>
           By default, preflight-requests are ending when processed by the gateway without running API policies.
           <mat-slide-toggle

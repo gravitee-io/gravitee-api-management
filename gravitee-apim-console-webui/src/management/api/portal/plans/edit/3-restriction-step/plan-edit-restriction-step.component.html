@@ -17,7 +17,7 @@
 -->
 <ng-container *ngIf="restrictionForm" [formGroup]="restrictionForm">
   <mat-card class="rateLimit-card">
-    <gio-form-slide-toggle appearance="fill">
+    <gio-form-slide-toggle>
       <gio-form-label>Rate Limiting</gio-form-label>
       Rate limit how many HTTP requests an application can make in a given period of seconds or minutes.
       <mat-slide-toggle
@@ -40,7 +40,7 @@
   </mat-card>
 
   <mat-card class="quota-card">
-    <gio-form-slide-toggle appearance="fill">
+    <gio-form-slide-toggle>
       <gio-form-label>Quota</gio-form-label>
       Rate limit how many HTTP requests an application can make in a given period of hours, days or months.
       <mat-slide-toggle
@@ -63,7 +63,7 @@
   </mat-card>
 
   <mat-card class="resourceFiltering-card">
-    <gio-form-slide-toggle appearance="fill">
+    <gio-form-slide-toggle>
       <gio-form-label>Resource Filtering</gio-form-label>
       Restrict resources according to whitelist and / or blacklist rules.
       <mat-slide-toggle

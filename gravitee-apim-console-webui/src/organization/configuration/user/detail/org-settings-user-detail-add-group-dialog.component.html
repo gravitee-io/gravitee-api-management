@@ -20,7 +20,7 @@
 <form *ngIf="groups$ | async as groups" autocomplete="off" [formGroup]="addGroupForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div *ngIf="groups.length !== 0; else allGroupAlreadyAdded" class="form">
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Group</mat-label>
         <mat-select formControlName="groupId" aria-label="Groups selection" required>
           <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
@@ -32,7 +32,7 @@
         <mat-checkbox formControlName="isAdmin">Group admin role</mat-checkbox>
       </div>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>API Role</mat-label>
         <mat-select formControlName="apiRole" aria-label="API role">
           <mat-option>-- None --</mat-option>
@@ -42,7 +42,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Application Role</mat-label>
         <mat-select formControlName="applicationRole" aria-label="Application role">
           <mat-option>-- None --</mat-option>

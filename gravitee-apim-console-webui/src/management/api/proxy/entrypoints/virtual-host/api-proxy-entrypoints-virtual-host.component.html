@@ -37,7 +37,7 @@
       <ng-container matColumnDef="host">
         <th mat-header-cell *matHeaderCellDef id="host" width="25%">Host</th>
         <td mat-cell *matCellDef="let element">
-          <mat-form-field appearance="fill" class="virtual-host__table__host-field">
+          <mat-form-field class="virtual-host__table__host-field">
             <mat-label>Listening host</mat-label>
             <input #hostInput matInput [formControl]="element.controls.host" [matAutocomplete]="hostAuto" />
 
@@ -68,7 +68,7 @@
       <ng-container matColumnDef="path">
         <th mat-header-cell *matHeaderCellDef id="path" width="25%">Path</th>
         <td mat-cell *matCellDef="let element">
-          <mat-form-field appearance="fill" class="virtual-host__table__path-field">
+          <mat-form-field class="virtual-host__table__path-field">
             <mat-label>Listening Path</mat-label>
             <input matInput [formControl]="element.controls.path" required />
             <mat-hint

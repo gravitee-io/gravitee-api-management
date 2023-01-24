@@ -19,7 +19,7 @@
   <mat-card>
     <mat-card-content>
       <!-- Enable failover -->
-      <gio-form-slide-toggle appearance="fill" class="failover-card__enable-toggle">
+      <gio-form-slide-toggle class="failover-card__enable-toggle">
         <gio-form-label>Enable Failover</gio-form-label>
         When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or
         "timeout" have been reached.
@@ -39,7 +39,7 @@
         <p class="failover-card__max-attempts__hint">
           Limits the number of possible tries before returning an error. Each try get an endpoint according to the load balancing algorithm.
         </p>
-        <mat-form-field class="failover-card__max-attempts__form-field" appearance="fill">
+        <mat-form-field class="failover-card__max-attempts__form-field">
           <mat-label>Max Attempts</mat-label>
           <input matInput formControlName="maxAttempts" type="number" min="1" required />
           <mat-hint>Must be greater than 0.</mat-hint>
@@ -52,7 +52,7 @@
       <div class="failover-card__timeout" [class.disabled]="!enabled.value">
         <div class="failover-card__timeout__label">Timeout (ms)</div>
         <p class="failover-card__timeout__hint">Limits the time allowed to try another attempt.</p>
-        <mat-form-field class="failover-card__timeout__form-field" appearance="fill">
+        <mat-form-field class="failover-card__timeout__form-field">
           <mat-label>Timeout</mat-label>
           <input matInput formControlName="retryTimeout" type="number" min="1" required />
           <mat-hint>Must be greater than 0.</mat-hint>
