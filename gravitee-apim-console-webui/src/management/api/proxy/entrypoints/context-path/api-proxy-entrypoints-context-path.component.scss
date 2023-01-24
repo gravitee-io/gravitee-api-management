@@ -1,4 +1,8 @@
 .form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
   &__context-path-field {
     width: 100%;
     padding-bottom: 32px;

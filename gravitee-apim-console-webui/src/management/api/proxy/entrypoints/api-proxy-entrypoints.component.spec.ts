@@ -38,6 +38,7 @@ import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../
 import { User } from '../../../../entities/user';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
+import { PortalSettings } from '../../../../entities/portal/portalSettings';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -86,6 +87,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     it('should update context-path', async () => {
       const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] } });
       expectApiGetRequest(api);
+      expectApiGetPortalSettings();
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -109,6 +111,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     it('should disable field when origin is kubernetes', async () => {
       const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] }, definition_context: { origin: 'kubernetes' } });
       expectApiGetRequest(api);
+      expectApiGetPortalSettings();
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -314,6 +317,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
+      expectApiGetPortalSettings();
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
       expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/path-foo' }]);
     });
@@ -385,6 +389,16 @@ describe('ApiProxyEntrypointsComponent', () => {
       ]);
     });
   });
+
+  function expectApiGetPortalSettings() {
+    const settings: PortalSettings = {
+      portal: {
+        entrypoint: 'entrypoint',
+      },
+    };
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
+    fixture.detectChanges();
+  }
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
