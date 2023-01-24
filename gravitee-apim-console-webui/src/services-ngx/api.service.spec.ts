@@ -426,4 +426,37 @@ describe('ApiService', () => {
       }
     });
   });
+
+  describe('importPathMappings', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+      const pageId = 'pageId';
+      const apiVersion = 'apiVersion';
+
+      apiService.importPathMappings(apiId, pageId, apiVersion).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/import-path-mappings?page=${pageId}&definitionVersion=${apiVersion}`,
+        method: 'POST',
+      });
+      req.flush({});
+    });
+
+    it('should call the API without api version', (done) => {
+      const apiId = 'api#1';
+      const pageId = 'pageId';
+
+      apiService.importPathMappings(apiId, pageId, null).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/import-path-mappings?page=${pageId}`,
+        method: 'POST',
+      });
+      req.flush({});
+    });
+  });
 });

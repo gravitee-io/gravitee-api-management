@@ -249,4 +249,14 @@ export class ApiService {
   migrateApiToPolicyStudio(apiId: string): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/_migrate`, {});
   }
+
+  importPathMappings(apiId: string, pageId: any, definitionVersion?: string): Observable<Api> {
+    let params = `?page=${pageId}`;
+
+    if (definitionVersion) {
+      params += `&definitionVersion=${definitionVersion}`;
+    }
+
+    return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/import-path-mappings${params}`, {});
+  }
 }
