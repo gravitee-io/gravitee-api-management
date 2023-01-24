@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
 import { StepperMenuStepHarness } from './stepper-menu-step/stepper-menu-step.harness';
@@ -35,19 +36,19 @@ const FAKE_STEPS: ApiCreationStep[] = [
   {
     component: undefined,
     label: 'Step 1',
-    type: 'primary',
+    labelNumber: 1,
     patchPayload: () => ({}),
   },
   {
     component: undefined,
     label: 'Step 2',
-    type: 'primary',
+    labelNumber: 2,
     patchPayload: () => ({}),
   },
   {
     component: undefined,
     label: 'Step 3',
-    type: 'primary',
+    labelNumber: 3,
     patchPayload: () => ({}),
   },
 ];
@@ -60,7 +61,7 @@ describe('ApiCreationStepperMenuComponent', () => {
   const initConfigureTestingModule = async (steps: ApiCreationStep[], currentStep: ApiCreationStep) => {
     await TestBed.configureTestingModule({
       declarations: [TestHostComponent],
-      imports: [ApiCreationStepperMenuModule],
+      imports: [ApiCreationStepperMenuModule, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);

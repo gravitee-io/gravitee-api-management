@@ -23,9 +23,9 @@
 
   <div class="steps">
     <stepper-menu-step
-      *ngFor="let step of primarySteps; index as stepIndex"
-      [stepNumber]="stepIndex + 1"
-      [currentStep]="lastPrimaryStepIndex + 1"
+      *ngFor="let step of lastStepPerLabelNumber"
+      [stepNumber]="step.labelNumber"
+      [currentStep]="currentStep.labelNumber"
       >{{ step.label }}</stepper-menu-step
     >
   </div>

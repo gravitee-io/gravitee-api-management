@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges } from '@angular/core';
+import { groupBy } from 'lodash';
 
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
@@ -29,23 +30,13 @@ export class ApiCreationStepperMenuComponent implements OnChanges {
   @Input()
   public currentStep: ApiCreationStep;
 
-  public lastPrimaryStepIndex = 0;
-
-  public primarySteps: ApiCreationStep[] = [];
+  public lastStepPerLabelNumber: ApiCreationStep[] = [];
 
   ngOnChanges() {
     if (!this.steps || !this.currentStep) {
       return;
     }
 
-    this.primarySteps = this.steps.filter((s) => s.type === 'primary');
-
-    const currentStepIndex = this.steps.findIndex((s) => s.label === this.currentStep.label);
-
-    this.lastPrimaryStepIndex = this.steps
-      .map((step, index) => ({ index, ...step }))
-      .slice(0, currentStepIndex + 1)
-      .reverse()
-      .find((s) => s.type === 'primary').index;
+    this.lastStepPerLabelNumber = Object.entries(groupBy(this.steps, 'labelNumber')).map(([_, steps]) => steps[steps.length - 1]);
   }
 }
