@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.definition.model.DefinitionVersion.V1;
-import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.same;
@@ -43,12 +42,14 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.impl.PlanServiceImpl;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,6 +103,9 @@ public class PlanService_CreateTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private TagsValidationService tagsValidationService;
+
     @Before
     public void setup() throws Exception {
         when(newPlanEntity.getApiId()).thenReturn(API_ID);
@@ -122,6 +126,15 @@ public class PlanService_CreateTest {
     public void should_throw_apiNotFoundException_cause_api_not_found() throws Exception {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
+        planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
+    }
+
+    @Test(expected = TagNotAllowedException.class)
+    public void should_throw_tagNotAllowException_when_tag_validation_fails() throws Exception {
+        mockApiDefinitionVersion();
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(this.newPlanEntity.getTags()).thenReturn(Set.of("tag1"));
+        doThrow(new TagNotAllowedException(new String[0])).when(tagsValidationService).validatePlanTagsAgainstApiTags(any(), any());
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
     }
 

@@ -17,8 +17,12 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
-import static java.util.Collections.emptySet;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,19 +35,51 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.NewPlanEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlansConfigurationEntity;
+import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.plan.PlanQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
+import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import java.util.*;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +140,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private FlowService flowService;
 
+    @Autowired
+    private TagsValidationService tagsValidationService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
         return (PlanEntity) planSearchService.findById(executionContext, plan);
@@ -126,6 +165,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
             }
+
+            validateTags(newPlan.getTags(), api);
 
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
 
@@ -240,6 +281,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
+
+            validateTags(newPlan.getTags(), api);
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -609,5 +652,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.error("Unexpected error while reading API definition", e);
             return V2;
         }
+    }
+
+    private void validateTags(Set<String> tags, Api api) {
+        this.tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
     }
 }

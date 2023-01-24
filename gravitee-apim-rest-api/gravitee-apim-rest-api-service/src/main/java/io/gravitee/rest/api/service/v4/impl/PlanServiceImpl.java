@@ -67,6 +67,7 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -137,6 +138,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private FlowService flowService;
 
+    @Autowired
+    private TagsValidationService tagsValidationService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
         return (PlanEntity) planSearchService.findById(executionContext, planId);
@@ -159,6 +163,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
             }
+
+            validateTags(newPlan.getTags(), api);
 
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
             newPlan.setId(id);
@@ -187,6 +193,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
+    }
+
+    private void validateTags(Set<String> tags, Api api) {
+        this.tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
     }
 
     @Override
@@ -270,6 +280,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
 
+            final var apiId = newPlan.getApi();
+            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+            validateTags(newPlan.getTags(), api);
+
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
                 newPlan.setOrder(updatePlan.getOrder());
@@ -288,7 +302,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
                 auditService.createApiAuditLog(
                     executionContext,
-                    newPlan.getApi(),
+                    apiId,
                     Collections.singletonMap(Audit.AuditProperties.PLAN, newPlan.getId()),
                     PLAN_UPDATED,
                     newPlan.getUpdatedAt(),

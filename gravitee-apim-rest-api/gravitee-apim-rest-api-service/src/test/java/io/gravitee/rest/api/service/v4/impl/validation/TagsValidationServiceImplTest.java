@@ -15,15 +15,23 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Collections;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,11 +49,14 @@ public class TagsValidationServiceImplTest {
     @Mock
     private TagService tagService;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     private TagsValidationService tagsValidationService;
 
     @Before
     public void before() {
-        tagsValidationService = new TagsValidationServiceImpl(tagService);
+        tagsValidationService = new TagsValidationServiceImpl(tagService, objectMapper);
     }
 
     @Test
@@ -104,5 +115,75 @@ public class TagsValidationServiceImplTest {
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("private"));
         assertThatExceptionOfType(TagNotAllowedException.class)
             .isThrownBy(() -> tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags));
+    }
+
+    @Test
+    public void shouldAcceptEmptyTagsForBothApiAndPlan() throws Exception {
+        tagsValidationService.validatePlanTagsAgainstApiTags(emptySet(), mockApi(DefinitionVersion.V4, emptySet()));
+        tagsValidationService.validatePlanTagsAgainstApiTags(emptySet(), mockApi(DefinitionVersion.V2, emptySet()));
+    }
+
+    @Test
+    public void shouldAcceptPlanTagsWithAtLeastOneApiTag() throws Exception {
+        tagsValidationService.validatePlanTagsAgainstApiTags(
+            Set.of("planTag1", "apiTag1"),
+            mockApi(DefinitionVersion.V4, Set.of("apiTag1", "apiTag2"))
+        );
+        tagsValidationService.validatePlanTagsAgainstApiTags(
+            Set.of("planTag1", "apiTag1"),
+            mockApi(DefinitionVersion.V2, Set.of("apiTag1", "apiTag2"))
+        );
+    }
+
+    @Test
+    public void shouldRejectPlanTagsIfApiNoTags() throws Exception {
+        assertThatExceptionOfType(TagNotAllowedException.class)
+            .isThrownBy(
+                () -> tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V4, emptySet()))
+            );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+            .isThrownBy(
+                () -> tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V2, emptySet()))
+            );
+    }
+
+    @Test
+    public void shouldRejectPlanTagsIfNoCommonApiTags() throws Exception {
+        assertThatExceptionOfType(TagNotAllowedException.class)
+            .isThrownBy(
+                () ->
+                    tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("planTag1"),
+                        mockApi(DefinitionVersion.V4, Set.of("apiTag1"))
+                    )
+            );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+            .isThrownBy(
+                () ->
+                    tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("planTag1"),
+                        mockApi(DefinitionVersion.V2, Set.of("apiTag1"))
+                    )
+            );
+    }
+
+    private Api mockApi(DefinitionVersion version, Set<String> tags) throws Exception {
+        var api = new Api();
+        if (version == DefinitionVersion.V4) {
+            var apiDefinition = new io.gravitee.definition.model.v4.Api();
+            apiDefinition.setDefinitionVersion(version);
+            apiDefinition.setTags(tags);
+            api.setDefinitionVersion(version);
+            api.setDefinition(version.name());
+            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.v4.Api.class);
+        } else {
+            var apiDefinition = new io.gravitee.definition.model.Api();
+            apiDefinition.setDefinitionVersion(version);
+            apiDefinition.setTags(tags);
+            api.setDefinitionVersion(version);
+            api.setDefinition(version.name());
+            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.Api.class);
+        }
+        return api;
     }
 }

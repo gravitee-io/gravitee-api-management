@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -50,13 +51,17 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -73,6 +78,7 @@ public class PlanService_UpdateTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
+    public static final String MOCK_API_DEFINITION = "api-definition";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
@@ -118,6 +124,14 @@ public class PlanService_UpdateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private TagsValidationService tagsValidationService;
+
+    @Before
+    public void setup() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+    }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -335,5 +349,23 @@ public class PlanService_UpdateTest {
 
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
+    }
+
+    @Test(expected = TagNotAllowedException.class)
+    public void should_throw_tagNotAllowedException_when_tag_validation_fails() throws Exception {
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+        when(updatePlan.getTags()).thenReturn(Set.of("tag1"));
+
+        doThrow(new TagNotAllowedException(new String[0])).when(tagsValidationService).validatePlanTagsAgainstApiTags(any(), any());
+
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
     }
 }
