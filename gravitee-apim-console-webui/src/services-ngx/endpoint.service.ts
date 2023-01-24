@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ApiCreationPayload = Partial<{
-  name?: string;
-  version?: string;
-  description?: string;
-  selectedEntrypoints?: {
-    id: string;
-    name: string;
-  }[];
-  selectedEndpoints?: {
-    id: string;
-    name: string;
-  }[];
-}>;
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { ConnectorListItem } from '../entities/connector/connector-list-item';
+import { Constants } from '../entities/Constants';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class EndpointService {
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+
+  v4ListEndpointPlugins(): Observable<ConnectorListItem[]> {
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints`);
+  }
+}
