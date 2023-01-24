@@ -220,6 +220,15 @@ commands:
                   name: Logout from Azure Container Registry
                   command: docker logout graviteeio.azurecr.io
 
+    compute-sanitize-circleci-branch:
+        description: Create a sanitized version of the branch name to use in docker tag or other places
+        steps:
+            - run:
+                  name: Sanitize branch name
+                  command: |
+                      export SANITIZED_BRANCH=$(echo "${CIRCLE_BRANCH}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
 parameters:
     gio_action:
         type: enum
@@ -265,11 +274,11 @@ jobs:
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
                       echo $APIM_VERSION > .apim-version.txt
-
+            - compute-sanitize-circleci-branch
             - run:
                   name: Compute Tag for Docker images
                   command: |
-                      export TAG=${CIRCLE_BRANCH}-latest
+                      export TAG=${SANITIZED_BRANCH}-latest
                       # Workaround for sharing this variable to the next steps
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
@@ -792,14 +801,14 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://IHtIJSHgDV-Zhpfjs1Zk5w/field/password
                   var-name: AZURE_STORAGE_CONNECTION_STRING
+            - compute-sanitize-circleci-branch
             - run:
                   name: Login into Azure Storage and upload dist
                   command: |
-                      export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       sed -i 's#<base href="/" />##' gravitee-apim-console-webui/dist/index.html
                       sed -i 's#http://localhost:8083#https://apim-master-api.team-apim.gravitee.dev#' gravitee-apim-console-webui/dist/constants.json
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$BRANCH_ID"
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$SANITIZED_BRANCH"
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
@@ -812,6 +821,7 @@ jobs:
                   secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                   var-name: GITHUB_TOKEN
             - gh/setup
+            - compute-sanitize-circleci-branch
             - run:
                   name: Edit Pull Request Description
                   command: |
@@ -828,10 +838,9 @@ jobs:
                         echo "PR is not opened, stopping the job here."
                         exit 0
                       fi
-                      export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
-                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${BRANCH_ID}/index.html)
+                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${SANITIZED_BRANCH}/index.html)
                       _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
                       <!-- UI placeholder end -->
                       "
