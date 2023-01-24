@@ -18,11 +18,11 @@ import { Component, Input, OnChanges } from '@angular/core';
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
 @Component({
-  selector: 'api-creation-stepper',
-  template: require('./api-creation-stepper.component.html'),
-  styles: [require('./api-creation-stepper.component.scss')],
+  selector: 'api-creation-stepper-menu',
+  template: require('./api-creation-stepper-menu.component.html'),
+  styles: [require('./api-creation-stepper-menu.component.scss')],
 })
-export class ApiCreationStepperComponent implements OnChanges {
+export class ApiCreationStepperMenuComponent implements OnChanges {
   @Input()
   public steps: ApiCreationStep[];
 

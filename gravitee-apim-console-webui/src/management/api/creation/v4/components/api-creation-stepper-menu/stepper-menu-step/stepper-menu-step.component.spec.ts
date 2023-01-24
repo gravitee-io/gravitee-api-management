@@ -17,8 +17,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 
-import { ApiCreationStepHarness } from './api-creation-step.harness';
-import { ApiCreationStepComponent } from './api-creation-step.component';
+import { StepperMenuStepHarness } from './stepper-menu-step.harness';
+import { StepperMenuStepComponent } from './stepper-menu-step.component';
 
 import { ApiCreationV4Module } from '../../../api-creation-v4.module';
 
@@ -33,11 +33,11 @@ class TestHostComponent {
 describe('ApiCreationStepComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let component: TestHostComponent;
-  let harness: ApiCreationStepHarness;
+  let harness: StepperMenuStepHarness;
 
   const initConfigureTestingModule = async (currentStep: number, stepNumber: number) => {
     await TestBed.configureTestingModule({
-      declarations: [TestHostComponent, ApiCreationStepComponent],
+      declarations: [TestHostComponent, StepperMenuStepComponent],
       imports: [ApiCreationV4Module],
     }).compileComponents();
 
@@ -46,7 +46,7 @@ describe('ApiCreationStepComponent', () => {
     component.stepNumber = stepNumber;
     component.currentStep = currentStep;
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.loader(fixture).getHarness(ApiCreationStepHarness);
+    harness = await TestbedHarnessEnvironment.loader(fixture).getHarness(StepperMenuStepHarness);
   };
 
   it('should show step number and title', async () => {

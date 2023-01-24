@@ -15,20 +15,20 @@
     limitations under the License.
 
 -->
-<div class="api-creation-step">
-  <div class="api-creation-step__info">
+<div class="stepper-menu-step">
+  <div class="stepper-menu-step__info">
     <div
-      class="api-creation-step__number mat-body-strong"
-      [ngClass]="stepStatus === 'INACTIVE' ? 'api-creation-step__number-not-started' : 'api-creation-step__number-started'"
+      class="stepper-menu-step__number mat-body-strong"
+      [ngClass]="stepStatus === 'INACTIVE' ? 'stepper-menu-step__number-not-started' : 'stepper-menu-step__number-started'"
     >
       {{ stepNumber }}
     </div>
-    <div class="api-creation-step__title" [class.api-creation-step__title-not-started]="stepStatus === 'INACTIVE'">
+    <div class="stepper-menu-step__title" [class.stepper-menu-step__title-not-started]="stepStatus === 'INACTIVE'">
       <ng-content></ng-content>
     </div>
   </div>
-  <div class="api-creation-step__icon">
-    <mat-icon *ngIf="stepStatus === 'FILLED'" class="api-creation-step__icon-done" svgIcon="gio:nav-arrow-down"></mat-icon>
-    <mat-icon *ngIf="stepStatus === 'ACTIVE'" class="api-creation-step__icon-current" svgIcon="gio:edit-pencil"></mat-icon>
+  <div class="stepper-menu-step__icon">
+    <mat-icon *ngIf="stepStatus === 'FILLED'" class="stepper-menu-step__icon-done" svgIcon="gio:nav-arrow-down"></mat-icon>
+    <mat-icon *ngIf="stepStatus === 'ACTIVE'" class="stepper-menu-step__icon-current" svgIcon="gio:edit-pencil"></mat-icon>
   </div>
 </div>

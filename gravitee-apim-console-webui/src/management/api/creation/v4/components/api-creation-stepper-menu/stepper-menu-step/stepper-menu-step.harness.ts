@@ -16,12 +16,12 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 
-export class ApiCreationStepHarness extends ComponentHarness {
-  static hostSelector = 'api-creation-step';
+export class StepperMenuStepHarness extends ComponentHarness {
+  static hostSelector = 'stepper-menu-step';
 
   protected getIconElement = this.locatorForOptional(MatIconHarness);
-  protected getStepNumberElement = this.locatorFor('.api-creation-step__number');
-  protected getStepTitleElement = this.locatorFor('.api-creation-step__title');
+  protected getStepNumberElement = this.locatorFor('.stepper-menu-step__number');
+  protected getStepTitleElement = this.locatorFor('.stepper-menu-step__title');
 
   async getStepNumber(): Promise<string> {
     return this.getStepNumberElement().then((elt) => elt.text());
