@@ -78,7 +78,7 @@ export class ApiCreationV4Step1Component implements OnInit {
 
   save() {
     const formValue = this.form.getRawValue();
-    this.stepService.goToNextStep((previousPayload) => ({
+    this.stepService.validStepAndGoNext((previousPayload) => ({
       ...previousPayload,
       name: formValue.name,
       description: formValue.description,

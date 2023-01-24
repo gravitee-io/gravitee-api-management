@@ -94,7 +94,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
       component: ApiCreationV4Step21Component,
     });
 
-    this.stepService.goToNextStep((previousPayload) => ({
+    this.stepService.validStepAndGoNext((previousPayload) => ({
       ...previousPayload,
       selectedEntrypoints,
     }));

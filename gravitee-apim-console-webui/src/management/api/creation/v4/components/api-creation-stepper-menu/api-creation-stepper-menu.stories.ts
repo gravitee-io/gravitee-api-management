@@ -21,6 +21,30 @@ import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module
 
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
+const FAKE_STEPS: ApiCreationStep[] = [
+  {
+    component: undefined,
+    label: 'Step 1',
+    labelNumber: 1,
+    state: 'valid',
+    patchPayload: () => ({}),
+  },
+  {
+    component: undefined,
+    label: 'Step 2',
+    labelNumber: 2,
+    state: 'initial',
+    patchPayload: () => ({}),
+  },
+  {
+    component: undefined,
+    label: 'Step 3',
+    labelNumber: 3,
+    state: 'initial',
+    patchPayload: () => ({}),
+  },
+];
+
 export default {
   title: 'Shared / API creation stepper',
   component: ApiCreationStepperMenuComponent,
@@ -37,35 +61,8 @@ export default {
       </div>
     `,
     props: {
-      currentStep: {
-        component: undefined,
-        label: 'Step 2',
-        labelNumber: 2,
-        patchPayload: () => ({}),
-      } as ApiCreationStep,
-      steps: [
-        {
-          component: undefined,
-          label: 'Step 1',
-          labelNumber: 1,
-          type: 'primary',
-          patchPayload: () => ({}),
-        },
-        {
-          component: undefined,
-          label: 'Step 2',
-          labelNumber: 2,
-          type: 'primary',
-          patchPayload: () => ({}),
-        },
-        {
-          component: undefined,
-          label: 'Step 3',
-          labelNumber: 3,
-          type: 'primary',
-          patchPayload: () => ({}),
-        },
-      ],
+      currentStep: FAKE_STEPS[1],
+      steps: FAKE_STEPS,
     },
   }),
 } as Meta;

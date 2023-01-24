@@ -15,6 +15,8 @@
  */
 import { Component, Input, OnChanges } from '@angular/core';
 
+import { ApiCreationStep } from '../../../services/api-creation-stepper.service';
+
 @Component({
   selector: 'stepper-menu-step',
   template: require('./stepper-menu-step.component.html'),
@@ -24,14 +26,19 @@ export class StepperMenuStepComponent implements OnChanges {
   @Input()
   public stepNumber: number;
 
+  // Step item (primary or secondary)
   @Input()
-  public currentStep: number;
+  public step: ApiCreationStep;
+
+  // Set to true if the step is the current edited step
+  @Input()
+  public activeStep: boolean;
 
   public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED';
 
   private getStepStatus() {
-    if (this.stepNumber === Math.floor(this.currentStep)) return 'ACTIVE';
-    if (this.stepNumber < this.currentStep) return 'FILLED';
+    if (this.activeStep) return 'ACTIVE';
+    if (this.step.state === 'valid') return 'FILLED';
     return 'INACTIVE';
   }
 

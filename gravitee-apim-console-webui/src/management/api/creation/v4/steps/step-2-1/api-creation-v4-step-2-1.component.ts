@@ -43,7 +43,7 @@ export class ApiCreationV4Step21Component implements OnInit, OnDestroy {
     this.formGroup = this.formBuilder.group({});
 
     // TODO: remove me when the step is implemented and tested
-    this.stepService.goToNextStep((previousPayload) => ({ ...previousPayload }));
+    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload }));
   }
 
   ngOnDestroy() {
@@ -52,7 +52,7 @@ export class ApiCreationV4Step21Component implements OnInit, OnDestroy {
   }
 
   save(): void {
-    this.stepService.goToNextStep((previousPayload) => ({ ...previousPayload }));
+    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload }));
   }
 
   goBack(): void {
