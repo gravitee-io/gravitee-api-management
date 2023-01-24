@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -37,17 +37,16 @@ export interface ApiPathMappingsAddDialogData {
   template: require('./api-path-mappings-add-dialog.component.html'),
   styles: [require('./api-path-mappings-add-dialog.component.scss')],
 })
-export class ApiPathMappingsAddDialogComponent {
-  tabLabels = {
+export class ApiPathMappingsAddDialogComponent implements OnInit {
+  public tabLabels = {
     AddPathMapping: 'Path',
     SwaggerDocument: 'Swagger Document',
   };
-
-  private api: Api;
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
   public pathFormGroup: FormGroup;
   public swaggerDocs: Page[];
+  public selectedSwaggerDoc: string;
+  private api: Api;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsAddDialogData,
@@ -57,13 +56,10 @@ export class ApiPathMappingsAddDialogComponent {
   ) {
     this.api = dialogData.api;
     this.swaggerDocs = dialogData.swaggerDocs;
-    this.pathFormGroup = this.initFormGroup();
   }
 
-  private initFormGroup() {
-    return new FormGroup({
-      path: new FormControl('', [isUnique(this.api.path_mappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
-    });
+  public ngOnInit(): void {
+    this.pathFormGroup = this.initFormGroup();
   }
 
   public ngOnDestroy(): void {
@@ -71,23 +67,18 @@ export class ApiPathMappingsAddDialogComponent {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSelectedTab(event: MatTabChangeEvent) {
-    this.pathFormGroup = this.initFormGroup();
-    switch (event.tab.textLabel) {
-      case this.tabLabels.AddPathMapping:
-        this.pathFormGroup.addValidators(Validators.required);
-        break;
-    }
-  }
-
-  onAddPath() {
+  public onAddPath(): void {
     this.apiService
       .get(this.api.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api) => {
-          api.path_mappings.push(this.pathFormGroup.getRawValue().path);
-          return this.apiService.update(api);
+          if (this.selectedSwaggerDoc) {
+            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, this.api.gravitee);
+          } else {
+            api.path_mappings.push(this.pathFormGroup.getRawValue().path);
+            return this.apiService.update(api);
+          }
         }),
         catchError(() => {
           this.snackBarService.error(`An error occurred while trying to add the path mapping ${this.pathFormGroup.getRawValue().path}.`);
@@ -99,5 +90,19 @@ export class ApiPathMappingsAddDialogComponent {
         }),
       )
       .subscribe();
+  }
+
+  public onSelectedTab(event: MatTabChangeEvent) {
+    this.selectedSwaggerDoc = null;
+    this.pathFormGroup.reset();
+    if (event.tab.textLabel === this.tabLabels.AddPathMapping) {
+      this.pathFormGroup = this.initFormGroup();
+    }
+  }
+
+  private initFormGroup(): FormGroup {
+    return new FormGroup({
+      path: new FormControl(null, [Validators.required, isUnique(this.api.path_mappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
+    });
   }
 }
