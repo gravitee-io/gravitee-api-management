@@ -22,23 +22,25 @@
     <!-- Add Path Mapping -->
     <mat-tab [label]="tabLabels.AddPathMapping">
       <div class="content__tab">
-        <mat-dialog-content class="content" [formGroup]="pathFormGroup">
-          <mat-form-field class="content__path__form-field" appearance="fill">
-            <mat-label>Path mapping</mat-label>
-            <input
-              type="text"
-              aria-label="Path mapping input"
-              placeholder="/products/:productId"
-              matInput
-              formControlName="path"
-              required
-            />
-            <mat-error *ngIf="pathFormGroup.controls.path.hasError('required')">Path mapping is required.</mat-error>
-            <mat-error *ngIf="pathFormGroup.controls.path.hasError('isUnique')">Path mapping already exists.</mat-error>
-            <mat-error *ngIf="pathFormGroup.controls.path.hasError('pattern')"
-              >Wrong path mapping pattern. Example: /products/:productId</mat-error
-            >
-          </mat-form-field>
+        <mat-dialog-content class="content">
+          <form [formGroup]="pathFormGroup">
+            <mat-form-field class="content__path__form-field" appearance="fill">
+              <mat-label>Path mapping</mat-label>
+              <input
+                type="text"
+                aria-label="Path mapping input"
+                placeholder="/products/:productId"
+                matInput
+                formControlName="path"
+                required
+              />
+              <mat-error *ngIf="pathFormGroup.controls.path.hasError('required')">Path mapping is required.</mat-error>
+              <mat-error *ngIf="pathFormGroup.controls.path.hasError('isUnique')">Path mapping already exists.</mat-error>
+              <mat-error *ngIf="pathFormGroup.controls.path.hasError('pattern')"
+                >Wrong path mapping pattern. Example: /products/:productId</mat-error
+              >
+            </mat-form-field>
+          </form>
         </mat-dialog-content>
       </div>
     </mat-tab>
@@ -46,26 +48,25 @@
     <!-- Import Swagger -->
     <mat-tab [label]="tabLabels.SwaggerDocument">
       <div class="content__tab">
-        <mat-dialog-content class="content" [formGroup]="pathFormGroup">
-          <mat-radio-group formControlName="path" class="radio-group" data-testid="designer-template-parameter-case">
-            <mat-radio-button *ngFor="let page of swaggerDocs" [value]="page.name">{{ page.name }}</mat-radio-button>
+        <mat-dialog-content class="content">
+          <mat-radio-group class="radio-group" [(ngModel)]="selectedSwaggerDoc">
+            <mat-radio-button *ngFor="let page of swaggerDocs" [value]="page.id">{{ page.name }}</mat-radio-button>
           </mat-radio-group>
-          <mat-error *ngIf="!swaggerDocs.length">No swagger documentation on your API.</mat-error>
-          <mat-error *ngIf="pathFormGroup.controls.path.hasError('isUnique')">Path mapping already exists.</mat-error>
+          <mat-error *ngIf="!swaggerDocs?.length">No swagger documentation on your API.</mat-error>
         </mat-dialog-content>
       </div>
     </mat-tab>
   </mat-tab-group>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end" class="actions">
+<mat-dialog-actions class="actions">
   <button class="confirm-dialog__cancel-button" mat-flat-button [mat-dialog-close]="false">Cancel</button>
   <button
     class="confirm-dialog__confirm-button"
     color="primary"
     mat-raised-button
-    data-testid="confirm-dialog"
-    [disabled]="pathFormGroup.controls.path.errors !== null"
+    aria-label="Add path mapping"
+    [disabled]="pathFormGroup.invalid && !selectedSwaggerDoc"
     (click)="onAddPath()"
   >
     Add
