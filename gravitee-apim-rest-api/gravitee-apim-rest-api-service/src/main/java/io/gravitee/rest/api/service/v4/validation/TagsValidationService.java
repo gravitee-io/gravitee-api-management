@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
@@ -24,4 +25,11 @@ import java.util.Set;
  */
 public interface TagsValidationService {
     Set<String> validateAndSanitize(ExecutionContext executionContext, Set<String> oldTags, Set<String> newTags);
+
+    /**
+     * Check if the plan tags are compatible with the tags defined for the API.
+     * @param planTags
+     * @param apiTags
+     */
+    void validatePlanTagsAgainstApiTags(Set<String> planTags, Api api);
 }

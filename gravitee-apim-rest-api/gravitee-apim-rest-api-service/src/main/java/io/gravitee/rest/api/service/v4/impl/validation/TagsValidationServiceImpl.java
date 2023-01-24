@@ -16,11 +16,17 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static java.util.stream.Collectors.toSet;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.HashSet;
@@ -39,9 +45,12 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
 
     private final TagService tagService;
 
+    private ObjectMapper objectMapper;
+
     @Autowired
-    public TagsValidationServiceImpl(final TagService tagService) {
+    public TagsValidationServiceImpl(final TagService tagService, final ObjectMapper objectMapper) {
         this.tagService = tagService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -71,5 +80,19 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
         }
 
         return newTags;
+    }
+
+    public void validatePlanTagsAgainstApiTags(Set<String> planTags, Api api) {
+        try {
+            var apiTags = api.getDefinitionVersion() == DefinitionVersion.V4
+                ? objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class).getTags()
+                : objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class).getTags();
+            if (!isEmpty(planTags) && (isEmpty(apiTags) || !apiTags.stream().anyMatch(apiTag -> planTags.contains(apiTag)))) {
+                log.debug("Plan rejected, tags {} mismatch the tags defined by the API ({})", planTags, apiTags);
+                throw new TagNotAllowedException(planTags.toArray(new String[planTags.size()]));
+            }
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("An error occurs while trying load api definition", e);
+        }
     }
 }
