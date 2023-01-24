@@ -36,13 +36,14 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 16px;
   justify-content: space-between;
 }
-.api-entrypoint-card {
+.gio-list-option {
   &__description {
     flex: 1 1 100%;
 
     &__title {
       @include mat.typography-level($typography, subheading-1);
       margin-bottom: 8px;
+      text-transform: capitalize;
     }
 
     &__body {
