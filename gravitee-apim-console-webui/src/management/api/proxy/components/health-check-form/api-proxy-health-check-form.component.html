@@ -59,7 +59,7 @@
       <h3>Request</h3>
       <div class="health-check-card__request">
         <!-- Request HTTP Method -->
-        <mat-form-field class="health-check-card__request__methods__form-field" appearance="fill">
+        <mat-form-field class="health-check-card__request__methods__form-field">
           <mat-label>HTTP Method</mat-label>
           <mat-select formControlName="method" required>
             <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
@@ -68,7 +68,7 @@
         </mat-form-field>
 
         <!-- Request Path -->
-        <mat-form-field class="health-check-card__request__path__form-field" appearance="fill">
+        <mat-form-field class="health-check-card__request__path__form-field">
           <mat-label>Path</mat-label>
           <input type="text" matInput formControlName="path" required />
           <mat-hint>Additional path added to the endpoint target.</mat-hint>
@@ -76,7 +76,7 @@
         </mat-form-field>
 
         <!-- Request fromRoot -->
-        <gio-form-slide-toggle appearance="fill" class="health-check-card__request__fromRoot__toggle">
+        <gio-form-slide-toggle class="health-check-card__request__fromRoot__toggle">
           <gio-form-label>From root path ('/')</gio-form-label>
           <span class="mat-caption">
             When "from root" is enabled, the path is appended to the root path ('/') of the endpoint without any additional path configured
@@ -94,7 +94,6 @@
         <mat-form-field
           *ngIf="healthCheckForm.get('method').value === 'POST' || healthCheckForm.get('method').value === 'PUT'"
           class="health-check-card__request__body__form-field"
-          appearance="fill"
         >
           <mat-label>Body</mat-label>
           <textarea
@@ -132,7 +131,7 @@
           *ngFor="let option of healthCheckForm.get('assertions').controls; let i = index"
           class="health-check-card__assertions__assertion"
         >
-          <mat-form-field class="health-check-card__assertions__assertion__form-field" appearance="fill">
+          <mat-form-field class="health-check-card__assertions__assertion__form-field">
             <mat-label>Assertion #{{ i }}</mat-label>
             <input type="text" matInput [formControlName]="i" required />
             <mat-error *ngIf="healthCheckForm.get('assertions').at(i).hasError('required')">Assertion is required.</mat-error>

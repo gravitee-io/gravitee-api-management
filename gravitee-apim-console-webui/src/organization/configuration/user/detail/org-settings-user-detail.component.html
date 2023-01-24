@@ -107,7 +107,7 @@
   <mat-card class="org-settings-user-detail__org-role-card">
     <h2 gioTableOfContents>Organization</h2>
 
-    <mat-form-field *ngIf="organizationRolesControl" appearance="fill">
+    <mat-form-field *ngIf="organizationRolesControl">
       <mat-label>Roles</mat-label>
       <mat-select [formControl]="organizationRolesControl" aria-label="Organization role" multiple>
         <mat-option *ngFor="let role of organizationRoles$ | async" [value]="role.id">{{ role.name }}</mat-option>
@@ -147,7 +147,7 @@
         <ng-container matColumnDef="roles">
           <th mat-header-cell *matHeaderCellDef id="roles" width="33%">Roles</th>
           <td mat-cell *matCellDef="let environment">
-            <mat-form-field appearance="fill">
+            <mat-form-field>
               <mat-label>Environment roles</mat-label>
               <mat-select
                 [id]="environment.id"
@@ -229,7 +229,7 @@
         <ng-container matColumnDef="apiRoles">
           <th mat-header-cell *matHeaderCellDef id="apiRoles" mat-sort-header>API Role</th>
           <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-            <mat-form-field appearance="fill">
+            <mat-form-field>
               <mat-label>API role</mat-label>
               <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
                 <mat-option>-- None --</mat-option>
@@ -243,7 +243,7 @@
         <ng-container matColumnDef="applicationRole">
           <th mat-header-cell *matHeaderCellDef id="applicationRole" mat-sort-header>Application Role</th>
           <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-            <mat-form-field appearance="fill">
+            <mat-form-field>
               <mat-label>Application role</mat-label>
               <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
                 <mat-option>-- None --</mat-option>

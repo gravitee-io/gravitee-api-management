@@ -18,7 +18,7 @@
 <h2 mat-dialog-title class="title">Edit Path Mapping</h2>
 
 <mat-dialog-content class="content" [formGroup]="pathFormGroup">
-  <mat-form-field class="content__path__form-field" appearance="fill">
+  <mat-form-field class="content__path__form-field">
     <mat-label>Path mapping</mat-label>
     <input type="text" aria-label="Path mapping input" matInput formControlName="path" required />
     <mat-error *ngIf="pathFormGroup.controls.path.hasError('required')">Path mapping is required.</mat-error>

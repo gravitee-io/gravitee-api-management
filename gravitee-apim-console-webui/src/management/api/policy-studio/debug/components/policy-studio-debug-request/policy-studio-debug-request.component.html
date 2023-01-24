@@ -19,14 +19,14 @@
   <div class="policy-studio-debug-request__header">Request</div>
   <div class="policy-studio-debug-request__content">
     <div class="policy-studio-debug-request__content__wrapper">
-      <mat-form-field class="policy-studio-debug-request__content__wrapper__field" appearance="fill">
+      <mat-form-field class="policy-studio-debug-request__content__wrapper__field">
         <mat-label>HTTP method</mat-label>
         <mat-select formControlName="method">
           <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="policy-studio-debug-request__content__wrapper__field" appearance="fill">
+      <mat-form-field class="policy-studio-debug-request__content__wrapper__field">
         <mat-label>Path</mat-label>
         <input matInput formControlName="path" placeholder="/" />
       </mat-form-field>

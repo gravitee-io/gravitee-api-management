@@ -64,14 +64,14 @@ export const Default: Story = {
       <p>When clicking on save the 1st input in error is focused</p>
       <div style="display: flex; flex-direction: column;">
 
-        <mat-form-field appearance="fill">
+        <mat-form-field>
           <mat-label>Input</mat-label>
           <input matInput required formControlName="anInput">
         </mat-form-field>
 
         <br *ngFor="let item of [].constructor(30)">
 
-        <mat-form-field appearance="fill">
+        <mat-form-field>
           <mat-label>Select</mat-label>
           <mat-select required formControlName="aSelect">
             <mat-option value="one">First option</mat-option>
@@ -81,14 +81,14 @@ export const Default: Story = {
 
         <br *ngFor="let item of [].constructor(30)">
 
-        <mat-form-field appearance="fill">
+        <mat-form-field>
           <mat-label>Textarea</mat-label>
           <textarea matInput required formControlName="aTextarea"></textarea>
         </mat-form-field>
 
         <br *ngFor="let item of [].constructor(30)">
 
-        <mat-form-field appearance="fill">
+        <mat-form-field>
           <mat-label>My tags</mat-label>
           <gio-form-tags-input required formControlName="aTagsInput">
           </gio-form-tags-input>
@@ -96,7 +96,7 @@ export const Default: Story = {
 
         <br *ngFor="let item of [].constructor(30)">
 
-        <mat-form-field appearance="fill">
+        <mat-form-field>
           <mat-label>Select color</mat-label>
           <gio-form-color-input required formControlName="aColorInput">
           </gio-form-color-input>

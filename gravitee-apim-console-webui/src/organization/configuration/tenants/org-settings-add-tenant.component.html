@@ -20,11 +20,11 @@
 <form autocomplete="off" [formGroup]="tenantForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form">
-      <mat-form-field *ngIf="isUpdate" appearance="fill">
+      <mat-form-field *ngIf="isUpdate">
         <mat-label>Id</mat-label>
         <input matInput formControlName="id" data-testid="tenant-id" />
       </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required data-testid="tenant-name" />
         <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/30</mat-hint>
@@ -32,7 +32,7 @@
         <mat-error *ngIf="tenantForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
         <mat-error *ngIf="tenantForm.get('name').hasError('required')">Name is required.</mat-error>
       </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Description</mat-label>
         <input matInput formControlName="description" data-testid="tenant-description" />
         <mat-hint align="end">{{ tenantForm.get('description').value?.length ?? 0 }}/160</mat-hint>

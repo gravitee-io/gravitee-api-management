@@ -22,7 +22,7 @@
 <form autocomplete="off" [formGroup]="tagForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form">
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required />
         <mat-hint align="end">{{ tagForm.get('name').value?.length ?? 0 }}/64</mat-hint>
@@ -31,12 +31,12 @@
         <mat-error *ngIf="tagForm.get('name').hasError('required')">Name is required.</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Description</mat-label>
         <input matInput formControlName="description" />
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Restricted groups</mat-label>
         <mat-select formControlName="restrictedGroups" aria-label="Restricted groups selection" multiple>
           <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>

@@ -37,7 +37,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('management.title')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('management.title')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -50,7 +49,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('management.url')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('management.url')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -65,7 +63,6 @@
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('console.support.enabled')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
           formGroupName="support"
         >
@@ -79,7 +76,6 @@
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('console.pathBasedApiCreation.enabled')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
           formGroupName="pathBasedApiCreation"
         >
@@ -98,7 +94,6 @@
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('console.userCreation.enabled')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
           formGroupName="userCreation"
         >
@@ -119,7 +114,6 @@
           <gio-form-slide-toggle
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('console.userCreation.automaticValidation.enabled')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
             formGroupName="automaticValidation"
           >
@@ -142,7 +136,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('theme.name')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('theme.name')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
@@ -153,7 +146,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('theme.logo')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('theme.logo')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
@@ -164,7 +156,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('theme.loader')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('theme.loader')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -182,7 +173,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('scheduler.tasks')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -195,7 +185,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('scheduler.notifications')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -220,7 +209,6 @@
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-origin')"
           class="settings-general__form__card__form-field"
-          appearance="fill"
         >
           <mat-icon
             *ngIf="isReadonlySetting('http.api.management.cors.allow-origin')"
@@ -248,7 +236,6 @@
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-methods')"
           class="settings-general__form__card__form-field"
-          appearance="fill"
         >
           <mat-icon
             *ngIf="isReadonlySetting('http.api.management.cors.allow-methods')"
@@ -269,7 +256,6 @@
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.allow-headers')"
           class="settings-general__form__card__form-field"
-          appearance="fill"
         >
           <mat-icon
             *ngIf="isReadonlySetting('http.api.management.cors.allow-headers')"
@@ -296,7 +282,6 @@
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.exposed-headers')"
           class="settings-general__form__card__form-field"
-          appearance="fill"
         >
           <mat-icon
             *ngIf="isReadonlySetting('http.api.management.cors.exposed-headers')"
@@ -321,7 +306,6 @@
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('http.api.management.cors.max-age')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon
@@ -343,7 +327,6 @@
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('email.enabled')"
-          appearance="fill"
           class="settings-general__form__card__form-field"
         >
           <mat-icon *ngIf="isReadonlySetting('email.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
@@ -365,7 +348,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.host')"
-            appearance="fill"
             class="settings-general__form__card__form-field margin-top"
           >
             <mat-icon *ngIf="isReadonlySetting('email.host')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -378,7 +360,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.port')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.port')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -391,7 +372,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.username')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.username')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -404,7 +384,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.password')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.password')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -417,7 +396,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.protocol')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.protocol')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -430,7 +408,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.subject')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.subject')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -443,7 +420,6 @@
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.from')"
-            appearance="fill"
             class="settings-general__form__card__form-field"
           >
             <mat-icon *ngIf="isReadonlySetting('email.from')" class="settings-general__form__card__form-field__icon" matPrefix
@@ -458,7 +434,6 @@
             <gio-form-slide-toggle
               [matTooltip]="providedConfigurationMessage"
               [matTooltipDisabled]="!isReadonlySetting('email.properties.auth')"
-              appearance="fill"
               class="settings-general__form__card__form-field"
             >
               <mat-icon
@@ -481,7 +456,6 @@
             <gio-form-slide-toggle
               [matTooltip]="providedConfigurationMessage"
               [matTooltipDisabled]="!isReadonlySetting('email.properties.startTlsEnable')"
-              appearance="fill"
               class="settings-general__form__card__form-field"
             >
               <mat-icon
@@ -504,7 +478,6 @@
             <mat-form-field
               [matTooltip]="providedConfigurationMessage"
               [matTooltipDisabled]="!isReadonlySetting('email.sslTrust')"
-              appearance="fill"
               class="settings-general__form__card__form-field margin-top"
             >
               <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" class="settings-general__form__card__form-field__icon" matPrefix

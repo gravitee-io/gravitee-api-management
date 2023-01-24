@@ -33,7 +33,7 @@
       <div class="card__template-key__label">Template key</div>
       <p class="card__template-key__hint">The template key for which template responses will be applied.</p>
 
-      <mat-form-field class="card__template-key__form-field" appearance="fill">
+      <mat-form-field class="card__template-key__form-field">
         <mat-label>Template key</mat-label>
         <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" required />
         <mat-autocomplete #tkAuto="matAutocomplete">
@@ -51,7 +51,7 @@
       <div class="card__accept-header__label">Accept header to match</div>
       <p class="card__accept-header__hint">The Accept header of requests for which this template response should be used.</p>
 
-      <mat-form-field class="card__accept-header__form-field" appearance="fill">
+      <mat-form-field class="card__accept-header__form-field">
         <mat-label>Accept</mat-label>
         <input
           type="text"
@@ -72,7 +72,7 @@
       <div class="card__status-code__label">Status code</div>
       <p class="card__status-code__hint">The status code sent to the API consumer.</p>
 
-      <mat-form-field class="card__status-code__form-field" appearance="fill">
+      <mat-form-field class="card__status-code__form-field">
         <mat-label>Status code</mat-label>
         <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" required />
         <mat-autocomplete #scAuto="matAutocomplete">
@@ -98,7 +98,7 @@
     <div class="card__body">
       <div class="card__body__label">Body</div>
       <p class="card__body__hint">Response template body.</p>
-      <mat-form-field class="card__body__form-field" appearance="fill">
+      <mat-form-field class="card__body__form-field">
         <mat-label>Body</mat-label>
         <textarea matInput formControlName="body" rows="8"> </textarea>
       </mat-form-field>

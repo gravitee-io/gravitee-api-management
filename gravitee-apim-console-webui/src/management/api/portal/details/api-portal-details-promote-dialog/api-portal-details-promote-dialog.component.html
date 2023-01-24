@@ -25,7 +25,7 @@
         <span gioBannerBody>You will be able to promote them again after they have been accepted or rejected.</span>
       </gio-banner-info>
 
-      <mat-form-field class="promote__content__promotion-targets" appearance="fill">
+      <mat-form-field class="promote__content__promotion-targets">
         <mat-label>Environment</mat-label>
         <mat-select [formControl]="promoteControl">
           <mat-option *ngFor="let target of promotionTargets" [value]="target.id" [disabled]="target.promotionInProgress">

@@ -20,7 +20,7 @@
 <form autocomplete="off" [formGroup]="tokenForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div *ngIf="!hasBeenGenerated" class="form">
-      <mat-form-field appearance="fill">
+      <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required />
         <mat-hint align="end">{{ tokenForm.get('name').value?.length ?? 0 }}/64</mat-hint>

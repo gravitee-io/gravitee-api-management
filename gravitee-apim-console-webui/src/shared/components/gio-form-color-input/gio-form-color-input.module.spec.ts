@@ -27,7 +27,7 @@ import { GioFormColorInputModule } from './gio-form-color-input.module';
 
 @Component({
   template: `
-    <mat-form-field appearance="fill">
+    <mat-form-field>
       <mat-label>My color</mat-label>
       <gio-form-color-input [required]="required" [placeholder]="placeholder" [formControl]="colorControl"></gio-form-color-input>
       <mat-error *ngIf="colorControl.hasError('color')">
