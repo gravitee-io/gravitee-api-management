@@ -19,14 +19,16 @@ import { cloneDeep } from 'lodash';
 
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
-export interface ApiCreationStep {
+export interface NewApiCreationStep {
   label: string;
   component: Type<unknown>;
-  patchPayload: (lastPayload: ApiCreationPayload) => ApiCreationPayload;
-  type: 'primary' | 'secondary';
 }
 
-export type NewApiCreationStep = Omit<ApiCreationStep, 'type' | 'patchPayload'>;
+export interface ApiCreationStep extends NewApiCreationStep {
+  /* Main label number. Start to 1 */
+  labelNumber: number;
+  patchPayload: (lastPayload: ApiCreationPayload) => ApiCreationPayload;
+}
 
 /**
  * Service that manages the steps of the API creation process.
@@ -51,10 +53,10 @@ export class ApiCreationStepperService {
 
   constructor(creationStepPayload: NewApiCreationStep[], initialPayload?: ApiCreationPayload) {
     this.initialPayload = initialPayload ?? {};
-    this.steps = creationStepPayload.map((stepPayload) => ({
+    this.steps = creationStepPayload.map((stepPayload, index) => ({
       ...stepPayload,
+      labelNumber: index + 1,
       patchPayload: (p) => p,
-      type: 'primary',
     }));
     this.steps$.next(this.steps);
   }
@@ -78,10 +80,11 @@ export class ApiCreationStepperService {
    * Add a secondary step after the current step.
    */
   public addSecondaryStep(step: NewApiCreationStep) {
+    const currentStep = this.steps[this.currentStepIndex];
     this.steps.splice(this.currentStepIndex + 1, 0, {
       ...step,
       patchPayload: (p) => p,
-      type: 'secondary',
+      labelNumber: currentStep.labelNumber,
     });
     this.steps$.next(this.steps);
   }

@@ -40,25 +40,28 @@ export default {
       currentStep: {
         component: undefined,
         label: 'Step 2',
-        type: 'primary',
+        labelNumber: 2,
         patchPayload: () => ({}),
       } as ApiCreationStep,
       steps: [
         {
           component: undefined,
           label: 'Step 1',
+          labelNumber: 1,
           type: 'primary',
           patchPayload: () => ({}),
         },
         {
           component: undefined,
           label: 'Step 2',
+          labelNumber: 2,
           type: 'primary',
           patchPayload: () => ({}),
         },
         {
           component: undefined,
           label: 'Step 3',
+          labelNumber: 3,
           type: 'primary',
           patchPayload: () => ({}),
         },
