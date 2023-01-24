@@ -20,12 +20,14 @@ Use with `nvm use` or install with `nvm install` the version of Node.js declared
 ### Install dependencies
 
 ```bash
-$ yarn install
+$ yarn install # install what is needed to compile the file generated for the test cases
+$ npm ci #or npm i, install what is needed to run the scripts locally
 ```
 
 ### Build k6 cli
 
 In order to run k6 and collect metrics in the same time (see Collecting metrics), you'll need to build a specific k6 client that includes the prometheus metrics exporter.
+⚠️ This is a living repository and breaking changes could occur (name of the option for k6, metrics name, etc.).
 
 ```shell
 go install go.k6.io/xk6/cmd/xk6@latest
@@ -71,6 +73,8 @@ If you have changed the default admin password, make sure to reflect the changes
 
 ### The stack
 
+#### Grafana
+
 Metrics collection and visualization is based on grafana. A `docker-compose` file is there to quickly run the whole metrics stack.
 To start the whole stack, just type the following command:
 
@@ -96,9 +100,32 @@ Once the grafana stack is up and running, you can start visualize the Apim gatew
 
 Go to: http://localhost:8686/api/v5/report/evKJrjgVk?orgId=1&from=1660884060000&to=1660890060000, which will output the grafana-reporter PDF of the dashboard `evKJrjgVk` on the time interval specified with the parameters `from` and `to`.
 
+#### Local environment
+
+It is possible to run the scenario without a grafana to report metrics.
+
+To do so, override [dotenv file](./.env)'s variable `K6_OUTPUT_MODE` with `csv` or `json` (other values are: `cloud`, `influxdb`, `statsd`, `xk6-prometheus-rw`)
+
+## Recommanded Gateway Configuration
+
+To be able to run the scenario in the exact same condition, you can run your gateway with those java options:
+
+```
+-Xms256m
+-Xmx256m
+-XX:MaxMetaspaceSize=128m
+-XX:CompressedClassSpaceSize=48m
+-XX:ReservedCodeCacheSize=32m
+-XX:+UseStringDeduplication
+-XX:MaxTenuringThreshold=1
+-XX:+ParallelRefProcEnabled
+-XX:InitiatingHeapOccupancyPercent=25
+-Xss256k
+```
+
 ## Running the test
 
-1. Start an APIM instance with `gravitee_services_sync_delay=1000` on Gateway.
+1. Start an APIM instance with `gravitee_services_sync_delay=1000` on Gateway. It allows to have a quick synchronisation when deploying an API.
 2. Check the configuration on `.env` file.
 3. Write your test at root of `src` folder, here `src/get-200-status.setup.ts`;
 4. Call the runner:
@@ -111,4 +138,6 @@ $ ./scripts/test-runner.ts  -f src/get-200-status-nosetup.test.js
 
 House rules for writing tests:
 - The test code is located in `src` folder
+- Test file run by K6 should be written in this format: `<testName>.test.js`
+- It is possible to run init and tearDown hook in a `<testName>.setup.ts` located next to `<testName>.test.js`
 
