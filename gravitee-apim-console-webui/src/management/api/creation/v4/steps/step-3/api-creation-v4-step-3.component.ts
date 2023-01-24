@@ -96,7 +96,7 @@ export class ApiCreationV4Step3Component implements OnInit, OnDestroy {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEndpointsIds.includes(e.id));
 
-    this.stepService.goToNextStep((previousPayload) => ({
+    this.stepService.validStepAndGoNext((previousPayload) => ({
       ...previousPayload,
       selectedEndpoints: selectedEndpoints,
     }));

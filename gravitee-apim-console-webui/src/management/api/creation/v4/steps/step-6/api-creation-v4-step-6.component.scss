@@ -11,7 +11,7 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 16px;
   }
 
-  &__entrypoints {
+  &__badge-list {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
