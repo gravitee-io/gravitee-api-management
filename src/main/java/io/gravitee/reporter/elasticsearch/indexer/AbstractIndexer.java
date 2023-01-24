@@ -210,7 +210,7 @@ public abstract class AbstractIndexer implements Indexer {
         data.put("metrics", metrics);
         data.put("contentLength", metrics.getContentLength() >= 0 ? metrics.getContentLength() : null);
         data.put("count", metrics.getCount() >= 0 ? metrics.getCount() : null);
-        data.put("errorsCount", metrics.getErrorsCount() >= 0 ? metrics.getErrorsCount() : null);
+        data.put("errorCount", metrics.getErrorCount() >= 0 ? metrics.getErrorCount() : null);
         data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
 
         return generateData("message-metrics-v4.ftl", data);

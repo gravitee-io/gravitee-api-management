@@ -152,7 +152,7 @@ public class AbstractIndexerTest {
             .builder()
             .timestamp(Instant.now().toEpochMilli())
             .count(1)
-            .errorsCount(2)
+            .errorCount(2)
             .contentLength(3)
             .gatewayLatencyMs(4)
             .build();
