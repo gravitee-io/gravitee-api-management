@@ -25,26 +25,29 @@ import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpointGroup;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class WeightedRoundRobinLoadBalancerTest {
 
     @Test
-    void shouldReturnNullWithEmptyEndpoints() {
+    void should_return_null_with_empty_endpoints() {
         WeightedRoundRobinLoadBalancer cut = new WeightedRoundRobinLoadBalancer(List.of());
         ManagedEndpoint next = cut.next();
         assertThat(next).isNull();
     }
 
     @Test
-    void shouldReturn2timesSameEndpointThenNextOne() {
+    void should_return_endpoints_in_order() {
         List<ManagedEndpoint> endpoints = new ArrayList<>();
         Endpoint endpoint1 = new Endpoint();
-        endpoint1.setWeight(2);
+        endpoint1.setWeight(1);
         ManagedEndpoint managedEndpoint1 = new ManagedEndpoint(
             endpoint1,
             new ManagedEndpointGroup(new EndpointGroup()),
@@ -52,20 +55,55 @@ class WeightedRoundRobinLoadBalancerTest {
         );
         endpoints.add(managedEndpoint1);
         Endpoint endpoint2 = new Endpoint();
-        endpoint2.setWeight(1);
+        endpoint2.setWeight(5);
         ManagedEndpoint managedEndpoint2 = new ManagedEndpoint(
             endpoint2,
             new ManagedEndpointGroup(new EndpointGroup()),
             mock(EndpointConnector.class)
         );
         endpoints.add(managedEndpoint2);
+        Endpoint endpoint3 = new Endpoint();
+        endpoint3.setWeight(3);
+        ManagedEndpoint managedEndpoint3 = new ManagedEndpoint(
+            endpoint3,
+            new ManagedEndpointGroup(new EndpointGroup()),
+            mock(EndpointConnector.class)
+        );
+        endpoints.add(managedEndpoint3);
 
         WeightedRoundRobinLoadBalancer cut = new WeightedRoundRobinLoadBalancer(endpoints);
+        // 1
         ManagedEndpoint next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint1); // 1 > 0
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint2); // 5 > 4
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint3); // 3 > 2
+
+        // 2
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint2); // 4 > 3
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint3); // 2 > 1
+
+        // 3
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint2); // 3 > 2
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint3); // 1 > 0
+
+        // 4
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint2); // 2 > 1
+        next = cut.next();
+        assertThat(next).isEqualTo(managedEndpoint2); // 1 > 0
+
+        // 5
+        next = cut.next();
         assertThat(next).isEqualTo(managedEndpoint1);
         next = cut.next();
         assertThat(next).isEqualTo(managedEndpoint2);
         next = cut.next();
-        assertThat(next).isEqualTo(managedEndpoint1);
+        assertThat(next).isEqualTo(managedEndpoint3);
     }
 }

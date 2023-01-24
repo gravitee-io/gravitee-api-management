@@ -58,11 +58,13 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
         WeightDistributions.WeightDistribution foundWeightDistribution = null;
         while (foundWeightDistribution == null) {
-            currentWeightDistributions.tryResetRemaining();
+            if (currentWeightDistributions.tryResetRemaining()) {
+                counter.set(0);
+            }
             int position = counter.getAndIncrement();
             if (position >= currentWeightDistributions.getDistributions().size()) {
                 counter.set(0);
-                position = 0;
+                position = counter.getAndIncrement();
             }
             WeightDistributions.WeightDistribution weightDistribution = currentWeightDistributions.getDistributions().get(position);
             if (weightDistribution.getRemaining() > 0) {
