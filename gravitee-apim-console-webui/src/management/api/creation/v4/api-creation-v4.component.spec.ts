@@ -265,6 +265,7 @@ describe('ApiCreationV4Component', () => {
 
       const step3Summary = await step6Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Field' + 'Value');
+      expect(step3Summary).toContain('Endpoints:' + 'Kafka' + 'Mock');
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
@@ -307,7 +308,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
-      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      let step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
       await step6Harness.clickChangeButton(3);
       fixture.detectChanges();
 
@@ -323,6 +324,12 @@ describe('ApiCreationV4Component', () => {
 
       await step3Harness.clickValidate();
       fixture.detectChanges();
+
+      // Reinitialize step6Harness after step2 validation
+      step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step2Summary = await step6Harness.getStepSummaryTextContent(3);
+
+      expect(step2Summary).toContain('Endpoints:' + 'Mock');
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {

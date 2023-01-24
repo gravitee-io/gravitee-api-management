@@ -105,4 +105,17 @@ export class ApiCreationV4Step6Component implements OnInit {
     }
     return 'layers';
   }
+
+  getEndpointIconName(id: string) {
+    if (id.startsWith('kafka')) {
+      return 'kafka';
+    }
+    if (id.startsWith('mock')) {
+      return 'page';
+    }
+    if (id.startsWith('mqtt')) {
+      return 'mqtt';
+    }
+    return 'layers';
+  }
 }

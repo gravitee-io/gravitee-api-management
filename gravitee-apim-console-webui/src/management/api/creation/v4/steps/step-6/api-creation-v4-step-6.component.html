@@ -61,12 +61,12 @@
           </div>
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Entrypoints:</span>
-            <div class="api-creation-v4-step-6__entrypoints">
+            <div class="api-creation-v4-step-6__badge-list">
               <ng-container *ngFor="let entrypoint of currentStepPayload.selectedEntrypoints">
                 <span class="gio-badge-accent"
                   ><mat-icon
                     [svgIcon]="'gio:' + getEntrypointIconName(entrypoint.id)"
-                    class="api-creation-v4-step-6__entrypoints__icon"
+                    class="api-creation-v4-step-6__badge-list__icon"
                   ></mat-icon
                   >{{ entrypoint.name }}</span
                 >
@@ -90,7 +90,17 @@
           </div>
           <div class="api-creation-v4-step-6__step__info__row">
             <span class="api-creation-v4-step-6__step__info__key">Endpoints:</span>
-            <span class="gio-badge-primary"><mat-icon svgIcon="gio:kafka"></mat-icon>Kafka</span>
+            <div class="api-creation-v4-step-6__badge-list">
+              <ng-container *ngFor="let endpoint of currentStepPayload.selectedEndpoints">
+                <span class="gio-badge-accent"
+                  ><mat-icon
+                    [svgIcon]="'gio:' + getEndpointIconName(endpoint.id)"
+                    class="api-creation-v4-step-6__badge-list__icon"
+                  ></mat-icon
+                  >{{ endpoint.name }}</span
+                >
+              </ng-container>
+            </div>
           </div>
         </div>
         <div>
