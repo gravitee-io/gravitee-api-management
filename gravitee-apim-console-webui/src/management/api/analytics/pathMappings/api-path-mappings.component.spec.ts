@@ -34,6 +34,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { User } from '../../../../entities/user';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { Api } from '../../../../entities/api';
+import { Page } from '../../../../entities/page';
 
 describe('ApiPathMappingsComponent', () => {
   const API_ID = 'apiId';
@@ -82,6 +83,7 @@ describe('ApiPathMappingsComponent', () => {
       });
 
       expectApiGetRequest(api);
+      expectApiPagesGetRequest(api, []);
 
       const { headerCells, rowCells } = await computeApisTableCells();
       expect(headerCells).toEqual([
@@ -103,6 +105,7 @@ describe('ApiPathMappingsComponent', () => {
         path_mappings: [],
       });
       expectApiGetRequest(api);
+      expectApiPagesGetRequest(api, []);
 
       const { headerCells, rowCells } = await computeApisTableCells();
       expect(headerCells).toEqual([
@@ -123,6 +126,7 @@ describe('ApiPathMappingsComponent', () => {
         path_mappings: ['/test', '/test/:id'],
       });
       expectApiGetRequest(api);
+      expectApiPagesGetRequest(api, []);
 
       let { rowCells } = await computeApisTableCells();
       expect(rowCells).toEqual([
@@ -142,6 +146,7 @@ describe('ApiPathMappingsComponent', () => {
       expectApiGetRequest(api);
       expectApiPutRequest(updatedApi);
       expectApiGetRequest(updatedApi);
+      expectApiPagesGetRequest(api, []);
 
       ({ rowCells } = await computeApisTableCells());
       expect(rowCells).toEqual([['/test', '']]);
@@ -155,6 +160,7 @@ describe('ApiPathMappingsComponent', () => {
         path_mappings: ['/test', '/test/:id'],
       });
       expectApiGetRequest(api);
+      expectApiPagesGetRequest(api, []);
 
       let { rowCells } = await computeApisTableCells();
       expect(rowCells).toEqual([
@@ -172,7 +178,6 @@ describe('ApiPathMappingsComponent', () => {
       await dialog.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then((element) => element.click());
 
       expectApiGetRequest(api);
-
       const updatedApi = { ...api, path_mappings: ['/test', '/updated/:id'] };
       expectApiPutRequest(updatedApi);
 
@@ -180,6 +185,7 @@ describe('ApiPathMappingsComponent', () => {
       expect(snackBars.length).toBe(1);
 
       expectApiGetRequest(updatedApi);
+      expectApiPagesGetRequest(api, []);
       ({ rowCells } = await computeApisTableCells());
       expect(rowCells).toEqual([
         ['/test', ''],
@@ -190,6 +196,13 @@ describe('ApiPathMappingsComponent', () => {
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPagesGetRequest(api: Api, pages: Page[]) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/pages?type=SWAGGER&api=${api.id}`, method: 'GET' })
+      .flush(pages);
     fixture.detectChanges();
   }
 
