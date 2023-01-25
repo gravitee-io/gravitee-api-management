@@ -1299,9 +1299,7 @@ jobs:
                         fi
                       fi
 
-                      # Push all tags if not dry-run mode
-                      if [ "<< parameters.dry_run >>" == "false" ]; then
-                        # Login to DockerHub
+                      if [ "<< parameters.dry_run >>" = "false" ]; then
                         docker login --username="${DOCKERHUB_BOT_USER_NAME}" -p="${DOCKERHUB_BOT_USER_TOKEN}"
 
                         docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
@@ -1309,14 +1307,13 @@ jobs:
                         docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
                         docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
 
-                        # Docker logout
                         docker logout
                       else
-                        echo "DRY RUN - Docker commands to be executed:"
-                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker"
-                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker"
-                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker"
-                        echo "docker buildx build --push --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker"
+                        echo "DRY RUN Mode. Build only"
+                        docker buildx build --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_GATEWAY_TAG}         -f ./gravitee-apim-gateway/docker/Dockerfile-from-download ./gravitee-apim-gateway/docker
+                        docker buildx build --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_API_TAG}  -f ./gravitee-apim-rest-api/docker/Dockerfile-from-download ./gravitee-apim-rest-api/docker
+                        docker buildx build --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_MANAGEMENT_UI_TAG}   -f ./gravitee-apim-console-webui/docker/Dockerfile-from-download ./gravitee-apim-console-webui/docker
+                        docker buildx build --platform=linux/arm64,linux/amd64 ${DOCKER_BUILD_ARGS} --quiet ${DOCKER_BUILD_PORTAL_UI_TAG}       -f ./gravitee-apim-portal-webui/docker/Dockerfile-from-download ./gravitee-apim-portal-webui/docker
                       fi
 
     nexus-staging:
@@ -1518,7 +1515,7 @@ jobs:
                   command: |
                       echo "Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database"
                       cd gravitee-apim-e2e
-                      if [[ << parameters.execution_mode >> == jupiter ]]
+                      if [ "<< parameters.execution_mode >>" = "jupiter" ]
                       then
                         echo "Enabling jupiter mode on APIM Gateway and Rest API"
                         export JUPITER_MODE_ENABLED=true
@@ -2100,6 +2097,7 @@ workflows:
                       branches:
                           only:
                               - master
+                              - /^\d+\.\d+\.x$/
         jobs:
             - setup:
                   context: cicd-orchestrator

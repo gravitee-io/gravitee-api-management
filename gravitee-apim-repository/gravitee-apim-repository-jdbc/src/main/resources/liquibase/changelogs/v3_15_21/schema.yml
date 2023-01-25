@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      preConditions:
+        - onFail: MARK_RAN
+        - primaryKeyExists:
+            tableName: ${gravitee_prefix}flow_steps
+      id: 3.15.21-clean-flow-steps-pk
+      author: GraviteeSource Team
+      changes:
+        # Drop any existing PK on the flow_steps table
+        - dropPrimaryKey:
+            dropIndex: true
+            tableName: ${gravitee_prefix}flow_steps
+  - changeSet:
+      id: 3.15.21
+      author: GraviteeSource Team
+      changes:
+        # Create a new auto increment column and set it as a PK
+        - addColumn:
+            tableName: ${gravitee_prefix}flow_steps
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
