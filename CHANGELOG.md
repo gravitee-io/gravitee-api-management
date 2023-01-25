@@ -1,3 +1,10 @@
+# [4.1.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.3...4.1.0-alpha.4) (2023-01-25)
+
+
+### Bug Fixes
+
+* rename v4 metrics ([91c644f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/91c644fa3943eea1d94455891c122cededa98fbd))
+
 # [4.1.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.2...4.1.0-alpha.3) (2023-01-24)
 
 
