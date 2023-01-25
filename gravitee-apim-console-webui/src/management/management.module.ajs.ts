@@ -546,6 +546,8 @@ import ApiKeysController from '../management/api-key/api-keys.controller';
 import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
+import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -966,6 +968,8 @@ graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
 graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
 graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
+graviteeManagementModule.component('gvSearchAndSelect', SearchAndSelectComponent);
+graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelectController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
 graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
