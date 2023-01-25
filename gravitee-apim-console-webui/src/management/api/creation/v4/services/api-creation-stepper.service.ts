@@ -25,6 +25,7 @@ export interface NewApiCreationStep {
 }
 
 export interface ApiCreationStep extends NewApiCreationStep {
+  id: string;
   /* Main label number. Start to 1 */
   labelNumber: number;
   state: 'initial' | 'valid' | 'invalid';
@@ -56,6 +57,7 @@ export class ApiCreationStepperService {
     this.initialPayload = initialPayload ?? {};
     this.steps = creationStepPayload.map((stepPayload, index) => ({
       ...stepPayload,
+      id: `step-${index + 1}-1`,
       labelNumber: index + 1,
       state: 'initial',
       patchPayload: (p) => p,
@@ -81,13 +83,15 @@ export class ApiCreationStepperService {
   /**
    * Add a secondary step after the current step.
    */
-  public addSecondaryStep(step: NewApiCreationStep) {
+  public addSecondaryStep(step: Omit<NewApiCreationStep, 'label'>) {
     const currentStep = this.steps[this.currentStepIndex];
     this.steps.splice(this.currentStepIndex + 1, 0, {
       ...step,
+      id: `step-${currentStep.labelNumber}-${this.steps.filter((s) => s.label === currentStep.label).length + 1}`,
       state: 'initial',
       patchPayload: (p) => p,
       labelNumber: currentStep.labelNumber,
+      label: currentStep.label,
     });
     this.steps$.next(this.steps);
   }

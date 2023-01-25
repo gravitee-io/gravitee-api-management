@@ -90,7 +90,6 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.addSecondaryStep({
-      label: 'Entrypoints/Configuration',
       component: ApiCreationV4Step21Component,
     });
 

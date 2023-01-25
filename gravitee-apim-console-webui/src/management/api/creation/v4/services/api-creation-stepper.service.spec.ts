@@ -49,37 +49,41 @@ describe('ApiCreationStepperService', () => {
   it('should got to fist step', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
 
+    expect(currentStep.id).toEqual('step-1-1');
     expect(currentStep.label).toEqual('Step 1');
   });
 
-  it('should save and go to next step(2)', () => {
+  it('should save and go to next step(2-1)', () => {
     apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
 
+    expect(currentStep.id).toEqual('step-2-1');
     expect(currentStep.label).toEqual('Step 2');
   });
 
   it('should add secondary step ', () => {
     apiCreationStepperService.addSecondaryStep({
-      label: 'Step 2.1',
       component: undefined,
     });
   });
 
-  it('should save and go to next step(2.1)', () => {
+  it('should save and go to next step(2-2)', () => {
     apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
 
-    expect(currentStep.label).toEqual('Step 2.1');
+    expect(currentStep.id).toEqual('step-2-2');
+    expect(currentStep.label).toEqual('Step 2');
   });
 
   it('should save and go to next step(3)', () => {
     apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
 
+    expect(currentStep.id).toEqual('step-3-1');
     expect(currentStep.label).toEqual('Step 3');
   });
 
   it('should save and go to next step(4)', () => {
     apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
 
+    expect(currentStep.id).toEqual('step-4-1');
     expect(currentStep.label).toEqual('Step 4');
   });
 

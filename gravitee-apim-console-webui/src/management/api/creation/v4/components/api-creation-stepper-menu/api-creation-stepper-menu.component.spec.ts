@@ -33,6 +33,7 @@ class TestHostComponent {
 
 const FAKE_STEPS: ApiCreationStep[] = [
   {
+    id: 'step-1',
     component: undefined,
     label: 'Step 1',
     labelNumber: 1,
@@ -40,6 +41,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     patchPayload: () => ({}),
   },
   {
+    id: 'step-2',
     component: undefined,
     label: 'Step 2',
     labelNumber: 2,
@@ -47,6 +49,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     patchPayload: () => ({}),
   },
   {
+    id: 'step-3',
     component: undefined,
     label: 'Step 3',
     labelNumber: 3,
