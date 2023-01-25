@@ -41,7 +41,6 @@ import ApiTransferOwnershipController from '../management/api/portal/userGroupAc
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
-import ApiPathMappingsController from '../management/api/analytics/pathMappings/pathMappings.controller';
 import ApiPropertiesController from '../management/api/design/properties/properties.controller';
 import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
@@ -701,7 +700,6 @@ graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesCont
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
-graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
