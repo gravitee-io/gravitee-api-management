@@ -13,7 +13,7 @@ datasources:
     uid: 'PBFA97CFB590B2093'
     jsonData:
       httpMethod: POST
-      timeInterval: '1s'
+      timeInterval: '1s' # Should be the same as configured in prometheus.yml#global.scrape_interval
   - name: 'Tempo'
     type: tempo
     access: proxy
