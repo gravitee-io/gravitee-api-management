@@ -31,7 +31,7 @@ import {
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
-import { Api, ApiOrigin } from '../../../../entities/api';
+import { Api } from '../../../../entities/api';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DocumentationService } from '../../../../services-ngx/documentation.service';
 import { Page } from '../../../../entities/page';
@@ -70,8 +70,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
-
-          this.isReadOnly = api.definition_context.origin === ('kubernetes' as ApiOrigin);
+          this.isReadOnly = api.definition_context.origin === 'kubernetes';
         }),
       )
       .subscribe();
