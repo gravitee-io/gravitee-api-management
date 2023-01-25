@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
+import { IHttpPromise, IHttpService, IPromise, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
 
 import { ApplicationExcludeFilter } from './application.service';
@@ -124,6 +124,13 @@ export class ApiService {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
+  listByIdIn(ids: string[] = []): IPromise<any> {
+    if (ids.length === 0) {
+      return Promise.resolve({ data: [] });
+    }
+    return this.list(null, null, null, null, null, ids);
+  }
+
   list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any, ids?: string[], size?: number): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/`;
 
@@ -145,7 +152,7 @@ export class ApiService {
     return this.$http.get(url, opts);
   }
 
-  searchApis(query?: string, page?: any, order?: string, opts?: any): IHttpPromise<any> {
+  searchApis(query?: string, page?: any, order?: string, opts?: any, size?: number): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/_search/`;
 
     // Fallback to paginated search if a page parameter is provided.
@@ -158,6 +165,7 @@ export class ApiService {
       q: query ? query : '*',
       page: page,
       order: order,
+      size,
     };
 
     return this.$http.post(url, {}, opts);
