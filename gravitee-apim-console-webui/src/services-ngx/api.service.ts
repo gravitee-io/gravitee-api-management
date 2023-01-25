@@ -250,7 +250,7 @@ export class ApiService {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/_migrate`, {});
   }
 
-  importPathMappings(apiId: string, pageId: any, definitionVersion?: string): Observable<Api> {
+  importPathMappings(apiId: string, pageId: string, definitionVersion?: string): Observable<Api> {
     let params = `?page=${pageId}`;
 
     if (definitionVersion) {
