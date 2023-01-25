@@ -14,55 +14,23 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatListOptionHarness, MatSelectionListHarness } from '@angular/material/list/testing';
+
+import { ApiCreationV4FormSelectionListHarness } from '../api-creation-v4-form-selection-list.harness';
 
 export class ApiCreationV4Step2Harness extends ComponentHarness {
   static hostSelector = 'api-creation-v4-step-2';
 
-  protected getPreviousButton = this.locatorFor(
-    MatButtonHarness.with({
-      selector: '#previous',
-    }),
-  );
+  private readonly form = this.locatorFor(ApiCreationV4FormSelectionListHarness);
 
-  protected getValidateButton = this.locatorFor(
-    MatButtonHarness.with({
-      selector: '#validate',
-    }),
-  );
+  async getEntrypointsForm(): Promise<ApiCreationV4FormSelectionListHarness> {
+    return this.form();
+  }
 
-  protected getListOptionById = (id: string) => this.locatorFor(MatListOptionHarness.with({ selector: `#${id}` }))();
+  async clickValidateEntrypoints(): Promise<void> {
+    return this.form().then((f) => f.clickButtonByText('Select my entrypoints'));
+  }
 
   async clickPrevious(): Promise<void> {
-    return this.getPreviousButton().then((elt) => elt.click());
-  }
-
-  async clickValidate() {
-    return this.getValidateButton().then((elt) => elt.click());
-  }
-
-  async fillStep(entrypointIds: string[]): Promise<void> {
-    await Promise.all(entrypointIds.map((id) => this.markEntrypointSelectedById(id)));
-  }
-
-  async markEntrypointSelectedById(id: string): Promise<void> {
-    const listOption = await this.getListOptionById(id);
-    await listOption.select();
-  }
-
-  async deselectEntrypointById(id: string): Promise<void> {
-    const listOption = await this.getListOptionById(id);
-    await listOption.deselect();
-  }
-
-  async getEntrypointsList(filters?: { selected?: boolean }): Promise<string[]> {
-    const list = await this.locatorFor(MatSelectionListHarness.with({ selector: '.gio-selection-list' }))();
-
-    const options = (await list.getItems(filters?.selected ? { selected: true } : {})).map(
-      async (option) => await (await option.host()).getAttribute('id'),
-    );
-
-    return Promise.all(options);
+    return this.form().then((f) => f.clickButtonByText('Previous'));
   }
 }
