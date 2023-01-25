@@ -63,21 +63,6 @@ class PlatformLogsController {
       apis: this.apis.data.data,
       applications: this.applications.data,
     };
-
-    this.loadApis();
-  }
-
-  loadApis() {
-    const promises = [];
-    for (let i = 2; i <= this.apis.data.page.total_pages; i++) {
-      promises.push(this.ApiService.list(null, false, i, null, null, null, 100));
-    }
-
-    Promise.all(promises).then((results) => {
-      results.forEach((result) => {
-        this.metadata.apis = this.metadata.apis.concat(result.data.data);
-      });
-    });
   }
 
   timeframeChange(timeframe) {
