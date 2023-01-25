@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Injector, Input, OnChanges } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnChanges, Output, Type } from '@angular/core';
 
 import { MenuStepItem, MENU_ITEM_PAYLOAD } from '../api-creation-stepper-menu.component';
 
@@ -34,6 +34,9 @@ export class StepperMenuStepComponent implements OnChanges {
   @Input()
   public activeStep: boolean;
 
+  @Output()
+  goToStep = new EventEmitter<string>();
+
   public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED';
 
   public menuItemComponentInjector: Injector;
@@ -44,14 +47,34 @@ export class StepperMenuStepComponent implements OnChanges {
     return 'INACTIVE';
   }
 
+  public previewOutlet?: {
+    component: Type<unknown>;
+    injector: Injector;
+  };
+
+  public openPreview = false;
+  public clickable = false;
+
   constructor(private readonly injector: Injector) {}
 
   ngOnChanges(): void {
     this.stepStatus = this.getStepStatus();
 
-    this.menuItemComponentInjector = Injector.create({
-      providers: [{ provide: MENU_ITEM_PAYLOAD, useValue: this.step.payload }],
-      parent: this.injector,
-    });
+    if (this.step.menuItemComponent) {
+      this.previewOutlet = {
+        component: this.step.menuItemComponent,
+        injector: Injector.create({
+          providers: [{ provide: MENU_ITEM_PAYLOAD, useValue: this.step.payload }],
+          parent: this.injector,
+        }),
+      };
+    }
+
+    this.clickable = !this.activeStep && this.step.state === 'valid';
+    this.openPreview = this.activeStep && this.step.state === 'valid';
+  }
+
+  emitGoToStep() {
+    this.goToStep.emit(this.step.label);
   }
 }

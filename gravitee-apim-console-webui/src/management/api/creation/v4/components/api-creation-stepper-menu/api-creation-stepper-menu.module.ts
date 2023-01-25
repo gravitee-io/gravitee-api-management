@@ -18,12 +18,13 @@ import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatRippleModule } from '@angular/material/core';
 
 import { ApiCreationStepperMenuComponent } from './api-creation-stepper-menu.component';
 import { StepperMenuStepComponent } from './stepper-menu-step/stepper-menu-step.component';
 
 @NgModule({
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, GioIconsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatRippleModule, GioIconsModule],
   declarations: [ApiCreationStepperMenuComponent, StepperMenuStepComponent],
   exports: [ApiCreationStepperMenuComponent],
 })

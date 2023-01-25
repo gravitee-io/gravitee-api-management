@@ -22,7 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
 import { StepperMenuStepHarness } from './stepper-menu-step/stepper-menu-step.harness';
 import { MenuStepItem } from './api-creation-stepper-menu.component';
-import { TestStepMenuItemComponent } from './test-step-meinu-item.component';
+import { TestStepMenuItemComponent } from './test-step-menu-item.component';
 
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 

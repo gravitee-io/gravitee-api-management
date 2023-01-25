@@ -27,6 +27,7 @@
       [stepNumber]="step.labelNumber"
       [step]="step"
       [activeStep]="currentStep.labelNumber === step.labelNumber"
+      (goToStep)="goToStep.emit($event)"
       >{{ step.label }}</stepper-menu-step
     >
   </div>
