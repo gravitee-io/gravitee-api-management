@@ -192,7 +192,7 @@ public abstract class AbstractIndexer implements Indexer {
         data.put("requestContentLength", metrics.getRequestContentLength() >= 0 ? metrics.getRequestContentLength() : null);
         data.put("responseContentLength", metrics.getResponseContentLength() >= 0 ? metrics.getResponseContentLength() : null);
 
-        return generateData("metrics-v4.ftl", data);
+        return generateData("v4-metrics.ftl", data);
     }
 
     /**
@@ -213,7 +213,7 @@ public abstract class AbstractIndexer implements Indexer {
         data.put("errorCount", metrics.getErrorCount() >= 0 ? metrics.getErrorCount() : null);
         data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
 
-        return generateData("message-metrics-v4.ftl", data);
+        return generateData("v4-message-metrics.ftl", data);
     }
 
     /**
@@ -248,7 +248,7 @@ public abstract class AbstractIndexer implements Indexer {
         data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(log.timestamp()));
         data.put("log", log);
 
-        return generateData("log-v4.ftl", data);
+        return generateData("v4-log.ftl", data);
     }
 
     /**
@@ -264,7 +264,7 @@ public abstract class AbstractIndexer implements Indexer {
         data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(log.timestamp()));
         data.put("log", log);
 
-        return generateData("message-log-v4.ftl", data);
+        return generateData("v4-message-log.ftl", data);
     }
 
     /**
