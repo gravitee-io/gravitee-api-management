@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges } from '@angular/core';
-import { groupBy } from 'lodash';
+import { Component, InjectionToken, Input } from '@angular/core';
 
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
+
+export const MENU_ITEM_PAYLOAD = new InjectionToken('MENU_ITEM_PAYLOAD');
+
+export interface MenuStepItem extends ApiCreationStep {
+  payload: ApiCreationPayload;
+}
 
 @Component({
   selector: 'api-creation-stepper-menu',
   template: require('./api-creation-stepper-menu.component.html'),
   styles: [require('./api-creation-stepper-menu.component.scss')],
 })
-export class ApiCreationStepperMenuComponent implements OnChanges {
+export class ApiCreationStepperMenuComponent {
   @Input()
-  public steps: ApiCreationStep[];
+  public menuSteps: MenuStepItem[];
 
   @Input()
   public currentStep: ApiCreationStep;
-
-  public lastStepOfEachLabel: ApiCreationStep[] = [];
-
-  ngOnChanges() {
-    if (!this.steps || !this.currentStep) {
-      return;
-    }
-
-    // Get the last step of each label. To have last payload of each label.
-    this.lastStepOfEachLabel = Object.entries(groupBy(this.steps, 'label')).map(([_, steps]) => steps[steps.length - 1]);
-  }
 }

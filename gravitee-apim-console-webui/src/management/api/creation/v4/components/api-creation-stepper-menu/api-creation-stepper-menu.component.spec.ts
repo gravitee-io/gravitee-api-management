@@ -17,28 +17,33 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
 import { StepperMenuStepHarness } from './stepper-menu-step/stepper-menu-step.harness';
+import { MenuStepItem } from './api-creation-stepper-menu.component';
+import { TestStepMenuItemComponent } from './test-step-meinu-item.component';
 
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
 @Component({
-  template: `<api-creation-stepper-menu [steps]="steps" [currentStep]="currentStep"></api-creation-stepper-menu>`,
+  template: `<api-creation-stepper-menu [menuSteps]="menuSteps" [currentStep]="currentStep"></api-creation-stepper-menu>`,
 })
 class TestHostComponent {
-  public steps: ApiCreationStep[] = [];
+  public menuSteps: MenuStepItem[] = [];
   public currentStep: ApiCreationStep = undefined;
 }
 
-const FAKE_STEPS: ApiCreationStep[] = [
+const FAKE_STEPS: MenuStepItem[] = [
   {
     id: 'step-1',
     component: undefined,
+    menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 1',
     labelNumber: 1,
     state: 'valid',
     patchPayload: () => ({}),
+    payload: { name: 'test' },
   },
   {
     id: 'step-2',
@@ -47,6 +52,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     labelNumber: 2,
     state: 'initial',
     patchPayload: () => ({}),
+    payload: {},
   },
   {
     id: 'step-3',
@@ -55,6 +61,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     labelNumber: 3,
     state: 'initial',
     patchPayload: () => ({}),
+    payload: {},
   },
 ];
 
@@ -63,16 +70,16 @@ describe('ApiCreationStepperMenuComponent', () => {
   let component: TestHostComponent;
   let harnessLoader: HarnessLoader;
 
-  const initConfigureTestingModule = async (steps: ApiCreationStep[], currentStep: ApiCreationStep) => {
+  const initConfigureTestingModule = async (steps: MenuStepItem[], currentStep: ApiCreationStep) => {
     await TestBed.configureTestingModule({
-      declarations: [TestHostComponent],
-      imports: [ApiCreationStepperMenuModule],
+      declarations: [TestHostComponent, TestStepMenuItemComponent],
+      imports: [ApiCreationStepperMenuModule, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
-    component.steps = steps;
+    component.menuSteps = steps;
     component.currentStep = currentStep;
     fixture.detectChanges();
   };
@@ -105,5 +112,12 @@ describe('ApiCreationStepperMenuComponent', () => {
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[2].hasStepIcon()).toEqual(false);
+  });
+
+  it('should show content', async () => {
+    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
+
+    expect(await menuSteps[0].getStepContent()).toContain('test');
   });
 });

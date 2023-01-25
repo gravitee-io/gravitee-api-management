@@ -16,19 +16,20 @@
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
-import { ApiCreationStepperMenuComponent } from './api-creation-stepper-menu.component';
+import { ApiCreationStepperMenuComponent, MenuStepItem } from './api-creation-stepper-menu.component';
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
+import { TestStepMenuItemComponent } from './test-step-meinu-item.component';
 
-import { ApiCreationStep } from '../../services/api-creation-stepper.service';
-
-const FAKE_STEPS: ApiCreationStep[] = [
+const FAKE_STEPS: MenuStepItem[] = [
   {
     id: 'step-1',
     component: undefined,
+    menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 1',
     labelNumber: 1,
     state: 'valid',
     patchPayload: () => ({}),
+    payload: { name: 'test' },
   },
   {
     id: 'step-2',
@@ -37,6 +38,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     labelNumber: 2,
     state: 'initial',
     patchPayload: () => ({}),
+    payload: {},
   },
   {
     id: 'step-3',
@@ -45,6 +47,7 @@ const FAKE_STEPS: ApiCreationStep[] = [
     labelNumber: 3,
     state: 'initial',
     patchPayload: () => ({}),
+    payload: {},
   },
 ];
 
@@ -53,6 +56,7 @@ export default {
   component: ApiCreationStepperMenuComponent,
   decorators: [
     moduleMetadata({
+      declarations: [TestStepMenuItemComponent],
       imports: [ApiCreationStepperMenuModule],
     }),
   ],
@@ -60,7 +64,7 @@ export default {
   render: () => ({
     template: `
       <div style="width: 300px">
-        <api-creation-stepper-menu [steps]="steps" [currentStep]="currentStep"></api-creation-stepper-menu>
+        <api-creation-stepper-menu [menuSteps]="steps" [currentStep]="currentStep"></api-creation-stepper-menu>
       </div>
     `,
     props: {

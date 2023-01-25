@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 
-import { ApiCreationStep, ApiCreationStepperService, NewApiCreationStep } from './api-creation-stepper.service';
+import { ApiCreationStep, ApiCreationStepperService, NewSecondaryApiCreationStep } from './api-creation-stepper.service';
 
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
@@ -42,7 +42,7 @@ export class ApiCreationStepService {
     this.stepper.goToStepLabel(stepLabel);
   }
 
-  public addSecondaryStep(step: Omit<NewApiCreationStep, 'label'>): void {
+  public addSecondaryStep(step: NewSecondaryApiCreationStep): void {
     this.stepper.addSecondaryStep(step);
   }
 }

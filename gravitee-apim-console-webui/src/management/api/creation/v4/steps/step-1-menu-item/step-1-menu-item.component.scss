@@ -1,0 +1,9 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.step-1-menu-item {
+  .remove-me {
+    // Remove me
+    display: none;
+  }
+}

@@ -32,3 +32,7 @@
     <mat-icon *ngIf="stepStatus === 'ACTIVE'" class="stepper-menu-step__icon-current" svgIcon="gio:edit-pencil"></mat-icon>
   </div>
 </div>
+
+<div class="stepper-menu-step__content" *ngIf="step.menuItemComponent && step.state == 'valid'">
+  <ng-container *ngComponentOutlet="step.menuItemComponent; injector: menuItemComponentInjector"></ng-container>
+</div>
