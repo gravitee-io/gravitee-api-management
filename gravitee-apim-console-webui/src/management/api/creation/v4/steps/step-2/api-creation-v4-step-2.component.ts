@@ -24,13 +24,7 @@ import { map, takeUntil } from 'rxjs/operators';
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationV4Step21Component } from '../step-2-1/api-creation-v4-step-2-1.component';
-
-type EntrypointVM = {
-  id: string;
-  name: string;
-  description: string;
-  isEnterprise: boolean;
-};
+import { ConnectorVM } from '../../models/ConnectorVM';
 
 @Component({
   selector: 'api-creation-v4-step-2',
@@ -42,7 +36,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
 
   public formGroup: FormGroup;
 
-  public entrypoints: EntrypointVM[];
+  public entrypoints: ConnectorVM[];
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -103,7 +97,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     this.stepService.goToPreviousStep();
   }
 
-  onMoreInfoClick(event, entrypoint: EntrypointVM) {
+  onMoreInfoClick(event, entrypoint: ConnectorVM) {
     event.stopPropagation();
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {

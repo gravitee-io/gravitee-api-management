@@ -36,4 +36,15 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-top: 24px;
     }
   }
+
+  &__list-option {
+    &__selected {
+      border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+    }
+  }
+
+  &__badge {
+    font-weight: 700;
+    vertical-align: bottom;
+  }
 }

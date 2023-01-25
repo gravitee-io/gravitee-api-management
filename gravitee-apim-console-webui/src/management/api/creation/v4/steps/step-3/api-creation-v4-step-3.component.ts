@@ -23,25 +23,19 @@ import { map, takeUntil } from 'rxjs/operators';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
-
-type EndpointVM = {
-  id: string;
-  name: string;
-  description: string;
-  isEnterprise: boolean;
-};
+import { ConnectorVM } from '../../models/ConnectorVM';
 
 @Component({
   selector: 'api-creation-v4-step-3',
   template: require('./api-creation-v4-step-3.component.html'),
-  styles: [require('./api-creation-v4-step-3.component.scss'), require('../api-creation-steps-common.component.scss')],
+  styles: [require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4Step3Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
 
-  public endpoints: EndpointVM[];
+  public endpoints: ConnectorVM[];
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -106,7 +100,7 @@ export class ApiCreationV4Step3Component implements OnInit, OnDestroy {
     this.stepService.goToPreviousStep();
   }
 
-  onMoreInfoClick(event, endpoint: EndpointVM) {
+  onMoreInfoClick(event, endpoint: ConnectorVM) {
     event.stopPropagation();
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
