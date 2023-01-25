@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Injector, Input, OnChanges } from '@angular/core';
 
-import { ApiCreationStep } from '../../../services/api-creation-stepper.service';
+import { MenuStepItem, MENU_ITEM_PAYLOAD } from '../api-creation-stepper-menu.component';
 
 @Component({
   selector: 'stepper-menu-step',
@@ -28,7 +28,7 @@ export class StepperMenuStepComponent implements OnChanges {
 
   // Step item (primary or secondary)
   @Input()
-  public step: ApiCreationStep;
+  public step: MenuStepItem;
 
   // Set to true if the step is the current edited step
   @Input()
@@ -36,13 +36,22 @@ export class StepperMenuStepComponent implements OnChanges {
 
   public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED';
 
+  public menuItemComponentInjector: Injector;
+
   private getStepStatus() {
     if (this.activeStep) return 'ACTIVE';
     if (this.step.state === 'valid') return 'FILLED';
     return 'INACTIVE';
   }
 
+  constructor(private readonly injector: Injector) {}
+
   ngOnChanges(): void {
     this.stepStatus = this.getStepStatus();
+
+    this.menuItemComponentInjector = Injector.create({
+      providers: [{ provide: MENU_ITEM_PAYLOAD, useValue: this.step.payload }],
+      parent: this.injector,
+    });
   }
 }

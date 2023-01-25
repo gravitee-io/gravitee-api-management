@@ -37,4 +37,8 @@ export class StepperMenuStepHarness extends ComponentHarness {
       return icon.getName();
     });
   }
+
+  async getStepContent(): Promise<string> {
+    return this.locatorFor('.stepper-menu-step__content')().then((elt) => elt.text());
+  }
 }

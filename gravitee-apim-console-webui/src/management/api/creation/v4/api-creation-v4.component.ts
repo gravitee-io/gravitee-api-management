@@ -15,8 +15,9 @@
  */
 
 import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { groupBy } from 'lodash';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
@@ -25,6 +26,8 @@ import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
+import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
+import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 
 @Component({
   selector: 'api-creation-v4',
@@ -40,6 +43,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     {
       label: 'API Metadata',
       component: ApiCreationV4Step1Component,
+      menuItemComponent: Step1MenuItemComponent,
     },
     {
       label: 'Entrypoints',
@@ -62,6 +66,18 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       component: ApiCreationV4Step6Component,
     },
   ]);
+
+  menuSteps$: Observable<MenuStepItem[]> = this.stepper.steps$.pipe(
+    map((steps) => {
+      // Get the last step of each label. To have last payload of each label.
+      const lastStepOfEachLabel = Object.entries(groupBy(steps, 'label')).map(([_, steps]) => steps[steps.length - 1]);
+
+      return lastStepOfEachLabel.map((step) => ({
+        ...step,
+        payload: this.stepper.compileStepPayload(step),
+      }));
+    }),
+  );
 
   constructor(private readonly injector: Injector) {}
 

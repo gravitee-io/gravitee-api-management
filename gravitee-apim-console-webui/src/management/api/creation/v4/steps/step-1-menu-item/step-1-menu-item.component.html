@@ -15,9 +15,13 @@
     limitations under the License.
 
 -->
-<div class="api-creation-v4__container">
-  <api-creation-stepper-menu [menuSteps]="menuSteps$ | async" [currentStep]="currentStep"></api-creation-stepper-menu>
-  <div class="api-creation-v4__current-step">
-    <ng-container *ngComponentOutlet="currentStep.component; injector: currentStep.injector"></ng-container>
-  </div>
-</div>
+<ng-container *ngIf="menuItem">
+  <dl>
+    <dt>API name</dt>
+    <dd class="mat-body-2">{{ menuItem.name }}</dd>
+  </dl>
+  <dl>
+    <dt>API version</dt>
+    <dd class="mat-body-2">{{ menuItem.version }}</dd>
+  </dl>
+</ng-container>

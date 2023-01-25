@@ -23,7 +23,7 @@
 
   <div class="steps">
     <stepper-menu-step
-      *ngFor="let step of lastStepOfEachLabel"
+      *ngFor="let step of menuSteps"
       [stepNumber]="step.labelNumber"
       [step]="step"
       [activeStep]="currentStep.labelNumber === step.labelNumber"

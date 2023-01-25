@@ -22,7 +22,10 @@ import { ApiCreationPayload } from '../models/ApiCreationPayload';
 export interface NewApiCreationStep {
   label: string;
   component: Type<unknown>;
+  menuItemComponent?: Type<unknown>;
 }
+
+export type NewSecondaryApiCreationStep = Omit<NewApiCreationStep, 'label' | 'menuItemComponent'>;
 
 export interface ApiCreationStep extends NewApiCreationStep {
   id: string;
@@ -83,7 +86,7 @@ export class ApiCreationStepperService {
   /**
    * Add a secondary step after the current step.
    */
-  public addSecondaryStep(step: Omit<NewApiCreationStep, 'label'>) {
+  public addSecondaryStep(step: NewSecondaryApiCreationStep) {
     const currentStep = this.steps[this.currentStepIndex];
     this.steps.splice(this.currentStepIndex + 1, 0, {
       ...step,
@@ -105,6 +108,7 @@ export class ApiCreationStepperService {
 
     // Give current payload to next step
     this.goToStepIndex(this.currentStepIndex + 1);
+    this.steps$.next(this.steps);
   }
 
   public goToPreviousStep() {
