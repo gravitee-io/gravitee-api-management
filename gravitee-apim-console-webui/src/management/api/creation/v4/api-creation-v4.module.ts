@@ -25,6 +25,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
@@ -51,6 +52,7 @@ import { GioSelectionListOptionModule } from '../../../../shared/components/gio-
     MatDialogModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatProgressBarModule,
 
     GioConfirmDialogModule,
     GioIconsModule,

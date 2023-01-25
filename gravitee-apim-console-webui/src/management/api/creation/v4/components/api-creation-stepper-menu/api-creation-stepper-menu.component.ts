@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, InjectionToken, Input } from '@angular/core';
+import { Component, EventEmitter, InjectionToken, Input, Output } from '@angular/core';
 
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ApiCreationStep } from '../../services/api-creation-stepper.service';
@@ -35,4 +35,7 @@ export class ApiCreationStepperMenuComponent {
 
   @Input()
   public currentStep: ApiCreationStep;
+
+  @Output()
+  goToStep = new EventEmitter<string>();
 }

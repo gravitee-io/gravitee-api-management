@@ -28,6 +28,7 @@ import { ApiCreationV4Step2Harness } from './steps/step-2/api-creation-v4-step-2
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
 import { ApiCreationV4Step3Harness } from './steps/step-3/api-creation-v4-step-3.harness';
+import { ApiCreationV4Step21Component } from './steps/step-2-1/api-creation-v4-step-2-1.component';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -70,6 +71,29 @@ describe('ApiCreationV4Component', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
+  });
+
+  describe('menu', () => {
+    it('should have 6 steps', (done) => {
+      component.stepper.validStepAndGoNext(() => ({ name: 'A1' }));
+      component.stepper.addSecondaryStep({ component: ApiCreationV4Step21Component });
+      component.stepper.addSecondaryStep({ component: ApiCreationV4Step21Component });
+      component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B1` }));
+      component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B2` }));
+
+      component.menuSteps$.subscribe((steps) => {
+        expect(steps.length).toEqual(6);
+        expect(steps[0].label).toEqual('API Metadata');
+        expect(steps[1].label).toEqual('Entrypoints');
+        // Expect to have the last valid step payload
+        expect(steps[1].payload).toEqual({ name: 'A1>B1>B2' });
+        expect(steps[2].label).toEqual('Endpoints');
+        expect(steps[3].label).toEqual('Security');
+        expect(steps[4].label).toEqual('Document');
+        expect(steps[5].label).toEqual('Summary');
+        done();
+      });
+    });
   });
 
   describe('step1', () => {

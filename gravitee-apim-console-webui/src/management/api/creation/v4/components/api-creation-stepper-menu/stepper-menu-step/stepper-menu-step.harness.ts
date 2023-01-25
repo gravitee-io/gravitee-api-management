@@ -20,8 +20,8 @@ export class StepperMenuStepHarness extends ComponentHarness {
   static hostSelector = 'stepper-menu-step';
 
   protected getIconElement = this.locatorForOptional(MatIconHarness);
-  protected getStepNumberElement = this.locatorFor('.stepper-menu-step__number');
-  protected getStepTitleElement = this.locatorFor('.stepper-menu-step__title');
+  protected getStepNumberElement = this.locatorFor('.stepper-menu-step__header__info__number');
+  protected getStepTitleElement = this.locatorFor('.stepper-menu-step__header__info__title');
 
   async getStepNumber(): Promise<string> {
     return this.getStepNumberElement().then((elt) => elt.text());

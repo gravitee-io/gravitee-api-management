@@ -18,7 +18,7 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
 import { ApiCreationStepperMenuComponent, MenuStepItem } from './api-creation-stepper-menu.component';
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
-import { TestStepMenuItemComponent } from './test-step-meinu-item.component';
+import { TestStepMenuItemComponent } from './test-step-menu-item.component';
 
 const FAKE_STEPS: MenuStepItem[] = [
   {
@@ -34,6 +34,7 @@ const FAKE_STEPS: MenuStepItem[] = [
   {
     id: 'step-2',
     component: undefined,
+    menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 2',
     labelNumber: 2,
     state: 'initial',

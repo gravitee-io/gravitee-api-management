@@ -21,7 +21,8 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'test-step-menu-item',
-  template: `{{ menuItemPayload | json }}`,
+  template: `Payload Json : <br />
+    {{ menuItemPayload | json }}`,
 })
 export class TestStepMenuItemComponent {
   constructor(@Inject(MENU_ITEM_PAYLOAD) public readonly menuItemPayload: ApiCreationPayload) {}

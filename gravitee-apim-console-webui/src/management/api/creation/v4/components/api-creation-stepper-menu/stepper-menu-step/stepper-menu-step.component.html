@@ -15,24 +15,47 @@
     limitations under the License.
 
 -->
-<div class="stepper-menu-step">
-  <div class="stepper-menu-step__info">
-    <div
-      class="stepper-menu-step__number mat-body-strong"
-      [ngClass]="stepStatus === 'INACTIVE' ? 'stepper-menu-step__number-not-started' : 'stepper-menu-step__number-started'"
-    >
-      {{ stepNumber }}
-    </div>
-    <div class="stepper-menu-step__title" [class.stepper-menu-step__title-not-started]="stepStatus === 'INACTIVE'">
-      <ng-content></ng-content>
-    </div>
-  </div>
-  <div class="stepper-menu-step__icon">
-    <mat-icon *ngIf="stepStatus === 'FILLED'" class="stepper-menu-step__icon-done" svgIcon="gio:nav-arrow-down"></mat-icon>
-    <mat-icon *ngIf="stepStatus === 'ACTIVE'" class="stepper-menu-step__icon-current" svgIcon="gio:edit-pencil"></mat-icon>
-  </div>
-</div>
 
-<div class="stepper-menu-step__content" *ngIf="step.menuItemComponent && step.state == 'valid'">
-  <ng-container *ngComponentOutlet="step.menuItemComponent; injector: menuItemComponentInjector"></ng-container>
+<div class="stepper-menu-step">
+  <div class="stepper-menu-step__header" [class.clickable]="clickable">
+    <div class="stepper-menu-step__header__info" matRipple [matRippleDisabled]="!clickable" (click)="clickable && emitGoToStep()">
+      <div
+        class="stepper-menu-step__header__info__number mat-body-strong"
+        [ngClass]="
+          stepStatus === 'INACTIVE'
+            ? 'stepper-menu-step__header__info__number-not-started'
+            : 'stepper-menu-step__header__info__number-started'
+        "
+      >
+        {{ stepNumber }}
+      </div>
+      <div class="stepper-menu-step__header__info__title" [class.stepper-menu-step__header__title-not-started]="stepStatus === 'INACTIVE'">
+        <ng-content></ng-content>
+      </div>
+    </div>
+    <div
+      *ngIf="stepStatus === 'FILLED' && previewOutlet"
+      class="stepper-menu-step__header__icon"
+      matRipple
+      [matRippleDisabled]="!clickable"
+      (click)="clickable && (openPreview = !openPreview)"
+    >
+      <mat-icon
+        class="stepper-menu-step__header__icon-done"
+        [class.preview-open]="openPreview"
+        [class.preview-close]="!openPreview"
+        svgIcon="gio:nav-arrow-down"
+      ></mat-icon>
+    </div>
+
+    <div *ngIf="stepStatus === 'ACTIVE'" class="stepper-menu-step__header__icon">
+      <mat-icon *ngIf="stepStatus === 'ACTIVE'" class="stepper-menu-step__header__icon-current" svgIcon="gio:edit-pencil"></mat-icon>
+    </div>
+  </div>
+
+  <div *ngIf="previewOutlet" class="stepper-menu-step__content" [class.preview-open]="openPreview" [class.preview-close]="!openPreview">
+    <div class="stepper-menu-step__content__wrapper">
+      <ng-container *ngComponentOutlet="previewOutlet.component; injector: previewOutlet.injector"></ng-container>
+    </div>
+  </div>
 </div>

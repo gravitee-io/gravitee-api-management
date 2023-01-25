@@ -70,8 +70,11 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   menuSteps$: Observable<MenuStepItem[]> = this.stepper.steps$.pipe(
     map((steps) => {
-      // Get the last step of each label. To have last payload of each label.
-      const lastStepOfEachLabel = Object.entries(groupBy(steps, 'label')).map(([_, steps]) => steps[steps.length - 1]);
+      // Get the last step valid or last step of each label. To have last full payload of each label.
+      const lastStepOfEachLabel = Object.entries(groupBy(steps, 'label')).map(([_, steps]) => {
+        const lastValidStep = steps.reverse().find((step) => step.state === 'valid');
+        return lastValidStep || steps[steps.length - 1];
+      });
 
       return lastStepOfEachLabel.map((step) => ({
         ...step,
@@ -102,5 +105,9 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
+  }
+
+  goToStep(label: string) {
+    this.stepper.goToStepLabel(label);
   }
 }
