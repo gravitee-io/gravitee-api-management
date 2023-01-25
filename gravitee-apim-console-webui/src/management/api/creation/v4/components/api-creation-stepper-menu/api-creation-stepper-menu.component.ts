@@ -30,13 +30,14 @@ export class ApiCreationStepperMenuComponent implements OnChanges {
   @Input()
   public currentStep: ApiCreationStep;
 
-  public lastStepPerLabelNumber: ApiCreationStep[] = [];
+  public lastStepOfEachLabel: ApiCreationStep[] = [];
 
   ngOnChanges() {
     if (!this.steps || !this.currentStep) {
       return;
     }
 
-    this.lastStepPerLabelNumber = Object.entries(groupBy(this.steps, 'labelNumber')).map(([_, steps]) => steps[steps.length - 1]);
+    // Get the last step of each label. To have last payload of each label.
+    this.lastStepOfEachLabel = Object.entries(groupBy(this.steps, 'label')).map(([_, steps]) => steps[steps.length - 1]);
   }
 }

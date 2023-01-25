@@ -42,7 +42,7 @@ export class ApiCreationStepService {
     this.stepper.goToStepLabel(stepLabel);
   }
 
-  public addSecondaryStep(step: NewApiCreationStep): void {
+  public addSecondaryStep(step: Omit<NewApiCreationStep, 'label'>): void {
     this.stepper.addSecondaryStep(step);
   }
 }
