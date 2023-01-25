@@ -73,8 +73,8 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
-          definitionVersion: 'Version',
+          contextPath: 'Context Path',
+          definitionVersion: 'Mode',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -94,8 +94,8 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
-          definitionVersion: 'Version',
+          contextPath: 'Context Path',
+          definitionVersion: 'Mode',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -220,8 +220,8 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
-          definitionVersion: 'Version',
+          contextPath: 'Context Path',
+          definitionVersion: 'Mode',
           name: 'Name',
           owner: 'Owner',
           picture: '',
