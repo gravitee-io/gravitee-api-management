@@ -242,4 +242,16 @@ public class EndpointGroupsValidationServiceImplTest {
     public void shouldThrowExceptionWithNullParameter() {
         assertThat(endpointGroupsValidationService.validateAndSanitize(null)).isNull();
     }
+
+    @Test(expected = EndpointGroupConfigurationInvalidException.class)
+    public void shouldThrowConfigurationExceptionIfEndpointInheriteFromNullConfiguration() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        final Endpoint endpoint = new Endpoint();
+        endpoint.setInheritConfiguration(true);
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
 }

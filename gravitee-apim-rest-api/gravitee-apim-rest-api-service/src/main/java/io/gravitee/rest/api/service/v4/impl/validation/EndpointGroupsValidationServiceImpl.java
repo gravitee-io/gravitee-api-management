@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -59,6 +61,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                 validateEndpointGroupType(endpointGroup.getType());
                 validateServices(endpointGroup.getServices());
                 validateEndpointsExistence(endpointGroup);
+
+                endpointService.validateConnectorConfiguration(endpointGroup.getType(), endpointGroup.getSharedConfiguration());
+
                 if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
                     endpointGroup
                         .getEndpoints()
@@ -68,6 +73,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                                 validateEndpointType(endpoint.getType());
                                 validateServices(endpoint.getServices());
                                 validateEndpointMatchType(endpointGroup, endpoint);
+                                validateEndpointConfigInheritance(endpointGroup, endpoint);
 
                                 endpoint.setConfiguration(
                                     endpointService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
@@ -79,6 +85,12 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         );
 
         return endpointGroups;
+    }
+
+    private static void validateEndpointConfigInheritance(EndpointGroup endpointGroup, Endpoint endpoint) {
+        if (endpoint.isInheritConfiguration() && isNullOrEmpty(endpointGroup.getSharedConfiguration())) {
+            throw new EndpointGroupConfigurationInvalidException();
+        }
     }
 
     private void validateEndpointsExistence(EndpointGroup endpointGroup) {
