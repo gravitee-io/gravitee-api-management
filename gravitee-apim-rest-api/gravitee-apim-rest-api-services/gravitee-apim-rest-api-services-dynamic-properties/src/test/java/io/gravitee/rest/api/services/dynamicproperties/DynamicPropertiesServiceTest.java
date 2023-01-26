@@ -39,6 +39,7 @@ import io.vertx.core.Vertx;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.Executor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,6 +75,9 @@ public class DynamicPropertiesServiceTest {
 
     @Mock
     private HttpDynamicPropertyProviderConfiguration providerConfiguration;
+
+    @Mock
+    private Executor executor;
 
     @InjectMocks
     private DynamicPropertiesService cut;
