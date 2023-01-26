@@ -226,7 +226,7 @@ commands:
             - run:
                   name: Sanitize branch name
                   command: |
-                      export SANITIZED_BRANCH=$(echo "${CIRCLE_BRANCH}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
+                      export SANITIZED_BRANCH=$(echo "${CIRCLE_BRANCH}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9\.]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       # Workaround for sharing this variable to the next steps
                       echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
 parameters:
