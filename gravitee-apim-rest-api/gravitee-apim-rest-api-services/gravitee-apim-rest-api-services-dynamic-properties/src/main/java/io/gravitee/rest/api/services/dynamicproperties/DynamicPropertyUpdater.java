@@ -73,7 +73,6 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     protected CompletableFuture<Collection<DynamicProperty>> handle() {
         LOGGER.debug("Running dynamic-properties poller for {}", api);
-        authenticateAsAdmin();
 
         return provider
             .get()
@@ -87,6 +86,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                             throwable
                         );
                     } else if (dynamicProperties != null) {
+                        authenticateAsAdmin();
                         update(dynamicProperties);
                     }
                 },

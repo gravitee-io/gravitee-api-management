@@ -30,8 +30,8 @@ public class DynamicPropertiesConfiguration {
     public Executor dynamicPropertiesExecutor() {
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
             0,
-            2,
-            5,
+            2, // maximumPoolSize
+            5, // keepAliveTime
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
             new ThreadFactory() {
