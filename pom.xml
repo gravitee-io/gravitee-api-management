@@ -33,7 +33,7 @@
 
     <properties>
         <gravitee-bom.version>3.0.0</gravitee-bom.version>
-        <gravitee-common-elasticsearch.version>4.1.0-alpha.5</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>4.1.0-alpha.6</gravitee-common-elasticsearch.version>
         <gravitee-gateway-api.version>2.1.0-alpha.7</gravitee-gateway-api.version>
         <gravitee-node-api.version>2.0.0</gravitee-node-api.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
