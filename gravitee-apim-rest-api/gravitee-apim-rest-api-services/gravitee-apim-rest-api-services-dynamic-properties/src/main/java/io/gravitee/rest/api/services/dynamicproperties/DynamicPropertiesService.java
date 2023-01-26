@@ -20,6 +20,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.node.api.Node;
@@ -119,7 +120,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
 
             if (currentDynamicPropertyService != null) {
-                if (!Objects.equals(currentDynamicPropertyService, dynamicPropertyService)) {
+                if (!dynamicPropertyService.isEnabled()) {
+                    stopDynamicProperties(api);
+                } else if (!Objects.equals(currentDynamicPropertyService, dynamicPropertyService)) {
                     // Configuration has changed. Need to stop the current timer before restarting it.
                     stopDynamicProperties(api);
                     startDynamicProperties(api);

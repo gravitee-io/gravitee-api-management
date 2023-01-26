@@ -173,6 +173,23 @@ public class DynamicPropertiesServiceTest {
         assertFalse(cut.handlers.isEmpty());
     }
 
+    @Test
+    public void shouldStopWhenUpdateApiAndTimerAlreadyRunning() throws Exception {
+        final ApiEntity previous = createApiEntity();
+        final ApiEntity apiEntity = createApiEntity();
+        apiEntity.getServices().getDynamicPropertyService().setEnabled(false);
+
+        CronHandler cronHandler = mock(CronHandler.class);
+
+        cut.handlers.put(previous, cronHandler);
+
+        cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, apiEntity));
+
+        verifyNoInteractions(apiService);
+        verifyNoInteractions(vertx);
+        assertTrue(cut.handlers.isEmpty());
+    }
+
     private ApiEntity createApiEntity() {
         final ApiEntity apiEntity = new ApiEntity();
         final Services services = new Services();
