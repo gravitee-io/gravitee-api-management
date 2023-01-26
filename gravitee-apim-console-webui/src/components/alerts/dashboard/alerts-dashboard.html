@@ -15,83 +15,91 @@
     limitations under the License.
 
 -->
-<div class="gv-sub-content" ng-if="!$ctrl.hasAlertingPlugin">
-  <gravitee-empty-state
-    icon="alarm_off"
-    message="No alert plugin is installed."
-    sub-message="Please install a plugin before being able to define alert rules."
-  ></gravitee-empty-state>
+<div ng-if="$ctrl.isAlertEngineEnabled() == false">
+  <div class="gv-sub-content dashboard-promo-content">
+    <alert-engine-promotion />
+  </div>
 </div>
 
-<div class="gv-sub-content" ng-if="$ctrl.hasAlertingPlugin && !$ctrl.hasConfiguredAlerts">
-  <gravitee-empty-state
-    icon="add_alarm"
-    model="Alert"
-    message="No alert configured"
-    sub-message="Start creating an alert"
-    create-mode="true"
-  >
-    <md-button
-      permission
-      permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
-      class="md-fab"
-      aria-label="create-alert"
-      ng-click="$ctrl.goToAlertCreation()"
+<div ng-if="$ctrl.isAlertEngineEnabled() == true">
+  <div class="gv-sub-content" ng-if="!$ctrl.hasAlertingPlugin">
+    <gravitee-empty-state
+      icon="alarm_off"
+      message="No alert plugin is installed."
+      sub-message="Please install a plugin before being able to define alert rules."
+    ></gravitee-empty-state>
+  </div>
+
+  <div class="gv-sub-content" ng-if="$ctrl.hasAlertingPlugin && !$ctrl.hasConfiguredAlerts">
+    <gravitee-empty-state
+      icon="add_alarm"
+      model="Alert"
+      message="No alert configured"
+      sub-message="Start creating an alert"
+      create-mode="true"
     >
-      <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
-    </md-button>
-  </gravitee-empty-state>
-</div>
-
-<div class="gv-sub-content" ng-if="$ctrl.hasAlertingPlugin">
-  <div class="gv-forms gv-forms-fluid" layout="column">
-    <div layout="row">
-      <h2 flex>Alerts board</h2>
-      <md-input-container class="md-block">
-        <gv-quick-time-range on-timeframe-change="$ctrl.refresh(timeframe)"></gv-quick-time-range>
-      </md-input-container>
-      <md-button class="md-primary" ng-click="$ctrl.refresh()">
-        <ng-md-icon icon="refresh" size="20"></ng-md-icon>
-        Refresh
+      <md-button
+        permission
+        permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
+        class="md-fab"
+        aria-label="create-alert"
+        ng-click="$ctrl.goToAlertCreation()"
+      >
+        <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
       </md-button>
-    </div>
+    </gravitee-empty-state>
+  </div>
 
-    <div ng-if="$ctrl.hasConfiguredAlerts && $ctrl.alerts.length === 0">
-      <gravitee-empty-state icon="alarm_on" message="No alert event"></gravitee-empty-state>
-    </div>
-
-    <div layout="column" ng-show="$ctrl.alerts.length > 0">
-      <div>
-        <h2>All alert events in {{$ctrl.timeframe.title | lowercase}}</h2>
-        <div style="height: 250px">
-          <gv-chart-bar ng-prop-series="$ctrl.series" ng-attr-options="{{$ctrl.options}}"></gv-chart-bar>
-        </div>
+  <div class="gv-sub-content" ng-if="$ctrl.hasAlertingPlugin">
+    <div class="gv-forms gv-forms-fluid" layout="column">
+      <div layout="row">
+        <h2 flex>Alerts board</h2>
+        <md-input-container class="md-block">
+          <gv-quick-time-range on-timeframe-change="$ctrl.refresh(timeframe)"></gv-quick-time-range>
+        </md-input-container>
+        <md-button class="md-primary" ng-click="$ctrl.refresh()">
+          <ng-md-icon icon="refresh" size="20"></ng-md-icon>
+          Refresh
+        </md-button>
       </div>
-      <div>
+
+      <div ng-if="$ctrl.hasConfiguredAlerts && $ctrl.alerts.length === 0">
+        <gravitee-empty-state icon="alarm_on" message="No alert event"></gravitee-empty-state>
+      </div>
+
+      <div layout="column" ng-show="$ctrl.alerts.length > 0">
         <div>
-          <div class="gv-alerts_list">
-            <md-card
-              ng-repeat="alert in $ctrl.alerts"
-              ng-class="{
+          <h2>All alert events in {{$ctrl.timeframe.title | lowercase}}</h2>
+          <div style="height: 250px">
+            <gv-chart-bar ng-prop-series="$ctrl.series" ng-attr-options="{{$ctrl.options}}"></gv-chart-bar>
+          </div>
+        </div>
+        <div>
+          <div>
+            <div class="gv-alerts_list">
+              <md-card
+                ng-repeat="alert in $ctrl.alerts"
+                ng-class="{
                         'alert-critical': $ctrl.isAlertCritical(alert),
                         'alert-warning': $ctrl.isAlertWarning(alert),
                         'alert-info': $ctrl.isAlertInfo(alert)
                         }"
-            >
-              <md-card-header>
-                <md-card-header-text>
-                  <span class="md-title" title="{{alert.name}}">{{alert.name}}</span>
-                  <md-tooltip md-direction="top">{{alert.name}}</md-tooltip>
-                  <a ui-sref="{{$ctrl.getContextualInformationFromReferenceType().uiRef}}">View history</a>
-                </md-card-header-text>
-              </md-card-header>
+              >
+                <md-card-header>
+                  <md-card-header-text>
+                    <span class="md-title" title="{{alert.name}}">{{alert.name}}</span>
+                    <md-tooltip md-direction="top">{{alert.name}}</md-tooltip>
+                    <a ui-sref="{{$ctrl.getContextualInformationFromReferenceType().uiRef}}">View history</a>
+                  </md-card-header-text>
+                </md-card-header>
 
-              <md-card-content>
-                <div>
-                  <h1>{{alert.events_count}}</h1>
-                </div>
-              </md-card-content>
-            </md-card>
+                <md-card-content>
+                  <div>
+                    <h1>{{alert.events_count}}</h1>
+                  </div>
+                </md-card-content>
+              </md-card>
+            </div>
           </div>
         </div>
       </div>
