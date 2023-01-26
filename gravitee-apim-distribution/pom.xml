@@ -642,7 +642,7 @@
 
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
-                <gravitee-policy-data-logging-masking.version>2.0.1</gravitee-policy-data-logging-masking.version>
+                <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
 
                 <!-- Management API Only -->
                 <!-- Gateway Only -->
