@@ -33,6 +33,8 @@ import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.vertx.core.Handler;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +48,15 @@ public class DynamicPropertyUpdater implements Handler<Long> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
 
     private final ApiEntity api;
+    private final Executor executor;
 
     private Provider provider;
     private ApiService apiService;
     private ApiConverter apiConverter;
 
-    public DynamicPropertyUpdater(final ApiEntity api) {
+    public DynamicPropertyUpdater(final ApiEntity api, final Executor executor) {
         this.api = api;
+        this.executor = executor;
     }
 
     private void authenticateAsAdmin() {
@@ -64,12 +68,16 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     @Override
     public void handle(Long event) {
+        handle();
+    }
+
+    protected CompletableFuture<Collection<DynamicProperty>> handle() {
         LOGGER.debug("Running dynamic-properties poller for {}", api);
         authenticateAsAdmin();
 
-        provider
+        return provider
             .get()
-            .whenComplete(
+            .whenCompleteAsync(
                 (dynamicProperties, throwable) -> {
                     if (throwable != null) {
                         LOGGER.error(
@@ -81,7 +89,8 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                     } else if (dynamicProperties != null) {
                         update(dynamicProperties);
                     }
-                }
+                },
+                this.executor
             );
     }
 
