@@ -34,6 +34,7 @@ public class ConsoleConfigEntity {
     private Newsletter newsletter;
     private Theme theme;
     private JupiterMode jupiterMode;
+    private AlertEngine alertEngine;
 
     public ConsoleConfigEntity() {
         super();
@@ -48,5 +49,6 @@ public class ConsoleConfigEntity {
         analyticsPendo = new ConsoleAnalyticsPendo();
         theme = new Theme();
         jupiterMode = new JupiterMode();
+        alertEngine = new AlertEngine();
     }
 }

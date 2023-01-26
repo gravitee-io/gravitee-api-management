@@ -19,6 +19,7 @@ import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
 import NotificationService from '../../services/notification.service';
 import UserService from '../../services/user.service';
+import { Constants } from '../../entities/Constants';
 
 const AlertsComponent: ng.IComponentOptions = {
   bindings: {
@@ -35,6 +36,7 @@ const AlertsComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     UserService: UserService,
     $mdDialog,
+    Constants: Constants,
   ) {
     this.alerts = this.alerts ?? [];
     this.goTo = (suffixState: string, alertId: string) => {
@@ -119,6 +121,10 @@ const AlertsComponent: ng.IComponentOptions = {
         scope = 'application';
       }
       return UserService.isUserHasPermissions([`${scope}-${permission}`]);
+    };
+
+    this.isAlertEngineEnabled = () => {
+      return Constants.org.settings.alertEngine.enabled;
     };
   },
 };

@@ -319,7 +319,9 @@ public enum Key {
     JUPITER_MODE_ENABLED("api.jupiterMode.enabled", "false", Set.of(SYSTEM)),
 
     // TODO: switch to 'always' to enabled Jupiter execution mode by default when jupiter will go GA.
-    JUPITER_MODE_DEFAULT("api.jupiterMode.default", "never", Set.of(SYSTEM));
+    JUPITER_MODE_DEFAULT("api.jupiterMode.default", "never", Set.of(SYSTEM)),
+
+    ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM));
 
     String key;
     String defaultValue;
