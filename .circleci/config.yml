@@ -796,10 +796,18 @@ jobs:
         executor:
             name: node-lts
             class: small
+        environment:
+            ARTIFACTORY_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com"
         steps:
             - attach_workspace:
                   at: .
             - get-apim-version
+            - keeper/env-export:
+                  secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
+                  var-name: ARTIFACTORY_USER
+            - keeper/env-export:
+                  secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
+                  var-name: ARTIFACTORY_API_KEY
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
