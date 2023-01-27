@@ -134,6 +134,17 @@ To be able to run the scenario in the exact same condition, you can run your gat
 $ ./scripts/test-runner.ts  -f src/get-200-status-nosetup.test.js
 ```
 
+### Options
+
+`test-runner.ts` comes with some options:
+
+| Option      	        | Description                      	            | Required |
+|----------------------|-----------------------------------------------|----------|
+| -f / --file        	| The <test-name>.test.js file to run	         | X        |
+| -v / --verbose	    | Enable the verbose mode for k6              	 |          |
+| -d / --debug	        | Display debug logs for the test-runner.ts	    |          |
+
+
 ## Writing own tests
 
 House rules for writing tests:
