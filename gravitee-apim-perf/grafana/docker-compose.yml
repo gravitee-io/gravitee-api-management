@@ -16,6 +16,8 @@ services:
       - "9090:9090/tcp"
     volumes:
       - ${PWD}/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   promscale:
     image: timescale/promscale:latest
