@@ -1,3 +1,10 @@
+# [4.1.0-alpha.6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.5...4.1.0-alpha.6) (2023-01-27)
+
+
+### Bug Fixes
+
+* bump common elasticsearch version to 4.1.0-alpha.6 ([37628cf](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/37628cfd6c545751596c3c6e51b4fb59bc4a4ad2))
+
 # [4.1.0-alpha.5](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.4...4.1.0-alpha.5) (2023-01-25)
 
 
