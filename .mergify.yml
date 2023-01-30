@@ -1,0 +1,19 @@
+pull_request_rules:
+  - name: backport patches to 3.19.x branch
+    conditions:
+      - label=backport-to-3-19-x
+    actions:
+      backport:
+        branches:
+          - 3.19.x
+        assignees:
+          - "{{ author }}"
+  - name: backport patches to 3.18.x branch
+    conditions:
+      - label=backport-to-3-18-x
+    actions:
+      backport:
+        branches:
+          - 3.18.x
+        assignees:
+          - "{{ author }}"          
