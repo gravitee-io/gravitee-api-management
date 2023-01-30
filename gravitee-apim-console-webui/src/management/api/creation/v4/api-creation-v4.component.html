@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="api-creation-v4__container">
+<div *ngIf="!isCreatingApi; else creatingApiTpl" class="api-creation-v4">
   <api-creation-stepper-menu
     [menuSteps]="menuSteps$ | async"
     [currentStep]="currentStep"
@@ -25,3 +25,11 @@
     <ng-container *ngComponentOutlet="currentStep.component; injector: currentStep.injector"></ng-container>
   </div>
 </div>
+
+<ng-template #creatingApiTpl>
+  <mat-card class="api-creation-v4-creating-api">
+    <div class="api-creation-v4-creating-api__icon">
+      <mat-icon svgIcon="gio:loader"></mat-icon>
+    </div>
+  </mat-card>
+</ng-template>

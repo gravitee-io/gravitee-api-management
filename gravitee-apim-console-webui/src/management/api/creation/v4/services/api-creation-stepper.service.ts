@@ -56,6 +56,12 @@ export class ApiCreationStepperService {
    */
   public steps$ = new ReplaySubject<ApiCreationStep[]>(1);
 
+  /**
+   * Observable that emits an event every time the creation stepper is finished.
+   * Emit the final payload.
+   */
+  public finished$ = new Subject<ApiCreationPayload>();
+
   constructor(creationStepPayload: NewApiCreationStep[], initialPayload?: ApiCreationPayload) {
     this.initialPayload = initialPayload ?? {};
     this.steps = creationStepPayload.map((stepPayload, index) => ({
@@ -105,6 +111,12 @@ export class ApiCreationStepperService {
     // Save payload to current step & Force new object mutation for updated payload
     currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
     currentStep.state = 'valid';
+
+    // If current step is the last one, emit finished event
+    if (this.currentStepIndex === this.steps.length - 1) {
+      this.finished$.next(this.compileStepPayload(currentStep));
+      return;
+    }
 
     // Give current payload to next step
     this.goToStepIndex(this.currentStepIndex + 1);
