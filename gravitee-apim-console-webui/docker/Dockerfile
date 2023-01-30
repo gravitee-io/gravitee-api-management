@@ -17,7 +17,7 @@
 FROM graviteeio/nginx:1.23
 LABEL maintainer="contact@graviteesource.com"
 
-ADD config /etc/confd
+COPY ./docker/config /etc/confd
 
 COPY ./dist /usr/share/nginx/html/
 
