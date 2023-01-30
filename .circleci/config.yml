@@ -303,7 +303,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim]
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim, bridge_e2e]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1502,6 +1502,9 @@ jobs:
                 type: string
             database:
                 type: string
+            apim_client_tag:
+                type: string
+                default: ""
         steps:
             - checkout
             - attach_workspace:
@@ -1518,7 +1521,12 @@ jobs:
                         echo "Enabling jupiter mode on APIM Gateway and Rest API"
                         export JUPITER_MODE_ENABLED=true
                       fi
-                      APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$TAG npm run test:api:<< parameters.database >>
+                      if [ -z "<< parameters.apim_client_tag >>" ]
+                      then
+                        APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$TAG APIM_CLIENT_TAG=$TAG npm run test:api:<< parameters.database >>
+                      else 
+                        APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=$TAG APIM_CLIENT_TAG=<< parameters.apim_client_tag >> npm run test:api:<< parameters.database >>
+                      fi
             - docker-azure-logout
             - when:
                   condition:
@@ -2141,3 +2149,38 @@ workflows:
         jobs:
             - release_notes_apim:
                   context: cicd-orchestrator
+
+    run_every_week:
+      when:
+        equal: [ bridge_e2e, << pipeline.parameters.gio_action >> ]
+      jobs:
+        - setup:
+            context: cicd-orchestrator
+        - validate:
+            context: cicd-orchestrator
+            requires:
+              - setup
+        - build:
+            context: cicd-orchestrator
+            requires:
+              - validate
+        - e2e-generate-sdk:
+            name: Generate e2e tests SDK
+            context: cicd-orchestrator
+            requires:
+              - build
+        - e2e-lint-build:
+            name: Lint & Build APIM e2e
+            context: cicd-orchestrator
+            requires:
+              - Generate e2e tests SDK
+        - e2e-test:
+            context: cicd-orchestrator
+            name: E2E - << matrix.execution_mode >> - << matrix.apim_client_tag >>
+            requires:
+              - Lint & Build APIM e2e
+            matrix:
+              parameters:
+                execution_mode: ["v3", "jupiter"]
+                database: ["bridge"]
+                apim_client_tag: ["3.20.x-latest","3.19.x-latest","3.18.x-latest"]
