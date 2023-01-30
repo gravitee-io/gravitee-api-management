@@ -17,7 +17,11 @@
 FROM graviteeio/nginx:1.23
 LABEL maintainer="contact@graviteesource.com"
 
+<<<<<<< HEAD
 ADD ./docker/config /etc/confd
+=======
+COPY ./docker/config /etc/confd
+>>>>>>> e5db1700a0 (chore: allow building UI docker images in one command)
 
 COPY ./dist /usr/share/nginx/html/
 
