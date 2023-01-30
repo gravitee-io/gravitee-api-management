@@ -5,7 +5,7 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - 3-20-x
+          - 3.20.x
         assignees:
           - "{{ author }}"
   - name: backport patches to 3.19.x branch
@@ -14,7 +14,7 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - 3-19-x
+          - 3.19.x
         assignees:
           - "{{ author }}"
   - name: backport patches to 3.18.x branch
@@ -23,6 +23,6 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - 3-18-x
+          - 3.18.x
         assignees:
           - "{{ author }}"          
