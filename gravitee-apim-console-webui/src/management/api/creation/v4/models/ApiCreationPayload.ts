@@ -25,4 +25,6 @@ export type ApiCreationPayload = Partial<{
     id: string;
     name: string;
   }[];
+
+  deploy: boolean;
 }>;

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { map, takeUntil } from 'rxjs/operators';
-import { Observable, Subject } from 'rxjs';
-import { groupBy } from 'lodash';
+import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
+import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject } from 'rxjs';
+import { groupBy, kebabCase } from 'lodash';
+import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
@@ -29,6 +30,11 @@ import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
+
+import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
+import { fakeNewApiEntity, HttpListener } from '../../../../entities/api-v4';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-creation-v4',
@@ -68,6 +74,9 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
   ]);
 
+  @HostBinding('class.creating-api')
+  public isCreatingApi = false;
+
   menuSteps$: Observable<MenuStepItem[]> = this.stepper.steps$.pipe(
     map((steps) => {
       // Get the last step valid or last step of each label. To have last full payload of each label.
@@ -83,9 +92,15 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     }),
   );
 
-  constructor(private readonly injector: Injector) {}
+  constructor(
+    private readonly injector: Injector,
+    private readonly apiV4Service: ApiV4Service,
+    private readonly snackBarService: SnackBarService,
+    @Inject(UIRouterState) readonly ajsState: StateService,
+  ) {}
 
   ngOnInit(): void {
+    // When the stepper change, update the current step
     this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
       const apiCreationStepService = new ApiCreationStepService(this.stepper, apiCreationStep);
 
@@ -98,6 +113,15 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         }),
       };
     });
+
+    // When then stepper is finished, create the API
+    this.stepper.finished$
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((p) => this.createApi(p)),
+      )
+      .subscribe();
+
     // Initialize stepper to step 0
     this.stepper.goToStepLabel('API Metadata');
   }
@@ -109,5 +133,38 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   goToStep(label: string) {
     this.stepper.goToStepLabel(label);
+  }
+
+  private createApi(apiCreationPayload: ApiCreationPayload) {
+    this.isCreatingApi = true;
+    return this.apiV4Service
+      .create(
+        // Note : WIP 🚧
+        // Use the fakeNewApiEntity to create a new API temporarily
+        // The real API creation will be done when we complete other api creation steps
+        fakeNewApiEntity((api) => {
+          const listener = api.listeners[0] as HttpListener;
+          listener.paths = [{ path: `/fake/${kebabCase(apiCreationPayload.name + '-' + apiCreationPayload.version)}` }];
+          return {
+            ...api,
+            name: apiCreationPayload.name,
+          };
+        }),
+      )
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(
+          (api) => {
+            this.snackBarService.success(`API ${apiCreationPayload.deploy ? 'deployed' : 'created'} successfully!`);
+            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
+          },
+          (err) => {
+            this.snackBarService.error(
+              err.error?.message ?? `An error occurred while ${apiCreationPayload.deploy ? 'deploying' : 'creating'} the API.`,
+            );
+            return EMPTY;
+          },
+        ),
+      );
   }
 }

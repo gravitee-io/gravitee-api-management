@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
-import { takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
-import { kebabCase } from 'lodash';
-import { StateService } from '@uirouter/core';
+import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ApiV4Service } from '../../../../../../services-ngx/api-v4.service';
-import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { fakeNewApiEntity } from '../../../../../../entities/api-v4/NewApiEntity.fixture';
-import { HttpListener } from '../../../../../../entities/api-v4';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-creation-v4-step-6',
@@ -34,56 +25,16 @@ import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
   styles: [require('./api-creation-v4-step-6.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class ApiCreationV4Step6Component implements OnInit {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-
   public currentStepPayload: ApiCreationPayload;
 
-  constructor(
-    private readonly stepService: ApiCreationStepService,
-    private readonly snackBarService: SnackBarService,
-    private readonly apiV4Service: ApiV4Service,
-    @Inject(UIRouterState) readonly ajsState: StateService,
-  ) {}
+  constructor(private readonly stepService: ApiCreationStepService) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
   }
 
   createApi(deploy: boolean) {
-    const apiCreationPayload = this.stepService.payload;
-
-    this.apiV4Service
-      .create(
-        // Note : WIP 🚧
-        // Use the fakeNewApiEntity to create a new API temporarily
-        // The real API creation will be done when we complete other api creation steps
-        fakeNewApiEntity((api) => {
-          const listener = api.listeners[0] as HttpListener;
-          listener.paths = [{ path: `/fake/${kebabCase(apiCreationPayload.name + '-' + apiCreationPayload.version)}` }];
-          return {
-            ...api,
-            name: apiCreationPayload.name,
-          };
-        }),
-      )
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap(
-          (api) => {
-            this.snackBarService.success(`API ${deploy ? 'deployed' : 'created'} successfully!`);
-            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
-          },
-          (err) => {
-            this.snackBarService.error(err.error?.message ?? `An error occurred while ${deploy ? 'deploying' : 'creating'} the API.`);
-            return EMPTY;
-          },
-        ),
-      )
-      .subscribe();
-  }
-
-  deployApi(): void {
-    // TODO: send info to correct endpoint to create and publish the new API
+    this.stepService.validStepAndGoNext((payload) => ({ ...payload, deploy }));
   }
 
   onChangeStepInfo(stepLabel: string) {
