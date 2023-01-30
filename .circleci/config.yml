@@ -169,8 +169,6 @@ commands:
             - run:
                   name: Build UI docker image
                   command: |
-                      cp -fr docker/config .
-
                       docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
                       -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:$TAG \
                       .
