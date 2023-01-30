@@ -145,6 +145,7 @@ public class APIV1toAPIV2Converter {
                     plan.setDescription(planEntity.getDescription());
                     plan.setType(planEntity.getType());
                     plan.setStatus(planEntity.getStatus());
+                    plan.setOrder(planEntity.getOrder());
                     plan.setFlows(migratePathsToFlows(planEntity.getPaths(), policies));
                     if (planEntity.getTags() != null) {
                         plan.setTags(new HashSet<>(planEntity.getTags()));
