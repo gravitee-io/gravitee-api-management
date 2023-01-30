@@ -25,7 +25,12 @@
   </div>
 
   <form [formGroup]="formGroup" (ngSubmit)="save()">
-    <mat-selection-list *ngIf="endpoints" formControlName="selectedEndpointsIds" class="gio-selection-list" disableRipple="true">
+    <mat-selection-list
+      *ngIf="endpoints; else loadingTpl"
+      formControlName="selectedEndpointsIds"
+      class="gio-selection-list"
+      disableRipple="true"
+    >
       <mat-list-option
         *ngFor="let endpoint of endpoints"
         [value]="endpoint.id"
@@ -60,3 +65,5 @@
     </div>
   </form>
 </mat-card>
+
+<ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>
