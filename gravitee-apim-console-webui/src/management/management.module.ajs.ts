@@ -36,8 +36,8 @@ import CorsService from '../services/cors.service';
 import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
-import ApiMembersController from '../management/api/portal/userGroupAccess/members/members.controller';
-import ApiTransferOwnershipController from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
+import ApiMembersController from './api/portal/userGroupAccess/members/members.controller';
+import ApiTransferOwnershipController from './api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
@@ -45,8 +45,8 @@ import ApiPropertiesController from '../management/api/design/properties/propert
 import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
 import DialogAddPropertyController from '../management/api/design/properties/add-property.dialog.controller';
-import DialogAddMemberApiController from '../management/api/portal/userGroupAccess/members/addMemberDialog.controller';
-import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
+import DialogAddMemberApiController from './api/portal/userGroupAccess/members/addMemberDialog.controller';
+import DialogTransferApiController from './api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
@@ -530,6 +530,7 @@ import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuratio
 import { ApiCreationV4Component } from './api/creation/v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
 import { ApiCreationV4ConfirmationComponent } from './api/creation/v4/api-creation-v4-confirmation.component';
+import { ApiPortalGroupsComponent } from './api/portal/user-group-access/groups/api-portal-groups.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -882,6 +883,7 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 // Plan
 graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
+graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiPortalGroupsComponent }));
 
 // API subscriptions
 graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
