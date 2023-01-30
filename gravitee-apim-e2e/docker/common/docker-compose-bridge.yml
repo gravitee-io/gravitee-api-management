@@ -1,0 +1,117 @@
+#
+# Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: '3.8'
+
+services:
+  management_api:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_TAG:-3}
+    container_name: gravitee-apim-e2e-management_api
+    restart: always
+    links:
+      - database
+      - elasticsearch
+    depends_on:
+      database:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+      - ./jacoco:/opt/jacoco
+    environment:
+      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_newsletter_enabled=false
+      - gravitee_security_providers[0].users[0].email=user@gravitee.io
+      - gravitee_security_providers[0].users[1].email=admin@gravitee.io
+      - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
+      - gravitee_api_jupiterMode_default=always
+      - gravitee_services_sync_cron=*/2 * * * * *
+      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://admin:admin@localhost:8083/management/organizations/DEFAULT/user" ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+    networks:
+      - storage
+      - apim
+
+  gateway:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_TAG:-3}
+    container_name: gravitee-apim-e2e-gateway-server
+    restart: always
+    links:
+      - database
+      - elasticsearch
+    depends_on:
+      management_api:
+        condition: service_healthy
+    ports:
+      - "18082:18082"
+    volumes:
+      - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
+      - ./jacoco:/opt/jacoco
+    environment:
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
+      - gravitee_services_sync_delay=500
+      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
+      - gravitee_services_bridge_http_enabled=true
+      - gravitee_services_bridge_http_port=18092
+      - gravitee_services_bridge_http_host=0.0.0.0
+      - gravitee_services_bridge_http_authentication_type=basic
+      - gravitee_services_bridge_http_authentication_users_admin=adminadmin
+      - gravitee_services_bridge_http_secured=false
+      - gravitee_services_bridge_http_ssl_clientAuth=false
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+    networks:
+      - storage
+      - apim
+
+  gateway_client:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_CLIENT_TAG:-3}
+    container_name: gravitee-apim-e2e-gateway-client
+    restart: always
+    ports:
+      - "8082:8082"
+    links:
+      # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
+      - "gateway:gateway-server"
+    depends_on:
+      - elasticsearch
+      - gateway
+    volumes:
+      - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
+      - ./.license:/opt/graviteeio-gateway/license
+    environment:
+      - gravitee_management_type=http
+      - gravitee_management_http_url=http://gateway-server:18092
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_ds_mongodb_host=mongodb
+      - gravitee_reporters_elasticsearch_enabled=true
+      - gravitee_management_http_authentication_basic_username=admin
+      - gravitee_management_http_authentication_basic_password=adminadmin
+      - gravitee_management_http_ssl_verifyHostName=false
+    networks:
+      - storage
+      - apim
