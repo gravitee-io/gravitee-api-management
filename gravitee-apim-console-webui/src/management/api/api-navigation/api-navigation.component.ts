@@ -210,6 +210,11 @@ export class ApiNavigationComponent implements OnInit {
           targetRoute: 'management.apis.detail.portal.groups',
           baseRoute: 'management.apis.detail.portal.groups',
         },
+        {
+          displayName: 'Groups v4',
+          targetRoute: 'management.apis.detail.portal.groups-v4',
+          baseRoute: 'management.apis.detail.portal.groups-v4',
+        },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {

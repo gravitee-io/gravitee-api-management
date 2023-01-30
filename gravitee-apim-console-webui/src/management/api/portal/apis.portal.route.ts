@@ -226,9 +226,22 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.groups-v4', {
+      url: '/v4/groups',
+      component: 'ngApiPortalGroups',
+      data: {
+        perms: {
+          only: ['api-member-r'],
+        },
+        docs: {
+          page: 'management-api-members',
+        },
+        useAngularMaterial: true,
+      },
+    })
     .state('management.apis.detail.portal.groups', {
       url: '/groups',
-      template: require('./userGroupAccess/groups/groups.html'),
+      template: require('./user-group-access/groups/groups.html'),
       controller: 'ApiPortalController',
       controllerAs: 'portalCtrl',
       data: {
