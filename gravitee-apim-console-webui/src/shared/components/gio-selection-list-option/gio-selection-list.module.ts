@@ -38,4 +38,4 @@ import {
     GioSelectionListOptionLayoutComponent,
   ],
 })
-export class GioSelectionListOptionModule {}
+export class GioSelectionListModule {}

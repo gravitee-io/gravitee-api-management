@@ -186,8 +186,8 @@ describe('ApiCreationV4Component', () => {
         { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
       ]);
 
-      const form = await step2Harness.getEntrypointsForm();
-      expect(await form.getListOptions()).toEqual(['sse', 'webhook']);
+      const list = await step2Harness.getEntrypoints();
+      expect(await list.getListValues()).toEqual(['sse', 'webhook']);
     });
 
     it('should select entrypoints in the list', async () => {
@@ -199,9 +199,9 @@ describe('ApiCreationV4Component', () => {
         { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
       ]);
 
-      await step2Harness.getEntrypointsForm().then((form) => form.fillStep(['sse', 'webhook']));
+      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
-      await step2Harness.clickValidateEntrypoints();
+      await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
@@ -245,8 +245,8 @@ describe('ApiCreationV4Component', () => {
         { id: 'mock', supportedApiType: 'async', name: 'Mock' },
       ]);
 
-      const form = await step3Harness.getEndpointsForm();
-      expect(await form.getListOptions()).toEqual(['kafka', 'mock']);
+      const list = await step3Harness.getEndpoints();
+      expect(await list.getListValues()).toEqual(['kafka', 'mock']);
     });
 
     it('should select endpoints in the list', async () => {
@@ -261,8 +261,8 @@ describe('ApiCreationV4Component', () => {
         { id: 'mock', supportedApiType: 'async', name: 'Mock' },
       ]);
 
-      await step3Harness.getEndpointsForm().then((form) => form.fillStep(['mock', 'kafka']));
-      await step3Harness.clickValidateEndpoints();
+      await step3Harness.getEndpoints().then((form) => form.selectOptionsByIds(['mock', 'kafka']));
+      await step3Harness.clickValidate();
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         { id: 'kafka', name: 'Kafka' },
@@ -318,12 +318,12 @@ describe('ApiCreationV4Component', () => {
         { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
       ]);
 
-      const form = await step2Harness.getEntrypointsForm();
-      expect(await form.getListOptions({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
-      await form.deselectOptionByValue('entrypoint-1');
+      const list = await step2Harness.getEntrypoints();
+      expect(await list.getListValues({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
+      await list.deselectOptionByValue('entrypoint-1');
       fixture.detectChanges();
 
-      await step2Harness.clickValidateEntrypoints();
+      await step2Harness.clickValidate();
       fixture.detectChanges();
       fixture.autoDetectChanges(true); // TODO: remove this when fill step 2-1 exist
 
@@ -347,13 +347,13 @@ describe('ApiCreationV4Component', () => {
         { id: 'mock', supportedApiType: 'async', name: 'Mock' },
       ]);
 
-      const form = await step3Harness.getEndpointsForm();
+      const list = await step3Harness.getEndpoints();
 
-      expect(await form.getListOptions({ selected: true })).toEqual(['kafka', 'mock']);
-      await form.deselectOptionByValue('kafka');
+      expect(await list.getListValues({ selected: true })).toEqual(['kafka', 'mock']);
+      await list.deselectOptionByValue('kafka');
       fixture.detectChanges();
 
-      await step3Harness.clickValidateEndpoints();
+      await step3Harness.clickValidate();
       fixture.detectChanges();
 
       // Reinitialize step6Harness after step2 validation
@@ -425,8 +425,8 @@ describe('ApiCreationV4Component', () => {
     const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
     expectEntrypointsGetRequest(entrypoints);
 
-    await step2Harness.getEntrypointsForm().then((form) => form.fillStep(entrypoints.map((entrypoint) => entrypoint.id)));
-    await step2Harness.clickValidateEntrypoints();
+    await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(entrypoints.map((entrypoint) => entrypoint.id)));
+    await step2Harness.clickValidate();
   }
 
   async function fillStepThreeAndValidate(
@@ -438,8 +438,8 @@ describe('ApiCreationV4Component', () => {
     const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
     expectEndpointsGetRequest(endpoints);
 
-    await step3Harness.getEndpointsForm().then((form) => form.fillStep(endpoints.map((endpoint) => endpoint.id)));
-    await step3Harness.clickValidateEndpoints();
+    await step3Harness.getEndpoints().then((form) => form.selectOptionsByIds(endpoints.map((endpoint) => endpoint.id)));
+    await step3Harness.clickValidate();
   }
 
   async function fillAllSteps() {

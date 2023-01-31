@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiCreationV4FormSelectionListHarness } from '../api-creation-v4-form-selection-list.harness';
+import { GioSelectionListHarness } from '../../../../../../shared/components/gio-selection-list-option/gio-selection-list.harness';
 
 export class ApiCreationV4Step2Harness extends ComponentHarness {
   static hostSelector = 'api-creation-v4-step-2';
 
-  private readonly form = this.locatorFor(ApiCreationV4FormSelectionListHarness);
+  private readonly selectionList = this.locatorFor(GioSelectionListHarness);
 
-  async getEntrypointsForm(): Promise<ApiCreationV4FormSelectionListHarness> {
-    return this.form();
+  protected getButtonByText = (text: string) =>
+    this.locatorFor(
+      MatButtonHarness.with({
+        text: text,
+      }),
+    )();
+
+  async getEntrypoints(): Promise<GioSelectionListHarness> {
+    return this.selectionList();
   }
 
-  async clickValidateEntrypoints(): Promise<void> {
-    return this.form().then((f) => f.clickButtonByText('Select my entrypoints'));
+  async clickValidate(): Promise<void> {
+    return this.getButtonByText('Select my entrypoints').then((button) => button.click());
   }
 
   async clickPrevious(): Promise<void> {
-    return this.form().then((f) => f.clickButtonByText('Previous'));
+    return this.getButtonByText('Previous').then((button) => button.click());
   }
 }
