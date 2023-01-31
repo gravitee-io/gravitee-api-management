@@ -23,7 +23,7 @@ import { StateService } from '@uirouter/angular';
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
-import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
+import { Step6SummaryComponent } from './steps/step-6-summary/step-6-summary.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
@@ -71,7 +71,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       label: 'Summary',
-      component: ApiCreationV4Step6Component,
+      component: Step6SummaryComponent,
     },
   ]);
 

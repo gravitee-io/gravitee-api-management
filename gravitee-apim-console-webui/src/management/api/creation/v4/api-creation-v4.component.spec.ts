@@ -26,7 +26,7 @@ import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
 import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
-import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
+import { Step6SummaryHarness } from './steps/step-6-summary/step-6-summary.harness';
 import { Step3EndpointHarness } from './steps/step-3-endpoints/step-3-endpoints.harness';
 import { Step4SecurityHarness } from './steps/step-4-security/step-4-security.harness';
 import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
@@ -285,7 +285,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should display payload info', async () => {
-      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
 
       const step1Summary = await step6Harness.getStepSummaryTextContent(1);
       expect(step1Summary).toContain('API name:' + 'API name');
@@ -303,7 +303,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
-      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickChangeButton(1);
 
       fixture.detectChanges();
@@ -314,7 +314,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go back to step 2 after clicking Change button', async () => {
-      let step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickChangeButton(2);
       fixture.detectChanges();
 
@@ -338,14 +338,14 @@ describe('ApiCreationV4Component', () => {
       await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after last step validation
-      step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
       expect(step2Summary).toContain('Entrypoints:' + 'new entrypoint');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
-      let step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickChangeButton(3);
       fixture.detectChanges();
 
@@ -366,14 +366,14 @@ describe('ApiCreationV4Component', () => {
       await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after step2 validation
-      step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
       expect(step2Summary).toContain('Endpoints:' + 'Mock');
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {
-      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickCreateMyApiButton();
 
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
@@ -390,7 +390,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should go to confirmation page after clicking Deploy my API', async () => {
-      const step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
+      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickDeployMyApiButton();
 
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
