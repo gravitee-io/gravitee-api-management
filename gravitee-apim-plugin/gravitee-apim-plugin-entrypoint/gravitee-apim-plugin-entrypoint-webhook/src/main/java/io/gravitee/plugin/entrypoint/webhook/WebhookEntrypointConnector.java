@@ -19,6 +19,7 @@ import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.
 import static io.vertx.core.http.HttpMethod.POST;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
@@ -50,6 +51,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -268,12 +270,27 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         ExecutionContext ctx,
         WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration
     ) {
+        // for Webhook, we currently only support Timeout settings
+        final var clientOptions = Optional
+            .ofNullable(configuration.getHttpOptions())
+            .map(
+                opt -> {
+                    var timeOutOptions = new HttpClientOptions();
+                    timeOutOptions.setIdleTimeout(opt.getIdleTimeout());
+                    timeOutOptions.setReadTimeout(opt.getReadTimeout());
+                    timeOutOptions.setConnectTimeout(opt.getConnectTimeout());
+                    return timeOutOptions;
+                }
+            )
+            .orElse(new HttpClientOptions());
+
         return VertxHttpClient
             .builder()
             .sslOptions(subscriptionConfiguration.getSsl())
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .proxyOptions(configuration.getProxyOptions())
+            .httpOptions(clientOptions)
             .defaultTarget(subscriptionConfiguration.getCallbackUrl())
             .build()
             .createHttpClient();

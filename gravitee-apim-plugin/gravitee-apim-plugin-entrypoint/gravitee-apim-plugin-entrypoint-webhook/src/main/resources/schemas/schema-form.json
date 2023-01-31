@@ -2,6 +2,31 @@
     "type": "object",
     "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebhookEntrypointConnectorConfiguration",
     "properties": {
+        "http": {
+            "type": "object",
+            "title": "HTTP Options",
+            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:HttpOptions",
+            "properties": {
+                "connectTimeout": {
+                    "type": "integer",
+                    "title": "Connect timeout (ms)",
+                    "description": "Maximum time to connect to the webhook in milliseconds.",
+                    "default": 3000
+                },
+                "readTimeout": {
+                    "type": "integer",
+                    "title": "Read timeout (ms)",
+                    "description": "Maximum time given to the webhook to complete the request (including response) in milliseconds.",
+                    "default": 10000
+                },
+                "idleTimeout": {
+                    "type": "integer",
+                    "title": "Idle timeout (ms)",
+                    "description": "Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
+                    "default": 60000
+                }
+            }
+        },
         "proxy": {
             "type": "object",
             "title": "Proxy Options",
