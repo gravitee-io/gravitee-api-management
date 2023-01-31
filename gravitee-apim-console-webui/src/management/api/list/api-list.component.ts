@@ -149,7 +149,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           tags: api.tags.join(', '),
           owner: api?.owner?.displayName,
           ownerEmail: api?.owner?.email,
-          picture: api.picture,
+          picture: api.picture_url,
           state: api.state,
           lifecycleState: api.lifecycle_state,
           workflowBadge: this.getWorkflowBadge(api),
