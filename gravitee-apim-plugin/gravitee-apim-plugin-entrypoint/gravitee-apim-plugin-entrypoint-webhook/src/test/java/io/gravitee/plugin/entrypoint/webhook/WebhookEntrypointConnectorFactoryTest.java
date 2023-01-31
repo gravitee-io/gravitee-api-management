@@ -16,8 +16,11 @@
 package io.gravitee.plugin.entrypoint.webhook;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.spel.SpelTemplateEngine;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
@@ -31,6 +34,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,5 +99,49 @@ class WebhookEntrypointConnectorFactoryTest {
         WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
+    }
+
+    @Test
+    void shouldCreateConnectorWithStaticProxyConfiguration() throws Exception {
+        when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
+
+        try (final var in = this.getClass().getResourceAsStream("/config/static-proxy.json")) {
+            WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, new String(in.readAllBytes()));
+            assertThat(connector).isNotNull();
+            assertThat(connector.configuration).isNotNull();
+
+            final var config = connector.configuration;
+            assertThat(config).isNotNull();
+            assertThat(config.getProxyOptions()).isNotNull();
+            assertThat(config.getProxyOptions().getHost()).isNotNull();
+            assertThat(config.getProxyOptions().getHost()).isEqualTo("proxy.host");
+            assertThat(config.getProxyOptions().getUsername()).isNotNull();
+            assertThat(config.getProxyOptions().getUsername()).isEqualTo("proxy-user");
+            assertThat(config.getProxyOptions().getPassword()).isNotNull();
+            assertThat(config.getProxyOptions().getPassword()).isEqualTo("password");
+        }
+    }
+
+    @Test
+    void shouldCreateConnectorWithDynamicProxyConfiguration() throws Exception {
+        final TemplateEngine engine = TemplateEngine.templateEngine();
+        engine.getTemplateContext().setVariable("attributes", Map.of("host", "evaluated-host", "username", "evaluated-user", "password", "evalpass"));
+        when(deploymentContext.getTemplateEngine()).thenReturn(engine);
+
+        try (final var in = this.getClass().getResourceAsStream("/config/dynamic-proxy.json")) {
+            WebhookEntrypointConnector connector = webhookEntrypointConnectorFactory.createConnector(deploymentContext, Qos.NONE, new String(in.readAllBytes()));
+            assertThat(connector).isNotNull();
+            assertThat(connector.configuration).isNotNull();
+
+            final var config = connector.configuration;
+            assertThat(config).isNotNull();
+            assertThat(config.getProxyOptions()).isNotNull();
+            assertThat(config.getProxyOptions().getHost()).isNotNull();
+            assertThat(config.getProxyOptions().getHost()).isEqualTo("evaluated-host");
+            assertThat(config.getProxyOptions().getUsername()).isNotNull();
+            assertThat(config.getProxyOptions().getUsername()).isEqualTo("evaluated-user");
+            assertThat(config.getProxyOptions().getPassword()).isNotNull();
+            assertThat(config.getProxyOptions().getPassword()).isEqualTo("evalpass");
+        }
     }
 }

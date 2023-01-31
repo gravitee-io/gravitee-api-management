@@ -15,8 +15,11 @@
  */
 package io.gravitee.plugin.entrypoint.webhook.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.http.HttpProxyOptions;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
-import java.util.Map;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +29,41 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class WebhookEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {}
+public class WebhookEntrypointConnectorConfiguration implements EntrypointConnectorConfiguration {
+
+    @JsonProperty("proxy")
+    private HttpProxyOptions proxyOptions;
+
+
+    /**
+     * Evaluate the Connector configuration using the EL TemplateEngine
+     *
+     * @param deploymentContext Context that provides the TemplateEngine
+     * @param configuration Connector configuration to evaluate
+     * @return the configuration bean updated with evaluated settings
+     * @param <T>
+     */
+    public static <T extends WebhookEntrypointConnectorConfiguration> T eval(
+            final DeploymentContext deploymentContext,
+            final T configuration
+    ) {
+        final TemplateEngine templateEngine = deploymentContext.getTemplateEngine();
+        final HttpProxyOptions proxyOptions = configuration.getProxyOptions();
+
+        if (proxyOptions != null) {
+            proxyOptions.setHost(eval(templateEngine, proxyOptions.getHost()));
+            proxyOptions.setUsername(eval(templateEngine, proxyOptions.getUsername()));
+            proxyOptions.setPassword(eval(templateEngine, proxyOptions.getPassword()));
+        }
+
+        return configuration;
+    }
+
+    private static String eval(TemplateEngine templateEngine, String value) {
+        if (value != null && !value.isEmpty() && templateEngine != null) {
+            return templateEngine.getValue(value, String.class);
+        }
+
+        return value;
+    }
+}

@@ -1,6 +1,161 @@
 {
     "type": "object",
     "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebhookEntrypointConnectorConfiguration",
-    "properties": {},
+    "properties": {
+        "proxy": {
+            "type": "object",
+            "title": "Proxy Options",
+            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:HttpProxyOptions",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "title": "Use proxy",
+                    "description": "Use proxy for client connections",
+                    "default": false
+                },
+                "type": {
+                    "type": "string",
+                    "title": "Proxy Type",
+                    "description": "The type of the proxy",
+                    "default": "HTTP",
+                    "enum": ["HTTP", "SOCKS4", "SOCKS5"],
+                    "x-schema-form": {
+                        "type": "select",
+                        "titleMap": {
+                            "HTTP": "HTTP CONNECT proxy",
+                            "SOCKS4": "SOCKS4/4a tcp proxy",
+                            "SOCKS5": "SOCKS5 tcp proxy"
+                        },
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ],
+                        "disabled": [
+                            {
+                                "$eq": {
+                                    "proxy.useSystemProxy": true
+                                }
+                            }
+                        ]
+                    }
+                },
+                "useSystemProxy": {
+                    "type": "boolean",
+                    "title": "Use system proxy",
+                    "description": "Use proxy configured at system level",
+                    "default": false,
+                    "x-schema-form": {
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ]
+                    }
+                },
+                "host": {
+                    "type": "string",
+                    "title": "Proxy host",
+                    "description": "Proxy host to connect to",
+                    "x-schema-form": {
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ],
+                        "disabled": [
+                            {
+                                "$eq": {
+                                    "proxy.useSystemProxy": true
+                                }
+                            }
+                        ]
+                    }
+                },
+                "port": {
+                    "type": "integer",
+                    "title": "Proxy port",
+                    "description": "Proxy port to connect to",
+                    "x-schema-form": {
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ],
+                        "disabled": [
+                            {
+                                "$eq": {
+                                    "proxy.useSystemProxy": true
+                                }
+                            }
+                        ]
+                    }
+                },
+                "username": {
+                    "type": "string",
+                    "title": "Proxy username",
+                    "description": "Optional proxy username",
+                    "x-schema-form": {
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ],
+                        "disabled": [
+                            {
+                                "$eq": {
+                                    "proxy.useSystemProxy": true
+                                }
+                            }
+                        ]
+                    }
+                },
+                "password": {
+                    "type": "string",
+                    "title": "Proxy password",
+                    "description": "Optional proxy password",
+                    "x-schema-form": {
+                        "type": "password",
+                        "hidden": [
+                            {
+                                "$eq": {
+                                    "proxy.enabled": false
+                                }
+                            }
+                        ],
+                        "disabled": [
+                            {
+                                "$eq": {
+                                    "proxy.useSystemProxy": true
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "oneOf": [
+                {
+                    "properties": { "enabled": { "const": false } }
+                },
+                {
+                    "properties": { "useSystemProxy": { "const": true } }
+                },
+                {
+                    "properties": { "enabled": { "const": true }, "useSystemProxy": { "const": false } },
+                    "required": ["host", "port"]
+                }
+            ]
+        }
+    },
     "additionalProperties": false
 }

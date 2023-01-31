@@ -273,6 +273,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
             .sslOptions(subscriptionConfiguration.getSsl())
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
+            .proxyOptions(configuration.getProxyOptions())
             .defaultTarget(subscriptionConfiguration.getCallbackUrl())
             .build()
             .createHttpClient();
