@@ -31,6 +31,7 @@ import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-ite
 import { Step3EndpointsComponent } from './steps/step-3-endpoints/step-3-endpoints.component';
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
+import { Step2MenuItemComponent } from './steps/step-2-menu-item/step-2-menu-item.component';
 
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { fakeNewApiEntity, HttpListener } from '../../../../entities/api-v4';
@@ -56,6 +57,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     {
       label: 'Entrypoints',
       component: Step2Entrypoints1List,
+      menuItemComponent: Step2MenuItemComponent,
     },
     {
       label: 'Endpoints',

@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { GioConfirmDialogModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogModule, GioIconsModule, GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -38,8 +38,10 @@ import { Step3EndpointsComponent } from './steps/step-3-endpoints/step-3-endpoin
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
+import { Step2MenuItemComponent } from './steps/step-2-menu-item/step-2-menu-item.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
+import { GioEntrypointIconModule } from '../../../../components/gio-entrypoint-icon/gio-entrypoint-icon.module';
 @NgModule({
   imports: [
     CommonModule,
@@ -59,7 +61,9 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
     GioIconsModule,
     GioSelectionListModule,
     GioConfirmDialogModule,
+    GioFormJsonSchemaModule,
     ApiCreationStepperMenuModule,
+    GioEntrypointIconModule,
   ],
   declarations: [
     ApiCreationV4Component,
@@ -69,6 +73,7 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
     Step1ApiDetailsComponent,
     Step1MenuItemComponent,
     Step2Entrypoints1List,
+    Step2MenuItemComponent,
     Step2Entrypoints2ConfigComponent,
     Step3EndpointsComponent,
     Step4SecurityComponent,

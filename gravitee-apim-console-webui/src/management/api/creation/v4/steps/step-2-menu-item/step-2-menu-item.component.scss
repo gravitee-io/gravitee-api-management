@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.step-2-menu-item {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  padding: 16px;
+  position: relative;
+
+  &__icon {
+    height: 16px;
+    width: 16px;
+    margin-right: 8px;
+  }
+  &__line {
+    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+  }
+}

@@ -16,7 +16,9 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { forkJoin, Observable, Subject } from 'rxjs';
+import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -30,6 +32,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
+  public selectedEntrypoints: { id: string; name: string }[];
+  public entrypointSchemas: Record<string, GioJsonSchema>;
+  public entrypointInitialValues: Record<string, any>;
+  public entrypointFormGroups: Record<string, FormGroup>;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -38,12 +44,28 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // const currentStepPayload = this.stepService.payload;
-
+    const currentStepPayload = this.stepService.payload;
+    this.entrypointInitialValues =
+      currentStepPayload.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
+    currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
+      this.formGroup.addControl(id, this.formBuilder.group({}));
+    });
 
-    // TODO: remove me when the step is implemented and tested
-    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload }));
+    forkJoin(
+      currentStepPayload.selectedEntrypoints.reduce(
+        (map: Record<string, Observable<GioJsonSchema>>, { id }) => ({
+          ...map,
+          [id]: this.entrypointService.v4GetSchema(id),
+        }),
+        {},
+      ),
+    )
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((schemas: Record<string, GioJsonSchema>) => {
+        this.entrypointSchemas = schemas;
+        this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
+      });
   }
 
   ngOnDestroy() {
@@ -51,8 +73,14 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
+  public getEntryPointFormGroup(id: string): FormGroup {
+    return this.formGroup.get(id) as FormGroup;
+  }
+
   save(): void {
-    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload }));
+    const currentStepPayload = this.stepService.payload;
+    const entrypoints = currentStepPayload.selectedEntrypoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
+    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, entrypoints }));
   }
 
   goBack(): void {

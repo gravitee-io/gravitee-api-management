@@ -31,11 +31,12 @@ import { Step3EndpointHarness } from './steps/step-3-endpoints/step-3-endpoints.
 import { Step4SecurityHarness } from './steps/step-4-security/step-4-security.harness';
 import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
+import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ConnectorListItem } from '../../../../entities/connector/connector-list-item';
-import { fakeConnectorListItem } from '../../../../entities/connector/connector-list-item.fixture';
+import { fakeConnectorListItem, getEntrypointConnectorSchema } from '../../../../entities/connector/connector-list-item.fixture';
 import { fakeApiEntity } from '../../../../entities/api-v4';
 
 describe('ApiCreationV4Component', () => {
@@ -207,6 +208,51 @@ describe('ApiCreationV4Component', () => {
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
       ]);
+      expectSchemaGetRequest([
+        { id: 'sse', name: 'SSE' },
+        { id: 'webhook', name: 'Webhook' },
+      ]);
+    });
+
+    it('should configure entrypoints in the list', async () => {
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+      expectEntrypointsGetRequest([
+        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+      ]);
+
+      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
+
+      await step2Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+        { id: 'sse', name: 'SSE' },
+        { id: 'webhook', name: 'Webhook' },
+      ]);
+      expectSchemaGetRequest([
+        { id: 'sse', name: 'SSE' },
+        { id: 'webhook', name: 'Webhook' },
+      ]);
+
+      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      await step21Harness.clickValidate();
+
+      expect(component.currentStep.payload.entrypoints).toEqual([
+        {
+          configuration: {
+            headersAsComment: false,
+            heartbeatIntervalInMs: 5000,
+            metadataAsComment: false,
+          },
+          type: 'sse',
+        },
+        {
+          configuration: {},
+          type: 'webhook',
+        },
+      ]);
+
       expectEndpointsGetRequest([]);
     });
   });
@@ -221,18 +267,32 @@ describe('ApiCreationV4Component', () => {
 
       await step3Harness.clickPrevious();
 
-      // TODO: Remove after entrypoints configuration integrated
-      expectEndpointsGetRequest([]);
-
-      // TODO: Integrate lines below when entrypoints configuration is integrated
-      // expect(component.currentStep.position).toEqual(2);
-      // const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
-      // expect(step2Harness).toBeDefined();
-      // const entrypointsList = await step2Harness.getEntrypointsForm().then((form) => form.getListOptions({ selected: true }));
-      // expect(entrypointsList).toEqual([
-      //   { id: 'entrypoint-1', name: 'initial entrypoint' },
-      //   { id: 'entrypoint-2', name: 'new entrypoint' },
-      // ]);
+      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      expect(step21Harness).toBeDefined();
+      expectSchemaGetRequest([
+        { id: 'entrypoint-1', name: 'initial entrypoint' },
+        { id: 'entrypoint-2', name: 'new entrypoint' },
+      ]);
+      expect(component.currentStep.payload.entrypoints).toEqual([
+        {
+          configuration: {
+            headersInPayload: false,
+            messagesLimitCount: 500,
+            messagesLimitDurationMs: 5000,
+            metadataInPayload: false,
+          },
+          type: 'entrypoint-1',
+        },
+        {
+          configuration: {
+            headersInPayload: false,
+            messagesLimitCount: 500,
+            messagesLimitDurationMs: 5000,
+            metadataInPayload: false,
+          },
+          type: 'entrypoint-2',
+        },
+      ]);
     });
 
     it('should display only async endpoints in the list', async () => {
@@ -295,7 +355,7 @@ describe('ApiCreationV4Component', () => {
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
       expect(step2Summary).toContain('Path:' + '/my-new-api');
       expect(step2Summary).toContain('Type:' + 'Subscription');
-      expect(step2Summary).toContain('Entrypoints:' + 'initial entrypoint' + 'new entrypoint');
+      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints:initial entrypointnew entrypointChange');
 
       const step3Summary = await step6Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Field' + 'Value');
@@ -331,7 +391,7 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.clickValidate();
       fixture.detectChanges();
-      fixture.autoDetectChanges(true); // TODO: remove this when fill step 2-1 exist
+      await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }]);
 
       await fillAndValidateStep3Endpoints();
       await fillAndValidateStep4Security();
@@ -341,7 +401,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
-      expect(step2Summary).toContain('Entrypoints:' + 'new entrypoint');
+      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints:new entrypointChange');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
@@ -413,6 +473,14 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
   }
 
+  function expectSchemaGetRequest(connectors: Partial<ConnectorListItem>[]) {
+    connectors.forEach((connector) => {
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints/${connector.id}/schema`, method: 'GET' })
+        .flush(getEntrypointConnectorSchema(connector.id));
+    });
+  }
+
   function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
 
@@ -434,6 +502,20 @@ describe('ApiCreationV4Component', () => {
     expectEntrypointsGetRequest(entrypoints);
 
     await step2Harness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
+
+    await fillAndValidateStep2Entrypoints2Config(entrypoints);
+  }
+
+  async function fillAndValidateStep2Entrypoints2Config(
+    entrypoints: Partial<ConnectorListItem>[] = [
+      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
+      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+    ],
+  ) {
+    const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+    expectSchemaGetRequest(entrypoints);
+
+    await step21Harness.clickValidate();
   }
 
   async function fillAndValidateStep3Endpoints(
