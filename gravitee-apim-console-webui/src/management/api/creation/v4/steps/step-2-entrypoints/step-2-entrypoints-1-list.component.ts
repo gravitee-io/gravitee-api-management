@@ -21,17 +21,18 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
+import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
+
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ApiCreationV4Step21Component } from '../step-2-1/api-creation-v4-step-2-1.component';
 import { ConnectorVM } from '../../models/ConnectorVM';
 
 @Component({
-  selector: 'api-creation-v4-step-2',
-  template: require('./api-creation-v4-step-2.component.html'),
-  styles: [require('./api-creation-v4-step-2.component.scss'), require('../api-creation-steps-common.component.scss')],
+  selector: 'step-2-entrypoints-1-list',
+  template: require('./step-2-entrypoints-1-list.component.html'),
+  styles: [require('./step-2-entrypoints-1-list.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
+export class Step2Entrypoints1List implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
@@ -84,7 +85,7 @@ export class ApiCreationV4Step2Component implements OnInit, OnDestroy {
     const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.addSecondaryStep({
-      component: ApiCreationV4Step21Component,
+      component: Step2Entrypoints2ConfigComponent,
     });
 
     this.stepService.validStepAndGoNext((previousPayload) => ({

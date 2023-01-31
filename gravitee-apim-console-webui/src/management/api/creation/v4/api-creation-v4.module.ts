@@ -29,15 +29,15 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
-import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
+import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
-import { ApiCreationV4Step21Component } from './steps/step-2-1/api-creation-v4-step-2-1.component';
 import { ApiCreationStepperMenuModule } from './components/api-creation-stepper-menu/api-creation-stepper-menu.module';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
+import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 @NgModule({
@@ -63,15 +63,17 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
   ],
   declarations: [
     ApiCreationV4Component,
+    ApiCreationV4ConfirmationComponent,
+
+    // Steps components
     Step1ApiDetailsComponent,
     Step1MenuItemComponent,
-    ApiCreationV4Step2Component,
-    ApiCreationV4Step21Component,
+    Step2Entrypoints1List,
+    Step2Entrypoints2ConfigComponent,
     ApiCreationV4Step3Component,
     Step4SecurityComponent,
     Step5DocumentationComponent,
     ApiCreationV4Step6Component,
-    ApiCreationV4ConfirmationComponent,
   ],
   exports: [ApiCreationV4Component],
 })

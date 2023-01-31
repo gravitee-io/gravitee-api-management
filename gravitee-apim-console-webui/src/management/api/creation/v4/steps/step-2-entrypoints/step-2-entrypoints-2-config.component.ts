@@ -22,11 +22,11 @@ import { EntrypointService } from '../../../../../../services-ngx/entrypoint.ser
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 @Component({
-  selector: 'api-creation-v4-step-2-1',
-  template: require('./api-creation-v4-step-2-1.component.html'),
-  styles: [require('./api-creation-v4-step-2-1.component.scss'), require('../api-creation-steps-common.component.scss')],
+  selector: 'step-2-entrypoints-2-config',
+  template: require('./step-2-entrypoints-2-config.component.html'),
+  styles: [require('./step-2-entrypoints-2-config.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class ApiCreationV4Step21Component implements OnInit, OnDestroy {
+export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;

@@ -24,13 +24,13 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
-import { ApiCreationV4Step2Harness } from './steps/step-2/api-creation-v4-step-2.harness';
+import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
 import { ApiCreationV4Step3Harness } from './steps/step-3/api-creation-v4-step-3.harness';
-import { ApiCreationV4Step21Component } from './steps/step-2-1/api-creation-v4-step-2-1.component';
 import { Step4SecurityHarness } from './steps/step-4-security/step-4-security.harness';
 import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
+import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -78,8 +78,8 @@ describe('ApiCreationV4Component', () => {
   describe('menu', () => {
     it('should have 6 steps', (done) => {
       component.stepper.validStepAndGoNext(() => ({ name: 'A1' }));
-      component.stepper.addSecondaryStep({ component: ApiCreationV4Step21Component });
-      component.stepper.addSecondaryStep({ component: ApiCreationV4Step21Component });
+      component.stepper.addSecondaryStep({ component: Step2Entrypoints2ConfigComponent });
+      component.stepper.addSecondaryStep({ component: Step2Entrypoints2ConfigComponent });
       component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B1` }));
       component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B2` }));
 
@@ -164,7 +164,7 @@ describe('ApiCreationV4Component', () => {
   describe('step2', () => {
     it('should go back to step1 with API details restored when clicking on previous', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
       expectEntrypointsGetRequest([]);
 
       await step2Harness.clickPrevious();
@@ -179,7 +179,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should display only async entrypoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       expectEntrypointsGetRequest([
         { id: 'sse', supportedApiType: 'async', name: 'SSE' },
@@ -193,7 +193,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should select entrypoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       expectEntrypointsGetRequest([
         { id: 'sse', supportedApiType: 'async', name: 'SSE' },
@@ -214,7 +214,7 @@ describe('ApiCreationV4Component', () => {
   describe('step3', () => {
     it('should go back to step2 with API details restored when clicking on previous', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillStepTwoAndValidate();
+      await fillAndValidateStep2Entrypoints();
 
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
       expectEndpointsGetRequest([]);
@@ -237,8 +237,8 @@ describe('ApiCreationV4Component', () => {
 
     it('should display only async endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillStepTwoAndValidate();
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
+      await fillAndValidateStep2Entrypoints();
 
       expectEndpointsGetRequest([
         { id: 'http-post', supportedApiType: 'sync', name: 'HTTP Post' },
@@ -252,7 +252,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should select endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillStepTwoAndValidate();
+      await fillAndValidateStep2Entrypoints();
 
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
       expect(step3Harness).toBeTruthy();
@@ -275,8 +275,8 @@ describe('ApiCreationV4Component', () => {
   describe('step6', () => {
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
-      await fillStepTwoAndValidate();
       await fillStepThreeAndValidate();
+      await fillAndValidateStep2Entrypoints();
       await fillAndValidateStep4Security();
       await fillAndValidateStep5Documentation();
       fixture.detectChanges();
@@ -317,7 +317,7 @@ describe('ApiCreationV4Component', () => {
       await step6Harness.clickChangeButton(2);
       fixture.detectChanges();
 
-      const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
       expectEntrypointsGetRequest([
         { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
         { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
@@ -423,17 +423,16 @@ describe('ApiCreationV4Component', () => {
     await step1Harness.fillAndValidate(name, version, description);
   }
 
-  async function fillStepTwoAndValidate(
+  async function fillAndValidateStep2Entrypoints(
     entrypoints: Partial<ConnectorListItem>[] = [
       { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
   ) {
-    const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
+    const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     expectEntrypointsGetRequest(entrypoints);
 
-    await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(entrypoints.map((entrypoint) => entrypoint.id)));
-    await step2Harness.clickValidate();
+    await step2Harness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
   }
 
   async function fillStepThreeAndValidate(
