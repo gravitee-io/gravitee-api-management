@@ -22,9 +22,17 @@
     <p class="api-creation-v4__step__header__paragraph-light">Configure how your users will consume your API</p>
   </div>
 
-  <form [formGroup]="formGroup" (ngSubmit)="save()">
-    TODO Config context path or virtual host <br />
-    TODO Config selected entrypoints Json schema
+  TODO Config context path or virtual host <br /><br />
+
+  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+    <div class="api-creation-v4__form-container" *ngFor="let entrypoint of selectedEntrypoints">
+      <h3>{{ entrypoint.name }}</h3>
+      <gio-form-json-schema
+        [jsonSchema]="entrypointSchemas[entrypoint.id]"
+        [formGroup]="getEntryPointFormGroup(entrypoint.id)"
+        [initialValue]="entrypointInitialValues[entrypoint.id]"
+      ></gio-form-json-schema>
+    </div>
 
     <div class="api-creation-v4__step__footer">
       <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>

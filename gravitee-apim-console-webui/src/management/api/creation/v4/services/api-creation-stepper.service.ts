@@ -20,6 +20,7 @@ import { cloneDeep } from 'lodash';
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
 export interface NewApiCreationStep {
+  id?: string;
   label: string;
   component: Type<unknown>;
   menuItemComponent?: Type<unknown>;
@@ -94,16 +95,25 @@ export class ApiCreationStepperService {
    * Add a secondary step after the current step.
    */
   public addSecondaryStep(step: NewSecondaryApiCreationStep) {
+    if (this.steps.find(({ id }) => id === step.id)) {
+      return;
+    }
+
     const currentStep = this.steps[this.currentStepIndex];
     this.steps.splice(this.currentStepIndex + 1, 0, {
       ...step,
-      id: `step-${currentStep.labelNumber}-${this.steps.filter((s) => s.label === currentStep.label).length + 1}`,
+      id: step.id || this.generateStepId(),
       state: 'initial',
       patchPayload: (p) => p,
       labelNumber: currentStep.labelNumber,
       label: currentStep.label,
     });
     this.steps$.next(this.steps);
+  }
+
+  public generateStepId() {
+    const currentStep = this.steps[this.currentStepIndex];
+    return `step-${currentStep.labelNumber}-${this.steps.filter((s) => s.label === currentStep.label).length + 1}`;
   }
 
   public validStepAndGoNext(patchPayload: ApiCreationStep['patchPayload']) {

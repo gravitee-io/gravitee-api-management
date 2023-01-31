@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ApiCreationPayload = Partial<{
-  name?: string;
-  version?: string;
-  description?: string;
-  selectedEntrypoints?: {
-    id: string;
-    name: string;
-  }[];
-  entrypoints?: {
-    type: string;
-    configuration: any;
-  }[];
-  selectedEndpoints?: {
-    id: string;
-    name: string;
-  }[];
+import { NgModule } from '@angular/core';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatIconModule } from '@angular/material/icon';
 
-  deploy: boolean;
-}>;
+import { GioEntrypointIconComponent } from './gio-entrypoint-icon.component';
+
+@NgModule({
+  imports: [MatIconModule, GioIconsModule],
+  declarations: [GioEntrypointIconComponent],
+  exports: [GioEntrypointIconComponent],
+  entryComponents: [GioEntrypointIconComponent],
+})
+export class GioEntrypointIconModule {}
