@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,9 +30,6 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 })
 export class ApiCreationV4Step1Component implements OnInit {
   public form: FormGroup;
-
-  @Output()
-  public exit = new EventEmitter<void>();
 
   constructor(
     @Inject(UIRouterState) readonly ajsState: StateService,
