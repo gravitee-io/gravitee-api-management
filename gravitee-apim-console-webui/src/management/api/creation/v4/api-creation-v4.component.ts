@@ -21,7 +21,7 @@ import { groupBy, kebabCase } from 'lodash';
 import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
-import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
+import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
@@ -55,7 +55,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       label: 'Entrypoints',
-      component: ApiCreationV4Step2Component,
+      component: Step2Entrypoints1List,
     },
     {
       label: 'Endpoints',

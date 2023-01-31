@@ -18,8 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioSelectionListHarness } from '../../../../../../shared/components/gio-selection-list-option/gio-selection-list.harness';
 
-export class ApiCreationV4Step2Harness extends ComponentHarness {
-  static hostSelector = 'api-creation-v4-step-2';
+export class Step2Entrypoints1ListHarness extends ComponentHarness {
+  static hostSelector = 'step-2-entrypoints-1-list';
 
   private readonly selectionList = this.locatorFor(GioSelectionListHarness);
 
@@ -40,5 +40,10 @@ export class ApiCreationV4Step2Harness extends ComponentHarness {
 
   async clickPrevious(): Promise<void> {
     return this.getButtonByText('Previous').then((button) => button.click());
+  }
+
+  async fillAndValidate(entrypoints: string[]): Promise<void> {
+    await this.getEntrypoints().then((f) => f.selectOptionsByIds(entrypoints));
+    return this.clickValidate();
   }
 }
