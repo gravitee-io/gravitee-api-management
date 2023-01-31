@@ -23,13 +23,14 @@ import { StateService } from '@uirouter/angular';
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
-import { ApiCreationV4StepWipComponent } from './steps/step-wip/api-creation-v4-step-wip.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
+import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
+import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { fakeNewApiEntity, HttpListener } from '../../../../entities/api-v4';
@@ -62,11 +63,11 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       label: 'Security',
-      component: ApiCreationV4StepWipComponent,
+      component: Step4SecurityComponent,
     },
     {
-      label: 'Document',
-      component: ApiCreationV4StepWipComponent,
+      label: 'Documentation',
+      component: Step5DocumentationComponent,
     },
     {
       label: 'Summary',
