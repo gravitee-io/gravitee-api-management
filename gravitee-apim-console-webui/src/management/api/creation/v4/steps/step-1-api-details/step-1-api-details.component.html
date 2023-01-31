@@ -18,11 +18,11 @@
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
     <div class="api-creation-v4__step__header__step-number">Step 1</div>
-    <div class="api-creation-v4__step__header__subtitle">Provide some metadata on your API</div>
+    <div class="api-creation-v4__step__header__subtitle">Provide some details on your API</div>
   </div>
   <div class="mat-h3">API Details</div>
   <form [formGroup]="form" (ngSubmit)="save()">
-    <div class="api-creation-v4-step-1__row">
+    <div class="step-1-api-details__row">
       <mat-form-field appearance="outline">
         <input id="name" type="text" matInput formControlName="name" maxlength="50" required="true" />
         <mat-label>API Name</mat-label>
@@ -36,7 +36,7 @@
         <mat-error *ngIf="form.controls.version.errors?.required">Version number is required</mat-error>
       </mat-form-field>
     </div>
-    <div class="api-creation-v4-step-1__row">
+    <div class="step-1-api-details__row">
       <mat-form-field appearance="outline">
         <textarea id="description" matInput #input maxlength="250" formControlName="description" rows="4" required="true"></textarea>
         <mat-label>Description</mat-label>
@@ -46,8 +46,8 @@
       </mat-form-field>
     </div>
     <div class="api-creation-v4__step__footer">
-      <button id="exit" mat-stroked-button type="button" (click)="onExit()">Exit</button>
-      <button id="validate" mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my API metadata</button>
+      <button mat-stroked-button type="button" (click)="onExit()">Exit</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my API details</button>
     </div>
   </form>
 </mat-card>

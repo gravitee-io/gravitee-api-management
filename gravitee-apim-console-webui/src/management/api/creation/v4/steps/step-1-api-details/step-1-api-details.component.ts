@@ -24,11 +24,11 @@ import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 
 @Component({
-  selector: 'api-creation-v4-step-1',
-  template: require('./api-creation-v4-step-1.component.html'),
-  styles: [require('./api-creation-v4-step-1.component.scss'), require('../api-creation-steps-common.component.scss')],
+  selector: 'step-1-api-details',
+  template: require('./step-1-api-details.component.html'),
+  styles: [require('./step-1-api-details.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class ApiCreationV4Step1Component implements OnInit {
+export class Step1ApiDetailsComponent implements OnInit {
   public form: FormGroup;
 
   constructor(

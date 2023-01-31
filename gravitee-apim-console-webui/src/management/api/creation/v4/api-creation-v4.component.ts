@@ -22,7 +22,7 @@ import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
-import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
+import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
@@ -49,8 +49,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   public stepper = new ApiCreationStepperService([
     {
-      label: 'API Metadata',
-      component: ApiCreationV4Step1Component,
+      label: 'API Details',
+      component: Step1ApiDetailsComponent,
       menuItemComponent: Step1MenuItemComponent,
     },
     {

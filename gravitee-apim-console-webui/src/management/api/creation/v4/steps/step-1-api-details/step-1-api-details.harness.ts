@@ -17,8 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class ApiCreationV4Step1Harness extends ComponentHarness {
-  static hostSelector = 'api-creation-v4-step-1';
+export class Step1ApiDetailsHarness extends ComponentHarness {
+  static hostSelector = 'step-1-api-details';
 
   protected getNameInputElement = this.locatorFor(
     MatInputHarness.with({
@@ -40,13 +40,13 @@ export class ApiCreationV4Step1Harness extends ComponentHarness {
 
   protected getValidateButton = this.locatorFor(
     MatButtonHarness.with({
-      selector: '#validate',
+      text: 'Validate my API details',
     }),
   );
 
   protected getExitButton = this.locatorFor(
     MatButtonHarness.with({
-      selector: '#exit',
+      text: 'Exit',
     }),
   );
 
@@ -82,9 +82,10 @@ export class ApiCreationV4Step1Harness extends ComponentHarness {
     return this.getExitButton().then((elt) => elt.click());
   }
 
-  async fillStep(name = 'API name', version = '1.0', description = 'description'): Promise<void> {
+  async fillAndValidate(name = 'API name', version = '1.0', description = 'description'): Promise<void> {
     await this.setName(name);
     await this.setVersion(version);
     await this.setDescription(description);
+    await this.clickValidate();
   }
 }
