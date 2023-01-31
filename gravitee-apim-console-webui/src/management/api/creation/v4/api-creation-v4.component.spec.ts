@@ -23,7 +23,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
-import { ApiCreationV4Step1Harness } from './steps/step-1/api-creation-v4-step-1.harness';
+import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
 import { ApiCreationV4Step2Harness } from './steps/step-2/api-creation-v4-step-2.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
@@ -85,7 +85,7 @@ describe('ApiCreationV4Component', () => {
 
       component.menuSteps$.subscribe((steps) => {
         expect(steps.length).toEqual(6);
-        expect(steps[0].label).toEqual('API Metadata');
+        expect(steps[0].label).toEqual('API Details');
         expect(steps[1].label).toEqual('Entrypoints');
         // Expect to have the last valid step payload
         expect(steps[1].payload).toEqual({ name: 'A1>B1>B2' });
@@ -100,16 +100,15 @@ describe('ApiCreationV4Component', () => {
 
   describe('step1', () => {
     it('should start with step 1', async () => {
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
     });
 
     it('should save api details and move to next step', async () => {
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
-      expect(component.currentStep.label).toEqual('API Metadata');
-      await step1Harness.fillStep('test API', '1', 'description');
-      await step1Harness.clickValidate();
+      expect(component.currentStep.label).toEqual('API Details');
+      await step1Harness.fillAndValidate('test API', '1', 'description');
       expectEntrypointsGetRequest([]);
 
       fixture.detectChanges();
@@ -120,7 +119,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should exit without confirmation when no modification', async () => {
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
       await step1Harness.clickExit();
 
@@ -129,8 +128,8 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should cancel exit in confirmation', async () => {
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-      await step1Harness.fillStep();
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+      await step1Harness.setName('Draft API');
       await step1Harness.clickExit();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
@@ -138,15 +137,15 @@ describe('ApiCreationV4Component', () => {
       expect(await dialogHarness).toBeTruthy();
 
       await dialogHarness.cancel();
-      expect(component.currentStep.label).toEqual('API Metadata');
+      expect(component.currentStep.label).toEqual('API Details');
 
       fixture.detectChanges();
       expect(fakeAjsState.go).not.toHaveBeenCalled();
     });
 
     it('should not save data after exiting', async () => {
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-      await step1Harness.fillStep();
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+      await step1Harness.setName('Draft API');
 
       await step1Harness.clickExit();
 
@@ -164,14 +163,14 @@ describe('ApiCreationV4Component', () => {
 
   describe('step2', () => {
     it('should go back to step1 with API details restored when clicking on previous', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
       expectEntrypointsGetRequest([]);
 
       await step2Harness.clickPrevious();
-      expect(component.currentStep.label).toEqual('API Metadata');
+      expect(component.currentStep.label).toEqual('API Details');
 
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
       expect(await step1Harness.getName()).toEqual('API');
       expect(await step1Harness.getVersion()).toEqual('1.0');
@@ -179,7 +178,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should display only async entrypoints in the list', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
@@ -193,7 +192,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should select entrypoints in the list', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(ApiCreationV4Step2Harness);
 
       expectEntrypointsGetRequest([
@@ -214,7 +213,7 @@ describe('ApiCreationV4Component', () => {
 
   describe('step3', () => {
     it('should go back to step2 with API details restored when clicking on previous', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       await fillStepTwoAndValidate();
 
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
@@ -237,7 +236,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should display only async endpoints in the list', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       await fillStepTwoAndValidate();
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
 
@@ -252,7 +251,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should select endpoints in the list', async () => {
-      await fillStepOneAndValidate('API', '1.0', 'Description');
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       await fillStepTwoAndValidate();
 
       const step3Harness = await harnessLoader.getHarness(ApiCreationV4Step3Harness);
@@ -275,7 +274,7 @@ describe('ApiCreationV4Component', () => {
 
   describe('step6', () => {
     beforeEach(async () => {
-      await fillStepOneAndValidate();
+      await fillAndValidateStep1ApiDetails();
       await fillStepTwoAndValidate();
       await fillStepThreeAndValidate();
       await fillAndValidateStep4Security();
@@ -307,7 +306,7 @@ describe('ApiCreationV4Component', () => {
       await step6Harness.clickChangeButton(1);
 
       fixture.detectChanges();
-      const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(await step1Harness.getName()).toEqual('API name');
       expect(await step1Harness.getVersion()).toEqual('1.0');
       expect(await step1Harness.getDescription()).toEqual('description');
@@ -419,10 +418,9 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
   }
 
-  async function fillStepOneAndValidate(name = 'API name', version = '1.0', description = 'description') {
-    const step1Harness = await harnessLoader.getHarness(ApiCreationV4Step1Harness);
-    await step1Harness.fillStep(name, version, description);
-    await step1Harness.clickValidate();
+  async function fillAndValidateStep1ApiDetails(name = 'API name', version = '1.0', description = 'description') {
+    const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+    await step1Harness.fillAndValidate(name, version, description);
   }
 
   async function fillStepTwoAndValidate(

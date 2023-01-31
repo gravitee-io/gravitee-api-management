@@ -28,7 +28,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
-import { ApiCreationV4Step1Component } from './steps/step-1/api-creation-v4-step-1.component';
+import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { ApiCreationV4Step2Component } from './steps/step-2/api-creation-v4-step-2.component';
 import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
@@ -63,7 +63,7 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
   ],
   declarations: [
     ApiCreationV4Component,
-    ApiCreationV4Step1Component,
+    Step1ApiDetailsComponent,
     Step1MenuItemComponent,
     ApiCreationV4Step2Component,
     ApiCreationV4Step21Component,
