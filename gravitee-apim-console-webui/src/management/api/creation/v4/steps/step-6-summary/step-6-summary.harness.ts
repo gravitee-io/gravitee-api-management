@@ -16,8 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class ApiCreationV4Step6Harness extends ComponentHarness {
-  static hostSelector = 'api-creation-v4-step-6';
+export class Step6SummaryHarness extends ComponentHarness {
+  static hostSelector = 'step-6-summary';
 
   protected getStepById = (stepNumber: number) => this.locatorFor(`#step-${stepNumber}`);
   protected getButtonByStepId = (stepNumber: number) =>

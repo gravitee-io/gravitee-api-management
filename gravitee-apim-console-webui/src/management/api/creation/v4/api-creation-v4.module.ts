@@ -30,7 +30,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
-import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step-6.component';
+import { Step6SummaryComponent } from './steps/step-6-summary/step-6-summary.component';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationStepperMenuModule } from './components/api-creation-stepper-menu/api-creation-stepper-menu.module';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
@@ -73,7 +73,7 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
     Step3EndpointsComponent,
     Step4SecurityComponent,
     Step5DocumentationComponent,
-    ApiCreationV4Step6Component,
+    Step6SummaryComponent,
   ],
   exports: [ApiCreationV4Component],
 })
