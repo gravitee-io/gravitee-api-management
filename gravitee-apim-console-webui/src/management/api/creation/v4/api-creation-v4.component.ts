@@ -121,9 +121,6 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         switchMap((p) => this.createApi(p)),
       )
       .subscribe();
-
-    // Initialize stepper to step 0
-    this.stepper.goToStepLabel('API Metadata');
   }
 
   ngOnDestroy() {
