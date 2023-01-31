@@ -38,7 +38,7 @@ import { ApiCreationStepperMenuModule } from './components/api-creation-stepper-
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
 
-import { GioSelectionListOptionModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list-option.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 @NgModule({
   imports: [
     CommonModule,
@@ -56,7 +56,7 @@ import { GioSelectionListOptionModule } from '../../../../shared/components/gio-
 
     GioConfirmDialogModule,
     GioIconsModule,
-    GioSelectionListOptionModule,
+    GioSelectionListModule,
     GioConfirmDialogModule,
     ApiCreationStepperMenuModule,
   ],

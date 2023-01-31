@@ -25,7 +25,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { action } from '@storybook/addon-actions';
 
-import { GioSelectionListOptionModule } from './gio-selection-list-option.module';
+import { GioSelectionListModule } from './gio-selection-list.module';
 import { GioSelectionListOptionLayoutComponent } from './gio-selection-list-option-layout.component';
 
 export default {
@@ -41,7 +41,7 @@ export default {
         MatIconModule,
         MatListModule,
         GioIconsModule,
-        GioSelectionListOptionModule,
+        GioSelectionListModule,
         MatButtonModule,
       ],
     }),
