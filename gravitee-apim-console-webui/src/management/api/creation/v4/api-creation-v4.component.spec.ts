@@ -29,6 +29,8 @@ import { ApiCreationV4Module } from './api-creation-v4.module';
 import { ApiCreationV4Step6Harness } from './steps/step-6/api-creation-v4-step-6.harness';
 import { ApiCreationV4Step3Harness } from './steps/step-3/api-creation-v4-step-3.harness';
 import { ApiCreationV4Step21Component } from './steps/step-2-1/api-creation-v4-step-2-1.component';
+import { Step4SecurityHarness } from './steps/step-4-security/step-4-security.harness';
+import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -89,7 +91,7 @@ describe('ApiCreationV4Component', () => {
         expect(steps[1].payload).toEqual({ name: 'A1>B1>B2' });
         expect(steps[2].label).toEqual('Endpoints');
         expect(steps[3].label).toEqual('Security');
-        expect(steps[4].label).toEqual('Document');
+        expect(steps[4].label).toEqual('Documentation');
         expect(steps[5].label).toEqual('Summary');
         done();
       });
@@ -273,7 +275,11 @@ describe('ApiCreationV4Component', () => {
 
   describe('step6', () => {
     beforeEach(async () => {
-      await fillAllSteps();
+      await fillStepOneAndValidate();
+      await fillStepTwoAndValidate();
+      await fillStepThreeAndValidate();
+      await fillAndValidateStep4Security();
+      await fillAndValidateStep5Documentation();
       fixture.detectChanges();
       fixture.detectChanges(); // TODO: remove this when fill step 2-1 exist
     });
@@ -328,6 +334,8 @@ describe('ApiCreationV4Component', () => {
       fixture.autoDetectChanges(true); // TODO: remove this when fill step 2-1 exist
 
       await fillStepThreeAndValidate();
+      await fillAndValidateStep4Security();
+      await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after last step validation
       step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
@@ -354,7 +362,8 @@ describe('ApiCreationV4Component', () => {
       fixture.detectChanges();
 
       await step3Harness.clickValidate();
-      fixture.detectChanges();
+      await fillAndValidateStep4Security();
+      await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after step2 validation
       step6Harness = await harnessLoader.getHarness(ApiCreationV4Step6Harness);
@@ -442,9 +451,13 @@ describe('ApiCreationV4Component', () => {
     await step3Harness.clickValidate();
   }
 
-  async function fillAllSteps() {
-    await fillStepOneAndValidate();
-    await fillStepTwoAndValidate();
-    await fillStepThreeAndValidate();
+  async function fillAndValidateStep4Security() {
+    const step4 = await harnessLoader.getHarness(Step4SecurityHarness);
+    await step4.fillAndValidate();
+  }
+
+  async function fillAndValidateStep5Documentation() {
+    const step5 = await harnessLoader.getHarness(Step5DocumentationHarness);
+    await step5.fillAndValidate();
   }
 });
