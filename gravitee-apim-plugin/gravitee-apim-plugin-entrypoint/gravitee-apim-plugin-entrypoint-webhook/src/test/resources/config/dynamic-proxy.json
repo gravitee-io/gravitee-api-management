@@ -1,0 +1,11 @@
+{
+  "proxy": {
+    "enabled":  true,
+    "useSystemProxy":  false,
+    "host": "{#attributes['host']}",
+    "port": 3128,
+    "username": "{#attributes['username']}",
+    "password": "{#attributes['password']}",
+    "type": "HTTP"
+  }
+}
