@@ -48,7 +48,7 @@ export class ApiCreationStepperService {
   /**
    * Observable that emits an event every time the current step changes.
    */
-  public currentStep$ = new Subject<ApiCreationStep>();
+  public currentStep$ = new ReplaySubject<ApiCreationStep>(1);
 
   /**
    * Observable that emits an event every time the steps change. Emit current steps to new subscribers.
@@ -72,6 +72,7 @@ export class ApiCreationStepperService {
       patchPayload: (p) => p,
     }));
     this.steps$.next(this.steps);
+    this.currentStep$.next(this.steps[this.currentStepIndex]);
   }
 
   /**
