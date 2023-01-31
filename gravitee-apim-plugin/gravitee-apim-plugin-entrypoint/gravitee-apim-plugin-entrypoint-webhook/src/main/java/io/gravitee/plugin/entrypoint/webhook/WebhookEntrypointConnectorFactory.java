@@ -28,7 +28,6 @@ import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyn
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
-
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;

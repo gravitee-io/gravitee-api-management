@@ -16,6 +16,7 @@
 package io.gravitee.plugin.entrypoint.webhook.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
@@ -34,6 +35,8 @@ public class WebhookEntrypointConnectorConfiguration implements EntrypointConnec
     @JsonProperty("proxy")
     private HttpProxyOptions proxyOptions;
 
+    @JsonProperty("http")
+    private HttpClientOptions httpOptions;
 
     /**
      * Evaluate the Connector configuration using the EL TemplateEngine
@@ -44,8 +47,8 @@ public class WebhookEntrypointConnectorConfiguration implements EntrypointConnec
      * @param <T>
      */
     public static <T extends WebhookEntrypointConnectorConfiguration> T eval(
-            final DeploymentContext deploymentContext,
-            final T configuration
+        final DeploymentContext deploymentContext,
+        final T configuration
     ) {
         final TemplateEngine templateEngine = deploymentContext.getTemplateEngine();
         final HttpProxyOptions proxyOptions = configuration.getProxyOptions();
