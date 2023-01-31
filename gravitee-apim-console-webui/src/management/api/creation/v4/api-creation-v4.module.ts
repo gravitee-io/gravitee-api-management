@@ -34,7 +34,7 @@ import { ApiCreationV4Step6Component } from './steps/step-6/api-creation-v4-step
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationStepperMenuModule } from './components/api-creation-stepper-menu/api-creation-stepper-menu.module';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
-import { ApiCreationV4Step3Component } from './steps/step-3/api-creation-v4-step-3.component';
+import { Step3EndpointsComponent } from './steps/step-3-endpoints/step-3-endpoints.component';
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
@@ -70,7 +70,7 @@ import { GioSelectionListModule } from '../../../../shared/components/gio-select
     Step1MenuItemComponent,
     Step2Entrypoints1List,
     Step2Entrypoints2ConfigComponent,
-    ApiCreationV4Step3Component,
+    Step3EndpointsComponent,
     Step4SecurityComponent,
     Step5DocumentationComponent,
     ApiCreationV4Step6Component,
