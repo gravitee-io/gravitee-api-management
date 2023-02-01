@@ -15,27 +15,37 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { UIRouterModule } from '@uirouter/angular';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
 
 import { ApiPortalGroupsComponent } from './groups/api-portal-groups.component';
+import { ApiPortalMembersComponent } from './members/api-portal-members.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiPortalGroupsComponent],
-  exports: [ApiPortalGroupsComponent],
+  declarations: [ApiPortalGroupsComponent, ApiPortalMembersComponent],
+  exports: [ApiPortalGroupsComponent, ApiPortalMembersComponent],
   imports: [
     CommonModule,
+    UIRouterModule,
     ReactiveFormsModule,
 
-    MatSelectModule,
+    MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
+    MatSelectModule,
     MatSnackBarModule,
+    MatTableModule,
 
+    GioAvatarModule,
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,

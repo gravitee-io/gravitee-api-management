@@ -1,0 +1,60 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h3>{{ members?.length }} direct members</h3>
+<mat-card>
+  <form [formGroup]="form" *ngIf="form">
+    <mat-checkbox formControlName="isNotificationsEnabled">Enable notifications when members are added to this API</mat-checkbox>
+
+    <table
+      mat-table
+      *ngIf="dataSource"
+      [dataSource]="dataSource"
+      class="api-portal-members__table"
+      formGroupName="members"
+      aria-label="members table"
+    >
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let member">
+          <gio-avatar [src]="member.picture" [name]="member.displayName" size="24"></gio-avatar>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="displayName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+          {{ member.name }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let member">
+          <mat-select [formControlName]="member.id">
+            <mat-option *ngFor="let role of roles" [value]="role.name" [disabled]="role.name === 'PRIMARY_OWNER'">{{
+              role.name
+            }}</mat-option>
+          </mat-select>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </form>
+</mat-card>
+
+<gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (submitted)="onSubmit()"></gio-save-bar>

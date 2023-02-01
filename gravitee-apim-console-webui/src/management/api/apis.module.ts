@@ -30,8 +30,8 @@ import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-
     ApiNavigationModule,
     ApiPortalDetailsModule,
     ApiPortalPlansModule,
-    ApiPortalUserGroupModule,
     ApiProxyModule,
+    ApiPortalUserGroupModule,
   ],
 })
 export class ApisModule {}

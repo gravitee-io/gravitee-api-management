@@ -1,0 +1,17 @@
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.api-portal-members__table {
+  width: 100%;
+}
+
+.mat-column-picture {
+  padding: 0 4px;
+}
+
+.primary-owner-name {
+  font-weight: bold;
+}
