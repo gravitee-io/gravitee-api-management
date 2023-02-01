@@ -202,6 +202,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -396,6 +397,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApiAuthorizationService apiAuthorizationService;
+
+    @Autowired
+    private TagsValidationService tagsValidationService;
 
     @Override
     public ApiEntity createFromSwagger(
@@ -1173,6 +1177,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 )
                             ) {
                                 throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
+                            }
+
+                            try {
+                                tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
+                            } catch (TagNotAllowedException e) {
+                                final var missingTags = planToUpdate
+                                    .getTags()
+                                    .stream()
+                                    .filter(tag -> !updateApiEntity.getTags().contains(tag))
+                                    .collect(Collectors.toList());
+                                throw new InvalidDataException(
+                                    "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
+                                );
                             }
                         }
                     );

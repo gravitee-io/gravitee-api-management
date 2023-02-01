@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.PropertyEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;

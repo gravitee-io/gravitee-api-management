@@ -29,7 +29,9 @@ public interface TagsValidationService {
     /**
      * Check if the plan tags are compatible with the tags defined for the API.
      * @param planTags
-     * @param apiTags
+     * @param api
      */
     void validatePlanTagsAgainstApiTags(Set<String> planTags, Api api);
+
+    void validatePlanTagsAgainstApiTags(Set<String> planTags, Set<String> apiTags);
 }

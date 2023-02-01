@@ -383,7 +383,9 @@ public class PlanService_UpdateTest {
         when(updatePlan.getName()).thenReturn("NameUpdated");
         when(updatePlan.getTags()).thenReturn(Set.of("tag1"));
 
-        doThrow(new TagNotAllowedException(new String[0])).when(tagsValidationService).validatePlanTagsAgainstApiTags(any(), any());
+        doThrow(new TagNotAllowedException(new String[0]))
+            .when(tagsValidationService)
+            .validatePlanTagsAgainstApiTags(any(), any(Api.class));
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan);
     }

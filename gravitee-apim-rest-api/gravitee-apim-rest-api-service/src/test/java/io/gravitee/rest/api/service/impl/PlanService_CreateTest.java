@@ -179,7 +179,9 @@ public class PlanService_CreateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(this.newPlanEntity.getTags()).thenReturn(Set.of("tag1"));
 
-        doThrow(new TagNotAllowedException(new String[0])).when(tagsValidationService).validatePlanTagsAgainstApiTags(any(), any());
+        doThrow(new TagNotAllowedException(new String[0]))
+            .when(tagsValidationService)
+            .validatePlanTagsAgainstApiTags(any(), any(Api.class));
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
     }

@@ -87,12 +87,17 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
             var apiTags = api.getDefinitionVersion() == DefinitionVersion.V4
                 ? objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class).getTags()
                 : objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class).getTags();
-            if (!isEmpty(planTags) && (isEmpty(apiTags) || !apiTags.stream().anyMatch(apiTag -> planTags.contains(apiTag)))) {
-                log.debug("Plan rejected, tags {} mismatch the tags defined by the API ({})", planTags, apiTags);
-                throw new TagNotAllowedException(planTags.toArray(new String[planTags.size()]));
-            }
+            validatePlanTagsAgainstApiTags(planTags, apiTags);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("An error occurs while trying load api definition", e);
+        }
+    }
+
+    @Override
+    public void validatePlanTagsAgainstApiTags(Set<String> planTags, Set<String> apiTags) {
+        if (!isEmpty(planTags) && (isEmpty(apiTags) || !apiTags.stream().anyMatch(apiTag -> planTags.contains(apiTag)))) {
+            log.debug("Plan rejected, tags {} mismatch the tags defined by the API ({})", planTags, apiTags);
+            throw new TagNotAllowedException(planTags.toArray(new String[planTags.size()]));
         }
     }
 }

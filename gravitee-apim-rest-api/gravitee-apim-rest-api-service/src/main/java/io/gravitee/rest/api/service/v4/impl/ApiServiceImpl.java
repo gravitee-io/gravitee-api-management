@@ -76,6 +76,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
@@ -92,6 +93,7 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -140,6 +142,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final MediaService mediaService;
     private final PropertiesService propertiesService;
     private final ApiNotificationService apiNotificationService;
+    private final TagsValidationService tagsValidationService;
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -165,7 +168,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
         final MediaService mediaService,
         final PropertiesService propertiesService,
-        final ApiNotificationService apiNotificationService
+        final ApiNotificationService apiNotificationService,
+        final TagsValidationService tagsValidationService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -191,6 +195,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.mediaService = mediaService;
         this.propertiesService = propertiesService;
         this.apiNotificationService = apiNotificationService;
+        this.tagsValidationService = tagsValidationService;
     }
 
     @Override
@@ -316,6 +321,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 )
                             ) {
                                 throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
+                            }
+
+                            try {
+                                tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
+                            } catch (TagNotAllowedException e) {
+                                final var missingTags = planToUpdate
+                                    .getTags()
+                                    .stream()
+                                    .filter(tag -> !updateApiEntity.getTags().contains(tag))
+                                    .collect(Collectors.toList());
+                                throw new InvalidDataException(
+                                    "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
+                                );
                             }
                         }
                     );
