@@ -1,3 +1,10 @@
+# [4.1.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.6...4.1.0-alpha.7) (2023-02-01)
+
+
+### Bug Fixes
+
+* bump common elasticsearch version to get new error status on message metrics ([e0f1ab9](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/e0f1ab9d787327e1f937b0b3a5741fe1da4c0a9c))
+
 # [4.1.0-alpha.6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.5...4.1.0-alpha.6) (2023-01-27)
 
 
