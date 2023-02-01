@@ -85,7 +85,6 @@ export class Step2Entrypoints1List implements OnInit, OnDestroy {
     const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.addSecondaryStep({
-      id: 'step-2-entrypoints-2-config',
       component: Step2Entrypoints2ConfigComponent,
     });
 

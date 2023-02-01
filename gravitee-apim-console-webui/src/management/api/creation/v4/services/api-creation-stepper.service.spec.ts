@@ -25,6 +25,7 @@ describe('ApiCreationStepperService', () => {
       {
         label: 'Step 2',
         component: undefined,
+        menuItemComponent: 'Step2MenuItem' as any,
       },
       {
         label: 'Step 3',
@@ -60,9 +61,23 @@ describe('ApiCreationStepperService', () => {
     expect(currentStep.label).toEqual('Step 2');
   });
 
-  it('should add secondary step ', () => {
+  it('should add secondary step ', (done) => {
     apiCreationStepperService.addSecondaryStep({
       component: undefined,
+    });
+
+    apiCreationStepperService.steps$.subscribe((steps) => {
+      expect(steps.length).toEqual(5);
+      expect(steps.find((step) => step.id === 'step-2-2')).toEqual({
+        id: 'step-2-2',
+        label: 'Step 2',
+        component: undefined,
+        labelNumber: 2,
+        menuItemComponent: 'Step2MenuItem',
+        patchPayload: expect.any(Function),
+        state: 'initial',
+      });
+      done();
     });
   });
 
@@ -100,6 +115,18 @@ describe('ApiCreationStepperService', () => {
       previousPayload.selectedEntrypoints.push({ id: '2', name: 'new value' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
+    });
+  });
+
+  it('should re add secondary step at step 2', (done) => {
+    apiCreationStepperService.addSecondaryStep({
+      component: undefined,
+    });
+
+    apiCreationStepperService.steps$.subscribe((steps) => {
+      expect(steps.length).toEqual(5);
+      expect(steps.find((step) => step.id === 'step-2-2')).toBeDefined();
+      done();
     });
   });
 
