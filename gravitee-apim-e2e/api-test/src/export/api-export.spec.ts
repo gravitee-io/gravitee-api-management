@@ -97,7 +97,8 @@ describe('API - Exports', () => {
       expect(exportedApi).toBeTruthy();
       expect(exportedApi).toHaveProperty('flows');
       expect(exportedApi.flows).toHaveLength(1);
-      expect(exportedApi.flows[0]).toEqual(exportedFlow);
+      const id = exportedApi.flows[0].id;
+      expect(exportedApi.flows[0]).toEqual({ ...exportedFlow, id });
       expect(exportedApi).not.toHaveProperty('paths');
 
       await noContent(apisResourceAdmin.deleteApiRaw({ orgId, envId, api: userApi.id }));
@@ -106,7 +107,7 @@ describe('API - Exports', () => {
       expect(importedApi).toBeTruthy();
       expect(importedApi.crossId).toStrictEqual(exportedApi.crossId);
       expect(exportedApi.flows).toHaveLength(1);
-      expect(exportedApi.flows[0]).toEqual(exportedFlow);
+      expect(exportedApi.flows[0]).toEqual({ ...exportedFlow, id });
       expect(importedApi.gravitee).toStrictEqual(exportedApi.gravitee);
     });
 
