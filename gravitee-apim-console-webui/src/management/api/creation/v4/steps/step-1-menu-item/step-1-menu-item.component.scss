@@ -2,8 +2,9 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 .step-1-menu-item {
-  .remove-me {
-    // Remove me
-    display: none;
+  &__line:not(:last-child) {
+    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    padding-bottom: 16px;
+    margin-bottom: 16px;
   }
 }
