@@ -178,3 +178,21 @@ Notice that client methods from [src/lib/clients](src/lib/clients) uses a specia
 
 ---
 
+## Docker 
+
+A docker image that embeds all the simulations can be created.
+```bash
+$ docker build -t apim-k6-runner .
+```
+
+Once the image is available, you can run a simulation by providing the path as parameter (relative to the src/scenario directory).
+```bash
+docker run --rm apim-k6-runner get-200-status-nosetup.test.js
+docker run --rm apim-k6-runner keyless-api-no-policy/keyless.v4.test.js
+```
+
+You can also run it in interaction mode to be able to update the config.json file and run the simulation with different parameters.
+```bash
+docker run -it --rm apim-k6-runner 
+~ $ ./scripts/run.sh -v -f dist/src/scenarios/get-200-status-nosetup.test.js
+```
