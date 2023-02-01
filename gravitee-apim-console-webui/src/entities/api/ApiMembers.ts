@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './Api';
-export * from './UpdateApi';
-export * from './ApiMembers';
-export * from './ApiMembership';
+export class ApiMember {
+  id: string;
+  displayName?: string;
+  role: string;
+  username?: string;
+  reference?: string;
+}

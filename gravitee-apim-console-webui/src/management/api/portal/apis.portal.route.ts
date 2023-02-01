@@ -226,6 +226,19 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.ngmembers', {
+      url: '/ng-members',
+      component: 'ngApiMembers',
+      data: {
+        useAngularMaterial: true,
+        perms: {
+          only: ['api-member-r'],
+        },
+        docs: {
+          page: 'management-api-members',
+        },
+      },
+    })
     .state('management.apis.detail.portal.groups', {
       url: '/groups',
       component: 'ngApiPortalGroups',
