@@ -16,8 +16,7 @@
 
 -->
 <ng-container *ngIf="entrypoints">
-  <div *ngFor="let entrypoint of entrypoints; let first = first" class="step-2-menu-item">
-    <div *ngIf="!first" class="step-2-menu-item__line"></div>
+  <div *ngFor="let entrypoint of entrypoints" class="step-2-menu-item">
     <gio-entrypoint-icon [entrypointId]="entrypoint.id" [entrypointName]="entrypoint.name"></gio-entrypoint-icon>
   </div>
 </ng-container>
