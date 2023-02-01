@@ -17,12 +17,35 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.junit.Assert.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +53,14 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -43,7 +73,17 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
@@ -53,12 +93,35 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -68,15 +131,26 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
@@ -247,6 +321,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private AnalyticsValidationService loggingValidationService;
+
+    @Mock
+    private TagsValidationService tagsValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -485,6 +562,39 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test
+    public void shouldNotUpdateWithRemovedTagPresentInPlan() throws TechnicalException {
+        prepareUpdate();
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("Plan");
+        updatedPlan.setName("Plan Name");
+        updatedPlan.setTags(Set.of("plan tag"));
+        updatedPlan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+        updateApiEntity.setTags(singleton("public"));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("Plan");
+        originalPlan.setStatus(PlanStatus.PUBLISHED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
+        api.setDefinition(
+            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
+        );
+
+        when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("public"));
+
+        doThrow(new TagNotAllowedException(new String[0]))
+            .when(tagsValidationService)
+            .validatePlanTagsAgainstApiTags(any(Set.class), any(Set.class));
+
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true))
+            .isInstanceOf(InvalidDataException.class);
+
+        verify(apiRepository, never()).update(any());
     }
 
     @Test

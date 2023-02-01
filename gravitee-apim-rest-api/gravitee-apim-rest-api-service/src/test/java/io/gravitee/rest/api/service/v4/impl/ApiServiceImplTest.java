@@ -22,9 +22,11 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +36,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -97,6 +100,7 @@ import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
@@ -110,6 +114,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
@@ -128,6 +133,7 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -256,6 +262,9 @@ public class ApiServiceImplTest {
     @Mock
     private ApiNotificationService apiNotificationService;
 
+    @Mock
+    private TagsValidationService tagsValidationService;
+
     private ApiService apiService;
     private ApiSearchService apiSearchService;
     private UpdateApiEntity updateApiEntity;
@@ -315,7 +324,8 @@ public class ApiServiceImplTest {
                 apiQualityRuleRepository,
                 mediaService,
                 propertiesService,
-                apiNotificationService
+                apiNotificationService,
+                tagsValidationService
             );
         apiSearchService = new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService);
         apiStateService =
@@ -760,6 +770,36 @@ public class ApiServiceImplTest {
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldNotUpdate_TagUsedByPlanHasBeenRemoved() throws TechnicalException {
+        prepareUpdate();
+
+        api.setName(API_NAME);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        PlanEntity updatedPlan = new PlanEntity();
+        updatedPlan.setId("TAGPLAN");
+        updatedPlan.setName("Plan");
+        updatedPlan.setTags(Set.of("tag"));
+        updatedPlan.setStatus(PlanStatus.PUBLISHED);
+        updateApiEntity.setPlans(Set.of(updatedPlan));
+
+        PlanEntity originalPlan = new PlanEntity();
+        originalPlan.setId("TAGPLAN");
+        originalPlan.setStatus(PlanStatus.PUBLISHED);
+        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+
+        doThrow(new TagNotAllowedException(new String[0]))
+            .when(tagsValidationService)
+            .validatePlanTagsAgainstApiTags(any(Set.class), any(Set.class));
+
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME))
+            .isInstanceOf(InvalidDataException.class);
+
+        verify(apiRepository, never()).update(any());
     }
 
     @Test
