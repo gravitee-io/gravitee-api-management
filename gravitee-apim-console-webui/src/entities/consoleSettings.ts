@@ -28,6 +28,7 @@ export interface ConsoleSettings {
   newsletter?: ConsoleSettingsNewsletter;
   theme?: ConsoleSettingsTheme;
   jupiterMode?: ConsoleSettingsJupiterMode;
+  alertEngine?: ConsoleSettingsAlertEngine;
 }
 
 export interface ConsoleSettingsEmail {
@@ -141,4 +142,8 @@ export interface ConsoleSettingsTheme {
 export interface ConsoleSettingsJupiterMode {
   enabled?: boolean;
   isDefault?: string;
+}
+
+export interface ConsoleSettingsAlertEngine {
+  enabled?: boolean;
 }

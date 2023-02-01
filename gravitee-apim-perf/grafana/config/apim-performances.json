@@ -170,7 +170,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(k6_iterations{scenario=\"default\"}[$__rate_interval])",
+          "expr": "rate(k6_iterations_total{scenario=\"default\"}[$k6_rate_interval])",
           "interval": "",
           "legendFormat": "scenario {{scenario}}",
           "refId": "A"
@@ -295,15 +295,41 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "",
+      "description": "Number of failure over time",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
-          "min": 0,
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -313,11 +339,10 @@
               },
               {
                 "color": "red",
-                "value": 1
+                "value": 80
               }
             ]
-          },
-          "unit": "none"
+          }
         },
         "overrides": []
       },
@@ -327,38 +352,37 @@
         "x": 18,
         "y": 1
       },
-      "id": 20,
+      "id": 43,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["count"],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
         },
-        "text": {},
-        "textMode": "auto"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
-      "pluginVersion": "9.0.5",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "exemplar": true,
-          "expr": "http_req_failed",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "k6_http_reqs_total{expected_response=\"false\"}",
           "format": "time_series",
+          "hide": false,
           "instant": false,
-          "interval": "",
-          "legendFormat": "",
+          "legendFormat": "{{status}}",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Failed count",
-      "type": "stat"
+      "title": "Failure trend",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -458,7 +482,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(k6_http_reqs{scenario=\"default\"}[$__rate_interval])",
+          "expr": "sum(rate(k6_http_reqs_total{scenario=\"default\"}[$k6_rate_interval]))",
           "interval": "",
           "legendFormat": "Http {{status}}",
           "refId": "A"
@@ -581,7 +605,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(k6_data_sent[$__interval])",
+          "expr": "rate(k6_data_sent_total[$k6_rate_interval])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -707,7 +731,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(k6_data_received[$__rate_interval])",
+          "expr": "rate(k6_data_received_total[$k6_rate_interval])",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -771,9 +795,24 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -846,11 +885,11 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "k6_http_req_duration_avg{scenario=\"default\"}",
+          "expr": "max(k6_http_req_duration_avg{scenario=\"default\"})",
           "hide": false,
           "instant": false,
           "interval": "",
-          "legendFormat": "avg ({{method}} - {{status}})",
+          "legendFormat": "avg",
           "refId": "A"
         },
         {
@@ -859,10 +898,10 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "k6_http_req_duration_p90{scenario=\"default\"}",
+          "expr": "max(k6_http_req_duration_p90{scenario=\"default\"})",
           "hide": false,
           "interval": "",
-          "legendFormat": "p90  ({{method}} - {{status}})",
+          "legendFormat": "p90",
           "refId": "B"
         },
         {
@@ -871,11 +910,23 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "k6_http_req_duration_p95{scenario=\"default\"}",
+          "expr": "max(k6_http_req_duration_p95{scenario=\"default\"})",
           "hide": false,
           "interval": "",
-          "legendFormat": "p95  ({{method}} - {{status}})",
+          "legendFormat": "p95",
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "max(k6_http_req_duration_p99{scenario=\"default\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "p99",
+          "refId": "D"
         }
       ],
       "title": "k6 http duration",
@@ -1027,7 +1078,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(gio_gw_http_server_requests_total{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval])",
+          "expr": "sum(rate(gio_gw_http_server_requests_total{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]))",
           "hide": false,
           "interval": "",
           "legendFormat": "{{local}} ({{method}})",
@@ -1469,8 +1520,8 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 50,
+            "drawStyle": "line",
+            "fillOpacity": 3,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1478,7 +1529,7 @@
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 0,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -1536,7 +1587,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(gio_gw_http_server_response_time_seconds_sum{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]) / rate(gio_gw_http_server_response_time_seconds_count{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]) * 1000",
+          "expr": "max(rate(gio_gw_http_server_response_time_seconds_sum{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]) / rate(gio_gw_http_server_response_time_seconds_count{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]) * 1000)",
           "instant": false,
           "interval": "",
           "legendFormat": "{{local}} ({{method}} - {{code}})",
@@ -1561,8 +1612,8 @@
             "axisLabel": "duration",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 50,
+            "drawStyle": "line",
+            "fillOpacity": 3,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1570,7 +1621,7 @@
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 0,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -1657,7 +1708,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "rate(gio_gw_http_client_response_time_seconds_sum{application=\"gio-apim-gateway\", remote=\"load-tests-echo-api.cloud.gravitee.io:443\"}[$__rate_interval]) / rate(gio_gw_http_client_response_time_seconds_count{application=\"gio-apim-gateway\", remote=\"load-tests-echo-api.cloud.gravitee.io:443\"}[$__rate_interval]) * 1000",
+          "expr": "rate(gio_gw_http_client_response_time_seconds_sum{application=\"gio-apim-gateway\", remote!=\"localhost:9200\"}[$__rate_interval]) / rate(gio_gw_http_client_response_time_seconds_count{application=\"gio-apim-gateway\", remote!=\"localhost:9200\"}[$__rate_interval]) * 1000",
           "hide": false,
           "interval": "",
           "legendFormat": "{{remote}} ({{method}})",
@@ -1674,7 +1725,7 @@
               "left": "0.0.0.0:8082 (GET)",
               "operator": "-",
               "reducer": "sum",
-              "right": "load-tests-echo-api.cloud.gravitee.io:443 (GET)"
+              "right": "localhost:8080 (GET)"
             },
             "mode": "binary",
             "reduce": {
@@ -2100,7 +2151,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": " rate(gio_gw_http_server_response_bytes_sum{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval])",
+          "expr": "max(rate(gio_gw_http_server_response_bytes_sum{application=\"gio-apim-gateway\", local=\"0.0.0.0:8082\"}[$__rate_interval]))",
           "instant": false,
           "interval": "",
           "legendFormat": "sent to {{local}}",
@@ -3170,7 +3221,7 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
+          "displayMode": "list",
           "placement": "bottom"
         },
         "tooltip": {
@@ -3293,7 +3344,7 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "right"
+          "placement": "bottom"
         },
         "tooltip": {
           "mode": "single",
@@ -3458,6 +3509,15 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "description": "K6 will maybe push data at different intervals that the scrap one, meaning it would be hard to use the default $__rate_interval.",
+        "hide": 2,
+        "label": "",
+        "name": "k6_rate_interval",
+        "query": "10s",
+        "skipUrlSync": false,
+        "type": "constant"
       }
     ]
   },

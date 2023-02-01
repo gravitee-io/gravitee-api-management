@@ -203,6 +203,7 @@ async function runTearDownHook(test: string, tearDownPath) {
 function enrichK6CommandWithParameters(absoluteTestDataPath: string, testDataPath: string) {
   debug(`Absolute test data path used by K6: ${absoluteTestDataPath}`);
   K6_COMMAND.push(`-e TEST_DATA_PATH=${absoluteTestDataPath}`);
+  K6_COMMAND.push(`-e K6_PROMETHEUS_RW_TREND_STATS="p(99),p(95),p(90),avg"`);
   TEARDOWN_ENV_VAR += `TEST_DATA_PATH=${testDataPath.replace('dist/', '')}`;
 }
 

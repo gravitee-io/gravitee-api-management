@@ -22,6 +22,7 @@ import { ITimeframe, TimeframeRanges } from '../../quick-time-range/quick-time-r
 import { Alert, Scope } from '../../../entities/alert';
 import AlertService, { IAlertTriggerAnalytics } from '../../../services/alert.service';
 import UserService from '../../../services/user.service';
+import { Constants } from '../../../entities/Constants';
 
 class AlertsDashboardComponent implements ng.IComponentController {
   private static INFO_COLOR = '#54a3ff';
@@ -42,7 +43,13 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private options: any;
 
   /* @ngInject */
-  constructor(private $scope: IScope, private AlertService: AlertService, private UserService: UserService, private $state: StateService) {}
+  constructor(
+    private $scope: IScope,
+    private AlertService: AlertService,
+    private UserService: UserService,
+    private $state: StateService,
+    private Constants: Constants,
+  ) {}
 
   $onInit() {
     this.timeframe = TimeframeRanges.LAST_MINUTE;
@@ -166,6 +173,10 @@ class AlertsDashboardComponent implements ng.IComponentController {
       case 'CRITICAL':
         return AlertsDashboardComponent.CRITICAL_COLOR;
     }
+  }
+
+  isAlertEngineEnabled() {
+    return this.Constants.org.settings.alertEngine.enabled;
   }
 }
 

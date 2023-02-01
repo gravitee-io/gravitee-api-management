@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="menuItem">
-  <dl>
-    <dt>API name</dt>
-    <dd class="mat-body-2">{{ menuItem.name }}</dd>
-  </dl>
-  <dl>
-    <dt>API version</dt>
-    <dd class="mat-body-2">{{ menuItem.version }}</dd>
-  </dl>
-</ng-container>
+<div *ngIf="menuItem" class="step-1-menu-item">
+  <div class="step-1-menu-item__line">
+    <div>API name</div>
+    <div class="mat-body-2">{{ menuItem.name }}</div>
+  </div>
+  <div class="step-1-menu-item__line">
+    <div>API version</div>
+    <div class="mat-body-2">{{ menuItem.version }}</div>
+  </div>
+</div>
