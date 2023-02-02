@@ -129,7 +129,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                     addCustomProducerConfig(config);
                     SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
                     KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
-                    Set<String> topics = getTopics(ctx);
+                    Set<String> topics = getTopics(ctx, configuration.getProducer().getTopics());
                     return ctx
                         .request()
                         .onMessages(
@@ -222,7 +222,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
                                     ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
                                         .<String, byte[]>create(config)
-                                        .subscription(getTopics(ctx));
+                                        .subscription(getTopics(ctx, configuration.getConsumer().getTopics()));
 
                                     return RxJava3Adapter
                                         .<Message>fluxToFlowable(
@@ -326,10 +326,10 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
         return groupId;
     }
 
-    private Set<String> getTopics(final MessageExecutionContext ctx) {
+    private Set<String> getTopics(final MessageExecutionContext ctx, final Set<String> configuredTopics) {
         Set<String> topics = ctx.getAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS);
         if (topics == null || topics.isEmpty()) {
-            topics = configuration.getTopics();
+            topics = configuredTopics;
             ctx.setAttribute(CONTEXT_ATTRIBUTE_KAFKA_TOPICS, topics);
         }
         if (topics == null) {

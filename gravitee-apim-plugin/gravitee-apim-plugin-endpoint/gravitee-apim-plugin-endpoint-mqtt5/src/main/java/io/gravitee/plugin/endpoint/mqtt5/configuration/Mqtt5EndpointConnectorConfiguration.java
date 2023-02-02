@@ -36,7 +36,6 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
 
     private String serverHost;
     private Integer serverPort;
-    private String topic;
 
     @Builder.Default
     private Integer reconnectAttempts = 3;
@@ -51,11 +50,11 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
     @AllArgsConstructor
     @Getter
     @Setter
-    @SuperBuilder
     public static class Consumer {
 
-        @Builder.Default
-        private boolean enabled = true;
+        private boolean enabled;
+
+        private String topic;
     }
 
     @NoArgsConstructor
@@ -65,8 +64,9 @@ public class Mqtt5EndpointConnectorConfiguration implements EndpointConnectorCon
     @SuperBuilder
     public static class Producer {
 
-        @Builder.Default
-        private boolean enabled = true;
+        private boolean enabled;
+
+        private String topic;
 
         @Builder.Default
         private boolean retained = false;
