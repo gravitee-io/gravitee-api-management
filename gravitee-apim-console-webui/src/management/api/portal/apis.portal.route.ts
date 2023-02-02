@@ -226,8 +226,8 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.portal.groups-v4', {
-      url: '/v4/groups',
+    .state('management.apis.detail.portal.groups', {
+      url: '/groups',
       component: 'ngApiPortalGroups',
       data: {
         perms: {
@@ -237,20 +237,6 @@ function apisPortalRouterConfig($stateProvider) {
           page: 'management-api-members',
         },
         useAngularMaterial: true,
-      },
-    })
-    .state('management.apis.detail.portal.groups', {
-      url: '/groups',
-      template: require('./user-group-access/groups/groups.html'),
-      controller: 'ApiPortalController',
-      controllerAs: 'portalCtrl',
-      data: {
-        perms: {
-          only: ['api-member-r'],
-        },
-        docs: {
-          page: 'management-api-members',
-        },
       },
     })
     .state('management.apis.detail.portal.transferownership', {
