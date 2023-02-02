@@ -65,7 +65,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     public static final String ENTRYPOINT_ID = "webhook";
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     public static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO, Qos.AT_MOST_ONCE, Qos.AT_LEAST_ONCE);
-    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.SUBSCRIPTION;
+    public static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.SUBSCRIPTION;
     public static final String INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT = "webhook.httpClient";
     public static final String INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG = "webhook.subscriptionConfiguration";
     public static final String STOPPING_MESSAGE = "Stopping, please reconnect";
