@@ -60,7 +60,7 @@ public class EntrypointResource {
     @ApiResponse(
         responseCode = "200",
         description = "Entrypoint plugin",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConnectorPluginEntity.class))
     )
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
