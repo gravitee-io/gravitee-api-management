@@ -286,7 +286,7 @@ describe('API - Imports with pages', () => {
           definitionVersion,
           importSwaggerDescriptorEntity: { payload: '' },
         }),
-        500,
+        400,
       );
     });
   });
