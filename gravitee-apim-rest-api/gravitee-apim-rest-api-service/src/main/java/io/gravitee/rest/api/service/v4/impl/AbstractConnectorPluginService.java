@@ -18,9 +18,11 @@ package io.gravitee.rest.api.service.v4.impl;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -96,6 +98,14 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         if (connectorFactory.supportedApi() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
+
+        if (connectorFactory instanceof EntrypointConnectorFactory) {
+            EntrypointConnectorFactory entrypointConnectorFactory = (EntrypointConnectorFactory) connectorFactory;
+            if (entrypointConnectorFactory.supportedListenerType() != null) {
+                entity.setSupportedListenerType(ListenerType.fromLabel(entrypointConnectorFactory.supportedListenerType().getLabel()));
+            }
+        }
+
         if (
             plugin.manifest().properties() != null &&
             plugin.manifest().properties().get("features") != null &&

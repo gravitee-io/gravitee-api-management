@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ApiType;
+import io.gravitee.gateway.jupiter.api.ListenerType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -73,6 +74,7 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.ASYNC);
         when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.jupiter.api.ConnectorMode.REQUEST_RESPONSE));
+        when(mockFactory.supportedListenerType()).thenReturn(ListenerType.HTTP);
     }
 
     @Test
@@ -101,10 +103,11 @@ public class EntrypointPluginServiceImplTest {
 
     @Test
     public void shouldFindById() {
-        PlatformPluginEntity result = entrypointService.findById(PLUGIN_ID);
+        ConnectorPluginEntity result = entrypointService.findById(PLUGIN_ID);
 
         assertNotNull(result);
         assertEquals(PLUGIN_ID, result.getId());
+        assertEquals(io.gravitee.definition.model.v4.listener.ListenerType.HTTP, result.getSupportedListenerType());
     }
 
     @Test(expected = PluginNotFoundException.class)
