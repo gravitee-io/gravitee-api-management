@@ -60,6 +60,9 @@ nginx: ## Run API Management with an nginx. ⚠️ No nightly image for this for
 opensearch: ## Run API Management with OpenSearch.
 	cd ./quick-setup/opensearch && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+kibana: ## Run API Management with Kibana.
+	cd ./quick-setup/kibana && docker-compose down -v && docker-compose pull && docker-compose up -d
+
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to start \033[0m"
