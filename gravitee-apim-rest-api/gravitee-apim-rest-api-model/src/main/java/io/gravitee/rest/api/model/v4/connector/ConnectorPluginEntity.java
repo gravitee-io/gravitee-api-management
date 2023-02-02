@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.v4.connector;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -47,4 +48,6 @@ public class ConnectorPluginEntity extends PlatformPluginEntity {
     private Set<Qos> supportedQos;
 
     private Set<ConnectorFeature> availableFeatures;
+
+    private ListenerType supportedListenerType;
 }
