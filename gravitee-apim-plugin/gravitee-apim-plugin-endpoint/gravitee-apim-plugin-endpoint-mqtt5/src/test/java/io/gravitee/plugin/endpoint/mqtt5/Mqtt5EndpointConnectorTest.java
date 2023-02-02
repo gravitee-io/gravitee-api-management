@@ -103,7 +103,10 @@ class Mqtt5EndpointConnectorTest {
     public void test() {
         configuration.setServerHost(mqtt.getHost());
         configuration.setServerPort(mqtt.getMqttPort());
-        configuration.setTopic("test/topic");
+        configuration.getConsumer().setEnabled(true);
+        configuration.getConsumer().setTopic("test/topic");
+        configuration.getProducer().setEnabled(true);
+        configuration.getProducer().setTopic("test/topic");
         configuration.getProducer().setRetained(true);
 
         mqtt5EndpointConnector = new Mqtt5EndpointConnector(configuration);
@@ -167,7 +170,7 @@ class Mqtt5EndpointConnectorTest {
                             io.reactivex.Flowable.just(
                                 Mqtt5Publish
                                     .builder()
-                                    .topic(configuration.getTopic())
+                                    .topic(configuration.getProducer().getTopic())
                                     .retain(configuration.getProducer().isRetained())
                                     .qos(Mqtt5Publish.DEFAULT_QOS)
                                     .payload(Buffer.buffer("message").getBytes())
@@ -238,13 +241,13 @@ class Mqtt5EndpointConnectorTest {
                     client
                         .subscribePublishesWith()
                         .addSubscription()
-                        .topicFilter(configuration.getTopic())
+                        .topicFilter(configuration.getConsumer().getTopic())
                         .qos(MqttQos.AT_LEAST_ONCE)
                         .noLocal(false)
                         .applySubscription()
                         .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 
@@ -292,7 +295,7 @@ class Mqtt5EndpointConnectorTest {
                         .applySubscription()
                         .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 
@@ -341,7 +344,7 @@ class Mqtt5EndpointConnectorTest {
                         .applySubscription()
                         .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 

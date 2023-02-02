@@ -65,17 +65,18 @@ class KafkaEndpointConnectorFactoryTest {
     void shouldCreateConnectorWithRightConfiguration() {
         KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(
             deploymentContext,
-            "{\"bootstrapServers\":\"localhost:8082\",\"topics\":[\"topic\"], \"consumer\":{\"autoOffsetReset\":\"latest\"}, \"producer\":{}}"
+            "{\"bootstrapServers\":\"localhost:8082\",\"consumer\":{\"autoOffsetReset\":\"latest\",\"topics\":[\"topic\"]}, \"producer\":{}}"
         );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isEqualTo("localhost:8082");
-        assertThat(connector.configuration.getTopics()).containsAll(Set.of("topic"));
+        assertThat(connector.configuration.getConsumer().getTopics()).containsAll(Set.of("topic"));
         assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getConsumer().isEnabled()).isTrue();
+        assertThat(connector.configuration.getConsumer().isEnabled()).isFalse();
         assertThat(connector.configuration.getConsumer().getAutoOffsetReset()).isEqualTo("latest");
         assertThat(connector.configuration.getProducer()).isNotNull();
-        assertThat(connector.configuration.getProducer().isEnabled()).isTrue();
+        assertThat(connector.configuration.getProducer().isEnabled()).isFalse();
+        assertThat(connector.configuration.getProducer().getTopics()).isNull();
     }
 
     @Test

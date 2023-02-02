@@ -64,17 +64,18 @@ class Mqtt5EndpointConnectorFactoryTest {
     void shouldCreateConnectorWithRightConfiguration() {
         Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(
             deploymentContext,
-            "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\",\"topic\":\"test/topic\", \"consumer\":{}, \"producer\":{}}"
+            "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\", \"consumer\":{\"topic\":\"test/topic\"}, \"producer\":{\"topic\":\"test/topic\"}}"
         );
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isEqualTo("localhost");
         assertThat(connector.configuration().getServerPort()).isEqualTo(1234);
-        assertThat(connector.configuration().getTopic()).isEqualTo("test/topic");
         assertThat(connector.configuration().getConsumer()).isNotNull();
-        assertThat(connector.configuration().getConsumer().isEnabled()).isTrue();
+        assertThat(connector.configuration().getConsumer().isEnabled()).isFalse();
+        assertThat(connector.configuration().getConsumer().getTopic()).isEqualTo("test/topic");
         assertThat(connector.configuration().getProducer()).isNotNull();
-        assertThat(connector.configuration().getProducer().isEnabled()).isTrue();
+        assertThat(connector.configuration().getProducer().isEnabled()).isFalse();
+        assertThat(connector.configuration().getProducer().getTopic()).isEqualTo("test/topic");
     }
 
     @Test

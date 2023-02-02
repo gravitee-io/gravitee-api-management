@@ -129,7 +129,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
                             Flowable.defer(
                                 () -> {
                                     Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                                    String topic = getTopic(ctx);
+                                    String topic = getTopic(ctx, configuration.getConsumer().getTopic());
                                     return RxJavaBridge
                                         .toV3Flowable(
                                             prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic)
@@ -175,7 +175,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
             return Completable.defer(
                 () -> {
                     Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                    String topic = getTopic(ctx);
+                    String topic = getTopic(ctx, configuration.getProducer().getTopic());
                     String responseTopic = getResponseTopic(ctx);
                     return ctx
                         .request()
@@ -273,10 +273,10 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         return builder;
     }
 
-    private String getTopic(final ExecutionContext ctx) {
+    private String getTopic(final ExecutionContext ctx, final String configuredTopics) {
         String topic = ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_TOPIC);
         if (topic == null || topic.isEmpty()) {
-            topic = configuration.getTopic();
+            topic = configuredTopics;
             ctx.setAttribute(CONTEXT_ATTRIBUTE_MQTT5_TOPIC, topic);
         }
         if (topic == null) {

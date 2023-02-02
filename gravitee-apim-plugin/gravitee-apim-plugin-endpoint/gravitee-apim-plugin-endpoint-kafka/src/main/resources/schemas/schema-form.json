@@ -14,14 +14,6 @@
                 }
             }
         },
-        "topics": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "title": "Topics",
-            "description": "A list of kafka topics to use."
-        },
         "consumer": {
             "type": "object",
             "title": "Consumer configuration",
@@ -31,7 +23,15 @@
                     "title": "Enable the consumer capability",
                     "description": "Allow to enable or disable the consumer capability.",
                     "type": "boolean",
-                    "default": true
+                    "default": false
+                },
+                "topics": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Topics",
+                    "description": "A list of kafka topics to use."
                 },
                 "encodeMessageId": {
                     "title": "Encode message Id",
@@ -51,7 +51,31 @@
                         }
                     }
                 }
-            }
+            },
+            "oneOf": [
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    },
+                    "required": [
+                        "topics"
+                    ]
+                },
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                false
+                            ]
+                        }
+                    }
+                }
+            ],
+            "required": ["enabled"]
         },
         "producer": {
             "type": "object",
@@ -62,10 +86,92 @@
                     "title": "Enable the producer capability",
                     "description": "Allow to enable or disable the producer capability.",
                     "type": "boolean",
-                    "default": true
+                    "default": false
+                },
+                "topics": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Topics",
+                    "description": "A list of kafka topics to use."
                 }
-            }
+            },
+            "oneOf": [
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    },
+                    "required": [
+                        "topics"
+                    ]
+                },
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                false
+                            ]
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "enabled"
+            ]
         }
     },
-    "required": ["bootstrapServers"]
+    "allOf" : [
+        {
+            "anyOf": [
+                {
+                    "properties": {
+                        "consumer": {
+                            "properties": {
+                                "enabled": {
+                                    "enum": [
+                                        true
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "producer": {
+                            "properties": {
+                                "enabled": {
+                                    "enum": [
+                                        true
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "oneOf": [
+                {
+                    "required": [
+                        "consumer"
+                    ]
+                },
+                {
+                    "required": [
+                        "producer"
+                    ]
+                }
+            ]
+        }
+    ],
+    "required": [
+        "bootstrapServers"
+    ]
 }

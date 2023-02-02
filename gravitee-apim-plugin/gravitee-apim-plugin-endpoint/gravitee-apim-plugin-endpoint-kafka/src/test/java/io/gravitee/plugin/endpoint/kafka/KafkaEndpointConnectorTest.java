@@ -124,7 +124,10 @@ class KafkaEndpointConnectorTest {
         topicId = UUID.randomUUID().toString();
         configuration = new KafkaEndpointConnectorConfiguration();
         configuration.setBootstrapServers(kafka.getBootstrapServers());
-        configuration.setTopics(Set.of(topicId));
+        configuration.getProducer().setEnabled(true);
+        configuration.getProducer().setTopics(Set.of(topicId));
+        configuration.getConsumer().setEnabled(true);
+        configuration.getConsumer().setTopics(Set.of(topicId));
         kafkaEndpointConnector = new KafkaEndpointConnector(configuration, new DefaultQosStrategyFactory());
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.request()).thenReturn(request);

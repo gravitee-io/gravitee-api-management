@@ -1,0 +1,156 @@
+{
+    "type": "object",
+    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt:configuration:MqttEndpointConnectorConfiguration",
+    "additionalProperties": false,
+    "properties": {
+        "serverHost": {
+            "type": "string",
+            "title": "Broker host",
+            "description": "Define the host of the MQTT broker."
+        },
+        "serverPort": {
+            "type": "integer",
+            "title": "Broker port",
+            "description": "Define the port of the MQTT broker."
+        },
+        "reconnectAttempts": {
+            "type": "integer",
+            "title": "Reconnect attempts",
+            "description": "Number of reconnect attempts after any kind of disconnection.",
+            "default": 3,
+            "minimum": 0,
+            "maximum": 10
+        },
+        "consumer": {
+            "type": "object",
+            "title": "Consumer configuration",
+            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Consumer",
+            "properties": {
+                "enabled": {
+                    "title": "Enable the consumer capability",
+                    "description": "Allow enabling or disabling the consumer capability.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "topic": {
+                    "type": "string",
+                    "title": "Topic",
+                    "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
+                }
+            },
+            "oneOf": [
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    },
+                    "required": [
+                        "topic"
+                    ]
+                },
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                false
+                            ]
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "enabled"
+            ]
+        },
+        "producer": {
+            "type": "object",
+            "title": "Producer configuration",
+            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Producer",
+            "properties": {
+                "enabled": {
+                    "title": "Enable the producer capability",
+                    "description": "Allow enabling or disabling the producer capability.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "topic": {
+                    "type": "string",
+                    "title": "Topic",
+                    "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
+                },
+                "retained": {
+                    "title": "Retain flag",
+                    "description": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "responseTopic": {
+                    "title": "Response topic",
+                    "description": "The response topic represents the topics on which the responses from the receivers of the message are expected.",
+                    "type": "string"
+                }
+            },
+            "oneOf": [
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    },
+                    "required": [
+                        "topic"
+                    ]
+                },
+                {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                false
+                            ]
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "enabled"
+            ]
+        }
+    },
+    "anyOf": [
+        {
+            "properties": {
+                "consumer": {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "properties": {
+                "producer": {
+                    "properties": {
+                        "enabled": {
+                            "enum": [
+                                true
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "required": [
+        "serverHost",
+        "serverPort"
+    ]
+}

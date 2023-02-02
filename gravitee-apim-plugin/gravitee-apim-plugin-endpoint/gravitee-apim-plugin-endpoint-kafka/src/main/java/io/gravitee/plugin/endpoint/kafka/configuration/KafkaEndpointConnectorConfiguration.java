@@ -36,19 +36,27 @@ import lombok.experimental.SuperBuilder;
 public class KafkaEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
     private String bootstrapServers;
+
+    @Builder.Default
     private Consumer consumer = new Consumer();
+
+    @Builder.Default
     private Producer producer = new Producer();
-    private Set<String> topics;
 
     @NoArgsConstructor
     @AllArgsConstructor
     @Getter
     @Setter
-    @Builder
+    @SuperBuilder
     public static class Consumer {
 
-        private boolean enabled = true;
+        private boolean enabled;
+        private Set<String> topics;
+
+        @Builder.Default
         private boolean encodeMessageId = true;
+
+        @Builder.Default
         private String autoOffsetReset = "latest";
     }
 
@@ -56,9 +64,10 @@ public class KafkaEndpointConnectorConfiguration implements EndpointConnectorCon
     @AllArgsConstructor
     @Getter
     @Setter
-    @Builder
+    @SuperBuilder
     public static class Producer {
 
-        private boolean enabled = true;
+        private boolean enabled;
+        private Set<String> topics;
     }
 }
