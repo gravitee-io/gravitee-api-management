@@ -97,4 +97,16 @@ class CountMessageSamplingStrategyTest {
         // Then
         assertThat(recordable).isFalse();
     }
+
+    @Test
+    void should_be_recordable_when_first_message() {
+        // Given
+        CountMessageSamplingStrategy countMessageSamplingStrategy = new CountMessageSamplingStrategy(null);
+
+        // When
+        boolean recordable = countMessageSamplingStrategy.isRecordable(DefaultMessage.builder().build(), 1, -1);
+
+        // Then
+        assertThat(recordable).isTrue();
+    }
 }

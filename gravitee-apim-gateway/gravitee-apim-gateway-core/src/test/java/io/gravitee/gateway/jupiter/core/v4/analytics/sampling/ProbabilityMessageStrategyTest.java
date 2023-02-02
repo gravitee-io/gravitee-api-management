@@ -105,4 +105,16 @@ class ProbabilityMessageStrategyTest {
         // Then
         assertThat(recordable).isFalse();
     }
+
+    @Test
+    void should_be_recordable_when_first_message() {
+        // Given
+        ProbabilityMessageStrategy probabilityMessageStrategy = new ProbabilityMessageStrategy(null);
+
+        // When
+        boolean recordable = probabilityMessageStrategy.isRecordable(DefaultMessage.builder().build(), 1, -1);
+
+        // Then
+        assertThat(recordable).isTrue();
+    }
 }

@@ -51,6 +51,6 @@ public class CountMessageSamplingStrategy implements MessageSamplingStrategy {
 
     @Override
     public boolean isRecordable(final Message message, final int messageCount, final long lastMessageTimestamp) {
-        return messageCount % count == 1;
+        return messageCount == 1 || messageCount % count == 1;
     }
 }

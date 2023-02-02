@@ -53,6 +53,6 @@ public class TemporalMessageSamplingStrategy implements MessageSamplingStrategy 
 
     @Override
     public boolean isRecordable(final Message message, final int messageCount, final long lastMessageTimestamp) {
-        return message.timestamp() - lastMessageTimestamp >= periodInMs;
+        return messageCount == 1 || lastMessageTimestamp == -1 || message.timestamp() - lastMessageTimestamp >= periodInMs;
     }
 }

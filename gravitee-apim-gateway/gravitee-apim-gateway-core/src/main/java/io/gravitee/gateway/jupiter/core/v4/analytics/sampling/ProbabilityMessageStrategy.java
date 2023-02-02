@@ -53,7 +53,7 @@ public class ProbabilityMessageStrategy implements MessageSamplingStrategy {
 
     @Override
     public boolean isRecordable(final Message message, final int messageCount, final long lastMessageTimestamp) {
-        return matchesProbability(random.nextDouble());
+        return messageCount == 1 || matchesProbability(random.nextDouble());
     }
 
     protected boolean matchesProbability(final Double random) {
