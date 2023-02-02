@@ -20,7 +20,9 @@ import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LAB
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.gravitee.definition.model.v4.ConnectorMode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +38,15 @@ public enum ListenerType {
     SUBSCRIPTION(SUBSCRIPTION_LABEL),
     TCP(TCP_LABEL);
 
+    private static final Map<String, ListenerType> LABELS_MAP = Map.of(HTTP.label, HTTP, SUBSCRIPTION.label, SUBSCRIPTION, TCP.label, TCP);
+
     @JsonValue
     private final String label;
+
+    public static ListenerType fromLabel(final String label) {
+        if (label != null) {
+            return LABELS_MAP.get(label);
+        }
+        return null;
+    }
 }

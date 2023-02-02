@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
@@ -160,6 +161,7 @@ public class ListenerValidationServiceImplTest {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         httpListener.setEntrypoints(List.of(entrypoint));
@@ -266,6 +268,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldReturnValidatedSubscriptionListeners() {
         // Given
         SubscriptionListener subscriptionListener = new SubscriptionListener();
+        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         subscriptionListener.setEntrypoints(List.of(entrypoint));
@@ -373,6 +376,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldThrowUnsupportedDlqExceptionWhenConnectorDoesNotSupportDlqFeature() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         entrypoint.setDlq(new Dlq("target"));
@@ -421,6 +425,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldThrowUnsupportedDlqExceptionWhenUnknownTargetEndpoint() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         entrypoint.setDlq(new Dlq("unknown"));
@@ -445,6 +450,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotSupportPublish() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         entrypoint.setDlq(new Dlq("endpoint2"));
@@ -475,6 +481,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotHaveConnector() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         entrypoint.setDlq(new Dlq("endpoint2"));
@@ -528,6 +535,7 @@ public class ListenerValidationServiceImplTest {
     public void shouldValidateDlqConfigWhenTargetingEndpointGroup() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("type");
         entrypoint.setDlq(new Dlq("endpoint-group"));
@@ -548,6 +556,33 @@ public class ListenerValidationServiceImplTest {
             List.of(httpListener),
             List.of(endpointGroup)
         );
+    }
+
+    @Test
+    public void should_throw_ListenerEntrypointUnsupportedListenerTypeException_when_target_endpoint_does_not_match_ListenerType() {
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("path")));
+        httpListener.setType(ListenerType.HTTP);
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("webhook");
+        httpListener.setEntrypoints(List.of(entrypoint));
+
+        ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
+        when(connectorPluginEntity.getSupportedListenerType()).thenReturn(ListenerType.SUBSCRIPTION);
+        when(entrypointService.findById("webhook")).thenReturn(connectorPluginEntity);
+
+        final EndpointGroup endpointGroup = buildEndpointGroup();
+
+        assertThatExceptionOfType(ListenerEntrypointUnsupportedListenerTypeException.class)
+            .isThrownBy(
+                () ->
+                    listenerValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        List.of(httpListener),
+                        List.of(endpointGroup)
+                    )
+            );
     }
 
     private io.gravitee.definition.model.v4.endpointgroup.EndpointGroup buildEndpointGroup() {

@@ -150,6 +150,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 }
                 final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
 
+                checkEntrypointListenerType(type, connectorPlugin);
                 checkEntrypointQos(entrypoint, connectorPlugin);
                 checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
                 checkEntrypointConfiguration(entrypoint);
@@ -212,6 +213,12 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             entrypointConfiguration = entrypoint.getConfiguration();
         }
         entrypoint.setConfiguration(entrypointService.validateConnectorConfiguration(entrypoint.getType(), entrypointConfiguration));
+    }
+
+    private void checkEntrypointListenerType(final ListenerType type, final ConnectorPluginEntity connectorPlugin) {
+        if (connectorPlugin.getSupportedListenerType() != null && type != connectorPlugin.getSupportedListenerType()) {
+            throw new ListenerEntrypointUnsupportedListenerTypeException(connectorPlugin.getId(), type.getLabel());
+        }
     }
 
     private void checkDuplicatedEntrypoints(final ListenerType type, final List<Entrypoint> entrypoints) {
