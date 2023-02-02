@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -58,6 +59,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        connectorPlugin.setSupportedListenerType(ListenerType.HTTP);
         when(entrypointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
 
         final Response response = envTarget().request().get();
@@ -69,6 +71,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
         assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ListenerType.HTTP.getLabel(), pluginEntity.get("supportedListenerType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
