@@ -56,7 +56,7 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
     public static final String HEADER_LAST_EVENT_ID = "Last-Event-ID";
     public static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO);
-    static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
+    public static final ListenerType SUPPORTED_LISTENER_TYPE = ListenerType.HTTP;
     private static final String ENTRYPOINT_ID = "sse";
     private static final int RETRY_MIN_VALUE = 1000;
     private static final int RETRY_MAX_VALUE = 30000;
