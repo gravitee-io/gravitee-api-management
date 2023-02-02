@@ -544,7 +544,7 @@ class WebhookEntrypointConnectorTest {
         verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
         verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
 
-        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).getOptions();
+        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).options();
         assertThat(options.isSsl()).isTrue();
         assertThat(options.getDefaultHost()).isEqualTo("localhost");
         assertThat(options.getDefaultPort()).isEqualTo(473);
@@ -561,7 +561,7 @@ class WebhookEntrypointConnectorTest {
         verify(ctx).setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
         verify(ctx).setInternalAttribute(eq(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT), httpClientCaptor.capture());
 
-        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).getOptions();
+        HttpClientOptions options = ((HttpClientImpl) httpClientCaptor.getValue().getDelegate()).options();
         assertThat(options.isSsl()).isFalse();
         assertThat(options.getDefaultHost()).isEqualTo("localhost");
         assertThat(options.getDefaultPort()).isEqualTo(473);
