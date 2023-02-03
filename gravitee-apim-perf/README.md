@@ -1,16 +1,17 @@
-# Gravitee.io APIM - performance
+# Gravitee.io APIM - Performance
 
 This folder contains a performance tools of Gravitee.io API Management.
 
 They are based on k6 and can be run against a locally running APIM Rest API.
 
 ## Prerequisites
-- 
+
 - [nvm](https://github.com/nvm-sh/nvm)
 - [k6](https://k6.io/docs/getting-started/installation)
 - [NodeJS](https://nodejs.org/en/download/)
 - [Golang](https://go.dev/dl/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [jq](https://stedolan.github.io/jq/download/)
 - [Yarn](https://yarnpkg.com/getting-started/install) (optional)
 
 Use with `nvm use` or install with `nvm install` the version of Node.js declared in `.nvmrc`
@@ -21,30 +22,23 @@ Use with `nvm use` or install with `nvm install` the version of Node.js declared
 
 ```bash
 $ yarn install # install what is needed to compile the file generated for the test cases
-$ npm ci #or npm i, install what is needed to run the scripts locally
+
 ```
 
 ### Build k6 cli
 
-In order to run k6 and collect metrics in the same time (see Collecting metrics), you'll need to build a specific k6 client that includes the prometheus metrics exporter.
-⚠️ This is a living repository and breaking changes could occur (name of the option for k6, metrics name, etc.).
-
-```shell
-go install go.k6.io/xk6/cmd/xk6@latest
-xk6 build --output ./bin/k6 --with github.com/grafana/xk6-output-prometheus-remote@latest
-```
+We need to install k6 cli to run our tests.
 
 ---
 **NOTE**
 
-If the `xk6` command is not found, make sure you have properly exported you GO path in your `.zshrc` or `.bashrc` file:
-
-```bash
-export GOPATH="$HOME/go"
-export PATH="$GOPATH/bin:$PATH"
-```
+Please use at least K6 0.42.0 to support 'experimental-prometheus-rw'  output mode
 
 ---
+
+```shell
+brew install k6
+```
 
 ## Collecting the metrics
 
@@ -104,7 +98,7 @@ Go to: http://localhost:8686/api/v5/report/evKJrjgVk?orgId=1&from=1660884060000&
 
 It is possible to run the scenario without a grafana to report metrics.
 
-To do so, override [dotenv file](./.env)'s variable `K6_OUTPUT_MODE` with `csv` or `json` (other values are: `cloud`, `influxdb`, `statsd`, `xk6-prometheus-rw`)
+To do so, override [dotenv file](./.env)'s variable `K6_OUTPUT_MODE` with `csv` or `json` (other values are: `cloud`, `influxdb`, `statsd`, `experimental-prometheus-rw`)
 
 ## Recommanded Gateway Configuration
 
@@ -125,30 +119,62 @@ To be able to run the scenario in the exact same condition, you can run your gat
 
 ## Running the test
 
-1. Start an APIM instance with `gravitee_services_sync_delay=1000` on Gateway. It allows to have a quick synchronisation when deploying an API.
-2. Check the configuration on `.env` file.
-3. Write your test at root of `src` folder, here `src/get-200-status.setup.ts`;
-4. Call the runner:
+1. Start an APIM (Rest API and Gateway) instance with `gravitee_services_sync_delay=1000` on Gateway. It allows to have a quick synchronisation when deploying an API.
+2. Check the configuration on [config.json](scripts/config.json) file. It will override settings from [environment.ts](src/env/environment.ts)
+3. Write your test in [src/scenarions](src/scenarios) folder
+4. Build your tests package with `yarn build`. (Needed after each modification on a scenario as tests are run from `dist`). Or, you can run the following with `-d` flag.
+5. Call the runner:
 
 ```bash
-$ ./scripts/test-runner.ts  -f src/get-200-status-nosetup.test.js
+$ ./scripts/run.sh  -f ./dist/src/scenarios/keyless-api-body-policies/keyless.v3.test.js 
 ```
+
+---
+**⚠️ WARNING**
+
+[config.json](scripts/config.json) is merged with [environment.ts](src/env/environment.ts), but it **is not a deep copy**.
+That means complex objects from `config.json` will override the one from `environment.ts`
+
+---
 
 ### Options
 
 `test-runner.ts` comes with some options:
 
-| Option      	        | Description                      	            | Required |
-|----------------------|-----------------------------------------------|----------|
-| -f / --file        	| The <test-name>.test.js file to run	         | X        |
-| -v / --verbose	    | Enable the verbose mode for k6              	 |          |
-| -d / --debug	        | Display debug logs for the test-runner.ts	    |          |
+| Option      	 | Description                      	                                                                                                                  | Required |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| -f       	    | The <test-name>.test.js file to run	                                                                                                                | X        |
+| -d	           | Developer mode. Build the projects before running a script.           	                                                                             |          |
+| -v            | K6 Verbose mode. Enable --verbose and --http-debug on k6 command                                                                                    |          |
+| -r            | Prometheus Remote URL. Useful when reporting to prometheus. If not provided, use the one from config.json"	                                         |          |
+| -o            | K6 output mode. If not provided, use the one from config.json. Possible values are 'cloud, csv, experimental-prometheus-rw, influxdb, json, statsd' |          |
+| -h            | Display help	                                                                                                                                       |          |
 
 
-## Writing own tests
+## Writing a test
+
+Tests are written in [Typescript](https://www.typescriptlang.org/).
+
+A test will have this structure [see more on K6](https://k6.io/docs/using-k6/test-lifecycle/):
+
+- a `setup()` function, called once by K6 to prepare your test. (Creates some APIs, deploy them, etc.). Optional
+- a `default` function, called on each iteration by k6.
+- a `teardown()` function, called once by K6 to do some actions after the test is executed. (Remove APis, plans, etc.). Optional
 
 House rules for writing tests:
-- The test code is located in `src` folder
-- Test file run by K6 should be written in this format: `<testName>.test.js`
-- It is possible to run init and tearDown hook in a `<testName>.setup.ts` located next to `<testName>.test.js`
+- The test code is located in [src/scenarios](src/scenarios) folder
+- Test file run by K6 should be written in this format: `<testName>.test.ts`
+
+---
+**💡GOOD TO KNOW**
+
+On the `setup()` and `teardown()` phases, we use the default `k6/http` client. That means stats are reported to prometheus.
+It's usual to see `INFO[0001] Error: [GET] [http://localhost:8082/bmNPjEPYwn-1675413556] returned HTTP 404  source=console
+` at the beginning of a test because we call the gateway several times to check if API is available.
+
+Notice that client methods from [src/lib/clients](src/lib/clients) uses a special param `tags: { name : OUT_OF_SCENARIO},` which will allow filtering in prometheus to avoid false data.
+
+![img.png](doc/img.png)
+
+---
 
