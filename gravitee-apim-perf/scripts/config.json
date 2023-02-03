@@ -1,0 +1,54 @@
+{
+  "apim": {
+    "managementBaseUrl": "http://localhost:8083/management",
+    "portalBaseUrl": "http://localhost:8083/portal/environments",
+    "gatewayBaseUrl": "http://localhost:8082",
+    "skipTlsVerify": "false",
+    "adminUserName": "admin",
+    "adminPassword": "admin",
+    "apiUserName": "api1",
+    "apiPassword": "api1",
+    "appUserName": "application1",
+    "appPassword": "application1",
+    "simpleUserName": "user",
+    "simplePassword": "password",
+    "apiEndpointUrl": "http://localhost:8080/echo",
+    "apiExecutionMode": "v3",
+    "organization": "DEFAULT",
+    "environment": "DEFAULT",
+    "gatewaySyncInterval": 1000
+  },
+  "k6": {
+    "prometheusRemoteUrl": "http://localhost:9090/api/v1/write",
+    "outputMode": "experimental-prometheus-rw"
+  },
+  "discardResponseBodies": false,
+  "insecureSkipTKSVerify": false,
+  "scenarios": {
+    "default": {
+      "executor": "ramping-arrival-rate",
+
+      "startRate": 10,
+
+      "timeUnit": "1s",
+
+      "preAllocatedVUs": 2,
+
+      "maxVUs": 50,
+
+      "stages": [
+        { "target": 300, "duration": "5m" },
+
+        { "target": 300, "duration": "2m" },
+
+        { "target": 800, "duration": "5m" },
+
+        { "target": 1000, "duration": "2m" },
+
+        { "target": 1000, "duration": "5m" },
+
+        { "target": 50, "duration": "3m" }
+      ]
+    }
+  }
+}

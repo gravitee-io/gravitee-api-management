@@ -7,21 +7,33 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "module": "commonjs",
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
-    "noImplicitReturns": false,
-    "noImplicitThis": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "outDir": "./dist",
     "removeComments": false,
+    "strictNullChecks": false,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "target": "es5",
-    "types": ["./types", "node"]
+    "types": ["./types", "node"],
+    "sourceMap": false,
+    "module": "commonjs",
+    "typeRoots": ["./node_modules/@types"],
+    "paths": {
+      "@lib/*": ["src/lib/*"],
+      "@helpers/*": ["src/lib/helpers/*"],
+      "@fixtures/*": ["src/lib/fixtures/*"],
+      "@clients/*": ["src/lib/clients/*"],
+      "@env/*": ["src/env/*"],
+      "@models/*": ["src/lib/models/*"]
+    }
   },
-  "include": ["**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["**scripts/*run.ts", "**/test-runner.ts"]
 }
