@@ -16,19 +16,26 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import freemarker.template.TemplateException;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.Metadata;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,6 +51,12 @@ public class MetadataServiceTest {
 
     @InjectMocks
     private MetadataServiceImpl metadataService;
+
+    @Mock
+    private AuditService auditService;
+
+    @Mock
+    private MetadataRepository metadataRepository;
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
@@ -117,5 +130,95 @@ public class MetadataServiceTest {
     @Test
     public void checkMetadataFormat_Date() {
         metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.DATE, "2015-02-24");
+    }
+
+    @Test
+    public void createWithReference() throws TechnicalException {
+        when(metadataRepository.create(any(Metadata.class))).thenAnswer(i -> i.getArgument(0));
+
+        final NewMetadataEntity metadata = new NewMetadataEntity();
+        metadata.setFormat(MetadataFormat.STRING);
+        metadata.setName("test");
+        metadata.setValue("value");
+
+        metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
+
+        verifyNoInteractions(auditService);
+        verify(metadataRepository)
+            .create(
+                argThat(
+                    meta -> {
+                        assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                        assertThat(meta.getName()).isEqualTo("test");
+                        assertThat(meta.getValue()).isEqualTo("value");
+                        return true;
+                    }
+                )
+            );
+    }
+
+    @Test
+    public void createWithReference_defaultFormat() throws TechnicalException {
+        when(metadataRepository.create(any(Metadata.class))).thenAnswer(i -> i.getArgument(0));
+
+        final NewMetadataEntity metadata = new NewMetadataEntity();
+        metadata.setName("test");
+        metadata.setValue("value");
+
+        metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
+
+        verify(metadataRepository)
+            .create(
+                argThat(
+                    meta -> {
+                        assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                        assertThat(meta.getName()).isEqualTo("test");
+                        assertThat(meta.getValue()).isEqualTo("value");
+                        return true;
+                    }
+                )
+            );
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void createWithReference_technicalException() throws TechnicalException {
+        when(metadataRepository.create(any(Metadata.class))).thenThrow(new TechnicalException("Mock exception"));
+
+        final NewMetadataEntity metadata = new NewMetadataEntity();
+        metadata.setFormat(MetadataFormat.STRING);
+        metadata.setName("test");
+        metadata.setValue("value");
+
+        metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
+    }
+
+    @Test
+    public void findByKeyAndReferenceType() throws TechnicalException {
+        final ArrayList<Metadata> metadataList = new ArrayList<>();
+        final Metadata metadata = new Metadata();
+        metadata.setKey("key");
+        metadata.setValue("value");
+        metadata.setReferenceType(API);
+        metadata.setReferenceId("apiId");
+        metadata.setName("key");
+        metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.STRING);
+        metadataList.add(metadata);
+
+        when(metadataRepository.findByKeyAndReferenceType("key", API)).thenReturn(metadataList);
+
+        final List<MetadataEntity> metadataEntities = metadataService.findByKeyAndReferenceType("key", API);
+
+        assertThat(metadataEntities).hasSize(1);
+        final MetadataEntity metadataEntity = metadataEntities.get(0);
+        assertThat(metadataEntity.getKey()).isEqualTo("key");
+        assertThat(metadataEntity.getValue()).isEqualTo("value");
+        assertThat(metadataEntity.getFormat()).isEqualTo(MetadataFormat.STRING);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void findByKeyAndReferenceType_technicalException() throws TechnicalException {
+        when(metadataRepository.findByKeyAndReferenceType("key", API)).thenThrow(new TechnicalException("Mock exception"));
+
+        metadataService.findByKeyAndReferenceType("key", API);
     }
 }
