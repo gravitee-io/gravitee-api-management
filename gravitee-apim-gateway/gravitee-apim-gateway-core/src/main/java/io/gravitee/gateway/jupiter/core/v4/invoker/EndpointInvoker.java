@@ -50,7 +50,7 @@ public class EndpointInvoker implements Invoker {
     private static final String MATCH_GROUP_ENDPOINT = "endpoint";
     private static final String MATCH_GROUP_PATH = "path";
     private static final Pattern ENDPOINT_PATTERN = Pattern.compile(
-        "^(?<" + MATCH_GROUP_ENDPOINT + ">\\w+):(?<" + MATCH_GROUP_PATH + ">.*)$"
+        "^(?<" + MATCH_GROUP_ENDPOINT + ">[^:]+):(?<" + MATCH_GROUP_PATH + ">.*)$"
     );
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
