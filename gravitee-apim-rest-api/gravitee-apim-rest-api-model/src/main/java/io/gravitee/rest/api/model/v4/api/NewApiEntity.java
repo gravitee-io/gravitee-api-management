@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.validation.Valid;
@@ -32,6 +31,8 @@ import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -42,6 +43,11 @@ import lombok.ToString;
 @ToString
 @Schema(name = "NewApiEntityV4")
 public class NewApiEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @NotBlank
     @NotEmpty(message = "API's name must not be empty")
@@ -89,4 +95,8 @@ public class NewApiEntity {
 
     @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<@NotBlank String> groups;
+
+    public void setName(String name) {
+        this.name = HTML_SANITIZER.sanitize(name);
+    }
 }
