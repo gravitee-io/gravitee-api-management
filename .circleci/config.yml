@@ -2150,7 +2150,7 @@ workflows:
             - release_notes_apim:
                   context: cicd-orchestrator
 
-    run_every_week:
+    bridge_compatibility_tests:
       when:
         equal: [ bridge_e2e, << pipeline.parameters.gio_action >> ]
       jobs:
