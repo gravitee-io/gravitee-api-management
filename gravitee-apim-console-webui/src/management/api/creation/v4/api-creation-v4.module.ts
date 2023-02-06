@@ -34,11 +34,11 @@ import { Step6SummaryComponent } from './steps/step-6-summary/step-6-summary.com
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationStepperMenuModule } from './components/api-creation-stepper-menu/api-creation-stepper-menu.module';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
-import { Step3EndpointsComponent } from './steps/step-3-endpoints/step-3-endpoints.component';
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step2MenuItemComponent } from './steps/step-2-menu-item/step-2-menu-item.component';
+import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-endpoints-1-list.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioEntrypointIconModule } from '../../../../components/gio-entrypoint-icon/gio-entrypoint-icon.module';
@@ -75,7 +75,7 @@ import { GioEntrypointIconModule } from '../../../../components/gio-entrypoint-i
     Step2Entrypoints1List,
     Step2MenuItemComponent,
     Step2Entrypoints2ConfigComponent,
-    Step3EndpointsComponent,
+    Step3Endpoints1ListComponent,
     Step4SecurityComponent,
     Step5DocumentationComponent,
     Step6SummaryComponent,
