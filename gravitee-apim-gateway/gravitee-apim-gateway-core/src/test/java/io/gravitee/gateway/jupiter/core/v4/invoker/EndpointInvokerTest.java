@@ -57,6 +57,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -110,11 +111,12 @@ class EndpointInvokerTest {
         obs.assertNoValues();
     }
 
-    @Test
-    void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute() {
+    @ParameterizedTest
+    @ValueSource(strings = { "custom", "c_u/s$t*o-m" })
+    void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute(String endpointName) {
         final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("custom:");
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(endpointName + ":");
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
@@ -125,8 +127,27 @@ class EndpointInvokerTest {
 
         obs.assertNoValues();
 
-        verify(endpointManager).next(argThat(criteria -> criteria.getName().equals("custom")));
+        verify(endpointManager).next(argThat(criteria -> criteria.getName().equals(endpointName)));
         verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "");
+    }
+
+    @Test
+    void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttributeContainingColon() {
+        final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("name:with:colon:");
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName().equals("name")));
+        verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "with:colon:");
     }
 
     @Test
