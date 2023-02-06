@@ -64,9 +64,12 @@
             <div class="step-6-summary__badge-list">
               <ng-container *ngFor="let entrypoint of currentStepPayload.selectedEntrypoints">
                 <span class="gio-badge-accent"
-                  ><mat-icon [svgIcon]="'gio:' + getEntrypointIconName(entrypoint.id)" class="step-6-summary__badge-list__icon"></mat-icon
-                  >{{ entrypoint.name }}</span
-                >
+                  ><gio-connector-icon
+                    connectorType="entrypoint"
+                    [connectorId]="entrypoint.id"
+                    [connectorName]="entrypoint.name"
+                  ></gio-connector-icon
+                ></span>
               </ng-container>
             </div>
           </div>
@@ -90,9 +93,12 @@
             <div class="step-6-summary__badge-list">
               <ng-container *ngFor="let endpoint of currentStepPayload.selectedEndpoints">
                 <span class="gio-badge-accent"
-                  ><mat-icon [svgIcon]="'gio:' + getEndpointIconName(endpoint.id)" class="step-6-summary__badge-list__icon"></mat-icon
-                  >{{ endpoint.name }}</span
-                >
+                  ><gio-connector-icon
+                    connectorType="endpoint"
+                    [connectorId]="endpoint.id"
+                    [connectorName]="endpoint.name"
+                  ></gio-connector-icon>
+                </span>
               </ng-container>
             </div>
           </div>

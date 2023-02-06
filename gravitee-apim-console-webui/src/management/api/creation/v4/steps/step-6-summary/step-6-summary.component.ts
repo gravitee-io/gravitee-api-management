@@ -40,33 +40,4 @@ export class Step6SummaryComponent implements OnInit {
   onChangeStepInfo(stepLabel: string) {
     this.stepService.goToStepLabel(stepLabel);
   }
-
-  getEntrypointIconName(id: string): string {
-    if (id.startsWith('sse')) {
-      return 'cloud-server';
-    }
-    if (id.startsWith('http')) {
-      return 'language';
-    }
-    if (id.startsWith('webhook')) {
-      return 'webhook';
-    }
-    if (id.startsWith('websocket')) {
-      return 'websocket';
-    }
-    return 'layers';
-  }
-
-  getEndpointIconName(id: string) {
-    if (id.startsWith('kafka')) {
-      return 'kafka';
-    }
-    if (id.startsWith('mock')) {
-      return 'page';
-    }
-    if (id.startsWith('mqtt')) {
-      return 'mqtt';
-    }
-    return 'layers';
-  }
 }
