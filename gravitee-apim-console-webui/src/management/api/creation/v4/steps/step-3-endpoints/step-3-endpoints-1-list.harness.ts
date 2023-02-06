@@ -18,8 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioSelectionListHarness } from '../../../../../../shared/components/gio-selection-list-option/gio-selection-list.harness';
 
-export class Step3EndpointHarness extends ComponentHarness {
-  static hostSelector = 'step-3-endpoints';
+export class Step3EndpointListHarness extends ComponentHarness {
+  static hostSelector = 'step-3-endpoints-1-list';
   private readonly selectionList = this.locatorFor(GioSelectionListHarness);
 
   protected getButtonByText = (text: string) =>
