@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.flow;
+package io.gravitee.gateway.jupiter.v4.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.gravitee.gateway.jupiter.v4.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 
@@ -41,7 +43,16 @@ public class BestMatchFlowResolver implements FlowResolver {
     public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
-            .flatMapMaybe(flows -> Maybe.fromCallable(() -> BestMatchFlowSelector.forPath(flows, ctx.request().pathInfo())))
+            .flatMapMaybe(
+                flows ->
+                    Maybe.fromCallable(
+                        () -> {
+                            ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
+                            Api definition = (Api) reactableApi.getDefinition();
+                            return BestMatchFlowSelector.forPath(definition.getType(), flows, ctx.request().pathInfo());
+                        }
+                    )
+            )
             .toFlowable();
     }
 

@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.flow;
+package io.gravitee.gateway.jupiter.v4.flow;
 
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
-import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
+import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
+import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.gravitee.gateway.jupiter.flow.FlowBaseTest;
+import io.gravitee.gateway.jupiter.v4.flow.selection.HttpSelectorConditionFilter;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,13 +35,13 @@ import org.junit.Before;
  */
 public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
-    public final ConditionEvaluator evaluator = new CompositeConditionEvaluator(new PathBasedConditionEvaluator());
+    public final ConditionFilter conditionFilter = new CompositeConditionFilter(new HttpSelectorConditionFilter());
 
     public TestFlowResolver flowResolver;
 
     @Before
     public void setUp() {
-        flowResolver = new TestFlowResolver(evaluator, buildFlows());
+        flowResolver = new TestFlowResolver(conditionFilter, buildFlows());
     }
 
     private List<Flow> buildFlows() {
@@ -52,30 +50,33 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
             .map(
                 path -> {
                     Flow flow = new Flow();
-                    PathOperator pathOperator = new PathOperator();
-                    pathOperator.setPath(path);
+                    // Http selector
+                    HttpSelector httpSelector = new HttpSelector();
+                    httpSelector.setPath(path);
                     // No need to test different operator in this test.
                     // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                    pathOperator.setOperator(operator);
-                    flow.setPathOperator(pathOperator);
+                    httpSelector.setPathOperator(operator);
+
+                    // Channel selector
+                    ChannelSelector channelSelector = new ChannelSelector();
+                    channelSelector.setChannel(path);
+                    // No need to test different operator in this test.
+                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                    channelSelector.setChannelOperator(operator);
+                    flow.setSelectors(List.of(httpSelector, channelSelector));
                     return flow;
                 }
             )
             .collect(Collectors.toList());
     }
 
-    protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver {
+    protected static class TestFlowResolver extends AbstractFlowResolver {
 
         private final List<Flow> flows;
 
-        public TestFlowResolver(ConditionEvaluator<Flow> evaluator, List<Flow> flows) {
-            super(evaluator);
+        public TestFlowResolver(ConditionFilter<Flow> conditionFilter, List<Flow> flows) {
+            super(conditionFilter);
             this.flows = flows;
-        }
-
-        @Override
-        protected List<Flow> resolve0(ExecutionContext context) {
-            return flows;
         }
 
         @Override
@@ -85,7 +86,7 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
         @Override
         public Flowable<Flow> resolve(GenericExecutionContext ctx) {
-            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpExecutionContext) ctx)));
+            return super.resolve(ctx);
         }
     }
 }

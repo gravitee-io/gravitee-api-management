@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.flow;
+package io.gravitee.gateway.jupiter.v4.flow;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -28,6 +35,10 @@ public class BestMatchFlowSelector {
 
     private static final String PATH_PARAM_PREFIX = ":";
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile("/");
+
+    public static <T> T forPath(List<T> flows, String path) {
+        return forPath(ApiType.SYNC, flows, path);
+    }
 
     /**
      * Filters the flows to get the one best matching the request.
@@ -99,17 +110,17 @@ public class BestMatchFlowSelector {
      *
      * @return a list containing the best matching flow.
      */
-    public static Flow forPath(List<Flow> flows, String path) {
+    public static <T> T forPath(final ApiType apiType, final List<T> flows, final String path) {
         // Do not process empty flows
         if (flows == null || flows.isEmpty()) {
             return null;
         }
 
-        Flow selectedFlow = null;
+        T selectedFlow = null;
         Float[] selectedFlowScore = null;
 
-        for (Flow flow : flows) {
-            String[] splits = splitPath(flow.getPath());
+        for (T flow : flows) {
+            String[] splits = splitPath(apiType, flow);
             final String[] pathSplits = splitPath(path);
             final Float[] scores = new Float[splits.length];
 
@@ -144,6 +155,28 @@ public class BestMatchFlowSelector {
         }
 
         return selectedFlow;
+    }
+
+    private static <T> String[] splitPath(final ApiType apiType, T flow) {
+        if (flow instanceof io.gravitee.definition.model.flow.Flow) {
+            return splitPath(((Flow) flow).getPath());
+        } else if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
+            io.gravitee.definition.model.v4.flow.Flow flowV4 = (io.gravitee.definition.model.v4.flow.Flow) flow;
+            if (apiType == ApiType.SYNC) {
+                Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.HTTP);
+                if (selectorOpt.isPresent()) {
+                    HttpSelector httpSelector = (HttpSelector) selectorOpt.get();
+                    return splitPath(httpSelector.getPath());
+                }
+            } else if (apiType == ApiType.ASYNC) {
+                Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.CHANNEL);
+                if (selectorOpt.isPresent()) {
+                    ChannelSelector channelSelector = (ChannelSelector) selectorOpt.get();
+                    return splitPath(channelSelector.getChannel());
+                }
+            }
+        }
+        return new String[0];
     }
 
     /**
