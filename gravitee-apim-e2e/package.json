@@ -32,7 +32,7 @@
     },
     "license": "MIT License",
     "devDependencies": {
-        "@jest/create-cache-key-function": "^28.0.0",
+        "@jest/create-cache-key-function": "28.0.1",
         "@types/jest": "27.4.1",
         "@types/jsonwebtoken": "8.5.8",
         "@types/node": "16.10.9",
@@ -47,7 +47,7 @@
         "prettier": "2.5.1",
         "ts-jest": "27.1.5",
         "typescript": "4.5.2",
-        "zx": "^7.0.8"
+        "zx": "7.1.1"
     },
     "dependencies": {
         "@faker-js/faker": "6.2.0",
@@ -56,6 +56,6 @@
         "@gravitee/portal-webclient-sdk": "file:lib/portal-webclient-sdk",
         "@gravitee/utils": "file:lib/utils",
         "jsonwebtoken": "8.5.1",
-        "rxjs": "^7.5.5"
+        "rxjs": "7.5.5"
     }
 }
