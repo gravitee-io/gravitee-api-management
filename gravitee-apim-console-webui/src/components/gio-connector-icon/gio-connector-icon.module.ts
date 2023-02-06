@@ -17,12 +17,12 @@ import { NgModule } from '@angular/core';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 
-import { GioEntrypointIconComponent } from './gio-entrypoint-icon.component';
+import { GioConnectorIconComponent } from './gio-connector-icon.component';
 
 @NgModule({
   imports: [MatIconModule, GioIconsModule],
-  declarations: [GioEntrypointIconComponent],
-  exports: [GioEntrypointIconComponent],
-  entryComponents: [GioEntrypointIconComponent],
+  declarations: [GioConnectorIconComponent],
+  exports: [GioConnectorIconComponent],
+  entryComponents: [GioConnectorIconComponent],
 })
-export class GioEntrypointIconModule {}
+export class GioConnectorIconModule {}
