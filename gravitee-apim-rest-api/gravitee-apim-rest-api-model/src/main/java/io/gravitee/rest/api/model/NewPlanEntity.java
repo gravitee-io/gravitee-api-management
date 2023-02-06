@@ -20,12 +20,19 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import java.util.*;
 import javax.validation.constraints.NotNull;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NewPlanEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     private String id;
 
@@ -97,7 +104,7 @@ public class NewPlanEntity {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = HTML_SANITIZER.sanitize(name);
     }
 
     public String getDescription() {
@@ -105,7 +112,7 @@ public class NewPlanEntity {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = HTML_SANITIZER.sanitize(description);
     }
 
     public PlanValidationType getValidation() {
