@@ -37,7 +37,7 @@ describe('ApiCreationStepperService', () => {
       },
     ],
     {
-      selectedEntrypoints: [{ id: '1', name: 'initial value' }],
+      selectedEndpoints: [{ id: '1', name: 'initial value' }],
     },
   );
 
@@ -105,14 +105,14 @@ describe('ApiCreationStepperService', () => {
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
       name: 'Step 1 > Step 2 > Step 2.1 > Step 3',
-      selectedEntrypoints: [{ id: '1', name: 'initial value' }],
+      selectedEndpoints: [{ id: '1', name: 'initial value' }],
     });
   });
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
     apiCreationStepperService.validStepAndGoNext((previousPayload) => {
-      previousPayload.selectedEntrypoints.push({ id: '2', name: 'new value' });
+      previousPayload.selectedEndpoints.push({ id: '2', name: 'new value' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
     });
@@ -137,7 +137,7 @@ describe('ApiCreationStepperService', () => {
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
       name: 'Step 1 - edited > Step 2 > Step 2.1 > Step 3',
-      selectedEntrypoints: [
+      selectedEndpoints: [
         { id: '1', name: 'initial value' },
         { id: '2', name: 'new value' },
       ],
