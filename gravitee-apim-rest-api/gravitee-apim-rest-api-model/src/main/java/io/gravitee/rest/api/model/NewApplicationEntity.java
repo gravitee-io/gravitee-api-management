@@ -21,6 +21,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +30,11 @@ import javax.validation.constraints.NotNull;
  * @author GraviteeSource Team
  */
 public class NewApplicationEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
@@ -77,7 +84,7 @@ public class NewApplicationEntity {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = HTML_SANITIZER.sanitize(description);
     }
 
     public String getName() {
@@ -85,7 +92,7 @@ public class NewApplicationEntity {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = HTML_SANITIZER.sanitize(name);
     }
 
     public Set<String> getGroups() {
