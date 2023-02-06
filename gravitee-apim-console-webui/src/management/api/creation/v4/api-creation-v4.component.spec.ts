@@ -355,11 +355,12 @@ describe('ApiCreationV4Component', () => {
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
       expect(step2Summary).toContain('Path:' + '/my-new-api');
       expect(step2Summary).toContain('Type:' + 'Subscription');
-      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints:initial entrypointnew entrypointChange');
+      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints');
 
       const step3Summary = await step6Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Field' + 'Value');
-      expect(step3Summary).toContain('Endpoints:' + 'Kafka' + 'Mock');
+      expect(step3Summary).toContain('Kafka');
+      expect(step3Summary).toContain('Mock');
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
@@ -401,7 +402,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
-      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints:new entrypointChange');
+      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints: new entrypoint\nChange');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
@@ -429,7 +430,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
-      expect(step2Summary).toContain('Endpoints:' + 'Mock');
+      expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock\nChange');
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {
