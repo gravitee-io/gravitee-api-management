@@ -32,9 +32,18 @@ public interface MetadataService {
 
     MetadataEntity create(ExecutionContext executionContext, NewMetadataEntity metadata);
 
+    MetadataEntity create(
+        ExecutionContext executionContext,
+        NewMetadataEntity metadataEntity,
+        MetadataReferenceType referenceType,
+        String referenceId
+    );
+
     MetadataEntity update(ExecutionContext executionContext, UpdateMetadataEntity metadata);
 
     void delete(ExecutionContext executionContext, String metadataId);
+
+    List<MetadataEntity> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType);
 
     void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value);
 

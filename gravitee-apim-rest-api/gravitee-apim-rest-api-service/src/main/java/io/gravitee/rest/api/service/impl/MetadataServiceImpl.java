@@ -134,6 +134,33 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
+    public MetadataEntity create(
+        final ExecutionContext executionContext,
+        final NewMetadataEntity metadataEntity,
+        MetadataReferenceType referenceType,
+        String referenceId
+    ) {
+        if (metadataEntity.getFormat() == null) {
+            metadataEntity.setFormat(MetadataFormat.STRING);
+        }
+
+        try {
+            checkMetadataValue(metadataEntity.getValue());
+            checkMetadataFormat(executionContext, metadataEntity.getFormat(), metadataEntity.getValue());
+            final Metadata metadata = convert(metadataEntity);
+            final Date now = new Date();
+            metadata.setCreatedAt(now);
+            metadata.setUpdatedAt(now);
+            metadata.setReferenceType(referenceType);
+            metadata.setReferenceId(referenceId);
+
+            return convert(metadataRepository.create(metadata));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
+        }
+    }
+
+    @Override
     public MetadataEntity update(final ExecutionContext executionContext, final UpdateMetadataEntity metadataEntity) {
         try {
             // First we prevent the duplicate metadata name
@@ -233,6 +260,23 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find default metadata by key", ex);
             throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
+        }
+    }
+
+    @Override
+    public List<MetadataEntity> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
+        try {
+            LOGGER.debug("Find metadata by reference type ([{}]) and key [{}]", referenceType.name(), key);
+            return metadataRepository
+                .findByKeyAndReferenceType(key, referenceType)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurred while trying to find metadata by reference ([" + referenceType.name() + "]) and key [" + key + "]",
+                ex
+            );
         }
     }
 
