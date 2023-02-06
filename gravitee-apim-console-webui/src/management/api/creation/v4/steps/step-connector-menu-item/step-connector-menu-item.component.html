@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="entrypoints">
-  <div *ngFor="let entrypoint of entrypoints" class="step-2-menu-item">
-    <gio-connector-icon connectorType="entrypoint" [connectorId]="entrypoint.id" [connectorName]="entrypoint.name"></gio-connector-icon>
+<ng-container *ngIf="connectors">
+  <div *ngFor="let connector of connectors" class="step-connector-menu-item">
+    <gio-connector-icon [connectorType]="connectorType" [connectorId]="connector.id" [connectorName]="connector.name"></gio-connector-icon>
   </div>
 </ng-container>

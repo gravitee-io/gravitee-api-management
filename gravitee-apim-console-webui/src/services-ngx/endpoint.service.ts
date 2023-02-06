@@ -16,6 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
@@ -28,5 +29,9 @@ export class EndpointService {
 
   v4ListEndpointPlugins(): Observable<ConnectorListItem[]> {
     return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints`);
+  }
+
+  v4GetSchema(id: string): Observable<GioJsonSchema> {
+    return this.http.get<GioJsonSchema>(`${this.constants.env.baseURL}/v4/endpoints/${id}/schema`);
   }
 }

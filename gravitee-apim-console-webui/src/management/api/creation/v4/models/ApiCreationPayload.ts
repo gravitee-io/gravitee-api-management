@@ -29,6 +29,9 @@ export type ApiCreationPayload = Partial<{
     id: string;
     name: string;
   }[];
-
+  endpoints?: {
+    type: string;
+    configuration: any;
+  }[];
   deploy: boolean;
 }>;

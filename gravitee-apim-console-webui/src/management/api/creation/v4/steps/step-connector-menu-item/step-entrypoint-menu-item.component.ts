@@ -18,23 +18,20 @@ import { Component, Inject, OnInit } from '@angular/core';
 
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { MENU_ITEM_PAYLOAD } from '../../components/api-creation-stepper-menu/api-creation-stepper-menu.component';
-
-interface EntrypointVM {
-  id: string;
-  name: string;
-}
+import { ConnectorVM } from '../../models/ConnectorVM';
 
 @Component({
-  selector: 'step-2-menu-item',
-  template: require('./step-2-menu-item.component.html'),
-  styles: [require('./step-2-menu-item.component.scss')],
+  selector: 'step-connector-menu-item',
+  template: require('./step-connector-menu-item.component.html'),
+  styles: [require('./step-connector-menu-item.component.scss')],
 })
-export class Step2MenuItemComponent implements OnInit {
-  public entrypoints: EntrypointVM[];
+export class StepEntrypointMenuItemComponent implements OnInit {
+  public connectors: Partial<ConnectorVM>[];
+  public connectorType = 'entrypoint';
 
   constructor(@Inject(MENU_ITEM_PAYLOAD) private readonly menuItemPayload: ApiCreationPayload) {}
 
   ngOnInit(): void {
-    this.entrypoints = this.menuItemPayload.selectedEntrypoints;
+    this.connectors = this.menuItemPayload.selectedEntrypoints;
   }
 }

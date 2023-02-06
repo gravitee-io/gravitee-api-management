@@ -73,9 +73,9 @@ public class EndpointsResource extends AbstractConnectorsResource {
         return super.expand(endpointService.findAll(), expands);
     }
 
-    @Path("{entrypoint}")
-    public EntrypointResource getEntrypointResource() {
-        return resourceContext.getResource(EntrypointResource.class);
+    @Path("{endpoint}")
+    public EndpointResource getEndpointResource() {
+        return resourceContext.getResource(EndpointResource.class);
     }
 
     @Override

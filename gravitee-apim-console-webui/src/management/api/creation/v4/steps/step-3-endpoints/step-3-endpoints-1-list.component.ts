@@ -21,6 +21,8 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
+import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
+
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
 import { ConnectorVM } from '../../models/ConnectorVM';
@@ -89,6 +91,10 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   save(): void {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEndpointsIds.includes(e.id));
+
+    this.stepService.addSecondaryStep({
+      component: Step3Endpoints2ConfigComponent,
+    });
 
     this.stepService.validStepAndGoNext((previousPayload) => ({
       ...previousPayload,
