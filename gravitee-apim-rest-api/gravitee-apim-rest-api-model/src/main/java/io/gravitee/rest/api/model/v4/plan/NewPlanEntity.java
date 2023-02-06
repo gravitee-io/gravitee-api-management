@@ -30,6 +30,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -42,6 +44,11 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Schema(name = "NewPlanEntityV4")
 public class NewPlanEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     private String id;
     /**
@@ -87,4 +94,12 @@ public class NewPlanEntity {
     private String generalConditions;
 
     private int order;
+
+    public void setName(String name) {
+        this.name = HTML_SANITIZER.sanitize(name);
+    }
+
+    public void setDescription(String description) {
+        this.description = HTML_SANITIZER.sanitize(description);
+    }
 }
