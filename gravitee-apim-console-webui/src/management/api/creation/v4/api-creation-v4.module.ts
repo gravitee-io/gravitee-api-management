@@ -41,7 +41,8 @@ import { Step2MenuItemComponent } from './steps/step-2-menu-item/step-2-menu-ite
 import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-endpoints-1-list.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
-import { GioEntrypointIconModule } from '../../../../components/gio-entrypoint-icon/gio-entrypoint-icon.module';
+import { GioConnectorIconModule } from '../../../../components/gio-connector-icon/gio-connector-icon.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -63,7 +64,7 @@ import { GioEntrypointIconModule } from '../../../../components/gio-entrypoint-i
     GioConfirmDialogModule,
     GioFormJsonSchemaModule,
     ApiCreationStepperMenuModule,
-    GioEntrypointIconModule,
+    GioConnectorIconModule,
   ],
   declarations: [
     ApiCreationV4Component,
