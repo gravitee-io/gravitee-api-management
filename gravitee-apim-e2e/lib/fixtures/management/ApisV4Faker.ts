@@ -15,11 +15,12 @@
  */
 import faker from '@faker-js/faker';
 import {
+  FlowExecutionV4,
+  FlowExecutionV4ModeEnum,
   HttpListenerV4,
   ListenerV4,
   NewApiEntityV4,
   NewApiEntityV4DefinitionVersionEnum,
-  NewApiEntityV4FlowModeEnum,
   NewApiEntityV4TypeEnum,
   SubscriptionListenerV4,
 } from '@gravitee/management-webclient-sdk/src/lib/models';
@@ -43,7 +44,10 @@ export class ApisV4Faker {
       description,
       name,
       endpointGroups: [],
-      flowMode: NewApiEntityV4FlowModeEnum.DEFAULT,
+      flowExecution: {
+        flowMode: FlowExecutionV4ModeEnum.DEFAULT,
+        matchRequired: false,
+      } as FlowExecutionV4,
       flows: [],
       groups: [],
       listeners: [],

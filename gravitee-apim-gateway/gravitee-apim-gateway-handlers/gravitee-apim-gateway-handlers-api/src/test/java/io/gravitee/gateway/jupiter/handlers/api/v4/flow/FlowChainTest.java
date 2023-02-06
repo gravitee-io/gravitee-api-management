@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow;
 
+import static io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain.INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.jupiter.policy.PolicyChain;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
 import io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory;
@@ -29,6 +31,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -39,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class FlowChainTest {
 
     protected static final String FLOW_CHAIN_ID = "unit-test";
@@ -61,7 +66,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteOnRequest() {
+    void should_execute_when_page_is_Request() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -85,7 +90,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteOnMessageRequest() {
+    void should_execute_when_page_is_MessageRequest() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -109,7 +114,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteOnResponse() {
+    void should_execute_when_page_is_Response() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -133,7 +138,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteOnMessageResponse() {
+    void should_execute_when_page_is_MessageResponse() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -157,7 +162,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteAndReusePreviousFlowResolution() {
+    void should_execute_and_reuse_flow_resolved() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -182,7 +187,7 @@ class FlowChainTest {
     }
 
     @Test
-    public void shouldExecuteOnlyFlow1IfError() {
+    void should_execute_only_flow1_if_error() {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
@@ -201,5 +206,59 @@ class FlowChainTest {
 
         // Make sure policy chain has not been created for flow2.
         verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, ExecutionPhase.REQUEST);
+    }
+
+    @Test
+    void should_interrupt_when_no_current_match_and_no_previous_match() {
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(false);
+
+        when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
+        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
+
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
+
+        obs.assertError(InterruptionFailureException.class);
+    }
+
+    @Test
+    void should_interrupt_when_no_current_match_and_no_previous_value() {
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(null);
+
+        when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
+        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
+
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
+
+        obs.assertError(InterruptionFailureException.class);
+
+        verify(ctx).setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
+    }
+
+    @Test
+    void should_not_interrupt_when_no_match_but_previous_match() {
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(true);
+        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
+
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
+
+        obs.assertResult();
+    }
+
+    @Test
+    void should_not_set_flows_matched_attribute_when_validate_flow_matching_is_false() {
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory);
+        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
+
+        final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
+
+        obs.assertResult();
+        verify(ctx, never()).setInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED), anyBoolean());
     }
 }

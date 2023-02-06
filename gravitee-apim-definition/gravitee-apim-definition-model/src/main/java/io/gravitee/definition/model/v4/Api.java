@@ -19,10 +19,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.FlowMode;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
@@ -96,7 +96,7 @@ public class Api implements Serializable {
     @NotNull
     private Map<@NotEmpty String, @NotNull Plan> plans;
 
-    private FlowMode flowMode = FlowMode.DEFAULT;
+    private FlowExecution flowExecution = new FlowExecution();
 
     private List<Flow> flows;
 

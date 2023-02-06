@@ -22,10 +22,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.FlowMode;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -124,8 +124,8 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     private Set<PlanEntity> plans = new HashSet<>();
 
-    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
-    private FlowMode flowMode;
+    @Schema(description = "API's flow execution.")
+    private FlowExecution flowExecution;
 
     @Schema(description = "A list of flows containing the policies configuration.")
     @DeploymentRequired
