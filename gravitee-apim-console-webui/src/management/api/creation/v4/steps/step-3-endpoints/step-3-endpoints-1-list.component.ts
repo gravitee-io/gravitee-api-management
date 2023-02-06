@@ -26,11 +26,11 @@ import { EndpointService } from '../../../../../../services-ngx/endpoint.service
 import { ConnectorVM } from '../../models/ConnectorVM';
 
 @Component({
-  selector: 'step-3-endpoints',
-  template: require('./step-3-endpoints.component.html'),
+  selector: 'step-3-endpoints-1-list',
+  template: require('./step-3-endpoints-1-list.component.html'),
   styles: [require('../api-creation-steps-common.component.scss')],
 })
-export class Step3EndpointsComponent implements OnInit, OnDestroy {
+export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;

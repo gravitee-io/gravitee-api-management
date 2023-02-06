@@ -28,7 +28,7 @@ import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
-import { Step3EndpointsComponent } from './steps/step-3-endpoints/step-3-endpoints.component';
+import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-endpoints-1-list.component';
 import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
 import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 import { Step2MenuItemComponent } from './steps/step-2-menu-item/step-2-menu-item.component';
@@ -61,7 +61,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       label: 'Endpoints',
-      component: Step3EndpointsComponent,
+      component: Step3Endpoints1ListComponent,
     },
     {
       label: 'Security',
