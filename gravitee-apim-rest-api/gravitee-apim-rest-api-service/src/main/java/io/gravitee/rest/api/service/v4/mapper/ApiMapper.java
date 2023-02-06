@@ -115,7 +115,7 @@ public class ApiMapper {
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
 
-                apiEntity.setFlowMode(apiDefinition.getFlowMode());
+                apiEntity.setFlowExecution(apiDefinition.getFlowExecution());
                 apiEntity.setFlows(apiDefinition.getFlows());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
@@ -226,7 +226,7 @@ public class ApiMapper {
             apiDefinition.setListeners(newApiEntity.getListeners());
             apiDefinition.setEndpointGroups(newApiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(newApiEntity.getAnalytics());
-            apiDefinition.setFlowMode(newApiEntity.getFlowMode());
+            apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
 
             return objectMapper.writeValueAsString(apiDefinition);
@@ -293,7 +293,7 @@ public class ApiMapper {
                     .collect(Collectors.toList())
             );
             apiDefinition.setResources(updateApiEntity.getResources());
-            apiDefinition.setFlowMode(updateApiEntity.getFlowMode());
+            apiDefinition.setFlowExecution(updateApiEntity.getFlowExecution());
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());

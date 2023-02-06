@@ -20,7 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.FlowMode;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
@@ -54,7 +55,7 @@ class FlowResolverFactoryTest {
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         definition.setType(ApiType.SYNC);
         api = new Api(definition);
-        definition.setFlowMode(FlowMode.DEFAULT);
+        definition.setFlowExecution(new FlowExecution());
     }
 
     @Test

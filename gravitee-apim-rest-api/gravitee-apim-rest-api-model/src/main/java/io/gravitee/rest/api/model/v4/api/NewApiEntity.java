@@ -20,7 +20,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.FlowMode;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
@@ -90,8 +91,8 @@ public class NewApiEntity {
     @Schema(description = "Analytics configuration")
     private Analytics analytics;
 
-    @Schema(description = "API's flow mode.", example = "BEST_MATCH")
-    private FlowMode flowMode;
+    @Schema(description = "API's flow execution.")
+    private FlowExecution flowExecution;
 
     @Valid
     @Schema(description = "A list of flows containing the policies configuration.")

@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.v4.flow;
+package io.gravitee.definition.model.v4.flow.execution;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
-import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Getter
-@Schema(name = "FlowModeV4")
-public enum FlowMode {
-    @JsonEnumDefaultValue
-    DEFAULT("default"),
-    BEST_MATCH("best-match");
+@Setter
+@ToString
+@EqualsAndHashCode
+@Schema(name = "FlowExecutionV4")
+public class FlowExecution {
 
-    @JsonValue
-    private final String label;
+    private FlowMode mode = FlowMode.DEFAULT;
+    private boolean matchRequired = false;
 }

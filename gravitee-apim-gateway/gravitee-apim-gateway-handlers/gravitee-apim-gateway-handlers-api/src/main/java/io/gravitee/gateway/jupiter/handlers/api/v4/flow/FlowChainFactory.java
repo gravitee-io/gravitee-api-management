@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.v4.flow;
 
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.core.tracing.TracingHook;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,13 +50,20 @@ public class FlowChainFactory {
     }
 
     public FlowChain createPlanFlow(final Api api) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory);
+        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
         flowPlanChain.addHooks(flowHooks);
         return flowPlanChain;
     }
 
     public FlowChain createApiFlow(final Api api) {
-        FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), policyChainFactory);
+        FlowExecution flowExecution = api.getDefinition().getFlowExecution();
+        FlowChain flowApiChain = new FlowChain(
+            "api",
+            flowResolverFactory.forApi(api),
+            policyChainFactory,
+            true,
+            flowExecution != null && flowExecution.isMatchRequired()
+        );
         flowApiChain.addHooks(flowHooks);
         return flowApiChain;
     }
