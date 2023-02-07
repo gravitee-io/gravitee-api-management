@@ -137,9 +137,7 @@ class NewPageComponentController implements IController {
       .then((response: any) => {
         const page = response.data;
         if (page.messages && page.messages.length > 0) {
-          this.NotificationService.showError(
-            "'" + page.name + "' has been created (with validation errors - check the bottom of the page for details)",
-          );
+          this.NotificationService.showError("'" + page.name + "' has been created (with validation errors)");
         } else {
           this.NotificationService.show("'" + page.name + "' has been created");
         }
