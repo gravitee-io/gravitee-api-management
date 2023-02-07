@@ -825,6 +825,7 @@ public class SubscriptionServiceTest {
         updatedSubscription.setId(SUBSCRIPTION_ID);
 
         Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setClientId("old-client-id");
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
