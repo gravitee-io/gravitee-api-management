@@ -27,6 +27,8 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
@@ -67,8 +69,8 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         anotherPublishedApi.setId("C");
 
         doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any(), any());
-        doReturn(Arrays.asList(publishedApi, anotherPublishedApi))
-            .when(apiService)
+        doReturn(List.of(publishedApi, anotherPublishedApi))
+            .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), any());
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());

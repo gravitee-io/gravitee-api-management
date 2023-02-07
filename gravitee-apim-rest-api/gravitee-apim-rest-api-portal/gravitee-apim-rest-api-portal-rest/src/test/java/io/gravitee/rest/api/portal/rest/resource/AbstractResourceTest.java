@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -176,6 +177,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected CategoryService categoryService;
 
     @Autowired
+    protected ApiCategoryService apiCategoryService;
+
+    @Autowired
     protected TicketService ticketService;
 
     @Autowired
@@ -321,6 +325,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(genericNotificationConfigService);
         reset(topApiService);
         reset(categoryService);
+        reset(apiCategoryService);
         reset(ticketService);
         reset(configService);
         reset(authenticationProvider);
@@ -554,6 +559,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public CategoryService categoryService() {
             return mock(CategoryService.class);
+        }
+
+        @Bean
+        public ApiCategoryService apiCategoryService() {
+            return mock(ApiCategoryService.class);
         }
 
         @Bean

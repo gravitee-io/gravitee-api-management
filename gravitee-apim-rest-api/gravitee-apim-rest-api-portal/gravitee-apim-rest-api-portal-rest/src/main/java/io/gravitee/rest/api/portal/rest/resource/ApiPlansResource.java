@@ -20,22 +20,19 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static java.util.Collections.emptyList;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.Collection;
-import java.util.Collections;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,7 +53,7 @@ public class ApiPlansResource extends AbstractResource {
     private PlanMapper planMapper;
 
     @Inject
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Inject
     private GroupService groupService;
@@ -69,15 +66,15 @@ public class ApiPlansResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
-            ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
-            if (Visibility.PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(executionContext, API_PLAN, apiId, READ)) {
-                List<Plan> plans = planService
+            if (Visibility.PUBLIC.equals(genericApiEntity.getVisibility()) || hasPermission(executionContext, API_PLAN, apiId, READ)) {
+                List<Plan> plans = planSearchService
                     .findByApi(executionContext, apiId)
                     .stream()
-                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
+                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
+                    .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
                     .map(p -> planMapper.convert(p))
                     .collect(Collectors.toList());
 

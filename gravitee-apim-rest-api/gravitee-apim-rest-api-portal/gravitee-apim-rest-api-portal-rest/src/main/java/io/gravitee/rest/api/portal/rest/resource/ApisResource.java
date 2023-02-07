@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
@@ -151,7 +152,7 @@ public class ApisResource extends AbstractResource<Api, String> {
 
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(pageContent);
-        Collection<ApiEntity> apiEntities = apiService.search(executionContext, apiQuery);
+        Collection<GenericApiEntity> apiEntities = apiSearchService.search(executionContext, apiQuery);
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
         return apiEntities
             .stream()

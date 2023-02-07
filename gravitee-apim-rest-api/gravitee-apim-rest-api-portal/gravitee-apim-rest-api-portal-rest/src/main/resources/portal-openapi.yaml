@@ -3942,6 +3942,7 @@ components:
             - KEY_LESS
             - JWT
             - OAUTH2
+            - SUBSCRIPTION
         description:
           description: Description of the plan.
           type: string

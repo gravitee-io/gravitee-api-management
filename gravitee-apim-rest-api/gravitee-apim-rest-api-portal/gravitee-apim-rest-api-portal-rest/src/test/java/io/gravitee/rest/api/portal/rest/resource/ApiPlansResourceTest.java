@@ -27,6 +27,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
@@ -60,10 +62,10 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     public void init() throws IOException {
         resetAllMocks();
 
-        ApiEntity mockApi = new ApiEntity();
-        mockApi.setId(API);
-        mockApi.setVisibility(Visibility.PUBLIC);
-        doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API);
+        apiEntity.setVisibility(Visibility.PUBLIC);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
 
         plan1 = new PlanEntity();
@@ -84,11 +86,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, planWrongStatus)))
-            .when(planService)
-            .findByApi(GraviteeContext.getExecutionContext(), API);
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(Set.of(plan1, plan2, planWrongStatus));
 
-        when(planMapper.convert(any())).thenCallRealMethod();
+        when(planMapper.convert(any(GenericPlanEntity.class))).thenCallRealMethod();
     }
 
     @Test

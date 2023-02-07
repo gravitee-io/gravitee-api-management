@@ -16,10 +16,16 @@
 package io.gravitee.rest.api.model.subscription;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 /**
@@ -138,7 +144,7 @@ public class SubscriptionMetadataQuery {
         return this;
     }
 
-    public SubscriptionMetadataQuery fillApiMetadata(BiFunction<Metadata, ApiEntity, ApiEntity>... delegate) {
+    public SubscriptionMetadataQuery fillApiMetadata(BiFunction<Metadata, GenericApiEntity, GenericApiEntity>... delegate) {
         return this.fillMetadata(DelegateType.API, delegate);
     }
 

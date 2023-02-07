@@ -68,8 +68,8 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         category3.setOrder(1);
 
         doReturn(Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L))
-            .when(apiService)
-            .countPublishedByUserGroupedByCategories(any());
+            .when(apiCategoryService)
+            .countApisPublishedGroupedByCategoriesForUser(any());
 
         existingCategories = Arrays.asList(category1, category2, category3);
 
@@ -83,7 +83,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
+        Mockito.verify(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         assertEquals(1, categoriesResponse.getData().size());
     }
@@ -131,12 +131,12 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNothingIfAllCategoriesEmpty() {
         // 0 APIs returned for user in any categories
-        doReturn(Map.of()).when(apiService).countPublishedByUserGroupedByCategories(any());
+        doReturn(Map.of()).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
+        Mockito.verify(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
 
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
 
@@ -148,7 +148,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
+        Mockito.verify(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
 
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         // only C1 is returned

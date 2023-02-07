@@ -77,4 +77,9 @@ public class ApiModel implements GenericApiModel {
     private Map<String, String> metadata = new HashMap<>();
     private ApiLifecycleState lifecycleState;
     private boolean disableMembershipNotifications;
+
+    @Override
+    public String getVersion() {
+        return apiVersion;
+    }
 }

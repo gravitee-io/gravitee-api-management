@@ -23,6 +23,7 @@ import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -43,6 +44,9 @@ public class CategoryResource extends AbstractResource {
     private CategoryService categoryService;
 
     @Autowired
+    private ApiCategoryService apiCategoryService;
+
+    @Autowired
     private CategoryMapper categoryMapper;
 
     @GET
@@ -51,7 +55,7 @@ public class CategoryResource extends AbstractResource {
     public Response get(@PathParam("categoryId") String categoryId) {
         CategoryEntity category = categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
 
-        Map<String, Long> countByCategory = apiService.countPublishedByUserGroupedByCategories(getAuthenticatedUserOrNull());
+        Map<String, Long> countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
         category.setTotalApis(countByCategory.getOrDefault(category.getId(), 0L));
 
         return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder())).build();

@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
@@ -29,6 +31,10 @@ import org.springframework.stereotype.Component;
 public class PlanMapper {
 
     public Plan convert(PlanEntity plan) {
+        return convert((GenericPlanEntity) plan);
+    }
+
+    public Plan convert(GenericPlanEntity plan) {
         final Plan planItem = new Plan();
 
         planItem.setCharacteristics(plan.getCharacteristics());
@@ -38,8 +44,9 @@ public class PlanMapper {
         planItem.setId(plan.getId());
         planItem.setName(plan.getName());
         planItem.setOrder(plan.getOrder());
-        planItem.setSecurity(SecurityEnum.fromValue(plan.getSecurity().name()));
-        planItem.setValidation(ValidationEnum.fromValue(plan.getValidation().name()));
+        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+        planItem.setSecurity(SecurityEnum.fromValue(planSecurityType.name()));
+        planItem.setValidation(ValidationEnum.fromValue(plan.getPlanValidation().name()));
         planItem.setGeneralConditions(plan.getGeneralConditions());
         return planItem;
     }

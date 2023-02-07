@@ -105,39 +105,39 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiQuery pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1", "3", "5"));
-        doReturn(Arrays.asList(publishedApi1, publishedApi2, publishedApi4))
-            .when(apiService)
+        doReturn(List.of(publishedApi1, publishedApi2, publishedApi4))
+            .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3", "4", "5"));
-        doReturn(Arrays.asList(publishedApi2, publishedApi3, publishedApi4))
-            .when(apiService)
+        doReturn(List.of(publishedApi2, publishedApi3, publishedApi4))
+            .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1", "3", "4", "5", "6"));
-        doReturn(Arrays.asList(publishedApi1, publishedApi2, publishedApi3, publishedApi4, publishedApi5))
-            .when(apiService)
+        doReturn(List.of(publishedApi1, publishedApi2, publishedApi3, publishedApi4, publishedApi5))
+            .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1"));
-        doReturn(Arrays.asList(publishedApi1)).when(apiService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi1)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3", "4"));
-        doReturn(Arrays.asList(publishedApi2, publishedApi3))
-            .when(apiService)
+        doReturn(List.of(publishedApi2, publishedApi3))
+            .when(apiSearchService)
             .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("4"));
-        doReturn(Arrays.asList(publishedApi3)).when(apiService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi3)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3"));
-        doReturn(Arrays.asList(publishedApi2)).when(apiService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi2)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
         when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
