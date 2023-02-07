@@ -536,6 +536,8 @@ import { ApiPortalPlanEditComponent } from './api/portal/plans/plan/edit/api-por
 import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
+import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -965,6 +967,8 @@ graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
 graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
 graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
+graviteeManagementModule.component('gvSearchAndSelect', SearchAndSelectComponent);
+graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelectController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
 graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);

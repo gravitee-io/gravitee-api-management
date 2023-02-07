@@ -206,9 +206,7 @@ class EditPageComponentController implements IController {
     this.DocumentationService.update(this.page, this.apiId)
       .then((response) => {
         if (response.data.messages && response.data.messages.length > 0) {
-          this.NotificationService.showError(
-            "'" + this.page.name + "' has been updated (with validation errors - check the bottom of the page for details)",
-          );
+          this.NotificationService.showError("'" + this.page.name + "' has been updated (with validation errors)");
         } else {
           this.NotificationService.show("'" + this.page.name + "' has been updated");
         }

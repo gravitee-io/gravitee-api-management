@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
+import static io.gravitee.repository.management.model.Subscription.Status.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.handlers.api.services.ApiKeyService;
@@ -29,6 +30,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -91,6 +93,34 @@ public class ApiKeyRefresherTest {
         verifyNoMoreInteractions(apiKeyService);
     }
 
+    @Test
+    public void doRefresh_should_cache_inactive_keys_first() throws TechnicalException {
+        ApiKeyCriteria apiKeyCriteria = mock(ApiKeyCriteria.class);
+
+        List<ApiKey> apiKeysList = List.of(buildTestApiKey("shared-api-key", List.of("sub-1", "sub-2", "sub-3")));
+
+        when(apiKeyRepository.findByCriteria(apiKeyCriteria)).thenReturn(apiKeysList);
+
+        when(subscriptionRepository.findByIdIn(Set.of("sub-1", "sub-2", "sub-3")))
+            .thenReturn(
+                List.of(
+                    buildTestSubscription("sub-1", CLOSED),
+                    buildTestSubscription("sub-2", ACCEPTED),
+                    buildTestSubscription("sub-3", CLOSED)
+                )
+            );
+
+        apiKeyRefresher.doRefresh(apiKeyCriteria);
+
+        // 3 API keys should have been saved in cache
+        // active API keys takes precedence over inactive, so, have to be saved after
+        InOrder inOrder = inOrder(apiKeyService);
+        inOrder.verify(apiKeyService).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-1")));
+        inOrder.verify(apiKeyService).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-3")));
+        inOrder.verify(apiKeyService).save(argThat(apiKey -> apiKey.getSubscription().equals("sub-2")));
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
     private ApiKey buildTestApiKey(String id, List<String> subscriptions) {
         ApiKey apiKey = new ApiKey();
         apiKey.setId(id);
@@ -99,8 +129,13 @@ public class ApiKeyRefresherTest {
     }
 
     private Subscription buildTestSubscription(String id) {
+        return buildTestSubscription(id, ACCEPTED);
+    }
+
+    private Subscription buildTestSubscription(String id, Subscription.Status status) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
+        subscription.setStatus(status);
         return subscription;
     }
 }

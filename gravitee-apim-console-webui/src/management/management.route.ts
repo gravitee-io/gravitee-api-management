@@ -187,7 +187,7 @@ function managementRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(),
+        apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(null, false, 1, null, null, null, 10),
         applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list(['owner', 'picture']),
       },
     })

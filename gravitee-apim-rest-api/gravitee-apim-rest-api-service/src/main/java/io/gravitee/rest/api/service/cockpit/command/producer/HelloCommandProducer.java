@@ -128,6 +128,6 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         UpdateOrganizationEntity updateOrganization = new UpdateOrganizationEntity(defaultOrganization);
         updateOrganization.setCockpitId(defaultOrganizationCockpitId);
 
-        organizationService.createOrUpdate(GraviteeContext.getExecutionContext(), updateOrganization);
+        organizationService.updateOrganization(GraviteeContext.getExecutionContext(), updateOrganization);
     }
 }
