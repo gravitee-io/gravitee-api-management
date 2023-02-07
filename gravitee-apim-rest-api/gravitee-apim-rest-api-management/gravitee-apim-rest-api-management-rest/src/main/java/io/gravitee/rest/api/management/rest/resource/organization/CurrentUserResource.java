@@ -436,7 +436,7 @@ public class CurrentUserResource extends AbstractResource {
 
             return ok(tokenEntity).build();
         }
-        return ok().build();
+        return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
     @POST

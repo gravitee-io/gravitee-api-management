@@ -105,6 +105,20 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
+    @Test
+    public void shouldReturn401WithNoAuthAtLogin() {
+        Mockito.reset(userService);
+
+        final Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(null);
+
+        SecurityContextHolder.setContext(new SecurityContextImpl(null));
+
+        final Response response = orgTarget().path("/login").request().post(null);
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.UNAUTHORIZED_401);
+        assertThat(response.readEntity(Object.class)).isNull();
+    }
+
     private void setCurrentUserDetails(final UserDetails userDetails) {
         final Authentication authentication = mock(Authentication.class);
         final UserEntity userEntity = new UserEntity();
