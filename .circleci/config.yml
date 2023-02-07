@@ -2016,7 +2016,7 @@ workflows:
             - release_notes_apim:
                   context: cicd-orchestrator
 
-    bridge_e2e:
+    bridge_compatibility_tests:
       when:
         equal: [ bridge_e2e, << pipeline.parameters.gio_action >> ]
       jobs:
