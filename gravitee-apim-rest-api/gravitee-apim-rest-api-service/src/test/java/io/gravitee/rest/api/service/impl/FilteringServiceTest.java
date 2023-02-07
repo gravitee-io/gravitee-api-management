@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -68,7 +69,7 @@ public class FilteringServiceTest {
     TopApiService topApiService;
 
     @Mock
-    ApiService apiService;
+    ApiSearchService apiSearchService;
 
     @Mock
     ApiAuthorizationService apiAuthorizationService;
@@ -370,8 +371,8 @@ public class FilteringServiceTest {
         doReturn(Set.of("api-#1", "api-#2", "api-#3"))
             .when(apiAuthorizationService)
             .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
-        doReturn(List.of("api-#3"))
-            .when(apiService)
+        doReturn(Set.of("api-#3"))
+            .when(apiSearchService)
             .searchIds(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(aQuery),

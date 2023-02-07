@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -24,8 +27,13 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
@@ -33,11 +41,20 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.search.query.Query;
+import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,19 +78,22 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final GenericApiMapper genericApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final CategoryService categoryService;
+    private final SearchEngineService searchEngineService;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
         final GenericApiMapper genericApiMapper,
         @Lazy final PrimaryOwnerService primaryOwnerService,
-        @Lazy final CategoryService categoryService
+        @Lazy final CategoryService categoryService,
+        final SearchEngineService searchEngineService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
         this.genericApiMapper = genericApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.categoryService = categoryService;
+        this.searchEngineService = searchEngineService;
     }
 
     @Override
@@ -159,6 +179,151 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    @Override
+    public Set<GenericApiEntity> search(ExecutionContext executionContext, final ApiQuery query) {
+        return this.search(executionContext, query, false);
+    }
+
+    @Override
+    public Set<GenericApiEntity> search(ExecutionContext executionContext, final ApiQuery query, final boolean excludeDefinitionV4) {
+        log.debug("Search APIs by {}", query);
+
+        Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query, excludeDefinitionV4);
+
+        if (optionalTargetIds.isPresent()) {
+            Collection<String> targetIds = optionalTargetIds.get();
+            if (targetIds.isEmpty()) {
+                return Collections.emptySet();
+            }
+            query.setIds(targetIds);
+        }
+
+        ApiCriteria.Builder queryToCriteria = queryToCriteria(executionContext, query);
+
+        if (excludeDefinitionV4) {
+            List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+            allowedDefinitionVersion.add(null);
+            allowedDefinitionVersion.add(DefinitionVersion.V1);
+            allowedDefinitionVersion.add(DefinitionVersion.V2);
+            queryToCriteria.definitionVersion(allowedDefinitionVersion);
+        }
+        List<Api> apis = apiRepository
+            .search(queryToCriteria(executionContext, query).build(), null, ApiFieldFilter.allFields())
+            .collect(toList());
+        return this.toGenericApis(executionContext, apis);
+    }
+
+    /**
+     * This method use ApiQuery to search in indexer for fields in api definition
+     *
+     * @param executionContext
+     * @param apiQuery
+     * @param excludeV4
+     * @return Optional<List < String>> an optional list of api ids and Optional.empty()
+     * if ApiQuery doesn't contain fields stores in the api definition.
+     */
+    private Optional<Collection<String>> searchInDefinition(ExecutionContext executionContext, ApiQuery apiQuery, final boolean excludeV4) {
+        if (apiQuery == null) {
+            return Optional.empty();
+        }
+        QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = convert(apiQuery);
+        if (excludeV4) {
+            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V4.getLabel())));
+        }
+        Query<GenericApiEntity> searchEngineQuery = searchEngineQueryBuilder.build();
+        if (isBlank(searchEngineQuery.getQuery())) {
+            return Optional.empty();
+        }
+
+        SearchResult matchApis = searchEngineService.search(executionContext, searchEngineQuery);
+        return Optional.of(matchApis.getDocuments());
+    }
+
+    private QueryBuilder<GenericApiEntity> convert(ApiQuery query) {
+        QueryBuilder<GenericApiEntity> searchEngineQuery = QueryBuilder.create(GenericApiEntity.class);
+        if (query.getIds() != null && !query.getIds().isEmpty()) {
+            Map<String, Object> filters = new HashMap<>();
+            filters.put("api", query.getIds());
+            searchEngineQuery.setFilters(filters);
+        }
+
+        if (!isBlank(query.getContextPath())) {
+            searchEngineQuery.addExplicitFilter("paths", query.getContextPath());
+        }
+        if (!isBlank(query.getTag())) {
+            searchEngineQuery.addExplicitFilter("tag", query.getTag());
+        }
+        return searchEngineQuery;
+    }
+
+    private ApiCriteria.Builder queryToCriteria(final ExecutionContext executionContext, final ApiQuery query) {
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        if (query == null) {
+            return builder;
+        }
+        builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
+
+        if (!isBlank(query.getCategory())) {
+            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+        }
+        if (query.getGroups() != null && !query.getGroups().isEmpty()) {
+            builder.groups(query.getGroups());
+        }
+        if (!isBlank(query.getState())) {
+            builder.state(LifecycleState.valueOf(query.getState()));
+        }
+        if (query.getVisibility() != null) {
+            builder.visibility(Visibility.valueOf(query.getVisibility().name()));
+        }
+        if (query.getLifecycleStates() != null) {
+            builder.lifecycleStates(
+                query
+                    .getLifecycleStates()
+                    .stream()
+                    .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
+                    .collect(toList())
+            );
+        }
+        if (query.getIds() != null && !query.getIds().isEmpty()) {
+            builder.ids(query.getIds());
+        }
+        if (query.getCrossId() != null && !query.getCrossId().isEmpty()) {
+            builder.crossId(query.getCrossId());
+        }
+
+        return builder;
+    }
+
+    @Override
+    public Collection<String> searchIds(
+        final ExecutionContext executionContext,
+        final String query,
+        final Map<String, Object> filters,
+        final Sortable sortable
+    ) {
+        return searchIds(executionContext, query, filters, sortable, false);
+    }
+
+    @Override
+    public Collection<String> searchIds(
+        final ExecutionContext executionContext,
+        final String query,
+        final Map<String, Object> filters,
+        final Sortable sortable,
+        final boolean excludeV4Definition
+    ) {
+        QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder
+            .create(GenericApiEntity.class)
+            .setQuery(query)
+            .setSort(sortable)
+            .setFilters(filters);
+        if (excludeV4Definition) {
+            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
+        }
+        SearchResult searchResult = searchEngineService.search(executionContext, searchEngineQueryBuilder.build());
+        return searchResult.getDocuments();
     }
 
     private Set<GenericApiEntity> toGenericApis(final ExecutionContext executionContext, final List<Api> apis) {

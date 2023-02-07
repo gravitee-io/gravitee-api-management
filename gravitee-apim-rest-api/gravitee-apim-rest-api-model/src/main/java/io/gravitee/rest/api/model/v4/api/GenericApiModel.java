@@ -28,6 +28,9 @@ public interface GenericApiModel {
     String getName();
     String getApiVersion();
 
+    @Deprecated
+    String getVersion();
+
     DefinitionVersion getDefinitionVersion();
 
     PrimaryOwnerEntity getPrimaryOwner();

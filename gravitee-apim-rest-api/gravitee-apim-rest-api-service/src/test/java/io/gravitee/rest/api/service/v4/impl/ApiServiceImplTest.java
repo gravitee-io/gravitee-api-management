@@ -22,7 +22,6 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -100,7 +99,6 @@ import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
@@ -327,7 +325,8 @@ public class ApiServiceImplTest {
                 apiNotificationService,
                 tagsValidationService
             );
-        apiSearchService = new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService);
+        apiSearchService =
+            new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService, searchEngineService);
         apiStateService =
             new ApiStateServiceImpl(
                 apiSearchService,

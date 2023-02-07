@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -23,11 +24,17 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Api;
+import io.gravitee.rest.api.portal.rest.model.CategorizedLinks;
+import io.gravitee.rest.api.portal.rest.model.Link;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.model.LinksResponse;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -35,6 +42,8 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -69,13 +78,16 @@ public class ApiResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Inject
     private GroupService groupService;
 
     @Inject
     private ParameterService parameterService;
+
+    @Inject
+    private ApiAuthorizationService apiAuthorizationService;
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
@@ -98,12 +110,12 @@ public class ApiResource extends AbstractResource {
                 api.setPages(pages);
             }
             if (include.contains(INCLUDE_PLANS)) {
-                List<Plan> plans = planService
+                List<Plan> plans = planSearchService
                     .findByApi(executionContext, apiId)
                     .stream()
-                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
+                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+                    .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
                     .map(p -> planMapper.convert(p))
                     .collect(Collectors.toList());
                 api.setPlans(plans);
@@ -147,13 +159,13 @@ public class ApiResource extends AbstractResource {
         apiQuery.setIds(Collections.singletonList(apiId));
 
         // Do not filter on visibility to display the picture on subscription screen even if the API is no more published
-        Collection<ApiEntity> userApis = apiService.findByUser(
+        Set<String> userApis = apiAuthorizationService.findIdsByUser(
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUserOrNull(),
             apiQuery,
             true
         );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (userApis.stream().anyMatch(id -> id.equals(apiId))) {
             InlinePictureEntity image = apiService.getPicture(GraviteeContext.getExecutionContext(), apiId);
             return createPictureResponse(request, image);
         }

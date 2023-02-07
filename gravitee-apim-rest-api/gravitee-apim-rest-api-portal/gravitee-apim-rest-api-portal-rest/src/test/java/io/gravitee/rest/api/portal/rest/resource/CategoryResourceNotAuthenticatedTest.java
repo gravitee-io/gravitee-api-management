@@ -63,7 +63,7 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         categoryEntity.setHidden(false);
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
 
-        doReturn(Map.of(CATEGORY_ID, 5L)).when(apiService).countPublishedByUserGroupedByCategories(null);
+        doReturn(Map.of(CATEGORY_ID, 5L)).when(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(null);
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
@@ -74,7 +74,7 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
 
         Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment());
-        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(null);
+        Mockito.verify(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(null);
         Mockito.verify(categoryMapper).convert(any(), any());
 
         final Category responseCategory = response.readEntity(Category.class);

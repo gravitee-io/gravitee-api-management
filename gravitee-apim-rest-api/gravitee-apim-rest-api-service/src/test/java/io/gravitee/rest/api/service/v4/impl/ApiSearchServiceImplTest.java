@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -30,30 +34,40 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
@@ -61,11 +75,15 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -164,7 +182,8 @@ public class ApiSearchServiceImplTest {
                 apiMapper,
                 new GenericApiMapper(apiMapper, apiConverter),
                 primaryOwnerService,
-                categoryService
+                categoryService,
+                searchEngineService
             );
 
         reset(searchEngineService);
@@ -353,5 +372,113 @@ public class ApiSearchServiceImplTest {
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
         verify(apiRepository, times(0)).search(any(), eq(ApiFieldFilter.allFields()));
+    }
+
+    @Test
+    public void shouldSearch() {
+        final Api api1 = new Api();
+        api1.setId("api1");
+        api1.setName("api1");
+        final Api api2 = new Api();
+        api2.setId("api2");
+        api2.setName("api2");
+
+        when(apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields())))
+            .thenReturn(Stream.of(api1));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
+
+        final ApiQuery apiQuery = new ApiQuery();
+        final Collection<GenericApiEntity> entities = apiSearchService.search(GraviteeContext.getExecutionContext(), apiQuery);
+
+        assertNotNull(entities);
+        assertEquals(1, entities.size());
+        assertEquals(api1.getId(), entities.iterator().next().getId());
+    }
+
+    @Test
+    public void should_search_and_exclude_v4() {
+        final Api api1 = new Api();
+        api1.setId("api1");
+        api1.setName("api1");
+        final Api api2 = new Api();
+        api2.setId("api2");
+        api2.setName("api2");
+
+        when(apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields())))
+            .thenReturn(Stream.of(api1));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
+
+        final ApiQuery apiQuery = new ApiQuery();
+
+        final Collection<GenericApiEntity> entities = apiSearchService.search(GraviteeContext.getExecutionContext(), apiQuery, true);
+
+        assertNotNull(entities);
+        assertEquals(1, entities.size());
+    }
+
+    @Test
+    public void should_search_with_query() {
+        final Api api1 = new Api();
+        api1.setId("api1");
+        api1.setCrossId("api1");
+        api1.setName("api1");
+        api1.setCategories(Set.of("cat1"));
+        api1.setGroups(Set.of("group1"));
+        api1.setLifecycleState(LifecycleState.STARTED);
+        api1.setVisibility(Visibility.PUBLIC);
+        api1.setApiLifecycleState(ApiLifecycleState.CREATED);
+        final Api api2 = new Api();
+        api2.setId("api2");
+        api2.setName("api2");
+
+        when(
+            apiRepository.search(
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId("DEFAULT")
+                        .category("cat1")
+                        .groups(List.of("group1"))
+                        .state(LifecycleState.STARTED)
+                        .visibility(Visibility.PUBLIC)
+                        .lifecycleStates(new ArrayList<>(List.of(ApiLifecycleState.CREATED)))
+                        .ids(Set.of("api1"))
+                        .crossId("api1")
+                        .build()
+                ),
+                isNull(),
+                eq(ApiFieldFilter.allFields())
+            )
+        )
+            .thenReturn(Stream.of(api1));
+
+        CategoryEntity category = new CategoryEntity();
+        category.setId("cat1");
+        category.setKey("category1");
+        when(categoryService.findById("cat1", GraviteeContext.getCurrentEnvironment())).thenReturn(category);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
+
+        final ApiQuery apiQuery = new ApiQuery();
+
+        apiQuery.setCategory("cat1");
+        apiQuery.setGroups(List.of("group1"));
+        apiQuery.setState("STARTED");
+        apiQuery.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
+        apiQuery.setLifecycleStates(List.of(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED));
+        apiQuery.setIds(List.of("api1"));
+        apiQuery.setCrossId("api1");
+
+        final Collection<GenericApiEntity> entities = apiSearchService.search(GraviteeContext.getExecutionContext(), apiQuery, true);
+
+        assertNotNull(entities);
+        assertEquals(1, entities.size());
     }
 }

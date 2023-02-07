@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     ApplicationService applicationService;
 
     @Autowired
-    ApiService apiService;
+    ApiSearchService apiSearchService;
 
     @Autowired
     ApiCategoryService apiCategoryService;
@@ -170,7 +171,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
 
-        return apiService.searchIds(executionContext, query, filters, null);
+        return apiSearchService.searchIds(executionContext, query, filters, null);
     }
 
     @Override

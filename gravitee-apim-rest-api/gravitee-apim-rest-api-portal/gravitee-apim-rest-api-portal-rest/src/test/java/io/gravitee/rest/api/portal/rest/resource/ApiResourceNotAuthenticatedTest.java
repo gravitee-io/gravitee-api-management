@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
@@ -82,8 +83,8 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         plan3.setId("C");
         plan3.setStatus(PlanStatus.CLOSED);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3)))
-            .when(planService)
+        doReturn(new HashSet<GenericPlanEntity>(Arrays.asList(plan1, plan2, plan3)))
+            .when(planSearchService)
             .findByApi(GraviteeContext.getExecutionContext(), API);
 
         doReturn(new Api()).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());

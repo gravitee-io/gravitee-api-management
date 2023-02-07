@@ -62,6 +62,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -147,6 +149,9 @@ public class ApiService_SearchTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Mock
+    private ApiSearchService apiSearchService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -210,9 +215,8 @@ public class ApiService_SearchTest {
         api3.setId("api3");
         api3.setName("API Test");
 
-        final SearchResult searchResult = new SearchResult(Arrays.asList(api3.getId(), api1.getId(), api2.getId()));
-
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), any(Query.class))).thenReturn(searchResult);
+        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), eq(true)))
+            .thenReturn(List.of(api3.getId(), api1.getId(), api2.getId()));
 
         when(
             apiRepository.search(

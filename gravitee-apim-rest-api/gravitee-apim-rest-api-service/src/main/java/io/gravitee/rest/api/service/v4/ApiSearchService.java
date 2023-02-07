@@ -16,9 +16,13 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -40,4 +44,23 @@ public interface ApiSearchService {
     boolean exists(final String apiId);
 
     Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(ExecutionContext executionContext, Set<String> apiIds);
+
+    Collection<GenericApiEntity> search(final ExecutionContext executionContext, final ApiQuery query);
+
+    Collection<GenericApiEntity> search(ExecutionContext executionContext, ApiQuery query, boolean excludeDefinitionV4);
+
+    Collection<String> searchIds(
+        final ExecutionContext executionContext,
+        final String query,
+        Map<String, Object> filters,
+        final Sortable sortable
+    );
+
+    Collection<String> searchIds(
+        ExecutionContext executionContext,
+        String query,
+        Map<String, Object> filters,
+        Sortable sortable,
+        boolean excludeV4Definition
+    );
 }

@@ -15,21 +15,24 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.impl.ApiCategoryServiceImpl;
@@ -40,7 +43,6 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -62,9 +64,23 @@ public class ApiCategoryService_DeleteCategoryTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private MembershipService membershipService;
+
+    @Mock
+    private RoleService roleService;
+
     @Before
     public void setUp() throws Exception {
-        apiCategoryService = new ApiCategoryServiceImpl(apiRepository, categoryService, apiNotificationService, auditService);
+        apiCategoryService =
+            new ApiCategoryServiceImpl(
+                apiRepository,
+                categoryService,
+                apiNotificationService,
+                auditService,
+                membershipService,
+                roleService
+            );
     }
 
     @Test

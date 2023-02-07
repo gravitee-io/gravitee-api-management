@@ -72,8 +72,8 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         doReturn(mockCategories).when(categoryService).findAll(GraviteeContext.getCurrentEnvironment());
 
         doReturn(Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L))
-            .when(apiService)
-            .countPublishedByUserGroupedByCategories(any());
+            .when(apiCategoryService)
+            .countApisPublishedGroupedByCategoriesForUser(any());
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
@@ -85,7 +85,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(apiService).countPublishedByUserGroupedByCategories(any());
+        Mockito.verify(apiCategoryService).countApisPublishedGroupedByCategoriesForUser(any());
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         assertEquals(2, categoriesResponse.getData().size());
     }

@@ -64,9 +64,10 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setId(API);
         doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
 
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
+        doReturn(Set.of(API))
+            .when(apiAuthorizationService)
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
 
         Api api = new Api();
         api.setId(API);
@@ -122,8 +123,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan3.setValidation(PlanValidationType.MANUAL);
         plan3.setStatus(PlanStatus.CLOSED);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3)))
-            .when(planService)
+        doReturn(new HashSet<>(Arrays.asList(plan1, plan2, plan3)))
+            .when(planSearchService)
             .findByApi(GraviteeContext.getExecutionContext(), API);
 
         // For pages
@@ -189,10 +190,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveNotFoundWhileGettingApiPicture() {
         // init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true)))
+            .thenReturn(Set.of("1"));
 
         // test
         final Response response = target(API).path("picture").request().get();

@@ -39,11 +39,22 @@ public interface GenericPlanEntity {
     String getGeneralConditions();
 
     //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
+    @JsonIgnore
     PlanSecurity getPlanSecurity();
 
+    @JsonIgnore
     PlanStatus getPlanStatus();
 
+    @JsonIgnore
     PlanValidationType getPlanValidation();
 
     Date getNeedRedeployAt();
+
+    List<String> getCharacteristics();
+
+    String getCommentMessage();
+
+    String getDescription();
+
+    int getOrder();
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.AggregationType;
@@ -45,12 +46,14 @@ import io.gravitee.rest.api.model.healthcheck.Log;
 import io.gravitee.rest.api.model.healthcheck.Request;
 import io.gravitee.rest.api.model.healthcheck.Response;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +85,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private HealthCheckRepository healthCheckRepository;
 
     @Autowired
-    private ApiService apiService;
+    private ApiSearchService apiSearchService;
 
     @Autowired
     private InstanceService instanceService;
@@ -178,7 +181,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         logger.debug("Run health availability query for API '{}'", api);
 
         try {
-            ApiEntity apiEntity = apiService.findById(executionContext, api);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
 
             AvailabilityResponse response = healthCheckRepository.query(
                 QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
@@ -196,7 +199,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         logger.debug("Run health response-time query for API '{}'", api);
 
         try {
-            ApiEntity apiEntity = apiService.findById(executionContext, api);
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
                 QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
@@ -274,7 +277,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     private <T extends Number> ApiMetrics<T> convert(
         final ExecutionContext executionContext,
-        ApiEntity api,
+        GenericApiEntity api,
         List<FieldBucket<T>> response,
         String field
     ) {
@@ -415,22 +418,38 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         return response;
     }
 
-    private Map<String, String> getEndpointMetadata(ApiEntity api, String endpointName) {
+    private Map<String, String> getEndpointMetadata(GenericApiEntity api, String endpointName) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<Endpoint> endpointOpt = api
-            .getProxy()
-            .getGroups()
-            .stream()
-            .filter(group -> group.getEndpoints() != null)
-            .flatMap(group -> group.getEndpoints().stream())
-            .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-            .findFirst();
-
-        if (endpointOpt.isPresent()) {
-            metadata.put("target", endpointOpt.get().getTarget());
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            Optional<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointOpt =
+                ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()
+                    .stream()
+                    .filter(group -> group.getEndpoints() != null)
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                    .findFirst();
+            if (endpointOpt.isPresent()) {
+                io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint = endpointOpt.get();
+                metadata.put("target", endpoint.getType());
+            } else {
+                metadata.put("deleted", "true");
+            }
         } else {
-            metadata.put("deleted", "true");
+            Optional<Endpoint> endpointOpt =
+                ((ApiEntity) api).getProxy()
+                    .getGroups()
+                    .stream()
+                    .filter(group -> group.getEndpoints() != null)
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                    .findFirst();
+
+            if (endpointOpt.isPresent()) {
+                metadata.put("target", endpointOpt.get().getTarget());
+            } else {
+                metadata.put("deleted", "true");
+            }
         }
 
         return metadata;
