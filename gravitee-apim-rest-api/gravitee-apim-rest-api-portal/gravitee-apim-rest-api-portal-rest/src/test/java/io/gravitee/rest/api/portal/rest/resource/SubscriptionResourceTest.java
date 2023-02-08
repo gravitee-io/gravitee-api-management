@@ -21,9 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -31,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
+import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.util.Arrays;
@@ -268,20 +267,30 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateSubscriptionConfiguration() {
+        UpdateSubscriptionInput updateSubscriptionInput = new UpdateSubscriptionInput();
         SubscriptionConfigurationInput subscriptionConfigurationInput = new SubscriptionConfigurationInput();
-        subscriptionConfigurationInput.setConfiguration(new SubscriptionConfiguration("my-url"));
-        subscriptionConfigurationInput.setFilter("my-filter");
+        subscriptionConfigurationInput.setEntrypointConfiguration("{\"url\":\"my-url\"}");
+        updateSubscriptionInput.setConfiguration(subscriptionConfigurationInput);
 
-        Response response = target(SUBSCRIPTION).request().put(json(subscriptionConfigurationInput));
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
+        subscriptionConfigurationEntity.setEntrypointConfiguration("{\"url\":\"my-url\"}");
+        subscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
+        when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class)))
+            .thenReturn(subscriptionEntity);
+
+        Response response = target(SUBSCRIPTION).request().put(json(updateSubscriptionInput));
 
         assertEquals(200, response.getStatus());
+
+        SubscriptionEntity subscriptionEntityResponse = response.readEntity(SubscriptionEntity.class);
+        assertEquals("{\"url\":\"my-url\"}", subscriptionEntityResponse.getConfiguration().getEntrypointConfiguration());
+
         ArgumentCaptor<UpdateSubscriptionConfigurationEntity> subscriptionCaptor = ArgumentCaptor.forClass(
             UpdateSubscriptionConfigurationEntity.class
         );
         verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), subscriptionCaptor.capture());
         assertEquals(SUBSCRIPTION, subscriptionCaptor.getValue().getSubscriptionId());
-        assertEquals("my-filter", subscriptionCaptor.getValue().getFilter());
-        assertEquals("{\"url\":\"my-url\"}", subscriptionCaptor.getValue().getConfiguration());
     }
 
     @Test

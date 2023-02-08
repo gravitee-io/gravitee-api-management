@@ -15,10 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.webhook.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointConnectorSubscriptionConfiguration;
-import io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,13 +27,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class WebhookEntrypointConnectorSubscriptionConfiguration implements EntrypointConnectorSubscriptionConfiguration {
-
-    @JsonProperty
-    @Override
-    public String entrypointId() {
-        return WebhookEntrypointConnector.ENTRYPOINT_ID;
-    }
+public class WebhookEntrypointConnectorSubscriptionConfiguration {
 
     /**
      * The callback URL called by the entrypoint on a message.

@@ -53,12 +53,13 @@ export interface Plan {
     general_conditions?: string;
 }
 export namespace Plan {
-    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2';
+    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2' | 'SUBSCRIPTION';
     export const SecurityEnum = {
         APIKEY: 'API_KEY' as SecurityEnum,
         KEYLESS: 'KEY_LESS' as SecurityEnum,
         JWT: 'JWT' as SecurityEnum,
-        OAUTH2: 'OAUTH2' as SecurityEnum
+        OAUTH2: 'OAUTH2' as SecurityEnum,
+        SUBSCRIPTION: 'SUBSCRIPTION' as SecurityEnum
     };
     export type ValidationEnum = 'AUTO' | 'MANUAL';
     export const ValidationEnum = {

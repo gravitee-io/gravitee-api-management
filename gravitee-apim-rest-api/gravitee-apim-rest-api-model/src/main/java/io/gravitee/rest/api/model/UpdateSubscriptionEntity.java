@@ -19,12 +19,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +35,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Schema(name = "UpdateSubscriptionEntity")
 public class UpdateSubscriptionEntity {
 
     @EqualsAndHashCode.Include
@@ -45,19 +49,7 @@ public class UpdateSubscriptionEntity {
     @JsonProperty("ending_at")
     private Date endingAt;
 
-    @JsonRawValue
-    private String configuration;
+    private SubscriptionConfigurationEntity configuration;
 
     private Map<String, String> metadata;
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    @JsonSetter
-    public void setConfiguration(final JsonNode configuration) {
-        if (configuration != null && !configuration.isNull()) {
-            this.configuration = configuration.toString();
-        }
-    }
 }

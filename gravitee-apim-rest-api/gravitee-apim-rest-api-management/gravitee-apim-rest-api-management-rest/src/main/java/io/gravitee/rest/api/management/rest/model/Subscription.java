@@ -17,15 +17,20 @@ package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 public class Subscription {
 
     private String id;
@@ -86,176 +91,10 @@ public class Subscription {
 
     private Map<String, String> metadata;
 
+    private SubscriptionConfigurationEntity configuration;
+
     @JsonProperty("failureCause")
     private String failureCause;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public SubscriptionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(SubscriptionStatus status) {
-        this.status = status;
-    }
-
-    public SubscriptionConsumerStatus getConsumerStatus() {
-        return consumerStatus;
-    }
-
-    public void setConsumerStatus(SubscriptionConsumerStatus consumerStatus) {
-        this.consumerStatus = consumerStatus;
-    }
-
-    public Plan getPlan() {
-        return plan;
-    }
-
-    public void setPlan(Plan plan) {
-        this.plan = plan;
-    }
-
-    public Application getApplication() {
-        return application;
-    }
-
-    public void setApplication(Application application) {
-        this.application = application;
-    }
-
-    public Api getApi() {
-        return api;
-    }
-
-    public void setApi(Api api) {
-        this.api = api;
-    }
-
-    public Date getProcessedAt() {
-        return processedAt;
-    }
-
-    public void setProcessedAt(Date processedAt) {
-        this.processedAt = processedAt;
-    }
-
-    public String getProcessedBy() {
-        return processedBy;
-    }
-
-    public void setProcessedBy(String processedBy) {
-        this.processedBy = processedBy;
-    }
-
-    public User getSubscribedBy() {
-        return subscribedBy;
-    }
-
-    public void setSubscribedBy(User subscribedBy) {
-        this.subscribedBy = subscribedBy;
-    }
-
-    public String getRequest() {
-        return request;
-    }
-
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public Date getStartingAt() {
-        return startingAt;
-    }
-
-    public void setStartingAt(Date startingAt) {
-        this.startingAt = startingAt;
-    }
-
-    public Date getEndingAt() {
-        return endingAt;
-    }
-
-    public void setEndingAt(Date endingAt) {
-        this.endingAt = endingAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public Date getPausedAt() {
-        return pausedAt;
-    }
-
-    public void setPausedAt(Date pausedAt) {
-        this.pausedAt = pausedAt;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Date getConsumerPausedAt() {
-        return consumerPausedAt;
-    }
-
-    public void setConsumerPausedAt(Date consumerPausedAt) {
-        this.consumerPausedAt = consumerPausedAt;
-    }
-
-    public String getFailureCause() {
-        return failureCause;
-    }
-
-    public void setFailureCause(String failureCause) {
-        this.failureCause = failureCause;
-    }
 
     @Override
     public boolean equals(Object o) {

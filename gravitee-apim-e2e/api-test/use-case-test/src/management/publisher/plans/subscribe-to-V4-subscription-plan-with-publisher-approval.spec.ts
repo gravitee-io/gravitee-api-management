@@ -134,7 +134,9 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
             plan: plan.id,
             configuration: {
               entrypointId: 'webhook',
-              callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              entrypointConfiguration: {
+                callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              },
             },
           },
         });
@@ -181,10 +183,12 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
 
         await portalSubscriptionResource.updateSubscription({
           subscriptionId: subscription.id,
-          subscriptionConfigurationInput: {
+          updateSubscriptionInput: {
             configuration: {
               entrypointId: 'webhook',
-              callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              entrypointConfiguration: {
+                callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              },
             },
           },
         });
@@ -245,7 +249,9 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
             plan: plan.id,
             configuration: {
               entrypointId: 'webhook',
-              callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              entrypointConfiguration: {
+                callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              },
             },
           },
         });
@@ -261,10 +267,12 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
       test('Consumer should update subscription configuration', async () => {
         await portalSubscriptionResource.updateSubscription({
           subscriptionId: subscription.id,
-          subscriptionConfigurationInput: {
+          updateSubscriptionInput: {
             configuration: {
               entrypointId: 'webhook',
-              callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              entrypointConfiguration: {
+                callbackUrl: `${process.env.WIREMOCK_BASE_URL}${callbackUrl}`,
+              },
             },
           },
         });

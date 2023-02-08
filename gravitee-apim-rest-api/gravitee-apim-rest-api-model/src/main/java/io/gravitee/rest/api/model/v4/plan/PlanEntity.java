@@ -92,6 +92,11 @@ public class PlanEntity implements GenericPlanEntity {
     private String generalConditions;
 
     @Override
+    public PlanType getPlanType() {
+        return type;
+    }
+
+    @Override
     public PlanSecurity getPlanSecurity() {
         return security;
     }

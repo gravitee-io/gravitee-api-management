@@ -15,16 +15,18 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -33,47 +35,51 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class SubscriptionValidationServiceImpl extends TransactionalService implements SubscriptionValidationService {
 
     private final EntrypointConnectorPluginService entrypointService;
-    private final ObjectMapper objectMapper;
 
-    public SubscriptionValidationServiceImpl(final EntrypointConnectorPluginService entrypointService, final ObjectMapper objectMapper) {
-        this.entrypointService = entrypointService;
-        this.objectMapper = objectMapper;
+    @Override
+    public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
+        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
     }
 
     @Override
-    public void validateAndSanitize(NewSubscriptionEntity subscription) {
-        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(subscription.getConfiguration()));
+    public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription) {
+        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
     }
 
     @Override
-    public void validateAndSanitize(UpdateSubscriptionEntity subscription) {
-        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(subscription.getConfiguration()));
-    }
-
-    @Override
-    public void validateAndSanitize(UpdateSubscriptionConfigurationEntity subscriptionConfiguration) {
+    public void validateAndSanitize(
+        final GenericPlanEntity genericPlanEntity,
+        final UpdateSubscriptionConfigurationEntity subscriptionConfiguration
+    ) {
         subscriptionConfiguration.setConfiguration(
-            validateAndSanitizeSubscriptionConfiguration(subscriptionConfiguration.getConfiguration())
+            validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscriptionConfiguration.getConfiguration())
         );
     }
 
-    private String validateAndSanitizeSubscriptionConfiguration(String configuration) {
-        if (configuration == null) {
-            return null;
-        }
-        try {
-            String connectorId = objectMapper.readTree(configuration).path("entrypointId").asText();
-            if (connectorId == null || connectorId.isEmpty()) {
+    private SubscriptionConfigurationEntity validateAndSanitizeSubscriptionConfiguration(
+        final GenericPlanEntity genericPlanEntity,
+        final SubscriptionConfigurationEntity configuration
+    ) {
+        if (
+            genericPlanEntity.getPlanSecurity() != null &&
+            genericPlanEntity.getPlanSecurity().getType().equals(PlanSecurityType.SUBSCRIPTION.getLabel())
+        ) {
+            if (configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {
                 throw new SubscriptionEntrypointIdMissingException();
             }
-            return entrypointService.validateEntrypointSubscriptionConfiguration(connectorId, configuration);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to read subscription configuration", e);
-            throw new TechnicalManagementException("An error occurs while trying to process promotion", e);
+
+            configuration.setEntrypointConfiguration(
+                entrypointService.validateEntrypointSubscriptionConfiguration(
+                    configuration.getEntrypointId(),
+                    configuration.getEntrypointConfiguration()
+                )
+            );
         }
+        return configuration;
     }
 }

@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.handlers.api.services.SubscriptionService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -32,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -46,10 +48,14 @@ public class SubscriptionRefresherTest {
     @Mock
     private SubscriptionService subscriptionService;
 
+    @Spy
+    private ObjectMapper objectMapper;
+
     @Before
     public void setup() {
         subscriptionRefresher.setSubscriptionRepository(subscriptionRepository);
         subscriptionRefresher.setSubscriptionService(subscriptionService);
+        subscriptionRefresher.setObjectMapper(objectMapper);
     }
 
     @Test
@@ -90,6 +96,7 @@ public class SubscriptionRefresherTest {
         subscription.setEndingAt(new Date(System.currentTimeMillis() + 3600000));
         subscription.setPlan("plan" + id);
         subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setConfiguration("{ \"entrypointId\": \"entrypointId\" }");
         return subscription;
     }
 

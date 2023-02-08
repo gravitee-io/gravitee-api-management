@@ -15,30 +15,36 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SubscriptionValidationServiceImplTest {
 
     private SubscriptionValidationService cut;
@@ -48,148 +54,188 @@ public class SubscriptionValidationServiceImplTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Before
+    private PlanEntity planEntity;
+
+    @BeforeEach
     public void setUp() {
-        cut = new SubscriptionValidationServiceImpl(entrypointConnectorPluginService, objectMapper);
+        cut = new SubscriptionValidationServiceImpl(entrypointConnectorPluginService);
+
+        planEntity = new PlanEntity();
+        PlanSecurity security = new PlanSecurity();
+        planEntity.setSecurity(security);
     }
 
-    @Test(expected = SubscriptionEntrypointIdMissingException.class)
-    public void shouldThrowIfNoConnectorIdProvidedInConfigurationNewSubscription() {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-        newSubscriptionEntity.setConfiguration("{\"no-connector-id\": \"it-is-not-a-joke\"}");
+    @Nested
+    class SubscriptionType {
 
-        cut.validateAndSanitize(newSubscriptionEntity);
+        @BeforeEach
+        public void beforeEach() {
+            planEntity.getSecurity().setType(PlanSecurityType.SUBSCRIPTION.getLabel());
+        }
+
+        @Nested
+        class NewSubscription {
+
+            @Test
+            void should_throw_when_no_entrypointId_defined() {
+                NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+                newSubscriptionEntity.setConfiguration(new SubscriptionConfigurationEntity());
+
+                PlanEntity planEntity = new PlanEntity();
+                PlanSecurity security = new PlanSecurity();
+                security.setType(PlanSecurityType.SUBSCRIPTION.getLabel());
+                planEntity.setSecurity(security);
+                assertThrows(
+                    SubscriptionEntrypointIdMissingException.class,
+                    () -> cut.validateAndSanitize(planEntity, newSubscriptionEntity)
+                );
+            }
+
+            @Test
+            void should_sanitize_configuration_when_valid_configuration() {
+                NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+                SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+                configuration.setEntrypointId("entrypoint_id");
+                configuration.setEntrypointConfiguration("{\"field\": \"to_sanitize\"}");
+                newSubscriptionEntity.setConfiguration(configuration);
+
+                String sanitizedCfg = "{\"field\": \"sanitized\"}";
+                when(
+                    entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
+                        configuration.getEntrypointId(),
+                        configuration.getEntrypointConfiguration()
+                    )
+                )
+                    .thenReturn(sanitizedCfg);
+
+                cut.validateAndSanitize(planEntity, newSubscriptionEntity);
+
+                assertThat(newSubscriptionEntity.getConfiguration().getEntrypointConfiguration()).isEqualTo(sanitizedCfg);
+            }
+        }
+
+        @Nested
+        class UpdateSubscription {
+
+            @Test
+            void should_throw_when_no_entrypointId_defined() {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+                updateSubscriptionEntity.setConfiguration(configuration);
+
+                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
+            }
+
+            @Test
+            void should_sanitize_configuration_when_valid_configuration() {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+                configuration.setEntrypointId("entrypoint_id");
+                configuration.setEntrypointConfiguration("{\"field\": \"to_sanitize\"}");
+                updateSubscriptionEntity.setConfiguration(configuration);
+
+                String sanitizedCfg = "{\"field\": \"sanitized\"}";
+                when(
+                    entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
+                        configuration.getEntrypointId(),
+                        configuration.getEntrypointConfiguration()
+                    )
+                )
+                    .thenReturn(sanitizedCfg);
+
+                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
+
+                assertThat(updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()).isEqualTo(sanitizedCfg);
+            }
+        }
+
+        @Nested
+        class UpdateSubscriptionConfiguration {
+
+            @Test
+            void should_throw_when_no_entrypointId_defined() {
+                UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+                SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+                updateSubscriptionConfigurationEntity.setConfiguration(configuration);
+
+                cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity);
+            }
+
+            @Test
+            void should_sanitize_configuration_when_valid_configuration() {
+                UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+                SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
+                configuration.setEntrypointId("entrypoint_id");
+                configuration.setEntrypointConfiguration("{\"field\": \"to_sanitize\"}");
+                updateSubscriptionConfigurationEntity.setConfiguration(configuration);
+
+                String sanitizedCfg = "{\"field\": \"sanitized\"}";
+                when(
+                    entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
+                        configuration.getEntrypointId(),
+                        configuration.getEntrypointConfiguration()
+                    )
+                )
+                    .thenReturn(sanitizedCfg);
+
+                cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity);
+
+                assertThat(updateSubscriptionConfigurationEntity.getConfiguration().getEntrypointConfiguration()).isEqualTo(sanitizedCfg);
+            }
+        }
     }
 
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldThrowIfBadConfigurationNewSubscription() {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-        newSubscriptionEntity.setConfiguration("{\"connectorId\": \"invalid");
+    @Nested
+    class OtherType {
 
-        cut.validateAndSanitize(newSubscriptionEntity);
-    }
+        @BeforeEach
+        public void beforeEach() {
+            planEntity.getSecurity().setType(PlanSecurityType.JWT.getLabel());
+        }
 
-    @Test
-    public void shouldSanitizeAndSetConfigurationForNewSubscription() throws JsonProcessingException {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-        newSubscriptionEntity.setConfiguration(
-            "{" + "\"entrypointId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"to_sanitize\"" + "}"
-        );
+        @Nested
+        class NewSubscription {
 
-        when(
-            entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
-                "entrypoint_id",
-                newSubscriptionEntity.getConfiguration()
-            )
-        )
-            .thenReturn("{" + "\"connectorId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"sanitized\"" + "}");
+            @Test
+            public void should_do_nothing() {
+                NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+                newSubscriptionEntity.setConfiguration(null);
+                planEntity.setSecurity(new PlanSecurity());
 
-        cut.validateAndSanitize(newSubscriptionEntity);
+                cut.validateAndSanitize(planEntity, newSubscriptionEntity);
 
-        final String sanitizedField = objectMapper
-            .readTree(newSubscriptionEntity.getConfiguration())
-            .path("aConfigurationFieldToSanitize")
-            .asText();
-        Assertions.assertThat(sanitizedField).isEqualTo("sanitized");
-    }
+                assertThat(newSubscriptionEntity.getConfiguration()).isNull();
+            }
+        }
 
-    @Test
-    public void shouldAcceptNullConfigurationForNewSubscription() {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-        newSubscriptionEntity.setConfiguration((String) null);
+        @Nested
+        class UpdateSubscription {
 
-        cut.validateAndSanitize(newSubscriptionEntity);
+            @Test
+            public void should_do_nothing() {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setConfiguration(null);
+                planEntity.setSecurity(new PlanSecurity());
 
-        assertNull(newSubscriptionEntity.getConfiguration());
-    }
+                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
 
-    @Test(expected = SubscriptionEntrypointIdMissingException.class)
-    public void shouldThrowIfNoConnectorIdProvidedInConfigurationUpdateSubscription() {
-        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-        updateSubscriptionEntity.setConfiguration("{\"no-connector-id\": \"it-is-not-a-joke\"}");
+                assertThat(updateSubscriptionEntity.getConfiguration()).isNull();
+            }
+        }
 
-        cut.validateAndSanitize(updateSubscriptionEntity);
-    }
+        @Nested
+        class UpdateSubscriptionConfiguration {
 
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldThrowIfBadConfigurationUpdateSubscription() {
-        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-        updateSubscriptionEntity.setConfiguration("{\"connectorId\": \"invalid");
+            @Test
+            public void should_do_nothing() {
+                UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+                updateSubscriptionConfigurationEntity.setConfiguration(null);
+                planEntity.setSecurity(new PlanSecurity());
 
-        cut.validateAndSanitize(updateSubscriptionEntity);
-    }
+                cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity);
 
-    @Test
-    public void shouldSanitizeAndSetConfigurationForUpdateSubscription() throws JsonProcessingException {
-        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-        updateSubscriptionEntity.setConfiguration(
-            "{" + "\"entrypointId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"to_sanitize\"" + "}"
-        );
-
-        when(
-            entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
-                "entrypoint_id",
-                updateSubscriptionEntity.getConfiguration()
-            )
-        )
-            .thenReturn("{" + "\"connectorId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"sanitized\"" + "}");
-
-        cut.validateAndSanitize(updateSubscriptionEntity);
-
-        final String sanitizedField = objectMapper
-            .readTree(updateSubscriptionEntity.getConfiguration())
-            .path("aConfigurationFieldToSanitize")
-            .asText();
-        Assertions.assertThat(sanitizedField).isEqualTo("sanitized");
-    }
-
-    @Test
-    public void shouldAcceptNullConfigurationForUpdateSubscription() {
-        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-        updateSubscriptionEntity.setConfiguration((String) null);
-
-        cut.validateAndSanitize(updateSubscriptionEntity);
-
-        assertNull(updateSubscriptionEntity.getConfiguration());
-    }
-
-    @Test(expected = SubscriptionEntrypointIdMissingException.class)
-    public void shouldThrowIfNoConnectorIdProvidedInConfigurationUpdateSubscriptionConfiguration() {
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
-        updateSubscriptionConfigurationEntity.setConfiguration("{\"no-connector-id\": \"it-is-not-a-joke\"}");
-
-        cut.validateAndSanitize(updateSubscriptionConfigurationEntity);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldThrowIfBadConfigurationUpdateSubscriptionConfiguration() {
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
-        updateSubscriptionConfigurationEntity.setConfiguration("{\"connectorId\": \"invalid");
-
-        cut.validateAndSanitize(updateSubscriptionConfigurationEntity);
-    }
-
-    @Test
-    public void shouldSanitizeAndSetConfigurationForUpdateSubscriptionConfiguration() throws JsonProcessingException {
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
-        updateSubscriptionConfigurationEntity.setConfiguration(
-            "{" + "\"entrypointId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"to_sanitize\"" + "}"
-        );
-
-        when(
-            entrypointConnectorPluginService.validateEntrypointSubscriptionConfiguration(
-                "entrypoint_id",
-                updateSubscriptionConfigurationEntity.getConfiguration()
-            )
-        )
-            .thenReturn("{" + "\"connectorId\": \"entrypoint_id\", " + "\"aConfigurationFieldToSanitize\": \"sanitized\"" + "}");
-
-        cut.validateAndSanitize(updateSubscriptionConfigurationEntity);
-
-        final String sanitizedField = objectMapper
-            .readTree(updateSubscriptionConfigurationEntity.getConfiguration())
-            .path("aConfigurationFieldToSanitize")
-            .asText();
-        Assertions.assertThat(sanitizedField).isEqualTo("sanitized");
+                assertThat(updateSubscriptionConfigurationEntity.getConfiguration()).isNull();
+            }
+        }
     }
 }

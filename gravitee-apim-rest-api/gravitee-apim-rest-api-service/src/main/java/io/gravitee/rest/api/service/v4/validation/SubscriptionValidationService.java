@@ -18,15 +18,19 @@ package io.gravitee.rest.api.service.v4.validation;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface SubscriptionValidationService {
-    void validateAndSanitize(NewSubscriptionEntity subscription);
+    void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription);
 
-    void validateAndSanitize(UpdateSubscriptionEntity subscription);
+    void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription);
 
-    void validateAndSanitize(UpdateSubscriptionConfigurationEntity subscriptionConfiguration);
+    void validateAndSanitize(
+        final GenericPlanEntity genericPlanEntity,
+        final UpdateSubscriptionConfigurationEntity subscriptionConfiguration
+    );
 }

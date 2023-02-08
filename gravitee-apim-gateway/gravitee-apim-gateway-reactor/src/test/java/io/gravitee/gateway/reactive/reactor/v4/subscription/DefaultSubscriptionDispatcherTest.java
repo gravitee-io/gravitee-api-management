@@ -21,16 +21,32 @@ import static java.util.Calendar.MILLISECOND;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.exception.MessageProcessingException;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -52,11 +68,15 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -174,7 +194,7 @@ class DefaultSubscriptionDispatcherTest {
             void setUp() {
                 subscription.setStatus("ACCEPTED");
                 subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
-                subscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+                subscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
             }
 
             @Test
@@ -196,15 +216,45 @@ class DefaultSubscriptionDispatcherTest {
                 verifyNoInteractions(factory);
             }
 
-            @ParameterizedTest
-            @ValueSource(strings = { "{}" })
-            @NullAndEmptySource
-            void should_throw_when_subscription_has_incorrect_configuration(String configuration) {
-                subscription.setConfiguration(configuration);
+            @Test
+            void should_throw_when_subscription_has_no_configuration() {
+                subscription.setConfiguration(null);
 
                 dispatcher.dispatch(subscription).test().assertError(SubscriptionNotDispatchedException.class);
 
                 verifyNoInteractions(factory);
+            }
+
+            @Test
+            void should_throw_when_subscription_has_no_entrypointId() {
+                subscription.setConfiguration(SubscriptionConfiguration.builder().build());
+
+                dispatcher.dispatch(subscription).test().assertError(SubscriptionNotDispatchedException.class);
+
+                verifyNoInteractions(factory);
+            }
+
+            @Test
+            void should_prefix_channel_with_slash_subscription() {
+                mockSubscriptionChainToJustComplete();
+
+                MutableRequest request = mock(MutableRequest.class);
+                when(context.request()).thenReturn(request);
+
+                subscription.setConfiguration(
+                    SubscriptionConfiguration.builder().entrypointId("webhook").channel("noStartsWithSlash").build()
+                );
+                dispatcher.dispatch(subscription).test().assertComplete();
+
+                verify(factory, times(1)).create(subscription);
+                verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, "webhook");
+                verify(context).setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+                Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
+                assertEquals(1, activeSubscriptions.size());
+                assertSame(subscription, activeSubscriptions.get(SUBSCRIPTION_ID));
+
+                assertEquals(1, dispatcher.getActiveDisposables().size());
             }
 
             @Test
@@ -399,7 +449,7 @@ class DefaultSubscriptionDispatcherTest {
             originSubscription = new Subscription();
             originSubscription.setId(SUBSCRIPTION_ID);
             originSubscription.setStatus("ACCEPTED");
-            originSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+            originSubscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
 
             mockSubscriptionChainToJustComplete();
 
@@ -415,7 +465,7 @@ class DefaultSubscriptionDispatcherTest {
             Subscription updatedSubscription = new Subscription();
             updatedSubscription.setId(SUBSCRIPTION_ID);
             updatedSubscription.setStatus("ACCEPTED");
-            updatedSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+            updatedSubscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
 
             dispatcher.dispatch(updatedSubscription).test().assertComplete();
 
@@ -427,7 +477,10 @@ class DefaultSubscriptionDispatcherTest {
             // ensure there is only 1 active subscription with origin configuration
             Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
             assertEquals(1, activeSubscriptions.size());
-            assertEquals("{\"entrypointId\": \"webhook\"}", activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration());
+            assertEquals(
+                SubscriptionConfiguration.builder().entrypointId("webhook").build(),
+                activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration()
+            );
         }
 
         @Test
@@ -441,7 +494,13 @@ class DefaultSubscriptionDispatcherTest {
             Subscription updatedSubscription = new Subscription();
             updatedSubscription.setId(SUBSCRIPTION_ID);
             updatedSubscription.setStatus("ACCEPTED");
-            updatedSubscription.setConfiguration("{\"entrypointId\": \"webhook\", \"test\": \"this configuration changed\"}");
+            updatedSubscription.setConfiguration(
+                SubscriptionConfiguration
+                    .builder()
+                    .entrypointId("webhook")
+                    .entrypointConfiguration("{\"test\":\"this configuration changed\"}")
+                    .build()
+            );
 
             dispatcher.dispatch(updatedSubscription).test().assertComplete();
 
@@ -454,7 +513,11 @@ class DefaultSubscriptionDispatcherTest {
             Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
             assertEquals(1, activeSubscriptions.size());
             assertEquals(
-                "{\"entrypointId\": \"webhook\", \"test\": \"this configuration changed\"}",
+                SubscriptionConfiguration
+                    .builder()
+                    .entrypointId("webhook")
+                    .entrypointConfiguration("{\"test\":\"this configuration changed\"}")
+                    .build(),
                 activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration()
             );
         }
@@ -470,7 +533,7 @@ class DefaultSubscriptionDispatcherTest {
             Subscription updatedSubscription = new Subscription();
             updatedSubscription.setId(SUBSCRIPTION_ID);
             updatedSubscription.setStatus("ACCEPTED");
-            updatedSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+            updatedSubscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
             updatedSubscription.setForceDispatch(true);
             dispatcher.dispatch(updatedSubscription).test().assertComplete();
 
@@ -482,7 +545,8 @@ class DefaultSubscriptionDispatcherTest {
             // ensure there is only 1 active subscription with updated configuration
             Map<String, Subscription> activeSubscriptions = dispatcher.getActiveSubscriptions();
             assertThat(activeSubscriptions).hasSize(1);
-            assertThat(activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration()).isEqualTo("{\"entrypointId\": \"webhook\"}");
+            assertThat(activeSubscriptions.get(SUBSCRIPTION_ID).getConfiguration())
+                .isEqualTo(SubscriptionConfiguration.builder().entrypointId("webhook").build());
         }
 
         @ParameterizedTest
@@ -492,7 +556,7 @@ class DefaultSubscriptionDispatcherTest {
             updatedSubscription.setId(SUBSCRIPTION_ID);
             updatedSubscription.setStatus(status);
             updatedSubscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(consumerStatus));
-            updatedSubscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+            updatedSubscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
 
             dispatcher.dispatch(updatedSubscription).test().await().assertComplete();
 
@@ -510,7 +574,7 @@ class DefaultSubscriptionDispatcherTest {
         void setUp() {
             subscription.setStatus("ACCEPTED");
             subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
-            subscription.setConfiguration("{\"entrypointId\": \"webhook\"}");
+            subscription.setConfiguration(SubscriptionConfiguration.builder().entrypointId("webhook").build());
         }
 
         @Test
