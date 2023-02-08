@@ -40,6 +40,9 @@ public interface GenericPlanEntity {
 
     //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
     @JsonIgnore
+    PlanType getPlanType();
+
+    @JsonIgnore
     PlanSecurity getPlanSecurity();
 
     @JsonIgnore

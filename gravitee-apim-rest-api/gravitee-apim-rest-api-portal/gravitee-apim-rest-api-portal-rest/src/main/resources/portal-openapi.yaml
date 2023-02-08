@@ -35,6 +35,8 @@ tags:
     description: All about the current user
   - name: Users
     description: All about the portal users
+  - name: Entrypoints
+    description: All about entrypoints
 
 security:
   - BasicAuth: []
@@ -1954,7 +1956,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubscriptionConfigurationInput'
+              $ref: '#/components/schemas/UpdateSubscriptionInput'
       description: |
         Update a subscription.
 
@@ -2883,6 +2885,30 @@ paths:
         500:
           $ref: '#/components/responses/InternalServerError'
 
+  /entrypoints:
+    get:
+      tags:
+        - Entrypoints
+      parameters:
+        - $ref: '#/components/parameters/entrypointsQueryParam'
+      summary: List Entrypoints
+      description: |
+        List available entrypoints.
+      operationId: getEntrypoints
+      security:
+        - {}
+        - BasicAuth: []
+        - CookieAuth: []
+      responses:
+        200:
+          description: List available entrypoints for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntrypointsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   requestBodies:
     pictureUpdateInputBody:
@@ -3409,6 +3435,21 @@ components:
       description: query string to be used in the search engine
       schema:
         type: string
+
+    #Entrypoinds Expand
+    entrypointsQueryParam:
+      name: expand
+      in: query
+      required: false
+      description: expand entrypoints details
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - schema
+            - icon
+            - subscriptionSchema
   schemas:
     #####################
     # Responses Objects #
@@ -4757,7 +4798,79 @@ components:
         description:
           type: string
           description: Notifier description
-
+    EntrypointsResponse:
+      description: List of Entrypoints.
+      type: array
+      items:
+        $ref: '#/components/schemas/Entrypoint'
+    Entrypoint:
+      description: |
+        Describes an Entrypoint.
+      properties:
+        id:
+          description: Unique identifier of an Entrypoint.
+          type: string
+        name:
+          description: Name of the Entrypoint.
+          type: string
+        version:
+          description: Version of the Entrypoint.
+          type: string
+        description:
+          description: Description of the Entrypoint.
+          type: string
+        category:
+          type: string
+          description: Category of the Entrypoint.
+        supportedApiType:
+          description: ApiType supported by the Entrypoint.
+          type: string
+          enum:
+            - sync
+            - async
+        supportedModes:
+          description: ConnectorMode supported by the Entrypoint.
+          type: array
+          items:
+            type: string
+            enum:
+              - subscribe
+              - publish
+              - request_response
+        supportedQos:
+          type: array
+          description: Qos supported by the Entrypoint.
+          items:
+            type: string
+            enum:
+              - none
+              - auto
+              - at-least-once
+              - at-most-once
+        availableFeatures:
+          type: array
+          description: ConnectorFeature supported by the Entrypoint.
+          items:
+            type: string
+            enum:
+              - limit
+              - resume
+              - dlq
+        supportedListenerType:
+          type: string
+          description: ListenerType supported by the Entrypoint.
+          enum:
+            - http
+            - subscription
+        schema:
+          type: string
+          description: Schema of the Entrypoint.
+        subscriptionSchema:
+          type: string
+          description: SubscriptionSchema of the Entrypoint.
+        icon:
+          type: string
+          description: Icon of the Entrypoint.
     #################
     # Input Objects #
     #################
@@ -4877,9 +4990,6 @@ components:
         general_conditions_content_revision:
           description: Page revision of the general conditions visualized and accepted by the API subscriber
           $ref: '#/components/schemas/PageRevisionId'
-        filter:
-          description: Subscription messages filter
-          type: string
         metadata:
           description: Subscription metadata
           type: object
@@ -4887,14 +4997,27 @@ components:
             type: string
         configuration:
           description: Subscription configuration
-          type: object
-    SubscriptionConfigurationInput:
+          $ref: '#/components/schemas/SubscriptionConfigurationInput'
+    UpdateSubscriptionInput:
       properties:
-        filter:
-          description: Subscription messages filter
-          type: string
+        metadata:
+          description: Subscription metadata
+          type: object
+          additionalProperties:
+            type: string
         configuration:
           description: Subscription configuration
+          $ref: '#/components/schemas/SubscriptionConfigurationInput'
+    SubscriptionConfigurationInput:
+      properties:
+        channel:
+          description: The channel to subscribe to if any
+          type: string
+        entrypointId:
+          description: The entrypointId to subscribe to if any
+          type: string
+        entrypointConfiguration:
+          description: The entrypoint configuration if needed
           type: object
     TransferOwnershipInput:
       properties:

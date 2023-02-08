@@ -8,6 +8,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { SubscriptionConfigurationInput } from './subscriptionConfigurationInput';
 import { PageRevisionId } from './pageRevisionId';
 
 
@@ -29,5 +30,10 @@ export interface SubscriptionInput {
      */
     general_conditions_accepted?: boolean;
     general_conditions_content_revision?: PageRevisionId;
+    /**
+     * Subscription metadata
+     */
+    metadata?: { [key: string]: string; };
+    configuration?: SubscriptionConfigurationInput;
 }
 

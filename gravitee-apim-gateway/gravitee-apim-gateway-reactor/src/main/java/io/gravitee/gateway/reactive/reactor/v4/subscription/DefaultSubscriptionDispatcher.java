@@ -19,10 +19,12 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.ListenerType;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
@@ -67,6 +69,7 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscriptionDispatcher.class);
     private static final String SUBSCRIPTION_ENTRYPOINT_FIELD = "entrypointId";
+    private static final String SUBSCRIPTION_CHANNEL_FIELD = "channel";
 
     protected static final String TRACING_SPAN_NAME = "SUBSCRIPTION";
     protected static final String ATTR_INTERNAL_TRACING_SPAN = "subscription-tracing-span";
@@ -75,7 +78,6 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
     private final Map<String, Disposable> activeDisposables = new ConcurrentHashMap<>();
 
     private final SubscriptionAcceptorResolver subscriptionAcceptorResolver;
-    private final ObjectMapper mapper = new ObjectMapper();
     private final SubscriptionExecutionContextFactory subscriptionExecutionContextFactory;
     private final SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory;
     private final Vertx vertx;
@@ -148,14 +150,17 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         if (subscriptionAcceptor != null && subscriptionAcceptor.reactor() != null) {
             ApiReactor apiReactor = (ApiReactor) subscriptionAcceptor.reactor();
 
-            String configuration = subscription.getConfiguration();
             try {
                 // Extract the type from the configuration
-                String type = mapper.readTree(configuration).path(SUBSCRIPTION_ENTRYPOINT_FIELD).asText();
-                if (type == null || type.trim().isEmpty()) {
+                SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+                if (
+                    subscriptionConfiguration == null ||
+                    subscriptionConfiguration.getEntrypointId() == null ||
+                    subscriptionConfiguration.getEntrypointId().trim().isEmpty()
+                ) {
                     LOGGER.error("Unable to handle subscription without known entrypoint id");
                 } else {
-                    Completable subscriptionObs = handleSubscription(subscription, apiReactor, type)
+                    Completable subscriptionObs = handleSubscription(subscription, apiReactor)
                         .onErrorComplete(throwable -> {
                             emitter.onError(throwable);
                             return true;
@@ -177,14 +182,25 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
         throw new SubscriptionNotDispatchedException(String.format("No acceptor available for subscription [%s]", subscription.getId()));
     }
 
-    private Completable handleSubscription(Subscription subscription, ApiReactor apiReactor, String type) {
+    private Completable handleSubscription(final Subscription subscription, final ApiReactor apiReactor) {
         return Completable
             .defer(() -> {
                 MutableExecutionContext context = subscriptionExecutionContextFactory.create(subscription);
+                SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+                String channelSubscribed = subscriptionConfiguration.getChannel();
+                if (channelSubscribed != null) {
+                    if (!channelSubscribed.startsWith("/")) {
+                        channelSubscribed = "/" + channelSubscribed;
+                    }
+                    context.request().pathInfo(channelSubscribed);
+                }
 
                 // This attribute is used by connectors
                 context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
-                context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
+                context.setInternalAttribute(
+                    InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE,
+                    subscriptionConfiguration.getEntrypointId()
+                );
                 context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
                 context.setAttribute(ContextAttributes.ATTR_PLAN, subscription.getPlan());
                 context.setAttribute(ContextAttributes.ATTR_APPLICATION, subscription.getApplication());

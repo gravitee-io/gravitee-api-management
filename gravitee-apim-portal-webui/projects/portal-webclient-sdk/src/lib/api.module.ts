@@ -7,6 +7,7 @@ import { AnalyticsService } from './api/analytics.service';
 import { ApiService } from './api/api.service';
 import { ApplicationService } from './api/application.service';
 import { AuthenticationService } from './api/authentication.service';
+import { EntrypointsService } from './api/entrypoints.service';
 import { GroupService } from './api/group.service';
 import { NotifiersService } from './api/notifiers.service';
 import { PermissionsService } from './api/permissions.service';

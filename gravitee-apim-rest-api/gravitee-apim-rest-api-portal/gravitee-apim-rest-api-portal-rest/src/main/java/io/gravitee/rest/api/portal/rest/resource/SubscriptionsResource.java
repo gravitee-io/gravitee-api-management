@@ -23,6 +23,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -119,9 +121,19 @@ public class SubscriptionsResource extends AbstractResource {
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
-            newSubscriptionEntity.setFilter(subscriptionInput.getFilter());
             newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
-            newSubscriptionEntity.setConfiguration(MAPPER.valueToTree(subscriptionInput.getConfiguration()));
+            SubscriptionConfigurationInput inputConfiguration = subscriptionInput.getConfiguration();
+            if (inputConfiguration != null) {
+                SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
+                subscriptionConfigurationEntity.setEntrypointId(inputConfiguration.getEntrypointId());
+                subscriptionConfigurationEntity.setChannel(inputConfiguration.getChannel());
+                if (inputConfiguration.getEntrypointConfiguration() != null) {
+                    subscriptionConfigurationEntity.setEntrypointConfiguration(
+                        MAPPER.valueToTree(inputConfiguration.getEntrypointConfiguration())
+                    );
+                }
+                newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
+            }
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.

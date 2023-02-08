@@ -120,6 +120,12 @@
       "notCompleted": "La souscription à l'API <b>{apiName}</b> n'est pas complète, revenez aux étapes précédentes et saisissez les informations manquantes.",
       "subscription": "Valider la demande",
       "title": "Validation"
+    },
+    "planSubscription": {
+      "title" : "Configurer votre souscription",
+      "channel": "Sélectionner le channel de souscription",
+      "entrypointId": "Sélectionner l'entrypoint",
+      "entrypointConfiguration": "Configurer l'entrypoint"
     }
   },
   "application": {

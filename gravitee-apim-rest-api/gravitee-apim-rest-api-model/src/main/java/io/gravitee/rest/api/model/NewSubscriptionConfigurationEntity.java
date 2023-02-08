@@ -18,9 +18,13 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,31 +32,13 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@Schema(name = "NewSubscriptionConfigurationEntity")
 public class NewSubscriptionConfigurationEntity {
 
-    private String filter;
-
-    @JsonRawValue
-    private String configuration;
+    private SubscriptionConfigurationEntity configuration;
 
     private Map<String, String> metadata;
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    @JsonSetter
-    public void setConfiguration(final JsonNode configuration) {
-        if (configuration != null && !configuration.isNull()) {
-            this.configuration = configuration.toString();
-        }
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
 }

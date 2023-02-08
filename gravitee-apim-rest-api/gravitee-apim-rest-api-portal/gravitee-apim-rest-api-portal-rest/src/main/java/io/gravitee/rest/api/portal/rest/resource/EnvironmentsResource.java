@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.rest.api.portal.rest.resource.v4.entrypoint.EntrypointsResource;
 import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -87,6 +88,11 @@ public class EnvironmentsResource extends AbstractResource {
     @Path("subscriptions")
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
+    }
+
+    @Path("entrypoints")
+    public EntrypointsResource getEntrypointsResource() {
+        return resourceContext.getResource(EntrypointsResource.class);
     }
 
     @Path("theme")
