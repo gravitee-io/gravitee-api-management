@@ -262,7 +262,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         throws PluginConfigurationException {
         return pluginConfigurationHelper.readConfiguration(
             WebhookEntrypointConnectorSubscriptionConfiguration.class,
-            subscription.getConfiguration()
+            subscription.getConfiguration().getEntrypointConfiguration()
         );
     }
 

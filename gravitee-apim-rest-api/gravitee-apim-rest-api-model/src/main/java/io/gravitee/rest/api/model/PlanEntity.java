@@ -370,6 +370,12 @@ public class PlanEntity implements GenericPlanEntity {
     }
 
     @Override
+    @JsonIgnore
+    public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
+        return io.gravitee.rest.api.model.v4.plan.PlanType.API;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -1746,7 +1746,7 @@ export class ApplicationService {
 
     /**
      * List all the applications accessible to authenticated user. Default order is by *name* ASC.
-     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. 
+     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. For performance reasons, calling &#x60;/applications?size&#x3D;-1&#x60; does not return the number of subscribers and the only information available in the owner of each application is:   - id   - displayName   - email 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

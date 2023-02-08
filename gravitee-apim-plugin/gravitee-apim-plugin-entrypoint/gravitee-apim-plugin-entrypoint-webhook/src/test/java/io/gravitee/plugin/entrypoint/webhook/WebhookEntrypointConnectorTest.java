@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -127,7 +128,9 @@ class WebhookEntrypointConnectorTest {
                 )
             )
             .thenReturn(subscriptionConfiguration);
-        lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
+        lenient()
+            .when(subscription.getConfiguration())
+            .thenReturn(SubscriptionConfiguration.builder().entrypointConfiguration(SUBSCRIPTION_CONFIGURATION).build());
         lenient().when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:8080/callback");
 
         cut = new WebhookEntrypointConnector(pluginConfigurationHelper, Qos.NONE, configuration);

@@ -18,33 +18,39 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @author Eric LELEU (eric.leleu at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
 @Getter
 @Setter
-public class NewSubscriptionEntity {
+@ToString
+@EqualsAndHashCode
+@Schema(name = "SubscriptionConfigurationEntity")
+public class SubscriptionConfigurationEntity {
 
-    private String application;
-    private String plan;
-    private String request;
-    private PageEntity.PageRevisionId generalConditionsContentRevision;
-    private Boolean generalConditionsAccepted;
+    private String entrypointId;
+    private String channel;
 
-    private SubscriptionConfigurationEntity configuration;
+    @JsonRawValue
+    private String entrypointConfiguration;
 
-    private Map<String, String> metadata;
+    public void setEntrypointConfiguration(final String configuration) {
+        this.entrypointConfiguration = configuration;
+    }
 
-    public NewSubscriptionEntity(String plan, String application) {
-        this.application = application;
-        this.plan = plan;
+    @JsonSetter
+    public void setEntrypointConfiguration(final JsonNode configuration) {
+        if (configuration != null && !configuration.isNull()) {
+            this.entrypointConfiguration = configuration.toString();
+        }
     }
 }

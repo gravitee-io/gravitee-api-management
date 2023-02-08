@@ -197,8 +197,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldCreateSubscriptionWithConfiguration() {
         NewSubscriptionConfigurationEntity configuration = mock(NewSubscriptionConfigurationEntity.class);
-        when(configuration.getConfiguration()).thenReturn("{}");
-        when(configuration.getFilter()).thenReturn("my-filter");
+        SubscriptionConfigurationEntity configurationEntity = new SubscriptionConfigurationEntity();
+        configurationEntity.setEntrypointConfiguration("{}");
+        when(configuration.getConfiguration()).thenReturn(configurationEntity);
 
         ArgumentCaptor<NewSubscriptionEntity> newSubscriptionEntityCaptor = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
 
@@ -217,7 +218,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .create(eq(GraviteeContext.getExecutionContext()), newSubscriptionEntityCaptor.capture(), any());
         verify(subscriptionService, times(1))
             .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        assertEquals(newSubscriptionEntityCaptor.getValue().getConfiguration(), "{}");
+        assertEquals(newSubscriptionEntityCaptor.getValue().getConfiguration(), configurationEntity);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }

@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -154,12 +155,13 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateSubscription() {
+        SubscriptionConfigurationInput configuration = new SubscriptionConfigurationInput();
+        configuration.setEntrypointConfiguration(new SubscriptionConfiguration("my-url"));
         SubscriptionInput subscriptionInput = new SubscriptionInput()
             .application(APPLICATION)
             .plan(PLAN)
-            .filter("my-filter")
             .metadata(Map.of("my-metadata", "my-value"))
-            ._configuration(new SubscriptionConfiguration("my-url"))
+            ._configuration(configuration)
             .request("request");
 
         final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
@@ -173,12 +175,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<NewSubscriptionEntity> argument = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
         Mockito.verify(subscriptionService).create(eq(GraviteeContext.getExecutionContext()), argument.capture());
-        assertEquals(APPLICATION, argument.getValue().getApplication());
-        assertEquals(PLAN, argument.getValue().getPlan());
-        assertEquals("request", argument.getValue().getRequest());
-        assertEquals("my-filter", argument.getValue().getFilter());
-        assertEquals(Map.of("my-metadata", "my-value"), argument.getValue().getMetadata());
-        assertEquals("{\"url\":\"my-url\"}", argument.getValue().getConfiguration());
+        NewSubscriptionEntity newSubscriptionEntity = argument.getValue();
+        assertEquals(APPLICATION, newSubscriptionEntity.getApplication());
+        assertEquals(PLAN, newSubscriptionEntity.getPlan());
+        assertEquals("request", newSubscriptionEntity.getRequest());
+        assertEquals(Map.of("my-metadata", "my-value"), newSubscriptionEntity.getMetadata());
+        assertEquals("{\"url\":\"my-url\"}", newSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);

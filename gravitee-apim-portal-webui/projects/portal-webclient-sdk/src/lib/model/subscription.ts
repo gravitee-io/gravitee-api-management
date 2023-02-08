@@ -69,6 +69,18 @@ export interface Subscription {
      */
     status: Subscription.StatusEnum;
     /**
+     * Consumer status of the subscription.
+     */
+    consumerStatus?: Subscription.ConsumerStatusEnum;
+    /**
+     * Paused date and time of the subscription for the customer.
+     */
+    consumerPausedAt?: Date;
+    /**
+     * The cause of the failure
+     */
+    failureCause?: string;
+    /**
      * Only returned with (*)/subscriptions/{subscriptionId}*. Need *include* query param to contain \'keys\'.  List of APIKeys of the subscription. 
      */
     keys?: Array<Key>;
@@ -81,6 +93,12 @@ export namespace Subscription {
         CLOSED: 'CLOSED' as StatusEnum,
         REJECTED: 'REJECTED' as StatusEnum,
         PAUSED: 'PAUSED' as StatusEnum
+    };
+    export type ConsumerStatusEnum = 'STARTED' | 'STOPPED' | 'FAILURE';
+    export const ConsumerStatusEnum = {
+        STARTED: 'STARTED' as ConsumerStatusEnum,
+        STOPPED: 'STOPPED' as ConsumerStatusEnum,
+        FAILURE: 'FAILURE' as ConsumerStatusEnum
     };
 }
 

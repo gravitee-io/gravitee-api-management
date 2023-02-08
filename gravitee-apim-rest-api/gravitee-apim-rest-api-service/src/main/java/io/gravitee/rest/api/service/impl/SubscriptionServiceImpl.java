@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -56,6 +57,7 @@ import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -119,6 +121,7 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -199,6 +202,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private SubscriptionValidationService subscriptionValidationService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public SubscriptionEntity findById(String subscriptionId) {
@@ -291,11 +297,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Create a new subscription for plan {} and application {}", plan, application);
 
-            if (newSubscriptionEntity.getConfiguration() != null && !newSubscriptionEntity.getConfiguration().isEmpty()) {
-                subscriptionValidationService.validateAndSanitize(newSubscriptionEntity);
-            }
-
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, plan);
+
+            subscriptionValidationService.validateAndSanitize(genericPlanEntity, newSubscriptionEntity);
 
             if (genericPlanEntity.getPlanStatus() == PlanStatus.DEPRECATED) {
                 throw new PlanNotSubscribableException(plan);
@@ -312,7 +316,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
             PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
             if (planSecurityType == PlanSecurityType.KEY_LESS) {
-                throw new PlanNotSubscribableException("A key_less plan is not subscribable !");
+                throw new PlanNotSubscribableException("A key_less plan is not subscribable!");
             }
 
             if (genericPlanEntity.getExcludedGroups() != null && !genericPlanEntity.getExcludedGroups().isEmpty()) {
@@ -359,11 +363,39 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 Predicate<Subscription> onlyValidSubs = subscription ->
                     subscription.getStatus() != Subscription.Status.REJECTED && subscription.getStatus() != Subscription.Status.CLOSED;
 
-                // First, check that there is no subscription to the same plan
+                // First, check that there is no subscription to the same plan only for non-subscription plan
                 long subscriptionCount = subscriptions
                     .stream()
                     .filter(onlyValidSubs)
                     .filter(subscription -> subscription.getPlan().equals(plan))
+                    .filter(
+                        subscription -> {
+                            if (planSecurityType == PlanSecurityType.SUBSCRIPTION) {
+                                if (subscription.getConfiguration() == null && newSubscriptionEntity.getConfiguration() == null) {
+                                    return true;
+                                }
+                                if (subscription.getConfiguration() != null && newSubscriptionEntity.getConfiguration() != null) {
+                                    try {
+                                        var configuration = objectMapper.readValue(
+                                            subscription.getConfiguration(),
+                                            SubscriptionConfigurationEntity.class
+                                        );
+                                        String subscriptionChannel = configuration.getChannel();
+                                        String newSubscriptionChannel = newSubscriptionEntity.getConfiguration().getChannel();
+                                        return (
+                                            (subscriptionChannel == null && newSubscriptionChannel == null) ||
+                                            subscriptionChannel != null &&
+                                            subscriptionChannel.equals(newSubscriptionChannel)
+                                        );
+                                    } catch (IOException ioe) {
+                                        // Ignore in case of error
+                                    }
+                                }
+                                return false;
+                            }
+                            return true;
+                        }
+                    )
                     .count();
 
                 if (subscriptionCount > 0) {
@@ -451,7 +483,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
             subscription.setClientId(clientId);
             subscription.setMetadata(newSubscriptionEntity.getMetadata());
-            subscription.setConfiguration(newSubscriptionEntity.getConfiguration());
+
+            setSubscriptionConfig(newSubscriptionEntity.getConfiguration(), subscription);
+
             String apiId = genericPlanEntity.getApiId();
             subscription.setApi(apiId);
             subscription.setGeneralConditionsAccepted(newSubscriptionEntity.getGeneralConditionsAccepted());
@@ -554,15 +588,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new SubscriptionNotUpdatableException(subscriptionConfigEntity.getSubscriptionId());
             }
 
-            if (subscriptionConfigEntity.getConfiguration() != null && !subscriptionConfigEntity.getConfiguration().isEmpty()) {
-                subscriptionValidationService.validateAndSanitize(subscriptionConfigEntity);
-            }
-
             final GenericPlanEntity planEntity = planSearchService.findById(executionContext, subscription.getPlan());
+
+            subscriptionValidationService.validateAndSanitize(planEntity, subscriptionConfigEntity);
+
             Subscription.Status newSubscriptionStatus = planEntity.getPlanValidation() == MANUAL ? PENDING : subscription.getStatus();
 
             Subscription previousSubscription = new Subscription(subscription);
-            subscription.setConfiguration(subscriptionConfigEntity.getConfiguration());
             subscription.setUpdatedAt(new Date());
             subscription.setStatus(newSubscriptionStatus);
             // Recover from failure or keep previous consumer status
@@ -572,6 +604,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     : previousSubscription.getConsumerStatus()
             );
             subscription.setFailureCause(null);
+            setSubscriptionConfig(subscriptionConfigEntity.getConfiguration(), subscription);
+            subscription.setMetadata(subscriptionConfigEntity.getMetadata());
 
             subscription = subscriptionRepository.update(subscription);
 
@@ -599,6 +633,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ),
                 ex
             );
+        }
+    }
+
+    private void setSubscriptionConfig(final SubscriptionConfigurationEntity subscriptionConfigEntity, final Subscription subscription) {
+        if (subscriptionConfigEntity != null) {
+            try {
+                subscription.setConfiguration(objectMapper.writeValueAsString(subscriptionConfigEntity));
+            } catch (IOException ioe) {
+                logger.error("Unexpected error while generating subscription configuration", ioe);
+            }
         }
     }
 
@@ -646,12 +690,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(updateSubscription.getId()));
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                if (updateSubscription.getConfiguration() != null && !updateSubscription.getConfiguration().isEmpty()) {
-                    subscriptionValidationService.validateAndSanitize(updateSubscription);
-                }
+                final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+
+                subscriptionValidationService.validateAndSanitize(genericPlanEntity, updateSubscription);
 
                 Subscription previousSubscription = new Subscription(subscription);
-                subscription.setConfiguration(updateSubscription.getConfiguration());
+                setSubscriptionConfig(updateSubscription.getConfiguration(), subscription);
                 subscription.setMetadata(updateSubscription.getMetadata());
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
@@ -663,7 +707,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
 
                 subscription = subscriptionRepository.update(subscription);
-                final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
                 createAudit(
                     executionContext,
                     genericPlanEntity.getApiId(),
@@ -1732,7 +1775,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setPausedAt(subscription.getPausedAt());
         entity.setConsumerPausedAt(subscription.getConsumerPausedAt());
         entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
-        entity.setConfiguration(subscription.getConfiguration());
+        if (subscription.getConfiguration() != null) {
+            try {
+                var configuration = objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfigurationEntity.class);
+                entity.setConfiguration(configuration);
+            } catch (IOException ioe) {
+                logger.error("Unexpected error while generating API definition", ioe);
+            }
+        }
         entity.setMetadata(subscription.getMetadata());
         entity.setFailureCause(subscription.getFailureCause());
 

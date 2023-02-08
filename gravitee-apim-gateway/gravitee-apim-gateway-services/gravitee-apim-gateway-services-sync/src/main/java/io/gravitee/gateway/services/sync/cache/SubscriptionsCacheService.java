@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
@@ -79,6 +80,9 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     @Autowired
     private ClusterManager clusterManager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private ScheduledFuture<?> scheduledFuture;
 
@@ -171,6 +175,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                 final FullSubscriptionRefresher refresher = new FullSubscriptionRefresher(planIds);
                 refresher.setSubscriptionRepository(subscriptionRepository);
                 refresher.setSubscriptionService(subscriptionService);
+                refresher.setObjectMapper(objectMapper);
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)
@@ -241,6 +246,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                                 );
                                 refresher.setSubscriptionRepository(subscriptionRepository);
                                 refresher.setSubscriptionService(subscriptionService);
+                                refresher.setObjectMapper(objectMapper);
 
                                 return refresher;
                             }

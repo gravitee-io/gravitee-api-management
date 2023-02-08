@@ -20,9 +20,11 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -30,6 +32,7 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
+import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -124,7 +127,7 @@ public class SubscriptionResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSubscription(
         @PathParam("subscriptionId") String subscriptionId,
-        @Valid @NotNull SubscriptionConfigurationInput subscriptionConfigurationInput
+        @Valid @NotNull UpdateSubscriptionInput updateSubscriptionInput
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
@@ -136,8 +139,16 @@ public class SubscriptionResource extends AbstractResource {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscriptionId);
-        updateSubscriptionConfigurationEntity.setConfiguration(MAPPER.valueToTree(subscriptionConfigurationInput.getConfiguration()));
-        updateSubscriptionConfigurationEntity.setFilter(subscriptionConfigurationInput.getFilter());
+        updateSubscriptionConfigurationEntity.setMetadata(updateSubscriptionInput.getMetadata());
+        SubscriptionConfigurationInput subscriptionConfigurationInput = updateSubscriptionInput.getConfiguration();
+        if (subscriptionConfigurationInput != null) {
+            SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
+            subscriptionConfigurationEntity.setChannel(subscriptionConfigurationInput.getChannel());
+            subscriptionConfigurationEntity.setEntrypointId(subscriptionConfigurationInput.getEntrypointId());
+            subscriptionConfigurationEntity.setEntrypointConfiguration(
+                MAPPER.valueToTree(subscriptionConfigurationInput.getEntrypointConfiguration())
+            );
+        }
 
         SubscriptionEntity updatedSubscription = subscriptionService.update(executionContext, updateSubscriptionConfigurationEntity);
         return Response.ok(updatedSubscription).build();

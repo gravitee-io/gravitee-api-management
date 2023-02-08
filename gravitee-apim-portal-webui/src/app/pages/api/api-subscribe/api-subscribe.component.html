@@ -42,6 +42,39 @@
 
           <gv-plans [plans]="plans" formControlName="plan" name="plan" ngDefaultControl></gv-plans>
 
+          <div *ngIf="isSubscription()">
+            <h3>{{ 'apiSubscribe.planSubscription.title' | translate }}</h3>
+            <div class="form-control">
+              <gv-input
+                class="form__control"
+                formControlName="channel"
+                label="{{ 'apiSubscribe.planSubscription.channel' | translate }}"
+                name="channel"
+                ngDefaultControl
+              ></gv-input>
+            </div>
+            <div class="form-control">
+              <gv-select
+                class="form__control"
+                formControlName="entrypoint"
+                label="{{ 'apiSubscribe.planSubscription.entrypointId' | translate }}"
+                [options]="entrypointOptions"
+                name="entrypoint"
+                ngDefaultControl
+              ></gv-select>
+            </div>
+            <div class="form-control">
+              <gv-schema-form-group
+                [schema]="selectedEntrypointSchema"
+                (:gv-schema-form-group:error)="onSubscriptionConfigurationError($event)"
+                formControlName="entrypointConfiguration"
+                name="entrypointConfiguration"
+                validate="true"
+                ngDefaultControl
+              ></gv-schema-form-group>
+            </div>
+          </div>
+
           <div *ngIf="isKeyLess() && apiSample">
             <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
             <gv-code [options]="{ mode: 'shell', lineNumbers: true, lineWrapping: true }" [value]="apiSample" readonly clipboard></gv-code>

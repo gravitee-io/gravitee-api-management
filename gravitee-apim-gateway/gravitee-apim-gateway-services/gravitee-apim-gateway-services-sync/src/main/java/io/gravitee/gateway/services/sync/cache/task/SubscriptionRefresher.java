@@ -15,11 +15,17 @@
  */
 package io.gravitee.gateway.services.sync.cache.task;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import java.util.concurrent.Callable;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +33,22 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Slf4j
 public abstract class SubscriptionRefresher implements Callable<Result<Boolean>> {
-
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private SubscriptionRepository subscriptionRepository;
 
     protected SubscriptionService subscriptionService;
+
+    private ObjectMapper objectMapper;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
         return doRefresh(criteria, false);
     }
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria, boolean forceDispatch) {
-        logger.debug("Refresh subscriptions");
+        log.debug("Refresh subscriptions");
 
         try {
             subscriptionRepository
@@ -62,14 +70,6 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
 
     protected abstract void handleSubscription(Subscription subscription);
 
-    public void setSubscriptionRepository(SubscriptionRepository subscriptionRepository) {
-        this.subscriptionRepository = subscriptionRepository;
-    }
-
-    public void setSubscriptionService(SubscriptionService subscriptionService) {
-        this.subscriptionService = subscriptionService;
-    }
-
     private Subscription convertModelSubscriptionToCache(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         Subscription subscription = new Subscription();
         subscription.setApi(subscriptionModel.getApi());
@@ -88,7 +88,17 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
         if (subscriptionModel.getType() != null) {
             subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
         }
-        subscription.setConfiguration(subscriptionModel.getConfiguration());
+        if (subscriptionModel.getConfiguration() != null) {
+            try {
+                SubscriptionConfiguration subscriptionConfiguration = objectMapper.readValue(
+                    subscriptionModel.getConfiguration(),
+                    SubscriptionConfiguration.class
+                );
+                subscription.setConfiguration(subscriptionConfiguration);
+            } catch (Exception e) {
+                log.error("Unable to parse subscription configuration.", e);
+            }
+        }
         subscription.setMetadata(subscriptionModel.getMetadata());
         return subscription;
     }

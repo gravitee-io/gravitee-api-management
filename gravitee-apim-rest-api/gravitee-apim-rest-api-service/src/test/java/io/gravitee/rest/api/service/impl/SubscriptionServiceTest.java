@@ -48,6 +48,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -69,6 +70,7 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
@@ -125,6 +127,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -138,6 +141,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -226,7 +230,9 @@ public class SubscriptionServiceTest {
     @Mock
     private SubscriptionValidationService subscriptionValidationService;
 
-    @Mock
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     private PlanEntity planEntity;
 
     @AfterClass
@@ -434,7 +440,6 @@ public class SubscriptionServiceTest {
         SecurityContextHolder.setContext(generateSecurityContext());
 
         final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
-        newSubscriptionEntity.setConfiguration("a configuration");
 
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(
@@ -446,7 +451,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
-        verify(subscriptionValidationService, times(1)).validateAndSanitize(newSubscriptionEntity);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -478,7 +483,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).create(subscriptionCapture.capture());
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
-        verify(subscriptionValidationService, never()).validateAndSanitize(any(NewSubscriptionEntity.class));
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(NewSubscriptionEntity.class));
         assertEquals(Subscription.Type.SUBSCRIPTION, subscriptionCapture.getValue().getType());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
@@ -811,20 +816,24 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(subscriptionValidationService, never()).validateAndSanitize(any(UpdateSubscriptionEntity.class));
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(UpdateSubscriptionEntity.class));
     }
 
     @Test
     public void shouldUpdateSubscriptionWithConfiguration() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
-        updatedSubscription.setConfiguration("a configuration");
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("configuration");
+        updatedSubscription.setConfiguration(subscriptionConfiguration);
 
         Subscription subscription = buildTestSubscription(ACCEPTED);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        planEntity.setSecurity(PlanSecurityType.SUBSCRIPTION);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run
@@ -833,7 +842,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(subscriptionValidationService, times(1)).validateAndSanitize(updatedSubscription);
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(updatedSubscription));
     }
 
     @Test
@@ -1736,7 +1745,7 @@ public class SubscriptionServiceTest {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(AUTO);
         PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType("key-less");
+        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
         planV4.setSecurity(planSecurity);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
@@ -1749,8 +1758,11 @@ public class SubscriptionServiceTest {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
-        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
-        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+        updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
+        updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfiguration);
 
         subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
 
@@ -1760,8 +1772,11 @@ public class SubscriptionServiceTest {
                 argThat(
                     sub ->
                         sub.getStatus() == ACCEPTED &&
-                        sub.getConfiguration().equals("{\"url\":\"my-url\"}") &&
-                        sub.getConsumerStatus().equals(Subscription.ConsumerStatus.STARTED)
+                        Map.of("key", "value").equals(sub.getMetadata()) &&
+                        "{\"entrypointId\":\"entrypointId\",\"channel\":null,\"entrypointConfiguration\":{\"key\":\"value\"}}".equals(
+                                sub.getConfiguration()
+                            ) &&
+                        Subscription.ConsumerStatus.STARTED.equals(sub.getConsumerStatus())
                 )
             );
     }
@@ -1771,11 +1786,12 @@ public class SubscriptionServiceTest {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(AUTO);
         PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType("key-less");
+        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
         planV4.setSecurity(planSecurity);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
         Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
         subscription.setStatus(Subscription.Status.ACCEPTED);
         subscription.setPlan(PLAN_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
@@ -1783,14 +1799,26 @@ public class SubscriptionServiceTest {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
-        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
-        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+        updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
+        updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfiguration);
 
         subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
 
         // verify subscription has been updated without any status change
         verify(subscriptionRepository)
-            .update(argThat(sub -> sub.getStatus() == ACCEPTED && sub.getConfiguration().equals("{\"url\":\"my-url\"}")));
+            .update(
+                argThat(
+                    sub ->
+                        sub.getStatus() == ACCEPTED &&
+                        Map.of("key", "value").equals(sub.getMetadata()) &&
+                        "{\"entrypointId\":\"entrypointId\",\"channel\":null,\"entrypointConfiguration\":{\"key\":\"value\"}}".equals(
+                                sub.getConfiguration()
+                            )
+                )
+            );
     }
 
     @Test
@@ -1798,7 +1826,7 @@ public class SubscriptionServiceTest {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(MANUAL);
         PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType("key-less");
+        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
         planV4.setSecurity(planSecurity);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
@@ -1810,14 +1838,26 @@ public class SubscriptionServiceTest {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
-        updateSubscriptionConfigurationEntity.setConfiguration("{\"url\":\"my-url\"}");
-        updateSubscriptionConfigurationEntity.setFilter("my-filter");
+        updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
+        updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfiguration);
 
         subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
 
         // verify subscription has been updated with pending status
         verify(subscriptionRepository)
-            .update(argThat(sub -> sub.getStatus() == PENDING && sub.getConfiguration().equals("{\"url\":\"my-url\"}")));
+            .update(
+                argThat(
+                    sub ->
+                        sub.getStatus() == PENDING &&
+                        Map.of("key", "value").equals(sub.getMetadata()) &&
+                        "{\"entrypointId\":\"entrypointId\",\"channel\":null,\"entrypointConfiguration\":{\"key\":\"value\"}}".equals(
+                                sub.getConfiguration()
+                            )
+                )
+            );
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
