@@ -41,95 +41,27 @@ public class UserMapper {
     private ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public User convert(PrimaryOwnerEntity user) {
-        final User userItem = new User();
-        userItem.setEmail(user.getEmail());
-        userItem.setDisplayName(user.getDisplayName());
-        userItem.setId(user.getId());
-        return userItem;
+        return UserMapstructMapper.INSTANCE.primaryOwnerEntityToUser(user);
     }
 
     public User convert(UserEntity user) {
-        final User userItem = new User();
-        userItem.setEmail(user.getEmail());
-        userItem.setFirstName(user.getFirstname());
-        userItem.setLastName(user.getLastname());
-        userItem.setDisplayName(user.getDisplayName());
-        userItem.setId(user.getId());
-        userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
-        if (user.getRoles() != null) {
-            Map<String, List<String>> userPermissions = user
-                .getRoles()
-                .stream()
-                .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
-                .map(UserRoleEntity::getPermissions)
-                .map(
-                    rolePermissions ->
-                        rolePermissions
-                            .entrySet()
-                            .stream()
-                            .collect(
-                                Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry ->
-                                        new String(entry.getValue())
-                                            .chars()
-                                            .mapToObj(c -> (char) c)
-                                            .map(String::valueOf)
-                                            .collect(Collectors.toList())
-                                )
-                            )
-                )
-                .reduce(
-                    new HashMap<>(),
-                    (acc, rolePermissions) -> {
-                        acc.putAll(rolePermissions);
-                        return acc;
-                    }
-                );
-            userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));
-        }
-        userItem.setCustomFields(user.getCustomFields());
-        return userItem;
+        return UserMapstructMapper.INSTANCE.userEntityToUser(user);
     }
 
     public User convert(SearchableUser user) {
-        final User userItem = new User();
-        userItem.setEmail(user.getEmail());
-        userItem.setFirstName(user.getFirstname());
-        userItem.setLastName(user.getLastname());
-        userItem.setDisplayName(user.getDisplayName());
-        userItem.setId(user.getId());
-        userItem.setReference(user.getReference());
-        return userItem;
+        return UserMapstructMapper.INSTANCE.seachableUserToUser(user);
     }
 
     public NewExternalUserEntity convert(RegisterUserInput input) {
-        NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
-        newExternalUserEntity.setEmail(input.getEmail());
-        newExternalUserEntity.setFirstname(input.getFirstname());
-        newExternalUserEntity.setLastname(input.getLastname());
-        if (input.getCustomFields() != null) {
-            newExternalUserEntity.setCustomFields(input.getCustomFields());
-        }
-        return newExternalUserEntity;
+        return UserMapstructMapper.INSTANCE.toNewExternalUserEntity(input);
     }
 
     public RegisterUserEntity convert(FinalizeRegistrationInput input) {
-        RegisterUserEntity registerUserEntity = new RegisterUserEntity();
-        registerUserEntity.setToken(input.getToken());
-        registerUserEntity.setPassword(input.getPassword());
-        registerUserEntity.setFirstname(input.getFirstname());
-        registerUserEntity.setLastname(input.getLastname());
-        return registerUserEntity;
+        return UserMapstructMapper.INSTANCE.toRegisterUserEntity(input);
     }
 
     public ResetPasswordUserEntity convert(ChangeUserPasswordInput input) {
-        ResetPasswordUserEntity changePwdUserEntity = new ResetPasswordUserEntity();
-        changePwdUserEntity.setToken(input.getToken());
-        changePwdUserEntity.setPassword(input.getPassword());
-        changePwdUserEntity.setFirstname(input.getFirstname());
-        changePwdUserEntity.setLastname(input.getLastname());
-        return changePwdUserEntity;
+        return UserMapstructMapper.INSTANCE.toResetPasswordUserEntity(input);
     }
 
     public UserLinks computeUserLinks(String basePath, Date updateDate) {
