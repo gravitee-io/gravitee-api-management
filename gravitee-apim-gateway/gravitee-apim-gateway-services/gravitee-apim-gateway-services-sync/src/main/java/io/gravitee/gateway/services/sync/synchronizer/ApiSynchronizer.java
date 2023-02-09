@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class ApiSynchronizer extends AbstractSynchronizer {
 
+    private static final int WAIT_TASK_COMPLETION_DELAY = 100;
     private final Logger logger = LoggerFactory.getLogger(ApiSynchronizer.class);
 
     @Autowired
@@ -79,6 +80,8 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
         if (lastRefreshAt == -1) {
             count = initialSynchronizeApis(nextLastRefreshAt, environments);
+            waitForAllTasksCompletion();
+            logger.info("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
         } else {
             count =
                 this.searchLatestEvents(
@@ -95,12 +98,23 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     .compose(this::processApiEvents)
                     .count()
                     .blockingGet();
+            logger.debug("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
+        }
+    }
+
+    private void waitForAllTasksCompletion() {
+        // This is the very first sync process. Need to wait for all background task to finish before continuing (api keys, subscriptions, ...).
+        if (executor.getActiveCount() > 0) {
+            logger.info("There are still sync tasks running in background. Waiting for them to finish before continuing...");
         }
 
-        if (lastRefreshAt == -1) {
-            logger.info("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
-        } else {
-            logger.debug("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
+        while (executor.getActiveCount() > 0 || !executor.getQueue().isEmpty()) {
+            try {
+                Thread.sleep(WAIT_TASK_COMPLETION_DELAY);
+            } catch (InterruptedException e) {
+                logger.warn("An error occurred waiting for first api sync process to finish", e);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -108,13 +122,10 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * Run the initial synchronization which focus on api PUBLISH and START events only.
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
-        final Long count =
-            this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
-                .compose(this::processApiRegisterEvents)
-                .count()
-                .blockingGet();
-
-        return count;
+        return this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+            .compose(this::processApiRegisterEvents)
+            .count()
+            .blockingGet();
     }
 
     @NonNull

@@ -67,7 +67,7 @@ public class OrganizationSynchronizerTest extends TestCase {
 
     @Before
     public void setUp() {
-        organizationSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        organizationSynchronizer.setExecutor((ThreadPoolExecutor) Executors.newFixedThreadPool(1));
     }
 
     @Test

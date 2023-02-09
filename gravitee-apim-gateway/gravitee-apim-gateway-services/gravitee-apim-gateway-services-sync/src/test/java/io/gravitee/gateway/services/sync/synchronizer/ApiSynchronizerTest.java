@@ -27,6 +27,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -34,6 +35,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,11 +85,18 @@ public class ApiSynchronizerTest extends TestCase {
     @Mock
     private ObjectMapper objectMapper;
 
+    private ThreadPoolExecutor executor;
+
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
 
     @Before
     public void setUp() {
-        apiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+        apiSynchronizer.setExecutor(executor);
+    }
+
+    public void cleanup() {
+        executor.shutdown();
     }
 
     @Test
@@ -136,6 +145,22 @@ public class ApiSynchronizerTest extends TestCase {
         verify(planRepository, never()).findByApis(anyList());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
+    }
+
+    @Test
+    public void initialSynchronize_waitForActiveTasksToComplete() throws TechnicalException {
+        // Simulate a long running background task.
+        final ThreadPoolExecutor executor = apiSynchronizer.executor;
+
+        executor.execute(
+            () -> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {}
+            }
+        );
+
+        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
     }
 
     @Test
