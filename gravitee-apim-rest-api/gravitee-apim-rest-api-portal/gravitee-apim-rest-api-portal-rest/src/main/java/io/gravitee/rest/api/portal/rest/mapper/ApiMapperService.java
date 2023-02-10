@@ -101,16 +101,6 @@ public class ApiMapperService {
     }
 
     public ApiLinks computeApiLinks(String basePath, Date updateDate) {
-        ApiLinks apiLinks = new ApiLinks();
-        apiLinks.setLinks(basePath + "/links");
-        apiLinks.setMetrics(basePath + "/metrics");
-        apiLinks.setPages(basePath + "/pages");
-        apiLinks.setPlans(basePath + "/plans");
-        apiLinks.setRatings(basePath + "/ratings");
-        apiLinks.setSelf(basePath);
-        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
-        apiLinks.setPicture(basePath + "/picture?" + hash);
-        apiLinks.setBackground(basePath + "/background?" + hash);
-        return apiLinks;
+        return ApiMapper.INSTANCE.computeApiLinks(basePath, updateDate);
     }
 }

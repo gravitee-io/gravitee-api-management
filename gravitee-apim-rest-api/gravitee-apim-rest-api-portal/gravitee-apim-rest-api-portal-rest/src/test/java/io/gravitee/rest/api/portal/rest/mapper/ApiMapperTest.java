@@ -248,7 +248,6 @@ public class ApiMapperTest {
         ApiLinks links = apiMapperService.computeApiLinks(basePath, null);
 
         assertNotNull(links);
-
         assertEquals(basePath, links.getSelf());
         assertEquals(basePath + "/metrics", links.getMetrics());
         assertEquals(basePath + "/links", links.getLinks());

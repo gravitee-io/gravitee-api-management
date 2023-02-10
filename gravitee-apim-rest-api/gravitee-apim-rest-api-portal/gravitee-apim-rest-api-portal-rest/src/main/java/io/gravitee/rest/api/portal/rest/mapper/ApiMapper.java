@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
+import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.User;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -41,6 +42,21 @@ public interface ApiMapper {
     @Mapping(source = "updatedAt", target = "updatedAt", qualifiedByName = "addDate")
     @Mapping(source = "apiVersion", target = "version")
     Api toApi(GenericApiEntity api);
+
+    @Mapping(target = "links", expression = "java(basePath + \"/links\")")
+    @Mapping(target = "metrics", expression = "java(basePath + \"/metrics\")")
+    @Mapping(target = "pages", expression = "java(basePath + \"/pages\")")
+    @Mapping(target = "plans", expression = "java(basePath + \"/plans\")")
+    @Mapping(target = "ratings", expression = "java(basePath + \"/ratings\")")
+    @Mapping(source = "basePath", target = "self")
+    ApiLinks computeApiLinks(String basePath, Date updateDate);
+
+    @AfterMapping
+    static void after(@MappingTarget ApiLinks apiLinks, String basePath, Date updateDate) {
+        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
+        apiLinks.setPicture(basePath + "/picture?" + hash);
+        apiLinks.setBackground(basePath + "/background?" + hash);
+    }
 
     @Named("isDraft")
     static boolean isDraft(ApiLifecycleState lifecycleState) {
