@@ -149,7 +149,7 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(filteringService)
             .filterApis(any(), any(), any(), any(), any());
 
-        when(apiMapper.convert(eq(GraviteeContext.getExecutionContext()), any())).thenCallRealMethod();
+        when(apiMapperService.convert(eq(GraviteeContext.getExecutionContext()), any())).thenCallRealMethod();
 
         when(
             parameterService.findAsBoolean(
@@ -175,7 +175,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
         Mockito
-            .verify(apiMapper, Mockito.times(5))
+            .verify(apiMapperService, Mockito.times(5))
             .computeApiLinks(basePathCaptor.capture(), ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
@@ -186,7 +186,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertTrue(bastPathList.contains(expectedBasePath + "/6"));
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
@@ -202,7 +202,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("4")));
@@ -221,7 +221,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
@@ -245,7 +245,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
@@ -261,7 +261,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(0)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(0)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(0, allNameValues.size());
 
@@ -343,14 +343,14 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
         Mockito
-            .verify(apiMapper, Mockito.times(1))
+            .verify(apiMapperService, Mockito.times(1))
             .computeApiLinks(basePathCaptor.capture(), ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/3"));
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         assertEquals("3", apiEntityCaptor.getValue().getName());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -364,7 +364,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(2)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(2)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(2, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4")));
@@ -387,7 +387,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5")));
@@ -412,7 +412,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "5")));
@@ -437,7 +437,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5")));
@@ -453,7 +453,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
@@ -476,7 +476,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
@@ -501,7 +501,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("4")));
@@ -526,7 +526,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));

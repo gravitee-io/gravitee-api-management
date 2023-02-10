@@ -73,9 +73,9 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
-        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), publishedApi);
-        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), unpublishedApi);
-        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
+        doReturn(new Api().name("A").id("A")).when(apiMapperService).convert(GraviteeContext.getExecutionContext(), publishedApi);
+        doReturn(new Api().name("B").id("B")).when(apiMapperService).convert(GraviteeContext.getExecutionContext(), unpublishedApi);
+        doReturn(new Api().name("C").id("C")).when(apiMapperService).convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
     }
 
     @Test

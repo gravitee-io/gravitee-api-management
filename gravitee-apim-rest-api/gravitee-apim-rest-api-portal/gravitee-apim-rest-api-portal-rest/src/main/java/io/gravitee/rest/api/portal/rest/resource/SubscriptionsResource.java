@@ -32,7 +32,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapperService;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
@@ -87,7 +87,7 @@ public class SubscriptionsResource extends AbstractResource {
     private ApiKeyService apiKeyService;
 
     @Inject
-    private ApiMapper apiMapper;
+    private ApiMapperService apiMapperService;
 
     @Inject
     private KeyMapper keyMapper;
@@ -185,7 +185,7 @@ public class SubscriptionsResource extends AbstractResource {
             .fillApiMetadata(
                 (metadata, api) -> {
                     String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
-                    ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
+                    ApiLinks apiLinks = apiMapperService.computeApiLinks(apisURL, api.getUpdatedAt());
                     metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
                     return api;
                 }

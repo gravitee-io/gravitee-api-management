@@ -70,7 +70,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         Api api = new Api();
         api.setId(API);
-        doReturn(api).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(api).when(apiMapperService).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
         doReturn(new Rating()).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
@@ -86,7 +86,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi);
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture(), ArgumentCaptor.forClass(Date.class).capture());
+        Mockito.verify(apiMapperService, Mockito.times(1)).computeApiLinks(ac.capture(), ArgumentCaptor.forClass(Date.class).capture());
 
         String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();

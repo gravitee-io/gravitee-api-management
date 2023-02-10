@@ -102,7 +102,7 @@ public class ApiMapperTest {
     private ApiEntrypointService apiEntrypointService;
 
     @InjectMocks
-    private ApiMapper apiMapper;
+    private ApiMapperService apiMapperService;
 
     @Test
     public void testConvert() {
@@ -152,7 +152,7 @@ public class ApiMapperTest {
         apiEntity.setUpdatedAt(nowDate);
 
         // Test
-        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
+        Api responseApi = apiMapperService.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -212,7 +212,7 @@ public class ApiMapperTest {
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 
         // Test
-        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
+        Api responseApi = apiMapperService.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -245,7 +245,7 @@ public class ApiMapperTest {
     public void testApiLinks() {
         String basePath = "/" + API;
 
-        ApiLinks links = apiMapper.computeApiLinks(basePath, null);
+        ApiLinks links = apiMapperService.computeApiLinks(basePath, null);
 
         assertNotNull(links);
 

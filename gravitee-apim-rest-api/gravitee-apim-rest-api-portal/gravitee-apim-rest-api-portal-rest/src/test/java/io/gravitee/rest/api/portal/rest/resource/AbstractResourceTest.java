@@ -185,7 +185,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected CookieGenerator cookieGenerator;
 
     @Autowired
-    protected ApiMapper apiMapper;
+    protected ApiMapperService apiMapperService;
 
     @Autowired
     protected PageMapper pageMapper;
@@ -325,7 +325,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(configService);
         reset(authenticationProvider);
         reset(cookieGenerator);
-        reset(apiMapper);
+        reset(apiMapperService);
         reset(pageMapper);
         reset(planMapper);
         reset(ratingMapper);
@@ -567,8 +567,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public ApiMapper apiMapper() {
-            return mock(ApiMapper.class);
+        public ApiMapperService apiMapper() {
+            return mock(ApiMapperService.class);
         }
 
         @Bean
