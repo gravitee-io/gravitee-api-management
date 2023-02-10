@@ -1,0 +1,92 @@
+@use 'node_modules/@angular/material/index' as mat;
+@use 'node_modules/@gravitee/ui-particles-angular/index' as gio;
+
+.gio-form-listeners__table {
+  border-radius: 4px;
+  border-collapse: inherit;
+  width: 100%;
+
+  td {
+    border-top: none;
+  }
+
+  tr:last-child td:first-child {
+    border-radius: 0 0 0 4px;
+  }
+
+  tr:last-child td:last-child {
+    border-radius: 0 0 4px 0;
+  }
+
+  th:first-child {
+    border-radius: 4px 0 0 0;
+  }
+
+  th:last-child {
+    border-radius: 0 4px 0 0;
+  }
+
+  &__title {
+    font-size: 14px;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+
+    &__icon {
+      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+      margin-left: 4px;
+      height: 14px;
+      width: 14px;
+    }
+  }
+
+  &__subtitle {
+    color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+    font-size: 12px;
+    font-weight: normal;
+    text-transform: none;
+  }
+
+  &__field {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 0;
+  }
+
+  &__field:focus-within {
+    z-index: 100;
+    height: auto;
+    background-color: mat.get-color-from-palette(gio.$mat-content-palette, 'lighter');
+
+    * {
+      max-height: none;
+    }
+  }
+
+  &__row__td {
+    &__button__hide {
+      visibility: hidden;
+    }
+  }
+
+  &__row__td:last-child,
+  &__row__th:last-child {
+    border-left: none;
+    width: 40px;
+  }
+
+  &__row__td:nth-last-child(2),
+  &__row__th:nth-last-child(2) {
+    border-right: none;
+  }
+}
+
+::ng-deep {
+  .gio-form-listeners__table__field {
+    .mat-form-field-flex {
+      padding-top: 0 !important;
+    }
+  }
+}
