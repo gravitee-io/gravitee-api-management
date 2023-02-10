@@ -23,9 +23,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -55,6 +53,16 @@ public interface UserMapstructMapper {
 
     ResetPasswordUserEntity toResetPasswordUserEntity(ChangeUserPasswordInput input);
 
+    @Mapping(target = "notifications", expression = "java(basePath + \"/notifications\")")
+    @Mapping(source = "basePath", target = "self")
+    UserLinks computeUserLinks(String basePath, Date updateDate);
+
+    @AfterMapping
+    static void after(@MappingTarget UserLinks userLinks, String basePath, Date updateDate) {
+        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
+        userLinks.setAvatar(basePath + "/avatar?" + hash);
+    }
+
     @Named("calculateEditableProfile")
     static boolean calculateEditableProfile(String source) {
         return IDP_SOURCE_GRAVITEE.equals(source) || IDP_SOURCE_MEMORY.equalsIgnoreCase(source);
@@ -62,7 +70,7 @@ public interface UserMapstructMapper {
 
     @Named("calculatePermissions")
     static UserPermissions calculatePermissions(Set<UserRoleEntity> roles) {
-        if (roles == null) {
+        if (Objects.isNull(roles)) {
             return null;
         }
         Map<String, List<String>> userPermissions = roles
