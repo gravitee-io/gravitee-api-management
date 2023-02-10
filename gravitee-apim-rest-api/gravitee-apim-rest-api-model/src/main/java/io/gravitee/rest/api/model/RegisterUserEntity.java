@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.model;
 
 import javax.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode
 public class RegisterUserEntity {
 
     @NotNull

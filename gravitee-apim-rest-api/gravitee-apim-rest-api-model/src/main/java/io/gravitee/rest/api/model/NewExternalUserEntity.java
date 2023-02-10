@@ -17,12 +17,14 @@ package io.gravitee.rest.api.model;
 
 import java.util.Map;
 import javax.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode
 public class NewExternalUserEntity {
 
     /**
