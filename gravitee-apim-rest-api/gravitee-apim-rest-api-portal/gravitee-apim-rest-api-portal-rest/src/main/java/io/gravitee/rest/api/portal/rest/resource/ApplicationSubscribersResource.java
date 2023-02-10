@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.portal.rest.mapper.service.ApiMapperService;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.AnalyticsService;
@@ -47,7 +47,7 @@ import javax.ws.rs.core.Response;
 public class ApplicationSubscribersResource extends AbstractResource {
 
     @Inject
-    private ApiMapperService apiMapperService;
+    private ApiMapper apiMapper;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -98,7 +98,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
                 .map(SubscriptionEntity::getApi)
                 .distinct()
                 .map(api -> apiSearchService.findGenericById(executionContext, api))
-                .map(api1 -> apiMapperService.convert(executionContext, api1))
+                .map(api1 -> apiMapper.convert(executionContext, api1))
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
             return createListResponse(executionContext, subscribersApis, paginationParam);

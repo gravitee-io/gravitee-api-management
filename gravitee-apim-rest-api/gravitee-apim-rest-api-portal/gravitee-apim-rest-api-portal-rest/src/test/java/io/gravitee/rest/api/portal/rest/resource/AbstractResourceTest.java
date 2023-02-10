@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.*;
-import io.gravitee.rest.api.portal.rest.mapper.service.ApiMapperService;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -186,7 +186,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected CookieGenerator cookieGenerator;
 
     @Autowired
-    protected ApiMapperService apiMapperService;
+    protected ApiMapper apiMapper;
 
     @Autowired
     protected PageMapper pageMapper;
@@ -323,7 +323,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(configService);
         reset(authenticationProvider);
         reset(cookieGenerator);
-        reset(apiMapperService);
+        reset(apiMapper);
         reset(pageMapper);
         reset(planMapper);
         reset(ratingMapper);
@@ -564,8 +564,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public ApiMapperService apiMapper() {
-            return mock(ApiMapperService.class);
+        public ApiMapper apiMapper() {
+            return mock(ApiMapper.class);
         }
 
         @Bean

@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.portal.rest.mapper.service.ApiMapperService;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
@@ -54,7 +54,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     private ResourceContext resourceContext;
 
     @Inject
-    private ApiMapperService apiMapperService;
+    private ApiMapper apiMapper;
 
     @Inject
     private FilteringService filteringService;
@@ -157,7 +157,7 @@ public class ApisResource extends AbstractResource<Api, String> {
             .stream()
             .map(
                 apiEntity -> {
-                    Api api = apiMapperService.convert(executionContext, apiEntity);
+                    Api api = apiMapper.convert(executionContext, apiEntity);
                     return addApiLinks(api);
                 }
             )
@@ -198,9 +198,7 @@ public class ApisResource extends AbstractResource<Api, String> {
             long epochMilli = updatedAt.toInstant().toEpochMilli();
             updateDate = new Date(epochMilli);
         }
-        return api.links(
-            apiMapperService.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate)
-        );
+        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
     }
 
     private FilteringService.FilterType convert(FilterApiQuery filter) {

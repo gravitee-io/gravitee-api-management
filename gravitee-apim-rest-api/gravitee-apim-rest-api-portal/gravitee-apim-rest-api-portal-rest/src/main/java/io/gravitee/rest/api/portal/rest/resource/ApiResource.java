@@ -23,9 +23,9 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.portal.rest.mapper.service.ApiMapperService;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
@@ -57,7 +57,7 @@ public class ApiResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private ApiMapperService apiMapperService;
+    private ApiMapper apiMapper;
 
     @Inject
     private PageMapper pageMapper;
@@ -86,7 +86,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
             GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
-            Api api = apiMapperService.convert(executionContext, genericApiEntity);
+            Api api = apiMapper.convert(executionContext, genericApiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService
@@ -110,7 +110,7 @@ public class ApiResource extends AbstractResource {
             }
 
             api.links(
-                apiMapperService.computeApiLinks(
+                apiMapper.computeApiLinks(
                     PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()),
                     genericApiEntity.getUpdatedAt()
                 )

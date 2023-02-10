@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.portal.rest.mapper.service.ApiMapperService;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
@@ -58,11 +57,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -102,8 +102,19 @@ public class ApiMapperTest {
     @Mock
     private ApiEntrypointService apiEntrypointService;
 
-    @InjectMocks
-    private ApiMapperService apiMapperService;
+    @Mock
+    private ApiMapper apiMapper;
+
+    @Before
+    public void before() {
+        when(apiMapper.convert(any(), any())).thenCallRealMethod();
+        when(apiMapper.computeApiLinks(any(), any())).thenCallRealMethod();
+
+        ReflectionTestUtils.setField(apiMapper, "apiEntrypointService", apiEntrypointService);
+        ReflectionTestUtils.setField(apiMapper, "ratingService", ratingService);
+        ReflectionTestUtils.setField(apiMapper, "parameterService", parameterService);
+        ReflectionTestUtils.setField(apiMapper, "categoryService", categoryService);
+    }
 
     @Test
     public void testConvert() {
@@ -153,7 +164,7 @@ public class ApiMapperTest {
         apiEntity.setUpdatedAt(nowDate);
 
         // Test
-        Api responseApi = apiMapperService.convert(GraviteeContext.getExecutionContext(), apiEntity);
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -213,7 +224,7 @@ public class ApiMapperTest {
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 
         // Test
-        Api responseApi = apiMapperService.convert(GraviteeContext.getExecutionContext(), apiEntity);
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -246,7 +257,7 @@ public class ApiMapperTest {
     public void testApiLinks() {
         String basePath = "/" + API;
 
-        ApiLinks links = apiMapperService.computeApiLinks(basePath, null);
+        ApiLinks links = apiMapper.computeApiLinks(basePath, null);
 
         assertNotNull(links);
         assertEquals(basePath, links.getSelf());
