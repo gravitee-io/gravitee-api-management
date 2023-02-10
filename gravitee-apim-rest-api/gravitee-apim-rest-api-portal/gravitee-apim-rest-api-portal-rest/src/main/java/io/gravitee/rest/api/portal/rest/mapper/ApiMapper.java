@@ -63,79 +63,48 @@ public class ApiMapper {
     private ApiEntrypointService apiEntrypointService;
 
     public Api convert(ExecutionContext executionContext, GenericApiEntity api) {
-        final Api apiItem = new Api();
-        apiItem.setDescription(api.getDescription());
+        final Api apiItem = ApiMapstructMapper.INSTANCE.toApi(api, executionContext);
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
-        if (apiEntrypoints != null) {
-            List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
-            apiItem.setEntrypoints(entrypoints);
-        }
-
-        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED || api.getLifecycleState() == ApiLifecycleState.CREATED);
-        apiItem.setRunning(api.getState() == Lifecycle.State.STARTED);
-        apiItem.setPublic(api.getVisibility() == Visibility.PUBLIC);
-        apiItem.setId(api.getId());
-
-        List<String> apiLabels = api.getLabels();
-        if (apiLabels != null) {
-            apiItem.setLabels(new ArrayList<>(apiLabels));
-        } else {
-            apiItem.setLabels(new ArrayList<>());
-        }
-
-        apiItem.setName(api.getName());
-
-        PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
-        if (primaryOwner != null) {
-            User owner = new User();
-            owner.setId(primaryOwner.getId());
-            owner.setDisplayName(primaryOwner.getDisplayName());
-            owner.setEmail(primaryOwner.getEmail());
-            apiItem.setOwner(owner);
-        }
-        apiItem.setPages(null);
-        apiItem.setPlans(null);
-
-        if (ratingService.isEnabled(executionContext)) {
-            final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(executionContext, api.getId());
-            RatingSummary ratingSummary = new RatingSummary()
-                .average(ratingSummaryEntity.getAverageRate())
-                .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
-            apiItem.setRatingSummary(ratingSummary);
-        }
-
-        if (api.getCreatedAt() != null) {
-            apiItem.setCreatedAt(api.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        }
-        if (api.getUpdatedAt() != null) {
-            apiItem.setUpdatedAt(api.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        }
-
-        apiItem.setVersion(api.getApiVersion());
-
-        boolean isCategoryModeEnabled =
-            this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
-        if (isCategoryModeEnabled && api.getCategories() != null) {
-            apiItem.setCategories(
-                api
-                    .getCategories()
-                    .stream()
-                    .filter(
-                        categoryId -> {
-                            try {
-                                categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
-                                return true;
-                            } catch (CategoryNotFoundException v) {
-                                return false;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList())
-            );
-        } else {
-            apiItem.setCategories(new ArrayList<>());
-        }
+        //        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
+        //        if (apiEntrypoints != null) {
+        //            List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
+        //            apiItem.setEntrypoints(entrypoints);
+        //        }
+        //
+        //        if (ratingService.isEnabled(executionContext)) {
+        //            final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(executionContext, api.getId());
+        //            RatingSummary ratingSummary = new RatingSummary()
+        //                .average(ratingSummaryEntity.getAverageRate())
+        //                .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
+        //            apiItem.setRatingSummary(ratingSummary);
+        //        }
+        //
+        //        boolean isCategoryModeEnabled =
+        //            this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        //        System.out.println("is boolean parameter service: " + isCategoryModeEnabled);
+        //        if (isCategoryModeEnabled && api.getCategories() != null) {
+        //            //            apiItem.setCategories(
+        //            //                api
+        //            //                    .getCategories()
+        //            //                    .stream()
+        //            //                    .filter(
+        //            //                        categoryId -> {
+        //            //                            try {
+        //            //                                categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
+        //            //                                return true;
+        //            //                            } catch (CategoryNotFoundException v) {
+        //            //                                return false;
+        //            //                            }
+        //            //                        }
+        //            //                    )
+        //            //                    .collect(Collectors.toList())
+        //            //            );
+        //            List<String> categories = this.categories(api, executionContext);
+        //            System.out.println("calculated categories: " + categories);
+        //            apiItem.setCategories(categories);
+        //        } else {
+        //            apiItem.setCategories(new ArrayList<>());
+        //        }
 
         return apiItem;
     }
