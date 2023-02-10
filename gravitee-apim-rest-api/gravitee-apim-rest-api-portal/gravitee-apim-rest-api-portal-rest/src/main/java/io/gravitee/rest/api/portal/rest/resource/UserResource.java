@@ -58,9 +58,6 @@ public class UserResource extends AbstractResource {
     @Inject
     private UserService userService;
 
-    @Inject
-    private UserMapper userMapper;
-
     @Context
     private HttpServletResponse response;
 
@@ -73,7 +70,7 @@ public class UserResource extends AbstractResource {
         final String authenticatedUser = getAuthenticatedUser();
         try {
             UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), authenticatedUser);
-            User currentUser = userMapper.convert(userEntity);
+            User currentUser = UserMapper.INSTANCE.userEntityToUser(userEntity);
             boolean withManagement =
                 (
                     authenticatedUser != null &&
@@ -88,7 +85,7 @@ public class UserResource extends AbstractResource {
                 }
             }
 
-            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
+            currentUser.setLinks(UserMapper.INSTANCE.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
             return Response.ok(currentUser).build();
         } catch (final UserNotFoundException unfe) {
             response.addCookie(cookieGenerator.generate(null));
@@ -127,8 +124,8 @@ public class UserResource extends AbstractResource {
 
         UserEntity updatedUser = userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUserEntity);
 
-        final User currentUser = userMapper.convert(updatedUser);
-        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
+        final User currentUser = UserMapper.INSTANCE.userEntityToUser(updatedUser);
+        currentUser.setLinks(UserMapper.INSTANCE.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
         return Response.ok(currentUser).build();
     }
 

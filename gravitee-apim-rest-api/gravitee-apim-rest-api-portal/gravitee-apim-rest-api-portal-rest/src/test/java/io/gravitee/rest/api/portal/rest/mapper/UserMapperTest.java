@@ -59,9 +59,6 @@ public class UserMapperTest {
     private static final String SEARCHABLE_USER_DISPLAY_NAME = "my-searchable-user-display-name";
     private static final String SEARCHABLE_USER_REFERENCE = "my-searchable-user-reference";
 
-    @InjectMocks
-    private UserMapper userMapper;
-
     @Test
     public void testConvertUserEntity() {
         Instant now = Instant.now();
@@ -85,7 +82,7 @@ public class UserMapperTest {
         userEntity.setUpdatedAt(nowDate);
 
         // Test
-        User responseUser = userMapper.convert(userEntity);
+        User responseUser = UserMapper.INSTANCE.userEntityToUser(userEntity);
         assertNotNull(responseUser);
         assertEquals(USER_ID, responseUser.getId());
         assertEquals(USER_EMAIL, responseUser.getEmail());
@@ -131,7 +128,7 @@ public class UserMapperTest {
         userEntity.setUpdatedAt(nowDate);
 
         // Test
-        User responseUser = userMapper.convert(userEntity);
+        User responseUser = UserMapper.INSTANCE.userEntityToUser(userEntity);
         assertNotNull(responseUser);
         assertEquals(USER_ID, responseUser.getId());
         assertEquals(USER_EMAIL, responseUser.getEmail());
@@ -154,7 +151,7 @@ public class UserMapperTest {
         Mockito.when(searchableUser.getReference()).thenReturn(SEARCHABLE_USER_REFERENCE);
 
         // Test
-        User responseUser = userMapper.convert(searchableUser);
+        User responseUser = UserMapper.INSTANCE.seachableUserToUser(searchableUser);
         assertNotNull(responseUser);
         assertEquals(USER_ID, responseUser.getId());
         assertEquals(USER_EMAIL, responseUser.getEmail());
@@ -174,7 +171,7 @@ public class UserMapperTest {
         input.setLastname(USER_LASTNAME);
 
         // Test
-        NewExternalUserEntity newExternalUserEntity = userMapper.convert(input);
+        NewExternalUserEntity newExternalUserEntity = UserMapper.INSTANCE.toNewExternalUserEntity(input);
         assertNotNull(newExternalUserEntity);
         assertEquals(USER_EMAIL, newExternalUserEntity.getEmail());
         assertEquals(USER_FIRSTNAME, newExternalUserEntity.getFirstname());
@@ -192,7 +189,7 @@ public class UserMapperTest {
         input.setLastname(USER_LASTNAME);
 
         // Test
-        RegisterUserEntity registerUserEntity = userMapper.convert(input);
+        RegisterUserEntity registerUserEntity = UserMapper.INSTANCE.toRegisterUserEntity(input);
         assertNotNull(registerUserEntity);
         assertEquals(USER_TOKEN, registerUserEntity.getToken());
         assertEquals(USER_PASSWORD, registerUserEntity.getPassword());
@@ -204,7 +201,7 @@ public class UserMapperTest {
     public void testUserLinks() {
         String basePath = "/user";
 
-        UserLinks links = userMapper.computeUserLinks(basePath, null);
+        UserLinks links = UserMapper.INSTANCE.computeUserLinks(basePath, null);
 
         assertNotNull(links);
 

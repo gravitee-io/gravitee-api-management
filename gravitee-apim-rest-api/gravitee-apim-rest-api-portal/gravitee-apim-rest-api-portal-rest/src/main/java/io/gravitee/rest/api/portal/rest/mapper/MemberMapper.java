@@ -36,9 +36,6 @@ import org.springframework.stereotype.Component;
 public class MemberMapper {
 
     @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
     private UserService userService;
 
     public Member convert(ExecutionContext executionContext, MemberEntity member, UriInfo uriInfo) {
@@ -47,9 +44,9 @@ public class MemberMapper {
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
 
         UserEntity userEntity = userService.findById(executionContext, member.getId());
-        User memberUser = userMapper.convert(userEntity);
+        User memberUser = UserMapper.INSTANCE.userEntityToUser(userEntity);
         memberUser.setLinks(
-            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
+            UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
         );
 
         memberItem.setUser(memberUser);

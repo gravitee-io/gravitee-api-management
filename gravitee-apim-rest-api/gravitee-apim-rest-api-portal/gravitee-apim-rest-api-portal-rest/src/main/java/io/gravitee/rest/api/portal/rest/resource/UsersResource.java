@@ -53,9 +53,6 @@ import javax.ws.rs.core.Response;
 public class UsersResource extends AbstractResource {
 
     @Inject
-    private UserMapper userMapper;
-
-    @Inject
     private UserService userService;
 
     @Inject
@@ -72,11 +69,11 @@ public class UsersResource extends AbstractResource {
     public Response registerUser(@Valid @NotNull(message = "Input must not be null.") RegisterUserInput registerUserInput) {
         UserEntity newUser = userService.register(
             GraviteeContext.getExecutionContext(),
-            userMapper.convert(registerUserInput),
+            UserMapper.INSTANCE.toNewExternalUserEntity(registerUserInput),
             registerUserInput.getConfirmationPageUrl()
         );
         if (newUser != null) {
-            return Response.ok().entity(userMapper.convert(newUser)).build();
+            return Response.ok().entity(UserMapper.INSTANCE.userEntityToUser(newUser)).build();
         }
 
         return Response.serverError().build();
@@ -91,10 +88,10 @@ public class UsersResource extends AbstractResource {
     ) {
         UserEntity newUser = userService.finalizeRegistration(
             GraviteeContext.getExecutionContext(),
-            userMapper.convert(finalizeRegistrationInput)
+            UserMapper.INSTANCE.toRegisterUserEntity(finalizeRegistrationInput)
         );
         if (newUser != null) {
-            return Response.ok().entity(userMapper.convert(newUser)).build();
+            return Response.ok().entity(UserMapper.INSTANCE.userEntityToUser(newUser)).build();
         }
 
         return Response.serverError().build();
@@ -127,10 +124,10 @@ public class UsersResource extends AbstractResource {
     ) {
         UserEntity newUser = userService.finalizeResetPassword(
             GraviteeContext.getExecutionContext(),
-            userMapper.convert(changeUserPasswordInput)
+            UserMapper.INSTANCE.toResetPasswordUserEntity(changeUserPasswordInput)
         );
         if (newUser != null) {
-            return Response.ok().entity(userMapper.convert(newUser)).build();
+            return Response.ok().entity(UserMapper.INSTANCE.userEntityToUser(newUser)).build();
         }
 
         return Response.serverError().build();
@@ -150,10 +147,10 @@ public class UsersResource extends AbstractResource {
             .stream()
             .map(
                 searchableUser ->
-                    userMapper
-                        .convert(searchableUser)
+                    UserMapper.INSTANCE
+                        .seachableUserToUser(searchableUser)
                         .links(
-                            userMapper.computeUserLinks(
+                            UserMapper.INSTANCE.computeUserLinks(
                                 PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()),
                                 null
                             )

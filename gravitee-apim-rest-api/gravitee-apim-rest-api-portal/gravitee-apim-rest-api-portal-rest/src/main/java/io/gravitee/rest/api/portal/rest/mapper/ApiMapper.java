@@ -80,7 +80,7 @@ public interface ApiMapper {
 
     @Named("addOwner")
     static User addOwner(PrimaryOwnerEntity entity) {
-        return UserMapstructMapper.INSTANCE.primaryOwnerEntityToUser(entity);
+        return UserMapper.INSTANCE.primaryOwnerEntityToUser(entity);
     }
 
     @Named("addDate")

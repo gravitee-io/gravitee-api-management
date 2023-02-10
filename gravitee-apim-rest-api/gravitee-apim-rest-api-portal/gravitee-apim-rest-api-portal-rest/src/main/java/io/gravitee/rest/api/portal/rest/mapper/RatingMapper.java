@@ -43,15 +43,12 @@ public class RatingMapper {
     @Autowired
     UserService userService;
 
-    @Autowired
-    UserMapper userMapper;
-
     public Rating convert(ExecutionContext executionContext, RatingEntity ratingEntity, UriInfo uriInfo) {
         final Rating rating = new Rating();
         UserEntity authorEntity = userService.findById(executionContext, ratingEntity.getUser());
-        User author = userMapper.convert(authorEntity);
+        User author = UserMapper.INSTANCE.userEntityToUser(authorEntity);
         author.setLinks(
-            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
+            UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
         );
         rating.setAuthor(author);
         rating.setTitle(ratingEntity.getTitle());
@@ -70,9 +67,9 @@ public class RatingMapper {
                 .map(
                     rae -> {
                         UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
-                        User answerAuthor = userMapper.convert(answerAuthorEntity);
+                        User answerAuthor = UserMapper.INSTANCE.userEntityToUser(answerAuthorEntity);
                         answerAuthor.setLinks(
-                            userMapper.computeUserLinks(
+                            UserMapper.INSTANCE.computeUserLinks(
                                 usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
                                 answerAuthorEntity.getUpdatedAt()
                             )

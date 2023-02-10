@@ -59,9 +59,6 @@ public class UserResourceTest extends AbstractResourceTest {
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
 
-        doReturn(new User()).when(userMapper).convert(nullable(UserEntity.class));
-        doReturn(new UserLinks()).when(userMapper).computeUserLinks(any(), any());
-
         InlinePictureEntity mockImage = new InlinePictureEntity();
         byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);

@@ -47,9 +47,6 @@ import org.springframework.stereotype.Component;
 public class ApplicationMapper {
 
     @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -91,9 +88,9 @@ public class ApplicationMapper {
         application.setName(applicationEntity.getName());
 
         UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationEntity.getPrimaryOwner().getId());
-        User owner = userMapper.convert(primaryOwnerUserEntity);
+        User owner = UserMapper.INSTANCE.userEntityToUser(primaryOwnerUserEntity);
         owner.setLinks(
-            userMapper.computeUserLinks(
+            UserMapper.INSTANCE.computeUserLinks(
                 usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
                 primaryOwnerUserEntity.getUpdatedAt()
             )
@@ -171,16 +168,16 @@ public class ApplicationMapper {
         User owner;
         if (withUserDetails) {
             UserEntity primaryOwnerUserEntity = userService.findById(executionContext, primaryOwner.getId());
-            owner = userMapper.convert(primaryOwnerUserEntity);
+            owner = UserMapper.INSTANCE.userEntityToUser(primaryOwnerUserEntity);
             owner.setLinks(
-                userMapper.computeUserLinks(
+                UserMapper.INSTANCE.computeUserLinks(
                     usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
                     primaryOwnerUserEntity.getUpdatedAt()
                 )
             );
         } else {
-            owner = userMapper.convert(primaryOwner);
-            owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
+            owner = UserMapper.INSTANCE.primaryOwnerEntityToUser(primaryOwner);
+            owner.setLinks(UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
         }
 
         application.setOwner(owner);

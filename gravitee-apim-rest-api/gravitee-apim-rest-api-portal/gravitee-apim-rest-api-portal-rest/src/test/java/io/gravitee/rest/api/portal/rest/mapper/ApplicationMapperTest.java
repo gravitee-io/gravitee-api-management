@@ -92,9 +92,6 @@ public class ApplicationMapperTest {
     @Mock
     private GroupService groupService;
 
-    @Spy
-    private UserMapper userMapper = new UserMapper();
-
     ApplicationEntity applicationEntity;
     ApplicationListItem applicationListItem;
     Instant now;
@@ -115,7 +112,6 @@ public class ApplicationMapperTest {
         //init
         reset(groupService);
         reset(userService);
-        reset(userMapper);
 
         GroupEntity grpEntity = new GroupEntity();
         grpEntity.setId(APPLICATION_GROUP_ID);
@@ -128,8 +124,6 @@ public class ApplicationMapperTest {
         when(userEntity.getId()).thenReturn(APPLICATION_USER_ID);
 
         when(userService.findById(GraviteeContext.getExecutionContext(), APPLICATION_USER_ID)).thenReturn(userEntity);
-        when(userMapper.convert(userEntity)).thenCallRealMethod();
-        when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
 

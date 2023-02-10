@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserLinks;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.net.URI;
@@ -65,9 +66,6 @@ public class RatingMapperTest {
     private UserService userService;
 
     @Mock
-    private UserMapper userMapper;
-
-    @Mock
     private UriInfo uriInfo;
 
     @Mock
@@ -79,7 +77,6 @@ public class RatingMapperTest {
     @Before
     public void setup() throws URISyntaxException {
         reset(userService);
-        reset(userMapper);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         when(uriBuilder.build()).thenReturn(new URI(""));
         when(uriInfo.getBaseUriBuilder()).thenReturn(uriBuilder);
@@ -118,13 +115,19 @@ public class RatingMapperTest {
 
         User author = new User();
         author.setId(RATING_AUTHOR);
+
+        UserLinks userLinks = new UserLinks();
+        userLinks.setSelf("");
+        userLinks.setAvatar("/avatar?");
+        userLinks.setNotifications("/notifications");
+        author.setLinks(userLinks);
+
         User responseAuthor = new User();
         responseAuthor.setId(RATING_RESPONSE_AUTHOR);
+        responseAuthor.setLinks(userLinks);
 
         doReturn(authorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_AUTHOR);
         doReturn(responseAuthorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_RESPONSE_AUTHOR);
-        doReturn(author).when(userMapper).convert(authorEntity);
-        doReturn(responseAuthor).when(userMapper).convert(responseAuthorEntity);
 
         Rating responseRating = ratingMapper.convert(GraviteeContext.getExecutionContext(), ratingEntity, uriInfo);
         assertNotNull(responseRating);

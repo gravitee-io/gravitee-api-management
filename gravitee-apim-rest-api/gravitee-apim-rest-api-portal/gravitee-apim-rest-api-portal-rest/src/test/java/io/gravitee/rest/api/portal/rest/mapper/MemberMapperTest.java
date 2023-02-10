@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -61,9 +60,6 @@ public class MemberMapperTest {
 
     @Mock
     private UserService userService;
-
-    @Spy
-    private UserMapper userMapper = new UserMapper();
 
     @Test
     public void testConvert() {
@@ -91,8 +87,6 @@ public class MemberMapperTest {
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
 
         when(userService.findById(GraviteeContext.getExecutionContext(), MEMBER_ID)).thenReturn(userEntity);
-        when(userMapper.convert(userEntity)).thenCallRealMethod();
-        when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
         //Test
         Member responseMember = memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo);

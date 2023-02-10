@@ -209,9 +209,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected MemberMapper memberMapper;
 
     @Autowired
-    protected UserMapper userMapper;
-
-    @Autowired
     protected LogMapper logMapper;
 
     @Autowired
@@ -334,7 +331,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(subscriptionMapper);
         reset(applicationMapper);
         reset(memberMapper);
-        reset(userMapper);
         reset(logMapper);
         reset(analyticsMapper);
         reset(portalNotificationMapper);

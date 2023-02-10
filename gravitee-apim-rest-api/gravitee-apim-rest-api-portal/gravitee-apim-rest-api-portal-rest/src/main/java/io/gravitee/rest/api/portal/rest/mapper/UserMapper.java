@@ -21,50 +21,90 @@ import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component
-public class UserMapper {
+@Mapper
+public interface UserMapper {
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+    String IDP_SOURCE_GRAVITEE = "gravitee";
+    String IDP_SOURCE_MEMORY = "memory";
 
-    public static final String IDP_SOURCE_GRAVITEE = "gravitee";
-    public static final String IDP_SOURCE_MEMORY = "memory";
+    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    User primaryOwnerEntityToUser(PrimaryOwnerEntity user);
 
-    public User convert(PrimaryOwnerEntity user) {
-        return UserMapstructMapper.INSTANCE.primaryOwnerEntityToUser(user);
+    @Mapping(source = "firstname", target = "firstName")
+    @Mapping(source = "lastname", target = "lastName")
+    @Mapping(source = "source", target = "editableProfile", qualifiedByName = "calculateEditableProfile")
+    @Mapping(source = "roles", target = "permissions", qualifiedByName = "calculatePermissions")
+    User userEntityToUser(UserEntity user);
+
+    @Mapping(source = "firstname", target = "firstName")
+    @Mapping(source = "lastname", target = "lastName")
+    User seachableUserToUser(SearchableUser user);
+
+    NewExternalUserEntity toNewExternalUserEntity(RegisterUserInput input);
+
+    RegisterUserEntity toRegisterUserEntity(FinalizeRegistrationInput input);
+
+    ResetPasswordUserEntity toResetPasswordUserEntity(ChangeUserPasswordInput input);
+
+    @Mapping(target = "notifications", expression = "java(basePath + \"/notifications\")")
+    @Mapping(source = "basePath", target = "self")
+    UserLinks computeUserLinks(String basePath, Date updateDate);
+
+    @AfterMapping
+    static void after(@MappingTarget UserLinks userLinks, String basePath, Date updateDate) {
+        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
+        userLinks.setAvatar(basePath + "/avatar?" + hash);
     }
 
-    public User convert(UserEntity user) {
-        return UserMapstructMapper.INSTANCE.userEntityToUser(user);
+    @Named("calculateEditableProfile")
+    static boolean calculateEditableProfile(String source) {
+        return IDP_SOURCE_GRAVITEE.equals(source) || IDP_SOURCE_MEMORY.equalsIgnoreCase(source);
     }
 
-    public User convert(SearchableUser user) {
-        return UserMapstructMapper.INSTANCE.seachableUserToUser(user);
-    }
-
-    public NewExternalUserEntity convert(RegisterUserInput input) {
-        return UserMapstructMapper.INSTANCE.toNewExternalUserEntity(input);
-    }
-
-    public RegisterUserEntity convert(FinalizeRegistrationInput input) {
-        return UserMapstructMapper.INSTANCE.toRegisterUserEntity(input);
-    }
-
-    public ResetPasswordUserEntity convert(ChangeUserPasswordInput input) {
-        return UserMapstructMapper.INSTANCE.toResetPasswordUserEntity(input);
-    }
-
-    public UserLinks computeUserLinks(String basePath, Date updateDate) {
-        return UserMapstructMapper.INSTANCE.computeUserLinks(basePath, updateDate);
+    @Named("calculatePermissions")
+    static UserPermissions calculatePermissions(Set<UserRoleEntity> roles) {
+        if (Objects.isNull(roles)) {
+            return null;
+        }
+        Map<String, List<String>> userPermissions = roles
+            .stream()
+            .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
+            .map(UserRoleEntity::getPermissions)
+            .map(
+                rolePermissions ->
+                    rolePermissions
+                        .entrySet()
+                        .stream()
+                        .collect(
+                            Collectors.toMap(
+                                Map.Entry::getKey,
+                                entry ->
+                                    new String(entry.getValue())
+                                        .chars()
+                                        .mapToObj(c -> (char) c)
+                                        .map(String::valueOf)
+                                        .collect(Collectors.toList())
+                            )
+                        )
+            )
+            .reduce(
+                new HashMap<>(),
+                (acc, rolePermissions) -> {
+                    acc.putAll(rolePermissions);
+                    return acc;
+                }
+            );
+        return objectMapper.convertValue(userPermissions, UserPermissions.class);
     }
 }
