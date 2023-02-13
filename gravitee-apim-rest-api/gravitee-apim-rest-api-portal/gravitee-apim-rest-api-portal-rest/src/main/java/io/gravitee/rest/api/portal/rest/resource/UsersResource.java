@@ -150,7 +150,7 @@ public class UsersResource extends AbstractResource {
                     UserMapper.INSTANCE
                         .seachableUserToUser(searchableUser)
                         .links(
-                            UserMapper.INSTANCE.computeUserLinks(
+                            UserMapper.computeUserLinks(
                                 PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()),
                                 null
                             )

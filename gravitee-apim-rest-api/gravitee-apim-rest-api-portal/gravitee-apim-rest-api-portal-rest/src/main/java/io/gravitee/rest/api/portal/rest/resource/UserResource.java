@@ -85,7 +85,7 @@ public class UserResource extends AbstractResource {
                 }
             }
 
-            currentUser.setLinks(UserMapper.INSTANCE.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
+            currentUser.setLinks(UserMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
             return Response.ok(currentUser).build();
         } catch (final UserNotFoundException unfe) {
             response.addCookie(cookieGenerator.generate(null));
@@ -125,7 +125,7 @@ public class UserResource extends AbstractResource {
         UserEntity updatedUser = userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUserEntity);
 
         final User currentUser = UserMapper.INSTANCE.userEntityToUser(updatedUser);
-        currentUser.setLinks(UserMapper.INSTANCE.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
+        currentUser.setLinks(UserMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
         return Response.ok(currentUser).build();
     }
 

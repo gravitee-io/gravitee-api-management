@@ -90,7 +90,7 @@ public class ApplicationMapper {
         UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationEntity.getPrimaryOwner().getId());
         User owner = UserMapper.INSTANCE.userEntityToUser(primaryOwnerUserEntity);
         owner.setLinks(
-            UserMapper.INSTANCE.computeUserLinks(
+            UserMapper.computeUserLinks(
                 usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
                 primaryOwnerUserEntity.getUpdatedAt()
             )
@@ -170,14 +170,14 @@ public class ApplicationMapper {
             UserEntity primaryOwnerUserEntity = userService.findById(executionContext, primaryOwner.getId());
             owner = UserMapper.INSTANCE.userEntityToUser(primaryOwnerUserEntity);
             owner.setLinks(
-                UserMapper.INSTANCE.computeUserLinks(
+                UserMapper.computeUserLinks(
                     usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
                     primaryOwnerUserEntity.getUpdatedAt()
                 )
             );
         } else {
             owner = UserMapper.INSTANCE.primaryOwnerEntityToUser(primaryOwner);
-            owner.setLinks(UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
+            owner.setLinks(UserMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
         }
 
         application.setOwner(owner);

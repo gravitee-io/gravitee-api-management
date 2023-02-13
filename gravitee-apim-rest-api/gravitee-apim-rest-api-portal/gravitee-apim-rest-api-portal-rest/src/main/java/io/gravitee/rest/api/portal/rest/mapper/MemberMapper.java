@@ -46,7 +46,7 @@ public class MemberMapper {
         UserEntity userEntity = userService.findById(executionContext, member.getId());
         User memberUser = UserMapper.INSTANCE.userEntityToUser(userEntity);
         memberUser.setLinks(
-            UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
+            UserMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
         );
 
         memberItem.setUser(memberUser);

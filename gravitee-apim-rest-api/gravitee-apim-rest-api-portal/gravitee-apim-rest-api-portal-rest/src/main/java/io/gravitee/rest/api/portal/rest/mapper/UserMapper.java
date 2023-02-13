@@ -57,14 +57,14 @@ public interface UserMapper {
 
     ResetPasswordUserEntity toResetPasswordUserEntity(ChangeUserPasswordInput input);
 
-    @Mapping(target = "notifications", expression = "java(basePath + \"/notifications\")")
-    @Mapping(source = "basePath", target = "self")
-    UserLinks computeUserLinks(String basePath, Date updateDate);
-
-    @AfterMapping
-    static void after(@MappingTarget UserLinks userLinks, String basePath, Date updateDate) {
+    // TODO: Move to helper?
+    static UserLinks computeUserLinks(String basePath, Date updateDate) {
+        UserLinks userLinks = new UserLinks();
         final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
         userLinks.setAvatar(basePath + "/avatar?" + hash);
+        userLinks.setNotifications(basePath + "/notifications");
+        userLinks.setSelf(basePath);
+        return userLinks;
     }
 
     @Named("calculateEditableProfile")

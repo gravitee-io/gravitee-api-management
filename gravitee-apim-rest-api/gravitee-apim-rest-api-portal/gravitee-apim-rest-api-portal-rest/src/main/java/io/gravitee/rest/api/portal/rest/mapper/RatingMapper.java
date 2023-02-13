@@ -48,7 +48,7 @@ public class RatingMapper {
         UserEntity authorEntity = userService.findById(executionContext, ratingEntity.getUser());
         User author = UserMapper.INSTANCE.userEntityToUser(authorEntity);
         author.setLinks(
-            UserMapper.INSTANCE.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
+            UserMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
         );
         rating.setAuthor(author);
         rating.setTitle(ratingEntity.getTitle());
@@ -69,7 +69,7 @@ public class RatingMapper {
                         UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
                         User answerAuthor = UserMapper.INSTANCE.userEntityToUser(answerAuthorEntity);
                         answerAuthor.setLinks(
-                            UserMapper.INSTANCE.computeUserLinks(
+                            UserMapper.computeUserLinks(
                                 usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
                                 answerAuthorEntity.getUpdatedAt()
                             )
