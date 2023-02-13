@@ -53,5 +53,9 @@ $typography: map.get(gio.$mat-theme, typography);
     border-radius: 8px;
     padding: 16px;
     margin-top: 16px;
+
+    &__subTitle {
+      font-size: 14px;
+    }
   }
 }

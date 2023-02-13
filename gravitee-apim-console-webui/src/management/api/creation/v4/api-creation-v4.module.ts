@@ -42,8 +42,10 @@ import { Step3Endpoints2ConfigComponent } from './steps/step-3-endpoints/step-3-
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 
-import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioConnectorIconModule } from '../../../../components/gio-connector-icon/gio-connector-icon.module';
+import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
+import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
+import { GioFormListenersVirtualHostModule } from '../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 
 @NgModule({
   imports: [
@@ -67,6 +69,8 @@ import { GioConnectorIconModule } from '../../../../components/gio-connector-ico
     GioFormJsonSchemaModule,
     ApiCreationStepperMenuModule,
     GioConnectorIconModule,
+    GioFormListenersContextPathModule,
+    GioFormListenersVirtualHostModule,
   ],
   declarations: [
     ApiCreationV4Component,

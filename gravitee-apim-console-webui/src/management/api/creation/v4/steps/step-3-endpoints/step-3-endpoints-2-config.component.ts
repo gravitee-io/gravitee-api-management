@@ -46,7 +46,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.endpointInitialValues =
-      currentStepPayload.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
+      currentStepPayload.endpoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
     currentStepPayload.selectedEndpoints.forEach(({ id }) => {
       this.formGroup.addControl(id, this.formBuilder.group({}));
