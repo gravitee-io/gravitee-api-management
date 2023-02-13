@@ -77,9 +77,6 @@ public class ListenerValidationServiceImplTest {
     private CorsValidationService corsValidationService;
 
     @Mock
-    private AnalyticsValidationService loggingValidationService;
-
-    @Mock
     private EntrypointConnectorPluginService entrypointService;
 
     @Mock
@@ -96,8 +93,7 @@ public class ListenerValidationServiceImplTest {
                 new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
                 entrypointService,
                 endpointService,
-                corsValidationService,
-                loggingValidationService
+                corsValidationService
             );
     }
 

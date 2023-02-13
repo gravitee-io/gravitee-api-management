@@ -43,7 +43,7 @@ public class AnalyticsContext {
         final String loggingExcludedResponseType
     ) {
         this.analytics = analytics;
-        if (analytics != null) {
+        if (analytics != null && analytics.isEnabled()) {
             initMessageSampling(isEventNative);
             initLoggingContext(loggingMaxsize, loggingExcludedResponseType);
         }

@@ -56,20 +56,17 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final EntrypointConnectorPluginService entrypointService;
     private final EndpointConnectorPluginService endpointService;
     private final CorsValidationService corsValidationService;
-    private final AnalyticsValidationService loggingValidationService;
 
     public ListenerValidationServiceImpl(
         final PathValidationService pathValidationService,
         final EntrypointConnectorPluginService entrypointService,
         EndpointConnectorPluginService endpointService,
-        final CorsValidationService corsValidationService,
-        final AnalyticsValidationService loggingValidationService
+        final CorsValidationService corsValidationService
     ) {
         this.pathValidationService = pathValidationService;
         this.entrypointService = entrypointService;
         this.endpointService = endpointService;
         this.corsValidationService = corsValidationService;
-        this.loggingValidationService = loggingValidationService;
     }
 
     @Override

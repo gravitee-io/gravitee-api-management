@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
+import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
@@ -27,7 +28,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.exception.AnalyticsIncompatibleApiTypeConfigurationException;
-import io.gravitee.rest.api.service.v4.exception.AnalyticsMessageSamplingMandatoryException;
 import io.gravitee.rest.api.service.v4.exception.AnalyticsMessageSamplingValueInvalidException;
 import io.gravitee.rest.api.service.v4.exception.LoggingInvalidConfigurationException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
@@ -63,23 +63,37 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
 
     @Override
     public Analytics validateAndSanitize(final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
-        if (analytics != null && analytics.isEnabled()) {
+        if (analytics == null) {
+            Analytics defaultAnalytics = new Analytics();
+            if (type == ApiType.ASYNC) {
+                setDefaultMessageSampling(defaultAnalytics);
+            }
+            return defaultAnalytics;
+        } else if (analytics.isEnabled()) {
             validateAndSanitizeSampling(type, analytics);
             validateAndSanitizeLogging(executionContext, type, analytics);
             return analytics;
         }
-        return new Analytics();
+        return analytics;
+    }
+
+    private static void setDefaultMessageSampling(final Analytics analytics) {
+        Sampling countSampling = new Sampling();
+        countSampling.setType(SamplingType.COUNT);
+        countSampling.setValue("10");
+        analytics.setMessageSampling(countSampling);
     }
 
     private void validateAndSanitizeSampling(final ApiType type, final Analytics analytics) {
-        Sampling messageSampling = analytics.getMessageSampling();
-        if (ApiType.SYNC.equals(type) && messageSampling != null) {
+        if (ApiType.SYNC.equals(type) && analytics.getMessageSampling() != null) {
             throw new AnalyticsIncompatibleApiTypeConfigurationException(Map.of("analytics.messageSampling", "invalid"));
         }
         if (ApiType.ASYNC.equals(type)) {
-            if (messageSampling == null) {
-                throw new AnalyticsMessageSamplingMandatoryException();
-            } else if (!messageSampling.getType().validate(messageSampling.getValue())) {
+            if (analytics.getMessageSampling() == null) {
+                setDefaultMessageSampling(analytics);
+            }
+            Sampling messageSampling = analytics.getMessageSampling();
+            if (!messageSampling.getType().validate(messageSampling.getValue())) {
                 throw new AnalyticsMessageSamplingValueInvalidException(messageSampling);
             }
         }
