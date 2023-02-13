@@ -20,6 +20,7 @@ export interface ConnectorListItem {
   version: string;
   schema?: string;
   icon?: string;
+  supportedListenerType: string;
   supportedTypes: string[];
   supportedApiType: 'sync' | 'async';
 }

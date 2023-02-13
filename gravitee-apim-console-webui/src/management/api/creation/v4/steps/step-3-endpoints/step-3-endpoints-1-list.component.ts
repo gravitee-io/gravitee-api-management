@@ -77,6 +77,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
           name: endpoint.name,
           description: endpoint.description,
           isEnterprise: endpoint.id.endsWith('-advanced'),
+          supportedListenerType: endpoint.supportedListenerType,
         }));
 
         this.changeDetectorRef.detectChanges();

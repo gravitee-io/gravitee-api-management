@@ -22,6 +22,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { HttpListener, HttpListenerPath } from '../../../../../../entities/api-v4';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -32,10 +33,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
-  public selectedEntrypoints: { id: string; name: string }[];
+  public selectedEntrypoints: { id: string; name: string; supportedListenerType: string }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
   public entrypointInitialValues: Record<string, any>;
   public entrypointFormGroups: Record<string, FormGroup>;
+  public hasListeners: boolean;
+  public enableVirtualHost: boolean;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -45,9 +48,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    const listener = (
+      currentStepPayload.listeners && currentStepPayload.listeners.length > 0 ? currentStepPayload.listeners[0] : undefined
+    ) as HttpListener;
+    const paths = listener?.paths || [];
+    this.enableVirtualHost = paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
+    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') !== null;
     this.entrypointInitialValues =
-      currentStepPayload.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
+      listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
+    this.formGroup.addControl('paths', this.formBuilder.control(paths));
     currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
       this.formGroup.addControl(id, this.formBuilder.group({}));
     });
@@ -80,7 +90,19 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     const currentStepPayload = this.stepService.payload;
     const entrypoints = currentStepPayload.selectedEntrypoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
-    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, entrypoints }));
+    let paths = this.formGroup.get('paths').value as HttpListenerPath[];
+    if (!this.enableVirtualHost) {
+      // Remove host and overrideAccess from virualHost if is not necessary
+      paths = paths.map(({ path }) => ({ path }));
+    }
+    const listeners = [
+      {
+        type: 'http',
+        paths,
+        entrypoints,
+      },
+    ] as HttpListener[];
+    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, listeners }));
   }
 
   goBack(): void {

@@ -2,4 +2,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 .step-2-entrypoints-2-config {
+  &__actions {
+    padding: 16px 0;
+  }
 }

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Listener } from '../../../../../entities/api-v4';
+
 export type ApiCreationPayload = Partial<{
   name?: string;
   version?: string;
   description?: string;
+  listeners?: Listener[];
   selectedEntrypoints?: {
     id: string;
     name: string;
-  }[];
-  entrypoints?: {
-    type: string;
-    configuration: any;
+    supportedListenerType: string;
   }[];
   selectedEndpoints?: {
     id: string;
