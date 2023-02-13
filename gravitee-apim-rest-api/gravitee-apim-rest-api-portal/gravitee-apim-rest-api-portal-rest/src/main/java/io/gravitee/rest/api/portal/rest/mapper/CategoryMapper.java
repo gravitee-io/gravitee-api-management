@@ -30,9 +30,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CategoryMapper {
 
-    @Autowired
-    UserMapper userMapper;
-
     public Category convert(CategoryEntity categoryEntity, UriBuilder baseUriBuilder) {
         final Category category = new Category();
 
