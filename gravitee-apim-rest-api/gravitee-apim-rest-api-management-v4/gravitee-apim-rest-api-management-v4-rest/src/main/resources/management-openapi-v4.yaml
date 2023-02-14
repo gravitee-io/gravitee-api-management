@@ -81,14 +81,13 @@ paths:
                                 $ref: "#/components/schemas/Environment"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis:
+    /apis:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
-                - Installation
                 - APIs
-            summary: Create an API in a specific environment
+            summary: Create an API
             description: |-
                 # FIXME add a description
             operationId: createApi
@@ -560,6 +559,7 @@ components:
             type: object
             required:
                 - apiVersion
+                - environmentId
                 - definitionVersion
                 - name
                 - type
@@ -571,6 +571,14 @@ components:
                     description: API's version. It's a simple string only used in the portal.
                     example: v1.0
                     minLength: 1
+                environmentId:
+                    type: string
+                    description: |-
+                        The id of the environment the API will belong to.
+                        
+                        **_WARNING:_** 
+                        > This field is for _creation only_. It means that if you try to change the value of this field with a PUT or a PATCH resource, it will fail with a 400 error.
+                    example: 1a2b3c4d-5e6f-1234-abcd-1a2b3c4d5e6f
                 name:
                     type: string
                     description: API's name. Duplicate names can exists.
