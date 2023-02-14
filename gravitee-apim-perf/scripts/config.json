@@ -23,7 +23,7 @@
     "outputMode": "experimental-prometheus-rw"
   },
   "discardResponseBodies": false,
-  "insecureSkipTKSVerify": false,
+  "insecureSkipTLSVerify": false,
   "scenarios": {
     "default": {
       "executor": "ramping-arrival-rate",
