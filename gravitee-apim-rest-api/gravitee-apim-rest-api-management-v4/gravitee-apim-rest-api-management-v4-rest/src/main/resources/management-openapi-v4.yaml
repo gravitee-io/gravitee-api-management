@@ -583,6 +583,8 @@ components:
                     description: API's version. It's a simple string only used in the portal.
                     example: v1.0
                     minLength: 1
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
                 environmentId:
                     type: string
                     description: |-
@@ -596,8 +598,6 @@ components:
                     description: API's name. Duplicate names can exists.
                     example: My Api
                     minLength: 1
-                definitionVersion:
-                    $ref: "#/components/schemas/DefinitionVersion"
                 type:
                     $ref: "#/components/schemas/ApiType"
                 visibility:
@@ -626,6 +626,10 @@ components:
                     type: boolean
                     description: Disable membership notifications.
                     default: false
+                endpointGroups:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/EndpointGroup"
                 flowMode:
                     $ref: "#/components/schemas/FlowMode"
                 groups:
@@ -648,6 +652,14 @@ components:
                         type: string
                 lifecycleState:
                     $ref: "#/components/schemas/ApiLifecycleState"
+                listeners:
+                    type: array
+                    description: The list of listeners associated with this API.
+                    items:
+                        oneOf:
+                            - $ref: "#/components/schemas/HttpListener"
+                            - $ref: "#/components/schemas/SubscriptionListener"
+                            - $ref: "#/components/schemas/TcpListener"
                 pictureUrl:
                     type: string
                     description: The API logo URL.
@@ -807,6 +819,39 @@ components:
                       subscriptionSchema:
                           type: string
                           description: The subscription schema of the plugin.
+        Cors:
+            type: object
+            properties:
+                allowCredentials:
+                    type: boolean
+                allowHeaders:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                allowMethods:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                allowOrigin:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                enabled:
+                    type: boolean
+                exposeHeaders:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                maxAge:
+                    type: integer
+                    format: int32
+                    default: -1
+                runPolicies:
+                    type: boolean
         DefinitionContext:
             type: object
             description: the context where the api definition was created
@@ -832,11 +877,87 @@ components:
         DefinitionVersion:
             type: string
             description: API's gravitee definition version.
-            example: 4.0.0
+            example: v4
             enum:
-                - 1.0.0
-                - 2.0.0
-                - 4.0.0
+                - v4
+        Endpoint:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the endpoint
+                    example: default-endpoint
+                    nullable: false
+                type:
+                    type: string
+                    description: The type of the endpoint
+                    example: mock
+                    nullable: false
+                weight:
+                    type: integer
+                    format: int32
+                    description: The weight of the endpoint
+                    default: 1
+                inheritConfiguration:
+                    type: boolean
+                    description: Is the configuration of the endpoint inherited from the endpoint group it belongs to.
+                    default: false
+                configuration:
+                    type: object
+                services:
+                    $ref: "#/components/schemas/EndpointServices"
+            required:
+                - type
+        EndpointGroup:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the endpoint group
+                    example: default-endpoint-group
+                    nullable: false
+                type:
+                    type: string
+                    description: The type of the endpoint group
+                    example: default
+                    nullable: false
+                loadBalancer:
+                    $ref: "#/components/schemas/LoadBalancer"
+                sharedConfiguration:
+                    type: object
+                endpoints:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Endpoint"
+                services:
+                    $ref: "#/components/schemas/EndpointGroupServices"
+            required:
+                - type
+        EndpointGroupServices:
+            type: object
+            properties:
+                discovery:
+                    $ref: "#/components/schemas/Service"
+                healthcheck:
+                    $ref: "#/components/schemas/Service"
+        EndpointServices:
+            type: object
+            properties:
+                healthcheck:
+                    $ref: "#/components/schemas/Service"
+
+        Entrypoint:
+            type: object
+            required:
+                - type
+            properties:
+                type:
+                    type: string
+                    description: The type of the entrypoint
+                    example: http-get
+                    nullable: false
+                configuration:
+                    type: object
         Environment:
             type: object
             properties:
@@ -875,6 +996,30 @@ components:
                     description: A map of parameters to be used in the error message
                     additionalProperties:
                         type: string
+        HttpListener:
+            type: object
+            required:
+                - type
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+                - type: object
+                  properties:
+                      paths:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Path"
+                      pathMappings:
+                          type: array
+                          items:
+                              type: string
+                      pathMappingsPattern:
+                          type: object
+                          additionalProperties:
+                              type: string
+                      cors:
+                          $ref: "#/components/schemas/Cors"
+                      logging:
+                          $ref: "#/components/schemas/Logging"
         FlowMode:
             type: string
             description: API's flow mode.
@@ -900,9 +1045,87 @@ components:
                 next:
                     type: string
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
+        Listener:
+            type: object
+            properties:
+                type:
+                    $ref: "#/components/schemas/ListenerType"
+                entrypoints:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Entrypoint"
+            required:
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    http: HttpListener
+                    tcp: TcpListener
+                    subscription: SubscriptionListener
+        ListenerType:
+            type: string
+            description: Listener type.
+            example: http
+            enum:
+                - http
+                - subscription
+                - tcp
+        LoadBalancer:
+            type: object
+            properties:
+                type:
+                    allOf:
+                        - $ref: "#/components/schemas/LoadBalancerType"
+                        - default: round-robin
+        LoadBalancerType:
+            type: string
+            description: Load balancer type.
+            example: round-robin
+            enum:
+                - random
+                - round-robin
+                - weighted-random
+                - weighted-round
+        Logging:
+            type: object
+            properties:
+                condition:
+                    type: string
+                content:
+                    type: string
+                    enum:
+                        - NONE
+                        - HEADERS
+                        - PAYLOADS
+                        - HEADERS_PAYLOADS
+                mode:
+                    type: string
+                    enum:
+                        - NONE
+                        - CLIENT
+                        - PROXY
+                        - CLIENT_PROXY
+                scope:
+                    type: string
+                    enum:
+                        - NONE
+                        - REQUEST
+                        - RESPONSE
+                        - REQUEST_RESPONSE
         MetadataResponse:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
+        Path:
+            type: object
+            properties:
+                host:
+                    type: string
+                path:
+                    type: string
+                    default: "/"
+                overrideAccess:
+                    type: boolean
+                    default: false
         Organization:
             type: object
             properties:
@@ -1092,6 +1315,19 @@ components:
                     default: true
                 type:
                     type: string
+        SubscriptionListener:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+            required:
+                - type
+        TcpListener:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+            required:
+                - type
+
     parameters:
         #############
         # PathParam #
