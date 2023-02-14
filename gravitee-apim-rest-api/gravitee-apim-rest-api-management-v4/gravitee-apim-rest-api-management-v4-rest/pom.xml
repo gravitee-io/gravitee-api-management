@@ -33,7 +33,9 @@
 	<name>Gravitee.io APIM - Management API - Management - v4 - Rest API</name>
 
 	<properties>
-		<openapi.path>${project.basedir}/src/main/resources/console-openapi-v4.yaml</openapi.path>
+		<openapi-generator.version>6.3.0</openapi-generator.version>
+		<openapi.modelPackage>io.gravitee.rest.api.management.v4.rest.model</openapi.modelPackage>
+		<jackson-databind-nullable-version>0.2.5</jackson-databind-nullable-version>
 	</properties>
 
 	<dependencies>
@@ -169,6 +171,12 @@
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>${jackson-databind-nullable-version}</version>
+		</dependency>
 	</dependencies>
 
     <build>
@@ -180,25 +188,33 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>replacer</artifactId>
-				<version>1.5.3</version>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi-generator.version}</version>
 				<executions>
 					<execution>
-						<phase>generate-resources</phase>
+						<id>model</id>
 						<goals>
-							<goal>replace</goal>
+							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<includes>
-								<include>${openapi.path}</include>
-							</includes>
-							<replacements>
-								<replacement>
-									<token>version: "(.*)"</token>
-									<value>version: "${project.version}"</value>
-								</replacement>
-							</replacements>
+							<inputSpec>${project.basedir}/src/main/resources/management-openapi-v4.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<library>jersey2</library>
+							<modelPackage>${openapi.modelPackage}</modelPackage>
+							<generateApis>false</generateApis>
+							<generateModels>true</generateModels>
+							<generateModelTests>false</generateModelTests>
+							<generateModelDocumentation>false</generateModelDocumentation>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
+							<configOptions>
+								<dateLibrary>java8</dateLibrary>
+								<useBeanValidation>true</useBeanValidation>
+							</configOptions>
+							<typeMappings>
+								<typeMapping>BigDecimal=Number</typeMapping>
+							</typeMappings>
 						</configuration>
 					</execution>
 				</executions>
