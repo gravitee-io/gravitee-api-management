@@ -16,6 +16,8 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
 import io.gravitee.common.component.LifecycleComponent;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -30,6 +32,18 @@ public interface EndpointManager extends LifecycleComponent<EndpointManager> {
     ManagedEndpoint next();
 
     /**
+     * Get all managed endpoints whatever the current status or secondary flag.
+     * The return list is ready-only.
+     *
+     * @return all the managed endpoints.
+     */
+    List<ManagedEndpoint> all();
+
+    String addListener(BiConsumer<Event, ManagedEndpoint> endpointConsumer);
+
+    void removeListener(String listenerId);
+
+    /**
      * Get the next available endpoint matching with the provided criteria for the default group.
      * Criteria are applied both on group and endpoint in order to select the next available endpoint.
      *
@@ -37,4 +51,15 @@ public interface EndpointManager extends LifecycleComponent<EndpointManager> {
      * @return the endpoint found or <code>null</code> if no endpoint has been found.
      */
     ManagedEndpoint next(EndpointCriteria criteria);
+
+    void disable(ManagedEndpoint endpoint);
+
+    void enable(ManagedEndpoint endpoint);
+
+    enum Event {
+        ADD,
+        REMOVE,
+        ENABLE,
+        DISABLE,
+    }
 }

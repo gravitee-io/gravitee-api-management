@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -26,7 +27,6 @@ import org.openjdk.jcstress.annotations.JCStressTest;
 import org.openjdk.jcstress.annotations.Outcome;
 import org.openjdk.jcstress.annotations.State;
 import org.openjdk.jcstress.infra.results.IIII_Result;
-import org.openjdk.jcstress.infra.results.II_Result;
 
 // This is a concurrent stress tests that must be run independently
 @SuppressWarnings("java:S2187")
@@ -55,7 +55,7 @@ public class WeightedRoundRobinLoadBalancerJCStressTest {
 
         @Actor
         public void actor1(IIII_Result r) {
-            ManagedEndpoint managedEndpoint = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint);
             loadBalancer.refresh();
             r.r1 = loadBalancer.weightDistributions.get().getWeightSum();
@@ -64,7 +64,7 @@ public class WeightedRoundRobinLoadBalancerJCStressTest {
 
         @Actor
         public void actor2(IIII_Result r) {
-            ManagedEndpoint managedEndpoint = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint);
             loadBalancer.refresh();
             r.r3 = loadBalancer.weightDistributions.get().getWeightSum();
@@ -85,9 +85,9 @@ public class WeightedRoundRobinLoadBalancerJCStressTest {
 
         public ShouldNextBeCompliant() {
             this.endpoints = new CopyOnWriteArrayList<>();
-            ManagedEndpoint managedEndpoint1 = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint1);
-            ManagedEndpoint managedEndpoint2 = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint2 = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint2);
             this.loadBalancer = new WeightedRoundRobinLoadBalancer(endpoints);
         }

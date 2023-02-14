@@ -58,7 +58,7 @@ public class EndpointGroup implements Serializable {
     @Valid
     private List<Endpoint> endpoints;
 
-    private EndpointGroupServices services;
+    private EndpointGroupServices services = new EndpointGroupServices();
 
     @JsonSetter
     public void setSharedConfiguration(final JsonNode configuration) {

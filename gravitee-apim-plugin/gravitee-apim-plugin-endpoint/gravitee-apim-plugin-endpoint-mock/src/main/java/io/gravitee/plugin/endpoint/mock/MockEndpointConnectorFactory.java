@@ -18,11 +18,10 @@ package io.gravitee.plugin.endpoint.mock;
 import static io.gravitee.plugin.endpoint.mock.MockEndpointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import java.util.Set;
@@ -36,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFactory<MockEndpointConnector> {
 
-    private ConnectorHelper connectorHelper;
+    private PluginConfigurationHelper pluginConfigurationHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -51,7 +50,9 @@ public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     @Override
     public MockEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
-            return new MockEndpointConnector(connectorHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration));
+            return new MockEndpointConnector(
+                pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration)
+            );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

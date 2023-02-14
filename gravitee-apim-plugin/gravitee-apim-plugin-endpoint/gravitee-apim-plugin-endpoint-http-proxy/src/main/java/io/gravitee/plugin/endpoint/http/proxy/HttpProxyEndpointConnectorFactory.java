@@ -19,9 +19,9 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class HttpProxyEndpointConnectorFactory implements EndpointSyncConnectorFactory<HttpProxyEndpointConnector> {
 
-    private final ConnectorHelper connectorFactoryHelper;
+    private final PluginConfigurationHelper connectorFactoryHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {

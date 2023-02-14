@@ -55,6 +55,7 @@ import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -81,6 +82,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
+    private final ApiServicePluginManager apiServicePluginManager;
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
@@ -98,6 +100,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final PolicyFactory policyFactory,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
+        final ApiServicePluginManager apiServicePluginManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
@@ -112,6 +115,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.policyFactory = policyFactory;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
+        this.apiServicePluginManager = apiServicePluginManager;
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
@@ -218,6 +222,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     ctxTemplateVariableProviders,
                     policyManager,
                     entrypointConnectorPluginManager,
+                    apiServicePluginManager,
                     endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,

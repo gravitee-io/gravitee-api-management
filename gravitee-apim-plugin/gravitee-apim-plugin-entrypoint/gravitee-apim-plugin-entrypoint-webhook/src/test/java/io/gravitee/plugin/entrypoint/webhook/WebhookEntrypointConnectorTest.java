@@ -34,12 +34,12 @@ import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
@@ -97,7 +97,7 @@ class WebhookEntrypointConnectorTest {
     private WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration;
 
     @Mock
-    private ConnectorHelper connectorHelper;
+    private PluginConfigurationHelper pluginConfigurationHelper;
 
     @Mock
     private Subscription subscription;
@@ -118,10 +118,10 @@ class WebhookEntrypointConnectorTest {
         lenient().when(ctx.getComponent(io.vertx.rxjava3.core.Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(nodeConfiguration);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION)).thenReturn(subscription);
-        lenient().when(ctx.getComponent(ConnectorHelper.class)).thenReturn(connectorHelper);
+        lenient().when(ctx.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
         lenient()
             .when(
-                connectorHelper.readConfiguration(
+                pluginConfigurationHelper.readConfiguration(
                     eq(WebhookEntrypointConnectorSubscriptionConfiguration.class),
                     eq(SUBSCRIPTION_CONFIGURATION)
                 )
@@ -130,7 +130,7 @@ class WebhookEntrypointConnectorTest {
         lenient().when(subscription.getConfiguration()).thenReturn(SUBSCRIPTION_CONFIGURATION);
         lenient().when(subscriptionConfiguration.getCallbackUrl()).thenReturn("http://localhost:8080/callback");
 
-        cut = new WebhookEntrypointConnector(connectorHelper, Qos.NONE, configuration);
+        cut = new WebhookEntrypointConnector(pluginConfigurationHelper, Qos.NONE, configuration);
     }
 
     @Test

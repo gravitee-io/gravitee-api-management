@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,7 +40,7 @@ class Mqtt5EndpointConnectorFactoryTest {
     @BeforeEach
     void beforeEach() {
         deploymentContext = mock(DeploymentContext.class);
-        mqtt5EndpointConnectorFactory = new Mqtt5EndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
+        mqtt5EndpointConnectorFactory = new Mqtt5EndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
     @Test

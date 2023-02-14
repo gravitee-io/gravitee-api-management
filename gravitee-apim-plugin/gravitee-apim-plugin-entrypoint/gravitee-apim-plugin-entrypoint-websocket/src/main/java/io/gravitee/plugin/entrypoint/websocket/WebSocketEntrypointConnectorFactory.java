@@ -19,9 +19,9 @@ import static io.gravitee.plugin.entrypoint.websocket.WebSocketEntrypointConnect
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import java.util.Set;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<WebSocketEntrypointConnector> {
 
-    private final ConnectorHelper connectorHelper;
+    private final PluginConfigurationHelper pluginConfigurationHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -62,7 +62,7 @@ public class WebSocketEntrypointConnectorFactory implements EntrypointAsyncConne
         try {
             return new WebSocketEntrypointConnector(
                 qos,
-                connectorHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, configuration)
+                pluginConfigurationHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (Exception e) {
             log.error("Can't create connector cause no valid configuration", e);

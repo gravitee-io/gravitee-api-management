@@ -21,9 +21,9 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import java.util.Set;
@@ -44,7 +44,7 @@ class WebSocketEntrypointConnectorFactoryTest {
     protected static final String MOCK_EXCEPTION = "Mock exception";
 
     @Mock
-    private ConnectorHelper connectorHelper;
+    private PluginConfigurationHelper pluginConfigurationHelper;
 
     @Mock
     private DeploymentContext deploymentContext;
@@ -53,7 +53,7 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @BeforeEach
     void init() {
-        cut = new WebSocketEntrypointConnectorFactory(connectorHelper);
+        cut = new WebSocketEntrypointConnectorFactory(pluginConfigurationHelper);
     }
 
     @Test
@@ -78,7 +78,7 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnector() throws PluginConfigurationException {
-        when(connectorHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
+        when(pluginConfigurationHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
             .thenReturn(new WebSocketEntrypointConnectorConfiguration());
 
         final WebSocketEntrypointConnector connector = cut.createConnector(deploymentContext, Qos.NONE, CONNECTOR_CONFIGURATION);
@@ -88,7 +88,7 @@ class WebSocketEntrypointConnectorFactoryTest {
 
     @Test
     void shouldCreateNullConnectorWhenExceptionOccursGettingConfiguration() throws PluginConfigurationException {
-        when(connectorHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
+        when(pluginConfigurationHelper.readConfiguration(WebSocketEntrypointConnectorConfiguration.class, CONNECTOR_CONFIGURATION))
             .thenThrow(new RuntimeException(MOCK_EXCEPTION));
 
         final WebSocketEntrypointConnector connector = cut.createConnector(deploymentContext, Qos.NONE, CONNECTOR_CONFIGURATION);

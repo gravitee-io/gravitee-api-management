@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;
@@ -41,15 +41,15 @@ public class DefaultEntrypointConnectorPluginManager
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultEntrypointConnectorPluginManager.class);
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
-    private final ConnectorHelper connectorHelper;
+    private final PluginConfigurationHelper pluginConfigurationHelper;
     private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(
         final EntrypointConnectorClassLoaderFactory classLoaderFactory,
-        final ConnectorHelper connectorHelper
+        final PluginConfigurationHelper pluginConfigurationHelper
     ) {
         this.classLoaderFactory = classLoaderFactory;
-        this.connectorHelper = connectorHelper;
+        this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
 
     @Override
@@ -74,9 +74,9 @@ public class DefaultEntrypointConnectorPluginManager
         EntrypointConnectorFactory<?> factory;
         try {
             Constructor<EntrypointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
-                ConnectorHelper.class
+                PluginConfigurationHelper.class
             );
-            factory = constructorWithConfigurationHelper.newInstance(connectorHelper);
+            factory = constructorWithConfigurationHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
             Constructor<EntrypointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();

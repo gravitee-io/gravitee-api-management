@@ -18,7 +18,9 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -27,6 +29,9 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServic
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
@@ -44,15 +49,21 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class EndpointGroupsValidationServiceImplTest {
 
+    public static final String FIXED_HC_CONFIG = "{fixed}";
+    public static final String HEALTH_CHECK_TYPE = "http-health-check";
+
     @Mock
     private EndpointConnectorPluginService endpointService;
+
+    @Mock
+    private ApiServicePluginService apiServicePluginService;
 
     private EndpointGroupsValidationService endpointGroupsValidationService;
 
     @Before
     public void setUp() throws Exception {
         lenient().when(endpointService.validateConnectorConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
-        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService);
+        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
     }
 
     @Test(expected = EndpointMissingException.class)
@@ -120,7 +131,171 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint validatedEndpoint = endpoints.get(0);
         assertThat(validatedEndpoint.getName()).isEqualTo("endpoint");
         assertThat(validatedEndpoint.getType()).isEqualTo("http");
-        assertThat(validatedEndpointGroup.getServices()).isNull();
+        assertThat(validatedEndpointGroup.getServices()).isNotNull();
+        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+    }
+
+    @Test
+    public void shouldReturnValidatedEndpointGroupsWithGroupHealthChecks() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{}");
+        endpointGroup.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+
+        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+        assertThat(endpointGroups.size()).isEqualTo(1);
+        EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
+        assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
+        assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
+        assertThat(validatedEndpointGroup.getEndpoints()).isNotEmpty();
+        List<Endpoint> endpoints = validatedEndpointGroup.getEndpoints();
+        Endpoint validatedEndpoint = endpoints.get(0);
+        assertThat(validatedEndpoint.getName()).isEqualTo("endpoint");
+        assertThat(validatedEndpoint.getType()).isEqualTo("http");
+        assertThat(validatedEndpointGroup.getServices())
+            .isNotNull()
+            .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
+        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+    }
+
+    @Test(expected = HealthcheckInvalidException.class)
+    public void shouldRejectEndpointGroupsWithInvalidHealthChecks_MissingType() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{}");
+        endpointGroup.getServices().setHealthCheck(healthCheck);
+
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test(expected = HealthcheckInvalidException.class)
+    public void shouldRejectEndpointGroupsWithInvalidEndpointHealthChecks_MissingType() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service grpHealthCheck = new Service();
+        grpHealthCheck.setEnabled(true);
+        grpHealthCheck.setType(HEALTH_CHECK_TYPE);
+        grpHealthCheck.setConfiguration("{}");
+        endpointGroup.getServices().setHealthCheck(grpHealthCheck);
+
+        Service healthCheck = new Service();
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{}");
+        endpoint.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test(expected = HealthcheckInheritanceException.class)
+    public void shouldRejectEndpointGroupsWithEndpointHealthChecks_InheritError_noGroup() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{}");
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setOverrideConfiguration(false);
+        endpoint.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test(expected = HealthcheckInheritanceException.class)
+    public void shouldRejectEndpointGroupsWithEndpointHealthChecks_InheritError_noConfig() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setEnabled(true);
+
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setOverrideConfiguration(true);
+        endpoint.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(null);
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+    }
+
+    @Test(expected = HealthcheckInheritanceException.class)
+    public void shouldRejectEndpointGroupsWithGroupHealthChecksTypeIssue() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service grpHealthCheck = new Service();
+        grpHealthCheck.setType("different-type");
+        grpHealthCheck.setEnabled(true);
+        grpHealthCheck.setConfiguration("{}");
+        endpointGroup.getServices().setHealthCheck(grpHealthCheck);
+
+        Service healthCheck = new Service();
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{}");
+        endpoint.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(grpHealthCheck.getType()), any())).thenReturn(FIXED_HC_CONFIG);
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+
+        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+        assertThat(endpointGroups.size()).isEqualTo(1);
+        EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
+        assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
+        assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
+        assertThat(validatedEndpointGroup.getEndpoints()).isNotEmpty();
+        List<Endpoint> endpoints = validatedEndpointGroup.getEndpoints();
+        Endpoint validatedEndpoint = endpoints.get(0);
+        assertThat(validatedEndpoint.getName()).isEqualTo("endpoint");
+        assertThat(validatedEndpoint.getType()).isEqualTo("http");
+        assertThat(validatedEndpointGroup.getServices())
+            .isNotNull()
+            .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);

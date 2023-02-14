@@ -21,8 +21,9 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpointGroup;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpointGroup;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -48,25 +49,25 @@ class WeightedRoundRobinLoadBalancerTest {
         List<ManagedEndpoint> endpoints = new ArrayList<>();
         Endpoint endpoint1 = new Endpoint();
         endpoint1.setWeight(1);
-        ManagedEndpoint managedEndpoint1 = new ManagedEndpoint(
+        ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(
             endpoint1,
-            new ManagedEndpointGroup(new EndpointGroup()),
+            new DefaultManagedEndpointGroup(new EndpointGroup()),
             mock(EndpointConnector.class)
         );
         endpoints.add(managedEndpoint1);
         Endpoint endpoint2 = new Endpoint();
         endpoint2.setWeight(5);
-        ManagedEndpoint managedEndpoint2 = new ManagedEndpoint(
+        ManagedEndpoint managedEndpoint2 = new DefaultManagedEndpoint(
             endpoint2,
-            new ManagedEndpointGroup(new EndpointGroup()),
+            new DefaultManagedEndpointGroup(new EndpointGroup()),
             mock(EndpointConnector.class)
         );
         endpoints.add(managedEndpoint2);
         Endpoint endpoint3 = new Endpoint();
         endpoint3.setWeight(3);
-        ManagedEndpoint managedEndpoint3 = new ManagedEndpoint(
+        ManagedEndpoint managedEndpoint3 = new DefaultManagedEndpoint(
             endpoint3,
-            new ManagedEndpointGroup(new EndpointGroup()),
+            new DefaultManagedEndpointGroup(new EndpointGroup()),
             mock(EndpointConnector.class)
         );
         endpoints.add(managedEndpoint3);

@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.http.proxy;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.*;
 import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
+import static io.gravitee.gateway.jupiter.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT_OVERRIDE;
 import static io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient.buildUrl;
 import static io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper.*;
 
@@ -30,6 +31,7 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConne
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.Request;
 import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.client.VertxHttpClientHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -76,6 +78,9 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
     private final String relativeTarget;
+    private final String defaultHost;
+    private final int defaultPort;
+    private final boolean defaultSsl;
     private final MultiValueMap<String, String> targetParameters;
     private HttpClient httpClient;
 
@@ -84,6 +89,9 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
         final URL targetUrl = buildUrl(configuration.getTarget());
         this.relativeTarget = targetUrl.getPath();
+        this.defaultHost = targetUrl.getHost();
+        this.defaultPort = targetUrl.getPort() != -1 ? targetUrl.getPort() : targetUrl.getDefaultPort();
+        this.defaultSsl = VertxHttpClient.isSecureProtocol(targetUrl.getProtocol());
 
         if (targetUrl.getQuery() == null) {
             targetParameters = null;
@@ -111,7 +119,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
             final HttpClient client = getOrBuildHttpClient(ctx);
             final RequestOptions options = buildRequestOptions(ctx);
 
-            ctx.metrics().setEndpoint(options.getURI());
+            ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(options, defaultHost, defaultPort));
 
             return client
                 .rxRequest(options)
@@ -230,6 +238,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         boolean isRelative = true;
 
         if (customEndpointTarget != null) {
+            final boolean endpointOverride = Boolean.TRUE.equals(ctx.getAttribute(ATTR_REQUEST_ENDPOINT_OVERRIDE));
             final MultiValueMap<String, String> customEndpointParameters = URIUtils.parameters(customEndpointTarget);
 
             if (!customEndpointParameters.isEmpty()) {
@@ -241,7 +250,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
                 uri = customEndpointTarget;
                 isRelative = false;
             } else {
-                uri = relativeTarget + customEndpointTarget;
+                uri = endpointOverride ? customEndpointTarget : relativeTarget + customEndpointTarget;
             }
         } else {
             // Just append the current request path.
@@ -250,6 +259,7 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
         if (isRelative) {
             VertxHttpClientHelper.configureRelativeUri(requestOptions, uri, requestParameters);
+            requestOptions.setSsl(defaultSsl);
         } else {
             VertxHttpClientHelper.configureAbsoluteUri(requestOptions, uri, requestParameters);
         }

@@ -688,6 +688,13 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-healthcheck-http</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>

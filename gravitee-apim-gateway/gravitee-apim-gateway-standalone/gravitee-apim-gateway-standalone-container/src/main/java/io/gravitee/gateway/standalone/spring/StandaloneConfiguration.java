@@ -26,7 +26,7 @@ import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.TimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.platform.spring.PlatformConfiguration;
 import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
@@ -43,6 +43,7 @@ import io.gravitee.node.kubernetes.spring.NodeKubernetesConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
+import io.gravitee.plugin.apiservice.spring.ApiServicePluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.endpoint.spring.EndpointConnectorPluginConfiguration;
@@ -77,6 +78,7 @@ import org.springframework.context.annotation.Import;
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
         EntrypointConnectorPluginConfiguration.class,
+        ApiServicePluginConfiguration.class,
         EndpointConnectorPluginConfiguration.class,
         ClusterConfiguration.class,
         TimeoutConfiguration.class,
@@ -102,11 +104,11 @@ public class StandaloneConfiguration {
     }
 
     @Bean
-    public ConnectorHelper connectorHelper(
+    public PluginConfigurationHelper connectorHelper(
         final io.gravitee.node.api.configuration.Configuration configuration,
         final ObjectMapper objectMapper
     ) {
-        return new ConnectorHelper(configuration, objectMapper);
+        return new PluginConfigurationHelper(configuration, objectMapper);
     }
 
     @Bean

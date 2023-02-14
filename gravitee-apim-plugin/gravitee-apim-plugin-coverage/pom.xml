@@ -98,6 +98,21 @@
             <artifactId>gravitee-apim-plugin-endpoint-http-proxy</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-handler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-healthcheck-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-healthcheck-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -16,20 +16,17 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpointGroup;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpointGroup;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +47,12 @@ class RandomLoadBalancerTest {
         List<ManagedEndpoint> endpoints = IntStream
             .range(0, 5)
             .mapToObj(
-                i -> new ManagedEndpoint(new Endpoint(), new ManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class))
+                i ->
+                    new DefaultManagedEndpoint(
+                        new Endpoint(),
+                        new DefaultManagedEndpointGroup(new EndpointGroup()),
+                        mock(EndpointConnector.class)
+                    )
             )
             .collect(Collectors.toList());
         RandomLoadBalancer cut = new RandomLoadBalancer(endpoints);

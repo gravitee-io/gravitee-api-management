@@ -96,6 +96,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>io.gravitee.apim.plugin.apiservice</groupId>
+			<artifactId>gravitee-apim-plugin-apiservice-handler</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>io.gravitee.apim.repository</groupId>
 			<artifactId>gravitee-apim-repository-api</artifactId>
 		</dependency>

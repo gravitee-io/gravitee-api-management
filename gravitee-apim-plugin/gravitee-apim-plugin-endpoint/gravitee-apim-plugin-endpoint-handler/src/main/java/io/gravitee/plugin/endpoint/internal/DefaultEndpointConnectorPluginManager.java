@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
@@ -40,14 +40,14 @@ public class DefaultEndpointConnectorPluginManager
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
-    private final ConnectorHelper connectorHelper;
+    private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultEndpointConnectorPluginManager(
         final EndpointConnectorClassLoaderFactory classLoaderFactory,
-        final ConnectorHelper connectorHelper
+        final PluginConfigurationHelper pluginConfigurationHelper
     ) {
         this.classLoaderFactory = classLoaderFactory;
-        this.connectorHelper = connectorHelper;
+        this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
 
     @Override
@@ -72,9 +72,9 @@ public class DefaultEndpointConnectorPluginManager
         EndpointConnectorFactory<?> factory;
         try {
             Constructor<EndpointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
-                ConnectorHelper.class
+                PluginConfigurationHelper.class
             );
-            factory = constructorWithConfigurationHelper.newInstance(connectorHelper);
+            factory = constructorWithConfigurationHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
             Constructor<EndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();

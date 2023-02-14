@@ -16,10 +16,10 @@
 package io.gravitee.plugin.endpoint.mqtt5;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
 import java.util.Set;
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class Mqtt5EndpointConnectorFactory implements EndpointAsyncConnectorFactory {
 
-    private final ConnectorHelper connectorHelper;
+    private final PluginConfigurationHelper pluginConfigurationHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -49,7 +49,9 @@ public class Mqtt5EndpointConnectorFactory implements EndpointAsyncConnectorFact
     @Override
     public Mqtt5EndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
-            return new Mqtt5EndpointConnector(connectorHelper.readConfiguration(Mqtt5EndpointConnectorConfiguration.class, configuration));
+            return new Mqtt5EndpointConnector(
+                pluginConfigurationHelper.readConfiguration(Mqtt5EndpointConnectorConfiguration.class, configuration)
+            );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

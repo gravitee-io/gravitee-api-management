@@ -148,10 +148,10 @@ This attribute is structured like following: `<endpoint>:<url>` or just `<url>`,
 
 Given this format, it is possible to specify:
 
-* An *endpoint group name* followed by an optional path, ex: `my-group:/foo/bar` or just `my-group:`. The group with the same name is selected and the next endpoint is retrieved (with the load balancing strategy). The path is appended to the endpoint target.
+* An *endpoint group name* followed by an optional path, ex: `my-group:/foo/bar` or just `my-group:`. The group with the same name is selected and the next endpoint is retrieved (with the load balancing strategy). The path is appended to the endpoint target (except when `gravitee.attribute.request.endpoint` is set to true).
 * An *endpoint name* followed by an optional path, ex: `my-endpoint:/foo/bar` or just `my-endpoint`. The endpoint having the exact same name is selected and the path is appended to the endpoint url.
 * A *complete url*, ex: `https://somewhere.com/foo/bar`. The next endpoint of the default group is selected (with load balanced strategy applied). The endpoint is only selected to use the underlying http client with the same options (timeout, ssl, …) and the complete url replaces the endpoint target. Note that a complete url prefixed with an endpoint or group name can be used to force usage of its associated http client and inherit from the same options (ssl, pool, ...), ex: `my-endpoint:https://somewhere.com/foo/bar`.
-* A *relative url*, ex: `/foo/bar`. The next endpoint is retrieved from the default group (with load balancing strategy). The path is appended to the endpoint target.
+* A *relative url*, ex: `/foo/bar`. The next endpoint is retrieved from the default group (with load balancing strategy). The path is appended to the endpoint target. The path is appended to the endpoint target (except when `gravitee.attribute.request.endpoint` is set to true).
 * Some *query parameters*, ex: `?foo=bar`. The next endpoint is retrieved from the default group (with load balancing strategy). The query params are appended to the endpoint target and current request parameters.
 
 Note that, when having only 1 group with 1 endpoint named `default`, the following values for the `gravitee.attribute.request.endpoint` attribute are equivalent:
@@ -159,6 +159,8 @@ Note that, when having only 1 group with 1 endpoint named `default`, the followi
 * `default:`
 * (_empty_)
 * `{#endpoints['default']}`
+
+By default, when specifying a relative url, the path is appended to the endpoint's path. You can set the attribute `gravitee.attribute.request.endpoint.override` to `true` to completely replace it. Note that this attribute has no effect when specifying a complete url.
 
 === Examples
 

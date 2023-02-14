@@ -49,6 +49,7 @@ import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -117,6 +118,9 @@ public class DefaultApiReactorFactoryTest {
     @Mock
     private io.gravitee.definition.model.v4.Api definition;
 
+    @Mock
+    private ApiServicePluginManager apiServicePluginManager;
+
     @BeforeEach
     public void init() {
         cut =
@@ -127,6 +131,7 @@ public class DefaultApiReactorFactoryTest {
                 policyFactory,
                 entrypointConnectorPluginManager,
                 endpointConnectorPluginManager,
+                apiServicePluginManager,
                 platformPolicyChainFactory,
                 organizationManager,
                 apiProcessorChainFactory,

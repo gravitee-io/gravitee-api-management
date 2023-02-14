@@ -15,111 +15,27 @@
  */
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
-import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer.LoadBalancerStrategy;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer.LoadBalancerStrategyFactory;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ManagedEndpointGroup {
+public interface ManagedEndpointGroup {
+    ManagedEndpoint next();
 
-    private final EndpointGroup definition;
-    private final List<ManagedEndpoint> primaries;
-    private final List<ManagedEndpoint> secondaries;
-    private final LoadBalancerStrategy primaryLB;
-    private final LoadBalancerStrategy secondaryLB;
+    ManagedEndpoint addManagedEndpoint(ManagedEndpoint managedEndpoint);
 
-    private final Map<String, ManagedEndpoint> primariesByName;
-    private final Map<String, ManagedEndpoint> secondariesByName;
-    private Set<ConnectorMode> supportedModes;
-    private ApiType supportedApi;
+    ManagedEndpoint removeManagedEndpoint(ManagedEndpoint managedEndpoint);
 
-    public ManagedEndpointGroup(final EndpointGroup definition) {
-        this.definition = definition;
-        this.primaries = new CopyOnWriteArrayList<>();
-        this.secondaries = new CopyOnWriteArrayList<>();
-        this.primariesByName = new ConcurrentHashMap<>(1);
-        this.secondariesByName = new ConcurrentHashMap<>(1);
+    ManagedEndpoint removeManagedEndpoint(String name);
 
-        final LoadBalancerType loadBalancerType = definition.getLoadBalancer() != null
-            ? definition.getLoadBalancer().getType()
-            : LoadBalancerType.ROUND_ROBIN;
-        this.primaryLB = LoadBalancerStrategyFactory.create(loadBalancerType, primaries);
-        this.secondaryLB = LoadBalancerStrategyFactory.create(loadBalancerType, secondaries);
-    }
+    EndpointGroup getDefinition();
 
-    public ManagedEndpoint next() {
-        final ManagedEndpoint next = primaryLB.next();
+    Set<ConnectorMode> supportedModes();
 
-        if (next == null) {
-            return secondaryLB.next();
-        }
-
-        return next;
-    }
-
-    public ManagedEndpoint addManagedEndpoint(ManagedEndpoint managedEndpoint) {
-        final Endpoint endpointDefinition = managedEndpoint.getDefinition();
-
-        if (endpointDefinition.isSecondary()) {
-            secondaries.add(managedEndpoint);
-            secondariesByName.put(endpointDefinition.getName(), managedEndpoint);
-            secondaryLB.refresh();
-        } else {
-            primaries.add(managedEndpoint);
-            primariesByName.put(endpointDefinition.getName(), managedEndpoint);
-            primaryLB.refresh();
-        }
-
-        if (supportedModes == null) {
-            supportedModes = managedEndpoint.getConnector().supportedModes();
-            supportedApi = managedEndpoint.getConnector().supportedApi();
-        }
-        return managedEndpoint;
-    }
-
-    public ManagedEndpoint removeManagedEndpoint(ManagedEndpoint managedEndpoint) {
-        return this.removeManagedEndpoint(managedEndpoint.getDefinition().getName());
-    }
-
-    public ManagedEndpoint removeManagedEndpoint(String name) {
-        ManagedEndpoint managedEndpoint = primariesByName.remove(name);
-
-        if (managedEndpoint != null) {
-            primaries.remove(managedEndpoint);
-            primaryLB.refresh();
-        } else {
-            managedEndpoint = secondariesByName.remove(name);
-
-            if (managedEndpoint != null) {
-                secondaries.remove(managedEndpoint);
-            }
-            secondaryLB.refresh();
-        }
-
-        return managedEndpoint;
-    }
-
-    public EndpointGroup getDefinition() {
-        return definition;
-    }
-
-    public Set<ConnectorMode> supportedModes() {
-        return supportedModes;
-    }
-
-    public ApiType supportedApi() {
-        return supportedApi;
-    }
+    ApiType supportedApi();
 }

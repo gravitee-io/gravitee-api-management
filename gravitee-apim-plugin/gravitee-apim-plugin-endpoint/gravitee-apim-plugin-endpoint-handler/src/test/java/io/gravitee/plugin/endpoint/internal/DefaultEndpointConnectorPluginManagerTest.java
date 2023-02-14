@@ -18,11 +18,11 @@ package io.gravitee.plugin.endpoint.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
@@ -49,7 +49,7 @@ class DefaultEndpointConnectorPluginManagerTest {
         cut =
             new DefaultEndpointConnectorPluginManager(
                 new DefaultEndpointConnectorClassLoaderFactory(),
-                new ConnectorHelper(null, new ObjectMapper())
+                new PluginConfigurationHelper(null, new ObjectMapper())
             );
     }
 

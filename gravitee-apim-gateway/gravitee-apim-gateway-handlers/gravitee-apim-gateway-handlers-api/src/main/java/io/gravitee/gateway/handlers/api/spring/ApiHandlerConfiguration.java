@@ -56,6 +56,7 @@ import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFa
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.repository.management.api.CommandRepository;
@@ -224,6 +225,7 @@ public class ApiHandlerConfiguration {
         PolicyFactory policyFactory,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
+        ApiServicePluginManager apiServicePluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
@@ -239,6 +241,7 @@ public class ApiHandlerConfiguration {
             policyFactory,
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,
+            apiServicePluginManager,
             platformPolicyChainFactory,
             organizationManager,
             v4ApiProcessorChainFactory,

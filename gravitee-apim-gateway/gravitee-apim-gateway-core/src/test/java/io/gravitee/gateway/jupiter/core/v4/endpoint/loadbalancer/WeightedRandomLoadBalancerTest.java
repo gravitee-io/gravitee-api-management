@@ -16,14 +16,14 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpointGroup;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpointGroup;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -45,9 +45,9 @@ class WeightedRandomLoadBalancerTest {
     void shouldReturnRandomWeightedEndpoint() {
         List<ManagedEndpoint> endpoints = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            ManagedEndpoint managedEndpoint = new ManagedEndpoint(
+            ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(
                 new Endpoint(),
-                new ManagedEndpointGroup(new EndpointGroup()),
+                new DefaultManagedEndpointGroup(new EndpointGroup()),
                 mock(EndpointConnector.class)
             );
             endpoints.add(managedEndpoint);

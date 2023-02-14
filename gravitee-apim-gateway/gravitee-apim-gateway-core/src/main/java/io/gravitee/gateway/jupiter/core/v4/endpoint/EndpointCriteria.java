@@ -29,7 +29,7 @@ import lombok.Setter;
 @Setter
 public class EndpointCriteria {
 
-    public static final EndpointCriteria ENDPOINT_UP = new EndpointCriteria();
+    public static final EndpointCriteria NO_CRITERIA = new EndpointCriteria();
 
     /*
      * Name could be either:
@@ -41,25 +41,19 @@ public class EndpointCriteria {
     private String name;
     private ApiType apiType;
     private Set<ConnectorMode> modes;
-    private ManagedEndpoint.Status endpointStatus;
 
     public EndpointCriteria() {
         this(null, null);
     }
 
     public EndpointCriteria(ApiType apiType, Set<ConnectorMode> modes) {
-        this(null, apiType, modes, ManagedEndpoint.Status.UP);
+        this(null, apiType, modes);
     }
 
     public EndpointCriteria(String name, ApiType apiType, Set<ConnectorMode> modes) {
-        this(name, apiType, modes, ManagedEndpoint.Status.UP);
-    }
-
-    public EndpointCriteria(String name, ApiType apiType, Set<ConnectorMode> modes, ManagedEndpoint.Status endpointStatus) {
         this.name = name;
         this.apiType = apiType;
         this.modes = modes;
-        this.endpointStatus = endpointStatus;
     }
 
     public boolean matches(ManagedEndpointGroup managedEndpointGroup) {
@@ -71,10 +65,6 @@ public class EndpointCriteria {
     }
 
     public boolean matches(ManagedEndpoint managedEndpoint) {
-        if (endpointStatus != null && endpointStatus != managedEndpoint.getStatus()) {
-            return false;
-        }
-
         if (modes != null && !managedEndpoint.getConnector().supportedModes().containsAll(modes)) {
             return false;
         }

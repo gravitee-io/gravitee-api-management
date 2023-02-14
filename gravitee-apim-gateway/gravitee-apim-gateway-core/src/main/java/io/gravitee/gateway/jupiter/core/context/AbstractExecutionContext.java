@@ -41,10 +41,10 @@ import java.util.Set;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse> implements ExecutionContext {
 
-    private final RQ request;
-    private final RS response;
-    private final Map<String, Object> attributes = new ContextAttributeMap();
-    private final Map<String, Object> internalAttributes = new HashMap<>();
+    protected RQ request;
+    protected RS response;
+    protected Map<String, Object> attributes = new ContextAttributeMap();
+    protected Map<String, Object> internalAttributes = new HashMap<>();
     protected Metrics metrics;
     protected ComponentProvider componentProvider;
     protected TemplateEngine templateEngine;

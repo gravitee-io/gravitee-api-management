@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotBlank;
@@ -38,6 +40,10 @@ import lombok.ToString;
 @Schema(name = "ServiceV4")
 public class Service implements Serializable {
 
+    private static final long serialVersionUID = 8224459863963093009L;
+
+    private boolean overrideConfiguration = false;
+
     private boolean enabled = true;
 
     @JsonProperty(required = true)
@@ -47,4 +53,15 @@ public class Service implements Serializable {
     @Schema(implementation = Object.class)
     @JsonRawValue
     private String configuration;
+
+    @JsonSetter
+    public void setConfiguration(final JsonNode configuration) {
+        if (configuration != null) {
+            this.configuration = configuration.toString();
+        }
+    }
+
+    public void setConfiguration(final String configuration) {
+        this.configuration = configuration;
+    }
 }
