@@ -51,6 +51,9 @@ paths:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
             tags:
                 - Installation
             summary: List all environments of a specific organization
@@ -244,6 +247,9 @@ paths:
                       items:
                           $ref: "#/components/schemas/PlanSecurityType"
                   explode: false
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+
             tags:
                 - APIs
                 - API Plans
@@ -397,6 +403,9 @@ paths:
                     $ref: "#/components/responses/Error"
     /endpoints:
         get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
             tags:
                 - Connectors
                 - Endpoints
@@ -468,6 +477,9 @@ paths:
 
     /entrypoints:
         get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
             tags:
                 - Connectors
                 - Entrypoints
@@ -1081,6 +1093,9 @@ components:
                 type:
                     type: string
     parameters:
+        #############
+        # PathParam #
+        #############
         orgIdParam:
             name: orgId
             in: path
@@ -1125,6 +1140,27 @@ components:
             description: Id of an entrypoint.
             schema:
                 type: string
+        ###############################
+        # Pagination Query Parameters #
+        ###############################
+        pageParam:
+            name: page
+            in: query
+            required: false
+            description: The page number for pagination.
+            schema:
+                type: integer
+                default: 1
+        perPageParam:
+            name: perPage
+            in: query
+            required: false
+            description: |
+                The number of items per page for pagination.
+            schema:
+                type: integer
+                default: 10
+
     responses:
         EnvironmentsResponse:
             description: Page of environments
