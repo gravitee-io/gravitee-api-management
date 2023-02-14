@@ -880,13 +880,9 @@ components:
                 next:
                     type: string
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
-        MetadataMap:
-            description: Map of Map of Object
+        MetadataResponse:
+            description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
-            additionalProperties:
-                type: object
-                additionalProperties:
-                    type: object
         Organization:
             type: object
             properties:
@@ -1134,7 +1130,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/Environment"
                             metadata:
-                                $ref: "#/components/schemas/MetadataMap"
+                                $ref: "#/components/schemas/MetadataResponse"
                             links:
                                 $ref: "#/components/schemas/Links"
         EndpointsResponse:
@@ -1149,7 +1145,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
                             metadata:
-                                $ref: "#/components/schemas/MetadataMap"
+                                $ref: "#/components/schemas/MetadataResponse"
                             links:
                                 $ref: "#/components/schemas/Links"
         EntrypointsResponse:
@@ -1164,7 +1160,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
                             metadata:
-                                $ref: "#/components/schemas/MetadataMap"
+                                $ref: "#/components/schemas/MetadataResponse"
                             links:
                                 $ref: "#/components/schemas/Links"
         PlansResponse:
@@ -1179,7 +1175,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/Plan"
                             metadata:
-                                $ref: "#/components/schemas/MetadataMap"
+                                $ref: "#/components/schemas/MetadataResponse"
                             links:
                                 $ref: "#/components/schemas/Links"
         SchemaFormResponse:
