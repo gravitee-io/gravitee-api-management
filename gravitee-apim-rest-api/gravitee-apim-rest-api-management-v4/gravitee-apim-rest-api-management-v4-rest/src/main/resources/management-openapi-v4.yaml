@@ -87,6 +87,21 @@ paths:
     /apis:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - APIs
+            summary: List APIs
+            description: |-
+                # FIXME add a description
+            operationId: getApis
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
         post:
             tags:
                 - APIs
@@ -1409,6 +1424,21 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Environment"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        ApisResponse:
+            description: Page of apis
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of Apis.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Api"
                             metadata:
                                 $ref: "#/components/schemas/MetadataResponse"
                             links:
