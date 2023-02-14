@@ -29,7 +29,10 @@
       >
         {{ stepNumber }}
       </div>
-      <div class="stepper-menu-step__header__info__title" [class.stepper-menu-step__header__title-not-started]="stepStatus === 'INACTIVE'">
+      <div
+        class="stepper-menu-step__header__info__title"
+        [class.stepper-menu-step__header__info__title-not-started]="stepStatus === 'INACTIVE'"
+      >
         <ng-content></ng-content>
       </div>
     </div>

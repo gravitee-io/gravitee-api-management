@@ -50,7 +50,7 @@
           </gio-selection-list-option-layout-body>
 
           <gio-selection-list-option-layout-action>
-            <button type="button" mat-raised-button (click)="onMoreInfoClick($event, endpoint)">
+            <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
               <mat-icon svgIcon="gio:eye-empty"></mat-icon>
               More information
             </button>
@@ -61,7 +61,7 @@
 
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my endpoints</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my endpoints</button>
     </div>
   </form>
 </mat-card>

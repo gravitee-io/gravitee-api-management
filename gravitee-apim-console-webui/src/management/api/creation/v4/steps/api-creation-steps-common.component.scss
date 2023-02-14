@@ -32,8 +32,13 @@ $typography: map.get(gio.$mat-theme, typography);
     &__footer {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-end;
       margin-top: 24px;
+      gap: 16px;
+
+      :first-child {
+        margin-right: auto;
+      }
     }
   }
 
