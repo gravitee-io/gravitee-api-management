@@ -251,7 +251,7 @@ paths:
                       type: array
                       items:
                           $ref: "#/components/schemas/PlanStatus"
-                      default: published
+                      default: [ "published" ]
                   explode: false
                 - name: security
                   in: query
