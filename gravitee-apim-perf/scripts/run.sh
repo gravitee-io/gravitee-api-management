@@ -127,9 +127,9 @@ fi
 if [[ "" == "${remote_url}" ]];
 then
     echo "Prometheus remote is not set (option -r), using value from config.json"
-    export K6_PROMETHEUS_REMOTE_URL=$(jq '.k6.prometheusRemoteUrl' "${CONFIG_DIR}/config.json")
+    export K6_PROMETHEUS_RW_SERVER_URL=$(jq --raw-output '.k6.prometheusRemoteUrl' "${CONFIG_DIR}/config.json")
 else
-  export K6_PROMETHEUS_REMOTE_URL=$remote_url
+  export K6_PROMETHEUS_RW_SERVER_URL=$remote_url
 fi
 
 ### If output_mode option not defined, use value from config.json
@@ -138,7 +138,7 @@ then
     echo "K6 Output mode is not set (option -o), using value from config.json"
     output_mode=$(jq -r '.k6.outputMode' "${CONFIG_DIR}/config.json")
 fi
-
+echo $K6_PROMETHEUS_RW_SERVER_URL
 ### Run K6
 k6 run --include-system-env-vars ${VERBOSE_OPTIONS} -o ${output_mode} -e K6_PROMETHEUS_RW_TREND_STATS="p(99),p(95),p(90),avg" "${file_path}"
 
