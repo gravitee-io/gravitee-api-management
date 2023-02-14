@@ -31,9 +31,12 @@ import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * This processor will add template variable provide for the resolved {@link Subscription} if any.
@@ -72,16 +75,7 @@ public class SubscriptionProcessor implements Processor {
                 String planId = ctx.getAttribute(ATTR_PLAN);
                 String applicationId = ctx.getAttribute(ATTR_APPLICATION);
                 String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
-                String clientIdentifier = ctx.request().headers().get(clientIdentifierHeader);
-
-                if (clientIdentifier == null) {
-                    if (subscriptionId != null && !subscriptionId.equals(ctx.request().remoteAddress())) {
-                        clientIdentifier = subscriptionId;
-                    } else {
-                        clientIdentifier = ctx.request().transactionId();
-                    }
-                }
-
+                String transactionId = ctx.request().transactionId();
                 if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                     // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
                     if (applicationId == null) {
@@ -98,19 +92,36 @@ public class SubscriptionProcessor implements Processor {
                     }
                 }
 
-                ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, clientIdentifier);
-                ctx.request().clientIdentifier(clientIdentifier);
-                ctx.request().headers().set(clientIdentifierHeader, clientIdentifier);
-                ctx.response().headers().set(clientIdentifierHeader, clientIdentifier);
+                String requestClientIdentifier = ctx.request().headers().get(this.clientIdentifierHeader);
+                String ctxClientIdentifier;
+
+                // If request doesn't contain ClientIdentifier header, generate new one
+                if (requestClientIdentifier == null || requestClientIdentifier.isBlank()) {
+                    ctxClientIdentifier = computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
+                    requestClientIdentifier = ctxClientIdentifier;
+                    ctx.response().headers().set(this.clientIdentifierHeader, ctxClientIdentifier);
+                } else {
+                    // Make sure given ClientIdentifier header, is ctx from subscription
+                    if ((!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId))) {
+                        ctxClientIdentifier =
+                            requestClientIdentifier + "-" + computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
+                    } else {
+                        ctxClientIdentifier = requestClientIdentifier;
+                    }
+                    ctx.response().headers().set(this.clientIdentifierHeader, requestClientIdentifier);
+                }
+
+                ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, ctxClientIdentifier);
+                ctx.request().clientIdentifier(ctxClientIdentifier);
 
                 final Metrics metrics = ctx.metrics();
                 // Stores information about the resolved plan (according to the incoming request)
                 metrics.setPlanId(planId);
                 metrics.setApplicationId(ctx.getAttribute(ATTR_APPLICATION));
                 metrics.setSubscriptionId(subscriptionId);
-                metrics.setClientIdentifier(clientIdentifier);
+                metrics.setClientIdentifier(requestClientIdentifier);
                 if (metrics.getLog() != null) {
-                    metrics.getLog().setClientIdentifier(clientIdentifier);
+                    metrics.getLog().setClientIdentifier(requestClientIdentifier);
                 }
 
                 Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
@@ -131,6 +142,39 @@ public class SubscriptionProcessor implements Processor {
                 ctx.templateVariableProviders(templateVariableProviders);
             }
         );
+    }
+
+    /**
+     * Compute the client identifier from the incoming requests :
+     * <ol>
+     *     <li>Use the subscription id if different <code>null</code> and NON EQUALS to remote address</ul>
+     *     <li>Use a hash of the subscription id if different <code>null</code> and EQUALS to remote address</ul>
+     *     <li>Use a fallback id if subscription id is null</ul>
+     * </li>
+     * @param ctx
+     * @param subscriptionId
+     * @param fallbackId
+     * @return client identifier
+     */
+    private String computeCtxClientIdentifier(final MutableExecutionContext ctx, final String subscriptionId, final String fallbackId) {
+        if (subscriptionId != null && !subscriptionId.equals(ctx.request().remoteAddress())) {
+            return subscriptionId;
+        } else if (subscriptionId != null && subscriptionId.equals(ctx.request().remoteAddress())) {
+            return computeHashOrDefault(subscriptionId, fallbackId);
+        } else {
+            return fallbackId;
+        }
+    }
+
+    private String computeHashOrDefault(final String valueToHash, final String fallback) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(valueToHash.getBytes());
+            byte[] digest = md.digest();
+            return Hex.toHexString(digest);
+        } catch (NoSuchAlgorithmException e) {
+            return fallback;
+        }
     }
 
     private static class Holder {
