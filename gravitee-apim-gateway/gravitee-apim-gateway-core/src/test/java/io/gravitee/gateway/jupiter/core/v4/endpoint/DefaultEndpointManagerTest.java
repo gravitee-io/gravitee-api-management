@@ -284,10 +284,34 @@ class DefaultEndpointManagerTest {
         ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, null, null));
 
         assertThat(next).isNotNull();
-        next.setStatus(ManagedEndpoint.Status.DOWN);
+        cut.disable(next);
 
         next = cut.next(new EndpointCriteria(endpointName, null, null));
         assertThat(next).isNull();
+    }
+
+    @Test
+    void shouldReturnNextManagedEndpointWhenEndpointByNameAvailableAgain() throws Exception {
+        final Api api = buildApi();
+
+        final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
+        final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+        final String endpointName = expectedEndpoint.getName();
+        final EndpointConnector connector = mock(EndpointConnector.class);
+        final EndpointCriteria criteria = new EndpointCriteria(endpointName, null, null);
+
+        when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
+
+        final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+        cut.start();
+        ManagedEndpoint next = cut.next(criteria);
+        cut.disable(next);
+
+        // Should be null because disabled.
+        assertThat(cut.next(criteria)).isNull();
+
+        cut.enable(next);
+        assertThat(cut.next(criteria)).isNotNull();
     }
 
     @Test

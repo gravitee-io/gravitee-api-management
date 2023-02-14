@@ -16,59 +16,41 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Manage endpoint represents the endpoint definition and its associated instance of connector.
- *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ManagedEndpoint {
+public interface ManagedEndpoint {
+    Endpoint getDefinition();
 
-    private final Endpoint definition;
-    private final ManagedEndpointGroup group;
-    private final EndpointConnector connector;
-    private Status status;
+    ManagedEndpointGroup getGroup();
 
-    public ManagedEndpoint(Endpoint definition, ManagedEndpointGroup group, EndpointConnector connector) {
-        this.definition = definition;
-        this.group = group;
-        this.connector = connector;
-        this.status = Status.UP;
-    }
+    <T extends EndpointConnector> T getConnector();
 
-    public Endpoint getDefinition() {
-        return definition;
-    }
+    Status getStatus();
 
-    public ManagedEndpointGroup getGroup() {
-        return group;
-    }
+    void setStatus(Status status);
 
-    public <T extends EndpointConnector> T getConnector() {
-        return (T) connector;
-    }
+    enum Status {
+        UP(3),
+        DOWN(0),
+        TRANSITIONALLY_DOWN(1),
+        TRANSITIONALLY_UP(2);
 
-    public Status getStatus() {
-        return status;
-    }
+        private final int code;
 
-    public void setStatus(Status status) {
-        this.status = status;
-    }
+        Status(int code) {
+            this.code = code;
+        }
 
-    public enum Status {
-        UP,
-        DOWN,
+        public int code() {
+            return this.code;
+        }
+
+        public boolean isDown() {
+            return this == DOWN || this == TRANSITIONALLY_UP;
+        }
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -22,14 +24,22 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.*;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeInvalidException;
+import io.gravitee.rest.api.service.v4.exception.EndpointGroupTypeMismatchInvalidException;
+import io.gravitee.rest.api.service.v4.exception.EndpointNameAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,10 +49,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     private final EndpointConnectorPluginService endpointService;
+    private final ApiServicePluginService apiServicePluginService;
 
-    public EndpointGroupsValidationServiceImpl(final EndpointConnectorPluginService endpointService) {
+    public EndpointGroupsValidationServiceImpl(
+        final EndpointConnectorPluginService endpointService,
+        final ApiServicePluginService apiServicePluginService
+    ) {
         this.endpointService = endpointService;
+        this.apiServicePluginService = apiServicePluginService;
     }
 
     @Override
@@ -66,7 +82,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                             endpoint -> {
                                 validateUniqueEndpointName(endpoint.getName(), names);
                                 validateEndpointType(endpoint.getType());
-                                validateServices(endpoint.getServices());
+                                validateServices(endpointGroup.getServices(), endpoint.getServices());
                                 validateEndpointMatchType(endpointGroup, endpoint);
 
                                 endpoint.setConfiguration(
@@ -97,13 +113,13 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateEndpointType(final String type) {
-        if (StringUtils.isBlank(type)) {
+        if (isBlank(type)) {
             throw new EndpointTypeInvalidException(type);
         }
     }
 
     private void validateEndpointGroupType(final String type) {
-        if (StringUtils.isBlank(type)) {
+        if (isBlank(type)) {
             throw new EndpointGroupTypeInvalidException(type);
         }
     }
@@ -115,8 +131,14 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateHealthCheck(Service healthCheck) {
-        // TODO FCY: As the health-check validation configuration is just a String in V4 definition, it's not possible to validate it here.
-        //  Will have to be implemented in the connector service (with a JSON Schema for instance).
+        if (isBlank(healthCheck.getType())) {
+            logger.debug("HealthCheck requires a type");
+            throw new HealthcheckInvalidException(healthCheck.getType());
+        }
+
+        healthCheck.setConfiguration(
+            this.apiServicePluginService.validateApiServiceConfiguration(healthCheck.getType(), healthCheck.getConfiguration())
+        );
     }
 
     private void validateName(final String name) {
@@ -156,10 +178,41 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateServices(EndpointServices services) {
+    private void validateServices(EndpointGroupServices groupServices, EndpointServices services) {
         if (services != null) {
             if (services.getHealthCheck() != null) {
-                validateHealthCheck(services.getHealthCheck());
+                final var serviceHealthCheck = services.getHealthCheck();
+
+                validateHealthCheck(serviceHealthCheck);
+
+                final var hcGroupWithoutConfig =
+                    (
+                        groupServices == null ||
+                        groupServices.getHealthCheck() == null ||
+                        isBlank(groupServices.getHealthCheck().getConfiguration())
+                    );
+                if (!serviceHealthCheck.isOverrideConfiguration() && hcGroupWithoutConfig) {
+                    logger.debug("HealthCheck inherit from a missing configuration");
+                    throw new HealthcheckInheritanceException();
+                }
+
+                if (serviceHealthCheck.isOverrideConfiguration() && isBlank(serviceHealthCheck.getConfiguration())) {
+                    logger.debug("HealthCheck requires a configuration when overrideConfiguration is enabled");
+                    throw new HealthcheckInheritanceException();
+                }
+
+                if (
+                    groupServices != null &&
+                    groupServices.getHealthCheck() != null &&
+                    !serviceHealthCheck.getType().equals(groupServices.getHealthCheck().getType())
+                ) {
+                    logger.debug(
+                        "HealthCheck with type [{}] inherit configuration from another HealthCheck type [{}]",
+                        serviceHealthCheck.getType(),
+                        groupServices.getHealthCheck().getType()
+                    );
+                    throw new HealthcheckInheritanceException();
+                }
             }
         }
     }

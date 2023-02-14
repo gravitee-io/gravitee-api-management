@@ -1,0 +1,75 @@
+= Http health-check service
+
+== Description
+
+The *Http health-check Service* can be used to test if a backend service is available. If the service is considered down by the health-check, it will be removed from the list of services, so the load balancer will ignore this endpoint until the health-check considers it again as available.
+
+The *Http health-check Service* checks the healthy state of the backend service by sending an HTTP request and evaluates the response based on the configuration to determine if the service is alive or not. When the endpoint type is `http-proxy`, the health-check will reuse the same HTTP client to contact the service as the one used by an incoming gateway request. For other kinds of endpoints (like Kafka or MQTT), the health-check service will initiate its own HTTP client.
+
+NOTE:: A health-check can be defined at EndpointGroup level or for each Endpoint.
+
+Linked to the API lifecycle, this health-check service is started when the API is deployed (or started) and it is stopped when the API is undeployed (or stopped).
+
+== Health-check identifier
+
+In order to use this health-check, you'll have to declare the following identifier `http-health-check` while configuring your API endpoints.
+
+== Health-check configuration
+
+=== General configuration
+
+Bellow you will find the health-check configuration which are not specific to the `http-health-check` healthcheck service (eg: common to all health-check services). All the specific configurations are located under the `configuration` attribute.
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|type | N/A     | Yes | Defines the type of health-check to configure. Here `http-health-check`.
+|enabled | true     | No | Defines if this health-check instance is enabled or not.
+|overrideConfiguration | false     | No | Does the configuration of the health-check defined at EndpointGroup level has to be overriden by the one specified in the health-check defined at Endpoint level.
+|configuration | N/A     | Yes | The specific configuration of the `http-health-check` service (see bellow).
+|===
+
+=== HTTP health-check configuration
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|schedule | N/A     | Yes | A cron expression to schedule the health check.
+|target | N/A     | Yes | The target to run the health check on. Can be a path or a complete url. By default, the path is appended to the endpoint's path.
+|method | GET     | No | HTTP method to invoke the endpoint.
+|overrideEndpointPath | true    | No | When enabled, the path defined on the endpoint is overridden. Otherwise, the path is appended to the endpoint path.
+|headers | N/A  | No | HTTP headers to add to the health check request. This field expect an array of name/value pairs to use as HTTP Headers. (The value support Expression Language.)
+|assertion | {#response.status == 200}    | No | EL expression that will be evaluated by the health check.
+Example 1: Check the status of the HTTP response: {#response.status == 200}
+Example 2: Check the JSON content of the response: {#response.contentJson.status == 'green'}
+|successThreshold | 2    | No | Number of consecutive truthy assertions before considering the backend service as available.
+|failureThreshold | 2    | No | Number of consecutive falsy assertions before considering the backend service as available
+
+|===
+
+=== Examples
+
+Bellow you will find a full `http-health-check` service configuration example:
+
+```json
+{
+    "enabled": true,
+    "type": "http-health-check",
+    "overrideConfiguration": false,
+    "configuration": {
+        "schedule": "*/10 * * * * *",
+        "target": "/healthcheck",
+        "method": "POST",
+        "body": "xxxxx",
+        "headers": [{
+            "name": "X-CUSTOM-HEADAR",
+            "value": "{#api.properties['x-custom-header-value']}"
+        }],
+        "overrideEndpointPath": false,
+        "assertion": "{#response.status == 200}",
+        "successThreshold": 2,
+        "failureThreshold": 3
+    }
+}
+```
+

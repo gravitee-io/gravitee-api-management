@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class KafkaEndpointConnectorFactoryTest {
     @BeforeEach
     void beforeEach() {
         deploymentContext = mock(DeploymentContext.class);
-        kafkaEndpointConnectorFactory = new KafkaEndpointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
+        kafkaEndpointConnectorFactory = new KafkaEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
     @Test

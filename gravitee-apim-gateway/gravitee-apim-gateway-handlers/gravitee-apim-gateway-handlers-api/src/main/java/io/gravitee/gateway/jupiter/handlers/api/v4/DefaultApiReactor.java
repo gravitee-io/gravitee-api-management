@@ -41,6 +41,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
@@ -72,6 +73,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -111,6 +113,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
     private final PolicyManager policyManager;
     private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
+    private final ApiServicePluginManager apiServicePluginManager;
     private final EndpointManager endpointManager;
     private final ReporterService reporterService;
     private final EndpointInvoker defaultInvoker;
@@ -134,9 +137,11 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final long pendingRequestsTimeout;
     private final AtomicLong pendingRequests = new AtomicLong(0);
     private final boolean isEventNative;
+    private final DeploymentContext deploymentContext;
     private SecurityChain securityChain;
     private Lifecycle.State lifecycleState;
     private AnalyticsContext analyticsContext;
+    private List<ApiService> services;
 
     public DefaultApiReactor(
         final Api api,
@@ -145,6 +150,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         final List<TemplateVariableProvider> ctxTemplateVariableProviders,
         final PolicyManager policyManager,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        final ApiServicePluginManager apiServicePluginManager,
         final EndpointManager endpointManager,
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
@@ -156,9 +162,11 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         final ReporterService reporterService
     ) {
         this.api = api;
+        this.deploymentContext = deploymentContext;
         this.componentProvider = componentProvider;
         this.ctxTemplateVariableProviders = ctxTemplateVariableProviders;
         this.policyManager = policyManager;
+        this.apiServicePluginManager = apiServicePluginManager;
         this.endpointManager = endpointManager;
         this.reporterService = reporterService;
         this.entrypointConnectorResolver =
@@ -483,12 +491,23 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             }
         }
 
+        endpointManager.start();
+
+        services =
+            apiServicePluginManager
+                .getAllFactories()
+                .stream()
+                .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
+
+        this.lifecycleState = Lifecycle.State.STARTED;
+
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
 
-        endpointManager.start();
-
-        this.lifecycleState = Lifecycle.State.STARTED;
         dumpAcceptors();
     }
 
@@ -497,6 +516,8 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         this.lifecycleState = Lifecycle.State.STOPPING;
 
         try {
+            Completable.concat(services.stream().map(ApiService::stop).collect(Collectors.toList())).blockingAwait();
+
             entrypointConnectorResolver.preStop();
             endpointManager.preStop();
 

@@ -19,10 +19,10 @@ import static io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnecto
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.http.post.configuration.HttpPostEntrypointConnectorConfiguration;
 import java.util.Set;
@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnectorFactory<HttpPostEntrypointConnector> {
 
-    private ConnectorHelper connectorHelper;
+    private PluginConfigurationHelper pluginConfigurationHelper;
 
     @Override
     public Set<ConnectorMode> supportedModes() {
@@ -63,7 +63,7 @@ public class HttpPostEntrypointConnectorFactory implements EntrypointAsyncConnec
         try {
             return new HttpPostEntrypointConnector(
                 qos,
-                connectorHelper.readConfiguration(HttpPostEntrypointConnectorConfiguration.class, configuration)
+                pluginConfigurationHelper.readConfiguration(HttpPostEntrypointConnectorConfiguration.class, configuration)
             );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);

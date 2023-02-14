@@ -21,18 +21,15 @@ import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.gateway.jupiter.api.ApiType;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import java.util.ArrayList;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class ManagedEndpointGroupTest {
+class DefaultManagedEndpointGroupTest {
 
     private static final String ENDPOINT_TYPE = "test";
     private static final String ENDPOINT_GROUP_CONFIG = "{ \"groupSharedConfig\": \"something\"}";
@@ -41,7 +38,7 @@ class ManagedEndpointGroupTest {
     @Test
     void shouldReturnNullEndpointWhenNoEndpointInTheGroup() {
         final EndpointGroup endpointGroup = buildEndpointGroup();
-        final ManagedEndpointGroup cut = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
         final ManagedEndpoint endpoint = cut.next();
 
@@ -51,7 +48,7 @@ class ManagedEndpointGroupTest {
     @Test
     void shouldAddManagedEndpoint() {
         final EndpointGroup endpointGroup = buildEndpointGroup();
-        final ManagedEndpointGroup cut = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
         final ManagedEndpoint managedEndpoint = mockManagedEndpoint(endpointGroup.getEndpoints().get(0), cut);
         cut.addManagedEndpoint(managedEndpoint);
@@ -62,7 +59,7 @@ class ManagedEndpointGroupTest {
     @Test
     void shouldAddSecondaryManagedEndpoint() {
         final EndpointGroup endpointGroup = buildEndpointGroup();
-        final ManagedEndpointGroup cut = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
         final Endpoint endpoint = endpointGroup.getEndpoints().get(0);
         endpoint.setSecondary(true);
@@ -75,7 +72,7 @@ class ManagedEndpointGroupTest {
     @Test
     void shouldReturnPrimaryManagedEndpoint() {
         final EndpointGroup endpointGroup = buildEndpointGroup();
-        final ManagedEndpointGroup cut = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
         final Endpoint primary = endpointGroup.getEndpoints().get(0);
         final Endpoint secondary = endpointGroup.getEndpoints().get(1);
@@ -93,7 +90,7 @@ class ManagedEndpointGroupTest {
     @Test
     void shouldRemoveManagedEndpoints() {
         final EndpointGroup endpointGroup = buildEndpointGroup();
-        final ManagedEndpointGroup cut = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
         final Endpoint primary = endpointGroup.getEndpoints().get(0);
         final Endpoint secondary = endpointGroup.getEndpoints().get(1);
@@ -138,6 +135,6 @@ class ManagedEndpointGroupTest {
     }
 
     private ManagedEndpoint mockManagedEndpoint(final Endpoint endpoint, final ManagedEndpointGroup group) {
-        return new ManagedEndpoint(endpoint, group, mock(EndpointConnector.class));
+        return new DefaultManagedEndpoint(endpoint, group, mock(EndpointConnector.class));
     }
 }

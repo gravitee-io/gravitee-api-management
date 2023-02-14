@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +44,7 @@ class HttpProxyEntrypointConnectorFactoryTest {
 
     @BeforeEach
     void beforeEach() {
-        cut = new HttpProxyEntrypointConnectorFactory(new ConnectorHelper(null, new ObjectMapper()));
+        cut = new HttpProxyEntrypointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
     @Test

@@ -19,11 +19,10 @@ import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED
 import static io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnector.SUPPORTED_QOS;
 
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
@@ -38,11 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFactory<KafkaEndpointConnector> {
 
-    private final ConnectorHelper connectorHelper;
+    private final PluginConfigurationHelper pluginConfigurationHelper;
     private final QosStrategyFactory qosStrategyFactory;
 
-    public KafkaEndpointConnectorFactory(final ConnectorHelper connectorHelper) {
-        this.connectorHelper = connectorHelper;
+    public KafkaEndpointConnectorFactory(final PluginConfigurationHelper pluginConfigurationHelper) {
+        this.pluginConfigurationHelper = pluginConfigurationHelper;
         this.qosStrategyFactory = new DefaultQosStrategyFactory();
     }
 
@@ -60,7 +59,7 @@ public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFact
     public KafkaEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
         try {
             return new KafkaEndpointConnector(
-                connectorHelper.readConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
+                pluginConfigurationHelper.readConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
                 qosStrategyFactory
             );
         } catch (PluginConfigurationException e) {

@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:plugin:apiservice:healthcheck:ApiHttpHealthCheckServiceConfiguration",
+  "properties": {
+    "schedule": {
+      "title": "Schedule",
+      "description": "A cron expression to schedule the health check.",
+      "type": "string"
+    },
+    "method" : {
+      "title": "HTTP Method",
+      "description": "HTTP method to invoke the endpoint.",
+      "type" : "string",
+      "default": "GET",
+      "enum" : [ "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "CONNECT", "OPTIONS", "TRACE" ]
+    },
+    "target": {
+      "title": "Target",
+      "description": "The target to run the health check on. Can be a path or a complete url. By default, the path is appended to the endpoint's path.",
+      "type": "string"
+    },
+    "overrideEndpointPath": {
+      "title": "Override endpoint path",
+      "description": "When enabled, the path defined on the endpoint is overridden. Otherwise, the path is appended to the endpoint path.",
+      "type": "boolean",
+      "default": true
+    },
+    "headers": {
+      "type": "array",
+      "title": "HTTP Headers",
+      "description": "HTTP headers to add to the health check request",
+      "items": {
+        "type": "object",
+        "title": "Header",
+        "id": "urn:jsonschema:io:gravitee:apiservice:healthcheck:configuration:HttpHeader",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "required": ["name", "value"]
+      }
+    },
+    "assertion" : {
+      "type" : "string",
+      "title": "Assertion",
+      "description": "EL expression that will be evaluated by the health check.\nExample 1: Check the status of the HTTP response: {#response.status == 200}\nExample 2: Check the JSON content of the response: {#response.contentJson.status == 'green'}",
+      "default": "{#response.status == 200}",
+      "x-schema-form": {
+        "expression-language": true
+      }
+    },
+    "successThreshold": {
+      "title": "Success Threshold",
+      "description": "Number of consecutive positive assertions before considering the backend service as available.",
+      "type": "integer",
+      "default": 2
+    },
+    "failureThreshold": {
+      "title": "Failure Threshold",
+      "description": "Number of consecutive negative assertions before considering the backend service as unavailable.",
+      "type": "integer",
+      "default": 2
+    }
+  },
+  "required": [
+    "target", "schedule"
+  ]
+}
+

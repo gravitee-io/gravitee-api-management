@@ -53,6 +53,8 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
+import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
@@ -79,7 +81,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -225,7 +227,13 @@ class DefaultApiReactorTest {
     private EntrypointConnectorPluginManager entrypointConnectorPluginManager;
 
     @Mock
-    private EndpointConnectorPluginManager endpointConnectorPluginManager;
+    private ApiServicePluginManager apiServicePluginManager;
+
+    @Mock
+    private ApiServiceFactory apiServiceFactory;
+
+    @Mock
+    private ApiService apiService;
 
     @Mock
     private EndpointManager endpointManager;
@@ -385,7 +393,18 @@ class DefaultApiReactorTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10000L);
 
+        when(apiServicePluginManager.getAllFactories()).thenReturn(List.of(apiServiceFactory));
+        when(apiServiceFactory.createService(any())).thenReturn(apiService);
+        when(apiService.start()).thenReturn(Completable.complete());
+        lenient().when(apiService.stop()).thenReturn(Completable.complete());
+
         cut = buildApiReactor();
+
+        // make sure that Services that inherit from Lifecycle have been started after the ApiReactor start call
+        verify(resourceLifecycleManager).start();
+        verify(policyManager).start();
+        verify(endpointManager).start();
+        verify(apiService).start();
 
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
@@ -402,6 +421,7 @@ class DefaultApiReactorTest {
                     new ArrayList<>(),
                     policyManager,
                     entrypointConnectorPluginManager,
+                    apiServicePluginManager,
                     endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,
@@ -1036,6 +1056,7 @@ class DefaultApiReactorTest {
         verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
+        verify(apiService).stop();
     }
 
     @Test
@@ -1067,6 +1088,7 @@ class DefaultApiReactorTest {
         verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
+        verify(apiService).stop();
 
         assertEquals(STOPPED, cut.lifecycleState());
     }
@@ -1084,6 +1106,7 @@ class DefaultApiReactorTest {
         verify(endpointManager).stop();
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
+        verify(apiService).stop();
     }
 
     @Test
@@ -1098,6 +1121,7 @@ class DefaultApiReactorTest {
         verify(endpointManager, never()).stop();
         verify(resourceLifecycleManager, never()).stop();
         verify(policyManager, never()).stop();
+        verify(apiService).stop();
     }
 
     private InOrder getInOrder() {

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.util.List;
 import javax.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,6 +41,7 @@ import lombok.ToString;
 @Schema(name = "EndpointV4")
 public class Endpoint implements Serializable {
 
+    private static final long serialVersionUID = 7139083731513897591L;
     private static final int DEFAULT_WEIGHT = 1;
 
     @NotBlank
@@ -51,6 +53,8 @@ public class Endpoint implements Serializable {
 
     private boolean secondary;
 
+    private List<String> tenants;
+
     private int weight = DEFAULT_WEIGHT;
 
     private boolean inheritConfiguration;
@@ -59,7 +63,7 @@ public class Endpoint implements Serializable {
     @JsonRawValue
     private String configuration;
 
-    private EndpointServices services;
+    private EndpointServices services = new EndpointServices();
 
     @JsonSetter
     public void setConfiguration(final JsonNode configuration) {

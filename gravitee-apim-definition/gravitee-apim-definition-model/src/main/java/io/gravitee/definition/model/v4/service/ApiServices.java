@@ -18,17 +18,15 @@ package io.gravitee.definition.model.v4.service;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.List;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -36,5 +34,8 @@ import lombok.ToString;
 @Schema(name = "ApiServicesV4")
 public class ApiServices implements Serializable {
 
+    private static final long serialVersionUID = -4738631204581278554L;
+
+    @JsonProperty("dynamicProperty")
     private Service dynamicProperty;
 }

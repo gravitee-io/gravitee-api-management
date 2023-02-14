@@ -25,11 +25,11 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.jupiter.api.ConnectorMode;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.qos.Qos;
 import io.gravitee.gateway.jupiter.api.qos.QosCapability;
@@ -74,15 +74,15 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     public static final String MESSAGE_PROCESSING_FAILED_KEY = "MESSAGE_PROCESSING_FAILED";
     public static final String MESSAGE_PROCESSING_FAILED_MESSAGE = "Error occurred during message processing";
     protected final WebhookEntrypointConnectorConfiguration configuration;
-    protected final ConnectorHelper connectorHelper;
+    protected final PluginConfigurationHelper pluginConfigurationHelper;
     protected QosRequirement qosRequirement;
 
     public WebhookEntrypointConnector(
-        final ConnectorHelper connectorHelper,
+        final PluginConfigurationHelper pluginConfigurationHelper,
         final Qos qos,
         final WebhookEntrypointConnectorConfiguration configuration
     ) {
-        this.connectorHelper = connectorHelper;
+        this.pluginConfigurationHelper = pluginConfigurationHelper;
         computeQosRequirement(qos);
         this.configuration = configuration;
     }
@@ -260,7 +260,7 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     protected WebhookEntrypointConnectorSubscriptionConfiguration readSubscriptionConfiguration(Subscription subscription)
         throws PluginConfigurationException {
-        return connectorHelper.readConfiguration(
+        return pluginConfigurationHelper.readConfiguration(
             WebhookEntrypointConnectorSubscriptionConfiguration.class,
             subscription.getConfiguration()
         );

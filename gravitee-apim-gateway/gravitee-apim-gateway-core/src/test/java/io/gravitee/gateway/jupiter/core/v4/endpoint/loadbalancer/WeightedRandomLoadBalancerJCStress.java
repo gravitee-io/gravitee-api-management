@@ -18,6 +18,7 @@ package io.gravitee.gateway.jupiter.core.v4.endpoint.loadbalancer;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -59,7 +60,7 @@ public class WeightedRandomLoadBalancerJCStress {
 
         @Actor
         public void actor1(IIII_Result r) {
-            ManagedEndpoint managedEndpoint = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint);
             loadBalancer.refresh();
             r.r1 = loadBalancer.weightDistributions.get().getWeightSum();
@@ -68,7 +69,7 @@ public class WeightedRandomLoadBalancerJCStress {
 
         @Actor
         public void actor2(IIII_Result r) {
-            ManagedEndpoint managedEndpoint = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint);
             loadBalancer.refresh();
             r.r3 = loadBalancer.weightDistributions.get().getWeightSum();
@@ -90,9 +91,9 @@ public class WeightedRandomLoadBalancerJCStress {
 
         public ShouldNextBeCompliant() {
             this.endpoints = new CopyOnWriteArrayList<>();
-            ManagedEndpoint managedEndpoint1 = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint1);
-            ManagedEndpoint managedEndpoint2 = new ManagedEndpoint(new Endpoint(), null, null);
+            ManagedEndpoint managedEndpoint2 = new DefaultManagedEndpoint(new Endpoint(), null, null);
             endpoints.add(managedEndpoint2);
             this.loadBalancer = new WeightedRandomLoadBalancer(endpoints);
         }

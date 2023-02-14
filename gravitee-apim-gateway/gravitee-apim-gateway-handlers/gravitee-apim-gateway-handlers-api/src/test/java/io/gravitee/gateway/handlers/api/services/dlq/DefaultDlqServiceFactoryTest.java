@@ -32,8 +32,8 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.jupiter.api.ApiType;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.service.dlq.DlqService;
+import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +70,7 @@ class DefaultDlqServiceFactoryTest {
 
         final DefaultDlqServiceFactory cut = new DefaultDlqServiceFactory(api, endpointManager);
 
-        when(endpointManager.next(any())).thenReturn(mock(ManagedEndpoint.class));
+        when(endpointManager.next(any())).thenReturn(mock(DefaultManagedEndpoint.class));
         when(entrypointConnector.id()).thenReturn(ENTRYPOINT_TYPE);
         final DlqService dlqService = cut.create(entrypointConnector);
 
@@ -80,7 +80,6 @@ class DefaultDlqServiceFactoryTest {
                 argThat(
                     criteria ->
                         criteria.getName().equals(endpointTarget) &&
-                        criteria.getEndpointStatus() == ManagedEndpoint.Status.UP &&
                         criteria.getModes().equals(Set.of(PUBLISH)) &&
                         criteria.getApiType() == ApiType.ASYNC
                 )

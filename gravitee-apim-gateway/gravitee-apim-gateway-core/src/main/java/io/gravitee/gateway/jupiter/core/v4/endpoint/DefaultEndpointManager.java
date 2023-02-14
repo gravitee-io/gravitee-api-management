@@ -16,6 +16,7 @@
 package io.gravitee.gateway.jupiter.core.v4.endpoint;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -25,11 +26,9 @@ import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import io.reactivex.rxjava3.core.Single;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,9 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     private ManagedEndpointGroup defaultGroup;
     private final Map<String, ManagedEndpointGroup> groupsByName;
     private final Map<String, ManagedEndpoint> endpointsByName;
+    private final Set<ManagedEndpoint> disabledEndpoints;
     private final Map<String, String> endpointVariables;
+    private final Map<String, BiConsumer<Event, ManagedEndpoint>> listeners;
 
     public DefaultEndpointManager(
         final Api api,
@@ -59,13 +60,33 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         this.endpointsByName = new ConcurrentHashMap<>(1);
         this.groupsByName = new ConcurrentHashMap<>(1);
         this.endpointVariables = new ConcurrentHashMap<>(1);
+        this.listeners = new ConcurrentHashMap<>(1);
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.deploymentContext = deploymentContext;
+        this.disabledEndpoints = ConcurrentHashMap.newKeySet(0);
     }
 
     @Override
     public ManagedEndpoint next() {
-        return next(EndpointCriteria.ENDPOINT_UP);
+        return next(EndpointCriteria.NO_CRITERIA);
+    }
+
+    @Override
+    public List<ManagedEndpoint> all() {
+        return new ArrayList<>(endpointsByName.values());
+    }
+
+    @Override
+    public String addListener(BiConsumer<Event, ManagedEndpoint> endpointConsumer) {
+        final String listenerId = UUID.random().toString();
+        listeners.put(listenerId, endpointConsumer);
+
+        return listenerId;
+    }
+
+    @Override
+    public void removeListener(String listenerId) {
+        listeners.remove(listenerId);
     }
 
     @Override
@@ -81,7 +102,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             final ManagedEndpoint managedEndpoint = endpointsByName.get(name);
 
             if (managedEndpoint != null) {
-                if (criteria.matches(managedEndpoint)) {
+                if (!disabledEndpoints.contains(managedEndpoint) && criteria.matches(managedEndpoint)) {
                     return managedEndpoint;
                 }
                 return null;
@@ -94,6 +115,18 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             }
         }
         return null;
+    }
+
+    @Override
+    public void disable(ManagedEndpoint endpoint) {
+        disabledEndpoints.add(endpoint);
+        endpoint.getGroup().removeManagedEndpoint(endpoint);
+    }
+
+    @Override
+    public void enable(ManagedEndpoint endpoint) {
+        endpoint.getGroup().addManagedEndpoint(endpoint);
+        disabledEndpoints.remove(endpoint);
     }
 
     @Override
@@ -136,7 +169,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     }
 
     private ManagedEndpointGroup createAndStartGroup(final EndpointGroup endpointGroup) {
-        final ManagedEndpointGroup managedEndpointGroup = new ManagedEndpointGroup(endpointGroup);
+        final ManagedEndpointGroup managedEndpointGroup = new DefaultManagedEndpointGroup(endpointGroup);
         groupsByName.put(endpointGroup.getName(), managedEndpointGroup);
 
         for (Endpoint endpoint : endpointGroup.getEndpoints()) {
@@ -171,7 +204,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
             connector.start();
 
-            final ManagedEndpoint managedEndpoint = new ManagedEndpoint(endpoint, managedEndpointGroup, connector);
+            final ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(endpoint, managedEndpointGroup, connector);
             managedEndpointGroup.addManagedEndpoint(managedEndpoint);
             endpointsByName.put(endpoint.getName(), managedEndpoint);
             endpointVariables.put(endpoint.getName(), endpoint.getName() + ":");

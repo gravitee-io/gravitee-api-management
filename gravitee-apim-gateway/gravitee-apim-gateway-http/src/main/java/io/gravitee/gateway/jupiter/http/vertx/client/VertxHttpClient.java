@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.node.api.configuration.Configuration;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.*;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -93,6 +94,17 @@ public class VertxHttpClient {
         return target.getPort() != -1 ? target.getPort() : defaultPort;
     }
 
+    public static String toAbsoluteUri(RequestOptions requestOptions, String defaultHost, int defaultPort) {
+        return (
+            (Boolean.TRUE.equals(requestOptions.isSsl()) ? "https://" : "http://") +
+            (
+                (requestOptions.getHost() != null ? requestOptions.getHost() : defaultHost) +
+                (requestOptions.getPort() != null ? ":" + requestOptions.getPort() : (defaultPort != -1 ? ":" + defaultPort : "")) +
+                requestOptions.getURI()
+            )
+        );
+    }
+
     private io.vertx.core.http.HttpClientOptions createHttpClientOptions() {
         io.vertx.core.http.HttpClientOptions options = new io.vertx.core.http.HttpClientOptions();
 
@@ -146,7 +158,7 @@ public class VertxHttpClient {
     private void configureSsl(final io.vertx.core.http.HttpClientOptions options, final URL target) {
         if (isSecureProtocol(target.getProtocol())) {
             // Configure SSL.
-            options.setSsl(true).setUseAlpn(true);
+            options.setSsl(true);
 
             if (nodeConfiguration.getProperty(HTTP_SSL_OPENSSL_CONFIGURATION, Boolean.class, false)) {
                 options.setSslEngineOptions(new OpenSSLEngineOptions());
@@ -162,6 +174,8 @@ public class VertxHttpClient {
                 configureKeyStore(options);
             }
         }
+
+        options.setUseAlpn(true);
     }
 
     private void configureTrustStore(final io.vertx.core.http.HttpClientOptions options) {

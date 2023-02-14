@@ -16,11 +16,10 @@
 package io.gravitee.plugin.entrypoint.http.proxy;
 
 import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.sync.EntrypointSyncConnector;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.sync.EntrypointSyncConnectorFactory;
 import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.entrypoint.http.proxy.configuration.HttpProxyEntrypointConnectorConfiguration;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class HttpProxyEntrypointConnectorFactory implements EntrypointSyncConnectorFactory {
 
-    private ConnectorHelper connectorFactoryHelper;
+    private PluginConfigurationHelper connectorFactoryHelper;
 
     @Override
     public ListenerType supportedListenerType() {
