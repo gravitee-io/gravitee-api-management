@@ -78,7 +78,9 @@ do
 done
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-echo $SCRIPT_DIR
+echo "Script directory: "$SCRIPT_DIR
+CONFIG_DIR=${CONFIG_DIR:-$SCRIPT_DIR}
+echo "Config directory: "$CONFIG_DIR
 
 ### Check tooling
 if [[ -z "$(whereis k6)" && -z "$(which k6)" ]];
@@ -101,7 +103,7 @@ then
     exit 2
 fi
 
-export K6_OPTIONS=$(jq -c '.' "${SCRIPT_DIR}/config.json")
+export K6_OPTIONS=$(jq -c '.' "${CONFIG_DIR}/config.json")
 
 cd "$SCRIPT_DIR/.."
 
@@ -125,7 +127,7 @@ fi
 if [[ "" == "${remote_url}" ]];
 then
     echo "Prometheus remote is not set (option -r), using value from config.json"
-    export K6_PROMETHEUS_REMOTE_URL=$(jq '.k6.prometheusRemoteUrl' "${SCRIPT_DIR}/config.json")
+    export K6_PROMETHEUS_REMOTE_URL=$(jq '.k6.prometheusRemoteUrl' "${CONFIG_DIR}/config.json")
 else
   export K6_PROMETHEUS_REMOTE_URL=$remote_url
 fi
@@ -134,7 +136,7 @@ fi
 if [[ "" == "${output_mode}" ]];
 then
     echo "K6 Output mode is not set (option -o), using value from config.json"
-    output_mode=$(jq -r '.k6.outputMode' "${SCRIPT_DIR}/config.json")
+    output_mode=$(jq -r '.k6.outputMode' "${CONFIG_DIR}/config.json")
 fi
 
 ### Run K6
