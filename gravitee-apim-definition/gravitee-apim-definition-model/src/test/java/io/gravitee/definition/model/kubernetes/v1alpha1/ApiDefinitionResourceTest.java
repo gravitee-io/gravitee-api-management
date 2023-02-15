@@ -73,7 +73,7 @@ public class ApiDefinitionResourceTest {
     }
 
     @Test
-    public void ShouldAddContextRef() throws Exception {
+    public void ShouldSetContextRef() throws Exception {
         String contextRefName = "apim-dev-ctx";
         String contextRefNamespace = "default";
 
@@ -81,13 +81,9 @@ public class ApiDefinitionResourceTest {
 
         resource.setContextRef(contextRefName, contextRefNamespace);
 
-        assertTrue(resource.getSpec().has("contexts"));
+        assertTrue(resource.getSpec().has("contextRef"));
 
-        ArrayNode contexts = ((ArrayNode) resource.getSpec().get("contexts"));
-
-        assertEquals(contexts.size(), 1);
-
-        JsonNode contextRef = contexts.get(0);
+        ObjectNode contextRef = ((ObjectNode) resource.getSpec().get("contextRef"));
 
         assertTrue(contextRef.has("name"));
         assertTrue(contextRef.has("namespace"));

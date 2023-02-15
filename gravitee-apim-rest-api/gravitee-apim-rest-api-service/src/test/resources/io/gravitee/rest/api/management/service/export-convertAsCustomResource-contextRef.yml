@@ -62,6 +62,6 @@ spec:
       '*/*':
         status: 400
         body: "{\"bad\":\"news\"}"
-  contexts:
-  - name: "apim-dev-ctx"
+  contextRef:
+    name: "apim-dev-ctx"
     namespace: "default"

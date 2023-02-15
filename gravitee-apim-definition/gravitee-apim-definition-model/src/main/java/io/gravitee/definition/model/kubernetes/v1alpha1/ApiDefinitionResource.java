@@ -55,7 +55,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final String VERSION_FIELD = "version";
 
-    private static final String CONTEXTS_FIELD = "contexts";
+    private static final String CONTEXT_REF_FIELD = "contextRef";
 
     private static final String CONTEXT_NAME_FIELD = "name";
 
@@ -85,7 +85,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     }
 
     public void setContextRef(String name, String namespace) {
-        getSpec().putArray(CONTEXTS_FIELD).addObject().put(CONTEXT_NAME_FIELD, name).put(CONTEXT_NAMESPACE_FIELD, namespace);
+        getSpec().putObject(CONTEXT_REF_FIELD).put(CONTEXT_NAME_FIELD, name).put(CONTEXT_NAMESPACE_FIELD, namespace);
     }
 
     public void removeIds() {
