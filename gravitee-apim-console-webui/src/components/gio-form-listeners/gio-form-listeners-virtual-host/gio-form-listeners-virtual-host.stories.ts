@@ -32,18 +32,19 @@ export default {
     moduleMetadata({
       imports: [BrowserAnimationsModule, GioFormListenersVirtualHostModule, FormsModule, ReactiveFormsModule],
       providers: [
-        { provide: PortalSettingsService, useValue: { get: () => of({}) } },
+        { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
         { provide: ApiService, useValue: { contextPathValidator: () => () => of() } },
       ],
     }),
   ],
   argTypes: {},
   render: (args) => ({
-    template: `<gio-form-listeners-virtual-host [ngModel]="listeners"></gio-form-listeners-virtual-host>`,
+    template: `<gio-form-listeners-virtual-host [ngModel]="listeners" [domainRestrictions]="domainRestrictions"></gio-form-listeners-virtual-host>`,
     props: args,
   }),
   args: {
     listeners: [],
+    domainRestrictions: [],
   },
 } as Meta;
 
@@ -97,4 +98,9 @@ export const ReactiveForm: Story = {
     ],
     disabled: false,
   },
+};
+
+export const WithDomainRestrictions: Story = {};
+WithDomainRestrictions.args = {
+  domainRestrictions: ['gravitee.io', 'graviteesource.com'],
 };

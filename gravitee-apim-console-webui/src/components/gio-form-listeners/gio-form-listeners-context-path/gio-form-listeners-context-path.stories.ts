@@ -33,7 +33,7 @@ export default {
     moduleMetadata({
       imports: [BrowserAnimationsModule, GioFormListenersContextPathModule, FormsModule, ReactiveFormsModule],
       providers: [
-        { provide: PortalSettingsService, useValue: { get: () => of({}) } },
+        { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
         { provide: ApiService, useValue: { contextPathValidator: () => () => of() } },
       ],
     }),

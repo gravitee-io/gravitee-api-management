@@ -138,11 +138,15 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     expect(testComponent.formControl.value).toEqual([
       {
+        _hostDomain: '',
+        _hostSubDomain: 'localhost',
         host: 'localhost',
         path: '/api/my-api-4',
         overrideAccess: true,
       },
       {
+        _hostDomain: '',
+        _hostSubDomain: 'my-host',
         host: 'my-host',
         path: '/api/my-api-5',
         overrideAccess: true,
@@ -170,8 +174,14 @@ describe('GioFormListenersVirtualHostModule', () => {
     });
 
     expect(testComponent.formControl.value).toEqual([
-      LISTENERS[0],
       {
+        ...LISTENERS[0],
+        _hostDomain: '',
+        _hostSubDomain: 'api.gravitee.io',
+      },
+      {
+        _hostDomain: '',
+        _hostSubDomain: 'demo.gravitee.io',
         host: 'demo.gravitee.io',
         path: '/api/my-api-6',
         overrideAccess: true,
@@ -195,7 +205,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     // Check last row does have disabled button
     expect(newContextPathRows[1].removeButton.isDisabled()).toBeTruthy();
 
-    expect(testComponent.formControl.value).toEqual([LISTENERS[0]]);
+    expect(testComponent.formControl.value).toEqual([{ ...LISTENERS[0], _hostDomain: '', _hostSubDomain: 'api.gravitee.io' }]);
   });
 
   it('should handle touched & dirty on focus and change value', async () => {

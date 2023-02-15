@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { GioFormListenersVirtualHostComponent } from './gio-form-listeners-virtual-host.component';
 
@@ -38,6 +39,7 @@ import { GioFormSlideToggleModule } from '../../../shared/components/gio-form-sl
     GioFormSlideToggleModule,
     MatButtonModule,
     MatSlideToggleModule,
+    MatAutocompleteModule,
   ],
   declarations: [GioFormListenersVirtualHostComponent],
   exports: [GioFormListenersVirtualHostComponent],
