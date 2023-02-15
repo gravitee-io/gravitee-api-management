@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
@@ -202,5 +204,27 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENTRYPOINT_ID));
 
         Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
+    }
+
+    @Test
+    public void shouldGetEndpointById() {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setName("Fake Entrypoint");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+
+        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final ConnectorPlugin entrypoint = response.readEntity(ConnectorPlugin.class);
+        assertNotNull(entrypoint);
+        assertEquals(FAKE_ENTRYPOINT_ID, entrypoint.getId());
+        assertEquals("Fake Entrypoint", entrypoint.getName());
+        assertEquals("1.0", entrypoint.getVersion());
+        assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.ASYNC, entrypoint.getSupportedApiType());
+        assertEquals(Set.of(io.gravitee.rest.api.management.v4.rest.model.ConnectorMode.SUBSCRIBE), entrypoint.getSupportedModes());
     }
 }

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.PlanService;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -63,6 +64,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PermissionService permissionService;
+
+    @Autowired
+    protected PlanService planService;
 
     @Autowired
     protected EnvironmentService environmentService;

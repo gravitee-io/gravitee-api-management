@@ -21,6 +21,8 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v4.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v4.rest.model.Plan;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.v4.rest.resource.param.PlanStatusParam;
@@ -73,12 +75,12 @@ public class ApiPlansResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @SuppressWarnings("UnresolvedRestParam")
-    @PathParam("api")
+    @PathParam("apiId")
     private String apiId;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PlanEntity> getApiPlans(
+    public List<Plan> getApiPlans(
         @QueryParam("status") @DefaultValue("PUBLISHED") final PlanStatusParam wishedStatus,
         @QueryParam("security") final PlanSecurityParam security
     ) {
@@ -92,7 +94,7 @@ public class ApiPlansResource extends AbstractResource {
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
-        return planService
+        List<PlanEntity> entities = planService
             .findByApi(executionContext, apiId)
             .stream()
             .filter(
@@ -111,6 +113,8 @@ public class ApiPlansResource extends AbstractResource {
             .sorted(comparingInt(PlanEntity::getOrder))
             .map(this::filterSensitiveData)
             .collect(Collectors.toList());
+
+        return PlanMapper.INSTANCE.convertList(entities);
     }
 
     @POST
@@ -122,7 +126,7 @@ public class ApiPlansResource extends AbstractResource {
 
         PlanEntity planEntity = planService.create(GraviteeContext.getExecutionContext(), newPlanEntity);
 
-        return Response.created(this.getLocationHeader(planEntity.getId())).entity(planEntity).build();
+        return Response.created(this.getLocationHeader(planEntity.getId())).entity(PlanMapper.INSTANCE.convert(planEntity)).build();
     }
 
     @GET
@@ -142,7 +146,7 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
             }
 
-            return Response.ok(planEntity).build();
+            return Response.ok(PlanMapper.INSTANCE.convert(planEntity)).build();
         }
         throw new ForbiddenAccessException();
     }
@@ -168,8 +172,8 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        planEntity = planService.update(executionContext, updatePlanEntity);
-        return Response.ok(planEntity).build();
+        PlanEntity responseEntity = planService.update(executionContext, updatePlanEntity);
+        return Response.ok(PlanMapper.INSTANCE.convert(responseEntity)).build();
     }
 
     @DELETE
@@ -199,7 +203,7 @@ public class ApiPlansResource extends AbstractResource {
 
         PlanEntity closedPlan = planService.close(executionContext, plan);
 
-        return Response.ok(closedPlan).build();
+        return Response.ok(PlanMapper.INSTANCE.convert(closedPlan)).build();
     }
 
     @POST
@@ -212,7 +216,9 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.publish(executionContext, plan)).build();
+        PlanEntity publishedPlan = planService.publish(executionContext, plan);
+
+        return Response.ok(PlanMapper.INSTANCE.convert(publishedPlan)).build();
     }
 
     @POST
@@ -225,7 +231,9 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        return Response.ok(planService.deprecate(executionContext, plan)).build();
+        PlanEntity deprecatedPlan = planService.deprecate(executionContext, plan);
+
+        return Response.ok(deprecatedPlan).build();
     }
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {

@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
+import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import java.util.Set;
@@ -44,21 +46,21 @@ public class EndpointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ConnectorPluginEntity> getEndpoints() {
-        return endpointService.findAll();
+    public Set<ConnectorPlugin> getEndpoints() {
+        return ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
     }
 
     @Path("/{endpointId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ConnectorPluginEntity getEntrypoint(@PathParam("endpointId") String endpointId) {
-        return endpointService.findById(endpointId);
+    public ConnectorPlugin getEndpoint(@PathParam("endpointId") String endpointId) {
+        return ConnectorPluginMapper.INSTANCE.convert(endpointService.findById(endpointId));
     }
 
     @GET
     @Path("/{endpointId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getEntrypointSchema(@PathParam("endpointId") String endpointId) {
+    public String getEndpointSchema(@PathParam("endpointId") String endpointId) {
         // Check that the endpoint exists
         endpointService.findById(endpointId);
 
@@ -68,7 +70,7 @@ public class EndpointsResource {
     @GET
     @Path("/{endpointId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getEntrypointDoc(@PathParam("endpointId") String endpointId) {
+    public String getEndpointDoc(@PathParam("endpointId") String endpointId) {
         // Check that the endpoint exists
         endpointService.findById(endpointId);
 

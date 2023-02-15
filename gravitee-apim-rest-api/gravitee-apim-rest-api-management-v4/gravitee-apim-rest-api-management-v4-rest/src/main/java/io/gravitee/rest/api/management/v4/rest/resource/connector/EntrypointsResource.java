@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
+import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.util.Set;
@@ -44,15 +46,15 @@ public class EntrypointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ConnectorPluginEntity> getEntrypoints() {
-        return entrypointService.findAll();
+    public Set<ConnectorPlugin> getEntrypoints() {
+        return ConnectorPluginMapper.INSTANCE.convertSet(entrypointService.findAll());
     }
 
     @Path("/{entrypointId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ConnectorPluginEntity getEntrypoint(@PathParam("entrypointId") String entrypointId) {
-        return entrypointService.findById(entrypointId);
+    public ConnectorPlugin getEntrypoint(@PathParam("entrypointId") String entrypointId) {
+        return ConnectorPluginMapper.INSTANCE.convert(entrypointService.findById(entrypointId));
     }
 
     @GET

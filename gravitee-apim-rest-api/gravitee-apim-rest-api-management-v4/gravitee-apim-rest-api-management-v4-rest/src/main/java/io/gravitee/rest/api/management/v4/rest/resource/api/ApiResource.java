@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.exception.InvalidImageException;
+import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,19 +85,13 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById() {
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiEntity apiEntity = apiSearchService.findById(executionContext, apiId);
+        ApiEntity apiEntity = getApiEntityById();
 
-        if (!canManageApi(apiEntity)) {
-            throw new ForbiddenAccessException();
-        }
-
-        if (hasPermission(executionContext, RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
-            setPictures(apiEntity);
-        } else {
-            filterSensitiveData(apiEntity);
-        }
-        return Response.ok(apiEntity).tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+        return Response
+            .ok(ApiMapper.INSTANCE.convert(apiEntity))
+            .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+            .lastModified(apiEntity.getUpdatedAt())
+            .build();
     }
 
     @PUT
@@ -103,11 +99,11 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateApi(@Context HttpHeaders headers, @Valid @NotNull final UpdateApiEntity apiToUpdate) {
         if (!apiId.equals(apiToUpdate.getId())) {
-            throw new BadRequestException("'apiId' is not the same that the API in payload");
+            throw new BadRequestException("'apiId' is not the same as the API in payload");
         }
 
-        final Response responseApi = getApiById();
-        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+        final ApiEntity currentEntity = getApiEntityById();
+        Response.ResponseBuilder builder = evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
         if (builder != null) {
             return builder.build();
@@ -120,8 +116,6 @@ public class ApiResource extends AbstractResource {
             throw new BadRequestException("Invalid image format");
         }
 
-        final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
-
         // Force listeners if user is not the primary_owner or an administrator
         if (
             !hasPermission(
@@ -130,10 +124,10 @@ public class ApiResource extends AbstractResource {
                 apiId,
                 RolePermissionAction.UPDATE
             ) &&
-            !Objects.equals(currentApi.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
+            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
             !isAdmin()
         ) {
-            apiToUpdate.setListeners(currentApi.getListeners());
+            apiToUpdate.setListeners(currentEntity.getListeners());
         }
 
         final ApiEntity updatedApi = apiServiceV4.update(
@@ -146,7 +140,7 @@ public class ApiResource extends AbstractResource {
         setPictures(updatedApi);
 
         return Response
-            .ok(updatedApi)
+            .ok(ApiMapper.INSTANCE.convert(updatedApi))
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -172,7 +166,7 @@ public class ApiResource extends AbstractResource {
                 apiDeploymentEntity
             );
             return Response
-                .ok(apiEntity)
+                .ok(ApiMapper.INSTANCE.convert(apiEntity))
                 .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();
@@ -218,6 +212,22 @@ public class ApiResource extends AbstractResource {
     @Path("/plans")
     public ApiPlansResource getApiPlansResource() {
         return resourceContext.getResource(ApiPlansResource.class);
+    }
+
+    private ApiEntity getApiEntityById() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiEntity apiEntity = apiSearchService.findById(executionContext, apiId);
+
+        if (!canManageApi(apiEntity)) {
+            throw new ForbiddenAccessException();
+        }
+
+        if (hasPermission(executionContext, RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
+            setPictures(apiEntity);
+        } else {
+            filterSensitiveData(apiEntity);
+        }
+        return apiEntity;
     }
 
     private void setPictures(final ApiEntity apiEntity) {
