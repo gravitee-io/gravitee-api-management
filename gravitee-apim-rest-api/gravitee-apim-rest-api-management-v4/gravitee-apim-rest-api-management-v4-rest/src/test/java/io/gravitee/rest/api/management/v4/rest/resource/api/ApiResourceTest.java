@@ -33,20 +33,31 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v4.rest.model.ApiListenersInner;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
@@ -114,7 +125,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));
-        apiEntity.setListeners(List.of(httpListener));
+
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("Entrypoint type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        entrypoint.setDlq(new Dlq("my-endpoint"));
+        entrypoint.setConfiguration("nice configuration");
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
+
+        TcpListener tcpListener = new TcpListener();
+        tcpListener.setType(ListenerType.TCP);
+        tcpListener.setEntrypoints(List.of(entrypoint));
+
+        apiEntity.setListeners(List.of(httpListener, subscriptionListener, tcpListener));
         apiEntity.setProperties(List.of(new Property()));
         apiEntity.setServices(new ApiServices());
         apiEntity.setResources(List.of(new Resource()));
@@ -136,7 +161,10 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
+        final io.gravitee.rest.api.management.v4.rest.model.Api responseApi = response.readEntity(
+            io.gravitee.rest.api.management.v4.rest.model.Api.class
+        );
+
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getPictureUrl());
@@ -148,9 +176,38 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(1, responseApi.getResources().size());
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(1, responseApi.getResponseTemplates().size());
+
         assertNotNull(responseApi.getListeners());
-        assertNotNull(((HttpListener) responseApi.getListeners().get(0)).getPathMappings());
-        assertNotNull(((HttpListener) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
+        assertEquals(3, responseApi.getListeners().size());
+
+        ApiListenersInner firstListener = responseApi.getListeners().get(0);
+        assertNotNull(firstListener);
+        var httpListener = firstListener.getHttpListener();
+        assertNotNull(httpListener);
+        assertNotNull(httpListener.getPathMappings());
+        assertNotNull(httpListener.getPaths().get(0).getHost());
+
+        ApiListenersInner secondListener = responseApi.getListeners().get(1);
+        assertNotNull(secondListener);
+        var subscriptionListener = secondListener.getSubscriptionListener();
+        assertNotNull(subscriptionListener);
+        assertNotNull(subscriptionListener.getEntrypoints());
+        var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
+        assertNotNull(foundEntrypoint);
+        assertEquals("nice configuration", foundEntrypoint.getConfiguration());
+        assertEquals("Entrypoint type", foundEntrypoint.getType());
+        assertEquals("subscription", subscriptionListener.getType().toString());
+
+        ApiListenersInner thirdListener = responseApi.getListeners().get(2);
+        assertNotNull(thirdListener);
+        var tcpListener = thirdListener.getTcpListener();
+        assertNotNull(tcpListener);
+        assertNotNull(tcpListener.getEntrypoints());
+        var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
+        assertNotNull(tcpFoundEntrypoint);
+        assertEquals("nice configuration", tcpFoundEntrypoint.getConfiguration());
+        assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
+        assertEquals("tcp", tcpListener.getType().toString());
     }
 
     @Test
@@ -176,6 +233,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi.getResponseTemplates());
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
+        assertNotNull(responseApi.getListeners().get(0));
         assertNull(((HttpListener) responseApi.getListeners().get(0)).getPathMappings());
         assertNull(((HttpListener) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
     }

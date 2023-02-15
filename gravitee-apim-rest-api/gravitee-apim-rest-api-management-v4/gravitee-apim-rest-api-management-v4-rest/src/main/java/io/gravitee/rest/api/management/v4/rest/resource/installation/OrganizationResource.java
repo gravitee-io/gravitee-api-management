@@ -16,6 +16,10 @@
 package io.gravitee.rest.api.management.v4.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v4.rest.mapper.EnvironmentMapper;
+import io.gravitee.rest.api.management.v4.rest.mapper.OrganizationMapper;
+import io.gravitee.rest.api.management.v4.rest.model.Environment;
+import io.gravitee.rest.api.management.v4.rest.model.Organization;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -50,14 +54,14 @@ public class OrganizationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public OrganizationEntity get(@PathParam("orgId") String orgId) {
-        return organizationService.findById(orgId);
+    public Organization get(@PathParam("orgId") String orgId) {
+        return OrganizationMapper.INSTANCE.convert(organizationService.findById(orgId));
     }
 
     @Path("/environments")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<EnvironmentEntity> getEnvironments(@PathParam("orgId") String orgId) {
-        return this.environmentService.findByUser(orgId, getAuthenticatedUserOrNull());
+    public Collection<Environment> getEnvironments(@PathParam("orgId") String orgId) {
+        return EnvironmentMapper.INSTANCE.convertCollection(this.environmentService.findByUser(orgId, getAuthenticatedUserOrNull()));
     }
 }

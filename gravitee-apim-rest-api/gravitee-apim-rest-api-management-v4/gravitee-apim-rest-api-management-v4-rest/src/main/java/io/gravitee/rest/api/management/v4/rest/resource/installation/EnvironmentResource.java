@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v4.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v4.rest.mapper.EnvironmentMapper;
+import io.gravitee.rest.api.management.v4.rest.model.Environment;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -50,8 +52,8 @@ public class EnvironmentResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentEntity getEnvironment(@PathParam("envId") String envId) {
-        return environmentService.findById(envId);
+    public Environment getEnvironment(@PathParam("envId") String envId) {
+        return EnvironmentMapper.INSTANCE.convert(environmentService.findById(envId));
     }
 
     @Path("/apis")

@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.installation;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
@@ -27,12 +25,17 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.rest.api.management.v4.rest.model.Environment;
+import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Objects;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -180,5 +183,43 @@ public class EnvironmentResourceTest extends AbstractResourceTest {
             rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").path("my-beautiful-api").getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+    }
+
+    @Test
+    public void shouldReturnEnvironmentWithId() {
+        EnvironmentEntity env = new EnvironmentEntity();
+        env.setId("my-env-id");
+        env.setName("env-name");
+        env.setOrganizationId("DEFAULT");
+        env.setDescription("A nice description");
+        env.setHrids(List.of("hrid-1"));
+        env.setCockpitId("cockpit-id");
+        env.setDomainRestrictions(List.of("restriction-1"));
+
+        doReturn(env).when(environmentService).findById(eq("my-env-id"));
+
+        final Response response = rootTarget("my-env-id").request().get();
+        assertEquals(200, response.getStatus());
+
+        Environment body = response.readEntity(Environment.class);
+        assertNotNull(body);
+        assertEquals("my-env-id", body.getId());
+        assertEquals("env-name", body.getName());
+        assertEquals("A nice description", body.getDescription());
+    }
+
+    @Test
+    public void shouldReturn404WhenEnvNotFound() {
+        EnvironmentEntity env = new EnvironmentEntity();
+        env.setId("my-env-id");
+
+        doThrow(new EnvironmentNotFoundException("my-env-id")).when(environmentService).findById(eq("my-env-id"));
+
+        final Response response = rootTarget("my-env-id").request().get();
+        assertEquals(404, response.getStatus());
+
+        var body = response.readEntity(ErrorEntity.class);
+        assertNotNull(body);
+        assertEquals(404, body.getHttpStatus());
     }
 }
