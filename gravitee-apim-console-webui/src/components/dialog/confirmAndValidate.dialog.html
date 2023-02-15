@@ -17,14 +17,14 @@
 -->
 <md-dialog aria-label="warning-dialog">
   <md-dialog-content layout-padding>
-    <h4>{{title}}</h4>
+    <h4 style="white-space: pre-wrap">{{title}}</h4>
     <div class="gv-page-draft-banner" style="background-color: rgba(206, 72, 68, 0.1)">
       <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
       {{warning}}
     </div>
     <p style="margin: 35px 0" ng-bind-html="msg"></p>
     <hr style="margin: 0" />
-    <p ng-bind-html="validationMessage"></p>
+    <p style="white-space: pre-wrap" ng-bind-html="validationMessage"></p>
     <input type="text" style="width: 100%" autofocus ng-model="confirmValue" />
   </md-dialog-content>
   <md-dialog-actions layout="row">
