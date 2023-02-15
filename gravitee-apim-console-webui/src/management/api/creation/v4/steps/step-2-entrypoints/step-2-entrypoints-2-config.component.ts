@@ -18,11 +18,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
+import { isEmpty } from 'lodash';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { HttpListener, HttpListenerPath } from '../../../../../../entities/api-v4';
+import { EnvironmentService } from '../../../../../../services-ngx/environment.service';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -39,11 +41,13 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public entrypointFormGroups: Record<string, FormGroup>;
   public hasListeners: boolean;
   public enableVirtualHost: boolean;
+  public domainRestrictions: string[] = [];
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly entrypointService: EntrypointService,
     private readonly stepService: ApiCreationStepService,
+    private readonly environmentService: EnvironmentService,
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +56,18 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       currentStepPayload.listeners && currentStepPayload.listeners.length > 0 ? currentStepPayload.listeners[0] : undefined
     ) as HttpListener;
     const paths = listener?.paths || [];
-    this.enableVirtualHost = paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
+    this.environmentService
+      .getCurrent()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((environment) => {
+          this.domainRestrictions = environment.domainRestrictions || [];
+          this.enableVirtualHost =
+            !isEmpty(this.domainRestrictions) || paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
+        }),
+      )
+      .subscribe();
+
     this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') !== null;
     this.entrypointInitialValues =
       listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
@@ -94,7 +109,11 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     if (!this.enableVirtualHost) {
       // Remove host and overrideAccess from virualHost if is not necessary
       paths = paths.map(({ path }) => ({ path }));
+    } else {
+      // Clear private properties from gio-listeners-virtual-host component
+      paths = paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }));
     }
+
     const listeners = [
       {
         type: 'http',

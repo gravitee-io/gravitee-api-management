@@ -57,7 +57,7 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
   }
 
   private getListenerRowInputHost = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
-    this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=host]' }));
+    this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=_hostSubDomain]' }));
 
   private getListenerRowInputOverrideAccess = (rowIndex: number): AsyncFactoryFn<MatSlideToggleHarness> =>
     this.locatorFor(

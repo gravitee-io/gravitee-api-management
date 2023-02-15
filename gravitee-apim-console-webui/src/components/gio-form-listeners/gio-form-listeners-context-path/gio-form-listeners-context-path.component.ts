@@ -77,7 +77,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this.listenerFormArray?.valueChanges
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((listeners) => listeners.length > 0 && this._onChange(this.removeLastEmptyListener(listeners))),
+        tap((listeners) => listeners.length > 0 && this._onChange(this.onChange(listeners))),
         tap((listeners: HttpListenerPath[]) => {
           if (
             listeners.length > 0 &&
@@ -144,11 +144,15 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public newListenerFormGroup(listener: HttpListenerPath) {
     return new FormGroup({
-      path: new FormControl(listener.path || '', [Validators.required], [this.apiService.contextPathValidator()]),
+      path: new FormControl(
+        listener.path || '',
+        [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
+        [this.apiService.contextPathValidator()],
+      ),
     });
   }
 
-  public removeLastEmptyListener(listeners: HttpListenerPath[]) {
+  public onChange(listeners: HttpListenerPath[]) {
     const lastListener = listeners[listeners.length - 1];
     if (lastListener && this.isEmpty(lastListener)) {
       return dropRight(listeners);

@@ -27,7 +27,11 @@
       <h3>Configure common entrypoints fields</h3>
       <h4 class="api-creation-v4__form-container__subTitle">Entrypoints context</h4>
       <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
-      <gio-form-listeners-virtual-host *ngIf="this.enableVirtualHost" formControlName="paths"></gio-form-listeners-virtual-host>
+      <gio-form-listeners-virtual-host
+        *ngIf="this.enableVirtualHost"
+        formControlName="paths"
+        [domainRestrictions]="domainRestrictions"
+      ></gio-form-listeners-virtual-host>
 
       <div class="step-2-entrypoints-2-config__actions">
         <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">

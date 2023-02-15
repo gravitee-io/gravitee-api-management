@@ -40,6 +40,8 @@ import { ConnectorListItem } from '../../../../entities/connector/connector-list
 import { fakeConnectorListItem, getEntrypointConnectorSchema } from '../../../../entities/connector/connector-list-item.fixture';
 import { fakeApiEntity } from '../../../../entities/api-v4';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
+import { Environment } from '../../../../entities/environment/environment';
+import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 
 describe('ApiCreationV4Component', () => {
   const fakeAjsState = {
@@ -210,6 +212,7 @@ describe('ApiCreationV4Component', () => {
         { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
         { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
       ]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
       expectSchemaGetRequest([
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
@@ -227,6 +230,7 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
       expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
       expectApiGetPortalSettings();
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -267,6 +271,7 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
       expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
       expectApiGetPortalSettings();
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -318,6 +323,7 @@ describe('ApiCreationV4Component', () => {
         { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
         { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
       ]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
       expectSchemaGetRequest([
         { id: 'sse', name: 'SSE' },
         { id: 'webhook', name: 'Webhook' },
@@ -364,6 +370,7 @@ describe('ApiCreationV4Component', () => {
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(step21Harness).toBeDefined();
+      exceptEnvironmentGetRequest(fakeEnvironment());
       expectSchemaGetRequest([
         { id: 'entrypoint-1', name: 'initial entrypoint' },
         { id: 'entrypoint-2', name: 'new entrypoint' },
@@ -684,7 +691,7 @@ describe('ApiCreationV4Component', () => {
     ],
   ) {
     const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-
+    exceptEnvironmentGetRequest(fakeEnvironment());
     expectSchemaGetRequest(entrypoints);
     expectApiGetPortalSettings();
 
@@ -740,5 +747,10 @@ describe('ApiCreationV4Component', () => {
 
   function expectVerifyContextPathGetRequest() {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+  }
+
+  function exceptEnvironmentGetRequest(environment: Environment) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
+    fixture.detectChanges();
   }
 });
