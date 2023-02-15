@@ -17,13 +17,13 @@ package io.gravitee.gateway.resource.internal;
 
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
@@ -44,7 +44,8 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
         final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
         final ResourceClassLoaderFactory resourceClassLoaderFactory,
         final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext
+        final ApplicationContext applicationContext,
+        final DeploymentContext deploymentContext
     ) {
         super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
         this.legacyMode = legacyMode;
@@ -54,7 +55,8 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
                 resourcePluginManager,
                 resourceClassLoaderFactory,
                 resourceConfigurationFactory,
-                applicationContext
+                applicationContext,
+                deploymentContext
             );
     }
 

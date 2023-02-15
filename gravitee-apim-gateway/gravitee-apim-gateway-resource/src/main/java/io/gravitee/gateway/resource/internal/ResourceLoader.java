@@ -16,7 +16,7 @@
 package io.gravitee.gateway.resource.internal;
 
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
-import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
@@ -43,19 +43,22 @@ public class ResourceLoader {
     private final ResourceClassLoaderFactory resourceClassLoaderFactory;
     private final ResourceConfigurationFactory resourceConfigurationFactory;
     private final ApplicationContext applicationContext;
+    private final DeploymentContext deploymentContext;
 
     public ResourceLoader(
         final DefaultClassLoader classLoader,
         final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
         final ResourceClassLoaderFactory resourceClassLoaderFactory,
         final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext
+        final ApplicationContext applicationContext,
+        final DeploymentContext deploymentContext
     ) {
         this.classLoader = classLoader;
         this.resourcePluginManager = resourcePluginManager;
         this.resourceClassLoaderFactory = resourceClassLoaderFactory;
         this.resourceConfigurationFactory = resourceConfigurationFactory;
         this.applicationContext = applicationContext;
+        this.deploymentContext = deploymentContext;
     }
 
     @SuppressWarnings("unchecked")
@@ -77,6 +80,7 @@ public class ResourceLoader {
                 classLoader
             );
             Map<Class<?>, Object> injectables = new HashMap<>();
+            injectables.put(DeploymentContext.class, deploymentContext);
 
             if (resourcePlugin.configuration() != null) {
                 Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(

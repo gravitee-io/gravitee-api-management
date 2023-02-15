@@ -46,6 +46,8 @@ import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.jupiter.handlers.api.el.ContentTemplateVariableProvider;
@@ -165,23 +167,28 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
 
-                final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
-                    api,
-                    applicationContext.getBean(ResourceClassLoaderFactory.class),
-                    resourceConfigurationFactory(),
-                    applicationContext
+                final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
+                    customComponentProvider,
+                    globalComponentProvider
                 );
 
-                customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
+                final DefaultDeploymentContext deploymentContext = new DefaultDeploymentContext();
+                deploymentContext.componentProvider(apiComponentProvider);
+
                 // For compatibility, definition api should be from the context
                 customComponentProvider.add(io.gravitee.definition.model.Api.class, api.getDefinition());
                 customComponentProvider.add(Api.class, api);
                 customComponentProvider.add(ReactableApi.class, api);
 
-                final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
-                    customComponentProvider,
-                    globalComponentProvider
+                final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
+                    api,
+                    applicationContext.getBean(ResourceClassLoaderFactory.class),
+                    resourceConfigurationFactory(),
+                    applicationContext,
+                    deploymentContext
                 );
+
+                customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
 
                 final DefaultReferenceRegister referenceRegister = referenceRegister();
                 final GroupLifecycleManager groupLifecycleManager = groupLifecyleManager(
@@ -449,7 +456,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         Api api,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
         ResourceConfigurationFactory resourceConfigurationFactory,
-        ApplicationContext applicationContext
+        ApplicationContext applicationContext,
+        DeploymentContext deploymentContext
     ) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
@@ -466,7 +474,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             cpm,
             resourceClassLoaderFactory,
             resourceConfigurationFactory,
-            applicationContext
+            applicationContext,
+            deploymentContext
         );
     }
 

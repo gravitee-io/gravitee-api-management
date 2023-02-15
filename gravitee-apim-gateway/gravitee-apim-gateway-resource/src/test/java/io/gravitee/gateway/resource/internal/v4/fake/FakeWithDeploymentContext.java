@@ -13,28 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.component;
+package io.gravitee.gateway.resource.internal.v4.fake;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import javax.inject.Inject;
 import lombok.Getter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CompositeComponentProvider implements ComponentProvider {
+public class FakeWithDeploymentContext extends io.gravitee.resource.api.AbstractConfigurableResource<FakeConfiguration> {
 
+    @Inject
     @Getter
-    private final List<ComponentProvider> componentProviders;
-
-    public CompositeComponentProvider(ComponentProvider... componentProviders) {
-        this.componentProviders = Arrays.asList(componentProviders);
-    }
-
-    @Override
-    public <T> T getComponent(Class<T> clazz) {
-        return this.componentProviders.stream().map(cp -> cp.getComponent(clazz)).filter(Objects::nonNull).findFirst().orElse(null);
-    }
+    DeploymentContext deploymentContext;
 }
