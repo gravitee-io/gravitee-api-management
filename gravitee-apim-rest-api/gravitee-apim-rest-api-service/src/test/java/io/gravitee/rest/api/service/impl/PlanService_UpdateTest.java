@@ -288,6 +288,33 @@ public class PlanService_UpdateTest {
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
+    @Test
+    public void shouldUpdateApi_PlanOrder() throws Exception {
+        final String PAGE_ID = "PAGE_ID_TEST";
+        when(plan.getStatus()).thenReturn(PUBLISHED);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getOrder()).thenReturn(1);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(any())).thenReturn(plan);
+        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        mockApiDefinitionVersion(V2);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+        when(updatePlan.getFlows()).thenReturn(asList(new Flow()));
+        when(updatePlan.getOrder()).thenReturn(2);
+
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
+
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+    }
+
     @Test(expected = PlanInvalidException.class)
     public void shouldUpdateApi_PlanWithoutFlow() throws Exception {
         final String PAGE_ID = "PAGE_ID_TEST";

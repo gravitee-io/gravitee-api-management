@@ -28,7 +28,7 @@ public class ApiKeyServiceTest {
 
     @Test
     public void should_add_and_get_active_apiKey_in_cache() {
-        ApiKey apiKey = buildApiKey("my-api", "my-key");
+        ApiKey apiKey = buildApiKey("my-api", "my-key", true);
 
         apiKeyService.save(apiKey);
 
@@ -42,12 +42,12 @@ public class ApiKeyServiceTest {
     }
 
     @Test
-    public void should_remove_expired_apiKey_from_cache() {
-        ApiKey apiKey = buildApiKey("my-api", "my-key");
+    public void should_remove_inactive_apiKey_from_cache() {
+        ApiKey apiKey = buildApiKey("my-api", "my-key", true);
 
         apiKeyService.save(apiKey);
 
-        apiKey.setRevoked(true);
+        apiKey.setActive(false);
 
         apiKeyService.save(apiKey);
 
@@ -55,24 +55,11 @@ public class ApiKeyServiceTest {
         assertFalse(apiKeyService.getByApiAndKey("my-api", "my-key").isPresent());
     }
 
-    @Test
-    public void should_remove_paused_apiKey_from_cache() {
-        ApiKey apiKey = buildApiKey("my-api", "my-key");
-
-        apiKeyService.save(apiKey);
-
-        apiKey.setPaused(true);
-
-        apiKeyService.save(apiKey);
-
-        // paused API key has been removed from cache
-        assertFalse(apiKeyService.getByApiAndKey("my-api", "my-key").isPresent());
-    }
-
-    private ApiKey buildApiKey(String api, String key) {
+    private ApiKey buildApiKey(String api, String key, boolean active) {
         ApiKey apiKey = new ApiKey();
         apiKey.setApi(api);
         apiKey.setKey(key);
+        apiKey.setActive(active);
         return apiKey;
     }
 }

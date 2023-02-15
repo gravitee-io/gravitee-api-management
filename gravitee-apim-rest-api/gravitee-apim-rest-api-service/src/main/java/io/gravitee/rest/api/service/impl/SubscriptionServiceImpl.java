@@ -418,20 +418,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             // Extract the client_id according to the application type
-            String clientId;
-            if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
-                clientId =
-                    (applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null)
-                        ? applicationEntity.getSettings().getApp().getClientId()
-                        : null;
-            } else {
-                clientId =
-                    (applicationEntity.getSettings() != null && applicationEntity.getSettings().getoAuthClient() != null)
-                        ? applicationEntity.getSettings().getoAuthClient().getClientId()
-                        : null;
-            }
-
+            String clientId = null;
             if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
+                if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
+                    clientId =
+                        (applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null)
+                            ? applicationEntity.getSettings().getApp().getClientId()
+                            : null;
+                } else {
+                    clientId =
+                        (applicationEntity.getSettings() != null && applicationEntity.getSettings().getoAuthClient() != null)
+                            ? applicationEntity.getSettings().getoAuthClient().getClientId()
+                            : null;
+                }
+
                 // Check that the application contains a client_id
                 if (clientId == null || clientId.trim().isEmpty()) {
                     throw new PlanNotSubscribableException("A client_id is required to subscribe to an OAuth2 or JWT plan.");
@@ -658,7 +658,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setEndingAt(updateSubscription.getEndingAt());
                 // Reset info about pre expiration notification as the expiration date has changed
                 subscription.setDaysToExpirationOnLastNotification(null);
-                if (clientId != null) {
+                if (clientId != null && subscription.getClientId() != null) {
                     subscription.setClientId(clientId);
                 }
 
