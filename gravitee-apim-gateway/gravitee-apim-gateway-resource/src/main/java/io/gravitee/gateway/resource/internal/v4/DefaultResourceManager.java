@@ -17,6 +17,7 @@ package io.gravitee.gateway.resource.internal.v4;
 
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.internal.ResourceLoader;
@@ -42,7 +43,8 @@ public class DefaultResourceManager extends LegacyResourceManagerImpl {
         final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
         final ResourceClassLoaderFactory resourceClassLoaderFactory,
         final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext
+        final ApplicationContext applicationContext,
+        final DeploymentContext deploymentContext
     ) {
         super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
         this.resourceLoader =
@@ -51,7 +53,8 @@ public class DefaultResourceManager extends LegacyResourceManagerImpl {
                 resourcePluginManager,
                 resourceClassLoaderFactory,
                 resourceConfigurationFactory,
-                applicationContext
+                applicationContext,
+                deploymentContext
             );
     }
 

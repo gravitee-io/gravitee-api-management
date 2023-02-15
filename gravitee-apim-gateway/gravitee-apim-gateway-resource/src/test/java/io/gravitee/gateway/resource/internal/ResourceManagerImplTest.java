@@ -22,11 +22,13 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.internal.v4.fake.ApplicationAwareFake;
 import io.gravitee.gateway.resource.internal.v4.fake.Fake;
 import io.gravitee.gateway.resource.internal.v4.fake.FakeConfiguration;
+import io.gravitee.gateway.resource.internal.v4.fake.FakeWithDeploymentContext;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
@@ -64,6 +66,9 @@ class ResourceManagerImplTest {
     @Mock
     private ApplicationContext applicationContext;
 
+    @Mock
+    private DeploymentContext deploymentContext;
+
     private ResourceManagerImpl cut;
 
     @BeforeEach
@@ -78,12 +83,13 @@ class ResourceManagerImplTest {
                 resourcePluginManager,
                 resourceClassLoaderFactory,
                 resourceConfigurationFactory,
-                applicationContext
+                applicationContext,
+                deploymentContext
             );
     }
 
     @Test
-    void shouldNotLoadAnyResourceWhenReactableDoesNotHaveResource() {
+    void should_not_load_any_resource_when_reactable_does_not_have_resource() {
         when(reactable.dependencies(Resource.class)).thenReturn(Collections.emptySet());
         cut.initialize();
 
@@ -91,7 +97,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldThrowAnIllegalStateExceptionWhenPluginNotFoundInTheRegistry() {
+    void should_throw_an_illegal_state_exception_when_plugin_not_found_in_the_registry() {
         final Resource resource = buildResource();
         when(reactable.dependencies(Resource.class)).thenReturn(Set.of(resource));
 
@@ -103,7 +109,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldIgnoreAndReturnNullWhenClassNotFoundOccurred() {
+    void should_ignore_and_return_null_when_class_not_found_occurred() {
         final Resource resource = buildResource();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
 
@@ -117,7 +123,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldIgnoreAndReturnNullWhenFailingToRemoveClassLoaderAfterAnException() throws IOException {
+    void should_ignore_and_return_null_when_failing_to_remove_class_loader_after_an_exception() throws IOException {
         final Resource resource = buildResource();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
 
@@ -138,7 +144,8 @@ class ResourceManagerImplTest {
                 resourcePluginManager,
                 resourceClassLoaderFactory,
                 resourceConfigurationFactory,
-                applicationContext
+                applicationContext,
+                deploymentContext
             );
 
         cut.initialize();
@@ -146,7 +153,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldNotIgnoreWhenResourceIsDisabled() {
+    void should_not_ignore_when_resource_is_disabled() {
         final Resource resource = buildResource();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
         resource.setEnabled(false);
@@ -162,7 +169,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldInitializeResource() {
+    void should_initialize_resource() {
         final Resource resource = buildResource();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
 
@@ -177,7 +184,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldInitializeResourceWithConfiguration() {
+    void should_initialize_resource_with_configuration() {
         final Resource resource = buildResource();
         final FakeConfiguration fakeConfiguration = new FakeConfiguration();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
@@ -199,7 +206,7 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void shouldInitializeApplicationAwareResource() {
+    void should_initialize_application_aware_resource() {
         final Resource resource = buildResource();
         final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
 
@@ -214,6 +221,25 @@ class ResourceManagerImplTest {
         assertThat(r).isExactlyInstanceOf(ApplicationAwareFake.class);
 
         assertThat(((ApplicationAwareFake) r).getContext()).isSameAs(applicationContext);
+    }
+
+    @Test
+    void should_initialize_resource_that_use_deployment_context() {
+        final Resource resource = buildResource();
+
+        final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
+
+        when(resourcePlugin.resource()).thenReturn(FakeWithDeploymentContext.class);
+        when(reactable.dependencies(Resource.class)).thenReturn(Set.of(resource));
+        when(resourcePluginManager.get(resource.getType())).thenReturn(resourcePlugin);
+
+        cut.initialize();
+        assertThat(cut.containsResource(resource.getName())).isTrue();
+
+        final Object r = cut.getResource(resource.getName());
+        assertThat(r).isExactlyInstanceOf(FakeWithDeploymentContext.class);
+
+        assertThat(((FakeWithDeploymentContext) r).getDeploymentContext()).isNotNull().isSameAs(deploymentContext);
     }
 
     private Resource buildResource() {

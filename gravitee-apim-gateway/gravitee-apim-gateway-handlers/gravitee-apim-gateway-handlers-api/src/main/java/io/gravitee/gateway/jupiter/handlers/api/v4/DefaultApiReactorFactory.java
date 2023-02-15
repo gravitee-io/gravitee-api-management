@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.services.dlq.DefaultDlqServiceFactory;
+import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
 import io.gravitee.gateway.jupiter.api.service.dlq.DlqServiceFactory;
 import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultEndpointManager;
@@ -44,6 +45,7 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -144,21 +146,26 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
                 customComponentProvider.add(Api.class, api);
+                customComponentProvider.add(ReactableApi.class, api);
                 customComponentProvider.add(io.gravitee.definition.model.v4.Api.class, api.getDefinition());
-
-                final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
-                    api,
-                    applicationContext.getBean(ResourceClassLoaderFactory.class),
-                    new ResourceConfigurationFactoryImpl(),
-                    applicationContext
-                );
-
-                customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
 
                 final CompositeComponentProvider componentProvider = new CompositeComponentProvider(
                     customComponentProvider,
                     globalComponentProvider
                 );
+
+                final DefaultDeploymentContext deploymentContext = new DefaultDeploymentContext();
+                deploymentContext.componentProvider(componentProvider);
+                deploymentContext.templateVariableProviders(commonTemplateVariableProviders(api));
+
+                final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
+                    api,
+                    applicationContext.getBean(ResourceClassLoaderFactory.class),
+                    new ResourceConfigurationFactoryImpl(),
+                    applicationContext,
+                    deploymentContext
+                );
+                customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
 
                 final PolicyManager policyManager = policyManager(
                     api,
@@ -183,10 +190,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     configuration,
                     flowResolverFactory
                 );
-
-                final DefaultDeploymentContext deploymentContext = new DefaultDeploymentContext();
-                deploymentContext.componentProvider(componentProvider);
-                deploymentContext.templateVariableProviders(commonTemplateVariableProviders(api));
 
                 final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
                     api.getDefinition(),
@@ -237,7 +240,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         Api api,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
         ResourceConfigurationFactory resourceConfigurationFactory,
-        ApplicationContext applicationContext
+        ApplicationContext applicationContext,
+        DeploymentContext deploymentContext
     ) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
@@ -253,7 +257,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
             cpm,
             resourceClassLoaderFactory,
             resourceConfigurationFactory,
-            applicationContext
+            applicationContext,
+            deploymentContext
         );
     }
 

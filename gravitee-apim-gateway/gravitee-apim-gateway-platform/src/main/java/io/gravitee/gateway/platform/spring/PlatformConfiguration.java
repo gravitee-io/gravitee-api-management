@@ -181,7 +181,8 @@ public class PlatformConfiguration {
             cpm,
             resourceClassLoaderFactory,
             resourceConfigurationFactory,
-            applicationContext
+            applicationContext,
+            null
         );
     }
 
