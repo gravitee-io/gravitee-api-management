@@ -34,7 +34,7 @@ const computeCommitInfo = async (gitLogOutput) => {
   return Array.from(
     fetchPrInfo
       // Group by PR number
-      .reduce((entryMap, e) => entryMap.set(e, [...(entryMap.get(e.number) || []), e]), new Map())
+      .reduce((entryMap, e) => entryMap.set(e.number, [...(entryMap.get(e.number) || []), e]), new Map())
       .values(),
   ).map((pr) => {
     const info = pr[0].title ? `### [${pr[0].title} [${pr[0].number}]](${pr[0].url})\n` : '### Commit without found PR\n';
