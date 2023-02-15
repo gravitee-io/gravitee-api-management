@@ -42,6 +42,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlansFlowsDefinitionUpgrader.class);
+
     @Lazy
     @Autowired
     private ApiRepository apiRepository;
@@ -80,6 +82,7 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
     }
 
     protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {
+        LOGGER.debug("Migrate flows for api [{}]", apiId);
         Map<String, Plan> plansById = planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
 
         flowService.save(FlowReferenceType.API, apiDefinition.getId(), apiDefinition.getFlows());

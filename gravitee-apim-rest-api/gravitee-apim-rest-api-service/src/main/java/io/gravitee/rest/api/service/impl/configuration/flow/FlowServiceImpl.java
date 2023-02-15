@@ -138,7 +138,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     @Override
     public List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
         try {
-            LOGGER.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
+            LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
             flowRepository.deleteByReference(flowReferenceType, referenceId);
             if (flows == null) {
                 return List.of();

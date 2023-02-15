@@ -90,11 +90,33 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
+    public OrganizationEntity updateOrganization(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
+        try {
+            Optional<Organization> organizationOptional = organizationRepository.findById(executionContext.getOrganizationId());
+            if (organizationOptional.isPresent()) {
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationOptional.get().getId());
+                OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
+                createPublishOrganizationEvent(executionContext, updatedOrganization);
+                return updatedOrganization;
+            } else {
+                throw new OrganizationNotFoundException(executionContext.getOrganizationId());
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
+        }
+    }
+
+    @Override
     public OrganizationEntity createOrUpdate(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
         try {
             String organizationId = executionContext.getOrganizationId();
             try {
-                return this.update(executionContext, organizationId, organizationEntity);
+                return this.updateOrganizationAndFlows(executionContext, organizationId, organizationEntity);
             } catch (OrganizationNotFoundException e) {
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
@@ -118,7 +140,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity update(
+    public OrganizationEntity updateOrganizationAndFlows(
         ExecutionContext executionContext,
         String organizationId,
         final UpdateOrganizationEntity organizationEntity

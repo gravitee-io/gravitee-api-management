@@ -17,12 +17,19 @@ import { StateService } from '@uirouter/core';
 import { ILogService, IScope, ITimeoutService } from 'angular';
 import * as _ from 'lodash';
 
+import { ApiService } from '../../services/api.service';
+import ApplicationService from '../../services/application.service';
+
 interface ILogsFiltersScope extends IScope {
   logsFiltersForm: any;
   $parent: any;
 }
 class LogsFiltersController {
-  public filters: any = {};
+  public filters: any = {
+    api: [],
+    application: [],
+  };
+
   public methods = {
     0: 'OTHER',
     1: 'CONNECT',
@@ -101,9 +108,10 @@ class LogsFiltersController {
   };
   private onFiltersChange: any;
   private metadata: any;
-  private api: any;
   private context: string;
   private displayMode: any;
+
+  private api: any;
 
   private displayModes = [
     {
@@ -133,6 +141,8 @@ class LogsFiltersController {
     private $state: StateService,
     private $timeout: ITimeoutService,
     private $log: ILogService,
+    private ApiService: ApiService,
+    private ApplicationService: ApplicationService,
   ) {
     this.$scope = $scope;
   }
@@ -331,6 +341,26 @@ class LogsFiltersController {
       val = list[_.filter(Object.keys(list), (elt) => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return val ? val : _val;
+  }
+
+  async searchApis(term) {
+    const { data: searchResult } = await this.ApiService.searchApis(term, 1, null, null, 10);
+    return searchResult.data;
+  }
+
+  async searchApplications(term) {
+    const { data: searchResult } = await this.ApplicationService.searchPage(term, 1, 10);
+    return searchResult.data;
+  }
+
+  async initApisSelector() {
+    const { data: apis } = await this.ApiService.listByIdIn(this.filters.api);
+    return apis;
+  }
+
+  async initApplicationsSelector() {
+    const { data: applications } = await this.ApplicationService.listByIdIn(this.filters.application);
+    return applications;
   }
 }
 

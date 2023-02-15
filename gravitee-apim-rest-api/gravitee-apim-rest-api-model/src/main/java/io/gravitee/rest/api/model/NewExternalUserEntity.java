@@ -17,13 +17,19 @@ package io.gravitee.rest.api.model;
 
 import java.util.Map;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.text.StringEscapeUtils;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NewExternalUserEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     /**
      * The user first name
@@ -81,7 +87,7 @@ public class NewExternalUserEntity {
     }
 
     public void setFirstname(String firstname) {
-        this.firstname = StringEscapeUtils.escapeHtml4(firstname);
+        this.firstname = firstname != null ? HTML_SANITIZER.sanitize(firstname) : null;
     }
 
     public String getLastname() {
@@ -89,7 +95,7 @@ public class NewExternalUserEntity {
     }
 
     public void setLastname(String lastname) {
-        this.lastname = StringEscapeUtils.escapeHtml4(lastname);
+        this.lastname = lastname != null ? HTML_SANITIZER.sanitize(lastname) : null;
     }
 
     public String getPicture() {

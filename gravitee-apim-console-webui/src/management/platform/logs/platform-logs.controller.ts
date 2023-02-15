@@ -17,6 +17,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 
+import { ApiService } from '../../../services/api.service';
 import AnalyticsService, { LogsQuery } from '../../../services/analytics.service';
 
 class PlatformLogsController {
@@ -31,7 +32,13 @@ class PlatformLogsController {
   private init: boolean;
 
   /* @ngInject */
-  constructor(private AnalyticsService: AnalyticsService, private Constants, private $state: StateService, private $scope: IScope) {
+  constructor(
+    private ApiService: ApiService,
+    private AnalyticsService: AnalyticsService,
+    private Constants,
+    private $state: StateService,
+    private $scope: IScope,
+  ) {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
@@ -52,7 +59,7 @@ class PlatformLogsController {
     });
 
     this.metadata = {
-      apis: this.apis.data,
+      apis: this.apis.data.data,
       applications: this.applications.data,
     };
   }

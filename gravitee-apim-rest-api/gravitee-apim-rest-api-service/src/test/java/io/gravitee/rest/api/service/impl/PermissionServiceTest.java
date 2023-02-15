@@ -15,13 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
@@ -232,6 +230,32 @@ public class PermissionServiceTest {
         setSecurityContext(true);
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
         assertTrue(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_MEMBER,
+                "reference-id",
+                RolePermissionAction.UPDATE
+            )
+        );
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    public void shouldNotByPassChecksWithoutAuthentication() {
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+
+        reset(userService);
+        reset(membershipService);
+
+        UserEntity user = new UserEntity();
+        user.setId(USER_NAME);
+        user.setRoles(Collections.emptySet());
+
+        doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
+        doReturn(null).when(membershipService).getUserMemberPermissions(any(), any(), any(), any());
+        assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
+        assertFalse(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_MEMBER,

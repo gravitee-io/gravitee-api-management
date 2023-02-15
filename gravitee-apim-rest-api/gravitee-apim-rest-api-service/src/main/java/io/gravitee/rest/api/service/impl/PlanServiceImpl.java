@@ -284,34 +284,34 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             validateTags(newPlan.getTags(), api);
 
-            // if order change, reorder all pages
+            PlanEntity oldPlanEntity = convert(oldPlan);
+
+            flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+            PlanEntity newPlanEntity = convert(newPlan);
+
+            if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
+                newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
+            }
+
+            // if order change, reorder all plans
             if (newPlan.getOrder() != updatePlan.getOrder()) {
                 newPlan.setOrder(updatePlan.getOrder());
-                reorderAndSavePlans(newPlan);
-                return null;
+                newPlan = reorderAndSavePlans(newPlan);
             } else {
-                PlanEntity oldPlanEntity = convert(oldPlan);
-
-                flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
-                PlanEntity newPlanEntity = convert(newPlan);
-
-                if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
-                    newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
-                }
                 newPlan = planRepository.update(newPlan);
-
-                auditService.createApiAuditLog(
-                    executionContext,
-                    newPlan.getApi(),
-                    Collections.singletonMap(Audit.AuditProperties.PLAN, newPlan.getId()),
-                    PLAN_UPDATED,
-                    newPlan.getUpdatedAt(),
-                    oldPlan,
-                    newPlan
-                );
-
-                return convert(newPlan);
             }
+
+            auditService.createApiAuditLog(
+                executionContext,
+                newPlan.getApi(),
+                Collections.singletonMap(Audit.AuditProperties.PLAN, newPlan.getId()),
+                PLAN_UPDATED,
+                newPlan.getUpdatedAt(),
+                oldPlan,
+                newPlan
+            );
+
+            return convert(newPlan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to update plan {}", updatePlan.getName(), ex);
             throw new TechnicalManagementException(
@@ -553,7 +553,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         return config;
     }
 
-    private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
+    private Plan reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
         final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApi());
         Plan[] plansToReorder = plans
             .stream()
@@ -579,7 +579,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 }
             }
             // update the modified plan
-            planRepository.update(planToReorder);
+            return planRepository.update(planToReorder);
         } catch (final TechnicalException ex) {
             logger.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);

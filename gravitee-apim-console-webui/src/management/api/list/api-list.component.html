@@ -110,7 +110,7 @@
 
     <!-- Display Context Path Column -->
     <ng-container matColumnDef="contextPath">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header id="contextPath">Context paths</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="contextPath">Context Path</th>
       <td mat-cell *matCellDef="let element">
         <a>{{ element.contextPath }}</a>
       </td>
@@ -144,7 +144,7 @@
 
     <!-- Display Version Column -->
     <ng-container matColumnDef="definitionVersion">
-      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Version</th>
+      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Mode</th>
       <td mat-cell *matCellDef="let element">
         <span [matTooltip]="element.definitionVersion.label" class="gio-badge-neutral"
           ><mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon
