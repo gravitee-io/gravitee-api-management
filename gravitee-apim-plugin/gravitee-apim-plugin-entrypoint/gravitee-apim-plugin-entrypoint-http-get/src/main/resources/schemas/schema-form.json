@@ -11,20 +11,38 @@
         "messagesLimitDurationMs": {
             "type": "number",
             "title": "Limit messages duration (in ms)",
-            "description": "Maximum duration in milliseconds to wait to retrieve the expected number of messages (See Limit messages count). The effective number of retrieved messages could be less than expected it maximum duration is reached.Default is 5000.",
-            "default": 5000
+            "description": "Default is 5000.",
+            "default": 5000,
+            "gioConfig": {
+                "banner": {
+                    "title": "Limit messages duration",
+                    "text": "Maximum duration in milliseconds to wait to retrieve the expected number of messages (See Limit messages count). The effective number of retrieved messages could be less than expected it maximum duration is reached."
+                }
+            }
         },
         "headersInPayload": {
             "type": "boolean",
             "default": false,
-            "title": "Allow sending messages headers to client in payload.",
-            "description": "Allow sending messages headers to client in payload. Each header will be sent as extra field in payload. For JSON and XML, in a dedicated headers object. For plain text, following 'key=value' format. Default is false."
+            "title": "Allow sending messages headers to client in payload",
+            "description": "Default is false.",
+            "gioConfig": {
+                "banner": {
+                    "title": "Allow sending messages headers to client in payload",
+                    "text": "Each header will be sent as extra field in payload. For JSON and XML, in a dedicated headers object. For plain text, following 'key=value' format. Default is false."
+                }
+            }
         },
         "metadataInPayload": {
             "type": "boolean",
             "default": false,
-            "title": "Allow sending messages metadata to client in payload.",
-            "description": "Allow sending messages metadata to client in payload. Each metadata will be sent as extra field in the payload. For JSON and XML, in a dedicated metadata object. For plain text, following 'key=value' format. Default is false."
+            "title": "Allow sending messages metadata to client in payload",
+            "description": "Default is false.",
+            "gioConfig": {
+                "banner": {
+                    "title": "Allow sending messages metadata to client in payload",
+                    "text": "Allow sending messages metadata to client in payload. Each metadata will be sent as extra field in the payload. For JSON and XML, in a dedicated metadata object. For plain text, following 'key=value' format. Default is false."
+                }
+            }
         }
     },
     "additionalProperties": false
