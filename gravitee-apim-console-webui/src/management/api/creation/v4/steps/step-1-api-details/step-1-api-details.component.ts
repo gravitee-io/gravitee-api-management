@@ -44,7 +44,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     this.form = this.formBuilder.group({
       name: this.formBuilder.control(currentStepPayload?.name, [Validators.required]),
       version: this.formBuilder.control(currentStepPayload?.version, [Validators.required]),
-      description: this.formBuilder.control(currentStepPayload?.description, [Validators.required]),
+      description: this.formBuilder.control(currentStepPayload?.description),
     });
     if (currentStepPayload && Object.keys(currentStepPayload).length > 0) {
       this.form.markAsDirty();
@@ -78,7 +78,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     this.stepService.validStepAndGoNext((previousPayload) => ({
       ...previousPayload,
       name: formValue.name,
-      description: formValue.description,
+      description: formValue.description ?? '',
       version: formValue.version,
     }));
   }

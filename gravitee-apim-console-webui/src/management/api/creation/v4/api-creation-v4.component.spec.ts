@@ -123,6 +123,22 @@ describe('ApiCreationV4Component', () => {
       expect(component.currentStep.label).toEqual('Entrypoints');
     });
 
+    it('should save api details and move to next step (description is optional)', async () => {
+      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+      expect(step1Harness).toBeDefined();
+      expect(component.currentStep.label).toEqual('API details');
+      await step1Harness.setName('API');
+      await step1Harness.setVersion('1.0');
+      await step1Harness.clickValidate();
+      expectEntrypointsGetRequest([]);
+
+      fixture.detectChanges();
+
+      component.stepper.compileStepPayload(component.currentStep);
+      expect(component.currentStep.payload).toEqual({ name: 'API', version: '1.0', description: '' });
+      expect(component.currentStep.label).toEqual('Entrypoints');
+    });
+
     it('should exit without confirmation when no modification', async () => {
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
