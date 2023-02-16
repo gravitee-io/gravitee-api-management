@@ -32,11 +32,11 @@ export class ApiMemberService {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/${api}/members`, membership);
   }
 
+  deleteMember(api: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/apis/${api}/members?user=${userId}`);
+  }
+
   // TODO add this when needed
-  // deleteMember(api: string, userId: string): Observable<any> {
-  //   return this.http.delete(`${this.constants.env.baseURL}/apis/${api}/members?user=${userId}`);
-  // }
-  //
   // transferOwnership(api: string, ownership: ApiMembership): Observable<any> {
   //   return this.http.post(`${this.constants.env.baseURL}/apis/${api}/members/transfer_ownership`, ownership);
   // }

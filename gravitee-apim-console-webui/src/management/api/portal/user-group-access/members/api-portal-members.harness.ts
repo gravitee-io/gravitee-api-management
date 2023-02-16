@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
+import { MatCellHarness, MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatOptionHarness, OptionHarnessFilters } from '@angular/material/core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiPortalMembersHarness extends ComponentHarness {
   static hostSelector = 'api-portal-members';
@@ -59,6 +60,26 @@ export class ApiPortalMembersHarness extends ComponentHarness {
 
   async isMemberRoleSelectDisabled(rowIndex: number): Promise<boolean> {
     return this.getMemberRoleSelectForRowIndex(rowIndex).then((select) => select.isDisabled());
+  }
+
+  async getMemberDeleteButton(rowIndex: number): Promise<MatButtonHarness> {
+    const deleteCell = await this.getMemberDeleteCell(rowIndex);
+    return deleteCell.getHarness(MatButtonHarness);
+  }
+
+  async getMemberDeleteCell(rowIndex: number): Promise<MatCellHarness> {
+    const rows = await this.getTableRows();
+    expect(rows.length).toBeGreaterThan(rowIndex);
+    const deleteCell = await rows[rowIndex].getCells({ columnName: 'delete' });
+    expect(deleteCell.length).toEqual(1);
+    return deleteCell[0];
+  }
+
+  async isMemberDeleteButtonVisible(rowIndex: number): Promise<boolean> {
+    return this.getMemberDeleteCell(rowIndex).then(async (cell) => {
+      const harnesses = await cell.getAllHarnesses(MatButtonHarness);
+      return harnesses !== null && harnesses.length > 0;
+    });
   }
 
   async isNotificationsCheckboxChecked(): Promise<boolean> {

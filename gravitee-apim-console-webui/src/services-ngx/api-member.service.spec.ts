@@ -78,4 +78,20 @@ describe('ApiMemberService', () => {
       req.flush({});
     });
   });
+
+  describe('delete member', () => {
+    it('should call the API', (done) => {
+      const apiId = 'fox';
+      const memberId = 'id';
+      apiMemberService.deleteMember(apiId, memberId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members?user=${memberId}`,
+      });
+      req.flush({});
+    });
+  });
 });
