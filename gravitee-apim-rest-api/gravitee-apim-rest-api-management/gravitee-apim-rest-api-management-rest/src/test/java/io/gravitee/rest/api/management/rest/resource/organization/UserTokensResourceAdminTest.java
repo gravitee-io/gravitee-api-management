@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +55,15 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
 
     @Before
     public void setUp() {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                any(RolePermission.class),
+                anyString(),
+                any(RolePermissionAction[].class)
+            )
+        )
+            .thenReturn(true);
         reset(tokenService);
     }
 

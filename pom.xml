@@ -53,7 +53,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.3.8</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>4.0.0-alpha.1</gravitee-bom.version>
+        <gravitee-bom.version>4.0.0-alpha.2</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.0.0</gravitee-cockpit-api.version>
         <gravitee-common.version>2.1.0-alpha.5</gravitee-common.version>
@@ -116,9 +116,6 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <lucene.version>7.7.3</lucene.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
-        <!-- mockito version to remove when https://github.com/gravitee-io/issues/issues/8257 will be completed -->
-        <mockito-inline.version>3.11.2</mockito-inline.version>
-        <!-- -->
         <netty-tcnative-boringssl-static.version>2.0.48.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.15.2</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
@@ -741,12 +738,6 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-inline</artifactId>
-                <version>${mockito-inline.version}</version>
             </dependency>
 
             <dependency>

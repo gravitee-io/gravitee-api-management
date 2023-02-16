@@ -18,27 +18,18 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -88,7 +79,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldListAllCategories_withApiCount() throws IOException {
-        doReturn(2L).when(categoryService).getTotalApisByCategory(any(), any());
+        doReturn(2L).when(categoryService).getTotalApisByCategory(anySet(), any(CategoryEntity.class));
 
         final Response response = envTarget().queryParam("include", "total-apis").request().get();
 

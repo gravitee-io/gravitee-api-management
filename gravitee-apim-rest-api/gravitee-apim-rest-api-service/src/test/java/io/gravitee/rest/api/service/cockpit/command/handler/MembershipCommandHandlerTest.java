@@ -275,7 +275,7 @@ public class MembershipCommandHandlerTest {
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
-        verifyZeroInteractions(membershipService);
+        verifyNoInteractions(membershipService);
     }
 
     @Test
@@ -298,7 +298,7 @@ public class MembershipCommandHandlerTest {
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
-        verifyZeroInteractions(roleService);
-        verifyZeroInteractions(membershipService);
+        verifyNoInteractions(roleService);
+        verifyNoInteractions(membershipService);
     }
 }

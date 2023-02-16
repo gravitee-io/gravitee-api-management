@@ -21,6 +21,9 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -49,7 +52,15 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
 
     @Before
     public void setUp() {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                any(ExecutionContext.class),
+                any(RolePermission.class),
+                anyString(),
+                any(RolePermissionAction[].class)
+            )
+        )
+            .thenReturn(false);
         reset(tokenService);
     }
 
