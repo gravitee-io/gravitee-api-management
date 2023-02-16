@@ -17,6 +17,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { Api, ApiMember } from '../../../../../entities/api';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -42,7 +44,7 @@ export class ApiPortalMembersComponent implements OnInit {
   form: FormGroup;
   dataSource: MembersDataSource[];
   members: ApiMember[];
-  displayedColumns = ['picture', 'displayName', 'role'];
+  displayedColumns = ['picture', 'displayName', 'role', 'delete'];
   roles: Role[];
   formInitialValues: { isNotificationsEnabled: boolean; members: { [memberId: string]: string } };
   private apiId: string;
@@ -55,6 +57,7 @@ export class ApiPortalMembersComponent implements OnInit {
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: FormBuilder,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -65,13 +68,7 @@ export class ApiPortalMembersComponent implements OnInit {
         tap(([api, members, roles]) => {
           this.members = members;
           this.roles = roles;
-          this.dataSource = members.map((member) => {
-            return {
-              ...member,
-              name: this.getMemberName(member),
-              picture: this.userService.getUserAvatar(member.id),
-            };
-          });
+          this.initDataSource(members);
           this.initForm(api, members);
         }),
       )
@@ -129,6 +126,27 @@ export class ApiPortalMembersComponent implements OnInit {
     });
   }
 
+  public removeMember(member: ApiMember) {
+    const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+      data: {
+        title: `Remove member ${member.displayName}?`,
+        content: `This will remove the member indefinitely. You cannot undo this action.`,
+        confirmButton: 'Remove',
+      },
+      role: 'alertdialog',
+      id: 'confirmMemberDeleteDialog',
+    });
+
+    confirm
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((shouldDeleteMember) => {
+        if (shouldDeleteMember) {
+          this.deleteMember(member);
+        }
+      });
+  }
+
   public saveChangeOnApiNotifications(): Observable<Api> {
     return this.apiService.get(this.apiId).pipe(
       switchMap((api) => {
@@ -139,6 +157,16 @@ export class ApiPortalMembersComponent implements OnInit {
         return this.apiService.update(updatedApi);
       }),
     );
+  }
+
+  private initDataSource(members: ApiMember[]) {
+    this.dataSource = members.map((member) => {
+      return {
+        ...member,
+        name: this.getMemberName(member),
+        picture: this.userService.getUserAvatar(member.id),
+      };
+    });
   }
 
   private initForm(api: Api, members: ApiMember[]) {
@@ -153,6 +181,27 @@ export class ApiPortalMembersComponent implements OnInit {
         }, {}),
       ),
     });
-    this.formInitialValues = this.form.value;
+    this.formInitialValues = this.form.getRawValue();
+  }
+
+  private deleteMember(member: ApiMember) {
+    this.apiMembersService.deleteMember(this.apiId, member.id).subscribe({
+      next: () => {
+        // remove from members
+        this.members = this.members.filter((m) => m.id !== member.id);
+        this.initDataSource(this.members);
+        // remove from form
+        // reset before removing to discard save bar if changes only on this element
+        (this.form.get('members') as FormGroup).get(member.id).reset();
+        (this.form.get('members') as FormGroup).removeControl(member.id);
+        // remove from form initial value
+        delete this.formInitialValues.members[member.id];
+
+        this.snackBarService.success(`Member ${member.displayName} has been removed.`);
+      },
+      error: (error) => {
+        this.snackBarService.error(error.message);
+      },
+    });
   }
 }

@@ -15,3 +15,9 @@
 .primary-owner-name {
   font-weight: bold;
 }
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
