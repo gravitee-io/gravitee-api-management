@@ -326,7 +326,8 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(any(), any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
+            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -380,7 +381,8 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(any(), any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
+            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -424,7 +426,8 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(any(), any())).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
+            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");

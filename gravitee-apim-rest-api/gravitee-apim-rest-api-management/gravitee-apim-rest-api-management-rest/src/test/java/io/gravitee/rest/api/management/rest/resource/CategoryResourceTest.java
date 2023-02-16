@@ -17,8 +17,8 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -62,7 +62,9 @@ public class CategoryResourceTest extends AbstractResourceTest {
         updateCategoryEntity.setDescription("toto");
         updateCategoryEntity.setName(CATEGORY);
 
-        doReturn(mockCategory).when(categoryService).update(eq(GraviteeContext.getExecutionContext()), eq(CATEGORY), any());
+        doReturn(mockCategory)
+            .when(categoryService)
+            .update(eq(GraviteeContext.getExecutionContext()), eq(CATEGORY), any(UpdateCategoryEntity.class));
     }
 
     @Test
