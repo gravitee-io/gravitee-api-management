@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import io.reactivex.rxjava3.annotations.NonNull;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -29,7 +30,7 @@ import java.util.Objects;
  */
 public class BufferImpl implements Buffer {
 
-    private final ByteBuf buffer;
+    private ByteBuf buffer;
 
     BufferImpl() {
         this(0);
@@ -60,14 +61,14 @@ public class BufferImpl implements Buffer {
     }
 
     @Override
-    public Buffer appendBuffer(Buffer buff) {
-        ByteBuf cb = buff.getNativeBuffer();
+    public @NonNull Buffer appendBuffer(Buffer buff) {
+        final ByteBuf cb = buff.getNativeBuffer();
         return appendBuf(cb, cb.readableBytes());
     }
 
     @Override
     public Buffer appendBuffer(Buffer buff, int length) {
-        ByteBuf cb = buff.getNativeBuffer();
+        final ByteBuf cb = buff.getNativeBuffer();
         return appendBuf(cb, Math.min(buff.length(), length));
     }
 
@@ -82,15 +83,11 @@ public class BufferImpl implements Buffer {
     }
 
     private Buffer append(String str, Charset charset) {
-        byte[] bytes = str.getBytes(charset);
-        buffer.writeBytes(bytes);
-        return this;
+        return this.appendBuffer(new BufferImpl(str.getBytes(charset)));
     }
 
     private Buffer appendBuf(ByteBuf cb, int length) {
-        final int currIndex = cb.readerIndex();
-        buffer.writeBytes(cb, length);
-        cb.readerIndex(currIndex); // Need to reset reader index since Netty write modifies readerIndex of source!
+        buffer = Unpooled.wrappedBuffer(buffer, cb.slice(0, length));
         return this;
     }
 

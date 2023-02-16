@@ -264,7 +264,8 @@ class ContentTemplateVariableProviderTest {
 
     @Test
     void shouldProvideXmlContentWhenInvalidXmlContent() {
-        when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("invalid")));
+        // Provide an invalid xml that can't be successfully parsed by the xml mapper.
+        when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("<invalid")));
         when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
         cut.provide(ctx);
@@ -276,6 +277,7 @@ class ContentTemplateVariableProviderTest {
         final TestObserver<Void> obs = contentCompletable.test();
         obs.assertComplete();
 
+        // An empty map is expected if the content isn't a valid xml.
         verify(evaluableRequest).setXmlContent(Collections.emptyMap());
     }
 }
