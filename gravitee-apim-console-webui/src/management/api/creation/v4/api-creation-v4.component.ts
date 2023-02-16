@@ -148,6 +148,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
           return {
             ...api,
             name: apiCreationPayload.name,
+            apiVersion: apiCreationPayload.version,
+            description: apiCreationPayload.description ?? '',
             listeners: apiCreationPayload.listeners,
           };
         }),

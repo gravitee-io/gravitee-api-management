@@ -18,12 +18,10 @@ package io.gravitee.rest.api.model.v4.api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +67,7 @@ public class NewApiEntity {
     @Schema(description = "API's type", example = "async")
     private ApiType type;
 
-    @NotBlank
+    @NotNull
     @Schema(
         description = "API's description. A short description of your API.",
         example = "I can use a hundred characters to describe this API."

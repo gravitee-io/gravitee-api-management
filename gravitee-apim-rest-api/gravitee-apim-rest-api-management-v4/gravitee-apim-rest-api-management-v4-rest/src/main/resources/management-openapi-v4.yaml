@@ -636,7 +636,6 @@ components:
                     type: string
                     description: API's description. A short description of your API.
                     example: I can use many characters to describe this API.
-                    minLength: 1
                 disableMembershipNotifications:
                     type: boolean
                     description: Disable membership notifications.

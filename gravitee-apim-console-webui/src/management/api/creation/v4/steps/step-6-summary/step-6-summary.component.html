@@ -34,7 +34,7 @@
             <span class="step-6-summary__step__info__key">Version:</span>
             <span class="step-6-summary__step__info__value">{{ currentStepPayload.version }}</span>
           </div>
-          <div class="step-6-summary__step__info__row">
+          <div class="step-6-summary__step__info__row" *ngIf="currentStepPayload.description">
             <span class="step-6-summary__step__info__key">Description:</span>
             <span class="step-6-summary__step__info__value">
               {{ currentStepPayload.description }}
