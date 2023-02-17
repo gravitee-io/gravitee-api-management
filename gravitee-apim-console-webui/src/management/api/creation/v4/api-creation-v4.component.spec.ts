@@ -90,7 +90,7 @@ describe('ApiCreationV4Component', () => {
 
       component.menuSteps$.subscribe((steps) => {
         expect(steps.length).toEqual(6);
-        expect(steps[0].label).toEqual('API Details');
+        expect(steps[0].label).toEqual('API details');
         expect(steps[1].label).toEqual('Entrypoints');
         // Expect to have the last valid step payload
         expect(steps[1].payload).toEqual({ name: 'A1>B1>B2' });
@@ -112,7 +112,7 @@ describe('ApiCreationV4Component', () => {
     it('should save api details and move to next step', async () => {
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
-      expect(component.currentStep.label).toEqual('API Details');
+      expect(component.currentStep.label).toEqual('API details');
       await step1Harness.fillAndValidate('test API', '1', 'description');
       expectEntrypointsGetRequest([]);
 
@@ -142,7 +142,7 @@ describe('ApiCreationV4Component', () => {
       expect(await dialogHarness).toBeTruthy();
 
       await dialogHarness.cancel();
-      expect(component.currentStep.label).toEqual('API Details');
+      expect(component.currentStep.label).toEqual('API details');
 
       fixture.detectChanges();
       expect(fakeAjsState.go).not.toHaveBeenCalled();
@@ -173,7 +173,7 @@ describe('ApiCreationV4Component', () => {
       expectEntrypointsGetRequest([]);
 
       await step2Harness.clickPrevious();
-      expect(component.currentStep.label).toEqual('API Details');
+      expect(component.currentStep.label).toEqual('API details');
 
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
