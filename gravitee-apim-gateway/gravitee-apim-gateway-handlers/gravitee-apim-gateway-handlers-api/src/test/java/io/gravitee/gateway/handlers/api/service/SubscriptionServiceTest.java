@@ -151,12 +151,25 @@ public class SubscriptionServiceTest {
         subscriptionService.save(newSubscription);
 
         // should find subscription in cache with its new client id
-        Optional<Subscription> foundSubscription = subscriptionService.getByApiAndClientIdAndPlan(API_ID, "new-client-id", PLAN_ID);
-        assertTrue(foundSubscription.isPresent());
-        assertSame(newSubscription, foundSubscription.get());
+        Optional<Subscription> foundSubscriptionWithFullKey = subscriptionService.getByApiAndClientIdAndPlan(
+            API_ID,
+            "new-client-id",
+            PLAN_ID
+        );
+        assertTrue(foundSubscriptionWithFullKey.isPresent());
+        assertSame(newSubscription, foundSubscriptionWithFullKey.get());
+
+        Optional<Subscription> foundSubscriptionWithNullPlanKey = subscriptionService.getByApiAndClientIdAndPlan(
+            API_ID,
+            "new-client-id",
+            null
+        );
+        assertTrue(foundSubscriptionWithNullPlanKey.isPresent());
+        assertSame(newSubscription, foundSubscriptionWithNullPlanKey.get());
 
         // should not find it with its old client id
         assertFalse(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "old-client-id", PLAN_ID).isPresent());
+        assertFalse(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "old-client-id", null).isPresent());
     }
 
     @Test
