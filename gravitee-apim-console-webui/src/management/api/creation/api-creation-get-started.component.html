@@ -65,10 +65,3 @@
     <button mat-raised-button color="primary" (click)="goToApiImport()">Import an API</button>
   </div>
 </mat-card>
-
-<div class="api-creation-get-started__path-based mat-small" *ngIf="allowsPathBasedCreation">
-  <span
-    >Or you can still use paths based | <a href="javascript:void(0)" (click)="goToApiImport('1.0.0')">Import</a> -
-    <a href="javascript:void(0)" (click)="goToApiCreationWizard('1.0.0')">Create</a></span
-  >
-</div>
