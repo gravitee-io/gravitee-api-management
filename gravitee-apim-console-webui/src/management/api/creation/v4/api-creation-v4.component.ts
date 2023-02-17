@@ -51,7 +51,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   public stepper = new ApiCreationStepperService([
     {
-      label: 'API Details',
+      label: 'API details',
       component: Step1ApiDetailsComponent,
       menuItemComponent: Step1MenuItemComponent,
     },
