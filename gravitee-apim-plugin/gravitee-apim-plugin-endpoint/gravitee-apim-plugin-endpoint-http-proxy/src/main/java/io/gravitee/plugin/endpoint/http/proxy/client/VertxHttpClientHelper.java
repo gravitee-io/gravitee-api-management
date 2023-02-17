@@ -62,10 +62,12 @@ public class VertxHttpClientHelper {
 
     public static RequestOptions configureAbsoluteUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
         final URL target = VertxHttpClient.buildUrl(buildFinalUri(uri, parameters));
+        final boolean secureProtocol = VertxHttpClient.isSecureProtocol(target.getProtocol());
 
         return requestOptions
             .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery())
-            .setPort(VertxHttpClient.getPort(target, VertxHttpClient.isSecureProtocol(target.getProtocol())))
+            .setPort(VertxHttpClient.getPort(target, secureProtocol))
+            .setSsl(secureProtocol)
             .setHost(target.getHost());
     }
 
