@@ -96,9 +96,6 @@ describe('ConsoleSettingsComponent', () => {
           support: {
             enabled: false,
           },
-          pathBasedApiCreation: {
-            enabled: true,
-          },
           userCreation: {
             enabled: false,
           },
@@ -119,9 +116,6 @@ describe('ConsoleSettingsComponent', () => {
         management: {
           title: 'New Title',
           support: {
-            enabled: true,
-          },
-          pathBasedApiCreation: {
             enabled: true,
           },
           userCreation: {

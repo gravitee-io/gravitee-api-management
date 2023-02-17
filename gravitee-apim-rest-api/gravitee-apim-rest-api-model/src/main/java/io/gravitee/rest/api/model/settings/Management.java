@@ -35,9 +35,6 @@ public class Management {
     @ParameterKey(Key.MANAGEMENT_URL)
     private String url;
 
-    @ParameterKey(Key.CONSOLE_PATH_BASED_API_CREATION_ENABLED)
-    private Enabled pathBasedApiCreation;
-
     @ParameterKey(Key.CONSOLE_USERCREATION_ENABLED)
     private Enabled userCreation;
 
@@ -69,14 +66,6 @@ public class Management {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public Enabled getPathBasedApiCreation() {
-        return pathBasedApiCreation;
-    }
-
-    public void setPathBasedApiCreation(Enabled pathBasedApiCreation) {
-        this.pathBasedApiCreation = pathBasedApiCreation;
     }
 
     public Enabled getUserCreation() {

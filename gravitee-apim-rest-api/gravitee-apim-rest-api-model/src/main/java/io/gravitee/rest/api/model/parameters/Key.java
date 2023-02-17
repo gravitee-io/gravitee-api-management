@@ -306,8 +306,6 @@ public enum Key {
         "true",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    CONSOLE_PATH_BASED_API_CREATION_ENABLED("console.pathBasedApiCreation.enabled", "false", Set.of(ORGANIZATION, SYSTEM)),
-
     CONSOLE_SYSTEM_ROLE_EDITION_ENABLED("console.systemRoleEdition.enabled", "false", Set.of(SYSTEM)),
 
     CONSOLE_ANALYTICS_PENDO_ENABLED("console.analytics.pendo.enabled", "false", Set.of(SYSTEM)),

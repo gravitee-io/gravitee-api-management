@@ -95,11 +95,7 @@ function runBlock(
         return;
       }
 
-      const settings = await ConsoleSettingsService.getConsole();
-      const hasPathBasedApiCreation = settings?.data?.management?.pathBasedApiCreation?.enabled;
-      if (!hasPathBasedApiCreation) {
-        return trans.router.stateService.target('management.apis.new');
-      }
+      return trans.router.stateService.target('management.apis.new');
     },
   );
 
