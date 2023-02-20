@@ -71,7 +71,6 @@ export class Step2Entrypoints1List implements OnInit, OnDestroy {
           isEnterprise: entrypoint.id.endsWith('-advanced'),
           supportedListenerType: entrypoint.supportedListenerType,
         }));
-
         this.changeDetectorRef.detectChanges();
       });
   }

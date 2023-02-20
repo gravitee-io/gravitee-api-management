@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 import { Component, ElementRef, forwardRef, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormArray, FormControl, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  AsyncValidator,
+  AsyncValidatorFn,
+  ControlValueAccessor,
+  FormArray,
+  FormControl,
+  FormGroup,
+  NG_ASYNC_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  ValidatorFn,
+} from '@angular/forms';
 import { dropRight, isEmpty } from 'lodash';
-import { takeUntil, tap } from 'rxjs/operators';
+import { filter, map, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { Subject } from 'rxjs';
+import { Observable, of, Subject, zip } from 'rxjs';
 
 import { HttpListenerPath } from '../../../entities/api-v4';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { ApiService } from '../../../services-ngx/api.service';
+
+const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
 
 @Component({
   selector: 'gio-form-listeners-context-path',
@@ -34,18 +48,28 @@ import { ApiService } from '../../../services-ngx/api.service';
       useExisting: forwardRef(() => GioFormListenersContextPathComponent),
       multi: true,
     },
+    {
+      provide: NG_ASYNC_VALIDATORS,
+      useExisting: forwardRef(() => GioFormListenersContextPathComponent),
+      multi: true,
+    },
   ],
 })
-export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor {
+export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
   public listeners: HttpListenerPath[] = [];
   public mainForm: FormGroup;
-  public listenerFormArray = new FormArray([this.newListenerFormGroup({})]);
+  public listenerFormArray = new FormArray([this.newListenerFormGroup({})], [this.listenersValidator()], [this.listenersAsyncValidator()]);
   public contextPathPrefix: string;
   private unsubscribe$: Subject<void> = new Subject<void>();
+  private verifiedPath: Record<string, ValidationErrors | null> = {};
 
   public onDelete(pathIndex: number): void {
-    this._onTouched();
+    this.listenerFormArray.controls.forEach((control) => {
+      control.get('path').setErrors(null);
+    });
     this.listenerFormArray.removeAt(pathIndex);
+    this.listenerFormArray.updateValueAndValidity();
+    this._onTouched();
   }
 
   private _onChange: (_listeners: HttpListenerPath[] | null) => void = () => ({});
@@ -79,11 +103,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         takeUntil(this.unsubscribe$),
         tap((listeners) => listeners.length > 0 && this._onChange(this.onChange(listeners))),
         tap((listeners: HttpListenerPath[]) => {
-          if (
-            listeners.length > 0 &&
-            !this.listenerFormArray.controls[listeners.length - 1].invalid &&
-            !this.isEmpty(listeners[listeners.length - 1])
-          ) {
+          if (listeners.length > 0 && !this.isEmpty(listeners[listeners.length - 1])) {
             this.addEmptyListener();
           }
         }),
@@ -144,11 +164,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public newListenerFormGroup(listener: HttpListenerPath) {
     return new FormGroup({
-      path: new FormControl(
-        listener.path || '',
-        [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
-        [this.apiService.contextPathValidator()],
-      ),
+      path: new FormControl(listener.path || ''),
     });
   }
 
@@ -162,5 +178,100 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public isEmpty(lastListener: HttpListenerPath) {
     return isEmpty(lastListener.path);
+  }
+
+  public validate(): Observable<ValidationErrors | null> {
+    return this.listenerFormArray.statusChanges.pipe(
+      startWith(this.listenerFormArray.status),
+      filter(() => !this.listenerFormArray.pending),
+      map(() => (this.listenerFormArray.valid ? null : { invalid: true })),
+      take(1),
+    );
+  }
+
+  private listenersValidator(): ValidatorFn {
+    return (listenerFormArrayControl: FormArray): ValidationErrors | null => {
+      if (!listenerFormArrayControl.dirty) {
+        return null;
+      }
+      const listenerFormArrayControls = listenerFormArrayControl.controls;
+      const ignoreLast = this.mustIgnoreLast(listenerFormArrayControls);
+      const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
+
+      const errors = listenerFormArrayControls.reduce((acc, listenerControl, index) => {
+        if (!(ignoreLast && index === listenerFormArrayControls.length - 1)) {
+          const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
+          if (validationError) {
+            acc[`${index}`] = validationError;
+          }
+        }
+        return acc;
+      }, {});
+
+      return isEmpty(errors) ? null : errors;
+    };
+  }
+
+  private mustIgnoreLast(listenerFormArrayControls: AbstractControl[]) {
+    if (listenerFormArrayControls.length > 1) {
+      // Remove last if is empty
+      const lastFormArrayControl = listenerFormArrayControls.at(listenerFormArrayControls.length - 1);
+      return isEmpty(lastFormArrayControl.get('path').value);
+    }
+    return false;
+  }
+
+  public validateListenerControl(
+    listenerControl: AbstractControl,
+    httpListeners: HttpListenerPath[],
+    currentIndex: number,
+  ): ValidationErrors | null {
+    const listenerPathControl = listenerControl.get('path');
+    const contextPath = listenerPathControl.value;
+
+    let errors = null;
+    if (isEmpty(contextPath)) {
+      errors = {
+        contextPath: 'Context path is required.',
+      };
+    } else if (contextPath.length < 3) {
+      errors = { contextPath: 'Context path has to be more than 3 characters long.' };
+    } else if (!PATH_PATTERN_REGEX.test(contextPath)) {
+      errors = { contextPath: 'Context path is not valid.' };
+    } else if (httpListeners.find((httpListener, index) => index !== currentIndex && httpListener.path === contextPath) != null) {
+      errors = { contextPath: 'Context path is already use.' };
+    }
+    setTimeout(() => listenerPathControl.setErrors(errors), 0);
+    return errors;
+  }
+
+  private listenersAsyncValidator(): AsyncValidatorFn {
+    return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
+      if (!listenerFormArrayControl.dirty) {
+        return of(null);
+      }
+      const listenerFormArrayControls = listenerFormArrayControl.controls;
+      const ignoreLast = this.mustIgnoreLast(listenerFormArrayControls);
+
+      const foobar: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl, index) => {
+        if (ignoreLast && index === listenerFormArrayControls.length - 1) {
+          return of(null);
+        }
+        const listenerPathControl = listenerControl.get('path');
+        return this.apiService.verify(listenerPathControl.value);
+      });
+
+      return zip(...foobar).pipe(
+        map((errors: (ValidationErrors | null)[]) => {
+          errors.forEach((error, index) => {
+            listenerFormArrayControls.at(index).get('path').setErrors(error);
+          });
+          if (errors.filter((v) => v !== null).length === 0) {
+            return null;
+          }
+          return { listeners: true };
+        }),
+      );
+    };
   }
 }

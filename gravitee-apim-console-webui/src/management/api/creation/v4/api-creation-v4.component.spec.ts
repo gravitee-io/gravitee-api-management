@@ -236,6 +236,24 @@ describe('ApiCreationV4Component', () => {
       expectApiGetPortalSettings();
     });
 
+    it('should not validate with bad path', async () => {
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+
+      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+      await step2Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
+      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+      expectApiGetPortalSettings();
+      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      await step21Harness.fillPathsAndValidate('bad-path');
+      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+    });
+
     it('should configure paths', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -275,6 +293,27 @@ describe('ApiCreationV4Component', () => {
       ]);
 
       expectEndpointsGetRequest([]);
+    });
+
+    it('should not validate with empty host', async () => {
+      await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+
+      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+      await step2Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
+      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+      expectApiGetPortalSettings();
+      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      await step21Harness.clickListenerType();
+      expectApiGetPortalSettings();
+
+      await step21Harness.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
+      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
     });
 
     it('should configure virtual host', async () => {
@@ -347,6 +386,8 @@ describe('ApiCreationV4Component', () => {
       expectApiGetPortalSettings();
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      await step21Harness.fillPathsAndValidate('/api/my-api-3');
+      expectVerifyContextPathGetRequest();
       await step21Harness.clickValidate();
 
       expect(component.currentStep.payload.listeners).toEqual([
@@ -365,7 +406,11 @@ describe('ApiCreationV4Component', () => {
               type: 'webhook',
             },
           ],
-          paths: [],
+          paths: [
+            {
+              path: '/api/my-api-3',
+            },
+          ],
           type: 'http',
         },
       ]);
@@ -584,7 +629,7 @@ describe('ApiCreationV4Component', () => {
 
       await step2Harness.clickValidate();
       fixture.detectChanges();
-      await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }]);
+      await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
 
       await fillAndValidateStep3Endpoints();
       await fillAndValidateStep4Security();
@@ -691,13 +736,14 @@ describe('ApiCreationV4Component', () => {
       { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
+    paths: string[] = ['/api/my-api-3'],
   ) {
     const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     expectEntrypointsGetRequest(entrypoints);
 
     await step2Harness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
 
-    await fillAndValidateStep2Entrypoints2Config(entrypoints);
+    await fillAndValidateStep2Entrypoints2Config(entrypoints, paths);
   }
 
   async function fillAndValidateStep2Entrypoints2Config(
@@ -705,13 +751,14 @@ describe('ApiCreationV4Component', () => {
       { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
+    paths: string[] = ['/api/my-api-3'],
   ) {
     const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
     exceptEnvironmentGetRequest(fakeEnvironment());
     expectSchemaGetRequest(entrypoints);
     expectApiGetPortalSettings();
 
-    await step21Harness.fillPathsAndValidate('/api/my-api-3');
+    await step21Harness.fillPathsAndValidate(...paths);
     expectVerifyContextPathGetRequest();
   }
 

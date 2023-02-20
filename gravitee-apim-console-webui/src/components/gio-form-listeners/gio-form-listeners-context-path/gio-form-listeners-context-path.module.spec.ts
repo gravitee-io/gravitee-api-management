@@ -116,6 +116,36 @@ describe('GioFormListenersContextPathModule', () => {
     expect(testComponent.formControl.value).toEqual([{ path: '/api/my-api-4' }, { path: '/api/my-api-5' }]);
   });
 
+  it('should validate path', async () => {
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+
+    expect((await formPaths.getListenerRows()).length).toEqual(1);
+
+    // Add path on last path row
+    const emptyLastContextPathRow = await formPaths.getLastListenerRow();
+    const pathInputHost = await emptyLastContextPathRow.pathInput.host();
+
+    await emptyLastContextPathRow.pathInput.setValue('bad-path');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
+
+    await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
+
+    await emptyLastContextPathRow.pathInput.setValue('/b');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
+
+    await emptyLastContextPathRow.pathInput.setValue('/ba');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
+
+    await emptyLastContextPathRow.pathInput.setValue('/good-path');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
+
+    const secondLine = await formPaths.getLastListenerRow();
+    await secondLine.pathInput.setValue('/good-path');
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
+    expect(await (await secondLine.pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+  });
+
   it('should edit context path', async () => {
     testComponent.formControl.setValue(LISTENERS);
     const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);

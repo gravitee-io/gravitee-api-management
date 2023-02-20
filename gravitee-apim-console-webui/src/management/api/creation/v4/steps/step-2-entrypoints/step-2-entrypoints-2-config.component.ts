@@ -72,7 +72,9 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     this.entrypointInitialValues =
       listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
-    this.formGroup.addControl('paths', this.formBuilder.control(paths));
+    if (this.hasListeners) {
+      this.formGroup.addControl('paths', this.formBuilder.control(paths));
+    }
     currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
       this.formGroup.addControl(id, this.formBuilder.group({}));
     });
