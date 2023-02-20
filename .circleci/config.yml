@@ -6,7 +6,7 @@ orbs:
     gh: circleci/github-cli@1.0.5
     aws-cli: circleci/aws-cli@2.0.6
     artifactory-orb: jfrog/artifactory-orb@1.0.1
-    aws-s3: circleci/aws-s3@3.0
+    aws-s3: circleci/aws-s3@3.0.0
 
 executors:
     ubuntu:
