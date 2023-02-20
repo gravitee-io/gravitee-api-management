@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, NG_VALUE_ACCESSOR, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, NG_ASYNC_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
@@ -35,6 +35,11 @@ interface InternalHttpListenerPath extends HttpListenerPath {
       useExisting: forwardRef(() => GioFormListenersVirtualHostComponent),
       multi: true,
     },
+    {
+      provide: NG_ASYNC_VALIDATORS,
+      useExisting: forwardRef(() => GioFormListenersVirtualHostComponent),
+      multi: true,
+    },
   ],
 })
 export class GioFormListenersVirtualHostComponent extends GioFormListenersContextPathComponent {
@@ -45,15 +50,11 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
     return new FormGroup({
-      host: new FormControl(listener?.host || '', [hostValidator(this.domainRestrictions)]),
+      host: new FormControl(listener?.host || ''),
       // Private controls for internal process
       _hostSubDomain: new FormControl(host || ''),
       _hostDomain: new FormControl(hostDomain || ''),
-      path: new FormControl(
-        listener.path || '',
-        [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
-        [this.apiService.contextPathValidator()],
-      ),
+      path: new FormControl(listener.path),
       overrideAccess: new FormControl(listener.overrideAccess || false),
     });
   }
@@ -65,38 +66,35 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
       host: combineSubDomainWithDomain(listener._hostSubDomain, listener._hostDomain),
     }));
   }
-}
 
-// Common validator for host and hostDomain
-const hostValidator = (domainRestrictions: string[] = []): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.parent) {
-      return null;
-    }
+  validateListenerControl(
+    listenerControl: AbstractControl,
+    httpListeners: HttpListenerPath[],
+    currentIndex: number,
+  ): ValidationErrors | null {
+    const inheritErrors = super.validateListenerControl(listenerControl, httpListeners, currentIndex);
+    const subDomainControl = listenerControl.get('_hostSubDomain');
+    const domainControl = listenerControl.get('_hostDomain');
 
-    const hostControl = control.parent.get('_hostSubDomain');
-    const domainControl = control.parent.get('_hostDomain');
-
-    const fullHost = hostControl?.value + domainControl?.value;
+    const fullHost = subDomainControl.value + domainControl.value;
 
     // When no domain restriction, host is required
-    if (isEmpty(domainRestrictions) && !hostControl?.value) {
-      const errors = { required: 'true' };
-      hostControl.setErrors(errors);
-      return errors;
+    if (isEmpty(this.domainRestrictions) && isEmpty(subDomainControl.value)) {
+      const errors = { host: 'Host is required.' };
+      setTimeout(() => subDomainControl.setErrors(errors), 0);
+      return { ...inheritErrors, ...errors };
     }
 
-    if (!isEmpty(domainRestrictions)) {
-      const isValid = domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
-      const errors = isValid ? null : { host: 'true' };
-      hostControl.setErrors(errors);
-      return errors;
+    if (!isEmpty(this.domainRestrictions)) {
+      const isValid = this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
+      const errors = isValid ? null : { host: 'Host is not valid (must end with one of restriction domain).' };
+      setTimeout(() => subDomainControl.setErrors(errors), 0);
+      return { ...inheritErrors, ...errors };
     }
-    hostControl.setErrors(null);
-    domainControl.setErrors(null);
-    return null;
-  };
-};
+    setTimeout(() => subDomainControl.setErrors(null), 0);
+    return inheritErrors;
+  }
+}
 
 const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []): { host: string; hostDomain: string } => {
   let host = fullHost;

@@ -211,27 +211,31 @@ export class ApiService {
         return of(null);
       }
 
-      return this.http
-        .post(
-          `${this.constants.env.baseURL}/apis/verify`,
-          { context_path: contextPath },
-          {
-            responseType: 'text',
-          },
-        )
-        .pipe(
-          mapTo(null),
-          catchError((error) => {
-            let message = 'Context path is not valid.';
-            try {
-              const errorResponse = JSON.parse(error.error);
-              message = errorResponse.message;
-            } catch (error) {}
-
-            return of({ contextPath: message });
-          }),
-        );
+      return this.verify(contextPath);
     };
+  }
+
+  verify(contextPath): Observable<ValidationErrors | null> {
+    return this.http
+      .post(
+        `${this.constants.env.baseURL}/apis/verify`,
+        { context_path: contextPath },
+        {
+          responseType: 'text',
+        },
+      )
+      .pipe(
+        mapTo(null),
+        catchError((error) => {
+          let message = 'Context path is not valid.';
+          try {
+            const errorResponse = JSON.parse(error.error);
+            message = errorResponse.message;
+          } catch (error) {}
+
+          return of({ contextPath: message });
+        }),
+      );
   }
 
   versionValidator(): ValidatorFn {

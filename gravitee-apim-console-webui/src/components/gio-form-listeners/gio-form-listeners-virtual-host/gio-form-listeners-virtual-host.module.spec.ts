@@ -154,6 +154,22 @@ describe('GioFormListenersVirtualHostModule', () => {
     ]);
   });
 
+  it('should validate host', async () => {
+    const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
+
+    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
+
+    // Add path on last path row
+    const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
+    await emptyLastContextPathRow.hostInput.setValue('');
+    await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
+
+    const hostTestElement = await emptyLastContextPathRow.hostInput.host();
+    expect(await hostTestElement.hasClass('ng-invalid')).toEqual(true);
+    await emptyLastContextPathRow.hostInput.setValue('localhost');
+    expect(await hostTestElement.hasClass('ng-invalid')).toEqual(false);
+  });
+
   it('should edit virtual host', async () => {
     testComponent.formControl.setValue(LISTENERS);
     const formContextPaths = await loader.getHarness(GioFormListenersVirtualHostHarness);

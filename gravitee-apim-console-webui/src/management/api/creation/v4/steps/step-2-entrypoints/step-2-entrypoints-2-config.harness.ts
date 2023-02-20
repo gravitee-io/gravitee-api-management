@@ -48,6 +48,10 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     return this.getValidateButton().then((elt) => elt.click());
   }
 
+  async hasValidationDisabled(): Promise<boolean> {
+    return this.getValidateButton().then((elt) => elt.isDisabled());
+  }
+
   async clickListenerType() {
     return this.getSwitchListenersTypeButton().then((elt) => elt.click());
   }
