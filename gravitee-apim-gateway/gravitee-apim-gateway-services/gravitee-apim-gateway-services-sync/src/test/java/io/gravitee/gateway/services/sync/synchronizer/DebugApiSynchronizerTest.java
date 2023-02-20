@@ -75,12 +75,12 @@ public class DebugApiSynchronizerTest extends TestCase {
     public void setup() {
         Plugin debugPlugin = mock(Plugin.class);
         when(debugPlugin.id()).thenReturn("gateway-debug");
-        when(pluginRegistry.plugins()).thenReturn((Collection) List.of(debugPlugin));
+        when(pluginRegistry.plugins()).thenReturn(List.of(debugPlugin));
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
 
         debugApiSynchronizer = new DebugApiSynchronizer(eventManager, pluginRegistry, configuration, node);
         debugApiSynchronizer.eventRepository = eventRepository;
-        debugApiSynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        debugApiSynchronizer.setExecutor((ThreadPoolExecutor) Executors.newFixedThreadPool(1));
         when(node.id()).thenReturn(GATEWAY_ID);
     }
 

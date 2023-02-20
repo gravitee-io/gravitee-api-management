@@ -170,8 +170,6 @@ public class SyncManager extends AbstractService<SyncManager> {
             }
         }
 
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
-
         // If there was no error during the sync process, let's continue it with the next period of time
         if (!error) {
             allApisSync = true;
@@ -187,6 +185,13 @@ public class SyncManager extends AbstractService<SyncManager> {
             // soon as the node is becoming the master later.
             lastRefreshAt = nextLastRefreshAt;
         }
+
+        logger.debug(
+            "Synchronization #{} ended at {} (took {}ms}",
+            counter.get(),
+            Instant.now().toString(),
+            System.currentTimeMillis() - nextLastRefreshAt
+        );
     }
 
     public boolean isDistributed() {

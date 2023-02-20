@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DebugApiSynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -57,6 +58,9 @@ public class SyncManagerTest {
 
     @Mock
     private OrganizationSynchronizer organizationSynchronizer;
+
+    @Mock
+    private DebugApiSynchronizer debugApiSynchronizer;
 
     private List<String> environments;
 

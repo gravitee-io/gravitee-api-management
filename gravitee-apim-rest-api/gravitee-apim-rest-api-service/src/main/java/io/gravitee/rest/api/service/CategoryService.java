@@ -39,7 +39,6 @@ public interface CategoryService {
     CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity category);
     List<CategoryEntity> update(ExecutionContext executionContext, List<UpdateCategoryEntity> categories);
     void delete(ExecutionContext executionContext, String categoryId);
-    long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
     InlinePictureEntity getPicture(final String environmentId, String categoryId);
     InlinePictureEntity getBackground(final String environmentId, String categoryId);
     List<CategoryEntity> findByPage(String pageId);

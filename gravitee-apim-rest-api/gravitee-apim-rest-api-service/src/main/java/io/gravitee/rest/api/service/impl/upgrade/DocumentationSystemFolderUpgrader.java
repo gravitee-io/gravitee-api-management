@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashMap;
@@ -26,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,11 +41,14 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentationSystemFolderUpgrader.class);
 
-    @Autowired
-    private PageService pageService;
+    private final PageService pageService;
 
-    @Autowired
-    private ApiService apiService;
+    private final ApiRepository apiRepository;
+
+    public DocumentationSystemFolderUpgrader(PageService pageService, @Lazy ApiRepository apiRepository) {
+        this.pageService = pageService;
+        this.apiRepository = apiRepository;
+    }
 
     @Override
     public void upgradeEnvironment(ExecutionContext executionContext) {
@@ -76,9 +82,20 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
             createLink(executionContext, headerSystemFolderId, "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
 
             // Apis documentation
-            apiService
-                .findAllLightByEnvironment(executionContext)
-                .forEach(api -> pageService.createSystemFolder(executionContext, api.getId(), SystemFolderType.ASIDE, 0));
+            int page = 0;
+            int size = 100;
+            List<ApiCriteria> apiCriteriaList = List.of(
+                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build()
+            );
+            Pageable pageable = new PageableBuilder().pageNumber(page).pageSize(size).build();
+
+            List<String> apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
+
+            while (!apiIds.isEmpty()) {
+                apiIds.forEach(apiId -> pageService.createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0));
+                pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
+                apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
+            }
         }
     }
 
