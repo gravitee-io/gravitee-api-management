@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.*;
@@ -84,16 +85,18 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     if (id == null) {
                         id = type;
                     }
+
+                    String formattedId = IdGenerator.generate(id);
                     try {
-                        identityProviderService.findById(id);
+                        identityProviderService.findById(formattedId);
                     } catch (IdentityProviderNotFoundException e) {
-                        id = createIdp(executionContext, id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
+                        formattedId = createIdp(executionContext, formattedId, IdentityProviderType.valueOf(type.toUpperCase()), idx);
                     }
                     // always update
-                    updateIdp(executionContext, id, idx);
+                    updateIdp(executionContext, formattedId, idx);
 
                     // update idp activations
-                    updateIdpActivations(executionContext, id, idx);
+                    updateIdpActivations(executionContext, formattedId, idx);
                 } else {
                     logger.info("Unknown identity provider [{}]", type);
                 }
