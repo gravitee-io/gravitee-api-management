@@ -41,10 +41,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiImportException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
@@ -168,6 +165,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 urlApiId
             );
 
+            UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
+
+            if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(importedApi.getGraviteeDefinitionVersion()))) {
+                throw new ApiDefinitionVersionNotSupportedException(importedApi.getGraviteeDefinitionVersion());
+            }
+
             // ensure user has required permission to update target API
             if (
                 !isAuthenticated() ||
@@ -180,7 +183,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             checkApiJsonConsistency(executionContext, apiJsonNode, urlApiId);
 
             // import
-            UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
             ApiEntity updatedApiEntity = apiService.update(executionContext, apiJsonNode.getId(), importedApi);
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -36,6 +37,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -594,5 +596,17 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+    }
+
+    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
+    public void shouldNotUpdateIfDefinitionV1() throws TechnicalException, IOException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.v1.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+
+        apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
     }
 }

@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -68,6 +69,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -214,6 +216,12 @@ public class ApiService_CreateTest {
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
         when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(admin));
+    }
+
+    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
+    public void shouldNotCreateWithOldDefinitionVersion() {
+        when(newApi.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V1.getLabel());
+        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
     }
 
     @Test

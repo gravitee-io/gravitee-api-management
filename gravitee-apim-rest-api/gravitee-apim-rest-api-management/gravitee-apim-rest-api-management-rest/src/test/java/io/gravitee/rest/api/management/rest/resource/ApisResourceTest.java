@@ -113,7 +113,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldImportApiFromSwager() {
+    public void shouldImportApiFromSwagger() {
         reset(apiService, swaggerService);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setPayload("my-payload");
@@ -122,7 +122,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi).when(apiService).createFromSwagger(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
-        final Response response = envTarget().path("import").path("swagger").request().post(Entity.json(swaggerDescriptor));
+        final Response response = envTarget()
+            .path("import")
+            .path("swagger")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(Entity.json(swaggerDescriptor));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
@@ -130,24 +135,8 @@ public class ApisResourceTest extends AbstractResourceTest {
             .createAPI(
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
-                eq(DefinitionVersion.valueOfLabel("1.0.0"))
+                eq(DefinitionVersion.valueOfLabel("2.0.0"))
             );
-    }
-
-    @Test
-    public void shouldImportApiFromGraviteeIODefinitionV1() {
-        reset(apiService, swaggerService);
-        String apiDefinition = "{}";
-
-        ApiEntity createdApi = new ApiEntity();
-        createdApi.setGraviteeDefinitionVersion("1.0.0");
-        createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
-
-        final Response response = envTarget().path("import").request().post(Entity.json(apiDefinition));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        verify(apiService, times(0)).migrate(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
