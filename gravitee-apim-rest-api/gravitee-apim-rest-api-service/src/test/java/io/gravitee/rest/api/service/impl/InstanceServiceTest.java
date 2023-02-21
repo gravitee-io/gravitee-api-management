@@ -16,28 +16,27 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventQuery;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.InstanceListItem;
-import io.gravitee.rest.api.model.InstanceState;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +45,10 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -253,6 +254,47 @@ public class InstanceServiceTest {
 
         execFiltering(predicateDays, Stream.of(itemStarted, itemUnknownNotVisible, itemStopped, itemUnknownVisible));
         execFiltering(predicateSeconds, Stream.of(itemStarted, itemUnknownNotVisible, itemStopped, itemUnknownVisible));
+    }
+
+    @Test
+    public void searchShouldIgnoreExpiredEvents() {
+        ReflectionTestUtils.setField(cut, "unknownExpireAfterInSec", 604800);
+        InstanceQuery query = new InstanceQuery();
+        query.setIncludeStopped(false);
+        query.setFrom(0);
+        query.setTo(0);
+        query.setPage(0);
+        query.setSize(100);
+
+        EventEntity event = new EventEntity();
+        event.setType(EventType.GATEWAY_STARTED);
+
+        when(eventService.search(any(ExecutionContext.class), any(), any(), anyLong(), anyLong(), anyInt(), anyInt(), any(), any(), any()))
+            .thenReturn(new Page<>(List.of(event), 0, 1, 1));
+
+        cut.search(executionContext, query);
+
+        ArgumentCaptor<Long> fromCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<Long> toCaptor = ArgumentCaptor.forClass(Long.class);
+
+        verify(eventService)
+            .search(
+                eq(executionContext),
+                argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
+                isNull(),
+                fromCaptor.capture(),
+                toCaptor.capture(),
+                eq(0),
+                eq(100),
+                any(),
+                any(),
+                any()
+            );
+
+        // expect from to be today minus 7 days
+        Instant now = Instant.now();
+        assertEquals(now.toEpochMilli(), toCaptor.getValue(), 1000);
+        assertEquals(now.minus(604800, ChronoUnit.SECONDS).toEpochMilli(), fromCaptor.getValue(), 1000);
     }
 
     private void execFiltering(InstanceServiceImpl.ExpiredPredicate predicateDays, Stream<InstanceListItem> stream) {
