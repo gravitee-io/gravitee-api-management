@@ -15,11 +15,26 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.http.utils.RequestUtils;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
@@ -29,16 +44,16 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpVersion;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -54,13 +69,13 @@ class VertxHttpServerRequestTest {
     protected static final String BODY = "chunk1chunk2chunk3";
 
     @Mock
-    private HttpServerRequest httpServerRequest;
+    HttpServerRequest httpServerRequest;
 
     @Mock
-    private IdGenerator idGenerator;
+    IdGenerator idGenerator;
 
-    private AtomicInteger subscriptionCount;
-    private VertxHttpServerRequest cut;
+    AtomicInteger subscriptionCount;
+    VertxHttpServerRequest cut;
 
     @BeforeEach
     void init() {
@@ -78,424 +93,388 @@ class VertxHttpServerRequestTest {
         cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
     }
 
-    @Test
-    void shouldSubscribeOnceWhenIgnoringAndReplacingExistingChunks() {
-        cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+    @Nested
+    class HostsTest {
 
-        final TestSubscriber<Buffer> obs = cut.chunks().test();
+        @Test
+        void should_return_original_host() {
+            when(httpServerRequest.host()).thenReturn("original.host", "changed.host");
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
+            assertEquals("original.host", cut.originalHost());
+            assertEquals("changed.host", cut.host());
+        }
     }
 
-    @Test
-    void shouldSubscribeOnceWhenReplacingExistingChunksWithBody() {
-        final TestSubscriber<Buffer> obs = cut
-            .chunks()
-            .ignoreElements()
-            .andThen(
-                Flowable.defer(
-                    () -> {
-                        cut.body(Buffer.buffer(NEW_CHUNK));
-                        return cut.chunks();
-                    }
+    @Nested
+    class ChunkSubscriptionTest {
+
+        @Mock
+        private MockedStatic<RequestUtils> requestUtilsMockedStatic;
+
+        @BeforeEach
+        public void beforeEach() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isStreaming(any(Request.class))).thenAnswer(invocation -> false);
+        }
+
+        @Test
+        void should_subscribe_once_when_ignoring_and_replacing_existing_chunks() {
+            cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+
+            final TestSubscriber<Buffer> obs = cut.chunks().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_replacing_existing_chunks_with_body() {
+            final TestSubscriber<Buffer> obs = cut
+                .chunks()
+                .ignoreElements()
+                .andThen(
+                    Flowable.defer(
+                        () -> {
+                            cut.body(Buffer.buffer(NEW_CHUNK));
+                            return cut.chunks();
+                        }
+                    )
                 )
-            )
-            .test();
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
+                .test();
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_not_subscribe_on_existing_chunks_when_just_replacing_existing_chunks() {
+            // Note: never do that unless you really know what you are doing.
+            cut.chunks(Flowable.just(Buffer.buffer(NEW_CHUNK)));
+
+            final TestSubscriber<Buffer> obs = cut.chunks().test();
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+
+            // Existing chunks are not consumed at all (not subscribed).
+            assertEquals(0, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_onChunks_then_getting_chunks_multiple_times() {
+            final TestSubscriber<Buffer> obs = cut
+                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_onChunks_then_getting_body_multiple_times() {
+            final TestObserver<Buffer> obs = cut
+                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_getting_body_multiple_times() {
+            final TestObserver<Buffer> obs = cut
+                .onChunks(chunks -> chunks)
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test();
+
+            obs.assertValue(buffer -> BODY.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_onBody_then_getting_chunks_multiple_times() {
+            final TestSubscriber<Buffer> obs = cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_and_return_empty_when_using_onBody_then_getting_chunks_multiple_times() {
+            mockWithEmpty();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onBody(body -> body.flatMap(buffer -> Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertNoValues();
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_return_empty_buffer_when_bodyOrEmpty() {
+            mockWithEmpty();
+
+            final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
+            obs.assertValue(buffer -> "".equals(buffer.toString()));
+        }
+
+        @Test
+        void should_subscribe_once_and_return_empty_observable_when_bodyOrEmpty_then_getting_chunks() {
+            mockWithEmpty();
+
+            final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
+
+            obs.assertNoValues();
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_onBody() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_onChunks() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onChunks(c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_body() {
+            mockWithError();
+
+            final TestObserver<Buffer> obs = cut.body().test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_chunks() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut.chunks().test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_onBody_then_getting_body_multiple_times() {
+            final TestObserver<Buffer> obs = cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_onBody_multiple_times() {
+            final TestObserver<Buffer> obs = cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Completable.defer(() -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test();
+
+            obs.assertValue(buffer -> BODY.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
     }
 
-    @Test
-    void shouldNotSubscribeOnExistingChunksWhenJustReplacingExistingChunks() {
-        // Note: never do that unless you really know what you are doing.
-        cut.chunks(Flowable.just(Buffer.buffer(NEW_CHUNK)));
+    @Nested
+    class RequestFlowTest {
 
-        final TestSubscriber<Buffer> obs = cut.chunks().test();
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+        @Test
+        void should_pause_native_request() {
+            cut.pause();
+            verify(httpServerRequest).pause();
+        }
 
-        // Existing chunks are not consumed at all (not subscribed).
-        assertEquals(0, subscriptionCount.get());
+        @Test
+        void should_resume_native_request() {
+            cut.resume();
+            verify(httpServerRequest).resume();
+        }
     }
 
-    @Test
-    void shouldSubscribeOnceWhenUsingOnChunksThenGettingChunksMultipleTimes() {
-        final TestSubscriber<Buffer> obs = cut
-            .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
+    @Nested
+    class MessagesInterceptorTest {
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
+        @Test
+        void should_set_onMessagesInterceptor() {
+            final MessageFlow messageFlow = mock(MessageFlow.class);
+            ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+            final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
+            cut.setMessagesInterceptor(interceptor);
+
+            verify(messageFlow).setOnMessagesInterceptor(interceptor);
+        }
+
+        @Test
+        void should_unset_onMessagesInterceptor() {
+            final MessageFlow messageFlow = mock(MessageFlow.class);
+            ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+
+            cut.unsetMessagesInterceptor();
+
+            verify(messageFlow).unsetOnMessagesInterceptor();
+        }
     }
 
-    @Test
-    void shouldSubscribeOnceWhenUsingOnChunksThenGettingBodyMultipleTimes() {
-        final TestObserver<Buffer> obs = cut
-            .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test();
+    @Nested
+    class WebSocketRequestTest {
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
+        @Mock
+        private MockedStatic<RequestUtils> requestUtilsMockedStatic;
 
-    @Test
-    void shouldSubscribeOnceWhenGettingBodyMultipleTimes() {
-        final TestObserver<Buffer> obs = cut
-            .onChunks(chunks -> chunks)
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test();
+        @BeforeEach
+        public void beforeEach() {
+            reset(httpServerRequest);
+            lenient().when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
+            lenient().when(httpServerRequest.toFlowable()).thenReturn(Flowable.empty());
+        }
 
-        obs.assertValue(buffer -> BODY.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
+        @Test
+        void should_check_websocket_only_once() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
 
-    @Test
-    void shouldSubscribeOnceWhenUsingOnBodyThenGettingChunksMultipleTimes() {
-        final TestSubscriber<Buffer> obs = cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
+            for (int i = 0; i < 10; i++) {
+                assertTrue(cut.isWebSocket());
+            }
 
-    @Test
-    void shouldSubscribeOnceAndReturnEmptyWhenUsingOnBodyThenGettingChunksMultipleTimes() {
-        mockWithEmpty();
+            requestUtilsMockedStatic.verify(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)), times(1));
+        }
 
-        final TestSubscriber<Buffer> obs = cut
-            .onBody(body -> body.flatMap(buffer -> Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
+        @Test
+        void should_create_websocket() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
 
-        obs.assertNoValues();
-        assertEquals(1, subscriptionCount.get());
-    }
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            assertNotNull(cut.webSocket());
+        }
 
-    @Test
-    void shouldReturnEmptyBufferWhenBodyOrEmpty() {
-        mockWithEmpty();
+        @Test
+        void should_create_websocket_only_once() {
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            ReflectionTestUtils.setField(cut, "isWebSocket", true);
+            final WebSocket webSocket = cut.webSocket();
 
-        final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
-        obs.assertValue(buffer -> "".equals(buffer.toString()));
-    }
+            for (int i = 0; i < 10; i++) {
+                assertSame(webSocket, cut.webSocket());
+            }
+        }
 
-    @Test
-    void shouldSubscribeOnceAndReturnEmptyObservableWhenBodyOrEmptyThenGettingChunks() {
-        mockWithEmpty();
+        @Test
+        void should_no_create_websocket_when_request_is_not_websocket() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> false);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            assertNull(cut.webSocket());
+        }
 
-        final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
+        @Test
+        void should_not_be_websocket_upgraded_when_request_is_not_websocket() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            assertFalse(cut.isWebSocketUpgraded());
+        }
 
-        obs.assertNoValues();
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenErrorOccursAndUsingOnBody() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenErrorOccursAndUsingOnChunks() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut
-            .onChunks(c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenErrorOccursAndUsingBody() {
-        mockWithError();
-
-        final TestObserver<Buffer> obs = cut.body().test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenErrorOccursAndUsingChunks() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut.chunks().test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenUsingOnBodyThenGettingBodyMultipleTimes() {
-        final TestObserver<Buffer> obs = cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test();
-
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldSubscribeOnceWhenUsingOnBodyMultipleTimes() {
-        final TestObserver<Buffer> obs = cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Completable.defer(() -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test();
-
-        obs.assertValue(buffer -> BODY.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void shouldNotBeWebSocketWhenHttp2() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_2);
-        assertFalse(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldNotBeWebSocketWhenNoConnectionHeader() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn(null);
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertFalse(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldNotBeWebSocketWhenNoUpgradeHeader() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn(null);
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertFalse(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldNotBeWebSocketWhenNotGetMethod() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.POST);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertFalse(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldNotBeWebSocketWhenNotUpgradeWebSocket() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("something else");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertFalse(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldBeWebSocket() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertTrue(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldBeWebSocketConnectionHeaderMultiValues() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("keep-alive, Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertTrue(cut.isWebSocket());
-    }
-
-    @Test
-    void shouldCheckWebSocketOnlyOnce() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-
-        for (int i = 0; i < 10; i++) {
+        @Test
+        void should_not_be_websocket_upgraded_when_websocket_not_created() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             assertTrue(cut.isWebSocket());
+            assertFalse(cut.isWebSocketUpgraded());
         }
 
-        verify(httpServerRequest).getHeader(HttpHeaders.CONNECTION);
-        verify(httpServerRequest).getHeader(HttpHeaders.UPGRADE);
-        verify(httpServerRequest).method();
-        verify(httpServerRequest).version();
-    }
+        @Test
+        void should_not_be_websocket_upgraded_when_web_socket_has_been_created_but_not_upgraded() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
 
-    @Test
-    void shouldCreateWebSocket() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            final WebSocket webSocket = cut.webSocket();
+            ReflectionTestUtils.setField(webSocket, "upgraded", false);
 
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertNotNull(cut.webSocket());
-    }
+            assertNotNull(webSocket);
+            assertFalse(cut.isWebSocketUpgraded());
+        }
 
-    @Test
-    void shouldCreateWebSocketOnlyOnce() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+        @Test
+        void should_be_websocket_upgraded_when_websocket_hasbeen_created_and_upgraded() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            final WebSocket webSocket = cut.webSocket();
+            ReflectionTestUtils.setField(webSocket, "upgraded", true);
 
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        final WebSocket webSocket = cut.webSocket();
-
-        for (int i = 0; i < 10; i++) {
-            assertSame(webSocket, cut.webSocket());
+            assertNotNull(webSocket);
+            assertTrue(cut.isWebSocketUpgraded());
         }
     }
 
-    @Test
-    void shouldNoCreateWebSocketWhenRequestIsNotWebSocket() {
-        assertNull(cut.webSocket());
-    }
+    @Nested
+    class StreamingRequestTest {
 
-    @Test
-    void shouldNotBeWebSocketUpgradedWhenRequestIsNotWebSocket() {
-        assertFalse(cut.isWebSocketUpgraded());
-    }
+        @Mock
+        private MockedStatic<RequestUtils> requestUtilsMockedStatic;
 
-    @Test
-    void shouldNotBeWebSocketUpgradedWhenWebSocketNotCreated() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+        @Test
+        void should_check_streaming_only_once() {
+            requestUtilsMockedStatic.when(() -> RequestUtils.isStreaming(any(Request.class))).thenAnswer(invocation -> true);
 
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        assertTrue(cut.isWebSocket());
-        assertFalse(cut.isWebSocketUpgraded());
-    }
+            cut = spy(new VertxHttpServerRequest(httpServerRequest, idGenerator));
 
-    @Test
-    void shouldNotBeWebSocketUpgradedWhenWebSocketHasBeenCreatedButNotUpgraded() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
+            for (int i = 0; i < 10; i++) {
+                assertTrue(cut.isStreaming());
+            }
 
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        final WebSocket webSocket = cut.webSocket();
-        ReflectionTestUtils.setField(webSocket, "upgraded", false);
-
-        assertNotNull(webSocket);
-        assertFalse(cut.isWebSocketUpgraded());
-    }
-
-    @Test
-    void shouldBeWebSocketUpgradedWhenWebSocketHasBeenCreatedAndUpgraded() {
-        when(httpServerRequest.getHeader(HttpHeaders.CONNECTION)).thenReturn("Upgrade");
-        when(httpServerRequest.getHeader(HttpHeaders.UPGRADE)).thenReturn("websocket");
-        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
-        when(httpServerRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
-
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        final WebSocket webSocket = cut.webSocket();
-        ReflectionTestUtils.setField(webSocket, "upgraded", true);
-
-        assertNotNull(webSocket);
-        assertTrue(cut.isWebSocketUpgraded());
-    }
-
-    @Test
-    void shouldReturnOriginalHost() {
-        when(httpServerRequest.host()).thenReturn("original.host", "changed.host");
-        cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-
-        assertEquals("original.host", cut.originalHost());
-        assertEquals("changed.host", cut.host());
-    }
-
-    @Test
-    void shouldPause() {
-        cut.pause();
-        verify(httpServerRequest).pause();
-    }
-
-    @Test
-    void shouldResume() {
-        cut.resume();
-        verify(httpServerRequest).resume();
-    }
-
-    @Test
-    void shouldSetOnMessagesInterceptor() {
-        final MessageFlow messageFlow = mock(MessageFlow.class);
-        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
-        cut.setMessagesInterceptor(interceptor);
-
-        verify(messageFlow).setOnMessagesInterceptor(interceptor);
-    }
-
-    @Test
-    void shouldUnsetOnMessagesInterceptor() {
-        final MessageFlow messageFlow = mock(MessageFlow.class);
-        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-
-        cut.unsetMessagesInterceptor();
-
-        verify(messageFlow).unsetOnMessagesInterceptor();
+            requestUtilsMockedStatic.verify(() -> RequestUtils.isStreaming(any(Request.class)), times(1));
+        }
     }
 
     private void mockWithEmpty() {

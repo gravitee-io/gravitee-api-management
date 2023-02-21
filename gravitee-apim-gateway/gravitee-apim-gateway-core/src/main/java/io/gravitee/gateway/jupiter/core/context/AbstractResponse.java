@@ -23,7 +23,12 @@ import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.BufferFlow;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
-import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.MaybeTransformer;
+import io.reactivex.rxjava3.core.Single;
 import java.util.function.Function;
 
 /**
@@ -168,10 +173,14 @@ public abstract class AbstractResponse implements MutableResponse {
 
     protected final BufferFlow lazyBufferFlow() {
         if (bufferFlow == null) {
-            bufferFlow = new BufferFlow();
+            bufferFlow = new BufferFlow(this::isStreaming);
         }
 
         return this.bufferFlow;
+    }
+
+    private boolean isStreaming() {
+        return false;
     }
 
     protected final MessageFlow lazyMessageFlow() {

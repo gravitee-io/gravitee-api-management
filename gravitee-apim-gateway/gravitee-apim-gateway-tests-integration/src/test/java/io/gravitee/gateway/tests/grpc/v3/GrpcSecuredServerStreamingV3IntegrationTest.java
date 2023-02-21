@@ -19,13 +19,13 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.tests.grpc.jupiter.GrpcSecuredServerStreamingIntegrationTest;
+import io.gravitee.gateway.tests.grpc.jupiter.GrpcSecuredServerStreamingJupiterIntegrationTest;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class GrpcSecuredServerStreamingV3IntegrationTest extends GrpcSecuredServerStreamingIntegrationTest {
+class GrpcSecuredServerStreamingV3IntegrationTest extends GrpcSecuredServerStreamingJupiterIntegrationTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {

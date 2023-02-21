@@ -30,19 +30,26 @@ import java.util.function.Supplier;
  */
 public class BufferFlow {
 
+    private Supplier<Boolean> isStreaming;
     private Flowable<Buffer> chunks;
     private Maybe<Buffer> cachedBuffer;
 
-    public BufferFlow() {}
+    public BufferFlow(final Supplier<Boolean> isStreaming) {
+        this.isStreaming = isStreaming;
+    }
 
-    public BufferFlow(final Flowable<Buffer> chunks) {
+    public BufferFlow(final Flowable<Buffer> chunks, final Supplier<Boolean> isStreaming) {
         this.chunks = chunks;
+        this.isStreaming = isStreaming;
     }
 
     public Maybe<Buffer> body() {
-        this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
-
-        return chunks.firstElement();
+        if (Boolean.FALSE.equals(isStreaming.get())) {
+            this.chunks = chunksFromCache(() -> chunksOrEmpty().compose(chunksToCache()));
+            return chunks.firstElement();
+        } else {
+            return Maybe.empty();
+        }
     }
 
     public Single<Buffer> bodyOrEmpty() {
@@ -59,13 +66,19 @@ public class BufferFlow {
     }
 
     public void body(Buffer buffer) {
-        cachedBuffer = Maybe.just(buffer);
-        this.chunks = cachedBuffer.toFlowable();
+        if (Boolean.FALSE.equals(isStreaming.get())) {
+            cachedBuffer = Maybe.just(buffer);
+            this.chunks = cachedBuffer.toFlowable();
+        }
     }
 
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
-        this.chunks = bodyFromCache(this::reduceBody).compose(onBody).compose(bodyToCache()).toFlowable();
-        return this.chunks.ignoreElements();
+        if (Boolean.FALSE.equals(isStreaming.get())) {
+            this.chunks = bodyFromCache(this::reduceBody).compose(onBody).compose(bodyToCache()).toFlowable();
+            return this.chunks.ignoreElements();
+        } else {
+            return Completable.complete();
+        }
     }
 
     public Flowable<Buffer> chunks() {

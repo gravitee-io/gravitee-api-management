@@ -15,29 +15,43 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.http.utils.WebSocketUtils;
+import io.gravitee.gateway.http.utils.RequestUtils;
+import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.core.BufferFlow;
+import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
 import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
-import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
+import io.vertx.rxjava3.core.net.SocketAddress;
+import javax.net.ssl.SSLSession;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerRequest extends AbstractVertxServerRequest {
+public class VertxHttpServerRequest extends AbstractRequest {
 
+    protected final HttpServerRequest nativeRequest;
     private Boolean isWebSocket = null;
-    private WebSocket webSocket;
+    private Boolean isStreaming = null;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
-        super(nativeRequest, idGenerator);
-        bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer));
-        messageFlow = null;
+        this.nativeRequest = nativeRequest;
+        this.originalHost = this.nativeRequest.host();
+        this.timestamp = System.currentTimeMillis();
+        this.id = idGenerator.randomString();
+        this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
+        this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
+        this.messageFlow = null;
     }
 
     public VertxHttpServerResponse response() {
@@ -45,14 +59,149 @@ public class VertxHttpServerRequest extends AbstractVertxServerRequest {
     }
 
     @Override
+    public String uri() {
+        if (uri == null) {
+            uri = nativeRequest.uri();
+        }
+
+        return uri;
+    }
+
+    @Override
+    public String path() {
+        if (path == null) {
+            path = nativeRequest.path();
+        }
+
+        return path;
+    }
+
+    @Override
+    public String contextPath() {
+        return contextPath;
+    }
+
+    @Override
+    public MultiValueMap<String, String> parameters() {
+        if (parameters == null) {
+            parameters = URIUtils.parameters(nativeRequest.uri());
+        }
+
+        return parameters;
+    }
+
+    @Override
+    public MultiValueMap<String, String> pathParameters() {
+        if (pathParameters == null) {
+            pathParameters = new LinkedMultiValueMap<>();
+        }
+
+        return pathParameters;
+    }
+
+    @Override
+    public HttpMethod method() {
+        if (method == null) {
+            try {
+                method = HttpMethod.valueOf(nativeRequest.method().name());
+            } catch (IllegalArgumentException iae) {
+                method = HttpMethod.OTHER;
+            }
+        }
+
+        return method;
+    }
+
+    @Override
+    public String scheme() {
+        if (scheme == null) {
+            scheme = nativeRequest.scheme();
+        }
+
+        return scheme;
+    }
+
+    @Override
+    public HttpVersion version() {
+        if (version == null) {
+            version = HttpVersion.valueOf(nativeRequest.version().name());
+        }
+
+        return version;
+    }
+
+    @Override
+    public String remoteAddress() {
+        if (remoteAddress == null) {
+            SocketAddress nativeRemoteAddress = nativeRequest.remoteAddress();
+            this.remoteAddress = extractAddress(nativeRemoteAddress);
+        }
+        return remoteAddress;
+    }
+
+    @Override
+    public String localAddress() {
+        if (localAddress == null) {
+            this.localAddress = extractAddress(nativeRequest.localAddress());
+        }
+        return localAddress;
+    }
+
+    private String extractAddress(SocketAddress address) {
+        if (address != null) {
+            //TODO Could be improve to a better compatibility with geoIP
+            int ipv6Idx = address.host().indexOf("%");
+            return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+        }
+        return null;
+    }
+
+    @Override
+    public SSLSession sslSession() {
+        if (sslSession == null) {
+            sslSession = nativeRequest.sslSession();
+        }
+
+        return sslSession;
+    }
+
+    @Override
+    public boolean ended() {
+        return nativeRequest.isEnded();
+    }
+
+    @Override
+    public String host() {
+        return this.nativeRequest.host();
+    }
+
+    /**
+     * Pauses the current request.
+     * <b>WARN: use with caution</b>
+     */
+    public void pause() {
+        this.nativeRequest.pause();
+    }
+
+    /**
+     * Resumes the current request.
+     * <b>WARN: use with caution</b>
+     */
+    public void resume() {
+        this.nativeRequest.resume();
+    }
+
+    public boolean isStreaming() {
+        if (isStreaming == null) {
+            isStreaming = RequestUtils.isStreaming(this);
+        }
+        return isStreaming;
+    }
+
+    @Override
     public boolean isWebSocket() {
         if (isWebSocket == null) {
-            String connectionHeader = nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.CONNECTION);
-            String upgradeHeader = nativeRequest.getHeader(io.vertx.rxjava3.core.http.HttpHeaders.UPGRADE);
-            final io.vertx.core.http.HttpVersion httpVersion = nativeRequest.version();
-            isWebSocket =
-                (httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_0 || httpVersion == io.vertx.core.http.HttpVersion.HTTP_1_1) &&
-                WebSocketUtils.isWebSocket(method().name(), connectionHeader, upgradeHeader);
+            isWebSocket = RequestUtils.isWebSocket(nativeRequest);
         }
         return isWebSocket;
     }

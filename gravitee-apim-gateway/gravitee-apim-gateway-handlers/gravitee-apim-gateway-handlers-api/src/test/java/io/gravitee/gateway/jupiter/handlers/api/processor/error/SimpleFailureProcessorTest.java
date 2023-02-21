@@ -32,6 +32,7 @@ import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpStatusClass;
+import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Captor
-    ArgumentCaptor<Buffer> bufferCaptor;
+    ArgumentCaptor<Flowable<Buffer>> bufferCaptor;
 
     private SimpleFailureProcessor simpleFailureProcessor;
 
@@ -92,9 +93,9 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
+        verify(mockResponse).chunks(bufferCaptor.capture());
 
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        assertThat(bufferCaptor.getValue().blockingFirst().toString()).isEqualTo(contentAsJson);
     }
 
     @Test
@@ -110,8 +111,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        verify(mockResponse).chunks(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue().blockingFirst().toString()).isEqualTo(contentAsJson);
     }
 
     @Test
@@ -129,9 +130,9 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
+        verify(mockResponse).chunks(bufferCaptor.capture());
 
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        assertThat(bufferCaptor.getValue().blockingFirst().toString()).isEqualTo(contentAsJson);
     }
 
     @Test
@@ -146,7 +147,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("text/plain");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
+        verify(mockResponse).chunks(bufferCaptor.capture());
     }
 
     @ParameterizedTest(name = "''Connection: close'' header should be added only if status is not in CLIENT_ERROR family ")
