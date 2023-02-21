@@ -95,12 +95,15 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
+        long from = Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
+        long to = Instant.now().toEpochMilli();
+
         return eventService.search(
             executionContext,
             types,
             query.getProperties(),
-            query.getFrom(),
-            query.getTo(),
+            from,
+            to,
             query.getPage(),
             query.getSize(),
             new Function<EventEntity, InstanceListItem>() {
