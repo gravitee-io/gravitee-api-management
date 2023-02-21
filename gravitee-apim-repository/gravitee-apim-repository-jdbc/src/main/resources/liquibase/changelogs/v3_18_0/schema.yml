@@ -1,12 +1,18 @@
 databaseChangeLog:
+  # ################
+  # Alert - Add column
+  # ################
   - changeSet:
-      id: 3.18.0
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}alert_triggers
+              columnName: environment_id
+      id: 3.18.0_alert
       author: GraviteeSource Team
       validCheckSum: ANY
       changes:
-        # ################
-        # Alert Changes
-        # ################
         - addColumn:
             tableName: ${gravitee_prefix}alert_triggers
             columns:
@@ -15,36 +21,63 @@ databaseChangeLog:
                   type: nvarchar(64)
                   constraints:
                     nullable: true
-        # ################
-        # Commands Changes
-        # ################
+
+  # ################
+  # Commands - Add column
+  # ################
+  - changeSet:
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}commands
+              columnName: organization_id
+      id: 3.18.0_commands
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
         - addColumn:
             tableName: ${gravitee_prefix}commands
             columns:
               - column:
                   name: organization_id
                   type: nvarchar(64)
-                  defaultValue: DEFAULT
+                  value: 'DEFAULT'
                   constraints:
                     nullable: false
               - dropNotNullConstraint:
                   columnDataType: nvarchar(64)
                   columnName: environment_id
                   tableName: ${gravitee_prefix}commands
-        # ################
-        # Audits Changes
-        # ################
+
+
+  # ################
+  # Audits - Add column
+  # ################
+  - changeSet:
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}audits
+              columnName: environment_id
+      id: 3.18.0_audits_add_column
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
         - addColumn:
             tableName: ${gravitee_prefix}audits
             columns:
               - column:
                   name: organization_id
                   type: nvarchar(64)
+                  value: 'DEFAULT'
                   constraints:
                     nullable: true
               - column:
                   name: environment_id
                   type: nvarchar(64)
+                  value: 'DEFAULT'
                   constraints:
                     nullable: true
         - createIndex:
@@ -57,6 +90,20 @@ databaseChangeLog:
               - column:
                   name: environment_id
                   type: nvarchar(64)
+  # ################
+  # Audits - Update organization_id & environment_id if needed
+  # ################
+  - changeSet:
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            sqlCheck:
+              expectedResult: 1
+              sql: select count(*) from ${gravitee_prefix}environments
+      id: 3.18.0
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
         # mssql
         - sql:
             dbms: mssql
@@ -144,21 +191,30 @@ databaseChangeLog:
               LEFT JOIN ${gravitee_prefix}environments e on e.id = app.environment_id
               SET a.organization_id = coalesce(e.organization_id, 'DEFAULT'), a.environment_id = coalesce(e.id, 'DEFAULT')
               WHERE a.reference_type = 'APPLICATION';
-        # ################
-        # ClientRegistrationProvider Changes
-        # ################
+
+  # ################
+  # ClientRegistrationProvider - Add new column
+  # ################
+  - changeSet:
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}client_registration_providers
+              columnName: environment_id
+      id: 3.18.0_client_registration_providers
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
         - addColumn:
               tableName: ${gravitee_prefix}client_registration_providers
               columns:
                   - column:
                         name: environment_id
                         type: nvarchar(64)
+                        value: 'DEFAULT'
                         constraints:
                             nullable: true
-        - addDefaultValue:
-              tableName: ${gravitee_prefix}client_registration_providers
-              columnName: environment_id
-              defaultValue: DEFAULT
         - createIndex:
               tableName: ${gravitee_prefix}client_registration_providers
               indexName: idx_${gravitee_prefix}environment
