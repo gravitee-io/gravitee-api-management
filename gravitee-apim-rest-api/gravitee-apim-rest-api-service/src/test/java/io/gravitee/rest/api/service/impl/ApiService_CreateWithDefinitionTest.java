@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -145,6 +146,14 @@ public class ApiService_CreateWithDefinitionTest {
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
+    }
+
+    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
+    public void shouldNotCreateIfDefinitionV1() throws Exception {
+        UpdateApiEntity api = new UpdateApiEntity();
+        api.setGraviteeDefinitionVersion("1.0.0");
+
+        apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, "", null);
     }
 
     @Test

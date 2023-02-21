@@ -48,6 +48,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -114,14 +115,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
-import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
-import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
-import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -381,6 +375,17 @@ public class ApiService_UpdateTest {
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
+    }
+
+    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
+    public void shouldNotUpdateWithOldDefinitionVersion() throws TechnicalException {
+        String apiId = "outdatedApi";
+        Api apiToUpdate = new Api();
+        apiToUpdate.setDefinitionVersion(DefinitionVersion.V1);
+        when(apiRepository.findById(apiId)).thenReturn(Optional.of(apiToUpdate));
+
+        UpdateApiEntity payload = new UpdateApiEntity();
+        apiService.update(GraviteeContext.getExecutionContext(), apiId, payload);
     }
 
     @Test
@@ -1342,6 +1347,24 @@ public class ApiService_UpdateTest {
                         api.getLifecycleState().equals(LifecycleState.STARTED)
                 )
             );
+    }
+
+    @Test(expected = ApiDefinitionVersionNotSupportedException.class)
+    public void shouldNotUpdateIfDefinitionV1() throws TechnicalException, JsonProcessingException {
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("localhost")));
+
+        io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
+        definition.setProxy(proxy);
+        definition.setDefinitionVersion(DefinitionVersion.V1);
+
+        Api apiEntityToUpdate = new Api();
+        apiEntityToUpdate.setDefinition(objectMapper.writeValueAsString(definition));
+        apiEntityToUpdate.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(apiEntityToUpdate));
+
+        apiService.updateFromSwagger(GraviteeContext.getExecutionContext(), API_ID, null, null);
     }
 
     private void assertUpdate(
