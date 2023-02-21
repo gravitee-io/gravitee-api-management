@@ -220,7 +220,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return searchEngineQuery;
     }
 
-    private List<ApiCriteria> computeApiCriteriaForUser(
+    public List<ApiCriteria> computeApiCriteriaForUser(
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,

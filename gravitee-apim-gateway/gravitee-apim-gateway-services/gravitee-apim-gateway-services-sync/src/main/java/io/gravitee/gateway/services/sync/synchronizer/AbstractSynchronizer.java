@@ -28,6 +28,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +49,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
 
     @Autowired
     @Qualifier("syncExecutor")
-    protected ExecutorService executor;
+    protected ThreadPoolExecutor executor;
 
     @Value("${services.sync.bulk_items:100}")
     protected int bulkItems;
@@ -113,7 +114,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
         return bulkItems > 0 ? bulkItems : DEFAULT_BULK_SIZE;
     }
 
-    public void setExecutor(ExecutorService executor) {
+    public void setExecutor(ThreadPoolExecutor executor) {
         this.executor = executor;
     }
 }

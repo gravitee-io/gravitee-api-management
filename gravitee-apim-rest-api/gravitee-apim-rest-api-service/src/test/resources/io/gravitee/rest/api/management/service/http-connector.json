@@ -254,7 +254,7 @@
           "properties": { "enabled": { "const": false } }
         },
         {
-          "properties": { "useSystemProxy": { "const": true } }
+          "properties": { "enabled": { "const": true }, "useSystemProxy": { "const": true } }
         },
         {
           "properties": { "enabled": { "const": true }, "useSystemProxy": { "const": false } },

@@ -39,16 +39,6 @@ public interface ApiService {
 
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
-    Set<ApiEntity> findAllByEnvironment(ExecutionContext executionContext);
-
-    default Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, true);
-    }
-
-    Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition);
-
-    Set<ApiEntity> findAllLight(ExecutionContext executionContext);
-
     Page<ApiEntity> findByUser(
         ExecutionContext executionContext,
         String userId,
@@ -59,8 +49,6 @@ public interface ApiService {
     );
 
     Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
-
-    Set<ApiEntity> findByVisibility(ExecutionContext executionContext, Visibility visibility);
 
     ApiEntity create(ExecutionContext executionContext, NewApiEntity api, String userId);
     ApiEntity createFromSwagger(
@@ -73,6 +61,7 @@ public interface ApiService {
 
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api);
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans);
+    ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans, boolean updatePlansAndFlows);
 
     ApiEntity updateFromSwagger(
         ExecutionContext executionContext,
@@ -154,6 +143,8 @@ public interface ApiService {
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
 
     Map<String, Long> countPublishedByUserGroupedByCategories(String userId);
+
+    long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId);
 
     Map<String, Object> findByIdAsMap(String api) throws TechnicalException;
 }
