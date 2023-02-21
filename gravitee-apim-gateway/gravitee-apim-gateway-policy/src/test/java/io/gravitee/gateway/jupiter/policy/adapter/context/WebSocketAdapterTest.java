@@ -81,18 +81,18 @@ class WebSocketAdapterTest {
     }
 
     @Test
-    void shouldCReject() {
-        when(webSocket.reject(500)).thenReturn(Completable.complete());
+    void shouldReject() {
+        when(webSocket.close(500)).thenReturn(Completable.complete());
 
         assertSame(cut, cut.reject(500));
     }
 
     @Test
     void shouldIgnoreAndLogErrorWhenRejectFails() {
-        when(webSocket.reject(500)).thenReturn(Completable.error(new RuntimeException("Mock error")));
+        when(webSocket.close(500)).thenReturn(Completable.error(new RuntimeException("Mock error")));
 
         assertSame(cut, cut.reject(500));
-        verify(webSocket).reject(500);
+        verify(webSocket).close(500);
     }
 
     @Test

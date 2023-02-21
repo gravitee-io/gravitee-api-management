@@ -15,13 +15,21 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
+import io.gravitee.gateway.jupiter.api.context.Request;
+import io.gravitee.gateway.jupiter.api.context.Response;
 import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -39,11 +47,13 @@ import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -99,327 +109,361 @@ class VertxHttpServerResponseTest {
         cut.chunks(chunks);
     }
 
-    @Test
-    void should_subscribe_once_when_ignoring_and_replacing_existing_chunks() {
-        cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
-        cut.end(ctx).test().assertComplete();
+    @Nested
+    class ChunkSubscriptionTest {
 
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
+        @Test
+        void should_subscribe_once_when_ignoring_and_replacing_existing_chunks() {
+            cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+            cut.end(ctx).test().assertComplete();
 
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_replacing_existing_chunks_with_body() {
+            cut
+                .chunks()
+                .ignoreElements()
+                .andThen(Completable.fromRunnable(() -> cut.body(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Completable.defer(() -> cut.end(ctx)))
+                .test()
+                .assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_not_subscribe_on_existing_chunks_when_just_replacing_existing_body() {
+            // Note: never do that unless you really know what you are doing.
+            cut.body(Buffer.buffer(NEW_CHUNK));
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+
+            // Existing chunks are not consumed at all (not subscribed).
+            assertEquals(0, subscriptionCount.get());
+        }
+
+        @Test
+        void should_not_subscribe_on_existing_chunks_when_just_replacing_existing_chunks() {
+            // Note: never do that unless you really know what you are doing.
+            cut.chunks(Flowable.just(Buffer.buffer(NEW_CHUNK)));
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+
+            // Existing chunks are not consumed at all (not subscribed).
+            assertEquals(0, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_on_chunks_then_getting_chunks_multiple_times() {
+            cut
+                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_on_chunks_then_getting_body_multiple_times() {
+            cut
+                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_getting_body_multiple_times() {
+            cut
+                .onChunks(chunks -> chunks)
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> BODY.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_on_body_then_getting_chunks_multiple_times() {
+            cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_and_return_empty_when_using_on_body_then_getting_chunks_multiple_times() {
+            mockWithEmpty();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onBody(body -> body.flatMap(buffer -> Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .ignoreElements()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertNoValues();
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_return_empty_buffer_when_chunks_is_null() {
+            mockWithNull();
+
+            final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
+            obs.assertValue(buffer -> "".equals(buffer.toString()));
+        }
+
+        @Test
+        void should_return_empty_buffer_when_body_or_empty() {
+            mockWithEmpty();
+
+            final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
+            obs.assertValue(buffer -> "".equals(buffer.toString()));
+        }
+
+        @Test
+        void should_subscribe_once_and_return_empty_observable_when_body_or_empty_then_getting_chunks() {
+            mockWithEmpty();
+
+            final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
+
+            obs.assertNoValues();
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_on_body() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_on_chunks() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut
+                .onChunks(c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_body() {
+            mockWithError();
+
+            final TestObserver<Buffer> obs = cut.body().test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_error_occurs_and_using_chunks() {
+            mockWithError();
+
+            final TestSubscriber<Buffer> obs = cut.chunks().test();
+
+            obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_on_body_then_getting_body_multiple_times() {
+            cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .ignoreElement()
+                .andThen(Maybe.defer(() -> cut.body()))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_subscribe_once_when_using_on_body_multiple_times() {
+            cut
+                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                .andThen(Completable.defer(() -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
+                .test()
+                .assertComplete();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
+
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+
+            obs.assertValue(buffer -> BODY.equals(buffer.toString()));
+            assertEquals(1, subscriptionCount.get());
+        }
+
+        @Test
+        void should_not_subscribe_and_complete_when_request_is_web_socket() {
+            when(request.isWebSocketUpgraded()).thenReturn(true);
+
+            final TestObserver<Void> obs = cut.end(ctx).test();
+
+            obs.assertComplete();
+            verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));
+            verify(httpServerResponse, times(0)).rxEnd();
+        }
     }
 
-    @Test
-    void should_subscribe_once_when_replacing_existing_chunks_with_body() {
-        cut
-            .chunks()
-            .ignoreElements()
-            .andThen(Completable.fromRunnable(() -> cut.body(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Completable.defer(() -> cut.end(ctx)))
-            .test()
-            .assertComplete();
+    @Nested
+    class StreamingRequestTest {
 
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
+        @Mock
+        private MockedStatic<RequestUtils> requestUtilsMockedStatic;
 
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
+        @Test
+        void should_check_streaming_only_once() {
+            requestUtilsMockedStatic
+                .when(() -> RequestUtils.isStreaming(any(Request.class), any(Response.class)))
+                .thenAnswer(invocation -> true);
 
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
+            cut = spy(new VertxHttpServerResponse(request));
+
+            for (int i = 0; i < 10; i++) {
+                assertTrue(cut.isStreaming());
+            }
+
+            requestUtilsMockedStatic.verify(() -> RequestUtils.isStreaming(any(Request.class), any(Response.class)), times(1));
+        }
     }
 
-    @Test
-    void should_not_subscribe_on_existing_chunks_when_just_replacing_existing_body() {
-        // Note: never do that unless you really know what you are doing.
-        cut.body(Buffer.buffer(NEW_CHUNK));
-        cut.end(ctx).test().assertComplete();
+    @Nested
+    class MessagesInterceptorTest {
 
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
+        @Test
+        void should_set_on_messages_interceptor() {
+            final MessageFlow messageFlow = mock(MessageFlow.class);
+            ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+            final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
+            cut.setMessagesInterceptor(interceptor);
 
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            verify(messageFlow).setOnMessagesInterceptor(interceptor);
+        }
 
-        // Existing chunks are not consumed at all (not subscribed).
-        assertEquals(0, subscriptionCount.get());
+        @Test
+        void should_unset_on_messages_interceptor() {
+            final MessageFlow messageFlow = mock(MessageFlow.class);
+            ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
+
+            cut.unsetMessagesInterceptor();
+
+            verify(messageFlow).unsetOnMessagesInterceptor();
+        }
     }
 
-    @Test
-    void should_not_subscribe_on_existing_chunks_when_just_replacing_existing_chunks() {
-        // Note: never do that unless you really know what you are doing.
-        cut.chunks(Flowable.just(Buffer.buffer(NEW_CHUNK)));
-        cut.end(ctx).test().assertComplete();
+    @Nested
+    class MetricsTest {
 
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
+        @Test
+        void should_set_metrics_content_length_when_ending_response() {
+            cut.body(Buffer.buffer(BODY));
+            cut.end(ctx).test().assertComplete();
 
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
+            verify(httpServerResponse).rxSend(chunksCaptor.capture());
 
-        // Existing chunks are not consumed at all (not subscribed).
-        assertEquals(0, subscriptionCount.get());
-    }
+            final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
 
-    @Test
-    void should_subscribe_once_when_using_on_chunks_then_getting_chunks_multiple_times() {
-        cut
-            .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test()
-            .assertComplete();
+            obs.assertValue(buffer -> BODY.equals(buffer.toString()));
 
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_using_on_chunks_then_getting_body_multiple_times() {
-        cut
-            .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test()
-            .assertComplete();
-
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_getting_body_multiple_times() {
-        cut
-            .onChunks(chunks -> chunks)
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test()
-            .assertComplete();
-
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> BODY.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_using_on_body_then_getting_chunks_multiple_times() {
-        cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test()
-            .assertComplete();
-
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_and_return_empty_when_using_on_body_then_getting_chunks_multiple_times() {
-        mockWithEmpty();
-
-        final TestSubscriber<Buffer> obs = cut
-            .onBody(body -> body.flatMap(buffer -> Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .ignoreElements()
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
-
-        obs.assertNoValues();
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_return_empty_buffer_when_chunks_is_null() {
-        mockWithNull();
-
-        final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
-        obs.assertValue(buffer -> "".equals(buffer.toString()));
-    }
-
-    @Test
-    void should_return_empty_buffer_when_body_or_empty() {
-        mockWithEmpty();
-
-        final TestObserver<Buffer> obs = cut.bodyOrEmpty().test();
-        obs.assertValue(buffer -> "".equals(buffer.toString()));
-    }
-
-    @Test
-    void should_subscribe_once_and_return_empty_observable_when_body_or_empty_then_getting_chunks() {
-        mockWithEmpty();
-
-        final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
-
-        obs.assertNoValues();
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_error_occurs_and_using_on_body() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_error_occurs_and_using_on_chunks() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut
-            .onChunks(c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Flowable.defer(() -> cut.chunks()))
-            .test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_error_occurs_and_using_body() {
-        mockWithError();
-
-        final TestObserver<Buffer> obs = cut.body().test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_error_occurs_and_using_chunks() {
-        mockWithError();
-
-        final TestSubscriber<Buffer> obs = cut.chunks().test();
-
-        obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_using_on_body_then_getting_body_multiple_times() {
-        cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .ignoreElement()
-            .andThen(Maybe.defer(() -> cut.body()))
-            .test()
-            .assertComplete();
-
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_subscribe_once_when_using_on_body_multiple_times() {
-        cut
-            .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-            .andThen(Completable.defer(() -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
-            .test()
-            .assertComplete();
-
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> BODY.equals(buffer.toString()));
-        assertEquals(1, subscriptionCount.get());
-    }
-
-    @Test
-    void should_not_subscribe_and_complete_when_request_is_web_socket() {
-        when(request.isWebSocketUpgraded()).thenReturn(true);
-
-        final TestObserver<Void> obs = cut.end(ctx).test();
-
-        obs.assertComplete();
-        verify(httpServerResponse, times(0)).rxSend(any(Flowable.class));
-        verify(httpServerResponse, times(0)).rxEnd();
-    }
-
-    @Test
-    void should_set_on_messages_interceptor() {
-        final MessageFlow messageFlow = mock(MessageFlow.class);
-        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = mock(Function.class);
-        cut.setMessagesInterceptor(interceptor);
-
-        verify(messageFlow).setOnMessagesInterceptor(interceptor);
-    }
-
-    @Test
-    void should_unset_on_messages_interceptor() {
-        final MessageFlow messageFlow = mock(MessageFlow.class);
-        ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-
-        cut.unsetMessagesInterceptor();
-
-        verify(messageFlow).unsetOnMessagesInterceptor();
-    }
-
-    @Test
-    void should_set_metrics_content_length_when_ending_response() {
-        cut.body(Buffer.buffer(BODY));
-        cut.end(ctx).test().assertComplete();
-
-        verify(httpServerResponse).rxSend(chunksCaptor.capture());
-
-        final TestSubscriber<io.vertx.rxjava3.core.buffer.Buffer> obs = chunksCaptor.getValue().test();
-
-        obs.assertValue(buffer -> BODY.equals(buffer.toString()));
-
-        verify(metrics).setResponseContentLength(new Long(BODY.length()));
+            verify(metrics).setResponseContentLength(new Long(BODY.length()));
+        }
     }
 
     private void mockWithEmpty() {

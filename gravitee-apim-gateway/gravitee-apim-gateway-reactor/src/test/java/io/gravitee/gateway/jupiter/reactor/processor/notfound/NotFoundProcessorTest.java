@@ -28,6 +28,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

@@ -17,7 +17,7 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.IdGenerator;
-import io.gravitee.gateway.http.utils.WebSocketUtils;
+import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactor.Reactor;
@@ -43,27 +43,11 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        if (isWebSocket(httpServerRequest)) {
+        if (RequestUtils.isWebSocket(httpServerRequest)) {
             VertxHttpServerRequest request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
             super.route(request, request.createResponse());
         } else {
             super.handle(httpServerRequest);
         }
-    }
-
-    /**
-     * We are only considering HTTP_1.x requests for now.
-     * There is a dedicated RFC to support WebSockets over HTTP2: https://tools.ietf.org/html/rfc8441
-     *
-     * @param httpServerRequest
-     * @return
-     */
-    private boolean isWebSocket(HttpServerRequest httpServerRequest) {
-        String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
-        String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
-        return (
-            (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
-            WebSocketUtils.isWebSocket(httpServerRequest.method().name(), connectionHeader, upgradeHeader)
-        );
     }
 }

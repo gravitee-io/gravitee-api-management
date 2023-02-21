@@ -18,6 +18,9 @@ package io.gravitee.apim.gateway.tests.sdk;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.apim.gateway.tests.sdk.utils.URLUtils.exchangePort;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -25,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -65,6 +69,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApplicationContextAware {
 
+    private static final ObjectMapper objectMapper = new GraviteeMapper();
     private int wiremockHttpsPort;
     private int wiremockPort;
 
@@ -321,6 +326,49 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
             for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
                 endpointConsumer.accept(endpoint);
             }
+        }
+    }
+
+    /**
+     * Override api endpoints port on demand
+     * @param api is the api on which apply the new port
+     * @param port is the port to reach.
+     */
+    protected void updateEndpointsPort(io.gravitee.definition.model.v4.Api api, int port) {
+        updateEndpoints(
+            api,
+            endpoint -> {
+                try {
+                    ObjectNode configuration = (ObjectNode) objectMapper.readTree(endpoint.getConfiguration());
+                    JsonNode targetNode = configuration.get("target");
+                    if (targetNode != null) {
+                        String target = targetNode.asText();
+                        String exchangePort = exchangePort(target, port);
+                        configuration.put("target", exchangePort);
+                    }
+                    endpoint.setConfiguration(configuration);
+                } catch (Exception e) {
+                    log.error("Unable to parse endpoint configuration", e);
+                }
+            }
+        );
+    }
+
+    /**
+     * Override api endpoints
+     * @param api is the api on which the endponts will be transformed
+     * @param endpointConsumer is the consumer used to transform the endpoints
+     */
+    protected void updateEndpoints(
+        io.gravitee.definition.model.v4.Api api,
+        Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer
+    ) {
+        if (api.getEndpointGroups() != null) {
+            api
+                .getEndpointGroups()
+                .stream()
+                .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
+                .forEach(endpointConsumer::accept);
         }
     }
 

@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -32,10 +33,12 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     protected int websocketPort;
 
     @Override
-    public void configureApi(Api api) {
+    public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         websocketPort = getAvailablePort();
-        for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-            endpoint.setTarget("http://localhost:" + websocketPort);
+        if (isLegacyApi(definitionClass)) {
+            updateEndpointsPort((Api) api.getDefinition(), websocketPort);
+        } else if (isV4Api(definitionClass)) {
+            updateEndpointsPort((io.gravitee.definition.model.v4.Api) api.getDefinition(), websocketPort);
         }
     }
 

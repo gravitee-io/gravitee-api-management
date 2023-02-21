@@ -19,13 +19,13 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.tests.grpc.jupiter.GrpcUnknownServiceIntegrationTest;
+import io.gravitee.gateway.tests.grpc.jupiter.GrpcUnknownServiceJupiterIntegrationTest;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class GrpcUnknownServiceV3CompatibilityIntegrationTest extends GrpcUnknownServiceIntegrationTest {
+class GrpcUnknownServiceV3CompatibilityIntegrationTest extends GrpcUnknownServiceJupiterIntegrationTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
