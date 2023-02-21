@@ -291,7 +291,7 @@ public class ApisResource extends AbstractResource {
     )
     public Response importApiDefinition(
         @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         return importApiDefinitionOrUrl(apiDefinition, definitionVersion);
     }
@@ -318,7 +318,7 @@ public class ApisResource extends AbstractResource {
     )
     public Response importApiDefinitionUrl(
         @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
     }
@@ -346,7 +346,7 @@ public class ApisResource extends AbstractResource {
     )
     public Response deprecatedImportApiDefinitionUrl(
         @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
     }
@@ -378,7 +378,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response importSwaggerApi(
         @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
-        @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
+        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(
