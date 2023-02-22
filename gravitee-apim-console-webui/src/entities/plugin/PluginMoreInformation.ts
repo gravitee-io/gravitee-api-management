@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
-
-import io.gravitee.plugin.core.api.PluginMoreInformation;
-import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
-import java.util.Set;
-
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface PluginService<T extends PlatformPluginEntity> {
-    Set<T> findAll();
-
-    T findById(String plugin);
-
-    String getSchema(String plugin);
-
-    String getIcon(String plugin);
-
-    String getDocumentation(String plugin);
-
-    PluginMoreInformation getMoreInformation(String pluginId);
-}
+export type PluginMoreInformation = {
+  description: string;
+  schemaImg: string;
+  documentationUrl: string;
+};

@@ -722,13 +722,13 @@ describe('ApiCreationV4Component', () => {
   function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
 
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
   }
 
   function expectSchemaGetRequest(connectors: Partial<ConnectorListItem>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
     connectors.forEach((connector) => {
       httpTestingController
-        .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/${connectorType}/${connector.id}/schema`, method: 'GET' })
+        .expectOne({ url: `${CONSTANTS_TESTING.baseURL}/v4/${connectorType}/${connector.id}/schema`, method: 'GET' })
         .flush(getEntrypointConnectorSchema(connector.id));
     });
   }
@@ -736,7 +736,7 @@ describe('ApiCreationV4Component', () => {
   function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
 
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
   }
 
   async function fillAndValidateStep1ApiDetails(name = 'API name', version = '1.0', description = 'description') {

@@ -1,0 +1,38 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.gio-connector-dialog {
+  &__title {
+    display: flex;
+    justify-content: space-between;
+
+    &__cancel {
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+      height: 24px;
+      width: 24px;
+    }
+  }
+
+  &__content {
+    width: 750px;
+    padding: 0;
+
+    &__description {
+      padding: 0 24px;
+    }
+
+    &__schema {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: map.get(gio.$mat-dove-palette, default);
+      padding: 30px;
+      margin: 16px 0;
+    }
+
+    &__link {
+      padding: 0 32px;
+    }
+  }
+}

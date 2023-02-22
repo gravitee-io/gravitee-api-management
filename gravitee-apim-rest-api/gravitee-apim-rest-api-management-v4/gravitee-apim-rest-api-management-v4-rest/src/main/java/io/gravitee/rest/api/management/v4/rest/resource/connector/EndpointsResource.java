@@ -16,10 +16,14 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -75,5 +79,20 @@ public class EndpointsResource {
         endpointService.findById(endpointId);
 
         return endpointService.getDocumentation(endpointId);
+    }
+
+    @GET
+    @Path("/{endpointId}/moreInformation")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Endpoint more information",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PluginMoreInformation.class))
+    )
+    @Produces(MediaType.APPLICATION_JSON)
+    public PluginMoreInformation getMoreInformation(@PathParam("endpointId") String endpointId) {
+        // Check that the entrypoint exists
+        endpointService.findById(endpointId);
+
+        return endpointService.getMoreInformation(endpointId);
     }
 }

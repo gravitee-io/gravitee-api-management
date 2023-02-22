@@ -29,7 +29,7 @@
 
     <artifactId>gravitee-apim-plugin-entrypoint-webhook</artifactId>
     <name>Gravitee.io APIM - Plugin - Entrypoint Webhook</name>
-    <description>Entrypoint that allows exposing AsyncAPI using Webhook connection</description>
+    <description>A webhook is a lightweight API that powers one-way data sharing triggered by events.</description>
 
     <dependencyManagement>
         <dependencies>

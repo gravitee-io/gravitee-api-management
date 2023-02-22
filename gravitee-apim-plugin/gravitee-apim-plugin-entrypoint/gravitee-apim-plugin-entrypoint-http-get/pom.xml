@@ -29,7 +29,7 @@
 
     <artifactId>gravitee-apim-plugin-entrypoint-http-get</artifactId>
     <name>Gravitee.io APIM - Plugin - Entrypoint HTTP Get</name>
-    <description>Entrypoint that allows exposing AsyncAPI using HTTP Get</description>
+    <description>Send an HTTP GET request including the data directly in the request URL and process the response from the HTTP server.</description>
 
     <dependencyManagement>
         <dependencies>

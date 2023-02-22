@@ -17,15 +17,18 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { map, takeUntil, tap } from 'rxjs/operators';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConnectorVM } from '../../models/ConnectorVM';
+import {
+  GioConnectorDialogComponent,
+  GioConnectorDialogData,
+} from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -103,19 +106,26 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   onMoreInfoClick(event, entrypoint: ConnectorVM) {
     event.stopPropagation();
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: entrypoint.name,
-          content: `${entrypoint.description} <br> 🚧 More information coming soon 🚧`,
-          confirmButton: `Ok`,
-        },
-        role: 'alertdialog',
-        id: 'moreInfoDialog',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
+
+    this.entrypointService
+      .v4GetMoreInformation(entrypoint.id)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((pluginMoreInformation) => {
+          this.matDialog
+            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+              data: {
+                name: entrypoint.name,
+                pluginMoreInformation,
+              },
+              role: 'alertdialog',
+              id: 'moreInfoDialog',
+            })
+            .afterClosed()
+            .pipe(takeUntil(this.unsubscribe$))
+            .subscribe();
+        }),
+      )
       .subscribe();
   }
 }

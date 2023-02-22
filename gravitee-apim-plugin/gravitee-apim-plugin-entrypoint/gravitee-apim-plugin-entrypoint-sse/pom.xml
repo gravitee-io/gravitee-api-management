@@ -29,7 +29,7 @@
 
     <artifactId>gravitee-apim-plugin-entrypoint-sse</artifactId>
     <name>Gravitee.io APIM - Plugin - Entrypoint SSE</name>
-    <description>Entrypoint that allows exposing AsyncAPI using SSE connection</description>
+    <description>Designed to use the JavaScript EventSource API in order to subscribe to a stream of data in the browser.</description>
 
     <dependencyManagement>
         <dependencies>
