@@ -765,7 +765,7 @@
                 <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
                 <gravitee-entrypoint-sse-advanced.version>3.0.0-alpha.1</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-entrypoint-webhook-advanced.version>1.0.0-alpha.3</gravitee-entrypoint-webhook-advanced.version>
-                <gravitee-endpoint-kafka-advanced.version>1.0.1-alpha.1</gravitee-endpoint-kafka-advanced.version>
+                <gravitee-endpoint-kafka-advanced.version>1.0.1-alpha.2</gravitee-endpoint-kafka-advanced.version>
                 <gravitee-endpoint-mqtt5-advanced.version>1.0.0-alpha.4</gravitee-endpoint-mqtt5-advanced.version>
 
                 <!-- Management API Only -->
