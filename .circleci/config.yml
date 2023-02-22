@@ -1063,11 +1063,11 @@ jobs:
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim3-api -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim3-portal -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim3-ui -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim3-gateway -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-v3-apim3-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-api -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-portal -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-ui -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-v3-gateway -n ${K8S_NAMESPACE}
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
                   var-name: CIRCLE_TOKEN
