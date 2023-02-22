@@ -22,10 +22,7 @@ import io.gravitee.rest.api.management.v4.rest.exceptionMapper.NotAllowedExcepti
 import io.gravitee.rest.api.management.v4.rest.exceptionMapper.NotFoundExceptionMapper;
 import io.gravitee.rest.api.management.v4.rest.exceptionMapper.ThrowableMapper;
 import io.gravitee.rest.api.management.v4.rest.exceptionMapper.UnrecognizedPropertyExceptionMapper;
-import io.gravitee.rest.api.management.v4.rest.filter.GraviteeContextRequestFilter;
-import io.gravitee.rest.api.management.v4.rest.filter.GraviteeContextResponseFilter;
-import io.gravitee.rest.api.management.v4.rest.filter.SecurityContextFilter;
-import io.gravitee.rest.api.management.v4.rest.filter.UriBuilderRequestFilter;
+import io.gravitee.rest.api.management.v4.rest.filter.*;
 import io.gravitee.rest.api.management.v4.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v4.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v4.rest.resource.OpenAPIResource;
@@ -69,6 +66,7 @@ public class GraviteeManagementV4Application extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
 
         register(SecurityContextFilter.class);
+        register(PermissionsFilter.class);
         register(GraviteeContextRequestFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
