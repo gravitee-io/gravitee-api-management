@@ -18,6 +18,10 @@ package io.gravitee.rest.api.management.v4.rest.resource.connector;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
+import io.gravitee.rest.api.management.v4.rest.security.Permission;
+import io.gravitee.rest.api.management.v4.rest.security.Permissions;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.util.Set;
@@ -46,6 +50,7 @@ public class EntrypointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ) })
     public Set<ConnectorPlugin> getEntrypoints() {
         return ConnectorPluginMapper.INSTANCE.convertSet(entrypointService.findAll());
     }
@@ -53,6 +58,7 @@ public class EntrypointsResource {
     @Path("/{entrypointId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ) })
     public ConnectorPlugin getEntrypoint(@PathParam("entrypointId") String entrypointId) {
         return ConnectorPluginMapper.INSTANCE.convert(entrypointService.findById(entrypointId));
     }
@@ -60,6 +66,7 @@ public class EntrypointsResource {
     @GET
     @Path("/{entrypointId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ) })
     public String getEntrypointSchema(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
@@ -70,6 +77,7 @@ public class EntrypointsResource {
     @GET
     @Path("/{entrypointId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ) })
     public String getEntrypointDoc(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
@@ -80,6 +88,7 @@ public class EntrypointsResource {
     @GET
     @Path("/{entrypointId}/subscriptionSchema")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ) })
     public String getEntrypointSubscriptionSchema(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);

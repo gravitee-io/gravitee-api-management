@@ -17,8 +17,9 @@ package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
@@ -27,13 +28,11 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -226,5 +225,14 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("1.0", entrypoint.getVersion());
         assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.ASYNC, entrypoint.getSupportedApiType());
         assertEquals(Set.of(io.gravitee.rest.api.management.v4.rest.model.ConnectorMode.SUBSCRIBE), entrypoint.getSupportedModes());
+    }
+
+    @Test
+    public void shouldNotAllowUnauthorizedUserForGetById() {
+        // TODO: Add orgId to mock
+        when(permissionService.hasPermission(any(), eq(RolePermission.ORGANIZATION_ENTRYPOINT), any(), any())).thenReturn(false);
+
+        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).request().get();
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }
