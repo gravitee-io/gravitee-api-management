@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.definition.jackson.datatype.api.ApiModule;
 import io.gravitee.definition.jackson.datatype.api.DebugApiModule;
 import io.gravitee.definition.jackson.datatype.plugins.resource.ResourceModule;
@@ -44,6 +45,7 @@ public class GraviteeMapper extends ObjectMapper {
         registerModule(new EndpointDiscoveryModule());
         registerModule(new ResourceModule());
         registerModule(new DebugApiModule());
+        registerModule(new JavaTimeModule());
 
         enable(SerializationFeature.INDENT_OUTPUT);
         enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
