@@ -39,9 +39,12 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   constructor(private notificationService: NotificationService, private pageService: PageService) {}
 
+  /**
+   * Redoc script is automatically loaded. See `angular.json` scripts section.
+   */
   ngOnInit() {
     const page = this.pageService.getCurrentPage();
-    this.loadScript().then(() => this.refresh(page));
+    this.refresh(page);
   }
 
   @HostListener('window:resize')
@@ -49,22 +52,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   onScroll() {
     window.requestAnimationFrame(() => {
       GvDocumentationComponent.updateMenuPosition(this.redocMenu);
-    });
-  }
-
-  loadScript() {
-    return new Promise(resolve => {
-      const scriptId = 'redoc-standalone';
-      if (document.getElementById(scriptId) == null) {
-        const scriptElement = document.createElement('script');
-        scriptElement.async = true;
-        scriptElement.src = 'redoc.js';
-        scriptElement.onload = resolve;
-        scriptElement.id = scriptId;
-        document.body.appendChild(scriptElement);
-      } else {
-        resolve({});
-      }
     });
   }
 
