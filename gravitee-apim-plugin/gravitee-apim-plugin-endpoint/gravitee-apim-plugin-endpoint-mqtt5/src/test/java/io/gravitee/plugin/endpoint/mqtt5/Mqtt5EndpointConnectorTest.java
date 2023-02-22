@@ -20,6 +20,7 @@ import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.CONTEXT_A
 import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.CONTEXT_ATTRIBUTE_MQTT5_TOPIC;
 import static io.gravitee.plugin.endpoint.mqtt5.Mqtt5EndpointConnector.INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -181,7 +182,16 @@ class Mqtt5EndpointConnectorTest {
 
         testSubscriber.await(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
-        testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
+        testSubscriber.assertValue(
+            message -> {
+                assertThat(message.content()).hasToString("message");
+                assertThat(message.id()).isNull();
+                assertThat(message.metadata())
+                    .containsKey(DefaultMessage.SOURCE_TIMESTAMP)
+                    .contains(entry(DefaultMessage.SOURCE_TIMESTAMP, message.timestamp()));
+                return true;
+            }
+        );
 
         client.disconnect().subscribe();
     }

@@ -17,6 +17,7 @@ package io.gravitee.plugin.endpoint.kafka;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -41,6 +42,8 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -205,12 +208,28 @@ class KafkaEndpointConnectorTest {
 
         SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
         KafkaSender<String, byte[]> kafkaSender = KafkaSender.create(senderOptions);
-        ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(topicId, "key", Buffer.buffer("message").getBytes());
+        final long ingestionTimeTwoDaysAgo = Instant.now().minus(2, ChronoUnit.DAYS).toEpochMilli();
+        ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<>(
+            topicId,
+            0,
+            ingestionTimeTwoDaysAgo,
+            "key",
+            Buffer.buffer("message").getBytes()
+        );
         kafkaSender.send(Flux.just(SenderRecord.create(producerRecord, null))).blockFirst();
 
         testSubscriber.await(10, TimeUnit.SECONDS);
         testSubscriber.assertValueCount(1);
-        testSubscriber.assertValue(message -> message.content().toString().equals("message") && message.id() == null);
+        testSubscriber.assertValue(
+            message -> {
+                assertThat(message.content()).hasToString("message");
+                assertThat(message.id()).isNull();
+                assertThat(message.metadata())
+                    .containsKey(DefaultMessage.SOURCE_TIMESTAMP)
+                    .contains(entry(DefaultMessage.SOURCE_TIMESTAMP, ingestionTimeTwoDaysAgo));
+                return true;
+            }
+        );
     }
 
     @Test

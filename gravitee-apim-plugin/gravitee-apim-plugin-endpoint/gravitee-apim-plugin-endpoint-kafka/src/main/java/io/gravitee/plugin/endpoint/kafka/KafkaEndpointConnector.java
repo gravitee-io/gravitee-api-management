@@ -57,6 +57,7 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.errors.SaslAuthenticationException;
 import org.apache.kafka.common.errors.SslAuthenticationException;
+import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -246,14 +247,20 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                                         metadata.put("partition", consumerRecord.partition());
                                                         metadata.put("offset", consumerRecord.offset());
 
-                                                        return DefaultMessage
+                                                        final DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage
                                                             .builder()
                                                             .id(qosStrategy.generateId(consumerRecord))
                                                             .headers(httpHeaders)
                                                             .content(Buffer.buffer(consumerRecord.value()))
                                                             .metadata(metadata)
-                                                            .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord))
-                                                            .build();
+                                                            .ackRunnable(qosStrategy.buildAckRunnable(consumerRecord));
+                                                        if (
+                                                            consumerRecord.timestampType() == TimestampType.CREATE_TIME ||
+                                                            consumerRecord.timestampType() == TimestampType.LOG_APPEND_TIME
+                                                        ) {
+                                                            messageBuilder.sourceTimestamp(consumerRecord.timestamp());
+                                                        }
+                                                        return messageBuilder.build();
                                                     }
                                                 )
                                         )

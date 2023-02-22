@@ -43,6 +43,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -167,6 +168,8 @@ class HttpPostEntrypointConnectorTest {
     @Test
     void shouldCompleteWhenResponseMessagesContainsFullError() {
         responseHeaders = HttpHeaders.create();
+        final Map<String, Object> metadata = new HashMap<>();
+        metadata.put("statusCode", HttpResponseStatus.NOT_FOUND.code());
         when(response.headers()).thenReturn(responseHeaders);
         when(response.messages())
             .thenReturn(
@@ -174,7 +177,7 @@ class HttpPostEntrypointConnectorTest {
                     DefaultMessage
                         .builder()
                         .error(true)
-                        .metadata(Map.of("statusCode", HttpResponseStatus.NOT_FOUND.code()))
+                        .metadata(metadata)
                         .headers(
                             HttpHeaders
                                 .create()

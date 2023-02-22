@@ -48,9 +48,12 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -302,25 +305,33 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("{\"items\":["))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"myKey\":\"myValue1\"}}"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"sourceTimestamp\":"
                             )
-                        : message.toString().equals("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}")
+                            .endsWith("\"myKey\":\"myValue1\"}}");
+                    } else {
+                        assertThat(message).hasToString("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(
                 2,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                ",{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"myKey\":\"myValue2\"}}"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                ",{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"sourceTimestamp\":"
                             )
-                        : message.toString().equals(",{\"id\":\"2\",\"content\":\"2\"}")
+                            .endsWith("\"myKey\":\"myValue2\"}}");
+                    } else {
+                        assertThat(message).hasToString(",{\"id\":\"2\",\"content\":\"2\"}");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(3, message -> message.toString().equals("]"))
             .assertValueAt(4, message -> message.toString().equals(",\"pagination\":{\"nextCursor\":\"2\",\"limit\":\"2\"}"))
@@ -372,25 +383,33 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("<response><items>"))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><myKey>myValue1</myKey></metadata></item>"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><sourceTimestamp>"
                             )
-                        : message.toString().equals("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>")
+                            .endsWith("</sourceTimestamp><myKey>myValue1</myKey></metadata></item>");
+                    } else {
+                        assertThat(message).hasToString("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(
                 2,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "<item><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><myKey>myValue2</myKey></metadata></item>"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "<item><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><sourceTimestamp>"
                             )
-                        : message.toString().equals("<item><id>2</id><content><![CDATA[2]]></content></item>")
+                            .endsWith("</sourceTimestamp><myKey>myValue2</myKey></metadata></item>");
+                    } else {
+                        assertThat(message).hasToString("<item><id>2</id><content><![CDATA[2]]></content></item>");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(3, message -> message.toString().equals("</items>"))
             .assertValueAt(4, message -> message.toString().equals("<pagination><nextCursor>2</nextCursor><limit>2</limit></pagination>"))
@@ -445,37 +464,55 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("items\n"))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "item\n" +
-                                "id: 1\n" +
-                                "content: 1\n" +
-                                "headers: {X-My-Header-1=[headerValue1]}\n" +
-                                "metadata: {myKey=myValue1}\n"
-                            )
-                        : message.toString().equals("item\n" + "id: 1\n" + "content: 1\n")
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        final Map<String, String> messageMap = messageToMap(message);
+                        assertThat(messageMap)
+                            .containsEntry("id", "1")
+                            .containsEntry("content", "1")
+                            .containsEntry("headers", "{X-My-Header-1=[headerValue1]}")
+                            .hasEntrySatisfying(
+                                "metadata",
+                                value -> {
+                                    assertThat(value).startsWith("{sourceTimestamp").endsWith("myKey=myValue1}");
+                                }
+                            );
+                    } else {
+                        assertThat(message).hasToString("item\n" + "id: 1\n" + "content: 1\n");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(
                 2,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "\nitem\n" +
-                                "id: 2\n" +
-                                "content: 2\n" +
-                                "headers: {X-My-Header-2=[headerValue2]}\n" +
-                                "metadata: {myKey=myValue2}\n"
-                            )
-                        : message.toString().equals("\nitem\n" + "id: 2\n" + "content: 2\n")
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        final Map<String, String> messageMap = messageToMap(message);
+                        assertThat(messageMap)
+                            .containsEntry("id", "2")
+                            .containsEntry("content", "2")
+                            .containsEntry("headers", "{X-My-Header-2=[headerValue2]}")
+                            .hasEntrySatisfying(
+                                "metadata",
+                                value -> {
+                                    assertThat(value).startsWith("{sourceTimestamp").endsWith("myKey=myValue2}");
+                                }
+                            );
+                    } else {
+                        assertThat(message).hasToString("\nitem\n" + "id: 2\n" + "content: 2\n");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(3, message -> message.toString().equals("\npagination\nnextCursor: 2\nlimit: 2"));
 
         verify(ctx).putInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID, "2");
+    }
+
+    private static Map<String, String> messageToMap(Buffer message) {
+        return Arrays
+            .stream(message.toString().split("\n"))
+            .collect(Collectors.toMap(s -> s.split(":")[0], s -> s.contains(":") ? s.split(":")[1].trim() : ""));
     }
 
     @ParameterizedTest
@@ -522,27 +559,35 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("{\"items\":["))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"myKey\":\"myValue1\"}}"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\",\"headers\":{\"X-My-Header-1\":[\"headerValue1\"]},\"metadata\":{\"sourceTimestamp\":"
                             )
-                        : message.toString().equals("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}")
+                            .endsWith("\"myKey\":\"myValue1\"}}");
+                    } else {
+                        assertThat(message).hasToString("{\"id\":\"1\",\"content\":\"{\\\"foo\\\": \\\"1\\\"}\"}");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(2, message -> message.toString().equals("]"))
             .assertValueAt(3, message -> message.toString().equals(",\"error\":"))
             .assertValueAt(
                 4,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"myKey\":\"myValue2\"}}"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "{\"id\":\"2\",\"content\":\"2\",\"headers\":{\"X-My-Header-2\":[\"headerValue2\"]},\"metadata\":{\"sourceTimestamp\":"
                             )
-                        : message.toString().equals("{\"id\":\"2\",\"content\":\"2\"}")
+                            .endsWith("\"myKey\":\"myValue2\"}}");
+                    } else {
+                        assertThat(message).hasToString("{\"id\":\"2\",\"content\":\"2\"}");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(5, message -> message.toString().equals(",\"pagination\":{\"nextCursor\":\"2\",\"limit\":\"2\"}"))
             .assertValueAt(6, message -> message.toString().equals("}"));
@@ -594,26 +639,34 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("<response><items>"))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><myKey>myValue1</myKey></metadata></item>"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content><headers><X-My-Header-1>headerValue1</X-My-Header-1></headers><metadata><sourceTimestamp>"
                             )
-                        : message.toString().equals("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>")
+                            .endsWith("</sourceTimestamp><myKey>myValue1</myKey></metadata></item>");
+                    } else {
+                        assertThat(message).hasToString("<item><id>1</id><content><![CDATA[<foo>1</foo>]]></content></item>");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(2, message -> message.toString().equals("</items>"))
             .assertValueAt(
                 3,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "<error><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><myKey>myValue2</myKey></metadata></error>"
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        assertThat(message.toString())
+                            .startsWith(
+                                "<error><id>2</id><content><![CDATA[2]]></content><headers><X-My-Header-2>headerValue2</X-My-Header-2></headers><metadata><sourceTimestamp>"
                             )
-                        : message.toString().equals("<error><id>2</id><content><![CDATA[2]]></content></error>")
+                            .endsWith("</sourceTimestamp><myKey>myValue2</myKey></metadata></error>");
+                    } else {
+                        assertThat(message).hasToString("<error><id>2</id><content><![CDATA[2]]></content></error>");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(4, message -> message.toString().equals("<pagination><nextCursor>2</nextCursor><limit>2</limit></pagination>"))
             .assertValueAt(5, message -> message.toString().equals("</response>"));
@@ -667,33 +720,45 @@ class HttpGetEntrypointConnectorTest {
             .assertValueAt(0, message -> message.toString().equals("items\n"))
             .assertValueAt(
                 1,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "item\n" +
-                                "id: 1\n" +
-                                "content: 1\n" +
-                                "headers: {X-My-Header-1=[headerValue1]}\n" +
-                                "metadata: {myKey=myValue1}\n"
-                            )
-                        : message.toString().equals("item\n" + "id: 1\n" + "content: 1\n")
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        final Map<String, String> messageMap = messageToMap(message);
+                        assertThat(messageMap)
+                            .containsEntry("id", "1")
+                            .containsEntry("content", "1")
+                            .containsEntry("headers", "{X-My-Header-1=[headerValue1]}")
+                            .hasEntrySatisfying(
+                                "metadata",
+                                value -> {
+                                    assertThat(value).startsWith("{sourceTimestamp").endsWith("myKey=myValue1}");
+                                }
+                            );
+                    } else {
+                        assertThat(message).hasToString("item\n" + "id: 1\n" + "content: 1\n");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(
                 2,
-                message ->
-                    withHeadersAndMetadata
-                        ? message
-                            .toString()
-                            .equals(
-                                "\nerror\n" +
-                                "id: 2\n" +
-                                "content: 2\n" +
-                                "headers: {X-My-Header-2=[headerValue2]}\n" +
-                                "metadata: {myKey=myValue2}\n"
-                            )
-                        : message.toString().equals("\nerror\nid: 2\ncontent: 2\n")
+                message -> {
+                    if (withHeadersAndMetadata) {
+                        final Map<String, String> messageMap = messageToMap(message);
+                        assertThat(messageMap)
+                            .containsEntry("id", "2")
+                            .containsEntry("content", "2")
+                            .containsEntry("headers", "{X-My-Header-2=[headerValue2]}")
+                            .hasEntrySatisfying(
+                                "metadata",
+                                value -> {
+                                    assertThat(value).startsWith("{sourceTimestamp").endsWith("myKey=myValue2}");
+                                }
+                            );
+                    } else {
+                        assertThat(message).hasToString("\nerror\n" + "id: 2\n" + "content: 2\n");
+                    }
+                    return true;
+                }
             )
             .assertValueAt(3, message -> message.toString().equals("\npagination\nnextCursor: 2\nlimit: 2"));
 
@@ -747,8 +812,14 @@ class HttpGetEntrypointConnectorTest {
         chunkObs.assertValueAt(4, buffer -> buffer.toString().equals(",\"error\":"));
         chunkObs.assertValueAt(
             5,
-            buffer ->
-                buffer.toString().equals("{\"id\":\"goaway\",\"content\":\"Stopping, please reconnect\",\"headers\":{},\"metadata\":{}}")
+            buffer -> {
+                assertThat(buffer.toString())
+                    .startsWith(
+                        "{\"id\":\"goaway\",\"content\":\"Stopping, please reconnect\",\"headers\":{},\"metadata\":{\"sourceTimestamp\":"
+                    )
+                    .endsWith("}}");
+                return true;
+            }
         );
     }
 
@@ -764,13 +835,16 @@ class HttpGetEntrypointConnectorTest {
             content = "<foo>" + messageContent + "</foo>";
         }
 
+        final HashMap<String, Object> metadata = new HashMap<>();
+        metadata.put("myKey", "myValue" + messageContent);
+
         return DefaultMessage
             .builder()
             .error(onError)
             .id(messageContent)
             .headers(HttpHeaders.create().set("X-My-Header-" + messageContent, "headerValue" + messageContent))
             .content(Buffer.buffer(content))
-            .metadata(Map.of("myKey", "myValue" + messageContent))
+            .metadata(metadata)
             .build();
     }
 }
