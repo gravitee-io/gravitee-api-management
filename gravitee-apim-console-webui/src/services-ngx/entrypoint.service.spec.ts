@@ -104,12 +104,30 @@ describe('EntrypointService', () => {
     });
   });
 
-  describe('v4ListEntrypointPlugins', () => {
+  describe('v4ListSyncEntrypointPlugins', () => {
     it('should call the API', (done) => {
-      const fakeConnectors = [fakeConnectorListItem()];
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
 
-      entrypointService.v4ListEntrypointPlugins().subscribe((connectors) => {
-        expect(connectors).toMatchObject(fakeConnectors);
+      entrypointService.v4ListSyncEntrypointPlugins().subscribe((connectors) => {
+        expect(connectors).toMatchObject([fakeConnectors[0]]);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`,
+          method: 'GET',
+        })
+        .flush(fakeConnectors);
+    });
+  });
+
+  describe('v4ListAsyncEntrypointPlugins', () => {
+    it('should call the API', (done) => {
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
+
+      entrypointService.v4ListAsyncEntrypointPlugins().subscribe((connectors) => {
+        expect(connectors).toMatchObject([fakeConnectors[1]]);
         done();
       });
 

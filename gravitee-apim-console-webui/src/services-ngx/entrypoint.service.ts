@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
+import { map } from 'rxjs/operators';
 
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
@@ -54,8 +55,20 @@ export class EntrypointService {
     return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/entrypoints/${entrypointId}`);
   }
 
-  v4ListEntrypointPlugins(): Observable<ConnectorListItem[]> {
+  private v4ListEntrypointPlugins(): Observable<ConnectorListItem[]> {
     return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/entrypoints`);
+  }
+
+  v4ListSyncEntrypointPlugins(): Observable<ConnectorListItem[]> {
+    return this.v4ListEntrypointPlugins().pipe(
+      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'sync')),
+    );
+  }
+
+  v4ListAsyncEntrypointPlugins(): Observable<ConnectorListItem[]> {
+    return this.v4ListEntrypointPlugins().pipe(
+      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'async')),
+    );
   }
 
   v4GetSchema(entrypointId: string): Observable<GioJsonSchema> {

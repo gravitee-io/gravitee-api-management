@@ -18,7 +18,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
@@ -63,11 +63,8 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     });
 
     this.entrypointService
-      .v4ListEntrypointPlugins()
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'async')),
-      )
+      .v4ListAsyncEntrypointPlugins()
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe((entrypointPlugins) => {
         this.entrypoints = entrypointPlugins.map((entrypoint) => ({
           id: entrypoint.id,
