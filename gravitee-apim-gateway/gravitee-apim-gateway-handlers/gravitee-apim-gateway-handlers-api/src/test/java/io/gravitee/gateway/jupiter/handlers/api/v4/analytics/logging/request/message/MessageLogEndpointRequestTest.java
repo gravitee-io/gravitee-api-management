@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.core.v4.analytics.LoggingContext;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,7 +96,7 @@ class MessageLogEndpointRequestTest {
         @Test
         void should_log_metadata_when_metadata_logging_is_enabled() {
             when(loggingContext.endpointRequestMessageMetadata()).thenReturn(true);
-            Map<String, Object> metadata = Map.of();
+            Map<String, Object> metadata = new HashMap<>();
             DefaultMessage message = DefaultMessage.builder().metadata(metadata).build();
             MessageLogEndpointRequest cut = new MessageLogEndpointRequest(loggingContext, message);
             assertThat(cut.getMetadata()).isEqualTo(metadata);
@@ -104,7 +105,7 @@ class MessageLogEndpointRequestTest {
         @Test
         void should_not_log_metadata_when_metadata_logging_is_disabled() {
             when(loggingContext.endpointRequestMessageMetadata()).thenReturn(false);
-            Map<String, Object> metadata = Map.of();
+            Map<String, Object> metadata = new HashMap<>();
             DefaultMessage message = DefaultMessage.builder().metadata(metadata).build();
             MessageLogEndpointRequest cut = new MessageLogEndpointRequest(loggingContext, message);
             assertThat(cut.getMetadata()).isNull();

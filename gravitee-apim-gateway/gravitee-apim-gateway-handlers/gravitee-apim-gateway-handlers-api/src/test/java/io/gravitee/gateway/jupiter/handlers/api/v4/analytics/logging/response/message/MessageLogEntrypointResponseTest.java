@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
 import io.gravitee.gateway.jupiter.core.v4.analytics.LoggingContext;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -93,7 +94,7 @@ class MessageLogEntrypointResponseTest {
         @Test
         void should_log_metadata_when_metadata_logging_is_enabled() {
             when(loggingContext.entrypointResponseMessageMetadata()).thenReturn(true);
-            Map<String, Object> metadata = Map.of();
+            Map<String, Object> metadata = new HashMap<>();
             DefaultMessage message = DefaultMessage.builder().metadata(metadata).build();
             MessageLogEntrypointResponse cut = new MessageLogEntrypointResponse(loggingContext, message);
             assertThat(cut.getMetadata()).isEqualTo(metadata);
@@ -102,7 +103,7 @@ class MessageLogEntrypointResponseTest {
         @Test
         void should_not_log_metadata_when_metadata_logging_is_disabled() {
             when(loggingContext.entrypointResponseMessageMetadata()).thenReturn(false);
-            Map<String, Object> metadata = Map.of();
+            Map<String, Object> metadata = new HashMap<>();
             DefaultMessage message = DefaultMessage.builder().metadata(metadata).build();
             MessageLogEntrypointResponse cut = new MessageLogEntrypointResponse(loggingContext, message);
             assertThat(cut.getMetadata()).isNull();
