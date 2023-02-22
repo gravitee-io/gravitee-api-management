@@ -115,7 +115,7 @@ describe('EntrypointService', () => {
 
       httpTestingController
         .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`,
+          url: `${CONSTANTS_TESTING.baseURL}/v4/entrypoints`,
           method: 'GET',
         })
         .flush(fakeConnectors);

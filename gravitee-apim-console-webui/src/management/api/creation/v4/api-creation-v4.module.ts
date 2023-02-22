@@ -46,6 +46,7 @@ import { GioConnectorIconModule } from '../../../../components/gio-connector-ico
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
+import { GioConnectorDialogModule } from '../../../../components/gio-connector-dialog/gio-connector-dialog.module';
 
 @NgModule({
   imports: [
@@ -71,6 +72,7 @@ import { GioFormListenersVirtualHostModule } from '../../../../components/gio-fo
     GioConnectorIconModule,
     GioFormListenersContextPathModule,
     GioFormListenersVirtualHostModule,
+    GioConnectorDialogModule,
   ],
   declarations: [
     ApiCreationV4Component,

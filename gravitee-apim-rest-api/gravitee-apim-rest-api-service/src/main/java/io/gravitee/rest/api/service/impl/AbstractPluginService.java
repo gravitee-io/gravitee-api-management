@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.PluginService;
@@ -126,5 +127,19 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             return jsonSchemaService.validate(schema, configuration);
         }
         return configuration;
+    }
+
+    @Override
+    public PluginMoreInformation getMoreInformation(String pluginId) {
+        try {
+            logger.debug("Find plugin more information by ID: {}", pluginId);
+            return pluginManager.getMoreInformation(pluginId);
+        } catch (IOException ioex) {
+            logger.error("An error occurs while trying to get plugin more information for plugin {}", pluginId, ioex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get plugin more information for plugin " + pluginId,
+                ioex
+            );
+        }
     }
 }
