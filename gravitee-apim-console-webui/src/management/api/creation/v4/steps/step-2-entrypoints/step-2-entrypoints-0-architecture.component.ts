@@ -30,6 +30,8 @@ import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
 } from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
+import { IconService } from '../../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -48,8 +50,10 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     private readonly formBuilder: FormBuilder,
     private readonly stepService: ApiCreationStepService,
     private readonly entrypointService: EntrypointService,
+    private readonly endpointService: EndpointService,
     private readonly confirmDialog: MatDialog,
     private readonly matDialog: MatDialog,
+    private readonly iconService: IconService,
   ) {}
 
   ngOnInit(): void {
@@ -98,37 +102,52 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .subscribe((confirmed) => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
-            this.doSave();
+            this.form.value.type[0] === 'sync' ? this.doSaveSync() : this.doSaveAsync();
           } else {
             this.form.setValue(this.initialValue);
           }
         });
       return;
     }
-    this.doSave();
+    this.form.value.type[0] === 'sync' ? this.doSaveSync() : this.doSaveAsync();
   }
 
-  private doSave() {
-    const selectedType = this.form.value.type[0];
-    this.stepService.validStep((previousPayload) => ({
-      ...previousPayload,
-      type: selectedType,
-      ...(selectedType === 'sync'
-        ? {
+  private doSaveSync() {
+    this.endpointService
+      .v4Get('http-proxy')
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((httpProxyEndpoint) => {
+          this.stepService.validStep((previousPayload) => ({
+            ...previousPayload,
+            type: 'sync',
             selectedEntrypoints: [
               {
                 id: this.httpProxyEntrypoint.id,
                 name: this.httpProxyEntrypoint.name,
-                icon: this.httpProxyEntrypoint.icon,
+                icon: this.iconService.registerSvg(this.httpProxyEntrypoint.id, this.httpProxyEntrypoint.icon),
                 supportedListenerType: this.httpProxyEntrypoint.supportedListenerType,
               },
             ],
-          }
-        : {}),
+            selectedEndpoints: [{ id: httpProxyEndpoint.id, name: httpProxyEndpoint.name, icon: httpProxyEndpoint.icon }],
+          }));
+          this.stepService.goToNextStep({
+            groupNumber: 2,
+            component: Step2Entrypoints2ConfigComponent,
+          });
+        }),
+      )
+      .subscribe();
+  }
+
+  private doSaveAsync() {
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      type: 'async',
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
-      component: selectedType === 'sync' ? Step2Entrypoints2ConfigComponent : Step2Entrypoints1ListComponent,
+      component: Step2Entrypoints1ListComponent,
     });
   }
 
