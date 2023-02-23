@@ -28,7 +28,6 @@ export interface ApiCreationGroup {
 export type NewApiCreationStep = {
   groupNumber: number;
   component: Type<unknown>;
-  initialStepPayload?: ApiCreationPayload;
 };
 
 export interface ApiCreationStep {
@@ -103,7 +102,7 @@ export class ApiCreationStepperService {
         group: group,
         id: stepId,
         state: 'initial',
-        patchPayload: (p) => ({ ...step.initialStepPayload, ...p }),
+        patchPayload: (p) => p,
       });
     }
 
@@ -118,12 +117,6 @@ export class ApiCreationStepperService {
     // Save payload to current step & force new object mutation for updated payload
     currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
     currentStep.state = 'valid';
-  }
-
-  public removeStep() {
-    // Delete the current step
-    this.steps.splice(this.currentStepIndex, 1);
-    this.currentStepIndex = this.currentStepIndex - 1;
   }
 
   public finishStepper() {

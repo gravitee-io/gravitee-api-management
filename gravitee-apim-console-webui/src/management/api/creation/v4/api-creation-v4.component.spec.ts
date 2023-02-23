@@ -211,11 +211,14 @@ describe('ApiCreationV4Component', () => {
         expectEntrypointsGetRequest([{ id: 'http-proxy', supportedApiType: 'sync', name: 'HTTP Proxy' }]);
 
         await step20ArchitectureHarness.fillAndValidate('sync');
+        // For sync api type, http-proxy endpoint is automatically added
+        expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
 
         expect(component.currentStep.payload.type).toEqual('sync');
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { id: 'http-proxy', supportedListenerType: 'http', name: 'HTTP Proxy' },
         ]);
+        expect(component.currentStep.payload.selectedEndpoints).toEqual([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         expectApiGetPortalSettings();
@@ -493,35 +496,41 @@ describe('ApiCreationV4Component', () => {
 
     describe('step2 - changing architecture should reset all data with confirmation', () => {
       it('should not reset data if user cancels action', async () => {
-        // fill data
+        // Init Step 1 and 2
         await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
         await fillAndValidateStep2Entrypoints0Architecture('sync');
         await fillAndValidateStep2Entrypoints2Config(httpProxyEntrypoint);
 
-        expectEndpointsGetRequest([]);
-        await harnessLoader.getHarness(Step3EndpointListHarness).then((harness) => harness.clickPrevious());
+        // Init Step 3 Config and go back to Step 2 config
+        const step3endpoint2config = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
+        expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+        await step3endpoint2config.clickPrevious();
 
+        // Init Step 2 config and go back to Step 2 architecture
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
         await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
 
-        expectEntrypointsGetRequest(httpProxyEntrypoint);
+        // Init Step 2 architecture
         const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expectEntrypointsGetRequest(httpProxyEntrypoint);
 
+        // Change architecture to async
         expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
         await step20ArchitectureHarness.fillAndValidate('async');
 
-        // check confirmation dialog
+        // check confirmation dialog and cancel
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         expect(await dialogHarness).toBeTruthy();
         await dialogHarness.cancel();
-
-        // reset value when cancel
         expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
 
         await step20ArchitectureHarness.clickValidate();
+        expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
+
+        // Init Step 2 config
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
@@ -555,31 +564,43 @@ describe('ApiCreationV4Component', () => {
               supportedListenerType: 'http',
             },
           ],
+          selectedEndpoints: [
+            {
+              icon: undefined,
+              id: 'http-proxy',
+              name: 'HTTP Proxy',
+            },
+          ],
         });
       });
 
       it('should reset all data if user confirms modification', async () => {
-        // fill data
+        // Init Step 1 and 2
         await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
         await fillAndValidateStep2Entrypoints0Architecture('sync');
         await fillAndValidateStep2Entrypoints2Config(httpProxyEntrypoint);
 
-        expectEndpointsGetRequest([]);
-        await harnessLoader.getHarness(Step3EndpointListHarness).then((harness) => harness.clickPrevious());
+        // Init Step 3 and go back to Step 2 config
+        const step3endpoint2config = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
+        expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+        await step3endpoint2config.clickPrevious();
 
+        // Init Step 2 config and go back to Step 2 architecture
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
         await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
 
-        expectEntrypointsGetRequest(httpProxyEntrypoint);
+        // Init Step 2 architecture
         const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expectEntrypointsGetRequest(httpProxyEntrypoint);
 
+        // Change architecture to async
         expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
         await step20ArchitectureHarness.fillAndValidate('async');
 
-        // check confirmation dialog
+        // check confirmation dialog and confirm
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         expect(await dialogHarness).toBeTruthy();
         await dialogHarness.confirm();
@@ -756,6 +777,27 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
+  describe('step3 with type=sync', () => {
+    it('should skip list step and go to config', async () => {
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      await fillAndValidateStep2Entrypoints0Architecture('sync');
+      await fillAndValidateStep2Entrypoints2Config([{ id: 'http-proxy', name: 'HTTP Proxy', supportedApiType: 'sync' }]);
+
+      // Step 3 endpoints config
+      const step3Endpoints2ConfigHarness = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
+      expect(step3Endpoints2ConfigHarness).toBeTruthy();
+      expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+
+      expect(component.currentStep.payload.selectedEndpoints).toEqual([
+        {
+          id: 'http-proxy',
+          name: 'HTTP Proxy',
+          icon: undefined,
+        },
+      ]);
+    });
+  });
+
   describe('step6', () => {
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
@@ -922,6 +964,15 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
   }
 
+  function expectEndpointGetRequest(connector: Partial<ConnectorListItem>) {
+    const fullConnector = fakeConnectorListItem(connector);
+
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints/${fullConnector.id}`, method: 'GET' })
+      .flush(fullConnector);
+    fixture.detectChanges();
+  }
+
   async function fillAndValidateStep1ApiDetails(name = 'API name', version = '1.0', description = 'description') {
     const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
     await step1Harness.fillAndValidate(name, version, description);
@@ -943,6 +994,10 @@ describe('ApiCreationV4Component', () => {
     const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
     expectEntrypointsGetRequest(httpProxyEntrypoint);
     await step20ArchitectureHarness.fillAndValidate(type);
+    if (type === 'sync') {
+      // For sync api type, we need to select the http proxy endpoint
+      expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
+    }
     fixture.detectChanges();
   }
 

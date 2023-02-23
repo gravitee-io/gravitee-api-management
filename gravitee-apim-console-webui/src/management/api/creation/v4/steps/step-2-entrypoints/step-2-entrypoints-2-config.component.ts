@@ -26,6 +26,8 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { HttpListener, HttpListenerPath } from '../../../../../../entities/api-v4';
 import { EnvironmentService } from '../../../../../../services-ngx/environment.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -43,6 +45,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
 
+  private apiType: ApiCreationPayload['type'];
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly entrypointService: EntrypointService,
@@ -52,6 +56,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    this.apiType = currentStepPayload.type;
+
     const listener = (
       currentStepPayload.listeners && currentStepPayload.listeners.length > 0 ? currentStepPayload.listeners[0] : undefined
     ) as HttpListener;
@@ -122,7 +128,11 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       ];
       return { ...previousPayload, listeners };
     });
-    this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints1ListComponent });
+    // Skip step 3-list if api type is sync
+    this.stepService.goToNextStep({
+      groupNumber: 3,
+      component: this.apiType === 'async' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
+    });
   }
 
   goBack(): void {
