@@ -34,7 +34,7 @@ import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/ste
 import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
 import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-endpoints-2-config.harness';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
-import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
+import { Step2Entrypoints1ListComponent } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -86,7 +86,7 @@ describe('ApiCreationV4Component', () => {
     it('should have 6 steps', (done) => {
       component.stepper.goToNextStep({ groupNumber: 1, component: Step1ApiDetailsComponent });
       component.stepper.validStep(() => ({ name: 'A1' }));
-      component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints1List });
+      component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints1ListComponent });
       component.stepper.validStep(({ name }) => ({ name: `${name}>B1` }));
       component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints2ConfigComponent });
       component.stepper.validStep(({ name }) => ({ name: `${name}>B2` }));
