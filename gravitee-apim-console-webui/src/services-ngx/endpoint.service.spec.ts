@@ -52,6 +52,24 @@ describe('EndpointService', () => {
     });
   });
 
+  describe('v4Get', () => {
+    it('should call the API', (done) => {
+      const fakeConnectors = fakeConnectorListItem();
+
+      endpointService.v4Get('endpointId').subscribe((connectors) => {
+        expect(connectors).toEqual(fakeConnectors);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints/endpointId`,
+          method: 'GET',
+        })
+        .flush(fakeConnectors);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

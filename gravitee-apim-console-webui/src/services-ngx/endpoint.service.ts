@@ -31,6 +31,10 @@ export class EndpointService {
     return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints`);
   }
 
+  v4Get(id: string): Observable<ConnectorListItem> {
+    return this.http.get<ConnectorListItem>(`${this.constants.env.baseURL}/v4/endpoints/${id}`);
+  }
+
   v4GetSchema(id: string): Observable<GioJsonSchema> {
     return this.http.get<GioJsonSchema>(`${this.constants.env.baseURL}/v4/endpoints/${id}/schema`);
   }
