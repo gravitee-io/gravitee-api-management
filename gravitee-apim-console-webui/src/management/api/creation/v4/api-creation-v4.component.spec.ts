@@ -425,7 +425,8 @@ describe('ApiCreationV4Component', () => {
   describe('step3', () => {
     it('should go back to step2 with API details restored when clicking on previous', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillAndValidateStep2Entrypoints();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
 
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
       expectEndpointsGetRequest([]);
@@ -475,7 +476,8 @@ describe('ApiCreationV4Component', () => {
 
     it('should display only async endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillAndValidateStep2Entrypoints();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
 
       expectEndpointsGetRequest([
@@ -490,7 +492,8 @@ describe('ApiCreationV4Component', () => {
 
     it('should select endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillAndValidateStep2Entrypoints();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
 
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
       expect(step3Harness).toBeTruthy();
@@ -520,7 +523,8 @@ describe('ApiCreationV4Component', () => {
 
     it('should configure endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      await fillAndValidateStep2Entrypoints();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
 
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
       expect(step3Harness).toBeTruthy();
@@ -550,7 +554,7 @@ describe('ApiCreationV4Component', () => {
       const step3Endpoints2ConfigHarness = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
       await step3Endpoints2ConfigHarness.clickValidate();
 
-      expect(component.currentStep.payload.endpoints).toEqual([
+      expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
           configuration: {
             headersInPayload: false,
@@ -558,7 +562,8 @@ describe('ApiCreationV4Component', () => {
             messagesLimitDurationMs: 5000,
             metadataInPayload: false,
           },
-          type: 'kafka',
+          id: 'kafka',
+          name: 'Kafka',
         },
         {
           configuration: {
@@ -567,7 +572,8 @@ describe('ApiCreationV4Component', () => {
             messagesLimitDurationMs: 5000,
             metadataInPayload: false,
           },
-          type: 'mock',
+          id: 'mock',
+          name: 'Mock',
         },
       ]);
     });
@@ -576,12 +582,13 @@ describe('ApiCreationV4Component', () => {
   describe('step6', () => {
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
-      await fillAndValidateStep2Entrypoints();
-      await fillAndValidateStep3Endpoints();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
+      await fillAndValidateStep3Endpoints1List();
+      await fillAndValidateStep3Endpoints2Config();
       await fillAndValidateStep4Security();
       await fillAndValidateStep5Documentation();
       fixture.detectChanges();
-      fixture.detectChanges(); // TODO: remove this when fill step 2-1 exist
     });
 
     it('should display payload info', async () => {
@@ -634,7 +641,8 @@ describe('ApiCreationV4Component', () => {
       fixture.detectChanges();
       await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
 
-      await fillAndValidateStep3Endpoints();
+      await fillAndValidateStep3Endpoints1List();
+      await fillAndValidateStep3Endpoints2Config();
       await fillAndValidateStep4Security();
       await fillAndValidateStep5Documentation();
 
@@ -660,8 +668,10 @@ describe('ApiCreationV4Component', () => {
 
       expect(await list.getListValues({ selected: true })).toEqual(['kafka', 'mock']);
       await list.deselectOptionByValue('kafka');
+      expect(await list.getListValues({ selected: true })).toEqual(['mock']);
       fixture.detectChanges();
       await step3Harness.clickValidate();
+
       await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'async', name: 'Mock' }]);
 
       await fillAndValidateStep4Security();
@@ -734,19 +744,16 @@ describe('ApiCreationV4Component', () => {
     await step1Harness.fillAndValidate(name, version, description);
   }
 
-  async function fillAndValidateStep2Entrypoints(
+  async function fillAndValidateStep2Entrypoints1List(
     entrypoints: Partial<ConnectorListItem>[] = [
       { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
-    paths: string[] = ['/api/my-api-3'],
   ) {
     const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     expectEntrypointsGetRequest(entrypoints);
 
     await step2Harness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
-
-    await fillAndValidateStep2Entrypoints2Config(entrypoints, paths);
   }
 
   async function fillAndValidateStep2Entrypoints2Config(
@@ -765,7 +772,7 @@ describe('ApiCreationV4Component', () => {
     expectVerifyContextPathGetRequest();
   }
 
-  async function fillAndValidateStep3Endpoints(
+  async function fillAndValidateStep3Endpoints1List(
     endpoints: Partial<ConnectorListItem>[] = [
       { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
       { id: 'mock', supportedApiType: 'async', name: 'Mock' },
@@ -775,8 +782,6 @@ describe('ApiCreationV4Component', () => {
     expectEndpointsGetRequest(endpoints);
 
     await step3Harness.fillAndValidate(endpoints.map((endpoint) => endpoint.id));
-
-    await fillAndValidateStep3Endpoints2Config(endpoints);
   }
 
   async function fillAndValidateStep3Endpoints2Config(

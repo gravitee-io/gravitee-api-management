@@ -24,7 +24,7 @@
     </p>
   </div>
 
-  <form [formGroup]="formGroup" (ngSubmit)="save()">
+  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
     <mat-selection-list
       *ngIf="endpoints; else loadingTpl"
       formControlName="selectedEndpointsIds"

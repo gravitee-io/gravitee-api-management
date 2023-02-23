@@ -95,7 +95,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      selectedEndpoints: selectedEndpoints,
+      selectedEndpoints,
     }));
 
     this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints2ConfigComponent });

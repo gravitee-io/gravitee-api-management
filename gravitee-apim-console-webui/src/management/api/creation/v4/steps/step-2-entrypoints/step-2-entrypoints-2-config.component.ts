@@ -101,30 +101,27 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  public getEntryPointFormGroup(id: string): FormGroup {
-    return this.formGroup.get(id) as FormGroup;
-  }
-
   save(): void {
-    const currentStepPayload = this.stepService.payload;
-    const entrypoints = currentStepPayload.selectedEntrypoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
-    let paths = this.formGroup.get('paths').value as HttpListenerPath[];
-    if (!this.enableVirtualHost) {
-      // Remove host and overrideAccess from virualHost if is not necessary
-      paths = paths.map(({ path }) => ({ path }));
-    } else {
-      // Clear private properties from gio-listeners-virtual-host component
-      paths = paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }));
-    }
+    this.stepService.validStep((previousPayload) => {
+      const entrypoints = previousPayload.selectedEntrypoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
+      let paths = this.formGroup.get('paths').value as HttpListenerPath[];
+      if (!this.enableVirtualHost) {
+        // Remove host and overrideAccess from virualHost if is not necessary
+        paths = paths.map(({ path }) => ({ path }));
+      } else {
+        // Clear private properties from gio-listeners-virtual-host component
+        paths = paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }));
+      }
 
-    const listeners = [
-      {
-        type: 'http',
-        paths,
-        entrypoints,
-      },
-    ] as HttpListener[];
-    this.stepService.validStep((previousPayload) => ({ ...previousPayload, listeners }));
+      const listeners: HttpListener[] = [
+        {
+          type: 'http',
+          paths,
+          entrypoints,
+        },
+      ];
+      return { ...previousPayload, listeners };
+    });
     this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints1ListComponent });
   }
 

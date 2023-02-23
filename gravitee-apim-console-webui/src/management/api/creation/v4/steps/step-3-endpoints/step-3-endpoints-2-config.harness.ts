@@ -19,23 +19,18 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class Step3Endpoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-3-endpoints-2-config';
 
-  protected getPreviousButton = this.locatorFor(
-    MatButtonHarness.with({
-      selector: '#previous',
-    }),
-  );
+  protected getButtonByText = (text: string) =>
+    this.locatorFor(
+      MatButtonHarness.with({
+        text: text,
+      }),
+    )();
 
-  protected getValidateButton = this.locatorFor(
-    MatButtonHarness.with({
-      selector: '#validate',
-    }),
-  );
-
-  async clickPrevious(): Promise<void> {
-    return this.getPreviousButton().then((elt) => elt.click());
+  async clickPrevious() {
+    return this.getButtonByText('Previous').then((button) => button.click());
   }
 
   async clickValidate() {
-    return this.getValidateButton().then((elt) => elt.click());
+    return this.getButtonByText('Validate my endpoints').then((button) => button.click());
   }
 }
