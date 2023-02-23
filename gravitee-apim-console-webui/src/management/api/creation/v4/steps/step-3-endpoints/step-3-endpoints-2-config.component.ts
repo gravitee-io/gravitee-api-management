@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
@@ -38,20 +38,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public endpointInitialValues: Record<string, any>;
   public endpointFormGroups: Record<string, FormGroup>;
 
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly endpointService: EndpointService,
-    private readonly stepService: ApiCreationStepService,
-  ) {}
+  constructor(private readonly endpointService: EndpointService, private readonly stepService: ApiCreationStepService) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
-    this.endpointInitialValues =
-      currentStepPayload.endpoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
-    this.formGroup = this.formBuilder.group({});
-    currentStepPayload.selectedEndpoints.forEach(({ id }) => {
-      this.formGroup.addControl(id, this.formBuilder.group({}));
-    });
 
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce(
@@ -66,6 +56,12 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
         this.endpointSchemas = schemas;
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
+
+        this.endpointInitialValues =
+          currentStepPayload.selectedEndpoints?.reduce((map, { id, configuration }) => ({ ...map, [id]: configuration }), {}) ?? {};
+        this.formGroup = new FormGroup({
+          ...(currentStepPayload.selectedEndpoints?.reduce((map, { id }) => ({ ...map, [id]: new FormGroup({}) }), {}) ?? {}),
+        });
       });
   }
 
@@ -74,15 +70,15 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  public getEntryPointFormGroup(id: string): FormGroup {
-    return this.formGroup.get(id) as FormGroup;
-  }
-
   save(): void {
-    const currentStepPayload = this.stepService.payload;
-    const endpoints = currentStepPayload.selectedEndpoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
-
-    this.stepService.validStep((previousPayload) => ({ ...previousPayload, endpoints }));
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      selectedEndpoints: previousPayload.selectedEndpoints.map(({ id, name }) => ({
+        id,
+        name,
+        configuration: this.formGroup.get(id).value,
+      })),
+    }));
 
     this.stepService.goToNextStep({ groupNumber: 4, component: Step4SecurityComponent });
   }

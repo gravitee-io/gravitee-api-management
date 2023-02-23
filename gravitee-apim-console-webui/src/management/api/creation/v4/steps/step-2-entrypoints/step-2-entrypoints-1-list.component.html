@@ -22,7 +22,7 @@
     <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
   </div>
 
-  <form [formGroup]="formGroup" (ngSubmit)="save()">
+  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
     <mat-selection-list
       *ngIf="entrypoints; else loadingTpl"
       formControlName="selectedEntrypointsIds"

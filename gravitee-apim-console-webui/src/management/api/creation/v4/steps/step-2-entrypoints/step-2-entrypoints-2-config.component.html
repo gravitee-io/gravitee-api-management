@@ -45,7 +45,7 @@
       <h3>{{ entrypoint.name }}</h3>
       <gio-form-json-schema
         [jsonSchema]="entrypointSchemas[entrypoint.id]"
-        [formGroup]="getEntryPointFormGroup(entrypoint.id)"
+        [formGroup]="$any(formGroup.get(entrypoint.id))"
         [initialValue]="entrypointInitialValues[entrypoint.id]"
       ></gio-form-json-schema>
     </div>

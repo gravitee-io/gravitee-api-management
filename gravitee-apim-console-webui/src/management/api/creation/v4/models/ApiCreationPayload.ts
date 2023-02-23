@@ -34,10 +34,7 @@ export type ApiCreationPayload = Partial<{
   selectedEndpoints?: {
     id: string;
     name: string;
-  }[];
-  endpoints?: {
-    type: string;
-    configuration: any;
+    configuration?: unknown;
   }[];
 
   // Summary

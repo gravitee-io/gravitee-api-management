@@ -25,18 +25,18 @@
   </div>
 
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <div class="api-creation-v4__form-container" *ngFor="let entrypoint of selectedEndpoints">
-      <h3>{{ entrypoint.name }}</h3>
+    <div class="api-creation-v4__form-container" *ngFor="let endpoint of selectedEndpoints">
+      <h3>{{ endpoint.name }}</h3>
       <gio-form-json-schema
-        [jsonSchema]="endpointSchemas[entrypoint.id]"
-        [formGroup]="getEntryPointFormGroup(entrypoint.id)"
-        [initialValue]="endpointInitialValues[entrypoint.id]"
+        [jsonSchema]="endpointSchemas[endpoint.id]"
+        [formGroup]="$any(formGroup.get(endpoint.id))"
+        [initialValue]="endpointInitialValues[endpoint.id]"
       ></gio-form-json-schema>
     </div>
 
     <div class="api-creation-v4__step__footer">
-      <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button id="validate" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Validate my endpoints</button>
+      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Validate my endpoints</button>
     </div>
   </form>
 </mat-card>

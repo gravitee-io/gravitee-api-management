@@ -31,7 +31,7 @@ import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { fakeNewApiEntity } from '../../../../entities/api-v4';
+import { EndpointGroup } from '../../../../entities/api-v4';
 
 @Component({
   selector: 'api-creation-v4',
@@ -141,20 +141,30 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   private createApi(apiCreationPayload: ApiCreationPayload) {
     this.isCreatingApi = true;
     return this.apiV4Service
-      .create(
-        // Note : WIP 🚧
-        // Use the fakeNewApiEntity to create a new API temporarily
-        // The real API creation will be done when we complete other api creation steps
-        fakeNewApiEntity((api) => {
-          return {
-            ...api,
-            name: apiCreationPayload.name,
-            apiVersion: apiCreationPayload.version,
-            description: apiCreationPayload.description ?? '',
-            listeners: apiCreationPayload.listeners,
-          };
-        }),
-      )
+      .create({
+        definitionVersion: '4.0.0',
+        name: apiCreationPayload.name,
+        apiVersion: apiCreationPayload.version,
+        description: apiCreationPayload.description ?? '',
+        listeners: apiCreationPayload.listeners,
+        type: apiCreationPayload.type,
+        endpointGroups: apiCreationPayload.selectedEndpoints.map(
+          (endpoint) =>
+            ({
+              name: `Default ${endpoint.name} group`,
+              type: endpoint.id,
+              endpoints: [
+                {
+                  name: `Default ${endpoint.name}`,
+                  type: endpoint.id,
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: endpoint.configuration,
+                },
+              ],
+            } as EndpointGroup),
+        ),
+      })
       .pipe(
         takeUntil(this.unsubscribe$),
         tap(
