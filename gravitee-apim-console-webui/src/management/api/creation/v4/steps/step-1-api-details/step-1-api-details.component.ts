@@ -22,7 +22,7 @@ import { StateService } from '@uirouter/core';
 
 import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { Step2Entrypoints1List } from '../step-2-entrypoints/step-2-entrypoints-1-list.component';
+import { Step2Entrypoints1ListComponent } from '../step-2-entrypoints/step-2-entrypoints-1-list.component';
 
 @Component({
   selector: 'step-1-api-details',
@@ -85,7 +85,7 @@ export class Step1ApiDetailsComponent implements OnInit {
 
     this.stepService.goToNextStep({
       groupNumber: 2,
-      component: Step2Entrypoints1List,
+      component: Step2Entrypoints1ListComponent,
     });
   }
 }
