@@ -17,27 +17,21 @@
 import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { groupBy } from 'lodash';
 import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
-import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
-import { Step6SummaryComponent } from './steps/step-6-summary/step-6-summary.component';
 import { ApiCreationStepService } from './services/api-creation-step.service';
 import { ApiCreationPayload } from './models/ApiCreationPayload';
 import { MenuStepItem } from './components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
-import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-endpoints-1-list.component';
-import { Step4SecurityComponent } from './steps/step-4-security/step-4-security.component';
-import { Step5DocumentationComponent } from './steps/step-5-documentation/step-5-documentation.component';
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
-import { fakeNewApiEntity } from '../../../../entities/api-v4';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
+import { fakeNewApiEntity } from '../../../../entities/api-v4';
 
 @Component({
   selector: 'api-creation-v4',
@@ -51,31 +45,31 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   public stepper = new ApiCreationStepperService([
     {
+      groupNumber: 1,
       label: 'API details',
-      component: Step1ApiDetailsComponent,
       menuItemComponent: Step1MenuItemComponent,
     },
     {
+      groupNumber: 2,
       label: 'Entrypoints',
-      component: Step2Entrypoints1List,
       menuItemComponent: StepEntrypointMenuItemComponent,
     },
     {
+      groupNumber: 3,
       label: 'Endpoints',
-      component: Step3Endpoints1ListComponent,
       menuItemComponent: StepEndpointMenuItemComponent,
     },
     {
+      groupNumber: 4,
       label: 'Security',
-      component: Step4SecurityComponent,
     },
     {
+      groupNumber: 5,
       label: 'Documentation',
-      component: Step5DocumentationComponent,
     },
     {
+      groupNumber: 6,
       label: 'Summary',
-      component: Step6SummaryComponent,
     },
   ]);
 
@@ -84,16 +78,18 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   menuSteps$: Observable<MenuStepItem[]> = this.stepper.steps$.pipe(
     map((steps) => {
-      // Get the last step valid or last step of each label. To have last full payload of each label.
-      const lastStepOfEachLabel = Object.entries(groupBy(steps, 'label')).map(([_, steps]) => {
-        const lastValidStep = steps.reverse().find((step) => step.state === 'valid');
-        return lastValidStep || steps[steps.length - 1];
-      });
+      // For each group, get the last step valid if present. To have the last state & full payload
+      return this.stepper.groups.map((group) => {
+        const stepsGroup = steps.filter((step) => step.group.groupNumber === group.groupNumber);
+        const lastValidStep = stepsGroup.reverse().find((step) => step.state === 'valid');
 
-      return lastStepOfEachLabel.map((step) => ({
-        ...step,
-        payload: this.stepper.compileStepPayload(step),
-      }));
+        return {
+          ...group,
+          ...(lastValidStep
+            ? { state: lastValidStep?.state ?? 'initial', payload: this.stepper.compileStepPayload(lastValidStep) }
+            : { state: 'initial', payload: {} }),
+        };
+      });
     }),
   );
 
@@ -105,6 +101,11 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.stepper.goToNextStep({
+      groupNumber: 1,
+      component: Step1ApiDetailsComponent,
+    });
+
     // When the stepper change, update the current step
     this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
       const apiCreationStepService = new ApiCreationStepService(this.stepper, apiCreationStep);

@@ -20,6 +20,7 @@ import { StateService } from '@uirouter/core';
 
 import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { Step6SummaryComponent } from '../step-6-summary/step-6-summary.component';
 
 @Component({
   selector: 'step-5-documentation',
@@ -36,9 +37,11 @@ export class Step5DocumentationComponent implements OnInit {
   }
 
   save(): void {
-    this.stepService.validStepAndGoNext((previousPayload) => ({
+    this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
     }));
+
+    this.stepService.goToNextStep({ groupNumber: 6, component: Step6SummaryComponent });
   }
 
   goBack(): void {

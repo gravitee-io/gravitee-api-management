@@ -23,12 +23,12 @@
 
   <div class="steps">
     <stepper-menu-step
-      *ngFor="let step of menuSteps"
-      [stepNumber]="step.labelNumber"
-      [step]="step"
-      [activeStep]="currentStep.labelNumber === step.labelNumber"
+      *ngFor="let menuStep of menuSteps"
+      [stepNumber]="menuStep.groupNumber"
+      [step]="menuStep"
+      [activeStep]="currentStep.group.groupNumber === menuStep.groupNumber"
       (goToStep)="goToStep.emit($event)"
-      >{{ step.label }}</stepper-menu-step
+      >{{ menuStep.label }}</stepper-menu-step
     >
   </div>
 </mat-card>

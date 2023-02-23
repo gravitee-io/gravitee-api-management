@@ -19,18 +19,22 @@ import { cloneDeep, toNumber } from 'lodash';
 
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
-export interface NewApiCreationStep {
+export interface ApiCreationGroup {
+  groupNumber: number;
   label: string;
-  component: Type<unknown>;
   menuItemComponent?: Type<unknown>;
 }
 
-export type NewSecondaryApiCreationStep = Omit<NewApiCreationStep, 'label' | 'menuItemComponent'>;
+export type NewApiCreationStep = {
+  groupNumber: number;
+  component: Type<unknown>;
+  initialStepPayload?: ApiCreationPayload;
+};
 
-export interface ApiCreationStep extends NewApiCreationStep {
+export interface ApiCreationStep {
   id: string;
-  /* Main label number. Start to 1 */
-  labelNumber: number;
+  group: ApiCreationGroup;
+  component: Type<unknown>;
   state: 'initial' | 'valid' | 'invalid';
   patchPayload: (lastPayload: ApiCreationPayload) => ApiCreationPayload;
 }
@@ -40,9 +44,8 @@ export interface ApiCreationStep extends NewApiCreationStep {
  */
 @Injectable()
 export class ApiCreationStepperService {
-  private steps: ApiCreationStep[];
-
-  private currentStepIndex = 0;
+  private steps: ApiCreationStep[] = [];
+  private currentStepIndex = -1;
   private initialPayload: ApiCreationPayload = {};
 
   /**
@@ -62,17 +65,9 @@ export class ApiCreationStepperService {
    */
   public finished$ = new Subject<ApiCreationPayload>();
 
-  constructor(creationStepPayload: NewApiCreationStep[], initialPayload?: ApiCreationPayload) {
+  constructor(public readonly groups: ApiCreationGroup[], initialPayload?: ApiCreationPayload) {
     this.initialPayload = initialPayload ?? {};
-    this.steps = creationStepPayload.map((stepPayload, index) => ({
-      ...stepPayload,
-      id: `step-${index + 1}-1`,
-      labelNumber: index + 1,
-      state: 'initial',
-      patchPayload: (p) => p,
-    }));
-    this.steps$.next(this.steps);
-    this.currentStep$.next(this.steps[this.currentStepIndex]);
+    this.groups = groups ?? [];
   }
 
   /**
@@ -91,49 +86,49 @@ export class ApiCreationStepperService {
   }
 
   /**
-   * Add a secondary step after the current step.
+   * Add a next step and go to it.
    */
-  public addSecondaryStep(step: NewSecondaryApiCreationStep) {
-    const newStepId = this.generateSecondaryStepId();
-    if (this.steps.find(({ id }) => id === newStepId)) {
-      return;
+  public goToNextStep(step: NewApiCreationStep) {
+    const currentStep = this.steps[this.currentStepIndex];
+    const nextStep = this.steps[this.currentStepIndex + 1];
+    const group = this.groups.find(({ groupNumber }) => groupNumber === step.groupNumber);
+
+    // Add new step if is not already added
+    const nextStepNumber = currentStep?.group?.groupNumber === step.groupNumber ? currentStep.id.split('-').pop() : 0;
+    const stepId = `step-${group.groupNumber}-${toNumber(nextStepNumber) + 1}`;
+
+    if (!nextStep || nextStep.id !== stepId) {
+      this.steps.splice(this.currentStepIndex + 1, 0, {
+        component: step.component,
+        group: group,
+        id: stepId,
+        state: 'initial',
+        patchPayload: (p) => ({ ...step.initialStepPayload, ...p }),
+      });
     }
 
-    const currentStep = this.steps[this.currentStepIndex];
-    this.steps.splice(this.currentStepIndex + 1, 0, {
-      ...step,
-      id: newStepId,
-      state: 'initial',
-      patchPayload: (p) => p,
-      labelNumber: currentStep.labelNumber,
-      label: currentStep.label,
-      menuItemComponent: currentStep.menuItemComponent,
-    });
-    this.steps$.next(this.steps);
-  }
-
-  private generateSecondaryStepId() {
-    const currentStep = this.steps[this.currentStepIndex];
-    const lastNumber = currentStep.id.split('-').pop();
-    return `step-${currentStep.labelNumber}-${toNumber(lastNumber) + 1}`;
-  }
-
-  public validStepAndGoNext(patchPayload: ApiCreationStep['patchPayload']) {
-    const currentStep = this.steps[this.currentStepIndex];
-
-    // Save payload to current step & Force new object mutation for updated payload
-    currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
-    currentStep.state = 'valid';
-
-    // If current step is the last one, emit finished event
-    if (this.currentStepIndex === this.steps.length - 1) {
-      this.finished$.next(this.compileStepPayload(currentStep));
-      return;
-    }
-
-    // Give current payload to next step
+    // Go to next step
     this.goToStepIndex(this.currentStepIndex + 1);
     this.steps$.next(this.steps);
+  }
+
+  public validStep(patchPayload: ApiCreationStep['patchPayload']) {
+    const currentStep = this.steps[this.currentStepIndex];
+
+    // Save payload to current step & force new object mutation for updated payload
+    currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
+    currentStep.state = 'valid';
+  }
+
+  public removeStep() {
+    // Delete the current step
+    this.steps.splice(this.currentStepIndex, 1);
+    this.currentStepIndex = this.currentStepIndex - 1;
+  }
+
+  public finishStepper() {
+    const lastStep = this.steps[this.steps.length - 1];
+    this.finished$.next(this.compileStepPayload(lastStep));
   }
 
   public goToPreviousStep() {
@@ -141,7 +136,7 @@ export class ApiCreationStepperService {
   }
 
   public goToStepLabel(label: string) {
-    const stepIndex = this.steps.findIndex((step) => step.label === label);
+    const stepIndex = this.steps.findIndex((step) => step.group.label === label);
     if (stepIndex === -1) {
       throw new Error('Step not found: ' + label);
     }

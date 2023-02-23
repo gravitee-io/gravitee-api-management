@@ -20,6 +20,7 @@ import { StateService } from '@uirouter/core';
 
 import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
 
 @Component({
   selector: 'step-4-security',
@@ -36,9 +37,11 @@ export class Step4SecurityComponent implements OnInit {
   }
 
   save(): void {
-    this.stepService.validStepAndGoNext((previousPayload) => ({
+    this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
     }));
+
+    this.stepService.goToNextStep({ groupNumber: 5, component: Step5DocumentationComponent });
   }
 
   goBack(): void {

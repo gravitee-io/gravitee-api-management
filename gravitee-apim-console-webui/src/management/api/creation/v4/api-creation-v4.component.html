@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div *ngIf="!isCreatingApi; else creatingApiTpl" class="api-creation-v4">
+<div *ngIf="!isCreatingApi && currentStep; else creatingApiTpl" class="api-creation-v4">
   <api-creation-stepper-menu
     [menuSteps]="menuSteps$ | async"
     [currentStep]="currentStep"

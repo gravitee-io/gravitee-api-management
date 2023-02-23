@@ -20,20 +20,20 @@ describe('ApiCreationStepperService', () => {
     [
       {
         label: 'Step 1',
-        component: undefined,
+        groupNumber: 1,
       },
       {
         label: 'Step 2',
-        component: undefined,
+        groupNumber: 2,
         menuItemComponent: 'Step2MenuItem' as any,
       },
       {
         label: 'Step 3',
-        component: undefined,
+        groupNumber: 3,
       },
       {
         label: 'Step 4',
-        component: undefined,
+        groupNumber: 4,
       },
     ],
     {
@@ -48,32 +48,44 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should got to fist step', () => {
-    apiCreationStepperService.goToStepLabel('Step 1');
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 1,
+      component: 'Step1Component' as any,
+    });
 
     expect(currentStep.id).toEqual('step-1-1');
-    expect(currentStep.label).toEqual('Step 1');
+    expect(currentStep.group.label).toEqual('Step 1');
   });
 
-  it('should save and go to next step(2-1)', () => {
-    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
+  it('should save step(1) and go to next step(2-1)', () => {
+    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 2,
+      component: 'Step2-1Component' as any,
+    });
 
     expect(currentStep.id).toEqual('step-2-1');
-    expect(currentStep.label).toEqual('Step 2');
+    expect(currentStep.group.label).toEqual('Step 2');
   });
 
-  it('should add secondary step ', (done) => {
-    apiCreationStepperService.addSecondaryStep({
-      component: undefined,
+  it('should save step(2-1) and go to next step(2-2)', (done) => {
+    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
+
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 2,
+      component: 'Step2-2Component' as any,
     });
 
     apiCreationStepperService.steps$.subscribe((steps) => {
-      expect(steps.length).toEqual(5);
+      expect(steps.length).toEqual(3);
       expect(steps.find((step) => step.id === 'step-2-2')).toEqual({
         id: 'step-2-2',
-        label: 'Step 2',
-        component: undefined,
-        labelNumber: 2,
-        menuItemComponent: 'Step2MenuItem',
+        component: 'Step2-2Component',
+        group: {
+          groupNumber: 2,
+          label: 'Step 2',
+          menuItemComponent: 'Step2MenuItem',
+        },
         patchPayload: expect.any(Function),
         state: 'initial',
       });
@@ -81,37 +93,40 @@ describe('ApiCreationStepperService', () => {
     });
   });
 
-  it('should save and go to next step(2-2)', () => {
-    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2` }));
+  it('should save step(2-2) and go to next step(3)', () => {
+    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.2` }));
 
-    expect(currentStep.id).toEqual('step-2-2');
-    expect(currentStep.label).toEqual('Step 2');
-  });
-
-  it('should save and go to next step(3)', () => {
-    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 3,
+      component: 'Step3Component' as any,
+    });
 
     expect(currentStep.id).toEqual('step-3-1');
-    expect(currentStep.label).toEqual('Step 3');
+    expect(currentStep.group.label).toEqual('Step 3');
   });
 
   it('should save and go to next step(4)', () => {
-    apiCreationStepperService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
+    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
+
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 4,
+      component: 'Step4Component' as any,
+    });
 
     expect(currentStep.id).toEqual('step-4-1');
-    expect(currentStep.label).toEqual('Step 4');
+    expect(currentStep.group.label).toEqual('Step 4');
   });
 
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
-      name: 'Step 1 > Step 2 > Step 2.1 > Step 3',
+      name: 'Step 1 > Step 2.1 > Step 2.2 > Step 3',
       selectedEndpoints: [{ id: '1', name: 'initial value' }],
     });
   });
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
-    apiCreationStepperService.validStepAndGoNext((previousPayload) => {
+    apiCreationStepperService.validStep((previousPayload) => {
       previousPayload.selectedEndpoints.push({ id: '2', name: 'new value' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
@@ -119,8 +134,9 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should re add secondary step at step 2', (done) => {
-    apiCreationStepperService.addSecondaryStep({
-      component: undefined,
+    apiCreationStepperService.goToNextStep({
+      groupNumber: 2,
+      component: 'Step2-1Component' as any,
     });
 
     apiCreationStepperService.steps$.subscribe((steps) => {
@@ -136,11 +152,25 @@ describe('ApiCreationStepperService', () => {
 
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
-      name: 'Step 1 - edited > Step 2 > Step 2.1 > Step 3',
+      name: 'Step 1 - edited > Step 2.1 > Step 2.2 > Step 3',
       selectedEndpoints: [
         { id: '1', name: 'initial value' },
         { id: '2', name: 'new value' },
       ],
     });
+  });
+
+  it('should finish stepper', (done) => {
+    apiCreationStepperService.finished$.subscribe((payload) => {
+      expect(payload).toEqual({
+        selectedEndpoints: [
+          { id: '1', name: 'initial value' },
+          { id: '2', name: 'new value' },
+        ],
+        name: 'Step 1 - edited > Step 2.1 > Step 2.2 > Step 3',
+      });
+      done();
+    });
+    apiCreationStepperService.finishStepper();
   });
 });

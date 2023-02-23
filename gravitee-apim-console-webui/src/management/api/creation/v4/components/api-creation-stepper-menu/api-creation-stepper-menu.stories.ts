@@ -20,37 +20,42 @@ import { ApiCreationStepperMenuComponent, MenuStepItem } from './api-creation-st
 import { ApiCreationStepperMenuModule } from './api-creation-stepper-menu.module';
 import { TestStepMenuItemComponent } from './test-step-menu-item.component';
 
-const FAKE_STEPS: MenuStepItem[] = [
+import { ApiCreationStep } from '../../services/api-creation-stepper.service';
+
+const FAKE_MENU_STEPS: MenuStepItem[] = [
   {
-    id: 'step-1',
-    component: undefined,
     menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 1',
-    labelNumber: 1,
+    groupNumber: 1,
     state: 'valid',
-    patchPayload: () => ({}),
     payload: { name: 'test' },
   },
   {
-    id: 'step-2',
-    component: undefined,
     menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 2',
-    labelNumber: 2,
+    groupNumber: 2,
     state: 'initial',
-    patchPayload: () => ({}),
     payload: {},
   },
   {
-    id: 'step-3',
-    component: undefined,
     label: 'Step 3',
-    labelNumber: 3,
+    groupNumber: 3,
     state: 'initial',
-    patchPayload: () => ({}),
     payload: {},
   },
 ];
+
+const CURRENT_STEP: ApiCreationStep = {
+  id: 'step-1',
+  group: {
+    groupNumber: 1,
+    label: 'Step 1',
+    menuItemComponent: TestStepMenuItemComponent,
+  },
+  state: 'valid',
+  patchPayload: (p) => p,
+  component: undefined,
+};
 
 export default {
   title: 'Shared / API creation stepper',
@@ -69,8 +74,8 @@ export default {
       </div>
     `,
     props: {
-      currentStep: FAKE_STEPS[1],
-      steps: FAKE_STEPS,
+      currentStep: CURRENT_STEP,
+      steps: FAKE_MENU_STEPS,
     },
   }),
 } as Meta;

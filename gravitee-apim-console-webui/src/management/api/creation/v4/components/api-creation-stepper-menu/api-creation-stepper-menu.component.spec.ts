@@ -34,36 +34,39 @@ class TestHostComponent {
   public currentStep: ApiCreationStep = undefined;
 }
 
-const FAKE_STEPS: MenuStepItem[] = [
+const FAKE_MENU_STEPS: MenuStepItem[] = [
   {
-    id: 'step-1',
-    component: undefined,
-    menuItemComponent: TestStepMenuItemComponent,
     label: 'Step 1',
-    labelNumber: 1,
+    menuItemComponent: TestStepMenuItemComponent,
+    groupNumber: 1,
     state: 'valid',
-    patchPayload: () => ({}),
     payload: { name: 'test' },
   },
   {
-    id: 'step-2',
-    component: undefined,
     label: 'Step 2',
-    labelNumber: 2,
+    groupNumber: 2,
     state: 'initial',
-    patchPayload: () => ({}),
     payload: {},
   },
   {
-    id: 'step-3',
-    component: undefined,
     label: 'Step 3',
-    labelNumber: 3,
+    groupNumber: 3,
     state: 'initial',
-    patchPayload: () => ({}),
     payload: {},
   },
 ];
+
+const CURRENT_STEP: ApiCreationStep = {
+  id: 'step-1',
+  group: {
+    groupNumber: 1,
+    label: 'Step 1',
+    menuItemComponent: TestStepMenuItemComponent,
+  },
+  state: 'valid',
+  patchPayload: (p) => p,
+  component: undefined,
+};
 
 describe('ApiCreationStepperMenuComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
@@ -85,7 +88,7 @@ describe('ApiCreationStepperMenuComponent', () => {
   };
 
   it('should show step number and title', async () => {
-    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    await initConfigureTestingModule(FAKE_MENU_STEPS, CURRENT_STEP);
 
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
@@ -94,28 +97,40 @@ describe('ApiCreationStepperMenuComponent', () => {
   });
 
   it('should show active state', async () => {
-    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    await initConfigureTestingModule(FAKE_MENU_STEPS, {
+      ...CURRENT_STEP,
+      group: {
+        groupNumber: 2,
+        label: 'Step 2',
+      },
+    });
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[1].getStepIconName()).toEqual('edit-pencil');
   });
 
   it('should show filled state', async () => {
-    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    await initConfigureTestingModule(FAKE_MENU_STEPS, {
+      ...CURRENT_STEP,
+      group: {
+        groupNumber: 3,
+        label: 'Step 3',
+      },
+    });
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[0].getStepIconName()).toEqual('nav-arrow-down');
   });
 
   it('should show inactive state', async () => {
-    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    await initConfigureTestingModule(FAKE_MENU_STEPS, CURRENT_STEP);
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[2].hasStepIcon()).toEqual(false);
   });
 
   it('should show content', async () => {
-    await initConfigureTestingModule(FAKE_STEPS, FAKE_STEPS[1]);
+    await initConfigureTestingModule(FAKE_MENU_STEPS, CURRENT_STEP);
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[0].getStepContent()).toContain('test');
