@@ -208,8 +208,12 @@ class LogComponentController {
     const queryParamsMap = uri
       .slice(uri.indexOf('?') + 1)
       .split('&')
-      .map((queryParamsAsString) => queryParamsAsString.split('='))
-      // Convert in a map to group query params with the same key (it can happens when sending an array), for the example:
+      .map((queryParamsAsString) => {
+        // A simple `.split` is not enough as query param values can contains `=` themselves
+        const indexOfEqualChar = queryParamsAsString.indexOf('=');
+        return [queryParamsAsString.substring(0, indexOfEqualChar), queryParamsAsString.substring(indexOfEqualChar + 1)];
+      })
+      // Convert in a map to group query params with the same key (it can happen when sending an array), for example:
       // {
       //   type: ['monthly'],
       //   bucket: ['status_repartition', 'status_repartition-2'],
