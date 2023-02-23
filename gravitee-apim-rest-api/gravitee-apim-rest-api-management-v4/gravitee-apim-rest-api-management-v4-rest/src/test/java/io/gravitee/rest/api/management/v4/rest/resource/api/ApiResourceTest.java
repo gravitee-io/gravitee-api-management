@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -69,12 +70,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -146,6 +142,30 @@ public class ApiResourceTest extends AbstractResourceTest {
         apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
         apiEntity.setUpdatedAt(new Date());
         apiEntity.setAnalytics(new Analytics());
+
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setType("http-get");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setType("http-get");
+        endpoint.setConfiguration(
+            "{\n" +
+            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+            "                        \"topics\": [\n" +
+            "                            \"demo\"\n" +
+            "                        ],\n" +
+            "                        \"producer\": {\n" +
+            "                            \"enabled\": false\n" +
+            "                        },\n" +
+            "                        \"consumer\": {\n" +
+            "                            \"encodeMessageId\": true,\n" +
+            "                            \"enabled\": true,\n" +
+            "                            \"autoOffsetReset\": \"earliest\"\n" +
+            "                        }\n" +
+            "                    }"
+        );
+        endpointGroup.setEndpoints(List.of(endpoint));
+        apiEntity.setEndpointGroups(List.of(endpointGroup));
+
         doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
         doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
@@ -208,6 +228,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("nice configuration", tcpFoundEntrypoint.getConfiguration());
         assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
         assertEquals("tcp", tcpListener.getType().toString());
+
+        assertNotNull(responseApi.getEndpointGroups());
+        assertEquals(1, responseApi.getEndpointGroups().size());
+        assertNotNull(responseApi.getEndpointGroups().get(0));
+        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
+        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
+
+        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
+        assertNotNull(endpoint);
+        assertEquals("http-get", endpoint.getType());
+
+        LinkedHashMap config = new ObjectMapper().convertValue(endpoint.getConfiguration(), LinkedHashMap.class);
+        assertNotNull(config);
+        assertEquals("kafka:9092", config.get("bootstrapServers"));
+        assertEquals(List.of("demo"), config.get("topics"));
     }
 
     @Test

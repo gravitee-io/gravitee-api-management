@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.v4.rest.mapper;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -73,5 +77,16 @@ public interface ApiMapper {
                 }
             )
             .collect(Collectors.toList());
+    }
+
+    default Object map(String value) throws JsonProcessingException {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        try {
+            return new ObjectMapper().readTree(value);
+        } catch (JsonProcessingException e) {
+            return value;
+        }
     }
 }
