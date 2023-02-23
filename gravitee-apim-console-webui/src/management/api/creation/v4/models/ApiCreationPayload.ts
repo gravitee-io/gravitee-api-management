@@ -16,15 +16,21 @@
 import { Listener } from '../../../../../entities/api-v4';
 
 export type ApiCreationPayload = Partial<{
+  // API details
   name?: string;
   version?: string;
   description?: string;
+
+  // Entrypoints
+  type?: 'sync' | 'async';
   listeners?: Listener[];
   selectedEntrypoints?: {
     id: string;
     name: string;
     supportedListenerType: string;
   }[];
+
+  // Endpoints
   selectedEndpoints?: {
     id: string;
     name: string;
@@ -33,5 +39,7 @@ export type ApiCreationPayload = Partial<{
     type: string;
     configuration: any;
   }[];
+
+  // Summary
   deploy: boolean;
 }>;
