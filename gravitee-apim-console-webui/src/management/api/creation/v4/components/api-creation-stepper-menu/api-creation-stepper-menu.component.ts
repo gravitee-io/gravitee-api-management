@@ -16,11 +16,12 @@
 import { Component, EventEmitter, InjectionToken, Input, Output } from '@angular/core';
 
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { ApiCreationStep } from '../../services/api-creation-stepper.service';
+import { ApiCreationGroup, ApiCreationStep } from '../../services/api-creation-stepper.service';
 
 export const MENU_ITEM_PAYLOAD = new InjectionToken('MENU_ITEM_PAYLOAD');
 
-export interface MenuStepItem extends ApiCreationStep {
+export interface MenuStepItem extends ApiCreationGroup {
+  state: 'initial' | 'valid' | 'invalid';
   payload: ApiCreationPayload;
 }
 

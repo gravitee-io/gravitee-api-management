@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 
-import { ApiCreationStep, ApiCreationStepperService, NewSecondaryApiCreationStep } from './api-creation-stepper.service';
+import { ApiCreationStep, ApiCreationStepperService, NewApiCreationStep } from './api-creation-stepper.service';
 
 import { ApiCreationPayload } from '../models/ApiCreationPayload';
 
@@ -30,8 +30,8 @@ export class ApiCreationStepService {
     return this.stepper.compileStepPayload(this.step);
   }
 
-  public validStepAndGoNext(patchPayload: ApiCreationStep['patchPayload']): void {
-    this.stepper.validStepAndGoNext(patchPayload);
+  public validStep(patchPayload: ApiCreationStep['patchPayload']): void {
+    this.stepper.validStep(patchPayload);
   }
 
   public goToPreviousStep(): void {
@@ -42,7 +42,15 @@ export class ApiCreationStepService {
     this.stepper.goToStepLabel(stepLabel);
   }
 
-  public addSecondaryStep(step: NewSecondaryApiCreationStep): void {
-    this.stepper.addSecondaryStep(step);
+  public goToNextStep(step: NewApiCreationStep): void {
+    this.stepper.goToNextStep(step);
+  }
+
+  public removeStep(): void {
+    this.stepper.removeStep();
+  }
+
+  public finishStepper(): void {
+    this.stepper.finishStepper();
   }
 }

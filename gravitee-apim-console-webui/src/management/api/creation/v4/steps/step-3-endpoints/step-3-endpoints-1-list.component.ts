@@ -93,14 +93,12 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEndpointsIds.includes(e.id));
 
-    this.stepService.addSecondaryStep({
-      component: Step3Endpoints2ConfigComponent,
-    });
-
-    this.stepService.validStepAndGoNext((previousPayload) => ({
+    this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
       selectedEndpoints: selectedEndpoints,
     }));
+
+    this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints2ConfigComponent });
   }
 
   goBack(): void {

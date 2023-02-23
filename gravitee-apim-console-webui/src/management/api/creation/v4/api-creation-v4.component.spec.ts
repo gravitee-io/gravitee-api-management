@@ -33,6 +33,8 @@ import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-d
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
 import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-endpoints-2-config.harness';
+import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
+import { Step2Entrypoints1List } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -82,22 +84,23 @@ describe('ApiCreationV4Component', () => {
 
   describe('menu', () => {
     it('should have 6 steps', (done) => {
-      component.stepper.validStepAndGoNext(() => ({ name: 'A1' }));
-      component.stepper.addSecondaryStep({ component: Step2Entrypoints2ConfigComponent });
-      component.stepper.addSecondaryStep({ component: Step2Entrypoints2ConfigComponent });
-      component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B1` }));
-      component.stepper.validStepAndGoNext(({ name }) => ({ name: `${name}>B2` }));
+      component.stepper.goToNextStep({ groupNumber: 1, component: Step1ApiDetailsComponent });
+      component.stepper.validStep(() => ({ name: 'A1' }));
+      component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints1List });
+      component.stepper.validStep(({ name }) => ({ name: `${name}>B1` }));
+      component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints2ConfigComponent });
+      component.stepper.validStep(({ name }) => ({ name: `${name}>B2` }));
 
-      component.menuSteps$.subscribe((steps) => {
-        expect(steps.length).toEqual(6);
-        expect(steps[0].label).toEqual('API details');
-        expect(steps[1].label).toEqual('Entrypoints');
+      component.menuSteps$.subscribe((menuSteps) => {
+        expect(menuSteps.length).toEqual(6);
+        expect(menuSteps[0].label).toEqual('API details');
+        expect(menuSteps[1].label).toEqual('Entrypoints');
         // Expect to have the last valid step payload
-        expect(steps[1].payload).toEqual({ name: 'A1>B1>B2' });
-        expect(steps[2].label).toEqual('Endpoints');
-        expect(steps[3].label).toEqual('Security');
-        expect(steps[4].label).toEqual('Documentation');
-        expect(steps[5].label).toEqual('Summary');
+        expect(menuSteps[1].payload).toEqual({ name: 'A1>B1>B2' });
+        expect(menuSteps[2].label).toEqual('Endpoints');
+        expect(menuSteps[3].label).toEqual('Security');
+        expect(menuSteps[4].label).toEqual('Documentation');
+        expect(menuSteps[5].label).toEqual('Summary');
         done();
       });
     });
@@ -112,7 +115,7 @@ describe('ApiCreationV4Component', () => {
     it('should save api details and move to next step', async () => {
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
-      expect(component.currentStep.label).toEqual('API details');
+      expect(component.currentStep.group.label).toEqual('API details');
       await step1Harness.fillAndValidate('test API', '1', 'description');
       expectEntrypointsGetRequest([]);
 
@@ -120,13 +123,13 @@ describe('ApiCreationV4Component', () => {
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'test API', version: '1', description: 'description' });
-      expect(component.currentStep.label).toEqual('Entrypoints');
+      expect(component.currentStep.group.label).toEqual('Entrypoints');
     });
 
     it('should save api details and move to next step (description is optional)', async () => {
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
-      expect(component.currentStep.label).toEqual('API details');
+      expect(component.currentStep.group.label).toEqual('API details');
       await step1Harness.setName('API');
       await step1Harness.setVersion('1.0');
       await step1Harness.clickValidate();
@@ -136,7 +139,7 @@ describe('ApiCreationV4Component', () => {
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'API', version: '1.0', description: '' });
-      expect(component.currentStep.label).toEqual('Entrypoints');
+      expect(component.currentStep.group.label).toEqual('Entrypoints');
     });
 
     it('should exit without confirmation when no modification', async () => {
@@ -158,7 +161,7 @@ describe('ApiCreationV4Component', () => {
       expect(await dialogHarness).toBeTruthy();
 
       await dialogHarness.cancel();
-      expect(component.currentStep.label).toEqual('API details');
+      expect(component.currentStep.group.label).toEqual('API details');
 
       fixture.detectChanges();
       expect(fakeAjsState.go).not.toHaveBeenCalled();
@@ -189,7 +192,7 @@ describe('ApiCreationV4Component', () => {
       expectEntrypointsGetRequest([]);
 
       await step2Harness.clickPrevious();
-      expect(component.currentStep.label).toEqual('API details');
+      expect(component.currentStep.group.label).toEqual('API details');
 
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();

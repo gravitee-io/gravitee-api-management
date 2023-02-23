@@ -22,6 +22,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
+import { Step4SecurityComponent } from '../step-4-security/step-4-security.component';
 
 @Component({
   selector: 'step-3-endpoints-2-config',
@@ -80,7 +81,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     const currentStepPayload = this.stepService.payload;
     const endpoints = currentStepPayload.selectedEndpoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
-    this.stepService.validStepAndGoNext((previousPayload) => ({ ...previousPayload, endpoints }));
+
+    this.stepService.validStep((previousPayload) => ({ ...previousPayload, endpoints }));
+
+    this.stepService.goToNextStep({ groupNumber: 4, component: Step4SecurityComponent });
   }
 
   goBack(): void {

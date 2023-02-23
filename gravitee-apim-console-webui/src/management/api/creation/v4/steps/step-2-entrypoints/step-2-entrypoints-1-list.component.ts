@@ -86,14 +86,15 @@ export class Step2Entrypoints1List implements OnInit, OnDestroy {
       .map(({ id, name, supportedListenerType }) => ({ id, name, supportedListenerType }))
       .filter((e) => selectedEntrypointsIds.includes(e.id));
 
-    this.stepService.addSecondaryStep({
-      component: Step2Entrypoints2ConfigComponent,
-    });
-
-    this.stepService.validStepAndGoNext((previousPayload) => ({
+    this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
       selectedEntrypoints,
     }));
+
+    this.stepService.goToNextStep({
+      groupNumber: 2,
+      component: Step2Entrypoints2ConfigComponent,
+    });
   }
 
   goBack(): void {

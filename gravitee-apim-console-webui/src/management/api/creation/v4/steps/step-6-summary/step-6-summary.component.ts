@@ -34,7 +34,8 @@ export class Step6SummaryComponent implements OnInit {
   }
 
   createApi(deploy: boolean) {
-    this.stepService.validStepAndGoNext((payload) => ({ ...payload, deploy }));
+    this.stepService.validStep((payload) => ({ ...payload, deploy }));
+    this.stepService.finishStepper();
   }
 
   onChangeStepInfo(stepLabel: string) {
