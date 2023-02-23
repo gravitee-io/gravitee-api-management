@@ -532,6 +532,8 @@ import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-
 import { ApiCreationV4ConfirmationComponent } from './api/creation/v4/api-creation-v4-confirmation.component';
 import { ApiPortalGroupsComponent } from './api/portal/user-group-access/groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './api/portal/user-group-access/members/api-portal-members.component';
+import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -959,6 +961,8 @@ graviteeManagementModule.component('log', LogComponent);
 graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
 graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
+graviteeManagementModule.component('gvSearchAndSelect', SearchAndSelectComponent);
+graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelectController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
 graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);

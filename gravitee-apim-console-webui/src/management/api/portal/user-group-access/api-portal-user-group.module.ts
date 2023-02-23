@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioAvatarModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -24,6 +24,7 @@ import { UIRouterModule } from '@uirouter/angular';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiPortalGroupsComponent } from './groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './members/api-portal-members.component';
@@ -44,11 +45,13 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSelectModule,
     MatSnackBarModule,
     MatTableModule,
+    MatDialogModule,
 
     GioAvatarModule,
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioConfirmDialogModule,
   ],
 })
 export class ApiPortalUserGroupModule {}

@@ -42,11 +42,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
+import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
 import io.gravitee.gateway.jupiter.api.hook.InvokerHook;
 import io.gravitee.gateway.jupiter.api.invoker.Invoker;
@@ -87,6 +83,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +102,13 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     protected final List<ChainHook> processorChainHooks;
     protected final List<InvokerHook> invokerHooks;
     private final Api api;
+
+    @Getter
     private final ComponentProvider componentProvider;
+
+    @Getter
     private final List<TemplateVariableProvider> ctxTemplateVariableProviders;
+
     private final PolicyManager policyManager;
     private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
     private final EndpointManager endpointManager;

@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 @GatewayTest
 @DeployApi({ "/apis/grpc/unknown-endpoint.json" })
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class GrpcUnkownEndpointIntegrationTest extends AbstractGrpcGatewayTest {
+public class GrpcUnknownEndpointIntegrationTest extends AbstractGrpcGatewayTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
@@ -52,7 +52,7 @@ public class GrpcUnkownEndpointIntegrationTest extends AbstractGrpcGatewayTest {
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
         // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
+        ManagedChannel channel = createSecuredManagedChannel(event -> event.setUseAlpn(true).setSsl(true).setTrustAll(true));
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);

@@ -108,13 +108,16 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     }
 
     private static boolean isOrganizationAdmin() {
-        return SecurityContextHolder
-            .getContext()
-            .getAuthentication()
-            .getAuthorities()
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(ORGANIZATION_ADMIN::equals);
+        return (
+            SecurityContextHolder.getContext().getAuthentication() != null &&
+            SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(ORGANIZATION_ADMIN::equals)
+        );
     }
 
     private boolean hasApiManagementRole(final ExecutionContext executionContext, UserEntity user) {

@@ -22,9 +22,25 @@
     <p class="api-creation-v4__step__header__paragraph-light">Configure how your users will consume your API</p>
   </div>
 
-  TODO Config context path or virtual host <br /><br />
-
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+    <div class="api-creation-v4__form-container" *ngIf="hasListeners">
+      <h3>Configure common entrypoints fields</h3>
+      <h4 class="api-creation-v4__form-container__subTitle">Entrypoints context</h4>
+      <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
+      <gio-form-listeners-virtual-host
+        *ngIf="this.enableVirtualHost"
+        formControlName="paths"
+        [domainRestrictions]="domainRestrictions"
+      ></gio-form-listeners-virtual-host>
+
+      <div class="step-2-entrypoints-2-config__actions">
+        <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
+          <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
+          <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
+        </button>
+      </div>
+    </div>
+
     <div class="api-creation-v4__form-container" *ngFor="let entrypoint of selectedEntrypoints">
       <h3>{{ entrypoint.name }}</h3>
       <gio-form-json-schema
@@ -36,7 +52,7 @@
 
     <div class="api-creation-v4__step__footer">
       <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button id="validate" mat-raised-button color="primary" type="submit" [disabled]="formGroup.invalid">Validate my entrypoints</button>
+      <button id="validate" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Validate my entrypoints</button>
     </div>
   </form>
 </mat-card>

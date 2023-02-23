@@ -6,7 +6,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .api-creation-v4 {
   &__step {
-    max-width: 780px;
+    max-width: 980px;
     padding: 40px;
 
     &__header {
@@ -15,6 +15,7 @@ $typography: map.get(gio.$mat-theme, typography);
       &__step-number {
         @include mat.typography-level($typography, 'subheading-1');
         color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
+        padding-bottom: 32px;
       }
 
       &__subtitle {
@@ -32,8 +33,13 @@ $typography: map.get(gio.$mat-theme, typography);
     &__footer {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-end;
       margin-top: 24px;
+      gap: 16px;
+
+      :first-child {
+        margin-right: auto;
+      }
     }
   }
 
@@ -53,5 +59,9 @@ $typography: map.get(gio.$mat-theme, typography);
     border-radius: 8px;
     padding: 16px;
     margin-top: 16px;
+
+    &__subTitle {
+      font-size: 14px;
+    }
   }
 }

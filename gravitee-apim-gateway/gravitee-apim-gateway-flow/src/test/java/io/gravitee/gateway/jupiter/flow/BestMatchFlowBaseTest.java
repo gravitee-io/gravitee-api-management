@@ -16,7 +16,6 @@
 package io.gravitee.gateway.jupiter.flow;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
@@ -27,241 +26,20 @@ import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.HttpExecutionContext;
 import io.gravitee.gateway.jupiter.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Flowable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.Before;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
-public abstract class BestMatchFlowBaseTest {
+public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     public final ConditionEvaluator evaluator = new CompositeConditionEvaluator(new PathBasedConditionEvaluator());
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Parameterized.Parameter(0)
-    public List<String> flowPaths;
-
-    @Parameterized.Parameter(1)
-    public Operator operator;
-
-    @Parameterized.Parameter(2)
-    public String expectedBestMatchResult;
-
-    @Parameterized.Parameter(3)
-    public String requestPath;
-
     public TestFlowResolver flowResolver;
-
-    /**
-     * Build list of parameters for test case.
-     * @return Tests parameter objects with this structure:
-     * { list of flow paths, expected path result, path used by request}
-     */
-    @Parameterized.Parameters(name = "{index}: Configured flows={0}, Request={3}, Operator={1}, Expected BestMatch={2}")
-    public static Iterable<Object> data() {
-        return Arrays.asList(
-            new Object[][] {
-                { List.of(), Operator.STARTS_WITH, null, "/path/55" },
-                { List.of("/"), Operator.STARTS_WITH, "/", "" },
-                { List.of("/"), Operator.STARTS_WITH, "/", "/" },
-                { List.of("/"), Operator.STARTS_WITH, "/", "/path/55" },
-                { List.of("/"), Operator.EQUALS, "/", "" },
-                { List.of("/"), Operator.EQUALS, "/", "/" },
-                { List.of("/"), Operator.EQUALS, null, "/path/55" },
-                { List.of("/", "/path"), Operator.STARTS_WITH, "/", "/random" },
-                { List.of("/", "/path"), Operator.STARTS_WITH, "/path", "/path/55" },
-                { List.of("/path/:id"), Operator.STARTS_WITH, "/path/:id", "/path/55" },
-                { List.of("/path/:id"), Operator.STARTS_WITH, "/path/:id", "/path/55" },
-                { List.of("/path/:id"), Operator.EQUALS, "/path/:id", "/path/55" },
-                { List.of("/path/:id", "/path/staticId"), Operator.STARTS_WITH, "/path/:id", "/path/55" },
-                { List.of("/path/:id", "/path/staticId"), Operator.EQUALS, "/path/:id", "/path/55" },
-                { List.of("/path/:id", "/path/staticId"), Operator.STARTS_WITH, "/path/staticId", "/path/staticId" },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/staticId",
-                    "/path/staticId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/staticId",
-                    "/path/staticId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/staticId",
-                    "/path/staticId/secondId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/secondId",
-                    "/path/staticId/secondId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/:id/secondId",
-                    "/path/5555/secondId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/secondId",
-                    "/path/5555/secondId",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/:id",
-                    "/path/5555",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id",
-                    "/path/5555",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/:id/:id2",
-                    "/path/5555/5959",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/:id2",
-                    "/path/5555/5959",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/:id/:id2",
-                    "/path/5555/5559/5553",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/:id2",
-                    "/path/5555/5559/5553",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2", "/path/:id/subResource/:id2"),
-                    Operator.STARTS_WITH,
-                    "/path/:id/subResource/:id2",
-                    "/path/5555/subResource/5553",
-                },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2", "/path/:id/subResource/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/subResource/:id2",
-                    "/path/5555/subResource/5553",
-                },
-                {
-                    List.of(
-                        "/",
-                        "/book",
-                        "/book/9999/chapter/145/page/200/line",
-                        "/book/9999/chapter/145/page",
-                        "/city/washington/street/first/library/amazon/book/9999/chapter/145",
-                        "/book/7777/chapter/145",
-                        "/book/9999/chapter/147",
-                        "/book/9999/chapter/145",
-                        "/book/9999/chapter/148",
-                        "/book/9999/chapter"
-                    ),
-                    Operator.STARTS_WITH,
-                    "/book/9999/chapter/145",
-                    "/book/9999/chapter/145",
-                },
-                {
-                    List.of(
-                        "/",
-                        "/book",
-                        "/book/9999/chapter/145/page/200/line",
-                        "/book/9999/chapter/145/page",
-                        "/city/washington/street/first/library/amazon/book/9999/chapter/145",
-                        "/book/7777/chapter/145",
-                        "/book/9999/chapter/147",
-                        "/book/9999/chapter/145",
-                        "/book/9999/chapter/148",
-                        "/book/9999/chapter"
-                    ),
-                    Operator.EQUALS,
-                    "/book/9999/chapter/145",
-                    "/book/9999/chapter/145",
-                },
-                {
-                    List.of(
-                        "/",
-                        "/book",
-                        "/book/9999/chapter/145/page/200/line",
-                        "/book/9999/chapter/145/page",
-                        "/city/washington/street/first/library/amazon/book/9999/chapter/145",
-                        "/book/7777/chapter/145",
-                        "/book/9999/chapter/147",
-                        "/book/9999/chapter/145",
-                        "/book/9999/chapter/148",
-                        "/book/9999/chapter"
-                    ),
-                    Operator.STARTS_WITH,
-                    "/",
-                    "/food",
-                },
-                {
-                    List.of(
-                        "/book",
-                        "/book/:bookId/chapter/:chapterId/page/:pageId",
-                        "/book/:bookId",
-                        "/book/:bookId/chapter/:chapterId",
-                        "/book/9999/chapter"
-                    ),
-                    Operator.STARTS_WITH,
-                    "/book/9999/chapter",
-                    "/book/9999/chapter/145",
-                },
-                {
-                    List.of(
-                        "/book",
-                        "/book/:bookId/chapter/:chapterId/page/:pageId",
-                        "/book/:bookId",
-                        "/book/:bookId/chapter/:chapterId",
-                        "/book/9999/chapter"
-                    ),
-                    Operator.EQUALS,
-                    "/book/:bookId/chapter/:chapterId",
-                    "/book/9999/chapter/145",
-                },
-                {
-                    List.of("/book", "/book/:bookId/chapter/:chapterId/page/:pageId", "/book/:bookId", "/book/:bookId/chapter/:chapterId"),
-                    Operator.STARTS_WITH,
-                    "/book/:bookId/chapter/:chapterId",
-                    "/book/9999/chapter/145",
-                },
-                {
-                    List.of("/book", "/book/:bookId/chapter/:chapterId/page/:pageId", "/book/:bookId", "/book/:bookId/chapter/:chapterId"),
-                    Operator.EQUALS,
-                    "/book/:bookId/chapter/:chapterId",
-                    "/book/9999/chapter/145",
-                },
-            }
-        );
-    }
 
     @Before
     public void setUp() {

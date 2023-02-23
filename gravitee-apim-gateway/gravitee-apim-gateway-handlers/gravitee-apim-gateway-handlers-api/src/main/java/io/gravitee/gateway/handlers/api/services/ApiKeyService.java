@@ -38,7 +38,7 @@ public class ApiKeyService implements io.gravitee.gateway.api.service.ApiKeyServ
     @Override
     public void save(ApiKey apiKey) {
         String cacheKey = buildCacheKey(apiKey);
-        if (apiKey.isRevoked() || apiKey.isPaused()) {
+        if (!apiKey.isActive()) {
             LOGGER.debug(
                 "Remove an api-key from cache [id: {}] [plan: {}] [app: {}]",
                 apiKey.getId(),

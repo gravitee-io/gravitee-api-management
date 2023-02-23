@@ -26,8 +26,9 @@ import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.Su
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
@@ -40,8 +41,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,11 +56,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionProcessorTest extends AbstractProcessorTest {
 
     protected static final String PLAN_ID = "planId";
     protected static final String APPLICATION_ID = "applicationId";
     protected static final String SUBSCRIPTION_ID = "subscriptionId";
+    protected static final String TRANSACTION_ID = "transactionId";
     protected static final String REMOTE_ADDRESS = "remoteAddress";
 
     @Captor
@@ -66,6 +73,11 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     @BeforeEach
     void initProcessor() {
         cut = SubscriptionProcessor.instance(null);
+        spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
+        spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
+        spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
+        lenient().when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
+        lenient().when(mockRequest.transactionId()).thenReturn(TRANSACTION_ID);
     }
 
     @Test
@@ -73,141 +85,203 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         assertThat(cut.getId()).isEqualTo("processor-subscription");
     }
 
-    @Test
-    void shouldSetMetricsWhenSecurityChainIsNotSkipped() {
-        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, null);
-        spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
-        spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
-        spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
+    @Nested
+    class SecurityChain {
 
-        final TestObserver<Void> obs = cut.execute(spyCtx).test();
-        obs.assertResult();
+        @Test
+        void should_set_metrics_when_security_chain_is_not_skipped() {
+            spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, null);
+            final TestObserver<Void> obs = cut.execute(spyCtx).test();
+            obs.assertResult();
 
-        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
-        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
+            assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
+            assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
+            assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
+        }
+
+        @Test
+        void should_not_override_attribute_when_security_chain_is_skipped() {
+            spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+            final TestObserver<Void> obs = cut.execute(spyCtx).test();
+            obs.assertResult();
+
+            assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
+            assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
+            assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
+        }
+
+        @Test
+        void should_set_unknown_attribute_when_security_chain_is_skipped() {
+            spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+            spyCtx.setAttribute(ATTR_PLAN, null);
+            spyCtx.setAttribute(ATTR_APPLICATION, null);
+            spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, null);
+
+            final TestObserver<Void> obs = cut.execute(spyCtx).test();
+            obs.assertResult();
+            assertThat(spyCtx.<String>getAttribute(ATTR_PLAN)).isEqualTo(PLAN_ANONYMOUS);
+            assertThat(spyCtx.<String>getAttribute(ATTR_APPLICATION)).isEqualTo(APPLICATION_ANONYMOUS);
+            assertThat(spyCtx.<String>getAttribute(ATTR_SUBSCRIPTION_ID)).isEqualTo(REMOTE_ADDRESS);
+
+            assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ANONYMOUS);
+            assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ANONYMOUS);
+            assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(REMOTE_ADDRESS);
+        }
     }
 
-    @Test
-    void shouldNotOverrideAttributeWhenSecurityChainIsSkipped() {
-        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
-        spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
-        spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
-        spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
+    @Nested
+    class SubscriptionVariableProvider {
 
-        final TestObserver<Void> obs = cut.execute(spyCtx).test();
-        obs.assertResult();
+        @Test
+        void should_add_subscription_variable_provider_with_ctx_subscription() {
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
 
-        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ID);
-        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(SUBSCRIPTION_ID);
+            cut.execute(spyCtx).test().assertComplete();
+
+            verify(spyCtx).templateVariableProviders(providersCaptor.capture());
+            verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
+
+            List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
+            assertThat(providers).hasSize(1);
+            TemplateVariableProvider templateVariableProvider = providers.get(0);
+            assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
+        }
+
+        @Test
+        void should_add_subscription_variable_provider_with_new_subscription() {
+            cut.execute(spyCtx).test().assertComplete();
+
+            verify(spyCtx).templateVariableProviders(providersCaptor.capture());
+            verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
+
+            List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
+            assertThat(providers).hasSize(1);
+            TemplateVariableProvider templateVariableProvider = providers.get(0);
+            assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
+        }
     }
 
-    @Test
-    void shouldSetUnknownAttributeWhenSecurityChainIsSkipped() {
-        String remoteAddress = "remoteAddress";
-        when(mockRequest.remoteAddress()).thenReturn(remoteAddress);
-        spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+    @Nested
+    class ClientIdentifier {
 
-        final TestObserver<Void> obs = cut.execute(spyCtx).test();
-        obs.assertResult();
-        assertThat(spyCtx.<String>getAttribute(ATTR_PLAN)).isEqualTo(PLAN_ANONYMOUS);
-        assertThat(spyCtx.<String>getAttribute(ATTR_APPLICATION)).isEqualTo(APPLICATION_ANONYMOUS);
-        assertThat(spyCtx.<String>getAttribute(ATTR_SUBSCRIPTION_ID)).isEqualTo(remoteAddress);
+        @Test
+        void should_use_subscription_id_when_client_identifier_header_is_null_and_subscription_is_not_null() {
+            cut.execute(spyCtx).test().assertComplete();
 
-        assertThat(spyCtx.metrics().getPlanId()).isEqualTo(PLAN_ANONYMOUS);
-        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo(APPLICATION_ANONYMOUS);
-        assertThat(spyCtx.metrics().getSubscriptionId()).isEqualTo(remoteAddress);
-    }
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(SUBSCRIPTION_ID);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isNull();
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(SUBSCRIPTION_ID);
 
-    @Test
-    void shouldAddSubscriptionVariableProviderWithCtxSubscription() {
-        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
+            verify(mockRequest).clientIdentifier(SUBSCRIPTION_ID);
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(SUBSCRIPTION_ID);
+        }
 
-        cut.execute(spyCtx).test().assertComplete();
+        @Test
+        void should_use_transaction_id_when_client_identifier_header_is_null_and_subscription_is_null() {
+            spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, null);
 
-        verify(spyCtx).templateVariableProviders(providersCaptor.capture());
-        verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
+            cut.execute(spyCtx).test().assertComplete();
 
-        List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
-        assertThat(providers).hasSize(1);
-        TemplateVariableProvider templateVariableProvider = providers.get(0);
-        assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
-    }
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(TRANSACTION_ID);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isNull();
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(TRANSACTION_ID);
 
-    @Test
-    void shouldAddSubscriptionVariableProviderWithNewSubscription() {
-        cut.execute(spyCtx).test().assertComplete();
+            verify(mockRequest).clientIdentifier(TRANSACTION_ID);
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(TRANSACTION_ID);
+        }
 
-        verify(spyCtx).templateVariableProviders(providersCaptor.capture());
-        verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
+        @Test
+        void should_use_hash_subscription_id_when_client_identifier_header_is_null_and_subscription_equals_remote_address() {
+            spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, REMOTE_ADDRESS);
 
-        List<TemplateVariableProvider> providers = new ArrayList<>(providersCaptor.getValue());
-        assertThat(providers).hasSize(1);
-        TemplateVariableProvider templateVariableProvider = providers.get(0);
-        assertThat(templateVariableProvider).isInstanceOf(SubscriptionTemplateVariableProvider.class);
-    }
+            cut.execute(spyCtx).test().assertComplete();
 
-    @Test
-    void shouldUseSubscriptionIdWhenClientIdentifierHeaderIsNullAndSubscriptionNotNull() {
-        String subscriptionId = "1234";
-        spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, subscriptionId);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isNotNull();
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(TRANSACTION_ID);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(REMOTE_ADDRESS);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(SUBSCRIPTION_ID);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isNull();
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isNotNull();
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).doesNotContain(TRANSACTION_ID);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).doesNotContain(REMOTE_ADDRESS);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).doesNotContain(SUBSCRIPTION_ID);
 
-        cut.execute(spyCtx).test().assertComplete();
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(SUBSCRIPTION_ID)));
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(TRANSACTION_ID)));
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(REMOTE_ADDRESS)));
+            assertThat(spyCtx.metrics().getClientIdentifier()).isNotNull();
+            assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(TRANSACTION_ID);
+            assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(REMOTE_ADDRESS);
+            assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(SUBSCRIPTION_ID);
+        }
 
-        assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(subscriptionId);
-        assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(subscriptionId);
-        assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(subscriptionId);
+        @Test
+        void should_use_client_identifier_header_when_suffix_by_subscription() {
+            String clientIdentifier = "1234-" + SUBSCRIPTION_ID;
+            spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
 
-        verify(mockRequest).clientIdentifier(subscriptionId);
-        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(subscriptionId);
-    }
+            cut.execute(spyCtx).test().assertComplete();
 
-    @Test
-    void shouldUseTransactionIdWhenClientIdentifierHeaderIsNullAndSubscriptionNotNull() {
-        String transactionId = "1234";
-        when(mockRequest.transactionId()).thenReturn(transactionId);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(clientIdentifier);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
 
-        cut.execute(spyCtx).test().assertComplete();
+            verify(mockRequest).clientIdentifier(clientIdentifier);
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+        }
 
-        assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(transactionId);
-        assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
-        assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
+        @Test
+        void should_suffix_client_identifier_header_with_subscription_when_not_suffix_by_subscription() {
+            String clientIdentifier = "1234";
+            String ctxClientIdentifier = "1234-" + SUBSCRIPTION_ID;
+            spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
 
-        verify(mockRequest).clientIdentifier(transactionId);
-        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(transactionId);
-    }
+            cut.execute(spyCtx).test().assertComplete();
 
-    @Test
-    void shouldUseTransactionIdWhenClientIdentifierHeaderIsNullAndSubscriptionEqualsRemoteAddress() {
-        String transactionId = "1234";
-        when(mockRequest.transactionId()).thenReturn(transactionId);
-        String remoteAddress = "remoteAddress";
-        when(mockRequest.remoteAddress()).thenReturn(remoteAddress);
-        spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, remoteAddress);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(ctxClientIdentifier);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
 
-        cut.execute(spyCtx).test().assertComplete();
+            verify(mockRequest).clientIdentifier(ctxClientIdentifier);
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+        }
 
-        assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(transactionId);
-        assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
-        assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(transactionId);
+        @Test
+        void should_use_client_identifier_header_when_suffix_by_transaction() {
+            String clientIdentifier = "1234-" + TRANSACTION_ID;
+            spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
 
-        verify(mockRequest).clientIdentifier(transactionId);
-        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(transactionId);
-    }
+            cut.execute(spyCtx).test().assertComplete();
 
-    @Test
-    void shouldUseClientIdentifierHeader() {
-        String clientIdentifier = "1234";
-        spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(clientIdentifier);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
 
-        cut.execute(spyCtx).test().assertComplete();
+            verify(mockRequest).clientIdentifier(clientIdentifier);
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+        }
 
-        assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(clientIdentifier);
-        assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
-        assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+        @Test
+        void should_suffix_client_identifier_header_with_hash_when_subscription_equals_remote_address() {
+            spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, REMOTE_ADDRESS);
+            String clientIdentifier = "1234";
+            String startCtxClientIdentifier = "1234-";
+            spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
 
-        verify(mockRequest).clientIdentifier(clientIdentifier);
-        assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).startsWith(startCtxClientIdentifier);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(SUBSCRIPTION_ID);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(TRANSACTION_ID);
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(REMOTE_ADDRESS);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+
+            verify(mockRequest).clientIdentifier(startsWith(startCtxClientIdentifier));
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(SUBSCRIPTION_ID)));
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(TRANSACTION_ID)));
+            verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(REMOTE_ADDRESS)));
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+        }
     }
 }

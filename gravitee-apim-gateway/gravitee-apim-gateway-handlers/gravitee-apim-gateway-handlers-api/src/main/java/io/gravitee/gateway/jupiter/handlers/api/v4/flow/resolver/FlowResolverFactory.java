@@ -17,8 +17,10 @@ package io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowMode;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.jupiter.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.jupiter.v4.flow.FlowResolver;
 
 /**
@@ -39,11 +41,19 @@ public class FlowResolverFactory {
     }
 
     public FlowResolver forApi(Api api) {
-        return new ApiFlowResolver(api.getDefinition(), getConditionFilter(api));
+        ApiFlowResolver apiFlowResolver = new ApiFlowResolver(api.getDefinition(), getConditionFilter(api));
+        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
+            return new BestMatchFlowResolver(apiFlowResolver);
+        }
+        return apiFlowResolver;
     }
 
     public FlowResolver forApiPlan(Api api) {
-        return new ApiPlanFlowResolver(api.getDefinition(), getConditionFilter(api));
+        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(api.getDefinition(), getConditionFilter(api));
+        if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
+            return new BestMatchFlowResolver(apiPlanFlowResolver);
+        }
+        return apiPlanFlowResolver;
     }
 
     private ConditionFilter<Flow> getConditionFilter(final Api api) {
@@ -53,5 +63,9 @@ public class FlowResolverFactory {
             return asyncApiFlowFilter;
         }
         throw new IllegalArgumentException("Api type unsupported");
+    }
+
+    private static boolean isBestMatchFlowMode(FlowMode flowMode) {
+        return flowMode == FlowMode.BEST_MATCH;
     }
 }

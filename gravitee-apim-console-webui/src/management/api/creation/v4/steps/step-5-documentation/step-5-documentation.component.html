@@ -18,13 +18,14 @@
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
     <div class="api-creation-v4__step__header__step-number">Step 5</div>
-    <div class="api-creation-v4__step__header__subtitle">Upload the file containing your API specification documentation</div>
+    <div class="api-creation-v4__step__header__subtitle">Documentation</div>
+    <p class="api-creation-v4__step__header__paragraph-light">Upload the file containing your API specification documentation</p>
   </div>
   <form [formGroup]="form" (ngSubmit)="save()">
     🚧 TODO: Implement this step
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="onExit()">Previous</button>
-      <button mat-flat-button color="primary" type="button">Skip this step</button>
+      <button mat-stroked-button type="button">Skip this step</button>
       <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my documentation</button>
     </div>
   </form>

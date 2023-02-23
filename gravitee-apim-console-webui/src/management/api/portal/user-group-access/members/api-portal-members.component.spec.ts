@@ -19,6 +19,9 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
 import { MatOptionHarness } from '@angular/material/core/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiPortalMembersComponent } from './api-portal-members.component';
 import { ApiPortalMembersHarness } from './api-portal-members.harness';
@@ -42,12 +45,16 @@ describe('ApiPortalMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalUserGroupModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiPortalUserGroupModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId } },
         { provide: UsersService, useValue: { getUserAvatar: () => 'avatar' } },
         { provide: RoleService, useValue: { list: () => of(roles) } },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+      },
     });
 
     fixture = TestBed.createComponent(ApiPortalMembersComponent);
@@ -189,6 +196,62 @@ describe('ApiPortalMembersComponent', () => {
     });
   });
 
+  describe('Delete a member', () => {
+    it('should not allow to delete primary owner', async () => {
+      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const members: ApiMember[] = [{ id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' }];
+      expectApiGetRequest(api);
+      expectApiMembersGetRequest(members);
+
+      expect(await harness.isMemberDeleteButtonVisible(0)).toEqual(false);
+    });
+
+    it('should ask confirmation before delete member, and do nothing if canceled', async () => {
+      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const members: ApiMember[] = [
+        { id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' },
+        { id: '2', displayName: 'user', role: 'USER' },
+      ];
+      expectApiGetRequest(api);
+      expectApiMembersGetRequest(members);
+
+      expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
+
+      await harness.getMemberDeleteButton(1).then((btn) => btn.click());
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(confirmDialog).toBeDefined();
+
+      await confirmDialog.cancel();
+
+      // no changes, no call to API
+      expect((await harness.getTableRows()).length).toEqual(2);
+    });
+
+    it('should call the API if member deletion is confirmed', async () => {
+      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const members: ApiMember[] = [
+        { id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' },
+        { id: '2', displayName: 'user', role: 'USER' },
+      ];
+      expectApiGetRequest(api);
+      expectApiMembersGetRequest(members);
+
+      expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
+
+      await harness.getMemberDeleteButton(1).then((btn) => btn.click());
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(confirmDialog).toBeDefined();
+
+      await confirmDialog.confirm();
+      expectDeleteMember(apiId, '2');
+
+      expect((await harness.getTableRows()).length).toEqual(1);
+      expect(await harness.getMembersName()).toEqual(['owner']);
+    });
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -196,6 +259,16 @@ describe('ApiPortalMembersComponent', () => {
 
   function expectApiMembersGetRequest(members: ApiMember[] = []) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
+    fixture.detectChanges();
+  }
+
+  function expectDeleteMember(apiId: string, memberId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members?user=${memberId}`,
+        method: 'DELETE',
+      })
+      .flush({});
     fixture.detectChanges();
   }
 });

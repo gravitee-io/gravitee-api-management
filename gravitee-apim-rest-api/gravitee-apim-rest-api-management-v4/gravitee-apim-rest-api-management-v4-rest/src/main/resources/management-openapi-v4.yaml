@@ -1,0 +1,1558 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Management API
+    description: |-
+        This is the OpenAPI specification for our new version of APIM Management API.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 4.0.0-alpha.1
+tags:
+    - name: Installation
+      description: Base resources about the installation
+    - name: APIs
+      description: Everything about v4 APIs
+    - name: API Plans
+      description: Everything about v4 Plans
+    - name: Endpoints
+      description: Everything about v4 Endpoints
+    - name: Entrypoints
+      description: Everything about v4 Entrypoints
+servers:
+    - url: https://apim-{version}-api.team-apim.gravitee.dev/management/v4
+      description: Gravitee.io APIM - Management API -v4
+      variables:
+          version:
+              default: 4-0-x
+
+paths:
+    /organizations/{orgId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get a specific organization
+            description: |-
+                # FIXME add a description
+            operationId: getOrganizationById
+            responses:
+                "200":
+                    description: An organization
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Organization"
+                default:
+                    $ref: "#/components/responses/Error"
+    /organizations/{orgId}/environments:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Installation
+            summary: List all environments of a specific organization
+            description: |-
+                # FIXME add a description
+            operationId: getEnvironments
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get a specific environment
+            description: |-
+                # FIXME add a description
+            operationId: getEnvironmentById
+            responses:
+                "200":
+                    description: An environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Environment"
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - APIs
+            summary: List APIs
+            description: |-
+                # FIXME add a description
+            operationId: getApis
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - APIs
+            summary: Create an API
+            description: |-
+                # FIXME add a description
+            operationId: createApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Api"
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get a specific API
+            description: |-
+                # FIXME add a description
+            operationId: getApiById
+            responses:
+                "200":
+                    description: API found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - APIs
+            summary: Update an API
+            description: |-
+                # FIXME add a description
+            operationId: updateApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Api"
+                required: true
+            responses:
+                "200":
+                    description: API successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            parameters:
+                - name: closePlans
+                  in: query
+                  required: false
+                  description: Set to true to close API plans.
+                  schema:
+                      type: boolean
+            tags:
+                - APIs
+            summary: Delete an API
+            description: |-
+                # FIXME add a description
+            operationId: deleteApi
+            responses:
+                "204":
+                    description: API successfully deleted
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/_start:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Start an API
+            description: |-
+                # FIXME add a description
+            operationId: startApi
+            responses:
+                "204":
+                    description: API successfully started
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/_stop:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Stop an API
+            description: |-
+                # FIXME add a description
+            operationId: stopApi
+            responses:
+                "204":
+                    description: API successfully stopped
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/deployments:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Request a deployment to gateway instances
+            description: |-
+                # FIXME add a description
+            operationId: createAPIDeployment
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiDeployment"
+            responses:
+                "201":
+                    description: API deployment successfully deployed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiDeployment"
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/plans:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - name: status
+                  in: query
+                  required: false
+                  description: List of plan status to filter on
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/PlanStatus"
+                      default: [ "published" ]
+                  explode: false
+                - name: security
+                  in: query
+                  required: false
+                  description: List of plan security to filter on
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/PlanSecurityType"
+                  explode: false
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+
+            tags:
+                - APIs
+                - API Plans
+            summary: Get the API's plans
+            description: |
+                # FIXME add a description
+            operationId: getApiPlans
+            responses:
+                "200":
+                    $ref: "#/components/responses/PlansResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - APIs
+                - API Plans
+            summary: Create an API in a specific environment
+            description: |-
+                # FIXME add a description
+            operationId: createAPIPlan
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Api"
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /apis/{apiId}/plans/{planId}:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/planIdParam"
+        get:
+            tags:
+                - APIs
+                - API Plans
+            summary: Get one API's plan
+            description: |
+                # FIXME add a description
+            operationId: getApiPlanById
+            responses:
+                "200":
+                    description: An API's plan
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - APIs
+                - API Plans
+            summary: Update one API's plan
+            description: |
+                # FIXME add a description
+            operationId: updateApiPlan
+            responses:
+                "200":
+                    description: API's plan successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - APIs
+                - API Plans
+            summary: Delete one API's plan
+            description: |
+                # FIXME add a description
+            operationId: deleteApiPlan
+            responses:
+                "204":
+                    description: API's plan successfully deleted
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /apis/{apiId}/plans/{planId}/_close:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/planIdParam"
+        post:
+            tags:
+                - APIs
+                - API Plans
+            summary: Close an API's plan
+            description: |-
+                # FIXME add a description
+            operationId: closeApiPlan
+            responses:
+                "200":
+                    description: API's plan successfully closed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/plans/{planId}/_publish:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/planIdParam"
+        post:
+            tags:
+                - APIs
+                - API Plans
+            summary: Publish an API's plan
+            description: |-
+                # FIXME add a description
+            operationId: publishApiPlan
+            responses:
+                "200":
+                    description: API's plan successfully published
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+    /apis/{apiId}/plans/{planId}/_deprecate:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/planIdParam"
+        post:
+            tags:
+                - APIs
+                - API Plans
+            summary: Deprecate an API's plan
+            description: |-
+                # FIXME add a description
+            operationId: deprecateApiPlan
+            responses:
+                "200":
+                    description: API's plan successfully deprecated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+    /endpoints:
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get available endpoints on the platform
+            description: |
+                # FIXME add a description
+            operationId: getEndpoints
+            responses:
+                "200":
+                    $ref: "#/components/responses/EndpointsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /endpoints/{endpointId}:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get an endpoint
+            description: |
+                # FIXME add a description
+            operationId: getEndpoint
+            responses:
+                "200":
+                    description: Endpoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /endpoints/{endpointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get an endpoint schema
+            description: |
+                # FIXME add a description
+            operationId: getEndpointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /endpoints/{endpointId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get an endpoint documentation
+            description: |
+                # FIXME add a description
+            operationId: getEndpointDocumentation
+            responses:
+                "200":
+                    description: Documentation of the endpoint
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /entrypoints:
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get available entrypoints on the platform
+            description: |
+                # FIXME add a description
+            operationId: getEntrypoints
+            responses:
+                "200":
+                    $ref: "#/components/responses/EntrypointsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /entrypoints/{entrypointId}:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get an entrypoint
+            description: |
+                # FIXME add a description
+            operationId: getEntrypoint
+            responses:
+                "200":
+                    description: Entrypoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /entrypoints/{entrypointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get an entrypoint schema
+            description: |
+                # FIXME add a description
+            operationId: getEntrypointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /entrypoints/{entrypointId}/subscriptionSchema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get an entrypoint subscription schema
+            description: |
+                # FIXME add a description
+            operationId: getEntrypointSubscriptionSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /entrypoints/{entrypointId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get an entrypoint documentation
+            description: |
+                # FIXME add a description
+            operationId: getEntrypointDocumentation
+            responses:
+                "200":
+                    description: Documentation of the entrypoint
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                default:
+                    $ref: "#/components/responses/Error"
+
+components:
+    schemas:
+        Api:
+            type: object
+            required:
+                - apiVersion
+                - environmentId
+                - definitionVersion
+                - name
+                - type
+                - visibility
+            properties:
+                # required
+                apiVersion:
+                    type: string
+                    description: API's version. It's a simple string only used in the portal.
+                    example: v1.0
+                    minLength: 1
+                definitionVersion:
+                    type: string
+                    default: v4
+                environmentId:
+                    type: string
+                    description: |-
+                        The id of the environment the API will belong to.
+                        
+                        **_WARNING:_** 
+                        > This field is for _creation only_. It means that if you try to change the value of this field with a PUT or a PATCH resource, it will fail with a 400 error.
+                    example: 1a2b3c4d-5e6f-1234-abcd-1a2b3c4d5e6f
+                name:
+                    type: string
+                    description: API's name. Duplicate names can exists.
+                    example: My Api
+                    minLength: 1
+                type:
+                    $ref: "#/components/schemas/ApiType"
+                visibility:
+                    $ref: "#/components/schemas/ApiVisibility"
+
+                # optional
+                backgroundUrl:
+                    type: string
+                    description: The API background URL. Used in Portal.
+                    example: https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background
+                categories:
+                    type: array
+                    description: The list of categories associated with this API.
+                    example:
+                        - Product
+                        - Customer
+                        - Misc
+                    items:
+                        type: string
+                description:
+                    type: string
+                    description: API's description. A short description of your API.
+                    example: I can use many characters to describe this API.
+                disableMembershipNotifications:
+                    type: boolean
+                    description: Disable membership notifications.
+                    default: false
+                endpointGroups:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/EndpointGroup"
+                flowMode:
+                    $ref: "#/components/schemas/FlowMode"
+                groups:
+                    type: array
+                    description: API's groups. Used to add team in your API.
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
+                        minLength: 1
+                labels:
+                    type: array
+                    description: The free list of labels associated with this API.
+                    example:
+                        - json
+                        - read_only
+                        - awesome
+                    items:
+                        type: string
+                lifecycleState:
+                    $ref: "#/components/schemas/ApiLifecycleState"
+                listeners:
+                    type: array
+                    description: The list of listeners associated with this API.
+                    items:
+                        type: object
+                        oneOf:
+                            - $ref: "#/components/schemas/HttpListener"
+                            - $ref: "#/components/schemas/SubscriptionListener"
+                            - $ref: "#/components/schemas/TcpListener"
+                pictureUrl:
+                    type: string
+                    description: The API logo URL.
+                    example: https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture
+                services:
+                    $ref: "#/components/schemas/ApiServices"
+                tags:
+                    type: array
+                    description: The list of sharding tags associated with this API.
+                    example:
+                        - public
+                        - private
+                    items:
+                        type: string
+                properties:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Property"
+                resources:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Resource"
+                responseTemplates:
+                    type: object
+                    additionalProperties:
+                        type: object
+                        additionalProperties:
+                            type: object
+                            $ref: "#/components/schemas/ResponseTemplate"
+                # read-only
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the API was created.
+                    example: 1581256457163
+                    readOnly: true
+                crossId:
+                    type: string
+                    description: API's crossId. Identifies API across environments.
+                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                    readOnly: true
+                deployedAt:
+                    type: string
+                    format: date-time
+                    description: The last date (as timestamp) when the API was deployed.
+                    example: 1581256457163
+                    readOnly: true
+                definitionContext:
+                    $ref: "#/components/schemas/DefinitionContext"
+                id:
+                    type: string
+                    description: API's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                    readOnly: true
+                state:
+                    type: string
+                    description: The status of the API regarding the gateway.
+                    example: STARTED
+                    enum:
+                        - CLOSED
+                        - INITIALIZED
+                        - STARTED
+                        - STOPPED
+                        - STOPPING
+                    readOnly: true
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The last date (as timestamp) when the API was updated.
+                    example: 1581256457163
+                    readOnly: true
+                workflowState:
+                    $ref: "#/components/schemas/ApiWorkflowState"
+        ApiDeployment:
+            type: object
+            properties:
+                deploymentLabel:
+                    type: string
+                    description: Label for an Api deployment. Duplicate names can exists.
+                    example: My deployment
+                    maxLength: 32
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the deployment request was created.
+                    example: 1581256457163
+                    readOnly: true
+        ApiLifecycleState:
+            type: string
+            description: The status of the API regarding the console.
+            example: CREATED
+            enum:
+                - ARCHIVED
+                - CREATED
+                - DEPRECATED
+                - PUBLISHED
+                - UNPUBLISHED
+        ApiServices:
+            type: object
+            properties:
+                dynamicProperty:
+                    $ref: "#/components/schemas/Service"
+        ApiType:
+            type: string
+            description: API's type.
+            example: async
+            enum:
+                - async
+                - sync
+        ApiVisibility:
+            type: string
+            description: The visibility of the API regarding the portal.
+            example: PUBLIC
+            enum:
+                - PUBLIC
+                - PRIVATE
+        ApiWorkflowState:
+            type: string
+            description: The status of the API regarding the review feature.
+            example: DRAFT
+            enum:
+                - DRAFT
+                - IN_REVIEW
+                - REQUEST_FOR_CHANGES
+                - REVIEW_OK
+            readOnly: true
+        ConnectorFeature:
+            type: string
+            description: A feature used by a connector
+            example: limit
+            enum:
+                - limit
+                - resume
+                - dlq
+        ConnectorMode:
+            type: string
+            description: A mode used by a connector
+            example: subscribe
+            enum:
+                - subscribe
+                - publish
+                - request_response
+        ConnectorPlugin:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/PlatformPlugin"
+                - type: object
+                  properties:
+                      supportedApiType:
+                          $ref: "#/components/schemas/ApiType"
+                      supportedModes:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/ConnectorMode"
+                          uniqueItems: true
+                      supportedQos:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/QoS"
+                          uniqueItems: true
+                      supportedListenerType:
+                          $ref: "#/components/schemas/ListenerType"
+                      availableFeatures:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/ConnectorFeature"
+                          uniqueItems: true
+                      schema:
+                          type: string
+                          description: The schema of the plugin.
+                      icon:
+                          type: string
+                          description: The icon of the plugin.
+                      subscriptionSchema:
+                          type: string
+                          description: The subscription schema of the plugin.
+        Cors:
+            type: object
+            properties:
+                allowCredentials:
+                    type: boolean
+                allowHeaders:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                allowMethods:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                allowOrigin:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                enabled:
+                    type: boolean
+                exposeHeaders:
+                    uniqueItems: true
+                    type: array
+                    items:
+                        type: string
+                maxAge:
+                    type: integer
+                    format: int32
+                    default: -1
+                runPolicies:
+                    type: boolean
+        DefinitionContext:
+            type: object
+            description: the context where the api definition was created
+            properties:
+                origin:
+                    type: string
+                    description: The origin of the API.
+                    example: management
+                    enum:
+                        - management
+                        - kubernetes
+                mode:
+                    type: string
+                    description: |-
+                        The mode of the API.
+                        fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+                        api_definition_only: Mode indicating the api is partially managed by the origin and so, only the origin should be able to manage the api definition part of the api. This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
+                    example: fully_managed
+                    enum:
+                        - fully_managed
+                        - api_definition_only
+            readOnly: true
+        DefinitionVersion:
+            type: string
+            description: API's gravitee definition version.
+            example: v4
+            default: v4
+            enum:
+                - v4
+        Endpoint:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the endpoint
+                    example: default-endpoint
+                    nullable: false
+                type:
+                    type: string
+                    description: The type of the endpoint
+                    example: mock
+                    nullable: false
+                weight:
+                    type: integer
+                    format: int32
+                    description: The weight of the endpoint
+                    default: 1
+                inheritConfiguration:
+                    type: boolean
+                    description: Is the configuration of the endpoint inherited from the endpoint group it belongs to.
+                    default: false
+                configuration:
+                    type: object
+                services:
+                    $ref: "#/components/schemas/EndpointServices"
+            required:
+                - type
+        EndpointGroup:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the endpoint group
+                    example: default-endpoint-group
+                    nullable: false
+                type:
+                    type: string
+                    description: The type of the endpoint group
+                    example: default
+                    nullable: false
+                loadBalancer:
+                    $ref: "#/components/schemas/LoadBalancer"
+                sharedConfiguration:
+                    type: object
+                endpoints:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Endpoint"
+                services:
+                    $ref: "#/components/schemas/EndpointGroupServices"
+            required:
+                - type
+        EndpointGroupServices:
+            type: object
+            properties:
+                discovery:
+                    $ref: "#/components/schemas/Service"
+                healthcheck:
+                    $ref: "#/components/schemas/Service"
+        EndpointServices:
+            type: object
+            properties:
+                healthcheck:
+                    $ref: "#/components/schemas/Service"
+
+        Entrypoint:
+            type: object
+            required:
+                - type
+            properties:
+                type:
+                    type: string
+                    description: The type of the entrypoint
+                    example: http-get
+                    nullable: false
+                configuration:
+                    type: object
+        Environment:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Environment's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Environment's name. Duplicate names can exists.
+                    example: My Environment
+                    minLength: 1
+                description:
+                    type: string
+                    description: Environment's description. A short description of your Environment.
+                    example: I can use many characters to describe this Environment.
+                    minLength: 1
+        Error:
+            type: object
+            properties:
+                httpStatus:
+                    type: integer
+                    format: int32
+                    description: The error code
+                    example: 400
+                message:
+                    type: string
+                    description: The error message
+                    example: Bad request
+                technicalCode:
+                    type: string
+                    description: A technical code to identify the error
+                    example: invalid.import.definition
+                parameters:
+                    type: object
+                    description: A map of parameters to be used in the error message
+                    additionalProperties:
+                        type: string
+        HttpListener:
+            type: object
+            required:
+                - type
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+                - type: object
+                  properties:
+                      paths:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Path"
+                      pathMappings:
+                          type: array
+                          items:
+                              type: string
+                      cors:
+                          $ref: "#/components/schemas/Cors"
+                      logging:
+                          $ref: "#/components/schemas/Logging"
+        FlowMode:
+            type: string
+            description: API's flow mode.
+            example: BEST_MATCH
+            enum:
+                - BEST_MATCH
+                - DEFAULT
+        Links:
+            description: List of links for pagination
+            properties:
+                self:
+                    type: string
+                    description: Link to current resource
+                first:
+                    type: string
+                    description: In a paginated response, link to the first page
+                last:
+                    type: string
+                    description: In a paginated response, link to the last page
+                prev:
+                    type: string
+                    description: In a paginated response, link to the previous page. Maybe null if current is the first page
+                next:
+                    type: string
+                    description: In a paginated response, link to the next page. Maybe null if current is the last page
+        Listener:
+            type: object
+            properties:
+                type:
+                    $ref: "#/components/schemas/ListenerType"
+                entrypoints:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Entrypoint"
+            required:
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    http: HttpListener
+                    tcp: TcpListener
+                    subscription: SubscriptionListener
+        ListenerType:
+            type: string
+            description: Listener type.
+            example: http
+            enum:
+                - http
+                - subscription
+                - tcp
+        LoadBalancer:
+            type: object
+            properties:
+                type:
+                    allOf:
+                        - $ref: "#/components/schemas/LoadBalancerType"
+                        - default: round-robin
+        LoadBalancerType:
+            type: string
+            description: Load balancer type.
+            example: round-robin
+            enum:
+                - random
+                - round-robin
+                - weighted-random
+                - weighted-round-robin
+        Logging:
+            type: object
+            properties:
+                condition:
+                    type: string
+                content:
+                    type: string
+                    enum:
+                        - NONE
+                        - HEADERS
+                        - PAYLOADS
+                        - HEADERS_PAYLOADS
+                mode:
+                    type: string
+                    enum:
+                        - NONE
+                        - CLIENT
+                        - PROXY
+                        - CLIENT_PROXY
+                scope:
+                    type: string
+                    enum:
+                        - NONE
+                        - REQUEST
+                        - RESPONSE
+                        - REQUEST_RESPONSE
+        MetadataResponse:
+            description: Generic object to handle additional information about an entity. Can also be used for pagination data.
+            type: object
+        Path:
+            type: object
+            properties:
+                host:
+                    type: string
+                path:
+                    type: string
+                    default: "/"
+                overrideAccess:
+                    type: boolean
+                    default: false
+        Property:
+            type: object
+            required:
+                - key
+                - value
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+                encrypted:
+                    type: boolean
+                dynamic:
+                    type: boolean
+        Organization:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Organization's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Organization's name. Duplicate names can exists.
+                    example: My Organization
+                    minLength: 1
+                description:
+                    type: string
+                    description: Organization's description. A short description of your Organization.
+                    example: I can use many characters to describe this Organization.
+                    minLength: 1
+        Plan:
+            type: object
+            properties:
+                apiId:
+                    type: string
+                    description: Id of the API owning the plan.
+                    example: 6c530064-0b2c-4004-9300-640b2ce0047b
+                characteristics:
+                    type: array
+                    items:
+                        type: string
+                closedAt:
+                    type: string
+                commentMessage:
+                    type: string
+                commentRequired:
+                    type: boolean
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The last date (as timestamp) when the API was created.
+                    example: 1581256457163
+                crossId:
+                    type: string
+                    description: API's crossId. Identifies API across environments.
+                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                description:
+                    type: string
+                    description: API's description. A short description of your API.
+                    example: I can use a hundred characters to describe this API.
+                excludedGroups:
+                    type: array
+                    description: Groups of users which are not allowed to subscribe to this plan.
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
+                generalConditions:
+                    type: string
+                id:
+                    type: string
+                    description: Plan's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Plan's name. Duplicate names can exists.
+                    example: My Api plan
+                order:
+                    type: integer
+                    format: int32
+                publishedAt:
+                    type: string
+                    format: date-time
+                    description: The last date (as timestamp) when the API was published.
+                    example: 1581256457163
+                security:
+                    $ref: "#/components/schemas/PlanSecurity"
+                selectionRule:
+                    type: string
+                status:
+                    $ref: "#/components/schemas/PlanStatus"
+                tags:
+                    type: array
+                    description: The list of sharding tags associated with this plan.
+                    example:
+                        - public
+                        - private
+                    items:
+                        type: string
+                type:
+                    $ref: "#/components/schemas/PlanType"
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The last date (as timestamp) when the API was updated.
+                    example: 1581256457163
+                validation:
+                    $ref: "#/components/schemas/PlanValidation"
+        PlanSecurity:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: The type of the plan security
+                    example: keyless
+                configuration:
+                    type: object
+            required:
+                - type
+        PlanSecurityType:
+            type: string
+            description: Plan security type.
+            example: key-less
+            enum:
+                - key-less
+                - api-key
+                - oauth2
+                - jwt
+                - subscription
+        PlanStatus:
+            type: string
+            description: Plan status.
+            example: staging
+            enum:
+                - staging
+                - published
+                - deprecated
+                - closed
+        PlanType:
+            type: string
+            description: Plan type.
+            example: api
+            enum:
+                - api
+                - catalog
+        PlanValidation:
+            type: string
+            description: Plan validation type.
+            example: auto
+            enum:
+                - auto
+                - manual
+        PlatformPlugin:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Plugin's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Plugin's name.
+                    example: My Plugin
+                    minLength: 1
+                description:
+                    type: string
+                    description: Plugin's description.
+                    example: I can use many characters to describe this plugin.
+                    minLength: 1
+                category:
+                    type: string
+                    description: Plugin's category.
+                    example: policy
+                    minLength: 1
+                version:
+                    type: string
+                    description: Plugin's version.
+                    example: 1.0.0
+                    minLength: 1
+        QoS:
+            type: string
+            description: Type of the quality of service.
+            example: none
+            enum:
+                - none
+                - auto
+                - at-most-once
+                - at-least-once
+        Resource:
+            type: object
+            required:
+                - name
+                - type
+                - configuration
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                configuration:
+                    type: string
+                enabled:
+                    type: boolean
+        ResponseTemplate:
+            type: object
+            properties:
+#                TODO: How to specify that json output is "status"?
+                statusCode:
+                    type: integer
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                body:
+                    type: string
+        Service:
+            type: object
+            properties:
+                configuration:
+                    type: object
+                    description: The configuration of the service
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
+                    default: true
+                type:
+                    type: string
+        SubscriptionListener:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+            required:
+                - type
+        TcpListener:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/Listener"
+            required:
+                - type
+
+    parameters:
+        #############
+        # PathParam #
+        #############
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: Id of an environment.
+            schema:
+                type: string
+                default: DEFAULT
+        apiIdParam:
+            name: apiId
+            in: path
+            required: true
+            description: Id of an API.
+            schema:
+                type: string
+        planIdParam:
+            name: planId
+            in: path
+            required: true
+            description: Id of a plan.
+            schema:
+                type: string
+        endpointIdParam:
+            name: endpointId
+            in: path
+            required: true
+            description: Id of an endpoint.
+            schema:
+                type: string
+        entrypointIdParam:
+            name: entrypointId
+            in: path
+            required: true
+            description: Id of an entrypoint.
+            schema:
+                type: string
+        ###############################
+        # Pagination Query Parameters #
+        ###############################
+        pageParam:
+            name: page
+            in: query
+            required: false
+            description: The page number for pagination.
+            schema:
+                type: integer
+                default: 1
+        perPageParam:
+            name: perPage
+            in: query
+            required: false
+            description: |
+                The number of items per page for pagination.
+            schema:
+                type: integer
+                default: 10
+
+    responses:
+        EnvironmentsResponse:
+            description: Page of environments
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of Environments.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Environment"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        ApisResponse:
+            description: Page of apis
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of Apis.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Api"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        EndpointsResponse:
+            description: Page of endpoints
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of Endpoints.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        EntrypointsResponse:
+            description: Page of entrypoints
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of Entrypoints.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        PlansResponse:
+            description: Page of API plans
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            data:
+                                description: List of API plans.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Plan"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        SchemaFormResponse:
+            description: Schema form of a plugin
+            content:
+                application/json:
+                    schema:
+                        type: object
+
+        Error:
+            description: Generic error response
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"

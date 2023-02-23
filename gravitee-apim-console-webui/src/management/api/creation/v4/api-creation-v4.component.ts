@@ -17,7 +17,7 @@
 import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { groupBy, kebabCase } from 'lodash';
+import { groupBy } from 'lodash';
 import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
@@ -35,7 +35,7 @@ import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-ite
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
-import { fakeNewApiEntity, HttpListener } from '../../../../entities/api-v4';
+import { fakeNewApiEntity } from '../../../../entities/api-v4';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
@@ -51,7 +51,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   public stepper = new ApiCreationStepperService([
     {
-      label: 'API Details',
+      label: 'API details',
       component: Step1ApiDetailsComponent,
       menuItemComponent: Step1MenuItemComponent,
     },
@@ -145,11 +145,12 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         // Use the fakeNewApiEntity to create a new API temporarily
         // The real API creation will be done when we complete other api creation steps
         fakeNewApiEntity((api) => {
-          const listener = api.listeners[0] as HttpListener;
-          listener.paths = [{ path: `/fake/${kebabCase(apiCreationPayload.name + '-' + apiCreationPayload.version)}` }];
           return {
             ...api,
             name: apiCreationPayload.name,
+            apiVersion: apiCreationPayload.version,
+            description: apiCreationPayload.description ?? '',
+            listeners: apiCreationPayload.listeners,
           };
         }),
       )

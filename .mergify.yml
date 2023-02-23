@@ -1,25 +1,34 @@
 pull_request_rules:
-  - name: backport patches to 3.20.x branch
+  - name: Apply patches on `master`
     conditions:
-      - label=backport-to-3-20-x
+      - label=apply-on-master
+    actions:
+      backport:
+        branches:
+          - master
+        assignees:
+          - "{{ author }}"
+  - name: Apply patches on `3.20.x`
+    conditions:
+      - label=apply-on-3-20-x
     actions:
       backport:
         branches:
           - 3.20.x
         assignees:
           - "{{ author }}"
-  - name: backport patches to 3.19.x branch
+  - name: Apply patches on `3.19.x`
     conditions:
-      - label=backport-to-3-19-x
+      - label=apply-on-3-19-x
     actions:
       backport:
         branches:
           - 3.19.x
         assignees:
           - "{{ author }}"
-  - name: backport patches to 3.18.x branch
+  - name: Apply patches on `3.18.x`
     conditions:
-      - label=backport-to-3-18-x
+      - label=apply-on-3-18-x
     actions:
       backport:
         branches:

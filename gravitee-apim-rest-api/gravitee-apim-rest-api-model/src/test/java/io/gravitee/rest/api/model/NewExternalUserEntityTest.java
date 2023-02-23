@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -24,26 +25,50 @@ public class NewExternalUserEntityTest {
     @Test
     public void setFirstnameShouldEscapeInput() {
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
-        newExternalUserEntity.setFirstname("firstname");
-        assertEquals("firstname", newExternalUserEntity.getFirstname());
+        newExternalUserEntity.setFirstname("A Test Firstname");
+        assertEquals("A Test Firstname", newExternalUserEntity.getFirstname());
 
-        newExternalUserEntity.setFirstname("<img src=\"../../../image.png\">");
-        assertEquals("&lt;img src=&quot;../../../image.png&quot;&gt;", newExternalUserEntity.getFirstname());
+        newExternalUserEntity.setFirstname("A <img src=\"../../../image.png\">Test Firstname");
+        assertEquals("A Test Firstname", newExternalUserEntity.getFirstname());
 
-        newExternalUserEntity.setFirstname("<script>alert()</script>");
-        assertEquals("&lt;script&gt;alert()&lt;/script&gt;", newExternalUserEntity.getFirstname());
+        newExternalUserEntity.setFirstname("A Test <script>alert()</script>Firstname");
+        assertEquals("A Test Firstname", newExternalUserEntity.getFirstname());
+
+        newExternalUserEntity.setFirstname("A <h1>Test</h1> Firstname");
+        assertEquals("A Test Firstname", newExternalUserEntity.getFirstname());
+
+        newExternalUserEntity.setFirstname("A <a href=\"https://www.gravitee.io\">Test</a> Firstname");
+        assertEquals("A Test Firstname", newExternalUserEntity.getFirstname());
+
+        newExternalUserEntity.setFirstname("A Firstname Wïth Accènt");
+        assertEquals("A Firstname Wïth Accènt", newExternalUserEntity.getFirstname());
+
+        newExternalUserEntity.setFirstname(null);
+        assertNull(newExternalUserEntity.getFirstname());
     }
 
     @Test
     public void setLastnameShouldEscapeInput() {
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
-        newExternalUserEntity.setLastname("lastname");
-        assertEquals("lastname", newExternalUserEntity.getLastname());
+        newExternalUserEntity.setLastname("A Test Lastname");
+        assertEquals("A Test Lastname", newExternalUserEntity.getLastname());
 
-        newExternalUserEntity.setLastname("<img src=\"../../../image.png\">");
-        assertEquals("&lt;img src=&quot;../../../image.png&quot;&gt;", newExternalUserEntity.getLastname());
+        newExternalUserEntity.setLastname("A <img src=\"../../../image.png\">Test Lastname");
+        assertEquals("A Test Lastname", newExternalUserEntity.getLastname());
 
-        newExternalUserEntity.setLastname("<script>alert()</script>");
-        assertEquals("&lt;script&gt;alert()&lt;/script&gt;", newExternalUserEntity.getLastname());
+        newExternalUserEntity.setLastname("A Test <script>alert()</script>Lastname");
+        assertEquals("A Test Lastname", newExternalUserEntity.getLastname());
+
+        newExternalUserEntity.setLastname("A <h1>Test</h1> Lastname");
+        assertEquals("A Test Lastname", newExternalUserEntity.getLastname());
+
+        newExternalUserEntity.setLastname("A <a href=\"https://www.gravitee.io\">Test</a> Lastname");
+        assertEquals("A Test Lastname", newExternalUserEntity.getLastname());
+
+        newExternalUserEntity.setLastname("A Lastname Wïth Accènt");
+        assertEquals("A Lastname Wïth Accènt", newExternalUserEntity.getLastname());
+
+        newExternalUserEntity.setLastname(null);
+        assertNull(newExternalUserEntity.getLastname());
     }
 }

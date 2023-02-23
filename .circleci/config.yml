@@ -300,6 +300,15 @@ commands:
                   name: Logout from Azure Container Registry
                   command: docker logout graviteeio.azurecr.io
 
+    compute-sanitize-circleci-branch:
+        description: Create a sanitized version of the branch name to use in docker tag or other places
+        steps:
+            - run:
+                  name: Sanitize branch name
+                  command: |
+                      export SANITIZED_BRANCH=$(echo "${CIRCLE_BRANCH}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9\.]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
 parameters:
     gio_action:
         type: enum
@@ -345,11 +354,11 @@ jobs:
                       echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
                       echo "Gravitee APIM version: ${APIM_VERSION}"
                       echo $APIM_VERSION > .apim-version.txt
-
+            - compute-sanitize-circleci-branch
             - run:
                   name: Compute Tag for Docker images
                   command: |
-                      export TAG=${CIRCLE_BRANCH}-latest
+                      export TAG=${SANITIZED_BRANCH}-latest
                       # Workaround for sharing this variable to the next steps
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
@@ -823,10 +832,18 @@ jobs:
         executor:
             name: node-lts
             class: small
+        environment:
+            ARTIFACTORY_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com"
         steps:
             - attach_workspace:
                   at: .
             - get-apim-version
+            - keeper/env-export:
+                  secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login
+                  var-name: ARTIFACTORY_USER
+            - keeper/env-export:
+                  secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
+                  var-name: ARTIFACTORY_API_KEY
             - artifactory-orb/install
             - artifactory-orb/configure
             - run:
@@ -987,14 +1004,14 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://IHtIJSHgDV-Zhpfjs1Zk5w/field/password
                   var-name: AZURE_STORAGE_CONNECTION_STRING
+            - compute-sanitize-circleci-branch
             - run:
                   name: Login into Azure Storage and upload dist
                   command: |
-                      export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       sed -i 's#<base href="/" />##' gravitee-apim-console-webui/dist/index.html
                       sed -i 's#http://localhost:8083#https://apim-master-api.team-apim.gravitee.dev#' gravitee-apim-console-webui/dist/constants.json
-                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$BRANCH_ID"
+                      az storage blob upload-batch --overwrite true -s gravitee-apim-console-webui/dist -d "\$web/$SANITIZED_BRANCH"
             - notify-on-failure
 
     console-webui-comment-pr-after-deployment:
@@ -1007,6 +1024,7 @@ jobs:
                   secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                   var-name: GITHUB_TOKEN
             - gh/setup
+            - compute-sanitize-circleci-branch
             - run:
                   name: Edit Pull Request Description
                   command: |
@@ -1023,10 +1041,9 @@ jobs:
                         echo "PR is not opened, stopping the job here."
                         exit 0
                       fi
-                      export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       export PR_BODY_UI_SECTION="
                       <!-- UI placeholder -->
-                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${BRANCH_ID}/index.html)
+                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${SANITIZED_BRANCH}/index.html)
                       _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
                       <!-- UI placeholder end -->
                       "
@@ -1088,6 +1105,7 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-ui -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-apim3-gateway -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAME}-v3-apim3-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAME}-ingress-apim3-gateway -n ${K8S_NAMESPACE}
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
                   var-name: CIRCLE_TOKEN
@@ -1203,7 +1221,7 @@ jobs:
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
 
                       # If we are on master branch, we need to create the support branch
-                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                      if [ "${CIRCLE_BRANCH}" = "master" ]; then
                         export MAINTENANCE_GIT_BRANCH="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.x"
 
                         git checkout -b ${MAINTENANCE_GIT_BRANCH}
@@ -1220,10 +1238,10 @@ jobs:
                         git checkout ${CIRCLE_BRANCH}
                       fi
 
-                      if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                      if [ "${CIRCLE_BRANCH}" = "master" ]; then
                         sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.$((${GRAVITEEIO_VERSION_MINOR}+1)).0</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-                      elif [ "${GRAVITEEIO_QUALIFIER}" == "" ]; then
+                      elif [ "${GRAVITEEIO_QUALIFIER}" = "" ]; then
                         sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))</revision>#" pom.xml
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
                       else
@@ -1289,7 +1307,7 @@ jobs:
                         DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-ee"
 
                         #  create x, x-ee and latest tags only if it's the latest version and there is no qualifier
-                        if [ "<< parameters.docker_tag_as_latest >>" == "true" ]; then
+                        if [ "<< parameters.docker_tag_as_latest >>" = "true" ]; then
                           DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}-ee           -t graviteeio/apim-gateway:latest"
                           DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}-ee    -t graviteeio/apim-management-api:latest"
                           DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}-ee     -t graviteeio/apim-management-ui:latest"
@@ -1351,7 +1369,7 @@ jobs:
                   steps:
                       - slack/notify:
                             channel: C02NGT20S4W
-                            event: always
+                            event: pass
                             custom: |
                                 {
                                   "blocks": [
@@ -1591,7 +1609,7 @@ jobs:
                       cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
                       ./build.sh -v << parameters.graviteeio_version >>
 
-                      if [ "<< parameters.dry_run >>" == "false" ]; then
+                      if [ "<< parameters.dry_run >>" = "false" ]; then
                           docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
                       else
                           echo "This is just a DRY RUN, no RPMs will be published"
@@ -1742,7 +1760,7 @@ jobs:
                                 echo "export RELEASE_NOTES_PR_URL=$(cat /tmp/releaseNotesPrUrl.txt)" >> $BASH_ENV
                       - slack/notify:
                             channel: C02NGT20S4W
-                            event: always
+                            event: pass
                             custom: |
                                 {
                                   "blocks": [

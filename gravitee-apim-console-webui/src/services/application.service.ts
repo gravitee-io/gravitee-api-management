@@ -69,6 +69,13 @@ class ApplicationService {
     return this.$http.post(`${this.applicationURL(applicationId)}` + '/members/transfer_ownership', ownership);
   }
 
+  listByIdIn(ids: string[] = [], status = 'active'): ng.IPromise<any> {
+    if (ids.length === 0) {
+      return Promise.resolve({ data: [] });
+    }
+    return this.list(null, null, status, ids);
+  }
+
   list(exclude: ApplicationExcludeFilter[] = [], query = '', status = 'active', ids?: string[]): ng.IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/applications/?status=${status}`;
 

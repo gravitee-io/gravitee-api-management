@@ -20,25 +20,25 @@
     <div class="api-creation-v4__step__header__step-number">Step 1</div>
     <div class="api-creation-v4__step__header__subtitle">Provide some details on your API</div>
   </div>
-  <div class="mat-h3">API Details</div>
+  <div class="mat-h3">API details</div>
   <form [formGroup]="form" (ngSubmit)="save()">
     <div class="step-1-api-details__row">
       <mat-form-field appearance="outline">
         <input id="name" type="text" matInput formControlName="name" maxlength="50" required="true" />
-        <mat-label>API Name</mat-label>
+        <mat-label>API name</mat-label>
         <mat-hint>This name will be public and will be used in the Gravitee Developer Portal</mat-hint>
         <mat-error *ngIf="form.controls.name.errors?.required">API name is required</mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <input id="version" type="text" matInput formControlName="version" maxlength="32" required="true" />
-        <mat-label>Version Number</mat-label>
+        <mat-label>Version number</mat-label>
         <mat-hint>For example 1.1, 1.1.1</mat-hint>
         <mat-error *ngIf="form.controls.version.errors?.required">Version number is required</mat-error>
       </mat-form-field>
     </div>
     <div class="step-1-api-details__row">
       <mat-form-field appearance="outline">
-        <textarea id="description" matInput #input maxlength="250" formControlName="description" rows="4" required="true"></textarea>
+        <textarea id="description" matInput #input maxlength="250" formControlName="description" rows="4"></textarea>
         <mat-label>Description</mat-label>
         <mat-hint align="start">Describe how your API works</mat-hint>
         <mat-hint align="end">{{ input.value.length }}/250</mat-hint>

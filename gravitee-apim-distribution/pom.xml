@@ -47,9 +47,9 @@
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-alert-engine-connectors-ws.version>2.0.0</gravitee-alert-engine-connectors-ws.version>
-        <gravitee-connector-http.version>2.0.10</gravitee-connector-http.version>
+        <gravitee-connector-http.version>2.1.1</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>3.0.1-alpha.1</gravitee-policy-apikey.version>
-        <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
+        <gravitee-policy-assign-attributes.version>1.5.1</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.7.0</gravitee-policy-assign-content.version>
         <gravitee-policy-cache.version>1.15.2</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>2.0.1</gravitee-policy-callout-http.version>
@@ -105,7 +105,7 @@
         <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
-        <gravitee-notifier-email.version>1.4.1</gravitee-notifier-email.version>
+        <gravitee-notifier-email.version>1.5.0</gravitee-notifier-email.version>
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.0</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
@@ -761,11 +761,11 @@
 
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
-                <gravitee-policy-data-logging-masking.version>2.0.1</gravitee-policy-data-logging-masking.version>
+                <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
                 <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
                 <gravitee-entrypoint-sse-advanced.version>3.0.0-alpha.1</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-entrypoint-webhook-advanced.version>1.0.0-alpha.3</gravitee-entrypoint-webhook-advanced.version>
-                <gravitee-endpoint-kafka-advanced.version>1.0.0-alpha.8</gravitee-endpoint-kafka-advanced.version>
+                <gravitee-endpoint-kafka-advanced.version>1.0.1-alpha.3</gravitee-endpoint-kafka-advanced.version>
                 <gravitee-endpoint-mqtt5-advanced.version>1.0.0-alpha.4</gravitee-endpoint-mqtt5-advanced.version>
 
                 <!-- Management API Only -->

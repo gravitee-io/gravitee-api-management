@@ -5,8 +5,14 @@
     "properties": {
         "bootstrapServers": {
             "type": "string",
-            "title": "Bootstrap servers",
-            "description": "A list of host/port pairs, separated by a comma, to use for establishing the initial connection to the Kafka cluster. The client will make use of all servers irrespective of which servers are specified here for bootstrapping—this list only impacts the initial hosts used to discover the full set of servers. This list should be in the form host1:port1,host2:port2,..."
+            "title": "bootstrap.servers",
+            "description": "This list should be in the form host1:port1,host2:port2,...",
+            "gioConfig": {
+                "banner": {
+                    "title": "Bootstrap servers",
+                    "text": "A list of host/port pairs, separated by a comma, to use for establishing the initial connection to the Kafka cluster. The client will make use of all servers irrespective of which servers are specified here for bootstrapping—this list only impacts the initial hosts used to discover the full set of servers. "
+                }
+            }
         },
         "topics": {
             "type": "array",
@@ -35,10 +41,15 @@
                 },
                 "autoOffsetReset": {
                     "title": "Auto offset reset",
-                    "description": "What to do when there is no initial offset in Kafka or if the current offset does not exist any more on the server (e.g. because that data has been deleted): <ul><li>earliest: automatically reset the offset to the earliest offset<li>latest: automatically reset the offset to the latest offset</li><li>none: throw exception to the consumer if no previous offset is found for the consumer's group</li><li>anything else: throw exception to the consumer.</li></ul>",
                     "type": "string",
                     "default": "latest",
-                    "enum": ["latest", "earliest", "none"]
+                    "enum": ["latest", "earliest", "none"],
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Auto offset reset",
+                            "text": "What to do when there is no initial offset in Kafka or if the current offset does not exist any more on the server (e.g. because that data has been deleted): <ul><li>earliest: automatically reset the offset to the earliest offset<li>latest: automatically reset the offset to the latest offset</li><li>none: throw exception to the consumer if no previous offset is found for the consumer's group</li><li>anything else: throw exception to the consumer.</li></ul>"
+                        }
+                    }
                 }
             }
         },

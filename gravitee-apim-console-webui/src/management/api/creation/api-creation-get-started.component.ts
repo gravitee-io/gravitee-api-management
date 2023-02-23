@@ -45,10 +45,6 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
 
   policies = [];
 
-  get allowsPathBasedCreation() {
-    return this.constants.org.settings.management?.pathBasedApiCreation?.enabled ?? false;
-  }
-
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(

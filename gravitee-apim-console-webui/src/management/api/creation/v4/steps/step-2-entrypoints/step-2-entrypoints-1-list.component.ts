@@ -69,8 +69,8 @@ export class Step2Entrypoints1List implements OnInit, OnDestroy {
           name: entrypoint.name,
           description: entrypoint.description,
           isEnterprise: entrypoint.id.endsWith('-advanced'),
+          supportedListenerType: entrypoint.supportedListenerType,
         }));
-
         this.changeDetectorRef.detectChanges();
       });
   }
@@ -82,7 +82,9 @@ export class Step2Entrypoints1List implements OnInit, OnDestroy {
 
   save(): void {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
-    const selectedEntrypoints = this.entrypoints.map(({ id, name }) => ({ id, name })).filter((e) => selectedEntrypointsIds.includes(e.id));
+    const selectedEntrypoints = this.entrypoints
+      .map(({ id, name, supportedListenerType }) => ({ id, name, supportedListenerType }))
+      .filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.addSecondaryStep({
       component: Step2Entrypoints2ConfigComponent,

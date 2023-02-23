@@ -18,6 +18,7 @@ package io.gravitee.gateway.core.component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -25,7 +26,8 @@ import java.util.Objects;
  */
 public class CompositeComponentProvider implements ComponentProvider {
 
-    private List<ComponentProvider> componentProviders;
+    @Getter
+    private final List<ComponentProvider> componentProviders;
 
     public CompositeComponentProvider(ComponentProvider... componentProviders) {
         this.componentProviders = Arrays.asList(componentProviders);

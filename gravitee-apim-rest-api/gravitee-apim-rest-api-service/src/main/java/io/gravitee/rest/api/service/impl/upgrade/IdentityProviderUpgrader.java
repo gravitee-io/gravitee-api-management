@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.*;
@@ -42,11 +43,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class IdentityProviderUpgrader implements Upgrader, Ordered {
 
-    private static final String description =
+    private static final String DESCRIPTION =
         "Configuration provided by the system. Every modifications will be overridden at the next startup.";
     private final Logger logger = LoggerFactory.getLogger(IdentityProviderUpgrader.class);
-    private List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
-    private List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
+    private final List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
+    private final List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -84,16 +85,18 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     if (id == null) {
                         id = type;
                     }
+
+                    String formattedId = IdGenerator.generate(id);
                     try {
-                        identityProviderService.findById(id);
+                        identityProviderService.findById(formattedId);
                     } catch (IdentityProviderNotFoundException e) {
-                        id = createIdp(executionContext, id, IdentityProviderType.valueOf(type.toUpperCase()), idx);
+                        formattedId = createIdp(executionContext, formattedId, IdentityProviderType.valueOf(type.toUpperCase()), idx);
                     }
                     // always update
-                    updateIdp(executionContext, id, idx);
+                    updateIdp(executionContext, formattedId, idx);
 
                     // update idp activations
-                    updateIdpActivations(executionContext, id, idx);
+                    updateIdpActivations(executionContext, formattedId, idx);
                 } else {
                     logger.info("Unknown identity provider [{}]", type);
                 }
@@ -107,11 +110,11 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         NewIdentityProviderEntity idp = new NewIdentityProviderEntity();
         idp.setName(id);
         idp.setType(type);
-        idp.setDescription(description);
+        idp.setDescription(DESCRIPTION);
         idp.setEnabled(true);
         idp.setConfiguration(getConfiguration(providerIndex));
-        idp.setEmailRequired(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
-        idp.setSyncMappings(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
+        idp.setEmailRequired(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
+        idp.setSyncMappings(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
         if (!userProfileMapping.isEmpty()) {
@@ -167,11 +170,11 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     private void updateIdp(ExecutionContext executionContext, String id, int providerIndex) {
         UpdateIdentityProviderEntity idp = new UpdateIdentityProviderEntity();
         idp.setName(id);
-        idp.setDescription(description);
+        idp.setDescription(DESCRIPTION);
         idp.setConfiguration(getConfiguration(providerIndex));
-        idp.setEmailRequired(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
+        idp.setEmailRequired(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
         idp.setEnabled(true);
-        idp.setSyncMappings(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
+        idp.setSyncMappings(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
         if (!userProfileMapping.isEmpty()) {

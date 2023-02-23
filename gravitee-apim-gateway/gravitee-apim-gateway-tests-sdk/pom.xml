@@ -32,7 +32,7 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <gravitee-connector-http.version>2.0.5</gravitee-connector-http.version>
+        <gravitee-connector-http.version>2.1.1</gravitee-connector-http.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <reactiverse-junit5-rx-java2-web-client.version>0.3.0</reactiverse-junit5-rx-java2-web-client.version>
         <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>

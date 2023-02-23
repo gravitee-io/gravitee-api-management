@@ -114,6 +114,10 @@
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.gravitee.node</groupId>
@@ -177,6 +181,11 @@
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-buffer</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-container</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

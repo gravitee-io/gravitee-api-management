@@ -16,6 +16,9 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
+import { GioFormListenersContextPathHarness } from '../../../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
+import { GioFormListenersVirtualHostHarness } from '../../../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+
 export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-2-config';
 
@@ -31,11 +34,52 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }),
   );
 
+  protected getSwitchListenersTypeButton = this.locatorFor(
+    MatButtonHarness.with({
+      selector: '#switchListenerType',
+    }),
+  );
+
   async clickPrevious(): Promise<void> {
     return this.getPreviousButton().then((elt) => elt.click());
   }
 
   async clickValidate() {
     return this.getValidateButton().then((elt) => elt.click());
+  }
+
+  async hasValidationDisabled(): Promise<boolean> {
+    return this.getValidateButton().then((elt) => elt.isDisabled());
+  }
+
+  async clickListenerType() {
+    return this.getSwitchListenersTypeButton().then((elt) => elt.click());
+  }
+
+  async fillPaths(...paths: string[]) {
+    const formPaths = await this.locatorFor(GioFormListenersContextPathHarness.with())();
+
+    // Add path on last path row
+    for (const path of paths) {
+      const emptyLastContextPathRow = await formPaths.getLastListenerRow();
+      await emptyLastContextPathRow.pathInput.setValue(path);
+    }
+  }
+
+  async fillPathsAndValidate(...paths: string[]) {
+    await this.fillPaths(...paths);
+    await this.clickValidate();
+  }
+
+  async fillVirtualHostsAndValidate(...virtualHosts: { path: string; host: string }[]) {
+    const formVirtualHosts = await this.locatorFor(GioFormListenersVirtualHostHarness.with())();
+
+    for (const virtualHost of virtualHosts) {
+      const lastListenerRow = await formVirtualHosts.getLastListenerRow();
+      await lastListenerRow.hostInput.setValue(virtualHost.host);
+      await lastListenerRow.pathInput.setValue(virtualHost.path);
+    }
+
+    await this.clickValidate();
   }
 }

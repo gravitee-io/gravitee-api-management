@@ -16,15 +16,9 @@ $typography: map.get(gio.$mat-theme, typography);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border: 2px solid transparent;
+      border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 4px;
       padding: 16px 0;
-      @include mat.elevation(2);
-
-      &:hover {
-        background: none;
-        @include mat.elevation(4);
-      }
     }
   }
 }
@@ -50,6 +44,7 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.typography-level($typography, body-1);
       // TODO: make available to module components + integrate in step 1, stepper html
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      margin: 0;
     }
   }
 }

@@ -75,7 +75,10 @@ export class Step1ApiDetailsHarness extends ComponentHarness {
   }
 
   async clickValidate(): Promise<void> {
-    return this.getValidateButton().then((elt) => elt.click());
+    return this.getValidateButton().then(async (elt) => {
+      expect(await elt.isDisabled()).toEqual(false);
+      return elt.click();
+    });
   }
 
   async clickExit(): Promise<void> {

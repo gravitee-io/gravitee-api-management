@@ -87,10 +87,25 @@ class VertxHttpClientHelperTest {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
 
         parameters.put("foo", List.of("bar"));
+        VertxHttpClientHelper.configureAbsoluteUri(requestOptions, "http://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
+
+        assertThat(requestOptions.getURI()).isEqualTo("/echo?foo=bar1&hello=gravitee&foo=bar");
+        assertThat(requestOptions.getHost()).isEqualTo("api.gravitee.io");
+        assertThat(requestOptions.getPort()).isEqualTo(80);
+        assertThat(requestOptions.isSsl()).isFalse();
+    }
+
+    @Test
+    void shouldConfigureAbsoluteUriWithSslEnabled() {
+        final RequestOptions requestOptions = new RequestOptions();
+        final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+
+        parameters.put("foo", List.of("bar"));
         VertxHttpClientHelper.configureAbsoluteUri(requestOptions, "https://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
 
         assertThat(requestOptions.getURI()).isEqualTo("/echo?foo=bar1&hello=gravitee&foo=bar");
         assertThat(requestOptions.getHost()).isEqualTo("api.gravitee.io");
         assertThat(requestOptions.getPort()).isEqualTo(443);
+        assertThat(requestOptions.isSsl()).isTrue();
     }
 }

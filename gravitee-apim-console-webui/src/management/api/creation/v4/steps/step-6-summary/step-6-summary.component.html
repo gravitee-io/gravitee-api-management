@@ -23,7 +23,7 @@
   <div class="step-6-summary__body">
     <!--    Step 1 -->
     <div id="step-1" class="step-6-summary__step">
-      <div class="mat-h3">API Details</div>
+      <div class="mat-h3">API details</div>
       <div class="step-6-summary__step__body">
         <div class="step-6-summary__step__info">
           <div class="step-6-summary__step__info__row">
@@ -34,7 +34,7 @@
             <span class="step-6-summary__step__info__key">Version:</span>
             <span class="step-6-summary__step__info__value">{{ currentStepPayload.version }}</span>
           </div>
-          <div class="step-6-summary__step__info__row">
+          <div class="step-6-summary__step__info__row" *ngIf="currentStepPayload.description">
             <span class="step-6-summary__step__info__key">Description:</span>
             <span class="step-6-summary__step__info__value">
               {{ currentStepPayload.description }}
@@ -42,7 +42,7 @@
           </div>
         </div>
         <div>
-          <button mat-stroked-button (click)="onChangeStepInfo('API Details')">Change</button>
+          <button mat-stroked-button (click)="onChangeStepInfo('API details')">Change</button>
         </div>
       </div>
     </div>
@@ -143,7 +143,7 @@
           matTooltip="Your API can't be consumed"
         ></mat-icon>
       </button>
-      <button color="primary" mat-raised-button type="button" (click)="createApi(true)">
+      <button color="primary" mat-flat-button type="button" (click)="createApi(true)">
         Deploy my API<mat-icon
           svgIcon="gio:info"
           class="step-6-summary__footer__button-icon"
