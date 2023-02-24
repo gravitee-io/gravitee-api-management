@@ -39,11 +39,10 @@ import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -167,8 +166,8 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public TransactionProcessorFactory v3TransactionHandlerFactory() {
-        return new io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory();
+    public TransactionRequestProcessorFactory v3TransactionRequestProcessorFactory() {
+        return new TransactionRequestProcessorFactory();
     }
 
     @Bean

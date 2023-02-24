@@ -27,7 +27,7 @@ import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class ReactorTest {
     private DummyReactorHandler dummyReactorHandler = new DummyReactorHandler();
 
     @Spy
-    private TransactionProcessorFactory transactionHandlerFactory = new TransactionProcessorFactory();
+    private TransactionRequestProcessorFactory transactionHandlerFactory = new TransactionRequestProcessorFactory();
 
     @Before
     public void setUp() throws Exception {
