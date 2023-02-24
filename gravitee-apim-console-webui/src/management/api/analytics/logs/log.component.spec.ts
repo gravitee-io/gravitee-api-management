@@ -49,4 +49,23 @@ describe('LogComponent', () => {
       expect(mimeType).toEqual(null);
     });
   });
+
+  describe('extractQueryParams', () => {
+    it('return different query params', () => {
+      const queryParams = logComponent.extractQueryParams(`/gme?type=monthly&bucket=status_repartition&bucket=status_repartition-2`);
+      expect(queryParams).toEqual([
+        { key: 'type', value: 'monthly' },
+        { key: 'bucket', value: '[ status_repartition, status_repartition-2 ]' },
+      ]);
+    });
+
+    it('return query params with `=` in it', () => {
+      const queryParams = logComponent.extractQueryParams(`/gme?type=monthly=status$test&param2=is=containing=some=equals&param3=value3`);
+      expect(queryParams).toEqual([
+        { key: 'type', value: 'monthly=status$test' },
+        { key: 'param2', value: 'is=containing=some=equals' },
+        { key: 'param3', value: 'value3' },
+      ]);
+    });
+  });
 });
