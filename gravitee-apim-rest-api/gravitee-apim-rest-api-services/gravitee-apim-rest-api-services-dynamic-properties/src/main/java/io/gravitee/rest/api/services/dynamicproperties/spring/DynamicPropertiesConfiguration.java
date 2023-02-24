@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.spring;
 
+import io.reactivex.rxjava3.annotations.NonNull;
+import java.util.concurrent.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Alexandre FARIA (lusoalex on github.com)
@@ -26,10 +26,26 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Configuration
 public class DynamicPropertiesConfiguration {
 
-    @Bean
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("refresher-");
-        return scheduler;
+    @Bean(name = "dynamicPropertiesExecutor")
+    public Executor dynamicPropertiesExecutor() {
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            0,
+            2, // maximumPoolSize
+            5, // keepAliveTime
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactory() {
+                private int counter = 0;
+
+                @Override
+                public Thread newThread(@NonNull Runnable r) {
+                    return new Thread(r, "gio.dynamic-properties-" + counter++);
+                }
+            }
+        );
+
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+        return threadPoolExecutor;
     }
 }

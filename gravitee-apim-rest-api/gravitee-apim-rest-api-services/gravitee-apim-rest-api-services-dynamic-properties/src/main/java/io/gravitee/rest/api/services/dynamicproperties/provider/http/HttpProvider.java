@@ -46,8 +46,6 @@ import org.springframework.util.StringUtils;
  */
 public class HttpProvider implements Provider {
 
-    private final Logger logger = LoggerFactory.getLogger(HttpProvider.class);
-
     private static final String HTTPS_SCHEME = "https";
 
     private final HttpDynamicPropertyProviderConfiguration dpConfiguration;

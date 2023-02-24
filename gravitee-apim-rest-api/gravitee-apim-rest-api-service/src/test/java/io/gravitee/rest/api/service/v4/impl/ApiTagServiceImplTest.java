@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.*;
@@ -84,7 +85,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), isNull(), any())).thenReturn(Stream.of(api));
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
@@ -113,7 +114,7 @@ public class ApiTagServiceImplTest {
         apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
 
         when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
-        when(apiRepository.search(any(), isNull(), any())).thenReturn(Stream.of(api));
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)).thenReturn(apiDefinition);

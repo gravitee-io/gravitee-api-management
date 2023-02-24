@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -64,4 +66,6 @@ public interface ApiAuthorizationService {
         final Sortable sortable,
         final boolean portal
     );
+
+    List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
 }

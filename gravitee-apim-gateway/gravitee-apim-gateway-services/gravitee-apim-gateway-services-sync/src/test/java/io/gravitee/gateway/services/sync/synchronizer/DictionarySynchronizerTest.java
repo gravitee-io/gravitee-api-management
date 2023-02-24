@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class DictionarySynchronizerTest extends TestCase {
 
     @Before
     public void setUp() {
-        dictionarySynchronizer.setExecutor(Executors.newFixedThreadPool(1));
+        dictionarySynchronizer.setExecutor((ThreadPoolExecutor) Executors.newFixedThreadPool(1));
     }
 
     @Test
