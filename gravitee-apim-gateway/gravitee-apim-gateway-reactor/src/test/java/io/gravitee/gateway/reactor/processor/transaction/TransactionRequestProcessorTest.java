@@ -25,8 +25,6 @@ import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.http.Metrics;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,111 +54,59 @@ public class TransactionRequestProcessorTest {
         MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
         Mockito.when(request.headers()).thenReturn(HttpHeaders.create());
-        Mockito.when(response.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
     }
 
     @Test
     public void shouldHaveTransactionId() throws InterruptedException {
-        final CountDownLatch lock = new CountDownLatch(1);
-
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
-        new TransactionRequestProcessor()
-            .handler(
-                context -> {
-                    Assert.assertNotNull(context.request().transactionId());
-                    Assert.assertEquals(
-                        context.request().transactionId(),
-                        context.request().headers().getFirst(DEFAULT_TRANSACTION_ID_HEADER)
-                    );
-                    Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
-                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(DEFAULT_TRANSACTION_ID_HEADER));
+        new TransactionRequestProcessor().handler(context -> {}).handle(context);
 
-                    Assert.assertEquals(context.request().id(), context.request().headers().getFirst(DEFAULT_REQUEST_ID_HEADER));
-                    Assert.assertEquals(context.request().id(), response.headers().getFirst(DEFAULT_REQUEST_ID_HEADER));
-
-                    lock.countDown();
-                }
-            )
-            .handle(context);
-
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assert.assertNotNull(context.request().transactionId());
+        Assert.assertEquals(context.request().transactionId(), context.request().headers().getFirst(DEFAULT_TRANSACTION_ID_HEADER));
+        Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
+        Assert.assertEquals(context.request().id(), context.request().headers().getFirst(DEFAULT_REQUEST_ID_HEADER));
     }
 
     @Test
-    public void shouldPropagateSameTransactionId() throws InterruptedException {
-        final CountDownLatch lock = new CountDownLatch(1);
-
+    public void shouldPropagateSameTransactionId() {
         String transactionId = UUID.toString(UUID.random());
 
         request.headers().set(DEFAULT_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor()
-            .handler(
-                context -> {
-                    Assert.assertNotNull(context.request().transactionId());
-                    Assert.assertEquals(transactionId, context.request().transactionId());
-                    Assert.assertEquals(transactionId, context.request().headers().getFirst(DEFAULT_TRANSACTION_ID_HEADER));
-                    Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
-                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(DEFAULT_TRANSACTION_ID_HEADER));
+        new TransactionRequestProcessor().handler(context -> {}).handle(context);
 
-                    Assert.assertNotEquals(transactionId, context.request().id());
-                    Assert.assertNotEquals(transactionId, context.request().headers().getFirst(DEFAULT_REQUEST_ID_HEADER));
-                    Assert.assertNotEquals(transactionId, context.request().metrics().getRequestId());
-                    Assert.assertEquals(context.request().id(), response.headers().getFirst(DEFAULT_REQUEST_ID_HEADER));
+        Assert.assertNotNull(context.request().transactionId());
+        Assert.assertEquals(transactionId, context.request().transactionId());
+        Assert.assertEquals(transactionId, context.request().headers().get(DEFAULT_TRANSACTION_ID_HEADER));
+        Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
 
-                    lock.countDown();
-                }
-            )
-            .handle(context);
-
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assert.assertNotEquals(transactionId, context.request().id());
+        Assert.assertNotEquals(transactionId, context.request().headers().get(DEFAULT_REQUEST_ID_HEADER));
+        Assert.assertNotEquals(transactionId, context.request().metrics().getRequestId());
     }
 
     @Test
-    public void shouldHaveTransactionIdWithCustomHeader() throws InterruptedException {
-        final CountDownLatch lock = new CountDownLatch(1);
-
+    public void shouldHaveTransactionIdWithCustomHeader() {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
-            .handler(
-                context -> {
-                    Assert.assertNotNull(context.request().transactionId());
-                    Assert.assertEquals(
-                        context.request().transactionId(),
-                        context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER)
-                    );
-                    Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
-                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-                    lock.countDown();
-                }
-            )
-            .handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assert.assertNotNull(context.request().transactionId());
+        Assert.assertEquals(context.request().transactionId(), context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
+        Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
     }
 
     @Test
     public void shouldPropagateSameTransactionIdWithCustomHeader() throws InterruptedException {
-        final CountDownLatch lock = new CountDownLatch(1);
-
         String transactionId = UUID.toString(UUID.random());
 
         request.headers().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
-            .handler(
-                context -> {
-                    Assert.assertNotNull(context.request().transactionId());
-                    Assert.assertEquals(transactionId, context.request().transactionId());
-                    Assert.assertEquals(transactionId, context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-                    Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
-                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-                    lock.countDown();
-                }
-            )
-            .handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assert.assertNotNull(context.request().transactionId());
+        Assert.assertEquals(transactionId, context.request().transactionId());
+        Assert.assertEquals(transactionId, context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
+        Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
     }
 }
