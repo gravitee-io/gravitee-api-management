@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 
 import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
+import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
 
 class ApiResponseTemplateController {
   private api: any;
@@ -26,7 +27,7 @@ class ApiResponseTemplateController {
   private templateKey: string;
   private formResponseTemplate: any;
   private creation = false;
-  private keys: any;
+  private keys: string[];
   private templates: any;
   private selectedTemplateKey: any;
 
@@ -60,47 +61,7 @@ class ApiResponseTemplateController {
       });
     }
 
-    this.keys = [
-      'DEFAULT',
-      'API_KEY_MISSING',
-      'API_KEY_INVALID',
-      'QUOTA_TOO_MANY_REQUESTS',
-      'SPIKE_ARREST_TOO_MANY_REQUESTS',
-      'RATE_LIMIT_TOO_MANY_REQUESTS',
-      'REQUEST_CONTENT_LIMIT_TOO_LARGE',
-      'REQUEST_CONTENT_LIMIT_LENGTH_REQUIRED',
-      'REQUEST_TIMEOUT',
-      'REQUEST_VALIDATION_INVALID',
-      'RESOURCE_FILTERING_FORBIDDEN',
-      'RESOURCE_FILTERING_METHOD_NOT_ALLOWED',
-      'RBAC_FORBIDDEN',
-      'RBAC_INVALID_USER_ROLES',
-      'RBAC_NO_USER_ROLE',
-      'OAUTH2_MISSING_SERVER',
-      'OAUTH2_MISSING_HEADER',
-      'OAUTH2_MISSING_ACCESS_TOKEN',
-      'OAUTH2_INVALID_ACCESS_TOKEN',
-      'OAUTH2_INVALID_SERVER_RESPONSE',
-      'OAUTH2_INSUFFICIENT_SCOPE',
-      'OAUTH2_SERVER_UNAVAILABLE',
-      'HTTP_SIGNATURE_INVALID_SIGNATURE',
-      'JWT_MISSING_TOKEN',
-      'JWT_INVALID_TOKEN',
-      'JSON_INVALID_PAYLOAD',
-      'JSON_INVALID_FORMAT',
-      'JSON_INVALID_RESPONSE_PAYLOAD',
-      'JSON_INVALID_RESPONSE_FORMAT',
-      'GATEWAY_INVALID_REQUEST',
-      'GATEWAY_INVALID_RESPONSE',
-      'GATEWAY_OAUTH2_ACCESS_DENIED',
-      'GATEWAY_OAUTH2_SERVER_ERROR',
-      'GATEWAY_OAUTH2_INVALID_CLIENT',
-      'GATEWAY_MISSING_SECURITY_PROVIDER',
-      'GATEWAY_POLICY_INTERNAL_ERROR',
-      'GATEWAY_PLAN_UNRESOLVABLE',
-      'GATEWAY_CLIENT_CONNECTION_ERROR',
-      'GATEWAY_CLIENT_CONNECTION_TIMEOUT',
-    ];
+    this.keys = ['DEFAULT', ...gatewayErrorKeys];
 
     // In case of a new response template, initialize with default media type
     if (this.creation) {
