@@ -20,6 +20,7 @@ import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import TenantService from '../../services/tenant.service';
 import { CompareCondition, Metrics, Scope, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
+import { gatewayErrorKeys } from '../gateway-error-keys/GatewayErrorKeys';
 
 export class ApiMetrics extends Metrics {
   static RESPONSE_TIME: ApiMetrics = new ApiMetrics('response.response_time', 'Response Time (ms)', [
@@ -45,44 +46,7 @@ export class ApiMetrics extends Metrics {
 
   static ERROR_KEY: ApiMetrics = new ApiMetrics('error.key', 'Error Key', [StringCondition.TYPE], true, undefined, () => {
     const keys: Tuple[] = [];
-    [
-      'API_KEY_MISSING',
-      'API_KEY_INVALID',
-      'QUOTA_TOO_MANY_REQUESTS',
-      'SPIKE_ARREST_TOO_MANY_REQUESTS',
-      'RATE_LIMIT_TOO_MANY_REQUESTS',
-      'REQUEST_CONTENT_LIMIT_TOO_LARGE',
-      'REQUEST_CONTENT_LIMIT_LENGTH_REQUIRED',
-      'REQUEST_TIMEOUT',
-      'REQUEST_VALIDATION_INVALID',
-      'RESOURCE_FILTERING_FORBIDDEN',
-      'RESOURCE_FILTERING_METHOD_NOT_ALLOWED',
-      'RBAC_FORBIDDEN',
-      'RBAC_INVALID_USER_ROLES',
-      'RBAC_NO_USER_ROLE',
-      'OAUTH2_MISSING_SERVER',
-      'OAUTH2_MISSING_HEADER',
-      'OAUTH2_MISSING_ACCESS_TOKEN',
-      'OAUTH2_INVALID_ACCESS_TOKEN',
-      'OAUTH2_INVALID_SERVER_RESPONSE',
-      'OAUTH2_INSUFFICIENT_SCOPE',
-      'OAUTH2_SERVER_UNAVAILABLE',
-      'HTTP_SIGNATURE_INVALID_SIGNATURE',
-      'JWT_MISSING_TOKEN',
-      'JWT_INVALID_TOKEN',
-      'JSON_INVALID_PAYLOAD',
-      'JSON_INVALID_FORMAT',
-      'GATEWAY_INVALID_REQUEST',
-      'GATEWAY_INVALID_RESPONSE',
-      'GATEWAY_OAUTH2_ACCESS_DENIED',
-      'GATEWAY_OAUTH2_SERVER_ERROR',
-      'GATEWAY_OAUTH2_INVALID_CLIENT',
-      'GATEWAY_MISSING_SECURITY_PROVIDER',
-      'GATEWAY_POLICY_INTERNAL_ERROR',
-      'GATEWAY_MISSING_SECURED_REQUEST_PLAN',
-      'GATEWAY_CLIENT_CONNECTION_ERROR',
-      'GATEWAY_CLIENT_CONNECTION_TIMEOUT',
-    ].forEach((key) => {
+    gatewayErrorKeys.forEach((key) => {
       keys.push(new Tuple(key, key));
     });
 
