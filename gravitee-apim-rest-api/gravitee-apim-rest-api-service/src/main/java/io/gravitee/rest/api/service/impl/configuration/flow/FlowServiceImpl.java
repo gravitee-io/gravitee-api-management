@@ -37,8 +37,10 @@ import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,15 +141,35 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     public List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
         try {
             LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
-            flowRepository.deleteByReference(flowReferenceType, referenceId);
-            if (flows == null) {
+            if (flows == null || flows.isEmpty()) {
+                flowRepository.deleteByReference(flowReferenceType, referenceId);
                 return List.of();
-            } else {
-                for (int order = 0; order < flows.size(); ++order) {
-                    flowRepository.create(flowConverter.toRepository(flows.get(order), flowReferenceType, referenceId, order));
-                }
-                return flows;
             }
+            Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository
+                .findByReference(flowReferenceType, referenceId)
+                .stream()
+                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+
+            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+            for (String dbFlowId : dbFlowsById.keySet()) {
+                if (!flowIdsToSave.contains(dbFlowId)) {
+                    flowRepository.delete(dbFlowId);
+                }
+            }
+
+            List<Flow> savedFlows = new ArrayList<>();
+            io.gravitee.repository.management.model.flow.Flow dbFlow;
+            for (int order = 0; order < flows.size(); ++order) {
+                Flow flow = flows.get(order);
+                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
+                    dbFlow = flowRepository.create(flowConverter.toRepository(flow, flowReferenceType, referenceId, order));
+                } else {
+                    dbFlow = flowRepository.update(flowConverter.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
+                }
+                savedFlows.add(flowConverter.toDefinition(dbFlow));
+            }
+            return savedFlows;
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";
             LOGGER.error(error, ex);

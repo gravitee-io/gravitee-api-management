@@ -265,6 +265,11 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     @Override
+    public Set<Application> findAll() throws TechnicalException {
+        return this.findAll(ApplicationStatus.values());
+    }
+
+    @Override
     public Set<Application> findAll(ApplicationStatus... ass) throws TechnicalException {
         LOGGER.debug("JdbcApplicationRepository.findAll({})", (Object[]) ass);
 

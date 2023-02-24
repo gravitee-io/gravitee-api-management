@@ -72,33 +72,24 @@ public class CategoriesResource extends AbstractCategoryResource {
             RolePermissionAction.DELETE
         );
 
-        Stream<CategoryEntity> categoryEntityStream = categoryService
+        return categoryService
             .findAll(GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(c -> hasAllPermissions || !c.isHidden())
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
             // set picture
-            .map(c -> setPictures(c, true));
-
-        if (include.contains(INCLUDE_TOTAL_APIS)) {
-            Set<ApiEntity> apis;
-            if (isAdmin()) {
-                apis = apiService.findAllByEnvironment(executionContext);
-            } else if (isAuthenticated()) {
-                apis = apiService.findByUser(executionContext, getAuthenticatedUser(), null, true);
-            } else {
-                apis = apiService.findByVisibility(executionContext, Visibility.PUBLIC);
-            }
-            categoryEntityStream =
-                categoryEntityStream.map(
-                    c -> {
-                        c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
-                        return c;
+            .map(c -> setPictures(c, true))
+            .map(
+                categoryEntity -> {
+                    if (include.contains(INCLUDE_TOTAL_APIS)) {
+                        categoryEntity.setTotalApis(
+                            apiService.countByCategoryForUser(executionContext, categoryEntity.getId(), getAuthenticatedUser())
+                        );
                     }
-                );
-        }
-
-        return categoryEntityStream.collect(Collectors.toList());
+                    return categoryEntity;
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     @POST

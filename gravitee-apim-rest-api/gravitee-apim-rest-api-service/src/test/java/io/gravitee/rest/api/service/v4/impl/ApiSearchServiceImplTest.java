@@ -344,27 +344,6 @@ public class ApiSearchServiceImplTest {
     }
 
     @Test
-    public void shouldFindByEnvironmentAndIdIn() {
-        api = new Api();
-        api.setId(API_ID);
-        api.setEnvironmentId("DEFAULT");
-
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-
-        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(API_ID, mock(PrimaryOwnerEntity.class)));
-        when(apiRepository.search(any(), eq(ApiFieldFilter.allFields()))).thenReturn(Arrays.asList(api));
-
-        final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
-            GraviteeContext.getExecutionContext(),
-            Set.of(API_ID)
-        );
-
-        assertNotNull(apiEntities);
-        assertEquals(1, apiEntities.size());
-    }
-
-    @Test
     public void shouldFindByEnvironmentAndEmptyIdIn() {
         final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
             GraviteeContext.getExecutionContext(),

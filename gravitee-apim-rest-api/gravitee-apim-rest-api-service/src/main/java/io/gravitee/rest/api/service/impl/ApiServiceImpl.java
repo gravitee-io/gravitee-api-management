@@ -204,6 +204,8 @@ import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -846,58 +848,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return dataAsMap;
     }
 
-    @Override
-    public Set<ApiEntity> findByVisibility(ExecutionContext executionContext, io.gravitee.rest.api.model.Visibility visibility) {
-        LOGGER.debug("Find APIs by visibility {}", visibility);
-        return new HashSet<>(
-            convert(
-                executionContext,
-                apiRepository.search(
-                    getDefaultApiCriteriaBuilder()
-                        .environmentId(executionContext.getEnvironmentId())
-                        .visibility(Visibility.valueOf(visibility.name()))
-                        .build(),
-                    ApiFieldFilter.allFields()
-                )
-            )
-        );
-    }
-
-    @Override
-    public Set<ApiEntity> findAllByEnvironment(final ExecutionContext executionContext) {
-        LOGGER.debug("Find all APIs for environment {}", executionContext.getEnvironmentId());
-        return new HashSet<>(
-            convert(
-                executionContext,
-                apiRepository.search(
-                    getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
-                    ApiFieldFilter.allFields()
-                )
-            )
-        );
-    }
-
-    @Override
-    public Set<ApiEntity> findAllLightByEnvironment(ExecutionContext executionContext, boolean excludeDefinition) {
-        LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", executionContext.getEnvironmentId());
-        final ApiFieldFilter.Builder apiFieldFilterBuilder = new ApiFieldFilter.Builder().excludePicture();
-        if (excludeDefinition) {
-            apiFieldFilterBuilder.excludeDefinition();
+    private String getScheme(String defaultEntrypoint) {
+        String scheme = "https";
+        if (defaultEntrypoint != null) {
+            try {
+                scheme = new URL(defaultEntrypoint).getProtocol();
+            } catch (MalformedURLException e) {
+                // return default scheme
+            }
         }
-        return new HashSet<>(
-            convert(
-                executionContext,
-                apiRepository.search(
-                    getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
-                    apiFieldFilterBuilder.build()
-                )
-            )
-        );
-    }
-
-    @Override
-    public Set<ApiEntity> findAllLight(ExecutionContext executionContext) {
-        return findAllLightByEnvironment(executionContext, false);
+        return scheme;
     }
 
     @Override
@@ -1076,6 +1036,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity updateApiEntity, boolean checkPlans) {
+        return update(executionContext, apiId, updateApiEntity, checkPlans, true);
+    }
+
+    @Override
+    public ApiEntity update(
+        ExecutionContext executionContext,
+        String apiId,
+        UpdateApiEntity updateApiEntity,
+        boolean checkPlans,
+        boolean updatePlansAndFlows
+    ) {
         try {
             LOGGER.debug("Update API {}", apiId);
 
@@ -1258,18 +1229,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api updatedApi = apiRepository.update(api);
 
-            // update API flows
-            flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
+            if (updatePlansAndFlows) {
+                // update API flows
+                flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
 
-            // update API plans
-            updateApiEntity
-                .getPlans()
-                .forEach(
-                    plan -> {
-                        plan.setApi(api.getId());
-                        planService.createOrUpdatePlan(executionContext, plan);
-                    }
-                );
+                // update API plans
+                updateApiEntity
+                    .getPlans()
+                    .forEach(
+                        plan -> {
+                            plan.setApi(api.getId());
+                            planService.createOrUpdatePlan(executionContext, plan);
+                        }
+                    );
+            }
 
             // Audit
             auditService.createApiAuditLog(
@@ -2031,7 +2004,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             query.setIds(targetIds);
         }
 
-        List<Api> apis = apiRepository.search(queryToCriteria(executionContext, query).build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository
+            .search(queryToCriteria(executionContext, query).build(), null, ApiFieldFilter.allFields())
+            .collect(toList());
         return this.convert(executionContext, apis);
     }
 
@@ -2605,13 +2580,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (pageable.getPageNumber() < 1 || (totalCount > 0 && startIndex >= totalCount)) {
             throw new PaginationInvalidException();
         }
+
         List<String> subsetApiIds = apiIds.stream().skip(startIndex).limit(pageable.getPageSize()).collect(toList());
         Comparator<String> orderingComparator = Comparator.comparingInt(subsetApiIds::indexOf);
         List<ApiEntity> subsetApis = subsetApiIds.isEmpty()
             ? emptyList()
             : convert(
                 executionContext,
-                apiRepository.search(queryToCriteria(executionContext, null).ids(subsetApiIds).build(), ApiFieldFilter.allFields())
+                apiRepository
+                    .search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).ids(subsetApiIds).build(),
+                        null,
+                        // Dumb pageable because we do it with a subset of ids from the engine search
+                        new PageableBuilder().pageNumber(0).pageSize(subsetApiIds.size()).build(),
+                        ApiFieldFilter.allFields()
+                    )
+                    .getContent()
             );
         subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
@@ -2681,6 +2665,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
             .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+    }
+
+    @Override
+    public long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId) {
+        List<ApiCriteria> apiCriteriaList;
+
+        if (isEnvironmentAdmin()) {
+            apiCriteriaList = List.of(new ApiCriteria.Builder().category(categoryId).build());
+        } else {
+            ApiQuery apiQuery = new ApiQuery();
+            apiQuery.setCategory(categoryId);
+            // portal=false because we do not want to have visibility=public apis for authenticated users
+            apiCriteriaList = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, false);
+        }
+
+        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), null).getContent();
+
+        return apiIds == null ? 0 : apiIds.size();
     }
 
     private List<String> getUserGroupIdsWithApiRole(String userId) {

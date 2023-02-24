@@ -39,6 +39,7 @@ import io.vertx.core.Vertx;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.Executor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,6 +75,9 @@ public class DynamicPropertiesServiceTest {
 
     @Mock
     private HttpDynamicPropertyProviderConfiguration providerConfiguration;
+
+    @Mock
+    private Executor executor;
 
     @InjectMocks
     private DynamicPropertiesService cut;
@@ -167,6 +171,23 @@ public class DynamicPropertiesServiceTest {
         verifyNoInteractions(apiService);
         verifyNoInteractions(vertx);
         assertFalse(cut.handlers.isEmpty());
+    }
+
+    @Test
+    public void shouldStopWhenUpdateApiAndTimerAlreadyRunning() throws Exception {
+        final ApiEntity previous = createApiEntity();
+        final ApiEntity apiEntity = createApiEntity();
+        apiEntity.getServices().getDynamicPropertyService().setEnabled(false);
+
+        CronHandler cronHandler = mock(CronHandler.class);
+
+        cut.handlers.put(previous, cronHandler);
+
+        cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, apiEntity));
+
+        verifyNoInteractions(apiService);
+        verifyNoInteractions(vertx);
+        assertTrue(cut.handlers.isEmpty());
     }
 
     private ApiEntity createApiEntity() {
