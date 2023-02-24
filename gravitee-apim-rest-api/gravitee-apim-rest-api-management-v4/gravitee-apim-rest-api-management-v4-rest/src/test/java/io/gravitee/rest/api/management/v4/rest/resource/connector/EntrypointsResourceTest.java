@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import java.util.*;
 import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +44,7 @@ import org.junit.Test;
  */
 public class EntrypointsResourceTest extends AbstractResourceTest {
 
-    public static final String FAKE_ENTRYPOINT_ID = "fake-entrypoint";
+    public static final String ENTRYPOINT_ID = "fake-entrypoint";
 
     @Override
     protected String contextPath() {
@@ -87,15 +86,15 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetEntrypointSchema() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getSchema(FAKE_ENTRYPOINT_ID)).thenReturn("schemaResponse");
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+        when(entrypointConnectorPluginService.getSchema(ENTRYPOINT_ID)).thenReturn("schemaResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("schemaResponse");
@@ -104,22 +103,22 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetEntrypointSchemaWhenPluginNotFound() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENTRYPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + ENTRYPOINT_ID + "] can not be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENTRYPOINT_ID));
+        expectedErrorEntity.setParameters(Map.of("plugin", ENTRYPOINT_ID));
 
         Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
     }
@@ -127,15 +126,15 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetEntrypointDocumentation() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getDocumentation(FAKE_ENTRYPOINT_ID)).thenReturn("documentationResponse");
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+        when(entrypointConnectorPluginService.getDocumentation(ENTRYPOINT_ID)).thenReturn("documentationResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("documentationResponse");
@@ -144,23 +143,23 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetEntrypointDocumentationWhenPluginNotFound() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
 
         final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENTRYPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + ENTRYPOINT_ID + "] can not be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENTRYPOINT_ID));
+        expectedErrorEntity.setParameters(Map.of("plugin", ENTRYPOINT_ID));
 
         Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
     }
@@ -168,15 +167,15 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetEntrypointSubscriptionSchema() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID)).thenReturn("subscriptionSchemaResponse");
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+        when(entrypointConnectorPluginService.getSubscriptionSchema(ENTRYPOINT_ID)).thenReturn("subscriptionSchemaResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscriptionSchema").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("subscriptionSchema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("subscriptionSchemaResponse");
@@ -185,22 +184,22 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetEntrypointSubscriptionSchemaWhenPluginNotFound() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscriptionSchema").request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).path("subscriptionSchema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENTRYPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + ENTRYPOINT_ID + "] can not be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENTRYPOINT_ID));
+        expectedErrorEntity.setParameters(Map.of("plugin", ENTRYPOINT_ID));
 
         Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
     }
@@ -208,19 +207,19 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetEndpointById() {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setId(ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.ASYNC);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+        when(entrypointConnectorPluginService.findById(ENTRYPOINT_ID)).thenReturn(connectorPlugin);
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final ConnectorPlugin entrypoint = response.readEntity(ConnectorPlugin.class);
         assertNotNull(entrypoint);
-        assertEquals(FAKE_ENTRYPOINT_ID, entrypoint.getId());
+        assertEquals(ENTRYPOINT_ID, entrypoint.getId());
         assertEquals("Fake Entrypoint", entrypoint.getName());
         assertEquals("1.0", entrypoint.getVersion());
         assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.ASYNC, entrypoint.getSupportedApiType());
@@ -229,10 +228,17 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotAllowUnauthorizedUserForGetById() {
-        // TODO: Add orgId to mock
-        when(permissionService.hasPermission(any(), eq(RolePermission.ORGANIZATION_ENTRYPOINT), any(), any())).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ORGANIZATION_ENTRYPOINT),
+                eq(GraviteeContext.getDefaultOrganization()),
+                any()
+            )
+        )
+            .thenReturn(false);
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).request().get();
+        final Response response = rootTarget(ENTRYPOINT_ID).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }

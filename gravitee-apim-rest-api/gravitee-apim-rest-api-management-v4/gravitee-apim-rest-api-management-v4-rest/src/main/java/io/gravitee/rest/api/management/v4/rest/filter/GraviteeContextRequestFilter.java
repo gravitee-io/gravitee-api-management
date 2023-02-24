@@ -52,7 +52,9 @@ public class GraviteeContextRequestFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
-        GraviteeContext.setCurrentOrganization(pathsParams.getFirst("orgId"));
+        if (pathsParams.containsKey("orgId")) {
+            GraviteeContext.setCurrentOrganization(pathsParams.getFirst("orgId"));
+        }
         if (pathsParams.containsKey("envId")) {
             GraviteeContext.setCurrentEnvironment(pathsParams.getFirst("envId"));
         } else if (pathsParams.containsKey("apiId")) {

@@ -59,8 +59,9 @@ public class EnvironmentResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        GraviteeContext.setCurrentOrganization(null);
+        GraviteeContext.cleanContext();
         GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
+        GraviteeContext.setCurrentOrganization(GraviteeContext.getDefaultOrganization());
     }
 
     @Test
