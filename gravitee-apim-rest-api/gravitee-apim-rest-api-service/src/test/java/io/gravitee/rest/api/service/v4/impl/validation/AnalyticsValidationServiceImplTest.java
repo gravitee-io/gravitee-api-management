@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
@@ -29,10 +29,13 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
+import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.exception.AnalyticsMessageSamplingValueInvalidException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import java.time.Clock;
 import java.time.Instant;
@@ -85,7 +88,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldAddDefaultAnalyticsIfNoAnalytics() {
+    public void should_add_default_analytics_if_no_analytics() {
         // No analytics
         assertNotNull(analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.SYNC, null));
 
@@ -102,7 +105,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldNotAddDefaultConditionIfNoneLogging() {
+    public void should_not_add_default_condition_if_none_logging() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(false).endpoint(false).build());
@@ -118,7 +121,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldNotAddDefaultConditionIfWrongConditionAndNoSettings() {
+    public void should_not_add_default_condition_if_wrong_condition_and_no_settings() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -144,7 +147,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldAddDefaultConditionIfWrongConditionAndWithSettings() {
+    public void should_add_default_condition_if_wrong_condition_and_with_settings() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -161,7 +164,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseTimestampLessOrEqual() {
+    public void should_override_timestamp_case_timestamp_less_or_equal() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -178,7 +181,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseTimestampLess() {
+    public void should_override_timestamp_case_timestamp_less() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -195,7 +198,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseTimestampAndAfter() {
+    public void should_override_timestamp_case_timestamp_and_after() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -215,7 +218,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseBeforeAndTimestamp() {
+    public void should_override_timestamp_case_before_and_timestamp() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -235,7 +238,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldHandleAfter_doubleParenthesis() {
+    public void should_handle_after_double_parenthesis() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -257,7 +260,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldHandleBefore_doubleParenthesis() {
+    public void should_handle_before_double_parenthesis() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -279,7 +282,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldHandleBefore_multipleParenthesis() {
+    public void should_handle_before_multiple_parenthesis() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -301,7 +304,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseBeforeAndTimestampAndAfter() {
+    public void should_override_timestamp_case_before_and_timestamp_and_after() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -323,7 +326,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldNotOverrideTimestampIfBeforeThreshold() {
+    public void should_not_override_timestamp_if_before_threshold() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -350,7 +353,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseGreaterOrEquals() {
+    public void should_override_timestamp_case_greater_or_equals() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -367,7 +370,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseGreater() {
+    public void should_override_timestamp_case_greater() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -384,7 +387,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseGreaterOrEqualsInThePast() {
+    public void should_override_timestamp_case_greater_or_equals_in_the_past() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -401,7 +404,7 @@ public class AnalyticsValidationServiceImplTest {
     }
 
     @Test
-    public void shouldOverrideTimestampCaseGreaterOrEqualsInThePastWithOrCondition() {
+    public void should_override_timestamp_case_greater_or_equals_in_the_past_with_or_condition() {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
         logging.setMode(LoggingMode.builder().entrypoint(true).endpoint(true).build());
@@ -433,5 +436,74 @@ public class AnalyticsValidationServiceImplTest {
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
         assertEquals(expectedCondition, sanitizedAnalytics.getLogging().getCondition());
+    }
+
+    @Test
+    public void should_set_default_analytics_without_sampling_when_sync_api() {
+        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            ApiType.SYNC,
+            null
+        );
+        assertEquals(new Analytics(), sanitizedAnalytics);
+    }
+
+    @Test
+    public void should_set_default_analytics_with_sampling_when_async_api() {
+        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            ApiType.ASYNC,
+            null
+        );
+        Analytics expected = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        messageSampling.setValue("10");
+        expected.setMessageSampling(messageSampling);
+        assertEquals(expected, sanitizedAnalytics);
+    }
+
+    @Test
+    public void should_set_default_sampling_when_async_api_and_analytics_enabled() {
+        Analytics analytics = new Analytics();
+        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            ApiType.ASYNC,
+            analytics
+        );
+        Analytics expected = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        messageSampling.setValue("10");
+        expected.setMessageSampling(messageSampling);
+        assertEquals(expected, sanitizedAnalytics);
+    }
+
+    @Test
+    public void should_validate_analytics_with_sampling_when_async_api() {
+        Analytics analytics = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        messageSampling.setValue("10");
+        analytics.setMessageSampling(messageSampling);
+        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            ApiType.ASYNC,
+            analytics
+        );
+        assertEquals(analytics, sanitizedAnalytics);
+    }
+
+    @Test
+    public void should_throw_exception_when_validating_analytics_with_wrong_sampling_when_async_api() {
+        Analytics analytics = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        messageSampling.setValue("0");
+        analytics.setMessageSampling(messageSampling);
+        assertThrows(
+            AnalyticsMessageSamplingValueInvalidException.class,
+            () -> analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.ASYNC, analytics)
+        );
     }
 }
