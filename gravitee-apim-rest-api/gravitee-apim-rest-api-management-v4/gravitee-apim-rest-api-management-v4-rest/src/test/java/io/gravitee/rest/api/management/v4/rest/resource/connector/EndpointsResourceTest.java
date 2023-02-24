@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v4.rest.model.Endpoint;
 import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -191,5 +194,21 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("1.0", endpoint.getVersion());
         assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.ASYNC, endpoint.getSupportedApiType());
         assertEquals(Set.of(io.gravitee.rest.api.management.v4.rest.model.ConnectorMode.SUBSCRIBE), endpoint.getSupportedModes());
+    }
+
+    @Test
+    public void shouldNotAllowUnauthorizedUserForGetById() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq(GraviteeContext.getDefaultEnvironment()),
+                any()
+            )
+        )
+            .thenReturn(false);
+
+        final Response response = rootTarget(FAKE_ENDPOINT_ID).request().get();
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }
