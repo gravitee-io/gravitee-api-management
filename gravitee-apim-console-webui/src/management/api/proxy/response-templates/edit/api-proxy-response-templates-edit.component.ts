@@ -27,6 +27,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../../shared/utils';
 import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
+import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
@@ -36,47 +37,7 @@ import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '..
 export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public defaultKeys = [
-    'DEFAULT',
-    'API_KEY_MISSING',
-    'API_KEY_INVALID',
-    'QUOTA_TOO_MANY_REQUESTS',
-    'SPIKE_ARREST_TOO_MANY_REQUESTS',
-    'RATE_LIMIT_TOO_MANY_REQUESTS',
-    'REQUEST_CONTENT_LIMIT_TOO_LARGE',
-    'REQUEST_CONTENT_LIMIT_LENGTH_REQUIRED',
-    'REQUEST_TIMEOUT',
-    'REQUEST_VALIDATION_INVALID',
-    'RESOURCE_FILTERING_FORBIDDEN',
-    'RESOURCE_FILTERING_METHOD_NOT_ALLOWED',
-    'RBAC_FORBIDDEN',
-    'RBAC_INVALID_USER_ROLES',
-    'RBAC_NO_USER_ROLE',
-    'OAUTH2_MISSING_SERVER',
-    'OAUTH2_MISSING_HEADER',
-    'OAUTH2_MISSING_ACCESS_TOKEN',
-    'OAUTH2_INVALID_ACCESS_TOKEN',
-    'OAUTH2_INVALID_SERVER_RESPONSE',
-    'OAUTH2_INSUFFICIENT_SCOPE',
-    'OAUTH2_SERVER_UNAVAILABLE',
-    'HTTP_SIGNATURE_INVALID_SIGNATURE',
-    'JWT_MISSING_TOKEN',
-    'JWT_INVALID_TOKEN',
-    'JSON_INVALID_PAYLOAD',
-    'JSON_INVALID_FORMAT',
-    'JSON_INVALID_RESPONSE_PAYLOAD',
-    'JSON_INVALID_RESPONSE_FORMAT',
-    'GATEWAY_INVALID_REQUEST',
-    'GATEWAY_INVALID_RESPONSE',
-    'GATEWAY_OAUTH2_ACCESS_DENIED',
-    'GATEWAY_OAUTH2_SERVER_ERROR',
-    'GATEWAY_OAUTH2_INVALID_CLIENT',
-    'GATEWAY_MISSING_SECURITY_PROVIDER',
-    'GATEWAY_POLICY_INTERNAL_ERROR',
-    'GATEWAY_PLAN_UNRESOLVABLE',
-    'GATEWAY_CLIENT_CONNECTION_ERROR',
-    'GATEWAY_CLIENT_CONNECTION_TIMEOUT',
-  ];
+  public defaultKeys = ['DEFAULT', ...gatewayErrorKeys] as const;
 
   public apiId: string;
   public responseTemplateToEdit?: ResponseTemplate;
