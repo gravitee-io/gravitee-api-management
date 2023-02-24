@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.reactor.processor.transaction;
 
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.Processor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,15 +26,15 @@ import org.springframework.beans.factory.annotation.Value;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessorFactory {
+public class TransactionRequestProcessorFactory {
 
-    @Value("${handlers.request.transaction.header:" + TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER + "}")
+    @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}")
     private String transactionHeader;
 
-    @Value("${handlers.request.request.header:" + TransactionProcessor.DEFAULT_REQUEST_ID_HEADER + "}")
+    @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}")
     private String requestHeader;
 
     public Processor<ExecutionContext> create() {
-        return new TransactionProcessor(transactionHeader, requestHeader);
+        return new TransactionRequestProcessor(transactionHeader, requestHeader);
     }
 }

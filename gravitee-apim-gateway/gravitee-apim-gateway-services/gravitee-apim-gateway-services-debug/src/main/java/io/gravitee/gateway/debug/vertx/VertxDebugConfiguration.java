@@ -24,7 +24,7 @@ import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
@@ -56,8 +56,8 @@ public class VertxDebugConfiguration {
     }
 
     @Bean
-    public TransactionProcessorFactory transactionHandlerFactory() {
-        return new TransactionProcessorFactory();
+    public TransactionRequestProcessorFactory transactionHandlerFactory() {
+        return new TransactionRequestProcessorFactory();
     }
 
     @Bean
