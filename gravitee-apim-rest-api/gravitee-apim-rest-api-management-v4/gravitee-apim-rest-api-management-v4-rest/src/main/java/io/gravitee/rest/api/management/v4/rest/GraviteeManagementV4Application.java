@@ -27,9 +27,10 @@ import io.gravitee.rest.api.management.v4.rest.provider.ByteArrayOutputStreamWri
 import io.gravitee.rest.api.management.v4.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v4.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v4.rest.resource.api.ApiResource;
+import io.gravitee.rest.api.management.v4.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v4.rest.resource.connector.EndpointsResource;
 import io.gravitee.rest.api.management.v4.rest.resource.connector.EntrypointsResource;
-import io.gravitee.rest.api.management.v4.rest.resource.installation.EnvironmentResource;
+import io.gravitee.rest.api.management.v4.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v4.rest.resource.installation.OrganizationResource;
 import javax.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -48,8 +49,9 @@ public class GraviteeManagementV4Application extends ResourceConfig {
     public GraviteeManagementV4Application() {
         //Main resource
         register(OrganizationResource.class);
-        register(EnvironmentResource.class);
+        register(EnvironmentsResource.class);
         register(ApiResource.class);
+        register(ApisResource.class);
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
 
