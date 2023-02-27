@@ -19,7 +19,11 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v4.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v4.rest.model.Environment;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v4.rest.security.Permission;
+import io.gravitee.rest.api.management.v4.rest.security.Permissions;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -60,6 +64,7 @@ public class EnvironmentResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final NewApiEntity newApiEntity) {
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();

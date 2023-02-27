@@ -29,11 +29,15 @@ import io.gravitee.rest.api.management.v4.rest.model.Environment;
 import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.ws.rs.client.Entity;
@@ -59,7 +63,7 @@ public class EnvironmentResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        GraviteeContext.setCurrentOrganization(null);
+        GraviteeContext.cleanContext();
         GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
     }
 
@@ -221,5 +225,40 @@ public class EnvironmentResourceTest extends AbstractResourceTest {
         var body = response.readEntity(ErrorEntity.class);
         assertNotNull(body);
         assertEquals(404, body.getHttpStatus());
+    }
+
+    @Test
+    public void shouldReturn403WhenUserNotPermittedToCreateApi() {
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("My beautiful api");
+        apiEntity.setApiVersion("v1");
+        apiEntity.setDescription("my description");
+        apiEntity.setApiVersion("v1");
+        apiEntity.setType(ApiType.SYNC);
+        apiEntity.setDescription("Ma description");
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("sse");
+        httpListener.setEntrypoints(List.of(entrypoint));
+        apiEntity.setListeners(List.of(httpListener));
+
+        EndpointGroup endpoint = new EndpointGroup();
+        endpoint.setName("default");
+        endpoint.setType("http");
+        apiEntity.setEndpointGroups(List.of(endpoint));
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq(FAKE_ENVIRONMENT_ID),
+                any()
+            )
+        )
+            .thenReturn(false);
+
+        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }
