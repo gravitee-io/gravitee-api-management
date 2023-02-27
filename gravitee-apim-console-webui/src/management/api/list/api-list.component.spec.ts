@@ -73,7 +73,7 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
+          contextPath: 'Context Path',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -93,7 +93,7 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
+          contextPath: 'Context Path',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -216,7 +216,7 @@ describe('ApisListComponent', () => {
       expect(headerCells).toEqual([
         {
           actions: '',
-          contextPath: 'Context paths',
+          contextPath: 'Context Path',
           name: 'Name',
           owner: 'Owner',
           picture: '',
