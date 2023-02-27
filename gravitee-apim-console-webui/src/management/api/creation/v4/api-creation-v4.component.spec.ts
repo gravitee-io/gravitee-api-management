@@ -239,6 +239,23 @@ describe('ApiCreationV4Component', () => {
       expectApiGetPortalSettings();
     });
 
+    it('should not validate without path', async () => {
+      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+
+      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+      await step2Harness.clickValidate();
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+      exceptEnvironmentGetRequest(fakeEnvironment());
+      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+      expectApiGetPortalSettings();
+      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+    });
+
     it('should not validate with bad path', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);

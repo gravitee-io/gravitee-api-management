@@ -61,7 +61,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public listenerFormArray = new FormArray([this.newListenerFormGroup({})], [this.listenersValidator()], [this.listenersAsyncValidator()]);
   public contextPathPrefix: string;
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private verifiedPath: Record<string, ValidationErrors | null> = {};
 
   public onDelete(pathIndex: number): void {
     this.listenerFormArray.controls.forEach((control) => {

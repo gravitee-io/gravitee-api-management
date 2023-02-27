@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
@@ -74,7 +74,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
     if (this.hasListeners) {
-      this.formGroup.addControl('paths', this.formBuilder.control(paths));
+      this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
     }
     currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
       this.formGroup.addControl(id, this.formBuilder.group({}));
