@@ -30,6 +30,7 @@ import { Constants } from '../../../entities/Constants';
 export type ApisTableDS = {
   id: string;
   name: string;
+  version: string;
   contextPath: string;
   tags: string;
   owner: string;
@@ -147,6 +148,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
       ? api.data.map((api) => ({
           id: api.id,
           name: api.name,
+          version: api.version,
           contextPath: api.context_path,
           tags: api.tags.join(', '),
           owner: api?.owner?.displayName,
