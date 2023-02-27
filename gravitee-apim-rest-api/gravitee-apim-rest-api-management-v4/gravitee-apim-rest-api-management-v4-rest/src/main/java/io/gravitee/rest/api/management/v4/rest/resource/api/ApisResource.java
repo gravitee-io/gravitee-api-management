@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v4.rest.resource.installation;
+package io.gravitee.rest.api.management.v4.rest.resource.api;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v4.rest.mapper.EnvironmentMapper;
-import io.gravitee.rest.api.management.v4.rest.model.Environment;
+import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.security.Permission;
 import io.gravitee.rest.api.management.v4.rest.security.Permissions;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -45,28 +39,20 @@ import javax.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/environments/{envId}")
-public class EnvironmentResource extends AbstractResource {
+@Path("/environments/{envId}/apis")
+public class ApisResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
 
-    @Inject
-    private EnvironmentService environmentService;
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Environment getEnvironment(@PathParam("envId") String envId) {
-        return EnvironmentMapper.INSTANCE.convert(environmentService.findById(envId));
-    }
-
-    @Path("/apis")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final NewApiEntity newApiEntity) {
+        // FIXME: use new API model in signature
+        // FIXME: remove environmentId from openAPI descriptor API
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-        return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
+        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
     }
 }

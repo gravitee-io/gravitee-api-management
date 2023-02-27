@@ -47,9 +47,7 @@ paths:
                                 $ref: "#/components/schemas/Organization"
                 default:
                     $ref: "#/components/responses/Error"
-    /organizations/{orgId}/environments:
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
+    /environments:
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -84,7 +82,7 @@ paths:
                                 $ref: "#/components/schemas/Environment"
                 default:
                     $ref: "#/components/responses/Error"
-    /apis:
+    /environments/{envId}/apis:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
         get:
