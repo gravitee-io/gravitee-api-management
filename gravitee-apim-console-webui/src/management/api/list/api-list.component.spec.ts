@@ -104,7 +104,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
@@ -167,6 +167,7 @@ describe('ApisListComponent', () => {
         const api = {
           id: 'api-id',
           name: 'api#1',
+          version: '1.0.0',
           contextPath: '/api-1',
           tags: null,
           owner: 'admin',
@@ -231,7 +232,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
