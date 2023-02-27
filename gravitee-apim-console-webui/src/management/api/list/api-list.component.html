@@ -46,8 +46,8 @@
     <!-- Display Name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
-      <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
-        {{ element.name }}
+      <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)" title="{{ element.name }} ({{ element.version }})">
+        {{ element.name }} ({{ element.version }})
       </td>
     </ng-container>
 
