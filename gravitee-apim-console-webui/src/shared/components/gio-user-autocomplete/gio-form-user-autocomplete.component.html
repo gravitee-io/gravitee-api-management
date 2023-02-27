@@ -1,0 +1,36 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-form-field class="form-field">
+  <mat-icon matPrefix>search</mat-icon>
+  <mat-label>Search a user by name or email</mat-label>
+
+  <input matInput type="search" [matAutocomplete]="auto" [formControl]="userSearchTerm" />
+  <button *ngIf="userSearchTerm.value && !isDisabled" matSuffix mat-icon-button aria-label="Clear" (click)="resetSearchTerm()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectUser($event)" [displayWith]="displayFn">
+    <mat-option *ngFor="let option of users | async" [value]="option">
+      {{ option.displayName }}
+    </mat-option>
+    <mat-option *ngIf="(users | async)?.length === 0 && userSearchTerm.value?.length > 0" disabled
+      >No user matching the term or user already selected</mat-option
+    >
+  </mat-autocomplete>
+  <mat-error *ngIf="userSearchTerm.hasError('invalidUser')"> Select a user from the list </mat-error>
+</mat-form-field>
