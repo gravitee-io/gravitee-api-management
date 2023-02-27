@@ -19,4 +19,5 @@ export type ConnectorVM = {
   description: string;
   isEnterprise: boolean;
   supportedListenerType: string;
+  icon: string;
 };

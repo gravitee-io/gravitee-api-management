@@ -27,6 +27,7 @@ export type ApiCreationPayload = Partial<{
   selectedEntrypoints?: {
     id: string;
     name: string;
+    icon: string;
     supportedListenerType: string;
   }[];
 
@@ -34,6 +35,7 @@ export type ApiCreationPayload = Partial<{
   selectedEndpoints?: {
     id: string;
     name: string;
+    icon: string;
     configuration?: unknown;
   }[];
 

@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatIconModule } from '@angular/material/icon';
 
-import { GioConnectorIconComponent } from './gio-connector-icon.component';
+import { SafePipe } from './safe.pipe';
 
 @NgModule({
-  imports: [MatIconModule, GioIconsModule],
-  declarations: [GioConnectorIconComponent],
-  exports: [GioConnectorIconComponent],
-  entryComponents: [GioConnectorIconComponent],
+  imports: [],
+  declarations: [SafePipe],
+  exports: [SafePipe],
 })
-export class GioConnectorIconModule {}
+export class GioSafePipeModule {}

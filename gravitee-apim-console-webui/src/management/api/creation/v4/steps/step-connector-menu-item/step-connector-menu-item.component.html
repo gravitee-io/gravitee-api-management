@@ -17,6 +17,6 @@
 -->
 <ng-container *ngIf="connectors">
   <div *ngFor="let connector of connectors" class="step-connector-menu-item">
-    <gio-connector-icon [connectorType]="connectorType" [connectorId]="connector.id" [connectorName]="connector.name"></gio-connector-icon>
+    <mat-icon class="step-connector-menu-item__icon" [svgIcon]="connector.icon"></mat-icon> {{ connector.name }}
   </div>
 </ng-container>

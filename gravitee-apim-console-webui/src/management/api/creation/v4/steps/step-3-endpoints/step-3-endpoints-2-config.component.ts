@@ -73,9 +73,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      selectedEndpoints: previousPayload.selectedEndpoints.map(({ id, name }) => ({
+      selectedEndpoints: previousPayload.selectedEndpoints.map(({ id, name, icon }) => ({
         id,
         name,
+        icon,
         configuration: this.formGroup.get(id).value,
       })),
     }));

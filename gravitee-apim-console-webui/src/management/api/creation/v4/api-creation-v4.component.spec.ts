@@ -650,7 +650,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
-      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints: new entrypoint\nChange');
+      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints: new entrypointChange');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
@@ -681,7 +681,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
-      expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock\nChange');
+      expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {

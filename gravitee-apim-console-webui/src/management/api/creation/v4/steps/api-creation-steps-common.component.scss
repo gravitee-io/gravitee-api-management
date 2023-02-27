@@ -54,6 +54,11 @@ $typography: map.get(gio.$mat-theme, typography);
     vertical-align: bottom;
   }
 
+  &__icon {
+    height: 14px;
+    width: 14px;
+  }
+
   &__form-container {
     border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
     border-radius: 8px;

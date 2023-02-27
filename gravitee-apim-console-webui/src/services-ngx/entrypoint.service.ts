@@ -17,17 +17,26 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
 import { Entrypoint } from '../entities/entrypoint/entrypoint';
 import { PluginMoreInformation } from '../entities/plugin/PluginMoreInformation';
 
+export const BASE_64_PREFIX = 'data:image/svg+xml;base64,';
+
 @Injectable({
   providedIn: 'root',
 })
 export class EntrypointService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    private readonly matIconRegistry: MatIconRegistry,
+    private _sanitizer: DomSanitizer,
+  ) {}
 
   list(): Observable<Entrypoint[]> {
     return this.http.get<Entrypoint[]>(`${this.constants.org.baseURL}/configuration/entrypoints`);

@@ -17,8 +17,8 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
-import { map, takeUntil, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
@@ -29,6 +29,7 @@ import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
 } from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+import { IconService } from '../../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -48,6 +49,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly iconService: IconService,
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +75,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
           description: entrypoint.description,
           isEnterprise: entrypoint.id.endsWith('-advanced'),
           supportedListenerType: entrypoint.supportedListenerType,
+          icon: this.iconService.registerSvg(entrypoint.id, entrypoint.icon),
         }));
         this.changeDetectorRef.detectChanges();
       });
@@ -86,7 +89,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   save(): void {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
     const selectedEntrypoints = this.entrypoints
-      .map(({ id, name, supportedListenerType }) => ({ id, name, supportedListenerType }))
+      .map(({ id, name, supportedListenerType, icon }) => ({ id, name, supportedListenerType, icon }))
       .filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.validStep((previousPayload) => ({
@@ -111,6 +114,12 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       .v4GetMoreInformation(entrypoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
+        catchError(() =>
+          of({
+            description: `${entrypoint.description} <br/><br/> 🚧 More information coming soon 🚧 <br/>`,
+            documentationUrl: 'https://docs.gravitee.io',
+          }),
+        ),
         tap((pluginMoreInformation) => {
           this.matDialog
             .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {

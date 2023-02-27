@@ -37,7 +37,7 @@ describe('ApiCreationStepperService', () => {
       },
     ],
     {
-      selectedEndpoints: [{ id: '1', name: 'initial value' }],
+      selectedEndpoints: [{ id: '1', name: 'initial value', icon: 'gio:language' }],
     },
   );
 
@@ -120,14 +120,14 @@ describe('ApiCreationStepperService', () => {
   it('should have compiled payload from step 1 2 3', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
       name: 'Step 1 > Step 2.1 > Step 2.2 > Step 3',
-      selectedEndpoints: [{ id: '1', name: 'initial value' }],
+      selectedEndpoints: [{ id: '1', name: 'initial value', icon: 'gio:language' }],
     });
   });
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
     apiCreationStepperService.validStep((previousPayload) => {
-      previousPayload.selectedEndpoints.push({ id: '2', name: 'new value' });
+      previousPayload.selectedEndpoints.push({ id: '2', name: 'new value', icon: 'gio:language' });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
     });
@@ -154,8 +154,8 @@ describe('ApiCreationStepperService', () => {
     expect(apiCreationStepperService.compileStepPayload(currentStep)).toEqual({
       name: 'Step 1 - edited > Step 2.1 > Step 2.2 > Step 3',
       selectedEndpoints: [
-        { id: '1', name: 'initial value' },
-        { id: '2', name: 'new value' },
+        { id: '1', name: 'initial value', icon: 'gio:language' },
+        { id: '2', name: 'new value', icon: 'gio:language' },
       ],
     });
   });
@@ -164,8 +164,8 @@ describe('ApiCreationStepperService', () => {
     apiCreationStepperService.finished$.subscribe((payload) => {
       expect(payload).toEqual({
         selectedEndpoints: [
-          { id: '1', name: 'initial value' },
-          { id: '2', name: 'new value' },
+          { id: '1', name: 'initial value', icon: 'gio:language' },
+          { id: '2', name: 'new value', icon: 'gio:language' },
         ],
         name: 'Step 1 - edited > Step 2.1 > Step 2.2 > Step 3',
       });

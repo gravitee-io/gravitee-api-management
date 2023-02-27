@@ -48,6 +48,11 @@ public class PlatformPluginEntity {
      */
     private String version;
 
+    /**
+     * The plugin version
+     */
+    private String icon;
+
     public String getDescription() {
         return description;
     }
@@ -86,6 +91,14 @@ public class PlatformPluginEntity {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     @Override
