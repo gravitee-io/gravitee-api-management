@@ -34,7 +34,6 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -47,6 +46,8 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     private MongoTemplate mongoTemplate;
 
     public List<EventMongo> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
+        final String collectionName = mongoTemplate.getCollectionName(EventMongo.class);
+
         Aggregation aggregation;
         List<AggregationOperation> aggregationOperations = new ArrayList<>();
 
@@ -70,6 +71,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
                 aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
             }
         }
+
+        // Project only useful field to avoid memory consumption during pipeline execution on mongodb side (this excludes the payload from sort and group and avoid 'Command failed with error 292').
+        aggregationOperations.add(Aggregation.project(Aggregation.fields("_id", "updatedAt", "type", "properties")));
 
         // Sort.
         aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
@@ -101,13 +105,14 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             aggregationOperations.add(Aggregation.limit(size));
         }
 
+        // Lookup against events collection again to retrieve full events with payload but limited to the page size to preserve mongodb memory.
+        aggregationOperations.add(Aggregation.lookup(collectionName, "_id", "_id", "lookup_events"));
+        aggregationOperations.add(Aggregation.unwind("lookup_events"));
+        aggregationOperations.add(Aggregation.replaceRoot("lookup_events"));
+
         aggregation = Aggregation.newAggregation(aggregationOperations);
 
-        final AggregationResults<EventMongo> events = mongoTemplate.aggregate(
-            aggregation,
-            mongoTemplate.getCollectionName(EventMongo.class),
-            EventMongo.class
-        );
+        final AggregationResults<EventMongo> events = mongoTemplate.aggregate(aggregation, collectionName, EventMongo.class);
 
         return events.getMappedResults();
     }
