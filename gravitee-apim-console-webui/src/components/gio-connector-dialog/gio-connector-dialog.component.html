@@ -24,11 +24,11 @@
 </div>
 
 <mat-dialog-content class="gio-connector-dialog__content">
-  <div class="gio-connector-dialog__content__description">{{ pluginMoreInformation.description }}</div>
-  <div class="gio-connector-dialog__content__schema">
-    <img class="gio-connector-dialog__content__schema__img" [src]="pluginMoreInformation.schemaImg" />
+  <div class="gio-connector-dialog__content__description" [innerHTML]="pluginMoreInformation.description | safe: 'html'"></div>
+  <div *ngIf="pluginMoreInformation.schemaImg" class="gio-connector-dialog__content__schema">
+    <img class="gio-connector-dialog__content__schema__img" [src]="pluginMoreInformation.schemaImg" [alt]="name + ' schema'" />
   </div>
   <div class="gio-connector-dialog__content__link">
-    Learn more on our <a target="_blank" [href]="pluginMoreInformation.documentationUrl">Documentation website</a>
+    Learn more on our <a target="_blank" [href]="pluginMoreInformation.documentationUrl | safe: 'url'">Documentation website</a>
   </div>
 </mat-dialog-content>

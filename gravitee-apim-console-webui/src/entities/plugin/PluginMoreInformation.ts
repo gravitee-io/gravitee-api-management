@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export type PluginMoreInformation = {
-  description: string;
-  schemaImg: string;
-  documentationUrl: string;
+  description?: string;
+  schemaImg?: string;
+  documentationUrl?: string;
 };

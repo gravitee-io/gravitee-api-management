@@ -17,6 +17,8 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
@@ -26,7 +28,12 @@ import { PluginMoreInformation } from '../entities/plugin/PluginMoreInformation'
   providedIn: 'root',
 })
 export class EndpointService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    private readonly matIconRegistry: MatIconRegistry,
+    private _sanitizer: DomSanitizer,
+  ) {}
 
   v4ListEndpointPlugins(): Observable<ConnectorListItem[]> {
     return this.http.get<ConnectorListItem[]>(`${this.constants.baseURL}/v4/endpoints`);

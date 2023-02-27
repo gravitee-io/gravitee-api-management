@@ -21,8 +21,10 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { GioConnectorDialogComponent } from './gio-connector-dialog.component';
 
+import { GioSafePipeModule } from '../../shared/utils/gio.pipe.module';
+
 @NgModule({
-  imports: [CommonModule, MatDialogModule, GioIconsModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, GioIconsModule, MatButtonModule, GioSafePipeModule],
   declarations: [GioConnectorDialogComponent],
   exports: [GioConnectorDialogComponent],
   entryComponents: [GioConnectorDialogComponent],
