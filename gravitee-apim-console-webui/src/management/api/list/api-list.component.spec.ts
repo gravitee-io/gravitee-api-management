@@ -104,8 +104,12 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
+<<<<<<< HEAD
       expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+=======
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'play_circlecloud_done', '/planets', '', 'admin', 'public', 'edit']]);
+>>>>>>> d4a5806abe (fix: display API version in APIs list)
     }));
 
     it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -167,6 +171,7 @@ describe('ApisListComponent', () => {
         const api = {
           id: 'api-id',
           name: 'api#1',
+          version: '1.0.0',
           contextPath: '/api-1',
           tags: null,
           owner: 'admin',
@@ -231,7 +236,11 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
+<<<<<<< HEAD
       expect(rowCells).toEqual([['', '🪐 Planets', '', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit']]);
+=======
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'play_circlecloud_done', '/planets', '', '100%', 'admin', 'public', 'edit']]);
+>>>>>>> d4a5806abe (fix: display API version in APIs list)
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
