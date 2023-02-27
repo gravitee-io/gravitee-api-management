@@ -74,7 +74,10 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
+<<<<<<< HEAD
           definitionVersion: 'Mode',
+=======
+>>>>>>> 7042651b53 (fix: fix type in APIs list screen)
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -95,7 +98,10 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
+<<<<<<< HEAD
           definitionVersion: 'Mode',
+=======
+>>>>>>> 7042651b53 (fix: fix type in APIs list screen)
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -226,7 +232,10 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
+<<<<<<< HEAD
           definitionVersion: 'Mode',
+=======
+>>>>>>> 7042651b53 (fix: fix type in APIs list screen)
           name: 'Name',
           owner: 'Owner',
           picture: '',
