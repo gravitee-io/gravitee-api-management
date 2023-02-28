@@ -19,7 +19,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
-import { isEmpty } from 'lodash';
+import { isEmpty, omitBy } from 'lodash';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -39,7 +39,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public selectedEntrypoints: { id: string; name: string; supportedListenerType: string }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
   public entrypointInitialValues: Record<string, any>;
-  public entrypointFormGroups: Record<string, FormGroup>;
   public hasListeners: boolean;
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
@@ -91,7 +90,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     )
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
-        this.entrypointSchemas = schemas;
+        // Remove schema with empty input
+        this.entrypointSchemas = omitBy(schemas, (schema) => isEmpty(schema.properties));
         this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
       });
   }
