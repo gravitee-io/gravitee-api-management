@@ -263,4 +263,15 @@ export class ApiService {
 
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/import-path-mappings${params}`, {});
   }
+
+  transferOwnership(
+    api: string,
+    ownership: {
+      id?: string;
+      reference?: string;
+      role: string;
+    },
+  ): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/${api}/members/transfer_ownership`, ownership);
+  }
 }

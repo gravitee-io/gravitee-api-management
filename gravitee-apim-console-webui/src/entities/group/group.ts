@@ -31,4 +31,5 @@ export interface Group {
   system_invitation?: boolean;
   email_invitation?: boolean;
   disable_membership_notifications?: boolean;
+  apiPrimaryOwner?: boolean;
 }

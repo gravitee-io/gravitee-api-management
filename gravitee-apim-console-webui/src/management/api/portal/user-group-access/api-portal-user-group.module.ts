@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioAvatarModule, GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioBannerModule, GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -25,15 +25,18 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ApiPortalGroupsComponent } from './groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './members/api-portal-members.component';
+import { ApiPortalTransferOwnershipComponent } from './transfer-ownership/api-portal-transfer-ownership.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
 @NgModule({
-  declarations: [ApiPortalGroupsComponent, ApiPortalMembersComponent],
-  exports: [ApiPortalGroupsComponent, ApiPortalMembersComponent],
+  declarations: [ApiPortalGroupsComponent, ApiPortalMembersComponent, ApiPortalTransferOwnershipComponent],
+  exports: [ApiPortalGroupsComponent, ApiPortalMembersComponent, ApiPortalTransferOwnershipComponent],
   imports: [
     CommonModule,
     UIRouterModule,
@@ -46,12 +49,15 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSnackBarModule,
     MatTableModule,
     MatDialogModule,
+    MatRadioModule,
 
     GioAvatarModule,
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,
+    GioFormUserAutocompleteModule,
+    GioBannerModule,
   ],
 })
 export class ApiPortalUserGroupModule {}

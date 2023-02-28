@@ -459,4 +459,29 @@ describe('ApiService', () => {
       req.flush({});
     });
   });
+
+  describe('transferOwnership', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService
+        .transferOwnership(apiId, {
+          id: 'user#1',
+          role: 'OWNER',
+        })
+        .subscribe(() => {
+          done();
+        });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members/transfer_ownership`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({
+        id: 'user#1',
+        role: 'OWNER',
+      });
+      req.flush({});
+    });
+  });
 });
