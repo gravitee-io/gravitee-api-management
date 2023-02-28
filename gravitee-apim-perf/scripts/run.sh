@@ -117,7 +117,7 @@ echo "Current K6 Context:"
 env | grep -e "^K6_.*=.*" || true
 
 ### If verbose mode enabled, then prepare K6 options.
-VERBOSE_OPTIONS=""
+VERBOSE_OPTIONS=${VERBOSE_OPTIONS:-""}
 if [ ${verbose} = true ]
 then
   VERBOSE_OPTIONS="--http-debug --verbose"

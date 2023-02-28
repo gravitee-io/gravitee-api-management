@@ -19,5 +19,7 @@ if [[ -z "$*" ]]
 then
   exec "/bin/sh"
 else
-  exec /home/k6/scripts/run.sh  -f "/home/k6/dist/src/scenarios/${1}"
+  simulation=$1
+  shift 1
+  exec /home/k6/scripts/run.sh  -f "/home/k6/dist/src/scenarios/${simulation}" "$@"
 fi
