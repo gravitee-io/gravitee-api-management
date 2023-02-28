@@ -150,4 +150,8 @@ export class ApiCreationStepperService {
     this.currentStepIndex = index;
     this.currentStep$.next(this.steps[this.currentStepIndex]);
   }
+
+  removeAllNextSteps() {
+    this.steps.splice(this.currentStepIndex + 1);
+  }
 }

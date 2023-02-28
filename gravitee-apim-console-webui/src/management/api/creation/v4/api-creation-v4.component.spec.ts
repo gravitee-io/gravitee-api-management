@@ -35,6 +35,7 @@ import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-
 import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-endpoints-2-config.harness';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { Step2Entrypoints1ListComponent } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
+import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -46,6 +47,8 @@ import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 
 describe('ApiCreationV4Component', () => {
+  const httpProxyEntrypoint: Partial<ConnectorListItem>[] = [{ id: 'http-proxy', supportedApiType: 'sync', name: 'HTTP Proxy' }];
+
   const fakeAjsState = {
     go: jest.fn(),
   };
@@ -188,7 +191,7 @@ describe('ApiCreationV4Component', () => {
   describe('step2', () => {
     it('should go back to step1 with API details restored when clicking on previous', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
       expectEntrypointsGetRequest([]);
 
       await step2Harness.clickPrevious();
@@ -201,247 +204,382 @@ describe('ApiCreationV4Component', () => {
       expect(await step1Harness.getDescription()).toEqual('Description');
     });
 
-    it('should display only async entrypoints in the list', async () => {
-      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+    describe('step2 - sync architecture', () => {
+      it('should go directly to entrypoint settings', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expectEntrypointsGetRequest([{ id: 'http-proxy', supportedApiType: 'sync', name: 'HTTP Proxy' }]);
 
-      expectEntrypointsGetRequest([
-        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-        { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
-      ]);
+        await step20ArchitectureHarness.fillAndValidate('sync');
 
-      const list = await step2Harness.getEntrypoints();
-      expect(await list.getListValues()).toEqual(['sse', 'webhook']);
+        expect(component.currentStep.payload.type).toEqual('sync');
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { id: 'http-proxy', supportedListenerType: 'http', name: 'HTTP Proxy' },
+        ]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+        expectApiGetPortalSettings();
+
+        expect(await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness)).toBeDefined();
+      });
     });
 
-    it('should select entrypoints in the list', async () => {
-      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+    describe('step2 - async architecture', () => {
+      it('should display only async entrypoints in the list', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
 
-      expectEntrypointsGetRequest([
-        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-      ]);
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        expectEntrypointsGetRequest([
+          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+          { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
+        ]);
 
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
+        const list = await step2Harness.getEntrypoints();
+        expect(await list.getListValues()).toEqual(['sse', 'webhook']);
+      });
 
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-        { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
-        { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
-      ]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([
-        { id: 'sse', name: 'SSE' },
-        { id: 'webhook', name: 'Webhook' },
-      ]);
-      expectApiGetPortalSettings();
-    });
+      it('should select entrypoints in the list', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-    it('should not validate without path', async () => {
-      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        expectEntrypointsGetRequest([
+          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+        ]);
 
-      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
+          { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
+        ]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([
+          { id: 'sse', name: 'SSE' },
+          { id: 'webhook', name: 'Webhook' },
+        ]);
+        expectApiGetPortalSettings();
+      });
 
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      expectApiGetPortalSettings();
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
-    });
+      it('should not validate without path', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-    it('should not validate with bad path', async () => {
-      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
 
-      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectApiGetPortalSettings();
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+      });
+      it('should not validate with bad path', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      expectApiGetPortalSettings();
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.fillPathsAndValidate('bad-path');
-      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
-    });
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
 
-    it('should configure paths', async () => {
-      await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
-      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectApiGetPortalSettings();
+        const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step22Harness.fillPaths('bad-path');
+        expect(await step22Harness.hasValidationDisabled()).toEqual(true);
+      });
 
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      it('should configure paths', async () => {
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      expectApiGetPortalSettings();
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.fillPathsAndValidate('/api/my-api-3');
-      expectVerifyContextPathGetRequest();
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
 
-      expect(component.currentStep.payload.listeners).toEqual([
-        {
-          entrypoints: [
-            {
-              configuration: {
-                headersAsComment: false,
-                heartbeatIntervalInMs: 5000,
-                metadataAsComment: false,
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectApiGetPortalSettings();
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step21Harness.fillPathsAndValidate('/api/my-api-3');
+        expectVerifyContextPathGetRequest();
+
+        expect(component.currentStep.payload.listeners).toEqual([
+          {
+            entrypoints: [
+              {
+                configuration: {
+                  headersAsComment: false,
+                  heartbeatIntervalInMs: 5000,
+                  metadataAsComment: false,
+                },
+                type: 'sse',
               },
-              type: 'sse',
-            },
-          ],
-          paths: [
-            {
-              path: '/api/my-api-3',
-            },
-          ],
-          type: 'http',
-        },
-      ]);
-
-      expectEndpointsGetRequest([]);
-    });
-
-    it('should not validate with empty host', async () => {
-      await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-
-      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
-
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
-
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      expectApiGetPortalSettings();
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.clickListenerType();
-      expectApiGetPortalSettings();
-
-      await step21Harness.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
-      expect(await step21Harness.hasValidationDisabled()).toEqual(true);
-    });
-
-    it('should configure virtual host', async () => {
-      await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-
-      expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
-
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
-
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      expectApiGetPortalSettings();
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.clickListenerType();
-      expectApiGetPortalSettings();
-
-      await step21Harness.fillVirtualHostsAndValidate({ host: 'hostname', path: '/api/my-api-3' });
-      expectVerifyContextPathGetRequest();
-
-      expect(component.currentStep.payload.listeners).toEqual([
-        {
-          entrypoints: [
-            {
-              configuration: {
-                headersAsComment: false,
-                heartbeatIntervalInMs: 5000,
-                metadataAsComment: false,
+            ],
+            paths: [
+              {
+                path: '/api/my-api-3',
               },
-              type: 'sse',
-            },
-          ],
-          paths: [
-            {
-              host: 'hostname',
-              overrideAccess: false,
-              path: '/api/my-api-3',
-            },
-          ],
-          type: 'http',
-        },
-      ]);
+            ],
+            type: 'http',
+          },
+        ]);
 
-      expectEndpointsGetRequest([]);
+        expectEndpointsGetRequest([]);
+      });
+
+      it('should not validate with empty host', async () => {
+        await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectApiGetPortalSettings();
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step21Harness.clickListenerType();
+        expectApiGetPortalSettings();
+
+        await step21Harness.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
+        expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+      });
+
+      it('should configure virtual host', async () => {
+        await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
+        const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expectEntrypointsGetRequest([]);
+        await step2Harness0Architecture.fillAndValidate('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectApiGetPortalSettings();
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step21Harness.clickListenerType();
+        expectApiGetPortalSettings();
+
+        await step21Harness.fillVirtualHostsAndValidate({ host: 'hostname', path: '/api/my-api-3' });
+        expectVerifyContextPathGetRequest();
+
+        expect(component.currentStep.payload.listeners).toEqual([
+          {
+            entrypoints: [
+              {
+                configuration: {
+                  headersAsComment: false,
+                  heartbeatIntervalInMs: 5000,
+                  metadataAsComment: false,
+                },
+                type: 'sse',
+              },
+            ],
+            paths: [
+              {
+                host: 'hostname',
+                overrideAccess: false,
+                path: '/api/my-api-3',
+              },
+            ],
+            type: 'http',
+          },
+        ]);
+
+        expectEndpointsGetRequest([]);
+      });
+
+      it('should configure entrypoints in the list', async () => {
+        await fillAndValidateStep1ApiDetails('API', '2.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('async');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+        expectEntrypointsGetRequest([
+          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+        ]);
+
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
+
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
+          { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
+        ]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest([
+          { id: 'sse', name: 'SSE' },
+          { id: 'webhook', name: 'Webhook' },
+        ]);
+        expectApiGetPortalSettings();
+
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step21Harness.fillPathsAndValidate('/api/my-api-3');
+        expectVerifyContextPathGetRequest();
+        await step21Harness.clickValidate();
+
+        expect(component.currentStep.payload.listeners).toEqual([
+          {
+            entrypoints: [
+              {
+                configuration: {
+                  headersAsComment: false,
+                  heartbeatIntervalInMs: 5000,
+                  metadataAsComment: false,
+                },
+                type: 'sse',
+              },
+              {
+                configuration: {},
+                type: 'webhook',
+              },
+            ],
+            paths: [
+              {
+                path: '/api/my-api-3',
+              },
+            ],
+            type: 'http',
+          },
+        ]);
+
+        expectEndpointsGetRequest([]);
+      });
     });
 
-    it('should configure entrypoints in the list', async () => {
-      await fillAndValidateStep1ApiDetails('API', '2.0', 'Description');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+    describe('step2 - changing architecture should reset all data with confirmation', () => {
+      it('should not reset data if user cancels action', async () => {
+        // fill data
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('sync');
+        await fillAndValidateStep2Entrypoints2Config(httpProxyEntrypoint);
 
-      expectEntrypointsGetRequest([
-        { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-        { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-      ]);
+        expectEndpointsGetRequest([]);
+        await harnessLoader.getHarness(Step3EndpointListHarness).then((harness) => harness.clickPrevious());
 
-      await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest(httpProxyEntrypoint);
+        expectApiGetPortalSettings();
+        expectVerifyContextPathGetRequest();
+        await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
 
-      await step2Harness.clickValidate();
-      expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-        { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
-        { id: 'webhook', name: 'Webhook', supportedListenerType: 'http' },
-      ]);
-      exceptEnvironmentGetRequest(fakeEnvironment());
-      expectSchemaGetRequest([
-        { id: 'sse', name: 'SSE' },
-        { id: 'webhook', name: 'Webhook' },
-      ]);
-      expectApiGetPortalSettings();
+        expectEntrypointsGetRequest(httpProxyEntrypoint);
+        const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
 
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.fillPathsAndValidate('/api/my-api-3');
-      expectVerifyContextPathGetRequest();
-      await step21Harness.clickValidate();
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
+        await step20ArchitectureHarness.fillAndValidate('async');
 
-      expect(component.currentStep.payload.listeners).toEqual([
-        {
-          entrypoints: [
+        // check confirmation dialog
+        const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        expect(await dialogHarness).toBeTruthy();
+        await dialogHarness.cancel();
+
+        // reset value when cancel
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
+
+        await step20ArchitectureHarness.clickValidate();
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest(httpProxyEntrypoint);
+        expectApiGetPortalSettings();
+        expectVerifyContextPathGetRequest();
+
+        expect(component.currentStep.payload).toEqual({
+          name: 'API',
+          description: 'Description',
+          version: '1.0',
+          type: 'sync',
+          listeners: [
             {
-              configuration: {
-                headersAsComment: false,
-                heartbeatIntervalInMs: 5000,
-                metadataAsComment: false,
-              },
-              type: 'sse',
-            },
-            {
-              configuration: {},
-              type: 'webhook',
+              entrypoints: [
+                {
+                  configuration: {},
+                  type: 'http-proxy',
+                },
+              ],
+              paths: [
+                {
+                  path: '/api/my-api-3',
+                },
+              ],
+              type: 'http',
             },
           ],
-          paths: [
+          selectedEntrypoints: [
             {
-              path: '/api/my-api-3',
+              id: 'http-proxy',
+              name: 'HTTP Proxy',
+              supportedListenerType: 'http',
             },
           ],
-          type: 'http',
-        },
-      ]);
+        });
+      });
 
-      expectEndpointsGetRequest([]);
+      it('should reset all data if user confirms modification', async () => {
+        // fill data
+        await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('sync');
+        await fillAndValidateStep2Entrypoints2Config(httpProxyEntrypoint);
+
+        expectEndpointsGetRequest([]);
+        await harnessLoader.getHarness(Step3EndpointListHarness).then((harness) => harness.clickPrevious());
+
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest(httpProxyEntrypoint);
+        expectApiGetPortalSettings();
+        expectVerifyContextPathGetRequest();
+        await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
+
+        expectEntrypointsGetRequest(httpProxyEntrypoint);
+        const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['sync']);
+        await step20ArchitectureHarness.fillAndValidate('async');
+
+        // check confirmation dialog
+        const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        expect(await dialogHarness).toBeTruthy();
+        await dialogHarness.confirm();
+
+        expectEntrypointsGetRequest([]);
+        expect(component.currentStep.payload).toEqual({
+          name: 'API',
+          description: 'Description',
+          version: '1.0',
+          type: 'async',
+        });
+      });
     });
   });
 
   describe('step3', () => {
     it('should go back to step2 with API details restored when clicking on previous', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      await fillAndValidateStep2Entrypoints0Architecture('async');
       await fillAndValidateStep2Entrypoints1List();
       await fillAndValidateStep2Entrypoints2Config();
 
@@ -493,6 +631,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should display only async endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      await fillAndValidateStep2Entrypoints0Architecture('async');
       await fillAndValidateStep2Entrypoints1List();
       await fillAndValidateStep2Entrypoints2Config();
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
@@ -509,6 +648,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should select endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      await fillAndValidateStep2Entrypoints0Architecture('async');
       await fillAndValidateStep2Entrypoints1List();
       await fillAndValidateStep2Entrypoints2Config();
 
@@ -540,6 +680,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should configure endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
+      await fillAndValidateStep2Entrypoints0Architecture('async');
       await fillAndValidateStep2Entrypoints1List();
       await fillAndValidateStep2Entrypoints2Config();
 
@@ -599,6 +740,7 @@ describe('ApiCreationV4Component', () => {
   describe('step6', () => {
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
+      await fillAndValidateStep2Entrypoints0Architecture('async');
       await fillAndValidateStep2Entrypoints1List();
       await fillAndValidateStep2Entrypoints2Config();
       await fillAndValidateStep3Endpoints1List();
@@ -641,7 +783,12 @@ describe('ApiCreationV4Component', () => {
     it('should go back to step 2 after clicking Change button', async () => {
       let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickChangeButton(2);
+      expectEntrypointsGetRequest([]);
       fixture.detectChanges();
+
+      const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+      expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['async']);
+      await step2Harness0Architecture.fillAndValidate('async');
 
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
       expectEntrypointsGetRequest([
@@ -767,26 +914,17 @@ describe('ApiCreationV4Component', () => {
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
     ],
   ) {
-    const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+    const step21EntrypointsHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     expectEntrypointsGetRequest(entrypoints);
 
-    await step2Harness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
+    await step21EntrypointsHarness.fillAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
   }
 
-  async function fillAndValidateStep2Entrypoints2Config(
-    entrypoints: Partial<ConnectorListItem>[] = [
-      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
-      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
-    ],
-    paths: string[] = ['/api/my-api-3'],
-  ) {
-    const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-    exceptEnvironmentGetRequest(fakeEnvironment());
-    expectSchemaGetRequest(entrypoints);
-    expectApiGetPortalSettings();
-
-    await step21Harness.fillPathsAndValidate(...paths);
-    expectVerifyContextPathGetRequest();
+  async function fillAndValidateStep2Entrypoints0Architecture(type: 'sync' | 'async' = 'async') {
+    const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+    expectEntrypointsGetRequest(httpProxyEntrypoint);
+    await step20ArchitectureHarness.fillAndValidate(type);
+    fixture.detectChanges();
   }
 
   async function fillAndValidateStep3Endpoints1List(
@@ -799,6 +937,24 @@ describe('ApiCreationV4Component', () => {
     expectEndpointsGetRequest(endpoints);
 
     await step3Harness.fillAndValidate(endpoints.map((endpoint) => endpoint.id));
+  }
+
+  async function fillAndValidateStep2Entrypoints2Config(
+    entrypoints: Partial<ConnectorListItem>[] = [
+      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
+      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+    ],
+    paths: string[] = ['/api/my-api-3'],
+  ) {
+    const step22EntrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+    exceptEnvironmentGetRequest(fakeEnvironment());
+    expectSchemaGetRequest(entrypoints);
+    expectApiGetPortalSettings();
+
+    await step22EntrypointsConfigHarness.fillPaths(...paths);
+    expect(await step22EntrypointsConfigHarness.hasValidationDisabled()).toBeFalsy();
+    await step22EntrypointsConfigHarness.clickValidate();
+    expectVerifyContextPathGetRequest();
   }
 
   async function fillAndValidateStep3Endpoints2Config(

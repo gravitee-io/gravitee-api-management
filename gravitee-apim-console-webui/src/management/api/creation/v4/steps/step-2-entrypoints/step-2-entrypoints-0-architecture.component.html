@@ -1,0 +1,87 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="api-creation-v4__step">
+  <div class="api-creation-v4__step__header">
+    <div class="api-creation-v4__step__header__step-number">Step 2</div>
+    <div class="api-creation-v4__step__header__subtitle">Select your API architecture</div>
+    <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
+  </div>
+
+  <form *ngIf="form" [formGroup]="form">
+    <mat-selection-list class="gio-selection-list" disableRipple="true" multiple="false" formControlName="type">
+      <mat-list-option
+        value="sync"
+        #syncOption
+        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('sync')"
+      >
+        <div class="option">
+          <!-- Note for migration: Angular Material 15 automatically add radio -->
+          <mat-radio-button [checked]="syncOption?.selected"></mat-radio-button>
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title> HTTP proxy </gio-selection-list-option-layout-title>
+
+            <gio-selection-list-option-layout-body>
+              <div>Web APIs can be accessed using the HTTP protocol. Defines endpoints, valid request and response formats.</div>
+              <div>
+                Such as:
+                <span class="gio-badge-neutral">REST API (HTTP)</span>
+                <span class="gio-badge-neutral">WebSocket Proxy</span>
+                <span class="gio-badge-neutral">SOAP API</span>
+                <span class="gio-badge-neutral">gRPC Proxy</span>
+              </div>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
+        </div>
+      </mat-list-option>
+      <mat-list-option
+        value="async"
+        #asyncOption
+        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('async')"
+      >
+        <div class="option">
+          <!-- Note form migration: Angular Material 15 automatically add radio -->
+          <mat-radio-button [checked]="asyncOption?.selected"></mat-radio-button>
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title> Message </gio-selection-list-option-layout-title>
+
+            <gio-selection-list-option-layout-body>
+              <div>
+                Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs. If you want to learn more about
+                Gravitee’s new capabilities, you can read about our Service Management Ecosystem.
+              </div>
+              <div>
+                Such as:
+                <span class="gio-badge-neutral">WebSocket</span>
+                <span class="gio-badge-neutral">Webhook</span>
+                <span class="gio-badge-neutral">gRPC</span>
+                <span class="gio-badge-neutral">GraphQL</span>
+                <span class="gio-badge-neutral">SSE</span>
+                <span class="gio-badge-neutral">SSE Advanced</span>
+              </div>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
+        </div>
+      </mat-list-option>
+    </mat-selection-list>
+  </form>
+
+  <div class="api-creation-v4__step__footer">
+    <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+    <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Select my API architecture</button>
+  </div>
+</mat-card>

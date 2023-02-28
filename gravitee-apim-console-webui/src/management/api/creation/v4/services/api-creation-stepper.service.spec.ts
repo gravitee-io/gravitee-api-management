@@ -173,4 +173,43 @@ describe('ApiCreationStepperService', () => {
     });
     apiCreationStepperService.finishStepper();
   });
+
+  it('should remove all next steps', (done) => {
+    const stepperService = new ApiCreationStepperService(
+      [
+        {
+          label: 'Step 1',
+          groupNumber: 1,
+        },
+        {
+          label: 'Step 2',
+          groupNumber: 2,
+          menuItemComponent: 'Step2MenuItem' as any,
+        },
+      ],
+      {},
+    );
+    stepperService.goToNextStep({ groupNumber: 1, component: 'Step 1' as any });
+    stepperService.goToNextStep({ groupNumber: 2, component: 'Step 2.1' as any });
+    stepperService.goToNextStep({ groupNumber: 2, component: 'Step 2.2' as any });
+    stepperService.goToStepLabel('Step 1');
+    stepperService.removeAllNextSteps();
+    stepperService.steps$.subscribe((steps) => {
+      expect(steps.length).toEqual(1);
+      expect(steps).toEqual([
+        {
+          id: 'step-1-1',
+          component: 'Step 1',
+          group: {
+            groupNumber: 1,
+            label: 'Step 1',
+          },
+          patchPayload: expect.any(Function),
+          state: 'initial',
+        },
+      ]);
+      done();
+    });
+    apiCreationStepperService.removeAllNextSteps();
+  });
 });

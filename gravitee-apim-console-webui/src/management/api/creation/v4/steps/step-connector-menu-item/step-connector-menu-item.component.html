@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="connectors">
+<ng-container *ngIf="connectors && connectors.length > 0">
   <div *ngFor="let connector of connectors" class="step-connector-menu-item">
     <mat-icon class="step-connector-menu-item__icon" [svgIcon]="connector.icon"></mat-icon> {{ connector.name }}
   </div>
