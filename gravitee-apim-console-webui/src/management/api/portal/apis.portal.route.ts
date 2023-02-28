@@ -254,17 +254,11 @@ function apisPortalRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.portal.transferownership', {
       url: '/transferownership',
-      template: require('./userGroupAccess/transferOwnership/transferOwnership.html'),
-      controller: 'ApiTransferOwnershipController',
-      controllerAs: 'apiTransferOwnershipCtrl',
-      resolve: {
-        resolvedMembers: function ($stateParams, ApiService) {
-          return ApiService.getMembers($stateParams.apiId);
-        },
-      },
+      component: 'ngApiTransferOwnership',
       data: {
+        useAngularMaterial: true,
         perms: {
-          only: ['api-member-r'],
+          only: ['api-member-u'],
         },
         docs: {
           page: 'management-api-members',

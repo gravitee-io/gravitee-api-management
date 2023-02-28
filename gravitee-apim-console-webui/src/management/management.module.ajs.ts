@@ -534,6 +534,7 @@ import { ApiPortalGroupsComponent } from './api/portal/user-group-access/groups/
 import { ApiPortalMembersComponent } from './api/portal/user-group-access/members/api-portal-members.component';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
+import { ApiPortalTransferOwnershipComponent } from './api/portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -701,6 +702,7 @@ graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPath
 graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
 graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));
 graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
+graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);

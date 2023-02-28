@@ -1,0 +1,13 @@
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.card {
+  &__userOrGroup {
+    &__field {
+      width: 100%;
+    }
+  }
+}
