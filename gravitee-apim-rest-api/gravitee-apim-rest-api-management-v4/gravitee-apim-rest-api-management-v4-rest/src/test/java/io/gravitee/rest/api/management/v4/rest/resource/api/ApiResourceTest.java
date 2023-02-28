@@ -38,6 +38,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -313,6 +314,19 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotDeployApiWithInvalidRole() {
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("a nice label");
+
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+
+        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
     public void shouldUpdateApi() {
         UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
 
@@ -353,6 +367,22 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotUpdateApiWithInsufficientRights() {
+        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
+
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_GATEWAY_DEFINITION), eq(API), any());
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
     public void shouldDeleteApi() {
         doNothing().when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), API, false);
         final Response response = rootTarget(API).request().delete();
@@ -366,6 +396,33 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget(UNKNOWN_API).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotDeleteApiWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        final Response response = rootTarget(API).request().delete();
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotStartApiWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        final Response response = rootTarget(API).path("/_start").request().post(Entity.json(""));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotStopApiWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
+        final Response response = rootTarget(API).path("/_stop").request().post(Entity.json(""));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @NotNull

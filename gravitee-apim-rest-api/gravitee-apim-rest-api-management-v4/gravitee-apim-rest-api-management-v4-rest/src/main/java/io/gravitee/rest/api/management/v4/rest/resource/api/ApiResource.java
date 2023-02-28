@@ -23,6 +23,8 @@ import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.resource.param.LifecycleAction;
+import io.gravitee.rest.api.management.v4.rest.security.Permission;
+import io.gravitee.rest.api.management.v4.rest.security.Permissions;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -97,6 +99,12 @@ public class ApiResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+        }
+    )
     public Response updateApi(@Context HttpHeaders headers, @Valid @NotNull final UpdateApiEntity apiToUpdate) {
         if (!apiId.equals(apiToUpdate.getId())) {
             throw new BadRequestException("'apiId' is not the same as the API in payload");
@@ -147,6 +155,7 @@ public class ApiResource extends AbstractResource {
     }
 
     @DELETE
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApi(@QueryParam("closePlans") boolean closePlans) {
         apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, closePlans);
 
@@ -157,6 +166,7 @@ public class ApiResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/deployments")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deployApi(@Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
             ApiEntity apiEntity = apiStateService.deploy(
@@ -177,6 +187,7 @@ public class ApiResource extends AbstractResource {
 
     @Path("/_start")
     @POST
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers) {
         final Response responseApi = getApiById();
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
@@ -194,6 +205,7 @@ public class ApiResource extends AbstractResource {
 
     @Path("/_stop")
     @POST
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response stopAPI(@Context HttpHeaders headers) {
         final Response responseApi = getApiById();
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());

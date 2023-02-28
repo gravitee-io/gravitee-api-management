@@ -91,7 +91,7 @@ public class PermissionFilterTest {
         when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
-        map.put("api", Collections.singletonList(API_ID));
+        map.put("apiId", Collections.singletonList(API_ID));
         when(uriInfo.getPathParameters()).thenReturn(map);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
