@@ -41,14 +41,16 @@
       </div>
     </div>
 
-    <div class="api-creation-v4__form-container" *ngFor="let entrypoint of selectedEntrypoints">
-      <h3>{{ entrypoint.name }}</h3>
-      <gio-form-json-schema
-        [jsonSchema]="entrypointSchemas[entrypoint.id]"
-        [formGroup]="$any(formGroup.get(entrypoint.id))"
-        [initialValue]="entrypointInitialValues[entrypoint.id]"
-      ></gio-form-json-schema>
-    </div>
+    <ng-container *ngFor="let entrypoint of selectedEntrypoints">
+      <div *ngIf="entrypointSchemas[entrypoint.id]" class="api-creation-v4__form-container">
+        <h3>{{ entrypoint.name }}</h3>
+        <gio-form-json-schema
+          [jsonSchema]="entrypointSchemas[entrypoint.id]"
+          [formGroup]="$any(formGroup.get(entrypoint.id))"
+          [initialValue]="entrypointInitialValues[entrypoint.id]"
+        ></gio-form-json-schema>
+      </div>
+    </ng-container>
 
     <div class="api-creation-v4__step__footer">
       <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>

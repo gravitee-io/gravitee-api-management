@@ -19,6 +19,7 @@ import { FormGroup } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
+import { isEmpty, omitBy } from 'lodash';
 
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -54,7 +55,8 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
     )
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
-        this.endpointSchemas = schemas;
+        this.endpointSchemas = omitBy(schemas, (schema) => isEmpty(schema.properties));
+
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
 
         this.endpointInitialValues =
