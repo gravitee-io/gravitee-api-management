@@ -26,6 +26,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -41,6 +42,7 @@ import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-en
 import { Step3Endpoints2ConfigComponent } from './steps/step-3-endpoints/step-3-endpoints-2-config.component';
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
+import { Step2Entrypoints0ArchitectureComponent } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
@@ -56,6 +58,7 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     MatButtonModule,
     MatInputModule,
     MatCheckboxModule,
+    MatRadioModule,
     MatListModule,
     MatDialogModule,
     MatSnackBarModule,
@@ -79,6 +82,7 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     // Steps components
     Step1ApiDetailsComponent,
     Step1MenuItemComponent,
+    Step2Entrypoints0ArchitectureComponent,
     Step2Entrypoints1ListComponent,
     StepEntrypointMenuItemComponent,
     Step2Entrypoints2ConfigComponent,

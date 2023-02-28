@@ -1,0 +1,17 @@
+::ng-deep {
+  step-2-entrypoints-0-architecture {
+    // Note for migration: Angular Material 15 automatically add radio. Try to remove this
+    mat-selection-list.gio-selection-list {
+      mat-list-option.mat-list-item.mat-list-option > div > div.mat-list-text {
+        overflow: unset;
+      }
+    }
+  }
+}
+
+.option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}

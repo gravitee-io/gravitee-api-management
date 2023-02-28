@@ -109,5 +109,10 @@ $typography: map.get(gio.$mat-theme, typography);
       border-top: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
       padding: 16px;
     }
+
+    // Make sure wrapper is not displayed if menu item is empty
+    ::ng-deep &__wrapper:has(> *:empty) {
+      display: none;
+    }
   }
 }

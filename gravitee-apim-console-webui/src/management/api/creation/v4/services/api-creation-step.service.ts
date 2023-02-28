@@ -53,4 +53,8 @@ export class ApiCreationStepService {
   public finishStepper(): void {
     this.stepper.finishStepper();
   }
+
+  removeAllNextSteps() {
+    this.stepper.removeAllNextSteps();
+  }
 }
