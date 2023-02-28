@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.v4.entrypoint;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -136,5 +137,20 @@ public class EntrypointResource {
         entrypointService.findById(entrypoint);
 
         return entrypointService.getSubscriptionSchema(entrypoint);
+    }
+
+    @GET
+    @Path("/moreInformation")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Entrypoint more information",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PluginMoreInformation.class))
+    )
+    @Produces(MediaType.APPLICATION_JSON)
+    public PluginMoreInformation getMoreInformation(@PathParam("entrypoint") String entrypointId) {
+        // Check that the entrypoint exists
+        entrypointService.findById(entrypointId);
+
+        return entrypointService.getMoreInformation(entrypointId);
     }
 }

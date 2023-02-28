@@ -36,7 +36,7 @@ export class EndpointService {
   ) {}
 
   v4ListEndpointPlugins(): Observable<ConnectorListItem[]> {
-    return this.http.get<ConnectorListItem[]>(`${this.constants.baseURL}/v4/endpoints`);
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints`);
   }
 
   v4Get(id: string): Observable<ConnectorListItem> {
@@ -44,10 +44,10 @@ export class EndpointService {
   }
 
   v4GetSchema(id: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.baseURL}/v4/endpoints/${id}/schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.env.baseURL}/v4/endpoints/${id}/schema`);
   }
 
   v4GetMoreInformation(endpointId: string): Observable<PluginMoreInformation> {
-    return this.http.get<PluginMoreInformation>(`${this.constants.baseURL}/v4/endpoints/${endpointId}/moreInformation`);
+    return this.http.get<PluginMoreInformation>(`${this.constants.env.baseURL}/v4/endpoints/${endpointId}/moreInformation`);
   }
 }
