@@ -18,8 +18,7 @@ package io.gravitee.rest.api.management.v4.rest.resource.api;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
@@ -28,10 +27,12 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import javax.ws.rs.client.Entity;
@@ -44,6 +45,7 @@ import org.mockito.Mockito;
 public class ApisResourceTest extends AbstractResourceTest {
 
     private static final String FAKE_ENVIRONMENT_ID = "fake-env";
+    private static final String FAKE_ORG_ID = "fake-org";
 
     @Override
     protected String contextPath() {
@@ -53,9 +55,14 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         GraviteeContext.cleanContext();
-        // FIXME: Delete when organization is loaded from user details
-        GraviteeContext.setCurrentOrganization(null);
+        GraviteeContext.setCurrentOrganization(FAKE_ORG_ID);
         GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(FAKE_ENVIRONMENT_ID);
+        environment.setOrganizationId(FAKE_ORG_ID);
+
+        doReturn(environment).when(environmentService).findById(FAKE_ENVIRONMENT_ID);
     }
 
     @Test
@@ -143,6 +150,30 @@ public class ApisResourceTest extends AbstractResourceTest {
             .thenThrow(new TechnicalManagementException());
         final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturn404WhenEnvironmentDoesNotExist() {
+        doThrow(new EnvironmentNotFoundException(FAKE_ENVIRONMENT_ID)).when(environmentService).findById(FAKE_ENVIRONMENT_ID);
+
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("My beautiful api");
+        apiEntity.setApiVersion("v1");
+        apiEntity.setDescription("my description");
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("/context")));
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("sse");
+        httpListener.setEntrypoints(List.of(entrypoint));
+        apiEntity.setListeners(List.of(httpListener));
+
+        EndpointGroup endpoint = new EndpointGroup();
+        endpoint.setName("default");
+        endpoint.setType("http");
+        apiEntity.setEndpointGroups(List.of(endpoint));
+
+        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
