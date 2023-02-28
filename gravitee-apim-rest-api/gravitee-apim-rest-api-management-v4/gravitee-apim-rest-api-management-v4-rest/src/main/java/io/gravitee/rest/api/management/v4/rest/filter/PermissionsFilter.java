@@ -100,7 +100,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private String getApiId(ContainerRequestContext requestContext) {
-        return getId("api", requestContext);
+        return getId("apiId", requestContext);
     }
 
     private String getApplicationId(ContainerRequestContext requestContext) {
