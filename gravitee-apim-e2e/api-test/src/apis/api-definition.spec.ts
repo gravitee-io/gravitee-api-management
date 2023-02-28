@@ -718,7 +718,7 @@ describe('API definition', () => {
         jsonPatch,
       }),
       400,
-      'You are not allowed to downgrade definition version',
+      'The definition versions 1.0.0 is not supported anymore.',
     );
   });
 
