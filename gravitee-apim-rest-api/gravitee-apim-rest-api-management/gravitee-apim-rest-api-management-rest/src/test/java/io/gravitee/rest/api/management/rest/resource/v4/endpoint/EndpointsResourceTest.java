@@ -17,15 +17,16 @@ package io.gravitee.rest.api.management.rest.resource.v4.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
+import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -101,5 +102,38 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
         assertEquals("schema", pluginEntity.get("schema"));
         assertEquals("icon", pluginEntity.get("icon"));
+    }
+
+    @Test
+    public void shouldReturnMoreInformation() {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId("id");
+        connectorPlugin.setName("name");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        when(endpointConnectorPluginService.findById("id")).thenReturn(connectorPlugin);
+
+        var moreInformation = new PluginMoreInformation();
+        moreInformation.setDescription("A nice description");
+        moreInformation.setSchemaImg("A nice schema");
+        moreInformation.setDocumentationUrl("foobar");
+        when(endpointConnectorPluginService.getMoreInformation("id")).thenReturn(moreInformation);
+
+        final Response response = envTarget().path("id").path("/moreInformation").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        var body = response.readEntity(PluginMoreInformation.class);
+        assertEquals("A nice description", body.getDescription());
+        assertEquals("A nice schema", body.getSchemaImg());
+        assertEquals("foobar", body.getDocumentationUrl());
+    }
+
+    @Test
+    public void shouldReturn500IfMoreInformationError() {
+        doThrow(new TechnicalManagementException()).when(endpointConnectorPluginService).getMoreInformation("id");
+
+        final Response response = envTarget().path("id").path("/moreInformation").request().get();
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 }

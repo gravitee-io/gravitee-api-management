@@ -55,14 +55,14 @@ export class EntrypointService {
   }
 
   v4ListEntrypointPlugins(): Observable<ConnectorListItem[]> {
-    return this.http.get<ConnectorListItem[]>(`${this.constants.baseURL}/v4/entrypoints`);
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/entrypoints`);
   }
 
   v4GetSchema(entrypointId: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.baseURL}/v4/entrypoints/${entrypointId}/schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.env.baseURL}/v4/entrypoints/${entrypointId}/schema`);
   }
 
   v4GetMoreInformation(entrypointId: string): Observable<PluginMoreInformation> {
-    return this.http.get<PluginMoreInformation>(`${this.constants.baseURL}/v4/entrypoints/${entrypointId}/moreInformation`);
+    return this.http.get<PluginMoreInformation>(`${this.constants.env.baseURL}/v4/entrypoints/${entrypointId}/moreInformation`);
   }
 }
