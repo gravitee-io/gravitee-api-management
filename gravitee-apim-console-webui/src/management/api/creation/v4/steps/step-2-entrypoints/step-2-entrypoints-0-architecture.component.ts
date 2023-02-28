@@ -15,8 +15,8 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -25,7 +25,11 @@ import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.comp
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
+import {
+  GioConnectorDialogComponent,
+  GioConnectorDialogData,
+} from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -36,7 +40,8 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   form: FormGroup;
-  private syncEntrypoint: ApiCreationPayload['selectedEntrypoints'];
+  private httpProxyEntrypoint: ConnectorListItem;
+
   private initialValue: { type: 'sync' | 'async'[] };
 
   constructor(
@@ -44,27 +49,23 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     private readonly stepService: ApiCreationStepService,
     private readonly entrypointService: EntrypointService,
     private readonly confirmDialog: MatDialog,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
 
-    this.form = this.formBuilder.group({
-      type: this.formBuilder.control(currentStepPayload.type ? [currentStepPayload.type] : null, [Validators.required]),
-    });
-
-    this.initialValue = this.form.getRawValue();
-
     this.entrypointService
       .v4ListSyncEntrypointPlugins()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((entrypointPlugins) => {
-        this.syncEntrypoint = entrypointPlugins.map((entrypoint) => ({
-          id: entrypoint.id,
-          name: entrypoint.name,
-          supportedListenerType: entrypoint.supportedListenerType,
-          icon: entrypoint.icon,
-        }));
+      .subscribe((entrypoints) => {
+        this.httpProxyEntrypoint = entrypoints.find((e) => e.id === 'http-proxy');
+
+        this.form = this.formBuilder.group({
+          type: this.formBuilder.control(currentStepPayload.type ? [currentStepPayload.type] : null, [Validators.required]),
+        });
+
+        this.initialValue = this.form.getRawValue();
       });
   }
 
@@ -112,11 +113,53 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
       type: selectedType,
-      ...(selectedType === 'sync' ? { selectedEntrypoints: this.syncEntrypoint } : {}),
+      ...(selectedType === 'sync'
+        ? {
+            selectedEntrypoints: [
+              {
+                id: this.httpProxyEntrypoint.id,
+                name: this.httpProxyEntrypoint.name,
+                icon: this.httpProxyEntrypoint.icon,
+                supportedListenerType: this.httpProxyEntrypoint.supportedListenerType,
+              },
+            ],
+          }
+        : {}),
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
       component: selectedType === 'sync' ? Step2Entrypoints2ConfigComponent : Step2Entrypoints1ListComponent,
     });
+  }
+
+  onMoreInfoClick(event, entrypoint: ConnectorListItem) {
+    event.stopPropagation();
+
+    this.entrypointService
+      .v4GetMoreInformation(entrypoint.id)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        catchError(() =>
+          of({
+            description: `${entrypoint.description} <br/><br/> 🚧 More information coming soon 🚧 <br/>`,
+            documentationUrl: 'https://docs.gravitee.io',
+          }),
+        ),
+        tap((pluginMoreInformation) => {
+          this.matDialog
+            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+              data: {
+                name: entrypoint.name,
+                pluginMoreInformation,
+              },
+              role: 'alertdialog',
+              id: 'moreInfoDialog',
+            })
+            .afterClosed()
+            .pipe(takeUntil(this.unsubscribe$))
+            .subscribe();
+        }),
+      )
+      .subscribe();
   }
 }
