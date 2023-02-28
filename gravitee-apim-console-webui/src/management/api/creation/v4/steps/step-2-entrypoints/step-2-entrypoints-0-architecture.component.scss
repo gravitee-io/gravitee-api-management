@@ -14,4 +14,8 @@
   flex-direction: row;
   align-items: center;
   gap: 16px;
+
+  gio-selection-list-option-layout {
+    flex: 1 1 auto;
+  }
 }

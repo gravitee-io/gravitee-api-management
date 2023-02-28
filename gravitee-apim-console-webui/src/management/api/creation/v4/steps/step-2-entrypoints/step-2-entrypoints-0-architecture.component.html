@@ -33,18 +33,18 @@
           <!-- Note for migration: Angular Material 15 automatically add radio -->
           <mat-radio-button [checked]="syncOption?.selected"></mat-radio-button>
           <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title> HTTP proxy </gio-selection-list-option-layout-title>
+            <gio-selection-list-option-layout-title>{{ httpProxyEntrypoint?.name }}</gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <div>Web APIs can be accessed using the HTTP protocol. Defines endpoints, valid request and response formats.</div>
-              <div>
-                Such as:
-                <span class="gio-badge-neutral">REST API (HTTP)</span>
-                <span class="gio-badge-neutral">WebSocket Proxy</span>
-                <span class="gio-badge-neutral">SOAP API</span>
-                <span class="gio-badge-neutral">gRPC Proxy</span>
-              </div>
+              <div>{{ httpProxyEntrypoint?.description }}</div>
             </gio-selection-list-option-layout-body>
+
+            <gio-selection-list-option-layout-action>
+              <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, httpProxyEntrypoint)">
+                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+                More information
+              </button>
+            </gio-selection-list-option-layout-action>
           </gio-selection-list-option-layout>
         </div>
       </mat-list-option>
@@ -78,10 +78,10 @@
         </div>
       </mat-list-option>
     </mat-selection-list>
-  </form>
 
-  <div class="api-creation-v4__step__footer">
-    <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-    <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Select my API architecture</button>
-  </div>
+    <div class="api-creation-v4__step__footer">
+      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Select my API architecture</button>
+    </div>
+  </form>
 </mat-card>
