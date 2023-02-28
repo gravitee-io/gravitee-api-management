@@ -31,15 +31,19 @@ import { ApiPortalUserGroupModule } from '../api-portal-user-group.module';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { Api, ApiMember } from '../../../../../entities/api';
 import { UsersService } from '../../../../../services-ngx/users.service';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
+import { User } from '../../../../../entities/user';
 
 describe('ApiPortalMembersComponent', () => {
   let fixture: ComponentFixture<ApiPortalMembersComponent>;
   let httpTestingController: HttpTestingController;
   let harness: ApiPortalMembersHarness;
+
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-member-u'];
   const apiId = 'apiId';
   const roles: Role[] = [fakeRole({ name: 'PRIMARY_OWNER' }), fakeRole({ name: 'OWNER' }), fakeRole({ name: 'USER' })];
 
@@ -50,6 +54,7 @@ describe('ApiPortalMembersComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId } },
         { provide: UsersService, useValue: { getUserAvatar: () => 'avatar' } },
         { provide: RoleService, useValue: { list: () => of(roles) } },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -76,16 +81,16 @@ describe('ApiPortalMembersComponent', () => {
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      expect(await harness.isNotificationsCheckboxChecked()).toEqual(false);
+      expect(await harness.isNotificationsToggleChecked()).toEqual(false);
     });
 
-    it('should show save bar when checkbox is toggles', async () => {
+    it('should show save bar when toggle is toggles', async () => {
       const api = fakeApi({ id: apiId, disable_membership_notifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      expect(await harness.isNotificationsCheckboxChecked()).toEqual(true);
-      await harness.toggleNotificationCheckbox();
+      expect(await harness.isNotificationsToggleChecked()).toEqual(true);
+      await harness.toggleNotificationToggle();
 
       expect(await harness.isSaveBarVisible()).toEqual(true);
     });
@@ -95,7 +100,7 @@ describe('ApiPortalMembersComponent', () => {
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      await harness.toggleNotificationCheckbox();
+      await harness.toggleNotificationToggle();
 
       await harness.clickOnSave();
 

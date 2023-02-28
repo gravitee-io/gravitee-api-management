@@ -26,12 +26,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiPortalGroupsComponent } from './groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './members/api-portal-members.component';
 import { ApiPortalTransferOwnershipComponent } from './transfer-ownership/api-portal-transfer-ownership.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
 @NgModule({
@@ -49,6 +51,7 @@ import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio
     MatSnackBarModule,
     MatTableModule,
     MatDialogModule,
+    MatSlideToggleModule,
     MatRadioModule,
 
     GioAvatarModule,
@@ -58,6 +61,7 @@ import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio
     GioConfirmDialogModule,
     GioFormUserAutocompleteModule,
     GioBannerModule,
+    GioFormSlideToggleModule,
   ],
 })
 export class ApiPortalUserGroupModule {}
