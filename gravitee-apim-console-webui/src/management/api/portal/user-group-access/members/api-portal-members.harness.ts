@@ -15,17 +15,17 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatCellHarness, MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatOptionHarness, OptionHarnessFilters } from '@angular/material/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiPortalMembersHarness extends ComponentHarness {
   static hostSelector = 'api-portal-members';
 
   protected getMemberTableElement = this.locatorFor(MatTableHarness);
-  protected getNotificationsCheckbox = this.locatorFor(MatCheckboxHarness);
+  protected getNotificationsToggle = this.locatorFor(MatSlideToggleHarness);
   protected getSaveBarElement = this.locatorFor(GioSaveBarHarness);
 
   async getTableRows(): Promise<MatRowHarness[]> {
@@ -82,12 +82,12 @@ export class ApiPortalMembersHarness extends ComponentHarness {
     });
   }
 
-  async isNotificationsCheckboxChecked(): Promise<boolean> {
-    return this.getNotificationsCheckbox().then((cb) => cb.isChecked());
+  async isNotificationsToggleChecked(): Promise<boolean> {
+    return this.getNotificationsToggle().then((cb) => cb.isChecked());
   }
 
-  async toggleNotificationCheckbox(): Promise<void> {
-    return this.getNotificationsCheckbox().then((cb) => cb.toggle());
+  async toggleNotificationToggle(): Promise<void> {
+    return this.getNotificationsToggle().then((cb) => cb.toggle());
   }
 
   async isSaveBarVisible(): Promise<boolean> {

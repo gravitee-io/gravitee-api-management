@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 class MembersDataSource extends ApiMember {
   picture: string;
@@ -42,11 +43,15 @@ export class ApiPortalMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   form: FormGroup;
-  dataSource: MembersDataSource[];
-  members: ApiMember[];
-  displayedColumns = ['picture', 'displayName', 'role', 'delete'];
-  roles: Role[];
   formInitialValues: { isNotificationsEnabled: boolean; members: { [memberId: string]: string } };
+
+  roles: Role[];
+  members: ApiMember[];
+  isReadOnly = false;
+
+  dataSource: MembersDataSource[];
+  displayedColumns = ['picture', 'displayName', 'role', 'delete'];
+
   private apiId: string;
 
   constructor(
@@ -55,6 +60,7 @@ export class ApiPortalMembersComponent implements OnInit {
     private readonly apiMembersService: ApiMemberService,
     private readonly userService: UsersService,
     private readonly roleService: RoleService,
+    private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: FormBuilder,
     private readonly matDialog: MatDialog,
@@ -62,6 +68,11 @@ export class ApiPortalMembersComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
+    if (this.isReadOnly) {
+      this.displayedColumns = ['picture', 'displayName', 'role'];
+    }
+
     combineLatest([this.apiService.get(this.apiId), this.apiMembersService.getMembers(this.apiId), this.roleService.list('API')])
       .pipe(
         takeUntil(this.unsubscribe$),
@@ -126,11 +137,18 @@ export class ApiPortalMembersComponent implements OnInit {
     });
   }
 
+  public addMember() {
+    // TODO: implement
+    throw new Error('Not implemented');
+  }
+
   public removeMember(member: ApiMember) {
     const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
       data: {
-        title: `Remove member ${member.displayName}?`,
-        content: `This will remove the member indefinitely. You cannot undo this action.`,
+        title: `Remove API member`,
+        content: `Are you sure you want to remove "<b>${this.getMemberName(
+          member,
+        )}</b>" from this API members? <br>This action cannot be undone!`,
         confirmButton: 'Remove',
       },
       role: 'alertdialog',
@@ -171,12 +189,15 @@ export class ApiPortalMembersComponent implements OnInit {
 
   private initForm(api: Api, members: ApiMember[]) {
     this.form = new FormGroup({
-      isNotificationsEnabled: new FormControl(!api.disable_membership_notifications),
+      isNotificationsEnabled: new FormControl({
+        value: !api.disable_membership_notifications,
+        disabled: this.isReadOnly,
+      }),
       members: this.formBuilder.group(
         members.reduce((formGroup, member) => {
           return {
             ...formGroup,
-            [member.id]: this.formBuilder.control({ value: member.role, disabled: member.role === 'PRIMARY_OWNER' }),
+            [member.id]: this.formBuilder.control({ value: member.role, disabled: member.role === 'PRIMARY_OWNER' || this.isReadOnly }),
           };
         }, {}),
       ),
