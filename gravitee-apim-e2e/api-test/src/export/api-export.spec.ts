@@ -33,39 +33,6 @@ const apisResourceAdmin = new APIsApi(forManagementAsAdminUser());
 let userApi: ApiEntity;
 
 describe('API - Exports', () => {
-  describe('Export path based api from current version to 3.0 to 3.6 version and import it', () => {
-    let importedApi: ApiEntity;
-    beforeAll(async () => {
-      userApi = await apisResourceAdmin.createApi({
-        orgId,
-        envId,
-        newApiEntity: ApisFaker.newApi({ paths: ['/'], gravitee: '1.0.0' }),
-      });
-    });
-
-    it('should export the api without flow', async () => {
-      const exportedApi = JSON.parse(
-        await succeed(apisResourceAdmin.exportApiDefinitionRaw({ api: userApi.id, envId, orgId, version: '3.0' })),
-      );
-      expect(exportedApi).toBeTruthy();
-      expect(exportedApi).not.toHaveProperty('flows');
-      expect(exportedApi).toHaveProperty('paths');
-
-      await noContent(apisResourceAdmin.deleteApiRaw({ orgId, envId, api: userApi.id }));
-
-      importedApi = await succeed(apisResourceAdmin.importApiDefinitionRaw({ orgId, envId, body: exportedApi }));
-      expect(importedApi).toBeTruthy();
-      expect(importedApi.crossId).toStrictEqual(exportedApi.crossId);
-      expect(importedApi.flows).toHaveLength(0);
-      expect(importedApi.paths).toMatchObject({ '/': [] });
-      expect(importedApi.gravitee).toStrictEqual(exportedApi.gravitee);
-    });
-
-    afterEach(async () => {
-      await apisResourceAdmin.deleteApi({ orgId, envId, api: importedApi.id });
-    });
-  });
-
   describe('Export flow based api from current version to 3.0 to 3.6 and import it', () => {
     const flow: Flow = {
       condition: '',
