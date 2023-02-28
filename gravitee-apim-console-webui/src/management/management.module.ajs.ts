@@ -37,7 +37,6 @@ import ApisStatusDashboardController from '../management/dashboard/apis-status-d
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
 import ApiMembersController from './api/portal/userGroupAccess/members/members.controller';
-import ApiTransferOwnershipController from './api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
@@ -46,7 +45,6 @@ import ApiEventsController from '../management/api/audit/events/apiEvents.contro
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
 import DialogAddPropertyController from '../management/api/design/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from './api/portal/userGroupAccess/members/addMemberDialog.controller';
-import DialogTransferApiController from './api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
@@ -701,7 +699,6 @@ graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesControll
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
 graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));
-graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
 graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
@@ -712,7 +709,6 @@ graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddP
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
 graviteeManagementModule.controller('DialogAddMemberApiController', DialogAddMemberApiController);
-graviteeManagementModule.controller('DialogTransferApiController', DialogTransferApiController);
 graviteeManagementModule.controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController);
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
