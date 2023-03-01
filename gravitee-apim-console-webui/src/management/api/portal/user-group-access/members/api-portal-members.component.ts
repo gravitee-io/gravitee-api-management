@@ -16,9 +16,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { uniqueId } from 'lodash';
 
 import { Api, ApiMember } from '../../../../../entities/api';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -29,10 +30,18 @@ import { UsersService } from '../../../../../services-ngx/users.service';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import {
+  GioUsersSelectorComponent,
+  GioUsersSelectorData,
+} from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
+import { SearchableUser } from '../../../../../entities/user/searchableUser';
 
-class MembersDataSource extends ApiMember {
+class MembersDataSource {
+  id: string;
+  reference: string;
+  role: string;
+  displayName: string;
   picture: string;
-  name: string;
 }
 @Component({
   selector: 'api-portal-members',
@@ -43,10 +52,11 @@ export class ApiPortalMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   form: FormGroup;
-  formInitialValues: { isNotificationsEnabled: boolean; members: { [memberId: string]: string } };
 
   roles: Role[];
+  defaultRole?: Role;
   members: ApiMember[];
+  membersToAdd: (ApiMember & { _viewId: string })[] = [];
   isReadOnly = false;
 
   dataSource: MembersDataSource[];
@@ -68,6 +78,7 @@ export class ApiPortalMembersComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
     if (this.isReadOnly) {
       this.displayedColumns = ['picture', 'displayName', 'role'];
@@ -79,6 +90,7 @@ export class ApiPortalMembersComponent implements OnInit {
         tap(([api, members, roles]) => {
           this.members = members;
           this.roles = roles;
+          this.defaultRole = roles.find((role) => role.default);
           this.initDataSource(members);
           this.initForm(api, members);
         }),
@@ -94,14 +106,14 @@ export class ApiPortalMembersComponent implements OnInit {
   public onSubmit() {
     const queries = [];
     if (this.form.controls['isNotificationsEnabled'].dirty) {
-      queries.push(this.saveChangeOnApiNotifications());
+      queries.push(this.getSaveChangeOnApiNotificationsQuery$());
     }
     if (this.form.controls['members'].dirty) {
       queries.push(
         ...Object.entries((this.form.controls['members'] as FormGroup).controls)
           .filter(([_, formControl]) => formControl.dirty)
-          .map(([memberId, roleFormControl]) => {
-            return this.updateMember(memberId, roleFormControl.value);
+          .map(([memberFormId, roleFormControl]) => {
+            return this.getSaveMemberQuery$(memberFormId, roleFormControl.value);
           }),
       );
     }
@@ -120,35 +132,32 @@ export class ApiPortalMembersComponent implements OnInit {
       .subscribe();
   }
 
-  public getMemberName(member: ApiMember): string {
-    if (!member.displayName) {
-      return member.username;
-    }
-
-    return member.username ? member.displayName + ' (' + member.username + ')' : member.displayName;
-  }
-
-  public updateMember(memberId: string, newRole: string): Observable<void> {
-    const memberToUpdate = this.members.find((m) => m.id === memberId);
-    return this.apiMembersService.addOrUpdateMember(this.apiId, {
-      id: memberToUpdate.id,
-      role: newRole,
-      reference: memberToUpdate.reference,
-    });
-  }
-
   public addMember() {
-    // TODO: implement
-    throw new Error('Not implemented');
+    this.matDialog
+      .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
+        width: '500px',
+        data: {
+          userFilterPredicate: (user) => !this.members.some((member) => member.id === user.id),
+        },
+        role: 'alertdialog',
+        id: 'addUserDialog',
+      })
+      .afterClosed()
+      .pipe(
+        tap((selectedUsers) => {
+          selectedUsers.forEach((user) => {
+            this.addMemberToForm(user);
+          });
+        }),
+      )
+      .subscribe();
   }
 
-  public removeMember(member: ApiMember) {
+  public removeMember(member: MembersDataSource) {
     const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
       data: {
         title: `Remove API member`,
-        content: `Are you sure you want to remove "<b>${this.getMemberName(
-          member,
-        )}</b>" from this API members? <br>This action cannot be undone!`,
+        content: `Are you sure you want to remove "<b>${member.displayName}</b>" from this API members? <br>This action cannot be undone!`,
         confirmButton: 'Remove',
       },
       role: 'alertdialog',
@@ -165,23 +174,18 @@ export class ApiPortalMembersComponent implements OnInit {
       });
   }
 
-  public saveChangeOnApiNotifications(): Observable<Api> {
-    return this.apiService.get(this.apiId).pipe(
-      switchMap((api) => {
-        const updatedApi = {
-          ...api,
-          disable_membership_notifications: !this.form.value.isNotificationsEnabled,
-        };
-        return this.apiService.update(updatedApi);
-      }),
-    );
+  public onReset() {
+    this.form = undefined;
+    this.ngOnInit();
   }
 
   private initDataSource(members: ApiMember[]) {
     this.dataSource = members.map((member) => {
       return {
-        ...member,
-        name: this.getMemberName(member),
+        id: member.id,
+        reference: member.reference,
+        role: member.role,
+        displayName: member.displayName,
         picture: this.userService.getUserAvatar(member.id),
       };
     });
@@ -202,9 +206,39 @@ export class ApiPortalMembersComponent implements OnInit {
         }, {}),
       ),
     });
-    this.formInitialValues = this.form.getRawValue();
   }
 
+  private addMemberToForm(searchableUser: SearchableUser) {
+    const member = {
+      ...searchableUser,
+      _viewId: `to-add-${uniqueId()}`,
+      id: searchableUser.id,
+    };
+    this.membersToAdd.push({
+      _viewId: member._viewId,
+      id: member.id,
+      reference: member.reference,
+      displayName: member.displayName,
+      role: this.defaultRole?.name,
+    });
+
+    this.dataSource = [
+      ...this.dataSource,
+      {
+        id: member._viewId,
+        reference: member.reference,
+        displayName: member.displayName,
+        picture: this.userService.getUserAvatar(member.id),
+        role: this.defaultRole?.name,
+      },
+    ];
+    const roleFormControl = new FormControl({ value: this.defaultRole?.name, disabled: this.isReadOnly }, [Validators.required]);
+    roleFormControl.markAsDirty();
+    roleFormControl.markAsTouched();
+    const membersForm = this.form.get('members') as FormGroup;
+    membersForm.addControl(member._viewId, roleFormControl);
+    membersForm.markAsDirty();
+  }
   private deleteMember(member: ApiMember) {
     this.apiMembersService.deleteMember(this.apiId, member.id).subscribe({
       next: () => {
@@ -216,7 +250,6 @@ export class ApiPortalMembersComponent implements OnInit {
         (this.form.get('members') as FormGroup).get(member.id).reset();
         (this.form.get('members') as FormGroup).removeControl(member.id);
         // remove from form initial value
-        delete this.formInitialValues.members[member.id];
 
         this.snackBarService.success(`Member ${member.displayName} has been removed.`);
       },
@@ -224,5 +257,30 @@ export class ApiPortalMembersComponent implements OnInit {
         this.snackBarService.error(error.message);
       },
     });
+  }
+
+  private getSaveMemberQuery$(memberFormId: string, newRole: string): Observable<void> {
+    const memberToAdd = this.membersToAdd.find((m) => m._viewId === memberFormId);
+    const memberToUpdate = this.members.find((m) => m.id === memberFormId);
+
+    const memberToSave = memberToAdd || memberToUpdate;
+
+    return this.apiMembersService.addOrUpdateMember(this.apiId, {
+      id: memberToSave.id,
+      role: newRole,
+      reference: memberToSave.reference,
+    });
+  }
+
+  private getSaveChangeOnApiNotificationsQuery$(): Observable<Api> {
+    return this.apiService.get(this.apiId).pipe(
+      switchMap((api) => {
+        const updatedApi = {
+          ...api,
+          disable_membership_notifications: !this.form.value.isNotificationsEnabled,
+        };
+        return this.apiService.update(updatedApi);
+      }),
+    );
   }
 }
