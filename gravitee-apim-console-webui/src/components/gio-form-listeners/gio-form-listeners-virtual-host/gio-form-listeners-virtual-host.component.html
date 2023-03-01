@@ -51,7 +51,7 @@
     >
       <td class="gio-form-listeners__table__row__td">
         <mat-form-field appearance="standard" class="gio-form-listeners__table__field">
-          <input #hostInput type="text" matInput formControlName="_hostSubDomain" placeholder="Host" [matAutocomplete]="hostAuto" />
+          <input #hostInput type="text" matInput formControlName="_hostSubDomain" placeholder="Host *" [matAutocomplete]="hostAuto" />
 
           <!-- Config Autocomplete to only select domain with input value -->
           <mat-autocomplete #hostAuto="matAutocomplete">
@@ -74,7 +74,7 @@
       </td>
       <td class="gio-form-listeners__table__row__td">
         <mat-form-field appearance="standard" class="gio-form-listeners__table__field">
-          <input type="text" matInput formControlName="path" placeholder="Context-path" />
+          <input type="text" matInput formControlName="path" placeholder="Context-path *" />
           <mat-error *ngIf="control.get('path').hasError('contextPath')"> {{ control.get('path').getError('contextPath') }}</mat-error>
         </mat-form-field>
       </td>
