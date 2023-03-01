@@ -254,6 +254,42 @@ public abstract class FlowBaseTest {
                     "/book/:bookId/chapter/:chapterId",
                     "/book/9999/chapter/145",
                 },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.STARTS_WITH,
+                    "/api_entrypoint/some_path/sub_path",
+                    "/api_entrypoint/some_path/sub_path",
+                },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.STARTS_WITH,
+                    "/api_entrypoint/some_path/sub_path",
+                    "/api_entrypoint/some_path/sub_path/sub_sub_path",
+                },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.EQUALS,
+                    "/api_entrypoint/some_path/sub_path",
+                    "/api_entrypoint/some_path/sub_path",
+                },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.STARTS_WITH,
+                    "/api_entrypoint/some_path/:test",
+                    "/api_entrypoint/some_path/145",
+                },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.STARTS_WITH,
+                    "/api_entrypoint/some_path/:test",
+                    "/api_entrypoint/some_path/145/sub_sub_path",
+                },
+                {
+                    List.of("/", "/api_entrypoint/some_path/:test", "/api_entrypoint/some_path/sub_path"),
+                    Operator.EQUALS,
+                    "/api_entrypoint/some_path/:test",
+                    "/api_entrypoint/some_path/145",
+                },
             }
         );
     }
