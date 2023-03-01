@@ -68,7 +68,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
-    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') !== null;
+    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') != null;
     this.entrypointInitialValues =
       listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
     this.formGroup = this.formBuilder.group({});
