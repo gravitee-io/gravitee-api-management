@@ -40,6 +40,8 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }),
   );
 
+  protected getListenersDiv = this.locatorFor('#listeners');
+
   async clickPrevious(): Promise<void> {
     return this.getPreviousButton().then((elt) => elt.click());
   }
@@ -50,6 +52,12 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
 
   async hasValidationDisabled(): Promise<boolean> {
     return this.getValidateButton().then((elt) => elt.isDisabled());
+  }
+
+  async hasListenersForm(): Promise<boolean> {
+    return this.getListenersDiv()
+      .then((elt) => elt != null)
+      .catch(() => false);
   }
 
   async clickListenerType() {
