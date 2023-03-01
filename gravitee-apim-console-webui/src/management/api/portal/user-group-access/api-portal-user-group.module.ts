@@ -34,6 +34,7 @@ import { ApiPortalTransferOwnershipComponent } from './transfer-ownership/api-po
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
+import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
 @NgModule({
@@ -62,6 +63,7 @@ import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio
     GioFormUserAutocompleteModule,
     GioBannerModule,
     GioFormSlideToggleModule,
+    GioUsersSelectorModule,
   ],
 })
 export class ApiPortalUserGroupModule {}

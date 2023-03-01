@@ -20,6 +20,11 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatOptionHarness, OptionHarnessFilters } from '@angular/material/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+
+import { GioUsersSelectorHarness } from '../../../../../shared/components/gio-users-selector/gio-users-selector.harness';
+import { CONSTANTS_TESTING } from '../../../../../shared/testing';
+import { SearchableUser } from '../../../../../entities/user/searchableUser';
 
 export class ApiPortalMembersHarness extends ComponentHarness {
   static hostSelector = 'api-portal-members';
@@ -27,6 +32,7 @@ export class ApiPortalMembersHarness extends ComponentHarness {
   protected getMemberTableElement = this.locatorFor(MatTableHarness);
   protected getNotificationsToggle = this.locatorFor(MatSlideToggleHarness);
   protected getSaveBarElement = this.locatorFor(GioSaveBarHarness);
+  protected getUsersSelector = this.documentRootLocatorFactory().locatorFor(GioUsersSelectorHarness);
 
   async getTableRows(): Promise<MatRowHarness[]> {
     return this.getMemberTableElement().then((table) => table.getRows());
@@ -96,5 +102,18 @@ export class ApiPortalMembersHarness extends ComponentHarness {
 
   async clickOnSave(): Promise<void> {
     return this.getSaveBarElement().then((sb) => sb.clickSubmit());
+  }
+
+  async addMember(user: SearchableUser, httpTestingController: HttpTestingController): Promise<void> {
+    await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then((b) => b.click());
+
+    const usersSelector = await this.getUsersSelector();
+
+    await usersSelector.typeSearch('flash');
+    await this.forceStabilize();
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/search/users?q=flash`).flush([user]);
+    await usersSelector.selectUser(user.displayName);
+
+    await usersSelector.validate();
   }
 }
