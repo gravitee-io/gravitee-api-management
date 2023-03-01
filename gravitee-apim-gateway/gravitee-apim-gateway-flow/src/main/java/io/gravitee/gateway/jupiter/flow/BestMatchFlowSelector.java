@@ -138,7 +138,6 @@ public class BestMatchFlowSelector {
                 } else if (scores[i] > selectedFlowScore[i]) {
                     selectedFlow = flow;
                     selectedFlowScore = scores;
-                    break;
                 }
             }
         }
