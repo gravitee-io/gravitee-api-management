@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.api;
 
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_GATEWAY_DEFINITION;
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
@@ -26,6 +23,8 @@ import io.gravitee.rest.api.management.v4.rest.model.Plan;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.v4.rest.resource.param.PlanStatusParam;
+import io.gravitee.rest.api.management.v4.rest.security.Permission;
+import io.gravitee.rest.api.management.v4.rest.security.Permissions;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -120,6 +119,7 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.CREATE }) })
     public Response createApiPlan(@Valid @NotNull NewPlanEntity newPlanEntity) {
         newPlanEntity.setApiId(apiId);
         newPlanEntity.setType(PlanType.API);
@@ -136,7 +136,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             Visibility.PUBLIC.equals(apiService.findById(executionContext, apiId).getVisibility()) ||
-            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, apiId, READ)
+            hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, apiId, RolePermissionAction.READ)
         ) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
             if (!planEntity.getApiId().equals(apiId)) {
@@ -155,6 +155,7 @@ public class ApiPlansResource extends AbstractResource {
     @Path("/{plan}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response updateApiPlan(@PathParam("plan") String plan, @Valid @NotNull UpdatePlanEntity updatePlanEntity) {
         if (updatePlanEntity.getId() != null && !plan.equals(updatePlanEntity.getId())) {
             return Response
@@ -179,6 +180,7 @@ public class ApiPlansResource extends AbstractResource {
     @DELETE
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.DELETE }) })
     public Response deleteApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
@@ -194,6 +196,7 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_close")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response closeApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
@@ -209,6 +212,7 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_publish")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response publishApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
@@ -224,6 +228,7 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_deprecate")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
@@ -238,8 +243,13 @@ public class ApiPlansResource extends AbstractResource {
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {
         if (
-            hasPermission(GraviteeContext.getExecutionContext(), API_GATEWAY_DEFINITION, entity.getApiId(), RolePermissionAction.READ) &&
-            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, entity.getApiId(), RolePermissionAction.READ)
+            hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_GATEWAY_DEFINITION,
+                entity.getApiId(),
+                RolePermissionAction.READ
+            ) &&
+            hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, entity.getApiId(), RolePermissionAction.READ)
         ) {
             // Return complete information if user has permission.
             return entity;
