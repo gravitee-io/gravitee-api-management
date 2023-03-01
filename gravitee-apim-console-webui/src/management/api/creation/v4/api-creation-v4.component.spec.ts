@@ -778,9 +778,9 @@ describe('ApiCreationV4Component', () => {
       expect(step1Summary).toContain('Description:' + ' description');
 
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
-      expect(step2Summary).toContain('Path:' + '/my-new-api');
+      expect(step2Summary).toContain('Path:' + '/api/my-api-3');
       expect(step2Summary).toContain('Type:' + 'Subscription');
-      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints');
+      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:SubscriptionEntrypoints');
 
       const step3Summary = await step6Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Field' + 'Value');
@@ -929,8 +929,8 @@ describe('ApiCreationV4Component', () => {
 
   async function fillAndValidateStep2Entrypoints1List(
     entrypoints: Partial<ConnectorListItem>[] = [
-      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
-      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async', supportedListenerType: 'http' },
+      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async', supportedListenerType: 'subscription' },
     ],
   ) {
     const step21EntrypointsHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -960,8 +960,8 @@ describe('ApiCreationV4Component', () => {
 
   async function fillAndValidateStep2Entrypoints2Config(
     entrypoints: Partial<ConnectorListItem>[] = [
-      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
-      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async', supportedListenerType: 'http' },
+      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async', supportedListenerType: 'subscription' },
     ],
     paths: string[] = ['/api/my-api-3'],
   ) {
