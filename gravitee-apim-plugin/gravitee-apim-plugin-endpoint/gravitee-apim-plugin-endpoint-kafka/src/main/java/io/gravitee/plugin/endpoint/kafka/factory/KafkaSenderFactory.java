@@ -26,7 +26,7 @@ import reactor.kafka.sender.SenderOptions;
 @NoArgsConstructor
 public class KafkaSenderFactory {
 
-    private final Map<Integer, KafkaSender<?, ?>> senders = new ConcurrentHashMap<>();
+    final Map<Integer, KafkaSender<?, ?>> senders = new ConcurrentHashMap<>();
 
     public <K, V> KafkaSender<K, V> createSender(final SenderOptions<K, V> senderOptions) {
         return (KafkaSender<K, V>) senders.computeIfAbsent(
@@ -45,5 +45,10 @@ public class KafkaSenderFactory {
     public void clear() {
         senders.forEach((integer, consumer) -> consumer.close());
         senders.clear();
+    }
+
+    public void clear(KafkaSender<?, ?> sender) {
+        senders.values().remove(sender);
+        sender.close();
     }
 }

@@ -16,12 +16,13 @@
 package io.gravitee.plugin.endpoint.kafka.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 
@@ -29,6 +30,7 @@ import reactor.kafka.sender.SenderOptions;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class KafkaSenderFactoryTest {
 
     private KafkaSenderFactory kafkaSenderFactory;
@@ -38,38 +40,59 @@ class KafkaSenderFactoryTest {
         kafkaSenderFactory = new KafkaSenderFactory();
     }
 
-    @Test
-    void shouldReturnSameInstanceWithSameOptions() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
+    @Nested
+    class CreateSender {
 
-        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
-        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
-        assertThat(sender1).isSameAs(sender2);
+        @Test
+        void should_return_same_instance_with_same_options() {
+            SenderOptions<String, byte[]> senderOptions = senderOptions();
+
+            KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
+            KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
+            assertThat(sender1).isSameAs(sender2);
+        }
+
+        @Test
+        void should_return_different_instance_with_different_options() {
+            SenderOptions<String, byte[]> senderOptions1 = senderOptions();
+            SenderOptions<String, byte[]> senderOptions2 = senderOptions();
+
+            KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions1);
+            KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions2.maxInFlight(152));
+            assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
+        }
     }
 
-    @Test
-    void shouldReturnDifferentInstanceWithDifferentOptions() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        SenderOptions<String, byte[]> senderOptions1 = SenderOptions.create(config);
-        SenderOptions<String, byte[]> senderOptions2 = SenderOptions.<String, byte[]>create(config).maxInFlight(152);
+    @Nested
+    class Clear {
 
-        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions1);
-        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions2);
-        assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
+        @Test
+        void should_close_sender_and_remove_it_from_the_pool() {
+            SenderOptions<String, byte[]> senderOptions = senderOptions();
+            var sender1 = mock(KafkaSender.class);
+
+            kafkaSenderFactory.senders.put(senderOptions.hashCode(), sender1);
+            kafkaSenderFactory.clear(sender1);
+
+            verify(sender1).close();
+            KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
+            assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
+        }
+
+        @Test
+        void should_return_new_instance_after_clear() {
+            SenderOptions<String, byte[]> senderOptions = senderOptions();
+
+            KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
+            kafkaSenderFactory.clear();
+            KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
+            assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
+        }
     }
 
-    @Test
-    void shouldReturnNewInstanceAfterClear() {
+    private <K, V> SenderOptions<K, V> senderOptions() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
-
-        KafkaSender<String, byte[]> sender1 = kafkaSenderFactory.createSender(senderOptions);
-        kafkaSenderFactory.clear();
-        KafkaSender<String, byte[]> sender2 = kafkaSenderFactory.createSender(senderOptions);
-        assertThat(sender1).isNotSameAs(sender2).isNotEqualTo(sender2);
+        return SenderOptions.create(config);
     }
 }
