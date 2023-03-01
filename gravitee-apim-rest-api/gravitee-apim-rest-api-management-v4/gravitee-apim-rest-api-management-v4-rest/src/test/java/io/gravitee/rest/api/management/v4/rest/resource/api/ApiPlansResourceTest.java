@@ -33,26 +33,19 @@ import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.PlanService;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
-import javax.inject.Inject;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.test.util.ReflectionTestUtils;
 
 public class ApiPlansResourceTest extends AbstractResourceTest {
 
@@ -141,6 +134,25 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotCreatePlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        NewPlanEntity newPlanEntity = new NewPlanEntity();
+        newPlanEntity.setName(PLAN);
+        newPlanEntity.setDescription("my-plan-description");
+        newPlanEntity.setValidation(PlanValidationType.AUTO);
+        var planSecurity = new PlanSecurity();
+        planSecurity.setType("planType");
+        newPlanEntity.setSecurity(planSecurity);
+        newPlanEntity.setStatus(PlanStatus.STAGING);
+
+        final Response response = rootTarget().path(API).path("plans").request().post(Entity.json(newPlanEntity));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
     public void shouldGetApiPlanById() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API);
@@ -167,10 +179,23 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    @Ignore
+    public void shouldNotGetPlanWithInsufficientRights() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API);
+        apiEntity.setVisibility(Visibility.PRIVATE);
+
+        doReturn(apiEntity).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().get();
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
     public void shouldCloseApiPlan() {
-        System.out.println(GraviteeContext.getExecutionContext());
-        ApiEntity api = getApi(DefinitionVersion.V1);
+        ApiEntity api = getApi();
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);
@@ -184,16 +209,24 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
 
-        System.out.println(response);
         assertEquals(OK_200, response.getStatus());
         verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
         verify(apiService, never()).update(eq(GraviteeContext.getExecutionContext()), eq(API), any());
     }
 
     @Test
-    @Ignore
+    public void shouldNotClosePlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
     public void shouldDeleteApiPlan() {
-        ApiEntity api = getApi(DefinitionVersion.V1);
+        ApiEntity api = getApi();
 
         PlanEntity existingPlan = new PlanEntity();
         existingPlan.setName(PLAN);
@@ -208,21 +241,50 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
     }
 
-    // TODO: Fix to not care about older versions :)
-    private ApiEntity getApi(DefinitionVersion version) {
+    @Test
+    public void shouldNotDeletePlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().delete();
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdatePlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().put(Entity.json(""));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotPublishPlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_publish").request().post(Entity.json(""));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotDeprecatePlanWithInsufficientRights() {
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+
+        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_deprecate").request().post(Entity.json(""));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+    }
+
+    private ApiEntity getApi() {
         ApiEntity api = new ApiEntity();
         api.setId(API);
-        api.setGraviteeDefinitionVersion(version.getLabel());
-
-        if (DefinitionVersion.V2.equals(version)) {
-            io.gravitee.rest.api.model.PlanEntity plan1 = new io.gravitee.rest.api.model.PlanEntity();
-            plan1.setId(PLAN);
-
-            io.gravitee.rest.api.model.PlanEntity plan2 = new io.gravitee.rest.api.model.PlanEntity();
-            plan2.setId("plan-2");
-            api.setPlans(Set.of(plan1, plan2));
-        }
-
+        api.setGraviteeDefinitionVersion(DefinitionVersion.V4.getLabel());
         return api;
     }
 }
