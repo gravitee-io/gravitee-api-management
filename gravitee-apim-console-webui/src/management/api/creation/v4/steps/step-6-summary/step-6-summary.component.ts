@@ -18,6 +18,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { HttpListener, HttpListenerPath } from '../../../../../../entities/api-v4';
 
 @Component({
   selector: 'step-6-summary',
@@ -26,11 +27,21 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 })
 export class Step6SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;
+  paths: HttpListenerPath[];
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
+
+    this.paths = this.currentStepPayload.listeners.reduce((pathList, listener) => {
+      if (listener.type === 'http') {
+        const httpListener = listener as HttpListener;
+
+        return [...pathList, ...httpListener.paths.map((p) => p.path)];
+      }
+      return pathList;
+    }, []);
   }
 
   createApi(deploy: boolean) {
