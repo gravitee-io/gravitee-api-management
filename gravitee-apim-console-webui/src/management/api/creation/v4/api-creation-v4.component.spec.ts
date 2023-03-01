@@ -325,14 +325,23 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE' }]);
+        expectEntrypointsGetRequest([
+          { id: 'sse', supportedApiType: 'async', name: 'SSE', supportedListenerType: 'http' },
+          { id: 'webhook', supportedApiType: 'async', name: 'Webhook', supportedListenerType: 'subscription' },
+        ]);
 
-        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
         await step2Harness.clickValidate();
-        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'http' }]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { id: 'sse', name: 'SSE', supportedListenerType: 'http' },
+          { id: 'webhook', name: 'Webhook', supportedListenerType: 'subscription' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
-        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectSchemaGetRequest([
+          { id: 'sse', name: 'SSE' },
+          { id: 'webhook', name: 'Webhook' },
+        ]);
         expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await step21Harness.fillPathsAndValidate('/api/my-api-3');
@@ -356,6 +365,15 @@ describe('ApiCreationV4Component', () => {
               },
             ],
             type: 'http',
+          },
+          {
+            entrypoints: [
+              {
+                configuration: {},
+                type: 'webhook',
+              },
+            ],
+            type: 'subscription',
           },
         ]);
 
@@ -628,6 +646,16 @@ describe('ApiCreationV4Component', () => {
               },
               type: 'entrypoint-1',
             },
+          ],
+          paths: [
+            {
+              path: '/api/my-api-3',
+            },
+          ],
+          type: 'http',
+        },
+        {
+          entrypoints: [
             {
               configuration: {
                 headersInPayload: false,
@@ -638,12 +666,7 @@ describe('ApiCreationV4Component', () => {
               type: 'entrypoint-2',
             },
           ],
-          paths: [
-            {
-              path: '/api/my-api-3',
-            },
-          ],
-          type: 'http',
+          type: 'subscription',
         },
       ]);
     });
@@ -779,8 +802,8 @@ describe('ApiCreationV4Component', () => {
 
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
       expect(step2Summary).toContain('Path:' + '/api/my-api-3');
-      expect(step2Summary).toContain('Type:' + 'Subscription');
-      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:SubscriptionEntrypoints');
+      expect(step2Summary).toContain('Type:' + 'http' + 'subscription');
+      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:httpsubscriptionEntrypoints');
 
       const step3Summary = await step6Harness.getStepSummaryTextContent(3);
       expect(step3Summary).toContain('Field' + 'Value');
@@ -833,7 +856,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
-      expect(step2Summary).toContain('EntrypointsPath:/my-new-apiType:SubscriptionEntrypoints: new entrypointChange');
+      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3, /my-api/v4Type:httpEntrypoints: new entrypointChange');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {
