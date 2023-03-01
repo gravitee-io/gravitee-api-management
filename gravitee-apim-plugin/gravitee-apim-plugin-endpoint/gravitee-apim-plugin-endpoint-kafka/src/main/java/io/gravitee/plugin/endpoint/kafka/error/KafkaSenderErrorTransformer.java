@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.kafka.error;
 import static io.gravitee.plugin.endpoint.kafka.configuration.KafkaDefaultConfiguration.RECONNECT_ATTEMPT;
 import static io.gravitee.plugin.endpoint.kafka.configuration.KafkaDefaultConfiguration.RECONNECT_BACKOFF_MS;
 
+import io.gravitee.plugin.endpoint.kafka.factory.KafkaSenderFactory;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -43,7 +44,10 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
 
     private static final int KAFKA_CONNECTION_CHECK_INTERVAL = RECONNECT_ATTEMPT * RECONNECT_BACKOFF_MS;
 
-    public static <K, V, T> Function<Flux<SenderResult<T>>, Publisher<SenderResult<T>>> transform(final KafkaSender<K, V> kafkaSender) {
+    public static <K, V, T> Function<Flux<SenderResult<T>>, Publisher<SenderResult<T>>> transform(
+        final KafkaSender<K, V> kafkaSender,
+        final KafkaSenderFactory kafkaSenderFactory
+    ) {
         return consumerRecordFlux -> {
             AtomicReference<Producer<K, V>> producerRef = new AtomicReference<>();
             Sinks.Many<SenderResult<T>> kafkaErrorSink = Sinks.many().unicast().onBackpressureError();
@@ -53,7 +57,13 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
                 .mergeWith(kafkaErrorSink.asFlux().materialize())
                 .<SenderResult<T>>dematerialize()
                 .doOnSubscribe(subscription -> handleKafkaDisconnection(producerRef, kafkaErrorSink))
-                .doOnError(throwable -> kafkaSender.close());
+                .doOnError(
+                    throwable -> {
+                        if (throwable instanceof KafkaConnectionClosedException) {
+                            kafkaSenderFactory.clear(kafkaSender);
+                        }
+                    }
+                );
         };
     }
 

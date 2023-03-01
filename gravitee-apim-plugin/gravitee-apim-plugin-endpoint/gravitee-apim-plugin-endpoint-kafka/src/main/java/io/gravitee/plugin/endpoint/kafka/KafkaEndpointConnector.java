@@ -148,7 +148,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                                                             )
                                                 )
                                             )
-                                            .transform(KafkaSenderErrorTransformer.transform(kafkaSender))
+                                            .transform(KafkaSenderErrorTransformer.transform(kafkaSender, kafkaSenderFactory))
                                             .map(SenderResult::correlationMetadata)
                                     )
                                     .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
