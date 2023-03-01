@@ -31,7 +31,7 @@ import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { EndpointGroup } from '../../../../entities/api-v4';
+import { EndpointGroup, Listener } from '../../../../entities/api-v4';
 
 @Component({
   selector: 'api-creation-v4',
@@ -140,13 +140,34 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   private createApi(apiCreationPayload: ApiCreationPayload) {
     this.isCreatingApi = true;
+
+    // Get distinct listener types
+    const listenersType = [...new Set(apiCreationPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType))];
+
+    // Create one listener per supportedListenerType and add all supported entrypoints
+    const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
+      const entrypoints = apiCreationPayload.selectedEntrypoints
+        .filter((e) => e.supportedListenerType === listenersType)
+        .map(({ id, configuration }) => ({
+          type: id,
+          configuration: configuration,
+        }));
+
+      const listenerConfig = {
+        type: listenersType,
+        ...(listenersType === 'http' ? { paths: apiCreationPayload.paths } : {}),
+        entrypoints,
+      };
+      return [...listeners, listenerConfig];
+    }, []);
+
     return this.apiV4Service
       .create({
         definitionVersion: '4.0.0',
         name: apiCreationPayload.name,
         apiVersion: apiCreationPayload.version,
         description: apiCreationPayload.description ?? '',
-        listeners: apiCreationPayload.listeners,
+        listeners: listeners,
         type: apiCreationPayload.type,
         endpointGroups: apiCreationPayload.selectedEndpoints.map(
           (endpoint) =>

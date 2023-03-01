@@ -350,33 +350,30 @@ describe('ApiCreationV4Component', () => {
         await step21Harness.fillPathsAndValidate('/api/my-api-3');
         expectVerifyContextPathGetRequest();
 
-        expect(component.currentStep.payload.listeners).toEqual([
+        expect(component.currentStep.payload.paths).toEqual([
           {
-            entrypoints: [
-              {
-                configuration: {
-                  headersAsComment: false,
-                  heartbeatIntervalInMs: 5000,
-                  metadataAsComment: false,
-                },
-                type: 'sse',
-              },
-            ],
-            paths: [
-              {
-                path: '/api/my-api-3',
-              },
-            ],
-            type: 'http',
+            path: '/api/my-api-3',
+          },
+        ]);
+
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          {
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
+            id: 'sse',
+            name: 'SSE',
+            icon: undefined,
+            supportedListenerType: 'http',
           },
           {
-            entrypoints: [
-              {
-                configuration: {},
-                type: 'webhook',
-              },
-            ],
-            type: 'subscription',
+            configuration: {},
+            id: 'webhook',
+            name: 'Webhook',
+            icon: undefined,
+            supportedListenerType: 'subscription',
           },
         ]);
 
@@ -428,26 +425,25 @@ describe('ApiCreationV4Component', () => {
         await step21Harness.fillVirtualHostsAndValidate({ host: 'hostname', path: '/api/my-api-3' });
         expectVerifyContextPathGetRequest();
 
-        expect(component.currentStep.payload.listeners).toEqual([
+        expect(component.currentStep.payload.paths).toEqual([
           {
-            entrypoints: [
-              {
-                configuration: {
-                  headersAsComment: false,
-                  heartbeatIntervalInMs: 5000,
-                  metadataAsComment: false,
-                },
-                type: 'sse',
-              },
-            ],
-            paths: [
-              {
-                host: 'hostname',
-                overrideAccess: false,
-                path: '/api/my-api-3',
-              },
-            ],
-            type: 'http',
+            host: 'hostname',
+            overrideAccess: false,
+            path: '/api/my-api-3',
+          },
+        ]);
+
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          {
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
+            id: 'sse',
+            name: 'SSE',
+            icon: undefined,
+            supportedListenerType: 'http',
           },
         ]);
 
@@ -483,28 +479,29 @@ describe('ApiCreationV4Component', () => {
         expectVerifyContextPathGetRequest();
         await step21Harness.clickValidate();
 
-        expect(component.currentStep.payload.listeners).toEqual([
+        expect(component.currentStep.payload.paths).toEqual([
           {
-            entrypoints: [
-              {
-                configuration: {
-                  headersAsComment: false,
-                  heartbeatIntervalInMs: 5000,
-                  metadataAsComment: false,
-                },
-                type: 'sse',
-              },
-              {
-                configuration: {},
-                type: 'webhook',
-              },
-            ],
-            paths: [
-              {
-                path: '/api/my-api-3',
-              },
-            ],
-            type: 'http',
+            path: '/api/my-api-3',
+          },
+        ]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          {
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
+            icon: undefined,
+            id: 'sse',
+            name: 'SSE',
+            supportedListenerType: 'http',
+          },
+          {
+            configuration: {},
+            icon: undefined,
+            id: 'webhook',
+            name: 'Webhook',
+            supportedListenerType: 'http',
           },
         ]);
 
@@ -559,20 +556,9 @@ describe('ApiCreationV4Component', () => {
           description: 'Description',
           version: '1.0',
           type: 'sync',
-          listeners: [
+          paths: [
             {
-              entrypoints: [
-                {
-                  configuration: {},
-                  type: 'http-proxy',
-                },
-              ],
-              paths: [
-                {
-                  path: '/api/my-api-3',
-                },
-              ],
-              type: 'http',
+              path: '/api/my-api-3',
             },
           ],
           selectedEntrypoints: [
@@ -580,6 +566,7 @@ describe('ApiCreationV4Component', () => {
               id: 'http-proxy',
               name: 'HTTP Proxy',
               supportedListenerType: 'http',
+              configuration: {},
             },
           ],
           selectedEndpoints: [
@@ -655,39 +642,34 @@ describe('ApiCreationV4Component', () => {
       ]);
       expectApiGetPortalSettings();
       expectVerifyContextPathGetRequest();
-      expect(component.currentStep.payload.listeners).toEqual([
+      expect(component.currentStep.payload.paths).toEqual([
         {
-          entrypoints: [
-            {
-              configuration: {
-                headersInPayload: false,
-                messagesLimitCount: 500,
-                messagesLimitDurationMs: 5000,
-                metadataInPayload: false,
-              },
-              type: 'entrypoint-1',
-            },
-          ],
-          paths: [
-            {
-              path: '/api/my-api-3',
-            },
-          ],
-          type: 'http',
+          path: '/api/my-api-3',
+        },
+      ]);
+
+      expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+        {
+          configuration: {
+            headersInPayload: false,
+            messagesLimitCount: 500,
+            messagesLimitDurationMs: 5000,
+            metadataInPayload: false,
+          },
+          id: 'entrypoint-1',
+          name: 'initial entrypoint',
+          supportedListenerType: 'http',
         },
         {
-          entrypoints: [
-            {
-              configuration: {
-                headersInPayload: false,
-                messagesLimitCount: 500,
-                messagesLimitDurationMs: 5000,
-                metadataInPayload: false,
-              },
-              type: 'entrypoint-2',
-            },
-          ],
-          type: 'subscription',
+          configuration: {
+            headersInPayload: false,
+            messagesLimitCount: 500,
+            messagesLimitDurationMs: 5000,
+            metadataInPayload: false,
+          },
+          id: 'entrypoint-2',
+          name: 'new entrypoint',
+          supportedListenerType: 'subscription',
         },
       ]);
     });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Listener } from '../../../../../entities/api-v4';
+import { HttpListenerPath } from '../../../../../entities/api-v4';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -23,12 +23,13 @@ export type ApiCreationPayload = Partial<{
 
   // Entrypoints
   type?: 'sync' | 'async';
-  listeners?: Listener[];
+  paths?: HttpListenerPath[];
   selectedEntrypoints?: {
     id: string;
     name: string;
     icon: string;
     supportedListenerType: string;
+    configuration?: unknown;
   }[];
 
   // Endpoints

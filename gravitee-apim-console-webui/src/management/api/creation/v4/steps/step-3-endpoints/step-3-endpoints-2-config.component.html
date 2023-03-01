@@ -31,7 +31,6 @@
         <gio-form-json-schema
           [jsonSchema]="endpointSchemas[endpoint.id]"
           [formGroup]="$any(formGroup.get(endpoint.id))"
-          [initialValue]="endpointInitialValues[endpoint.id]"
         ></gio-form-json-schema>
       </div>
     </ng-container>

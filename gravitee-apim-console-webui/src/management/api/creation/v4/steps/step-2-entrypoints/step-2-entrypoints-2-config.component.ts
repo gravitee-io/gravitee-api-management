@@ -23,7 +23,7 @@ import { isEmpty, omitBy } from 'lodash';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { HttpListener, HttpListenerPath, Listener } from '../../../../../../entities/api-v4';
+import { HttpListenerPath } from '../../../../../../entities/api-v4';
 import { EnvironmentService } from '../../../../../../services-ngx/environment.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
@@ -58,10 +58,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
 
-    const listener = (
-      currentStepPayload.listeners && currentStepPayload.listeners.length > 0 ? currentStepPayload.listeners[0] : undefined
-    ) as HttpListener;
-    const paths = listener?.paths || [];
+    const paths = currentStepPayload.paths ?? [];
+
     this.environmentService
       .getCurrent()
       .pipe(
@@ -73,14 +71,16 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe();
+    this.formGroup = this.formBuilder.group({});
 
     this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') != null;
-    this.entrypointInitialValues =
-      listener?.entrypoints?.reduce((map, { type, configuration }) => ({ ...map, [type]: configuration }), {}) || {};
-    this.formGroup = this.formBuilder.group({});
     if (this.hasListeners) {
       this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
     }
+
+    this.entrypointInitialValues =
+      currentStepPayload?.selectedEntrypoints?.reduce((map, { id, configuration }) => ({ ...map, [id]: configuration }), {}) || {};
+
     currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
       this.formGroup.addControl(id, this.formBuilder.group({}));
     });
@@ -108,35 +108,21 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
+    const pathsValue = this.formGroup.get('paths').value;
+
     this.stepService.validStep((previousPayload) => {
-      let paths = this.formGroup.get('paths').value as HttpListenerPath[];
-      if (!this.enableVirtualHost) {
-        // Remove host and overrideAccess from virualHost if is not necessary
-        paths = paths.map(({ path }) => ({ path }));
-      } else {
-        // Clear private properties from gio-listeners-virtual-host component
-        paths = paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }));
-      }
+      const paths: HttpListenerPath[] = this.enableVirtualHost
+        ? // Remove host and overrideAccess from virualHost if is not necessary
+          pathsValue.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
+        : // Clear private properties from gio-listeners-virtual-host component
+          pathsValue.map(({ path }) => ({ path }));
 
-      // Get distinct listener types
-      const listenersType = [...new Set(previousPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType))];
+      const selectedEntrypoints: ApiCreationPayload['selectedEntrypoints'] = previousPayload.selectedEntrypoints.map((entrypoint) => ({
+        ...entrypoint,
+        configuration: this.formGroup.get(entrypoint.id).value,
+      }));
 
-      const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
-        const entrypoints = previousPayload.selectedEntrypoints
-          .filter((e) => e.supportedListenerType === listenersType)
-          .map(({ id }) => ({
-            type: id,
-            configuration: this.formGroup.get(id).value,
-          }));
-
-        const listenerConfig = {
-          type: listenersType,
-          ...(listenersType === 'http' ? { paths: paths } : {}),
-          entrypoints,
-        };
-        return [...listeners, listenerConfig];
-      }, []);
-      return { ...previousPayload, listeners };
+      return { ...previousPayload, paths, selectedEntrypoints };
     });
     // Skip step 3-list if api type is sync
     this.stepService.goToNextStep({
