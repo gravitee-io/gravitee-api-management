@@ -23,7 +23,7 @@ import { isEmpty, omitBy } from 'lodash';
 
 import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { HttpListener, HttpListenerPath } from '../../../../../../entities/api-v4';
+import { HttpListener, HttpListenerPath, Listener } from '../../../../../../entities/api-v4';
 import { EnvironmentService } from '../../../../../../services-ngx/environment.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 
@@ -103,7 +103,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   save(): void {
     this.stepService.validStep((previousPayload) => {
-      const entrypoints = previousPayload.selectedEntrypoints.map(({ id }) => ({ type: id, configuration: this.formGroup.get(id).value }));
       let paths = this.formGroup.get('paths').value as HttpListenerPath[];
       if (!this.enableVirtualHost) {
         // Remove host and overrideAccess from virualHost if is not necessary
@@ -113,13 +112,24 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         paths = paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }));
       }
 
-      const listeners: HttpListener[] = [
-        {
-          type: 'http',
-          paths,
+      // Get distinct listener types
+      const listenersType = [...new Set(previousPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType))];
+
+      const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
+        const entrypoints = previousPayload.selectedEntrypoints
+          .filter((e) => e.supportedListenerType === listenersType)
+          .map(({ id }) => ({
+            type: id,
+            configuration: this.formGroup.get(id).value,
+          }));
+
+        const listenerConfig = {
+          type: listenersType,
+          ...(listenersType === 'http' ? { paths: paths } : {}),
           entrypoints,
-        },
-      ];
+        };
+        return [...listeners, listenerConfig];
+      }, []);
       return { ...previousPayload, listeners };
     });
     this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints1ListComponent });
