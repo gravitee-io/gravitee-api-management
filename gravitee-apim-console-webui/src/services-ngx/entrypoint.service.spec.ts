@@ -115,7 +115,7 @@ describe('EntrypointService', () => {
 
       httpTestingController
         .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`,
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=icon`,
           method: 'GET',
         })
         .flush(fakeConnectors);
@@ -133,7 +133,23 @@ describe('EntrypointService', () => {
 
       httpTestingController
         .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`,
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=icon`,
+          method: 'GET',
+        })
+        .flush(fakeConnectors);
+    });
+
+    it('should call the API with expand', (done) => {
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
+
+      entrypointService.v4ListAsyncEntrypointPlugins(['schema', 'icon']).subscribe((connectors) => {
+        expect(connectors).toMatchObject([fakeConnectors[1]]);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=schema&expand=icon`,
           method: 'GET',
         })
         .flush(fakeConnectors);

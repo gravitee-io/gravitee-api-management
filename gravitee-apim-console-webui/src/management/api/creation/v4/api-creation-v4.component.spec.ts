@@ -45,6 +45,7 @@ import { fakeApiEntity } from '../../../../entities/api-v4';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
+import { toQueryParams, ListPluginsExpand } from '../../../../entities/plugin/ListPluginsExpand';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorListItem>[] = [{ id: 'http-proxy', supportedApiType: 'sync', name: 'HTTP Proxy' }];
@@ -233,11 +234,13 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
 
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-        expectEntrypointsGetRequest([
-          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-          { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
-        ]);
+        expectEntrypointsGetRequest(
+          [
+            { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+            { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+            { id: 'http', supportedApiType: 'sync', name: 'HTTP' },
+          ],
+        );
 
         const list = await step2Harness.getEntrypoints();
         expect(await list.getListValues()).toEqual(['sse', 'webhook']);
@@ -248,10 +251,12 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-        expectEntrypointsGetRequest([
-          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-        ]);
+        expectEntrypointsGetRequest(
+          [
+            { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+            { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+          ],
+        );
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -273,7 +278,9 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'async', name: 'SSE', supportedListenerType: 'subscription' }]);
+        expectEntrypointsGetRequest(
+          [{ id: 'sse', supportedApiType: 'async', name: 'SSE', supportedListenerType: 'subscription' }],
+        );
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -328,10 +335,12 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-        expectEntrypointsGetRequest([
-          { id: 'sse', supportedApiType: 'async', name: 'SSE', supportedListenerType: 'http' },
-          { id: 'webhook', supportedApiType: 'async', name: 'Webhook', supportedListenerType: 'subscription' },
-        ]);
+        expectEntrypointsGetRequest(
+          [
+            { id: 'sse', supportedApiType: 'async', name: 'SSE', supportedListenerType: 'http' },
+            { id: 'webhook', supportedApiType: 'async', name: 'Webhook', supportedListenerType: 'subscription' },
+          ],
+        );
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -447,10 +456,12 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints0Architecture('async');
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-        expectEntrypointsGetRequest([
-          { id: 'sse', supportedApiType: 'async', name: 'SSE' },
-          { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
-        ]);
+        expectEntrypointsGetRequest(
+          [
+            { id: 'sse', supportedApiType: 'async', name: 'SSE' },
+            { id: 'webhook', supportedApiType: 'async', name: 'Webhook' },
+          ],
+        );
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -659,11 +670,13 @@ describe('ApiCreationV4Component', () => {
       await fillAndValidateStep2Entrypoints2Config();
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
 
-      expectEndpointsGetRequest([
-        { id: 'http-post', supportedApiType: 'sync', name: 'HTTP Post' },
-        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
-      ]);
+      expectEndpointsGetRequest(
+        [
+          { id: 'http-post', supportedApiType: 'sync', name: 'HTTP Post' },
+          { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+          { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+        ],
+      );
 
       const list = await step3Harness.getEndpoints();
       expect(await list.getListValues()).toEqual(['kafka', 'mock']);
@@ -678,10 +691,12 @@ describe('ApiCreationV4Component', () => {
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
       expect(step3Harness).toBeTruthy();
 
-      expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
-      ]);
+      expectEndpointsGetRequest(
+        [
+          { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+          { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+        ],
+      );
 
       fixture.detectChanges();
 
@@ -710,10 +725,12 @@ describe('ApiCreationV4Component', () => {
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
       expect(step3Harness).toBeTruthy();
 
-      expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
-      ]);
+      expectEndpointsGetRequest(
+        [
+          { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+          { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+        ],
+      );
 
       fixture.detectChanges();
 
@@ -825,10 +842,12 @@ describe('ApiCreationV4Component', () => {
       await step2Harness0Architecture.fillAndValidate('async');
 
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-      expectEntrypointsGetRequest([
-        { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
-        { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
-      ]);
+      expectEntrypointsGetRequest(
+        [
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'async' },
+          { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'async' },
+        ],
+      );
 
       const list = await step2Harness.getEntrypoints();
       expect(await list.getListValues({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
@@ -857,10 +876,12 @@ describe('ApiCreationV4Component', () => {
       fixture.detectChanges();
 
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
-      expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'async', name: 'Mock' },
-      ]);
+      expectEndpointsGetRequest(
+        [
+          { id: 'kafka', supportedApiType: 'async', name: 'Kafka' },
+          { id: 'mock', supportedApiType: 'async', name: 'Mock' },
+        ],
+      );
 
       const list = await step3Harness.getEndpoints();
 
@@ -917,10 +938,11 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
-  function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+  function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[], expands: ListPluginsExpand[] = ['icon']) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
-
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints${toQueryParams(expands)}` })
+      .flush(fullConnectors);
   }
 
   function expectSchemaGetRequest(connectors: Partial<ConnectorListItem>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
@@ -930,11 +952,11 @@ describe('ApiCreationV4Component', () => {
         .flush(getEntrypointConnectorSchema(connector.id));
     });
   }
-
-  function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+  function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[], expands: ListPluginsExpand[] = ['icon']) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
-
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints${toQueryParams(expands)}`, method: 'GET' })
+      .flush(fullConnectors);
   }
 
   function expectEndpointGetRequest(connector: Partial<ConnectorListItem>) {
