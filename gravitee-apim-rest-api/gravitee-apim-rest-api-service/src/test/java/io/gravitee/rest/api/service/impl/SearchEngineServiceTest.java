@@ -18,8 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher.FIELD_API_TYPE_VALUE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.DefinitionVersion;
@@ -71,6 +70,10 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 @ContextConfiguration(classes = { SearchEngineServiceTest.TestConfig.class }, loader = AnnotationConfigContextLoader.class)
 public class SearchEngineServiceTest {
 
+    private static final String ENV_1 = "env-1";
+
+    private static final ExecutionContext ENV_1_CONTEXT = new ExecutionContext(GraviteeContext.getDefaultOrganization(), ENV_1);
+
     @Autowired
     private SearchEngineService searchEngineService;
 
@@ -83,9 +86,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("My api 1").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-3", "api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-1", "api-3", "api-4", "api-0", "api-2");
     }
 
     @Test
@@ -95,9 +97,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("My 1").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-3", "api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-1", "api-3", "api-4", "api-0", "api-2");
     }
 
     @Test
@@ -107,9 +108,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("field").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-4");
     }
 
     @Test
@@ -119,9 +120,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("machine-learning").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(3);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-2", "api-4");
     }
 
     @Test
@@ -131,16 +131,14 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("foobar-3@gravitee.io").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+        assertThat(matches.getHits()).isZero();
 
         matches =
             searchEngineService.search(
                 GraviteeContext.getExecutionContext(),
                 QueryBuilder.create(ApiEntity.class).setQuery("*@*").setFilters(filters).build()
             );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+        assertThat(matches.getHits()).isZero();
     }
 
     @Test
@@ -150,9 +148,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("My api *").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-4", "api-1", "api-3", "api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-4", "api-1", "api-3", "api-2");
     }
 
     @Test
@@ -162,9 +159,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("Owner 3").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(2);
+        assertThat(matches.getDocuments()).containsExactly("api-3", "api-4");
     }
 
     @Test
@@ -174,9 +170,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1");
     }
 
     @Test
@@ -186,9 +182,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"my awesome api / 1\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1");
     }
 
     @Test
@@ -198,9 +194,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"my * api * 1\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1");
     }
 
     @Test
@@ -210,8 +206,7 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api not found\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+        assertThat(matches.getHits()).isZero();
     }
 
     @Test
@@ -221,9 +216,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("description:\"Field Hockey\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-4");
     }
 
     @Test
@@ -233,9 +228,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("labels: \"In Review 1\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(4, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(4);
+        assertThat(matches.getDocuments()).containsExactly("api-1", "api-2", "api-3", "api-4");
 
         matches =
             searchEngineService.search(
@@ -246,9 +241,9 @@ public class SearchEngineServiceTest {
                     .setFilters(filters)
                     .build()
             );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-4");
 
         matches =
             searchEngineService.search(
@@ -259,9 +254,8 @@ public class SearchEngineServiceTest {
                     .setFilters(filters)
                     .build()
             );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(2);
+        assertThat(matches.getDocuments()).containsExactly("api-3", "api-4");
 
         matches =
             searchEngineService.search(
@@ -272,9 +266,8 @@ public class SearchEngineServiceTest {
                     .setFilters(filters)
                     .build()
             );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(2);
+        assertThat(matches.getDocuments()).containsExactly("api-3", "api-4");
     }
 
     @Test
@@ -284,9 +277,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("labels: \"in review 4\" foobar-3@gravitee.io").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-4");
     }
 
     @Test
@@ -296,9 +289,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("categories:\"Machine Learning\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(3);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-2", "api-4");
     }
 
     @Test
@@ -308,9 +300,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("categories: Sports AND Hiking").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-0"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-0");
     }
 
     @Test
@@ -320,9 +312,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("categories: *").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-2", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(3);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-2", "api-4");
     }
 
     @Test
@@ -336,9 +327,9 @@ public class SearchEngineServiceTest {
                 .setFilters(filters)
                 .build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-2");
     }
 
     @Test
@@ -349,8 +340,7 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 2\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+        assertThat(matches.getHits()).isZero();
     }
 
     @Test
@@ -360,8 +350,7 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My api 1\" AND ownerName: \"Owner 2\"").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+        assertThat(matches.getHits()).isZero();
     }
 
     @Test
@@ -371,9 +360,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("Hiking").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-0"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-0");
     }
 
     @Test
@@ -384,9 +373,32 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1");
+    }
+
+    @Test
+    public void shouldFindWithPageContentAndFilteredByEnv() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2", "api-5", "api-6"));
+        SearchResult matches = searchEngineService.search(
+            ENV_1_CONTEXT,
+            QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).build()
+        );
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-5");
+    }
+
+    @Test
+    public void shouldFindWithApiIdAndFilteredByEnv() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2", "api-7"));
+        SearchResult matches = searchEngineService.search(ENV_1_CONTEXT, QueryBuilder.create(ApiEntity.class).setFilters(filters).build());
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-7");
     }
 
     @Test
@@ -395,9 +407,15 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).build()
         );
-        assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-1", "api-2", "api-3", "api-4");
+    }
+
+    @Test
+    public void shouldFindAllOnEnv1() {
+        SearchResult matches = searchEngineService.search(ENV_1_CONTEXT, QueryBuilder.create(ApiEntity.class).build());
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-5", "api-6", "api-7", "api-8", "api-9");
     }
 
     @Test
@@ -407,9 +425,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("/path/api-2").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-2");
     }
 
     @Test
@@ -419,9 +437,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("paths", "/path/api-2").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-2");
     }
 
     @Test
@@ -431,9 +449,9 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("paths", "*th/api-2").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-2");
     }
 
     @Test
@@ -443,9 +461,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("tag-api-").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(5, matches.getHits());
-        assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(5);
+        assertThat(matches.getDocuments()).containsExactly("api-0", "api-1", "api-2", "api-3", "api-4");
     }
 
     @Test
@@ -455,9 +472,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).addExplicitFilter("tags", "tag-api-3").setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-3"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(1);
+        assertThat(matches.getDocuments()).containsExactly("api-3");
     }
 
     @Test
@@ -468,9 +484,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).setSort(sortByName).build()
         );
-        assertNotNull(matches);
-        assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-2", "api-0", "api-4"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(3);
+        assertThat(matches.getDocuments()).containsExactly("api-2", "api-0", "api-4");
     }
 
     @Test
@@ -481,9 +496,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).setSort(sortByName).build()
         );
-        assertNotNull(matches);
-        assertEquals(3, matches.getHits());
-        assertEquals(Arrays.asList("api-4", "api-0", "api-2"), new ArrayList(matches.getDocuments()));
+        assertThat(matches.getHits()).isEqualTo(3);
+        assertThat(matches.getDocuments()).containsExactly("api-4", "api-0", "api-2");
     }
 
     @Test
@@ -494,9 +508,10 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByName).build()
         );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(2);
+
+        assertThat(matches.getDocuments()).containsExactly("api-3", "api-1");
     }
 
     @Test
@@ -507,9 +522,10 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByPath).build()
         );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-1", "api-3"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(2);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1", "api-3");
     }
 
     @Test
@@ -520,9 +536,10 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).setSort(sortByPath).build()
         );
-        assertNotNull(matches);
-        assertEquals(2, matches.getHits());
-        assertEquals(Arrays.asList("api-3", "api-1"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(2);
+
+        assertThat(matches.getDocuments()).containsExactly("api-3", "api-1");
     }
 
     @Test
@@ -533,8 +550,9 @@ public class SearchEngineServiceTest {
             new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
             QueryBuilder.create(ApiEntity.class).setFilters(filters).build()
         );
-        assertNotNull(matches);
-        assertEquals(Arrays.asList("api-1", "api-2"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(2);
+        assertThat(matches.getDocuments()).containsExactly("api-1", "api-2");
     }
 
     @Test
@@ -551,9 +569,10 @@ public class SearchEngineServiceTest {
             new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
             apiEntityQueryBuilder.build()
         );
-        assertNotNull(matches);
-        assertEquals(1, matches.getHits());
-        assertEquals(Arrays.asList("api-1"), new ArrayList(matches.getDocuments()));
+
+        assertThat(matches.getHits()).isEqualTo(1);
+
+        assertThat(matches.getDocuments()).containsExactly("api-1");
     }
 
     @Test
@@ -561,7 +580,7 @@ public class SearchEngineServiceTest {
         Map<String, Object> filters = new HashMap<>();
         filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
         Map<String, Collection<String>> excludedFilters = new HashMap<>();
-        excludedFilters.put(FIELD_NAME, Arrays.asList("My Awesome api / 1"));
+        excludedFilters.put(FIELD_NAME, List.of("My Awesome api / 1"));
         excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V1.getLabel(), DefinitionVersion.V4.getLabel()));
         QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder
             .create(ApiEntity.class)
@@ -571,56 +590,68 @@ public class SearchEngineServiceTest {
             new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
             apiEntityQueryBuilder.build()
         );
-        assertNotNull(matches);
-        assertEquals(0, matches.getHits());
+
+        assertThat(matches.getHits()).isZero();
     }
 
     @Before
     public void initIndexer() {
         // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
         if (!isIndexed) {
-            List<String> labels = new ArrayList();
+            List<String> labels = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
-                String apiName = i == 2 ? "http://localhost/api-" + i : "My Awesome api / " + i;
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId("api-" + i);
                 labels.add("In Review " + i);
-                apiEntity.setReferenceId(GraviteeContext.getCurrentEnvironment());
-                apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
-                apiEntity.setName(apiName);
-                apiEntity.setUpdatedAt(new Date());
-                apiEntity.setLabels(labels);
-                apiEntity.setDescription(DESCRIPTIONS[i]);
-
-                Proxy proxy = new Proxy();
-                List<VirtualHost> hosts = new ArrayList<>();
-                VirtualHost host = new VirtualHost();
-                host.setPath("/path/" + apiEntity.getId());
-                hosts.add(host);
-                proxy.setVirtualHosts(hosts);
-                apiEntity.setProxy(proxy);
-                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
-                owner.setId("user-" + i);
-                owner.setDisplayName("Owner " + i);
-                owner.setEmail("foobar-" + i + "@gravitee.io");
-                apiEntity.setPrimaryOwner(owner);
-                if (i % 2 == 0) {
-                    // Actually we index hrid categories...
-                    apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
-                    apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
-                } else {
-                    apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-                }
-
-                apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
+                ApiEntity apiEntity = createApiEntity(i, labels, GraviteeContext.getCurrentEnvironment());
                 searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, true, false);
             }
+
+            for (int i = 5; i < 10; i++) {
+                ApiEntity apiEntity = createApiEntity(i, labels, ENV_1);
+                searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, true, false);
+            }
+
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 1, true), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new PageEntity(), 2, true), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 3, false), true, false);
+            searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 5, true), true, false);
             searchEngineService.commit();
             isIndexed = true;
         }
+    }
+
+    private static ApiEntity createApiEntity(int index, List<String> labels, String envId) {
+        String apiName = index == 2 ? "http://localhost/api-" + index : "My Awesome api / " + index;
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api-" + index);
+        apiEntity.setReferenceId(envId);
+        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setName(apiName);
+        apiEntity.setUpdatedAt(new Date());
+        apiEntity.setLabels(labels);
+        apiEntity.setDescription(DESCRIPTIONS[index % DESCRIPTIONS.length]);
+
+        Proxy proxy = new Proxy();
+        List<VirtualHost> hosts = new ArrayList<>();
+        VirtualHost host = new VirtualHost();
+        host.setPath("/path/" + apiEntity.getId());
+        hosts.add(host);
+        proxy.setVirtualHosts(hosts);
+        apiEntity.setProxy(proxy);
+        PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
+        owner.setId("user-" + index);
+        owner.setDisplayName("Owner " + index);
+        owner.setEmail("foobar-" + index + "@gravitee.io");
+        apiEntity.setPrimaryOwner(owner);
+        if (index % 2 == 0) {
+            // Actually we index hrid categories...
+            apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
+            apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        } else {
+            apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        }
+
+        apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
+        return apiEntity;
     }
 
     public PageEntity completePage(PageEntity pageEntity, int i, boolean published) {
