@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <form [formGroup]="form" *ngIf="form">
+<form [formGroup]="form" *ngIf="form">
+  <mat-card>
     <div class="card__header">
       <div>
         <h3>{{ members?.length }} direct members</h3>
@@ -78,7 +78,9 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
-  </form>
-</mat-card>
+  </mat-card>
 
-<gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+  <api-portal-groups-members></api-portal-groups-members>
+
+  <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+</form>

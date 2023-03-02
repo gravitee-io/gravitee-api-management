@@ -31,6 +31,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ApiPortalGroupsComponent } from './groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './members/api-portal-members.component';
 import { ApiPortalTransferOwnershipComponent } from './transfer-ownership/api-portal-transfer-ownership.component';
+import { ApiPortalGroupsMembersComponent } from './members/api-portal-groups-members/api-portal-groups-members.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
@@ -38,7 +39,7 @@ import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-
 import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
 @NgModule({
-  declarations: [ApiPortalGroupsComponent, ApiPortalMembersComponent, ApiPortalTransferOwnershipComponent],
+  declarations: [ApiPortalGroupsComponent, ApiPortalMembersComponent, ApiPortalGroupsMembersComponent, ApiPortalTransferOwnershipComponent],
   exports: [ApiPortalGroupsComponent, ApiPortalMembersComponent, ApiPortalTransferOwnershipComponent],
   imports: [
     CommonModule,
