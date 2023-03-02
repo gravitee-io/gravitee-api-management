@@ -28,7 +28,7 @@
   <div *ngIf="pluginMoreInformation.schemaImg" class="gio-connector-dialog__content__schema">
     <img class="gio-connector-dialog__content__schema__img" [src]="pluginMoreInformation.schemaImg" [alt]="name + ' schema'" />
   </div>
-  <div class="gio-connector-dialog__content__link">
+  <div *ngIf="pluginMoreInformation.documentationUrl" class="gio-connector-dialog__content__link">
     Learn more on our <a target="_blank" [href]="pluginMoreInformation.documentationUrl | safe: 'url'">Documentation website</a>
   </div>
 </mat-dialog-content>

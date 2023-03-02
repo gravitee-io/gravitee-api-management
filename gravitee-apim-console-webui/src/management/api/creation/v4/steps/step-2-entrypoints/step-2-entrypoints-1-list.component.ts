@@ -111,12 +111,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       .v4GetMoreInformation(entrypoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
-        catchError(() =>
-          of({
-            description: `${entrypoint.description} <br/><br/> 🚧 More information coming soon 🚧 <br/>`,
-            documentationUrl: 'https://docs.gravitee.io',
-          }),
-        ),
+        catchError(() => of({})),
         tap((pluginMoreInformation) => {
           this.matDialog
             .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
