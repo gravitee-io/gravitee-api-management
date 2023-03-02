@@ -15,11 +15,11 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { uniqueId } from 'lodash';
+import { isEmpty, uniqueId } from 'lodash';
 
 import { Api, ApiMember } from '../../../../../entities/api';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -144,6 +144,8 @@ export class ApiPortalMembersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((selectedUsers) => !isEmpty(selectedUsers)),
         tap((selectedUsers) => {
           selectedUsers.forEach((user) => {
             this.addMemberToForm(user);
