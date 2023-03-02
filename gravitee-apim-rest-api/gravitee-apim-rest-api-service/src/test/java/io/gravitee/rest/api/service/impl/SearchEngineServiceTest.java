@@ -68,6 +68,10 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 @ContextConfiguration(classes = { SearchEngineServiceTest.TestConfig.class }, loader = AnnotationConfigContextLoader.class)
 public class SearchEngineServiceTest {
 
+    private static final String ENV_1 = "env-1";
+
+    private static final ExecutionContext ENV_1_CONTEXT = new ExecutionContext(GraviteeContext.getDefaultOrganization(), ENV_1);
+
     @Autowired
     private SearchEngineService searchEngineService;
 
@@ -387,6 +391,29 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldFindWithPageContentAndFilteredByEnv() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2", "api-5", "api-6"));
+        SearchResult matches = searchEngineService.search(
+            ENV_1_CONTEXT,
+            QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-5"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindWithApiIdAndFilteredByEnv() {
+        Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2", "api-7"));
+        SearchResult matches = searchEngineService.search(ENV_1_CONTEXT, QueryBuilder.create(ApiEntity.class).setFilters(filters).build());
+        assertNotNull(matches);
+        assertEquals(1, matches.getHits());
+        assertEquals(Arrays.asList("api-7"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
     public void shouldFindAll() {
         SearchResult matches = searchEngineService.search(
             GraviteeContext.getExecutionContext(),
@@ -395,6 +422,14 @@ public class SearchEngineServiceTest {
         assertNotNull(matches);
         assertEquals(5, matches.getHits());
         assertEquals(Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"), new ArrayList(matches.getDocuments()));
+    }
+
+    @Test
+    public void shouldFindAllOnEnv1() {
+        SearchResult matches = searchEngineService.search(ENV_1_CONTEXT, QueryBuilder.create(ApiEntity.class).build());
+        assertNotNull(matches);
+        assertEquals(5, matches.getHits());
+        assertEquals(Arrays.asList("api-5", "api-6", "api-7", "api-8", "api-9"), new ArrayList(matches.getDocuments()));
     }
 
     @Test
@@ -541,42 +576,54 @@ public class SearchEngineServiceTest {
         if (!isIndexed) {
             List<String> labels = new ArrayList();
             for (int i = 0; i < 5; i++) {
-                String apiName = i == 2 ? "http://localhost/api-" + i : "My Awesome api / " + i;
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId("api-" + i);
                 labels.add("In Review " + i);
-                apiEntity.setReferenceId(GraviteeContext.getCurrentEnvironment());
-                apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
-                apiEntity.setName(apiName);
-                apiEntity.setUpdatedAt(new Date());
-                apiEntity.setLabels(labels);
-                apiEntity.setDescription(DESCRIPTIONS[i]);
-
-                Proxy proxy = new Proxy();
-                List<VirtualHost> hosts = new ArrayList<>();
-                VirtualHost host = new VirtualHost();
-                host.setPath("/path/" + apiEntity.getId());
-                hosts.add(host);
-                proxy.setVirtualHosts(hosts);
-                apiEntity.setProxy(proxy);
-                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
-                owner.setId("user-" + i);
-                owner.setDisplayName("Owner " + i);
-                owner.setEmail("foobar-" + i + "@gravitee.io");
-                apiEntity.setPrimaryOwner(owner);
-                if (i % 2 == 0) {
-                    // Actually we index hrid categories...
-                    apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
-                }
-                apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
+                ApiEntity apiEntity = createApiEntity(i, labels, GraviteeContext.getCurrentEnvironment());
                 searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, true, false);
             }
+
+            for (int i = 5; i < 10; i++) {
+                ApiEntity apiEntity = createApiEntity(i, labels, ENV_1);
+                searchEngineService.index(GraviteeContext.getExecutionContext(), apiEntity, true, false);
+            }
+
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 1, true), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new PageEntity(), 2, true), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 3, false), true, false);
+            searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 5, true), true, false);
             searchEngineService.commit();
             isIndexed = true;
         }
+    }
+
+    private static ApiEntity createApiEntity(int index, List<String> labels, String envId) {
+        String apiName = index == 2 ? "http://localhost/api-" + index : "My Awesome api / " + index;
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("api-" + index);
+        apiEntity.setReferenceId(envId);
+        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setName(apiName);
+        apiEntity.setUpdatedAt(new Date());
+        apiEntity.setLabels(labels);
+        apiEntity.setDescription(DESCRIPTIONS[index % DESCRIPTIONS.length]);
+
+        Proxy proxy = new Proxy();
+        List<VirtualHost> hosts = new ArrayList<>();
+        VirtualHost host = new VirtualHost();
+        host.setPath("/path/" + apiEntity.getId());
+        hosts.add(host);
+        proxy.setVirtualHosts(hosts);
+        apiEntity.setProxy(proxy);
+        PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
+        owner.setId("user-" + index);
+        owner.setDisplayName("Owner " + index);
+        owner.setEmail("foobar-" + index + "@gravitee.io");
+        apiEntity.setPrimaryOwner(owner);
+        if (index % 2 == 0) {
+            // Actually we index hrid categories...
+            apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
+        }
+        apiEntity.setTags(Set.of("tag-" + apiEntity.getId()));
+        return apiEntity;
     }
 
     public PageEntity completePage(PageEntity pageEntity, int i, boolean published) {
