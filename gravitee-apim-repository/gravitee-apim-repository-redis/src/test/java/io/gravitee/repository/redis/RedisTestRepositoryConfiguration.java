@@ -15,15 +15,17 @@
  */
 package io.gravitee.repository.redis;
 
+import io.gravitee.platform.repository.api.Scope;
+import io.gravitee.repository.redis.common.RedisConnectionFactory;
+import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
+import io.gravitee.repository.redis.vertx.RedisClient;
+import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mock.env.MockEnvironment;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -49,17 +51,25 @@ public class RedisTestRepositoryConfiguration {
         return redis;
     }
 
-    @Bean(name = "rateLimitRedisTemplate")
-    public StringRedisTemplate redisTemplate(LettuceConnectionFactory redisConnectionFactory) {
-        return new StringRedisTemplate(redisConnectionFactory);
+    @Bean
+    public RedisClient redisConnectionFactory(GenericContainer<?> redisContainer) {
+        String propertyPrefix = Scope.RATE_LIMIT.getName() + ".redis.";
+
+        MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty(propertyPrefix + "host", redisContainer.getHost());
+        mockEnvironment.setProperty(propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
+
+        RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(
+            mockEnvironment,
+            Vertx.vertx(),
+            Scope.RATE_LIMIT.getName()
+        );
+
+        return redisConnectionFactory.getObject();
     }
 
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory(GenericContainer<?> container) {
-        RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
-        standaloneConfiguration.setHostName(container.getHost());
-        standaloneConfiguration.setPort(container.getFirstMappedPort());
-        LettucePoolingClientConfiguration options = LettucePoolingClientConfiguration.builder().build();
-        return new LettuceConnectionFactory(standaloneConfiguration, options);
+    public RedisRateLimitRepository redisRateLimitRepository(RedisClient redisClient) {
+        return new RedisRateLimitRepository(redisClient);
     }
 }

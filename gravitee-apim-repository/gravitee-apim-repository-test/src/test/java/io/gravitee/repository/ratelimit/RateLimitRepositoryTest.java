@@ -61,7 +61,6 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
     @Override
     protected void createModel(Object object) {
         RateLimit rateLimit = (RateLimit) object;
-
         RateLimit updatedRateLimit = rateLimitRepository
             .incrementAndGet(rateLimit.getKey(), rateLimit.getCounter(), () -> initialize(rateLimit))
             .blockingGet();
@@ -69,6 +68,10 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
         RATE_LIMITS.put(updatedRateLimit.getKey(), updatedRateLimit);
 
         LOG.debug("Created {}", updatedRateLimit);
+        RATE_LIMITS.computeIfAbsent(
+            rateLimit.getKey(),
+            key -> rateLimitRepository.incrementAndGet(key, rateLimit.getCounter(), () -> initialize(rateLimit)).blockingGet()
+        );
     }
 
     @Test
