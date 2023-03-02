@@ -36,6 +36,11 @@
 			<directory>src/main/resources/schemas</directory>
 			<outputDirectory>schemas</outputDirectory>
 		</fileSet>
+
+		<fileSet>
+			<directory>src/main/resources/images</directory>
+			<outputDirectory>images</outputDirectory>
+		</fileSet>
 	</fileSets>
 
 	<!-- Finally include plugin dependencies -->
