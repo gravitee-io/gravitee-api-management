@@ -22,9 +22,11 @@ import { MatOptionHarness } from '@angular/material/core/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { ApiPortalMembersComponent } from './api-portal-members.component';
 import { ApiPortalMembersHarness } from './api-portal-members.harness';
+import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members/api-portal-groups-members.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../api-portal-user-group.module';
@@ -59,12 +61,19 @@ describe('ApiPortalMembersComponent', () => {
         { provide: RoleService, useValue: { list: () => of(roles) } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-        isTabbable: () => true,
-      },
-    });
+      schemas: [NO_ERRORS_SCHEMA],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isTabbable: () => true,
+        },
+      })
+      .overrideModule(ApiPortalUserGroupModule, {
+        remove: {
+          declarations: [ApiPortalGroupsMembersComponent],
+        },
+      });
 
     fixture = TestBed.createComponent(ApiPortalMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
