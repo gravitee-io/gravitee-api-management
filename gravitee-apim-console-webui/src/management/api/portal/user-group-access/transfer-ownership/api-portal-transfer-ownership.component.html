@@ -47,7 +47,6 @@
     </div>
 
     <div *ngIf="form.get('user').value || form.get('groupId').value" class="card__userOrGroup">
-      coucou {{ poRoles.length }}
       <mat-form-field class="card__userOrGroup__field">
         <mat-label>New role for current Primary Owner</mat-label>
         <mat-select formControlName="roleId">
