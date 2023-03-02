@@ -25,8 +25,7 @@ import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
 import { Entrypoint } from '../entities/entrypoint/entrypoint';
 import { PluginMoreInformation } from '../entities/plugin/PluginMoreInformation';
-
-export const BASE_64_PREFIX = 'data:image/svg+xml;base64,';
+import { toQueryParams, ListPluginsExpand } from '../entities/plugin/ListPluginsExpand';
 
 @Injectable({
   providedIn: 'root',
@@ -55,18 +54,18 @@ export class EntrypointService {
     return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/entrypoints/${entrypointId}`);
   }
 
-  private v4ListEntrypointPlugins(): Observable<ConnectorListItem[]> {
-    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/entrypoints`);
+  private v4ListEntrypointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/entrypoints${toQueryParams(expands)}`);
   }
 
-  v4ListSyncEntrypointPlugins(): Observable<ConnectorListItem[]> {
-    return this.v4ListEntrypointPlugins().pipe(
+  v4ListSyncEntrypointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
+    return this.v4ListEntrypointPlugins(expands).pipe(
       map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'sync')),
     );
   }
 
-  v4ListAsyncEntrypointPlugins(): Observable<ConnectorListItem[]> {
-    return this.v4ListEntrypointPlugins().pipe(
+  v4ListAsyncEntrypointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
+    return this.v4ListEntrypointPlugins(expands).pipe(
       map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'async')),
     );
   }

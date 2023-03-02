@@ -45,7 +45,7 @@ describe('EndpointService', () => {
 
       httpTestingController
         .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`,
+          url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints?expand=icon`,
           method: 'GET',
         })
         .flush(fakeConnectors);

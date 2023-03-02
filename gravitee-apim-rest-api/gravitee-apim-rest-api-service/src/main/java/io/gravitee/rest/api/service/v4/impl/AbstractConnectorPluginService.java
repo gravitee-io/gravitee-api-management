@@ -32,7 +32,6 @@ import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.ConnectorPluginService;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -121,10 +120,6 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         } else {
             entity.setAvailableFeatures(Collections.emptySet());
         }
-
-        try {
-            entity.setIcon(pluginManager.getIcon(plugin.id()));
-        } catch (IOException e) {}
 
         return entity;
     }
