@@ -358,11 +358,7 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {
-              headersAsComment: false,
-              heartbeatIntervalInMs: 5000,
-              metadataAsComment: false,
-            },
+            configuration: {},
             id: 'sse',
             name: 'SSE',
             icon: undefined,
@@ -435,11 +431,7 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {
-              headersAsComment: false,
-              heartbeatIntervalInMs: 5000,
-              metadataAsComment: false,
-            },
+            configuration: {},
             id: 'sse',
             name: 'SSE',
             icon: undefined,
@@ -486,11 +478,7 @@ describe('ApiCreationV4Component', () => {
         ]);
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {
-              headersAsComment: false,
-              heartbeatIntervalInMs: 5000,
-              metadataAsComment: false,
-            },
+            configuration: {},
             icon: undefined,
             id: 'sse',
             name: 'SSE',
@@ -650,23 +638,13 @@ describe('ApiCreationV4Component', () => {
 
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
         {
-          configuration: {
-            headersInPayload: false,
-            messagesLimitCount: 500,
-            messagesLimitDurationMs: 5000,
-            metadataInPayload: false,
-          },
+          configuration: {},
           id: 'entrypoint-1',
           name: 'initial entrypoint',
           supportedListenerType: 'http',
         },
         {
-          configuration: {
-            headersInPayload: false,
-            messagesLimitCount: 500,
-            messagesLimitDurationMs: 5000,
-            metadataInPayload: false,
-          },
+          configuration: {},
           id: 'entrypoint-2',
           name: 'new entrypoint',
           supportedListenerType: 'subscription',
@@ -759,22 +737,12 @@ describe('ApiCreationV4Component', () => {
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
-          configuration: {
-            headersInPayload: false,
-            messagesLimitCount: 500,
-            messagesLimitDurationMs: 5000,
-            metadataInPayload: false,
-          },
+          configuration: {},
           id: 'kafka',
           name: 'Kafka',
         },
         {
-          configuration: {
-            headersInPayload: false,
-            messagesLimitCount: 500,
-            messagesLimitDurationMs: 5000,
-            metadataInPayload: false,
-          },
+          configuration: {},
           id: 'mock',
           name: 'Mock',
         },

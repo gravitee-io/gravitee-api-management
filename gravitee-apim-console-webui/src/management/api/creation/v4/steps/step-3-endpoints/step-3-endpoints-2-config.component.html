@@ -28,10 +28,7 @@
     <ng-container *ngFor="let endpoint of selectedEndpoints">
       <div class="api-creation-v4__form-container" *ngIf="endpointSchemas[endpoint.id]">
         <h3>{{ endpoint.name }}</h3>
-        <gio-form-json-schema
-          [jsonSchema]="endpointSchemas[endpoint.id]"
-          [formGroup]="$any(formGroup.get(endpoint.id))"
-        ></gio-form-json-schema>
+        <gio-form-json-schema [jsonSchema]="endpointSchemas[endpoint.id]" [formControlName]="endpoint.id"></gio-form-json-schema>
       </div>
     </ng-container>
 
