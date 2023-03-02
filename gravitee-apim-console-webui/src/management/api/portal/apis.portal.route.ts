@@ -209,28 +209,8 @@ function apisPortalRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.portal.members', {
       url: '/members',
-      template: require('./userGroupAccess/members/members.html'),
-      controller: 'ApiMembersController',
-      controllerAs: 'apiMembersCtrl',
-      resolve: {
-        resolvedMembers: function ($stateParams, ApiService) {
-          return ApiService.getMembers($stateParams.apiId);
-        },
-      },
-      data: {
-        perms: {
-          only: ['api-member-r'],
-        },
-        docs: {
-          page: 'management-api-members',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.ngmembers', {
-      url: '/ng-members',
       component: 'ngApiMembers',
       data: {
-        useAngularMaterial: true,
         perms: {
           only: ['api-member-r'],
         },
