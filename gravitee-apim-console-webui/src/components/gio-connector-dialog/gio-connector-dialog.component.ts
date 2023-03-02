@@ -19,7 +19,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { PluginMoreInformation } from '../../entities/plugin/PluginMoreInformation';
 
 export type GioConnectorDialogData = {
-  name?: string;
+  name: string;
   pluginMoreInformation?: PluginMoreInformation;
 };
 
@@ -36,8 +36,12 @@ export class GioConnectorDialogComponent {
     private readonly dialogRef: MatDialogRef<GioConnectorDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: GioConnectorDialogData,
   ) {
-    this.name = dialogData?.name ?? '';
+    this.name = dialogData.name;
     this.pluginMoreInformation = dialogData?.pluginMoreInformation;
+
+    if (!this.pluginMoreInformation.description) {
+      this.pluginMoreInformation.description = '🚧 More information coming soon 🚧';
+    }
   }
 
   onClose() {
