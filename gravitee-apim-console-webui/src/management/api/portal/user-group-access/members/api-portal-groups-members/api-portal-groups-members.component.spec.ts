@@ -20,14 +20,19 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members.component';
 
 import { User } from '../../../../../../entities/user';
-import { GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../../api-portal-user-group.module';
 import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { CurrentUserService } from '../../../../../../services-ngx/current-user.service';
+import { Group } from '../../../../../../entities/group/group';
+import { GroupMember } from '../../../../../../entities/group/groupMember';
+import { fakeGroupMember } from '../../../../../../entities/group/groupMember.fixture';
+import { fakeGroup } from '../../../../../../entities/group/group.fixture';
 
 describe('ApiPortalMembersComponent', () => {
   let fixture: ComponentFixture<ApiPortalGroupsMembersComponent>;
@@ -63,7 +68,24 @@ describe('ApiPortalMembersComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should work', async () => {
-    expect(loader).toBeTruthy();
+  it('Display groups members tables', async () => {
+    expectGroupIdsWithMembersGetRequest({
+      groupId1: [fakeGroupMember()],
+    });
+    expectGroupsGetRequest([fakeGroup({ id: 'groupId1', name: 'Group1' })]);
+
+    fixture.detectChanges();
+
+    const groupsMembersTable = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="Group Group1 members table"]' }));
+
+    expect(await groupsMembersTable.getCellTextByIndex()).toEqual([['', 'Joe Bar', 'USER']]);
   });
+
+  function expectGroupIdsWithMembersGetRequest(groupIdsMembers: Record<string, GroupMember[]>) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/groups`, method: 'GET' }).flush(groupIdsMembers);
+  }
+
+  function expectGroupsGetRequest(groups: Group[] = []) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`, method: 'GET' }).flush(groups);
+  }
 });

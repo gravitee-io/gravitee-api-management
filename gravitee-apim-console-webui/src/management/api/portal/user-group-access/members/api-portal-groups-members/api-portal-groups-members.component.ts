@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { combineLatest, Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { ApiService } from '../../../../../../services-ngx/api.service';
+import { GroupService } from '../../../../../../services-ngx/group.service';
+import { UsersService } from '../../../../../../services-ngx/users.service';
+
+class MembersDataSource {
+  id: string;
+  role: string;
+  displayName: string;
+  picture: string;
+}
 
 @Component({
   selector: 'api-portal-groups-members',
@@ -28,10 +39,44 @@ export class ApiPortalGroupsMembersComponent implements OnInit {
 
   private apiId: string;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams) {}
+  dataSourceGroups: {
+    id: string;
+    groupName: string;
+    dataSource: MembersDataSource[];
+  }[];
+  displayedColumns = ['picture', 'displayName', 'role'];
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly groupService: GroupService,
+    private readonly apiService: ApiService,
+    private readonly userService: UsersService,
+  ) {}
 
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+
+    combineLatest([this.apiService.getGroupIdsWithMembers(this.apiId), this.groupService.list()])
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(([groupIdsWithMembers, groups]) => {
+          this.dataSourceGroups = Object.entries(groupIdsWithMembers).map(([groupId, members]) => {
+            return {
+              id: groupId,
+              groupName: groups.find((group) => group.id === groupId).name,
+              dataSource: members.map((member) => {
+                return {
+                  id: member.id,
+                  role: member.roles['API'],
+                  displayName: member.displayName,
+                  picture: this.userService.getUserAvatar(member.id),
+                };
+              }),
+            };
+          });
+        }),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {

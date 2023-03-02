@@ -26,6 +26,7 @@ import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
 import { AjsRootScope } from '../ajs-upgraded-providers';
+import { GroupMember } from '../entities/group/groupMember';
 
 @Injectable({
   providedIn: 'root',
@@ -273,5 +274,9 @@ export class ApiService {
     },
   ): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/${api}/members/transfer_ownership`, ownership);
+  }
+
+  getGroupIdsWithMembers(apiId: string): Observable<Record<string, GroupMember[]>> {
+    return this.http.get<Record<string, GroupMember[]>>(`${this.constants.env.baseURL}/apis/${apiId}/groups`);
   }
 }

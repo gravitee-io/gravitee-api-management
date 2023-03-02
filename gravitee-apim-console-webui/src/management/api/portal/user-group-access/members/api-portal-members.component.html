@@ -19,7 +19,7 @@
   <mat-card>
     <div class="card__header">
       <div>
-        <h3>{{ members?.length }} direct members</h3>
+        <h3>Direct members ({{ members?.length }})</h3>
         <p>
           API members can be a user or group. Each member has roles to manage and perform certain tasks and operations in the API according
           to their role's permissions.
@@ -41,7 +41,14 @@
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
 
-    <table mat-table *ngIf="dataSource" [dataSource]="dataSource" class="card__table" formGroupName="members" aria-label="members table">
+    <table
+      mat-table
+      *ngIf="dataSource"
+      [dataSource]="dataSource"
+      class="card__table"
+      formGroupName="members"
+      aria-label="Direct members table"
+    >
       <ng-container matColumnDef="picture">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let member">
