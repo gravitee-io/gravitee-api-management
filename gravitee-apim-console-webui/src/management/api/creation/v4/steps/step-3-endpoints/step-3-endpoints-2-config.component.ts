@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
@@ -36,8 +36,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public formGroup: FormGroup;
   public selectedEndpoints: { id: string; name: string }[];
   public endpointSchemas: Record<string, GioJsonSchema>;
-  public endpointInitialValues: Record<string, any>;
-  public endpointFormGroups: Record<string, FormGroup>;
 
   constructor(private readonly endpointService: EndpointService, private readonly stepService: ApiCreationStepService) {}
 
@@ -59,10 +57,11 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
 
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
 
-        this.endpointInitialValues =
-          currentStepPayload.selectedEndpoints?.reduce((map, { id, configuration }) => ({ ...map, [id]: configuration }), {}) ?? {};
         this.formGroup = new FormGroup({
-          ...(currentStepPayload.selectedEndpoints?.reduce((map, { id }) => ({ ...map, [id]: new FormGroup({}) }), {}) ?? {}),
+          ...(currentStepPayload.selectedEndpoints?.reduce(
+            (map, { id, configuration }) => ({ ...map, [id]: new FormControl(configuration ?? {}) }),
+            {},
+          ) ?? {}),
         });
       });
   }

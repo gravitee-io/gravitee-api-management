@@ -40,7 +40,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public formGroup: FormGroup;
   public selectedEntrypoints: { id: string; name: string; supportedListenerType: string }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
-  public entrypointInitialValues: Record<string, any>;
   public hasListeners: boolean;
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
@@ -78,11 +77,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
     }
 
-    this.entrypointInitialValues =
-      currentStepPayload?.selectedEntrypoints?.reduce((map, { id, configuration }) => ({ ...map, [id]: configuration }), {}) || {};
-
-    currentStepPayload.selectedEntrypoints.forEach(({ id }) => {
-      this.formGroup.addControl(id, this.formBuilder.group({}));
+    currentStepPayload.selectedEntrypoints.forEach(({ id, configuration }) => {
+      this.formGroup.addControl(id, this.formBuilder.control(configuration ?? {}));
     });
 
     forkJoin(
