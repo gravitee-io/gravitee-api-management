@@ -23,7 +23,7 @@ import { isEmpty, omitBy } from 'lodash';
 
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { Step4SecurityComponent } from '../step-4-security/step-4-security.component';
+import { Step4Security1PlansListComponent } from '../step-4-security/step-4-security-1-plans-list.component';
 
 @Component({
   selector: 'step-3-endpoints-2-config',
@@ -82,7 +82,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
       })),
     }));
 
-    this.stepService.goToNextStep({ groupNumber: 4, component: Step4SecurityComponent });
+    this.stepService.goToNextStep({ groupNumber: 4, component: Step4Security1PlansListComponent });
   }
 
   goBack(): void {

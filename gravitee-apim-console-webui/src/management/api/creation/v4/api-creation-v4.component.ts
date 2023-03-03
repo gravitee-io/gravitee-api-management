@@ -15,8 +15,8 @@
  */
 
 import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
-import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
+import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { StateService } from '@uirouter/angular';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
@@ -31,7 +31,16 @@ import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { EndpointGroup, Listener } from '../../../../entities/api-v4';
+import { ApiEntity, EndpointGroup, Listener } from '../../../../entities/api-v4';
+import { PlanV4Service } from '../../../../services-ngx/plan-v4.service';
+import { Plan, PlanType, PlanValidation } from '../../../../entities/plan-v4';
+
+// TODO: Make better... Add apiId as req ?
+export interface Result<R> {
+  status: 'success' | 'failure';
+  message?: string;
+  result?: R;
+}
 
 @Component({
   selector: 'api-creation-v4',
@@ -96,6 +105,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   constructor(
     private readonly injector: Injector,
     private readonly apiV4Service: ApiV4Service,
+    private readonly planV4Service: PlanV4Service,
     private readonly snackBarService: SnackBarService,
     @Inject(UIRouterState) readonly ajsState: StateService,
   ) {}
@@ -124,9 +134,32 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     this.stepper.finished$
       .pipe(
         takeUntil(this.unsubscribe$),
-        switchMap((p) => this.createApi(p)),
+        switchMap((p) => this.createApi$(p)),
+        switchMap((apiCreationResult) => {
+          if (this.currentStep.payload.plans && apiCreationResult.status === 'success') {
+            return this.createPlans$(apiCreationResult.result, this.currentStep.payload);
+          }
+          const apiResult: Result<{ apiId?: string }> = {
+            status: apiCreationResult.status,
+            message: apiCreationResult.message,
+            result: {
+              apiId: apiCreationResult.result?.id,
+            },
+          };
+          return of(apiResult);
+        }),
       )
-      .subscribe();
+      .subscribe((result) => {
+        // TODO: Improve handling various errors non-related to creating API
+        if (result.status === 'failure') {
+          this.snackBarService.error(result.message);
+        } else {
+          this.snackBarService.success(`API ${this.currentStep.payload.deploy ? 'deployed' : 'created'} successfully!`);
+        }
+        if (result.result?.apiId) {
+          this.ajsState.go('management.apis.create-v4-confirmation', { apiId: result.result.apiId });
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -138,7 +171,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     this.stepper.goToStepLabel(label);
   }
 
-  private createApi(apiCreationPayload: ApiCreationPayload) {
+  private createApi$(apiCreationPayload: ApiCreationPayload): Observable<Result<ApiEntity>> {
     this.isCreatingApi = true;
 
     // Get distinct listener types
@@ -187,19 +220,36 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         ),
       })
       .pipe(
-        takeUntil(this.unsubscribe$),
-        tap(
-          (api) => {
-            this.snackBarService.success(`API ${apiCreationPayload.deploy ? 'deployed' : 'created'} successfully!`);
-            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: api.id });
-          },
-          (err) => {
-            this.snackBarService.error(
-              err.error?.message ?? `An error occurred while ${apiCreationPayload.deploy ? 'deploying' : 'creating'} the API.`,
-            );
-            return EMPTY;
-          },
-        ),
+        map((apiEntity) => ({ result: apiEntity, status: 'success' as const })),
+        catchError((err) => {
+          return of({ status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
+        }),
       );
+  }
+
+  private createPlans$(api: ApiEntity, payload: ApiCreationPayload): Observable<Result<{ plans?: Plan[]; apiId: string }>> {
+    return forkJoin(
+      payload.plans.map((plan) =>
+        this.planV4Service.create({
+          apiId: api.id,
+          description: plan.description,
+          flows: [],
+          name: plan.name,
+          security: { configuration: {}, type: plan.type },
+          status: api.lifecycleState === 'PUBLISHED' && api.state === 'STARTED' ? 'published' : 'staging',
+          type: PlanType.API,
+          validation: PlanValidation.AUTO,
+        }),
+      ),
+    ).pipe(
+      map((plans) => ({ result: { plans, apiId: api.id }, status: 'success' as const })),
+      catchError((err) => {
+        return of({
+          status: 'failure' as const,
+          message: `Error while creating security plans: ${err.error?.message}`,
+          result: { apiId: api.id },
+        });
+      }),
+    );
   }
 }

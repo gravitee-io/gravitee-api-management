@@ -28,7 +28,7 @@ import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { Step6SummaryHarness } from './steps/step-6-summary/step-6-summary.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
-import { Step4SecurityHarness } from './steps/step-4-security/step-4-security.harness';
+import { Step4Security1PlansListHarness } from './steps/step-4-security/step-4-security-1-plans-list.harness';
 import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
@@ -46,6 +46,8 @@ import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { toQueryParams, ListPluginsExpand } from '../../../../entities/plugin/ListPluginsExpand';
+import { PlanSecurityType } from '../../../../entities/plan-v4';
+import { fakeV4Plan } from '../../../../entities/plan-v4/plan.fixture';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorListItem>[] = [{ id: 'http-proxy', supportedApiType: 'proxy', name: 'HTTP Proxy' }];
@@ -774,7 +776,7 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
-  describe('step6', () => {
+  describe('step4', () => {
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
       await fillAndValidateStep2Entrypoints0Architecture('message');
@@ -782,7 +784,73 @@ describe('ApiCreationV4Component', () => {
       await fillAndValidateStep2Entrypoints2Config();
       await fillAndValidateStep3Endpoints1List();
       await fillAndValidateStep3Endpoints2Config();
-      await fillAndValidateStep4Security();
+      fixture.detectChanges();
+    });
+    describe('step4 - plans list', () => {
+      it('should add default keyless plan to payload', async () => {
+        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+
+        const name = await step4Security1PlansListHarness.getNameByRowIndex(0);
+        expect(name).toEqual('Default Keyless (UNSECURED)');
+
+        const securityType = await step4Security1PlansListHarness.getSecurityTypeByRowIndex(0);
+        expect(securityType).toEqual('KEY_LESS');
+
+        await step4Security1PlansListHarness.clickValidate();
+        expect(component.currentStep.payload.plans).toEqual([
+          {
+            name: 'Default Keyless (UNSECURED)',
+            type: PlanSecurityType.KEY_LESS,
+            description: 'Default unsecured plan',
+          },
+        ]);
+      });
+
+      it('should add no plans to payload after deleting default plan', async () => {
+        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+
+        expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+
+        const name = await step4Security1PlansListHarness.getNameByRowIndex(0);
+        expect(name).toEqual('Default Keyless (UNSECURED)');
+
+        const securityType = await step4Security1PlansListHarness.getSecurityTypeByRowIndex(0);
+        expect(securityType).toEqual('KEY_LESS');
+
+        await step4Security1PlansListHarness.clickRemovePlanButton();
+        expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
+
+        await step4Security1PlansListHarness.clickValidate();
+        expect(component.currentStep.payload.plans).toEqual([]);
+      });
+    });
+
+    it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
+      let step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+
+      await step4Security1PlansListHarness.clickRemovePlanButton();
+      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
+
+      await step4Security1PlansListHarness.clickPrevious();
+      await fillAndValidateStep3Endpoints2Config();
+
+      step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+    });
+  });
+
+  describe('step6', () => {
+    const API_ID = 'my-api';
+
+    beforeEach(async () => {
+      await fillAndValidateStep1ApiDetails();
+      await fillAndValidateStep2Entrypoints0Architecture();
+      await fillAndValidateStep2Entrypoints1List();
+      await fillAndValidateStep2Entrypoints2Config();
+      await fillAndValidateStep3Endpoints1List();
+      await fillAndValidateStep3Endpoints2Config();
+      await fillAndValidateStep4Security1PlansList();
       await fillAndValidateStep5Documentation();
       fixture.detectChanges();
     });
@@ -844,7 +912,7 @@ describe('ApiCreationV4Component', () => {
 
       await fillAndValidateStep3Endpoints1List();
       await fillAndValidateStep3Endpoints2Config();
-      await fillAndValidateStep4Security();
+      await fillAndValidateStep4Security1PlansList();
       await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after last step validation
@@ -875,7 +943,7 @@ describe('ApiCreationV4Component', () => {
 
       await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'message', name: 'Mock' }]);
 
-      await fillAndValidateStep4Security();
+      await fillAndValidateStep4Security1PlansList();
       await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after step2 validation
@@ -889,34 +957,18 @@ describe('ApiCreationV4Component', () => {
       const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickCreateMyApiButton();
 
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+      expectCallsForApiCreation(API_ID);
 
-      // Todo: complete with all the expected fields
-      expect(req.request.body).toEqual(
-        expect.objectContaining({
-          name: 'API name',
-        }),
-      );
-      req.flush(fakeApiEntity({ id: 'api-id' }));
-
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: 'api-id' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
     });
 
     it('should go to confirmation page after clicking Deploy my API', async () => {
       const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickDeployMyApiButton();
 
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+      expectCallsForApiCreation(API_ID);
 
-      // Todo: complete with all the expected fields
-      expect(req.request.body).toEqual(
-        expect.objectContaining({
-          name: 'API name',
-        }),
-      );
-      req.flush(fakeApiEntity({ id: 'api-id' }));
-
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: 'api-id' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
     });
   });
 
@@ -1020,8 +1072,8 @@ describe('ApiCreationV4Component', () => {
     await step3Endpoints2ConfigHarness.clickValidate();
   }
 
-  async function fillAndValidateStep4Security() {
-    const step4 = await harnessLoader.getHarness(Step4SecurityHarness);
+  async function fillAndValidateStep4Security1PlansList() {
+    const step4 = await harnessLoader.getHarness(Step4Security1PlansListHarness);
     await step4.fillAndValidate();
   }
 
@@ -1047,5 +1099,28 @@ describe('ApiCreationV4Component', () => {
   function exceptEnvironmentGetRequest(environment: Environment) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
     fixture.detectChanges();
+  }
+
+  function expectCallsForApiCreation(id: string) {
+    const createApiRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+
+    // TODO: complete with all the expected fields
+    expect(createApiRequest.request.body).toEqual(
+      expect.objectContaining({
+        name: 'API name',
+      }),
+    );
+    createApiRequest.flush(fakeApiEntity({ id }));
+
+    const createPlansRequest = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${id}/plans`,
+      method: 'POST',
+    });
+    expect(createPlansRequest.request.body).toEqual(
+      expect.objectContaining({
+        status: 'staging',
+      }),
+    );
+    createPlansRequest.flush([fakeV4Plan()]);
   }
 });
