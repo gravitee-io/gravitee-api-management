@@ -272,7 +272,7 @@ class HttpGetEntrypointConnectorTest {
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(30_000L);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
