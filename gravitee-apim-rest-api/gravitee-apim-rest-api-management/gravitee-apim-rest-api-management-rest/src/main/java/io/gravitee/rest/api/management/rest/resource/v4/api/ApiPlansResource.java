@@ -220,7 +220,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            Visibility.PUBLIC.equals(apiService.findById(executionContext, apiId).getVisibility()) ||
+            Visibility.PUBLIC.equals(apiSearchService.findById(executionContext, apiId).getVisibility()) ||
             hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, apiId, READ)
         ) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
