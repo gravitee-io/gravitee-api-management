@@ -181,4 +181,37 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       )
       .subscribe();
   }
+
+  onMoreInfoMessageClick(event) {
+    event.stopPropagation();
+
+    this.matDialog
+      .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+        data: {
+          name: 'Message',
+          pluginMoreInformation: {
+            description: `
+              <p>
+                Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs. If you want to learn more about
+                Gravitee’s new capabilities, you can read about our Service Management Ecosystem.
+              </p>
+              <p>
+                Such as:
+                <span class="gio-badge-neutral">HTTP Get</span>
+                <span class="gio-badge-neutral">HTTP Post</span>
+                <span class="gio-badge-neutral">SSE</span>
+                <span class="gio-badge-neutral">Webhook</span>
+                <span class="gio-badge-neutral">Websocket</span>
+              </p>
+            `,
+            documentationUrl: 'https://docs.gravitee.io',
+          },
+        },
+        role: 'alertdialog',
+        id: 'moreInfoDialog',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
+  }
 }
