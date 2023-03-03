@@ -43,9 +43,14 @@ const computeCommitInfo = async (gitLogOutput) => {
   });
 };
 
+async function getLastVersion() {
+  const latestTag = await $`git tag -l --sort=-version:refname ${versions.pattern} | head -1`;
+  return String(latestTag).trim();
+}
+
 echo(chalk.blue(`# Get feat & fix commits`));
-const allCommitsCmd =
-  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const lastVersion = await getLastVersion();
+const allCommitsCmd = await $`git log ${lastVersion}..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
 const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
