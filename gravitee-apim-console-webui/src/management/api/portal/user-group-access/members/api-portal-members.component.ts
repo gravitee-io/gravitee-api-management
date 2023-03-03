@@ -36,7 +36,7 @@ import {
 } from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 
-class MembersDataSource {
+class MemberDataSource {
   id: string;
   reference: string;
   role: string;
@@ -59,7 +59,7 @@ export class ApiPortalMembersComponent implements OnInit {
   membersToAdd: (ApiMember & { _viewId: string })[] = [];
   isReadOnly = false;
 
-  dataSource: MembersDataSource[];
+  dataSource: MemberDataSource[];
   displayedColumns = ['picture', 'displayName', 'role', 'delete'];
 
   private apiId: string;
@@ -155,7 +155,7 @@ export class ApiPortalMembersComponent implements OnInit {
       .subscribe();
   }
 
-  public removeMember(member: MembersDataSource) {
+  public removeMember(member: MemberDataSource) {
     const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
       data: {
         title: `Remove API member`,
