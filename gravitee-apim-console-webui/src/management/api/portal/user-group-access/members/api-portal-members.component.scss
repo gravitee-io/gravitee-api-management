@@ -4,20 +4,34 @@
   @include gio-layout.gio-responsive-content-container;
 }
 
-.api-portal-members__table {
-  width: 100%;
-}
+.card {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
 
-.mat-column-picture {
-  padding: 0 4px;
-}
+  &__enable-notification-toggle {
+    width: 100%;
+  }
 
-.primary-owner-name {
-  font-weight: bold;
-}
+  &__table {
+    width: 100%;
 
-.action-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+    .mat-column-picture {
+      text-align: center;
+      width: 24px;
+      padding-right: 8px;
+    }
+
+    .primary-owner-name {
+      font-weight: bold;
+    }
+
+    .action-cell {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  }
 }

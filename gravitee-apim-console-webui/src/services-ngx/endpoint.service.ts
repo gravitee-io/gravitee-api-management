@@ -23,6 +23,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 import { Constants } from '../entities/Constants';
 import { PluginMoreInformation } from '../entities/plugin/PluginMoreInformation';
+import { ListPluginsExpand, toQueryParams } from '../entities/plugin/ListPluginsExpand';
 
 @Injectable({
   providedIn: 'root',
@@ -35,8 +36,8 @@ export class EndpointService {
     private _sanitizer: DomSanitizer,
   ) {}
 
-  v4ListEndpointPlugins(): Observable<ConnectorListItem[]> {
-    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints`);
+  v4ListEndpointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
+    return this.http.get<ConnectorListItem[]>(`${this.constants.env.baseURL}/v4/endpoints${toQueryParams(expands)}`);
   }
 
   v4Get(id: string): Observable<ConnectorListItem> {

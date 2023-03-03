@@ -60,6 +60,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.enabled:true}")
     private boolean startManagementAPI;
 
+    @Value("${http.api.management.v4.enabled:false}")
+    private boolean startManagementAPIv4;
+
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
 
@@ -99,7 +102,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementConfiguration.class
             );
             contexts.add(managementContextHandler);
+        }
 
+        if (startManagementAPIv4) {
             // REST configuration for Management API - V4
             ServletContextHandler managementv4ContextHandler = configureAPI(
                 managementEntrypoint + "/v4",

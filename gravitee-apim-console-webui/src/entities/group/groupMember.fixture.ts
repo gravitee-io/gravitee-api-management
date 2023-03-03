@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GroupMembership } from './groupMember';
+import { GroupMember, GroupMembership } from './groupMember';
 
 export function fakeGroupMembership(attributes?: Partial<GroupMembership>): GroupMembership {
   const defaultValue: GroupMembership = {
@@ -23,6 +23,22 @@ export function fakeGroupMembership(attributes?: Partial<GroupMembership>): Grou
       { scope: 'API', name: 'USER' },
       { scope: 'APPLICATION', name: 'USER' },
     ],
+  };
+
+  return {
+    ...defaultValue,
+    ...attributes,
+  };
+}
+
+export function fakeGroupMember(attributes?: Partial<GroupMember>): GroupMember {
+  const defaultValue: GroupMember = {
+    id: '3ebc7aab-2639-4cab-bc7a-ab2639acab8b',
+    displayName: 'Joe Bar',
+    roles: {
+      APPLICATION: 'USER',
+      API: 'USER',
+    },
   };
 
   return {

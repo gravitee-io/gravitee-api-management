@@ -64,36 +64,19 @@
 		</dependency>
 
 		<dependency>
-			<groupId>jakarta.activation</groupId>
-			<artifactId>jakarta.activation-api</artifactId>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-redis-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-core</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>jakarta.annotation</groupId>
-			<artifactId>jakarta.annotation-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.lettuce</groupId>
-			<artifactId>lettuce-core</artifactId>
-			<version>${lettuce.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-pool2</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-rx-java3</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -106,11 +89,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-redis</artifactId>
-			<version>${spring-data-redis.version}</version>
 		</dependency>
 
 		<!-- Test scope -->
@@ -154,9 +132,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<environmentVariables>
-						<management.redis.pool.max>512</management.redis.pool.max>
-					</environmentVariables>
 					<excludes>
 						<exclude>**/management/*.java</exclude>
 					</excludes>

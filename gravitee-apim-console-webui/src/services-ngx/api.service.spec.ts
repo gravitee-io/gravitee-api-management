@@ -26,6 +26,7 @@ import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
 import { AjsRootScope } from '../ajs-upgraded-providers';
+import { fakeGroupMember } from '../entities/group/groupMember.fixture';
 
 describe('ApiService', () => {
   let httpTestingController: HttpTestingController;
@@ -482,6 +483,27 @@ describe('ApiService', () => {
         role: 'OWNER',
       });
       req.flush({});
+    });
+  });
+
+  describe('getGroupIdsWithMembers', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+      const fakeGroupsMember = {
+        groupId1: [fakeGroupMember({ id: 'user#1' })],
+        groupId2: [fakeGroupMember({ id: 'user#2' })],
+      };
+
+      apiService.getGroupIdsWithMembers(apiId).subscribe((value) => {
+        expect(value).toEqual(fakeGroupsMember);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/groups`,
+        method: 'GET',
+      });
+      req.flush(fakeGroupsMember);
     });
   });
 });

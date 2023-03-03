@@ -15,88 +15,104 @@
  */
 package io.gravitee.repository.redis.common;
 
-import io.lettuce.core.internal.HostAndPort;
-import java.time.Duration;
+import io.gravitee.repository.redis.vertx.RedisClient;
+import io.vertx.core.*;
+import io.vertx.redis.client.RedisClientType;
+import io.vertx.redis.client.RedisOptions;
+import io.vertx.redis.client.RedisRole;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder;
+import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RedisConnectionFactory implements FactoryBean<org.springframework.data.redis.connection.RedisConnectionFactory> {
+public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
     private final Logger logger = LoggerFactory.getLogger(RedisConnectionFactory.class);
 
-    @Autowired
     private Environment environment;
 
     private final String propertyPrefix;
 
-    private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
-    private static final int DEFAULT_COMMAND_TIMEOUT = 1_000;
+    private final Vertx vertx;
 
-    public RedisConnectionFactory(String propertyPrefix) {
+    private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
+
+    private static final String PASSWORD_PARAMETER = "password";
+
+    public RedisConnectionFactory(Environment environment, Vertx vertx, String propertyPrefix) {
+        this.environment = environment;
+        this.vertx = vertx;
         this.propertyPrefix = propertyPrefix + ".redis.";
     }
 
     @Override
-    public org.springframework.data.redis.connection.RedisConnectionFactory getObject() throws Exception {
-        final LettuceConnectionFactory lettuceConnectionFactory;
+    public RedisClient getObject() {
+        final RedisOptions options = new RedisOptions();
 
         if (isSentinelEnabled()) {
             // Sentinels + Redis master / replicas
             logger.debug("Redis repository configured to use Sentinel connection");
+
+            options.setType(RedisClientType.SENTINEL);
             List<HostAndPort> sentinelNodes = getSentinelNodes();
+
+            // Redis Password
+            String password = readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class);
+            sentinelNodes.forEach(hostAndPort -> options.addConnectionString(hostAndPort.withPassword(password).toConnectionString()));
+
             String redisMaster = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master", String.class);
-            if (StringUtils.isBlank(redisMaster)) {
+            if (!StringUtils.hasText(redisMaster)) {
                 throw new IllegalStateException(
-                    "Incorrect Sentinel configuration : parameter '" + SENTINEL_PARAMETER_PREFIX + "master' is mandatory !"
+                    "Incorrect Sentinel configuration : parameter '" + propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master' is mandatory!"
                 );
             }
+            options.setMasterName(redisMaster).setRole(RedisRole.MASTER);
 
-            RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
-            sentinelConfiguration.master(redisMaster);
-            // Parsing and registering nodes
-            sentinelNodes.forEach(hostAndPort -> sentinelConfiguration.sentinel(hostAndPort.getHostText(), hostAndPort.getPort()));
             // Sentinel Password
-            sentinelConfiguration.setSentinelPassword(
-                readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "password", String.class)
+            String sentinelPassword = readPropertyValue(
+                propertyPrefix + SENTINEL_PARAMETER_PREFIX + PASSWORD_PARAMETER,
+                String.class,
+                null
             );
-            // Redis Password
-            sentinelConfiguration.setPassword(readPropertyValue(propertyPrefix + "password", String.class));
-
-            lettuceConnectionFactory = new LettuceConnectionFactory(sentinelConfiguration, buildLettuceClientConfiguration());
+            options.setPassword(sentinelPassword);
         } else {
             // Standalone Redis
             logger.debug("Redis repository configured to use standalone connection");
-            RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
-            standaloneConfiguration.setHostName(readPropertyValue(propertyPrefix + "host", String.class, "localhost"));
-            standaloneConfiguration.setPort(readPropertyValue(propertyPrefix + "port", int.class, 6379));
-            standaloneConfiguration.setPassword(readPropertyValue(propertyPrefix + "password", String.class));
 
-            lettuceConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration, buildLettuceClientConfiguration());
+            options.setType(RedisClientType.STANDALONE);
+
+            HostAndPort hostAndPort = HostAndPort
+                .of(
+                    readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
+                    readPropertyValue(propertyPrefix + "port", int.class, 6379)
+                )
+                .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class));
+
+            options.setConnectionString(hostAndPort.toConnectionString());
         }
-        lettuceConnectionFactory.afterPropertiesSet();
 
-        return lettuceConnectionFactory;
+        // SSL
+        boolean ssl = readPropertyValue(propertyPrefix + "ssl", boolean.class, false);
+        if (ssl) {
+            options.getNetClientOptions().setSsl(true).setTrustAll(true);
+        }
+
+        // Set max waiting handlers high enough to manage high throughput since we are not using the pooled mode
+        options.setMaxWaitingHandlers(1024);
+
+        return new RedisClient(vertx, options);
     }
 
     @Override
     public Class<?> getObjectType() {
-        return org.springframework.data.redis.connection.RedisConnectionFactory.class;
+        return RedisClient.class;
     }
 
     @Override
@@ -115,14 +131,14 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
     }
 
     private boolean isSentinelEnabled() {
-        return StringUtils.isNotBlank(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[0].host", String.class));
+        return StringUtils.hasLength(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[0].host", String.class));
     }
 
     private List<HostAndPort> getSentinelNodes() {
         final List<HostAndPort> nodes = new ArrayList<>();
         for (
             int idx = 0;
-            StringUtils.isNotBlank(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class));
+            StringUtils.hasText(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class));
             idx++
         ) {
             String host = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
@@ -132,24 +148,33 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
         return nodes;
     }
 
-    private LettucePoolingClientConfiguration buildLettuceClientConfiguration() {
-        final LettucePoolingClientConfigurationBuilder builder = LettucePoolingClientConfiguration.builder();
-        int timeout = readPropertyValue(propertyPrefix + "timeout", int.class, DEFAULT_COMMAND_TIMEOUT);
-        // For backward compatibility (negative timeout is no longer accepted)
-        if (timeout < 0) {
-            timeout = DEFAULT_COMMAND_TIMEOUT;
-        }
-        builder.commandTimeout(Duration.ofMillis(timeout));
-        if (readPropertyValue(propertyPrefix + "ssl", boolean.class, false)) {
-            builder.useSsl();
-        }
-        int poolMax = readPropertyValue(propertyPrefix + "pool.max", int.class, 256);
+    private static class HostAndPort {
 
-        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
-        poolConfig.setMaxTotal(poolMax);
-        poolConfig.setBlockWhenExhausted(false);
+        private final String host;
+        private final int port;
+        private String password;
 
-        builder.poolConfig(poolConfig);
-        return builder.build();
+        private HostAndPort(String host, int port) {
+            this.host = host;
+            this.port = port;
+        }
+
+        static HostAndPort of(String host, int port) {
+            return new HostAndPort(host, port);
+        }
+
+        public HostAndPort withPassword(String password) {
+            this.password = password;
+
+            return this;
+        }
+
+        public String toConnectionString() {
+            if (StringUtils.hasText(password)) {
+                return "redis://:" + password + '@' + host + ':' + port;
+            }
+
+            return "redis://" + host + ':' + port;
+        }
     }
 }

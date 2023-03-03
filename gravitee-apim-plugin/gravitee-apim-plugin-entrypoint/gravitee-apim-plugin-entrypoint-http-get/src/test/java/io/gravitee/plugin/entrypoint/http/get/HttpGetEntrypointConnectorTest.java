@@ -91,6 +91,9 @@ class HttpGetEntrypointConnectorTest {
     @Spy
     private HttpGetEntrypointConnectorConfiguration configuration = new HttpGetEntrypointConnectorConfiguration();
 
+    @Captor
+    private ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+
     private HttpGetEntrypointConnector cut;
 
     @BeforeEach
@@ -251,8 +254,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -271,7 +272,7 @@ class HttpGetEntrypointConnectorTest {
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_RESPONSE_CONTENT_TYPE))
             .thenReturn(MediaType.APPLICATION_JSON);
         when(ctx.getInternalAttribute(HttpGetEntrypointConnector.ATTR_INTERNAL_LAST_MESSAGE_ID)).thenReturn("2");
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(5_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(30_000L);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(2);
 
         LinkedMultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -297,9 +298,8 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
+
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
 
         chunkObs
@@ -402,8 +402,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_XML);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -485,8 +483,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -582,8 +578,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(httpHeaders).isNotNull();
         assertThat(httpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -664,8 +658,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_XML);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -747,8 +739,6 @@ class HttpGetEntrypointConnectorTest {
 
         assertThat(responseHttpHeaders).isNotNull();
         assertThat(responseHttpHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
-
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();
@@ -821,7 +811,6 @@ class HttpGetEntrypointConnectorTest {
 
         cut.handleResponse(ctx).test().assertComplete();
 
-        ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> chunkObs = chunksCaptor.getValue().test();

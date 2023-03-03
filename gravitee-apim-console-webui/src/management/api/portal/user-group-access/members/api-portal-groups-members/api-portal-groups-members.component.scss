@@ -1,0 +1,17 @@
+.card {
+  margin-top: 16px;
+
+  &__table {
+    width: 100%;
+
+    .mat-column-picture {
+      text-align: center;
+      width: 24px;
+      padding-right: 8px;
+    }
+
+    .primary-owner-name {
+      font-weight: bold;
+    }
+  }
+}

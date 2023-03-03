@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.redis.common;
+export type ListPluginsExpand = 'icon' | 'schema' | 'schemaSubscription';
 
-import io.gravitee.platform.repository.api.Scope;
-import org.springframework.context.annotation.Bean;
-
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public abstract class AbstractRepositoryConfiguration {
-
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new RedisConnectionFactory(getScope().getName());
-    }
-
-    protected abstract Scope getScope();
+export function toQueryParams(expands?: ListPluginsExpand[]): string {
+  const queryParams = expands?.map((expand) => `expand=${expand}`).join('&');
+  return queryParams && queryParams.length ? `?${queryParams}` : '';
 }

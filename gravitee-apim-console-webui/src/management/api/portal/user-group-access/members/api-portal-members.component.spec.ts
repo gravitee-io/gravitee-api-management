@@ -22,40 +22,58 @@ import { MatOptionHarness } from '@angular/material/core/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { ApiPortalMembersComponent } from './api-portal-members.component';
 import { ApiPortalMembersHarness } from './api-portal-members.harness';
+import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members/api-portal-groups-members.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../api-portal-user-group.module';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { Api, ApiMember } from '../../../../../entities/api';
-import { UsersService } from '../../../../../services-ngx/users.service';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
+import { User } from '../../../../../entities/user';
+import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
 
 describe('ApiPortalMembersComponent', () => {
   let fixture: ComponentFixture<ApiPortalMembersComponent>;
   let httpTestingController: HttpTestingController;
   let harness: ApiPortalMembersHarness;
+
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-member-u', 'api-member-c'];
   const apiId = 'apiId';
-  const roles: Role[] = [fakeRole({ name: 'PRIMARY_OWNER' }), fakeRole({ name: 'OWNER' }), fakeRole({ name: 'USER' })];
+  const roles: Role[] = [
+    fakeRole({ name: 'PRIMARY_OWNER', default: false }),
+    fakeRole({ name: 'OWNER', default: false }),
+    fakeRole({ name: 'USER', default: true }),
+  ];
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiPortalUserGroupModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId } },
-        { provide: UsersService, useValue: { getUserAvatar: () => 'avatar' } },
         { provide: RoleService, useValue: { list: () => of(roles) } },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-      },
-    });
+      schemas: [NO_ERRORS_SCHEMA],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isTabbable: () => true,
+        },
+      })
+      .overrideModule(ApiPortalUserGroupModule, {
+        remove: {
+          declarations: [ApiPortalGroupsMembersComponent],
+        },
+      });
 
     fixture = TestBed.createComponent(ApiPortalMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -76,16 +94,16 @@ describe('ApiPortalMembersComponent', () => {
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      expect(await harness.isNotificationsCheckboxChecked()).toEqual(false);
+      expect(await harness.isNotificationsToggleChecked()).toEqual(false);
     });
 
-    it('should show save bar when checkbox is toggles', async () => {
+    it('should show save bar when toggle is toggles', async () => {
       const api = fakeApi({ id: apiId, disable_membership_notifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      expect(await harness.isNotificationsCheckboxChecked()).toEqual(true);
-      await harness.toggleNotificationCheckbox();
+      expect(await harness.isNotificationsToggleChecked()).toEqual(true);
+      await harness.toggleNotificationToggle();
 
       expect(await harness.isSaveBarVisible()).toEqual(true);
     });
@@ -95,7 +113,7 @@ describe('ApiPortalMembersComponent', () => {
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
 
-      await harness.toggleNotificationCheckbox();
+      await harness.toggleNotificationToggle();
 
       await harness.clickOnSave();
 
@@ -123,24 +141,6 @@ describe('ApiPortalMembersComponent', () => {
 
       expect((await harness.getTableRows()).length).toEqual(2);
       expect(await harness.getMembersName()).toEqual(['Mufasa', 'Simba']);
-    });
-
-    it('should show username when no display name', async () => {
-      const api = fakeApi({ id: apiId });
-      const members: ApiMember[] = [{ id: '1', username: 'bot', role: 'USER' }];
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-
-      expect(await harness.getMembersName()).toEqual(['bot']);
-    });
-
-    it('should show username next to displayName when no display name', async () => {
-      const api = fakeApi({ id: apiId });
-      const members: ApiMember[] = [{ id: '1', displayName: 'Regular user', username: 'bot', role: 'USER' }];
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-
-      expect(await harness.getMembersName()).toEqual(['Regular user (bot)']);
     });
 
     it('should make role readonly when user is PRIMARY OWNER', async () => {
@@ -249,6 +249,70 @@ describe('ApiPortalMembersComponent', () => {
 
       expect((await harness.getTableRows()).length).toEqual(1);
       expect(await harness.getMembersName()).toEqual(['owner']);
+    });
+  });
+
+  describe('Add a member', () => {
+    it('should add add members with default role', async () => {
+      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
+      expectApiGetRequest(api);
+      expectApiMembersGetRequest(members);
+
+      const memberToAdd = fakeSearchableUser({ id: 'user', displayName: 'User Id' });
+
+      // Open dialog and add member
+      await harness.addMember(memberToAdd, httpTestingController);
+
+      // Expect member to be added
+      expect(await harness.getMembersName()).toEqual(['Existing User', 'User Id']);
+      // Expect default role to be selected
+      const roleOptions: MatOptionHarness[] = await harness.getMemberRoleSelectOptions(1);
+      const options = await Promise.all(
+        roleOptions.map(async (opt) => ({
+          text: await opt.getText(),
+          isSelected: await opt.isSelected(),
+        })),
+      );
+      expect(options).toEqual([
+        {
+          isSelected: false,
+          text: 'PRIMARY_OWNER',
+        },
+        {
+          isSelected: false,
+          text: 'OWNER',
+        },
+        {
+          isSelected: true,
+          text: 'USER',
+        },
+      ]);
+
+      // Save and expect POST request
+      await harness.clickOnSave();
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'POST' });
+      expect(req.request.body).toEqual({ id: memberToAdd.id, reference: memberToAdd.reference, role: 'USER' });
+    });
+
+    it('should add add members without id', async () => {
+      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
+      expectApiGetRequest(api);
+      expectApiMembersGetRequest(members);
+
+      const memberToAdd = fakeSearchableUser({ id: undefined, displayName: 'User from LDAP' });
+
+      // Open dialog and add member
+      await harness.addMember(memberToAdd, httpTestingController);
+
+      // Expect member to be added
+      expect(await harness.getMembersName()).toEqual(['Existing User', 'User from LDAP']);
+
+      // Save and expect POST request
+      await harness.clickOnSave();
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'POST' });
+      expect(req.request.body).toEqual({ id: undefined, reference: memberToAdd.reference, role: 'USER' });
     });
   });
 

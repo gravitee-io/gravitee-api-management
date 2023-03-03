@@ -23,8 +23,9 @@
       <ng-container *ngIf="mode === 'GROUP'">group</ng-container>
       <ng-container *ngIf="mode === 'HYBRID'">
         <mat-radio-group aria-label="Select User or Group" formControlName="userOrGroup">
-          <mat-radio-button value="user">User</mat-radio-button><span style="vertical-align: bottom"> or </span>
-          <mat-radio-button value="group">Group</mat-radio-button>
+          <mat-radio-button class="card__userOrGroup_radio" value="user">User</mat-radio-button
+          ><span style="vertical-align: bottom"> or </span>
+          <mat-radio-button class="card__userOrGroup_radio" value="group">Group</mat-radio-button>
         </mat-radio-group>
       </ng-container>
     </p>

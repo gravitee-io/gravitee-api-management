@@ -17,9 +17,8 @@ import { Injectable } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import { BASE_64_PREFIX } from './entrypoint.service';
-
 export const ICON_NAMESPACE = 'gio-literal';
+export const BASE_64_PREFIX = 'data:image/svg+xml;base64,';
 
 @Injectable({
   providedIn: 'root',

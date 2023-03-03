@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 export interface SearchableUser {
-  id: string;
+  // id can be null if user comes from an LDAP (for example)
+  id?: string | null;
   reference: string;
   displayName: string;
   firstname?: string;

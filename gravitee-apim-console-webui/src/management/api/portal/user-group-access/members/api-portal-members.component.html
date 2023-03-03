@@ -15,39 +15,63 @@
     limitations under the License.
 
 -->
-<h3>{{ members?.length }} direct members</h3>
-<mat-card>
-  <form [formGroup]="form" *ngIf="form">
-    <mat-checkbox formControlName="isNotificationsEnabled">Enable notifications when members are added to this API</mat-checkbox>
+<form [formGroup]="form" *ngIf="form">
+  <mat-card>
+    <div class="card__header">
+      <div>
+        <h3>Direct members ({{ members?.length }})</h3>
+        <p>
+          API members can be a user or group. Each member has roles to manage and perform certain tasks and operations in the API according
+          to their role's permissions.
+        </p>
+      </div>
+      <div>
+        <button *gioPermission="{ anyOf: ['api-member-c'] }" mat-raised-button type="button" (click)="addMember()" color="primary">
+          <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+        </button>
+      </div>
+    </div>
+
+    <gio-form-slide-toggle class="card__enable-notification-toggle">
+      Enable notifications when members are added to this API
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="isNotificationsEnabled"
+        aria-label="Enable notifications when members are added to this API"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
     <table
       mat-table
       *ngIf="dataSource"
       [dataSource]="dataSource"
-      class="api-portal-members__table"
+      class="card__table"
       formGroupName="members"
-      aria-label="members table"
+      aria-label="Direct members table"
     >
       <ng-container matColumnDef="picture">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let member">
-          <gio-avatar [src]="member.picture" [name]="member.displayName" size="24"></gio-avatar>
+          <gio-avatar [src]="member.picture" [name]="member.displayName" size="24" [roundedBorder]="true"></gio-avatar>
         </td>
       </ng-container>
       <ng-container matColumnDef="displayName">
         <th mat-header-cell *matHeaderCellDef>Name</th>
         <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
-          {{ member.name }}
+          {{ member.displayName }}
         </td>
       </ng-container>
       <ng-container matColumnDef="role">
         <th mat-header-cell *matHeaderCellDef>Role</th>
         <td mat-cell *matCellDef="let member">
-          <mat-select [formControlName]="member.id">
-            <mat-option *ngFor="let role of roles" [value]="role.name" [disabled]="role.name === 'PRIMARY_OWNER'">{{
-              role.name
-            }}</mat-option>
-          </mat-select>
+          <mat-form-field>
+            <mat-select [formControlName]="member.id">
+              <mat-option *ngFor="let role of roles" [value]="role.name" [disabled]="role.name === 'PRIMARY_OWNER'">{{
+                role.name
+              }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('members').get(member.id).hasError('required')"> Role is required. </mat-error>
+          </mat-form-field>
         </td>
       </ng-container>
       <ng-container matColumnDef="delete">
@@ -61,7 +85,9 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
-  </form>
-</mat-card>
+  </mat-card>
 
-<gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (submitted)="onSubmit()"></gio-save-bar>
+  <api-portal-groups-members></api-portal-groups-members>
+
+  <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+</form>

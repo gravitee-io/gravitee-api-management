@@ -16,32 +16,54 @@
 package io.gravitee.repository.redis;
 
 import io.gravitee.repository.config.TestRepositoryInitializer;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
+import io.gravitee.repository.redis.vertx.RedisClient;
+import io.vertx.redis.client.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
  */
 public class RedisTestRepositoryInitializer implements TestRepositoryInitializer {
 
-    private final RedisTemplate<?, ?> redisTemplate;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisTestRepositoryInitializer.class);
+    private final RedisClient redisClient;
 
-    public RedisTestRepositoryInitializer(RedisTemplate<?, ?> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    @Autowired
+    public RedisTestRepositoryInitializer(RedisClient redisClient) {
+        this.redisClient = redisClient;
     }
 
     @Override
     public void setUp() {
-        /* noop */
+        // Wait for RedisApi to be ready
+        try {
+            Thread.sleep(500L);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error while waiting for RedisApi to be ready", e);
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
     public void tearDown() {
-        redisTemplate.execute(
-            (RedisCallback<Boolean>) connection -> {
-                connection.flushAll();
-                return true;
-            }
-        );
+        redisClient
+            .getRedisApi()
+            .send(Command.KEYS, "*")
+            .onSuccess(
+                event ->
+                    event
+                        .iterator()
+                        .forEachRemaining(
+                            key ->
+                                redisClient
+                                    .getRedisApi()
+                                    .send(Command.DEL, key.toString())
+                                    .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
+                                    .result()
+                        )
+            )
+            .result();
     }
 }

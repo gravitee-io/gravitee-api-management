@@ -45,6 +45,7 @@ import { fakeApiEntity } from '../../../../entities/api-v4';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
+import { toQueryParams, ListPluginsExpand } from '../../../../entities/plugin/ListPluginsExpand';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorListItem>[] = [{ id: 'http-proxy', supportedApiType: 'sync', name: 'HTTP Proxy' }];
@@ -280,7 +281,6 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.clickValidate();
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-        // expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         expect(await step21Harness.hasListenersForm()).toEqual(false);
       });
@@ -761,8 +761,11 @@ describe('ApiCreationV4Component', () => {
       expect(step3Endpoints2ConfigHarness).toBeTruthy();
       expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
 
+      await step3Endpoints2ConfigHarness.clickValidate();
+
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
+          configuration: {},
           id: 'http-proxy',
           name: 'HTTP Proxy',
           icon: undefined,
@@ -917,10 +920,11 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
-  function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+  function expectEntrypointsGetRequest(connectors: Partial<ConnectorListItem>[], expands: ListPluginsExpand[] = ['icon']) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
-
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints${toQueryParams(expands)}` })
+      .flush(fullConnectors);
   }
 
   function expectSchemaGetRequest(connectors: Partial<ConnectorListItem>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
@@ -930,11 +934,11 @@ describe('ApiCreationV4Component', () => {
         .flush(getEntrypointConnectorSchema(connector.id));
     });
   }
-
-  function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[]) {
+  function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[], expands: ListPluginsExpand[] = ['icon']) {
     const fullConnectors = connectors.map((partial) => fakeConnectorListItem(partial));
-
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints`, method: 'GET' }).flush(fullConnectors);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints${toQueryParams(expands)}`, method: 'GET' })
+      .flush(fullConnectors);
   }
 
   function expectEndpointGetRequest(connector: Partial<ConnectorListItem>) {

@@ -24,3 +24,9 @@ export interface GroupMembership {
   reference?: string;
   roles: GroupMembershipMemberRoleEntity[];
 }
+
+export interface GroupMember {
+  id: string;
+  displayName: string;
+  roles: Record<string, string>;
+}
