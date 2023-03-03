@@ -22,7 +22,7 @@ import { ApiService } from '../../../../../../services-ngx/api.service';
 import { GroupService } from '../../../../../../services-ngx/group.service';
 import { UsersService } from '../../../../../../services-ngx/users.service';
 
-class MembersDataSource {
+class MemberDataSource {
   id: string;
   role: string;
   displayName: string;
@@ -42,7 +42,7 @@ export class ApiPortalGroupsMembersComponent implements OnInit {
   dataSourceGroups: {
     id: string;
     groupName: string;
-    dataSource: MembersDataSource[];
+    dataSource: MemberDataSource[];
   }[];
   displayedColumns = ['picture', 'displayName', 'role'];
 
