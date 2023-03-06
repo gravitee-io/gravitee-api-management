@@ -63,6 +63,19 @@ public class FlowConverterTest {
     }
 
     @Test
+    public void toModelShouldTrimPathInPathOperator() {
+        Flow flowDefinition = new Flow();
+        flowDefinition.setName("platform");
+        PathOperator pathOperator = pathOperator();
+        pathOperator.setPath("/ ");
+        flowDefinition.setPathOperator(pathOperator);
+
+        var model = converter.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
+
+        assertEquals("/", model.getPath());
+    }
+
+    @Test
     public void toModelShouldKeepTheStepOrder() {
         Flow flowDefinition = new Flow();
         flowDefinition.setPre(pre());
@@ -82,6 +95,22 @@ public class FlowConverterTest {
 
         var flow = new io.gravitee.repository.management.model.flow.Flow();
         flow.setPath("/");
+        flow.setOperator(FlowOperator.STARTS_WITH);
+        flow.setConsumers(List.of());
+
+        Flow flowDefinition = converter.toDefinition(flow);
+
+        assertNotNull(flowDefinition.getPathOperator());
+        assertEquals(expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
+        assertEquals(expectedOperator.getPath(), flowDefinition.getPathOperator().getPath());
+    }
+
+    @Test
+    public void toDefinitionShouldTrimPathInPathOperator() {
+        final PathOperator expectedOperator = pathOperator();
+
+        var flow = new io.gravitee.repository.management.model.flow.Flow();
+        flow.setPath("/ ");
         flow.setOperator(FlowOperator.STARTS_WITH);
         flow.setConsumers(List.of());
 

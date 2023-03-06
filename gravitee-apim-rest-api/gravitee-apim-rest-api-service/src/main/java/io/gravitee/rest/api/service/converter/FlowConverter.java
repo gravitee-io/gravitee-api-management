@@ -59,7 +59,9 @@ public class FlowConverter {
         flow.setMethods(model.getMethods());
         flow.setName(model.getName());
         final PathOperator pathOperator = new PathOperator();
-        pathOperator.setPath(model.getPath());
+        if (model.getPath() != null) {
+            pathOperator.setPath(model.getPath().trim());
+        }
         pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
         flow.setPathOperator(pathOperator);
         flow.setPre(model.getPre().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
@@ -83,7 +85,6 @@ public class FlowConverter {
         flow.setReferenceId(referenceId);
         flow.setPost(toRepositoryFlowSteps(flowDefinition.getPost()));
         flow.setPre(toRepositoryFlowSteps(flowDefinition.getPre()));
-        flow.setPath(flowDefinition.getPath());
         flow.setOperator(FlowOperator.valueOf(flowDefinition.getOperator().name()));
         flow.setName(flowDefinition.getName());
         flow.setMethods(flowDefinition.getMethods());
@@ -94,6 +95,9 @@ public class FlowConverter {
                 ? flowDefinition.getConsumers().stream().map(this::toRepositoryConsumer).collect(Collectors.toList())
                 : Collections.emptyList()
         );
+        if (flowDefinition.getPath() != null) {
+            flow.setPath(flowDefinition.getPath().trim());
+        }
         return flow;
     }
 
