@@ -42,9 +42,7 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     },
                     "required": [
@@ -54,15 +52,10 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                false
-                            ]
+                            "const": false
                         }
                     }
                 }
-            ],
-            "required": [
-                "enabled"
             ]
         },
         "producer": {
@@ -97,9 +90,7 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     },
                     "required": [
@@ -109,15 +100,10 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                false
-                            ]
+                            "const": false
                         }
                     }
                 }
-            ],
-            "required": [
-                "enabled"
             ]
         }
     },
@@ -127,26 +113,28 @@
                 "consumer": {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     }
                 }
-            }
+            },
+            "required": [
+                "consumer"
+            ]
         },
         {
             "properties": {
                 "producer": {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     }
                 }
-            }
+            },
+            "required": [
+                "producer"
+            ]
         }
     ],
     "required": [
