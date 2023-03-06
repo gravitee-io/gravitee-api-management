@@ -43,7 +43,11 @@
                     "title": "Auto offset reset",
                     "type": "string",
                     "default": "latest",
-                    "enum": ["latest", "earliest", "none"],
+                    "enum": [
+                        "latest",
+                        "earliest",
+                        "none"
+                    ],
                     "gioConfig": {
                         "banner": {
                             "title": "Auto offset reset",
@@ -56,9 +60,7 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     },
                     "required": [
@@ -68,14 +70,11 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                false
-                            ]
+                            "const": false
                         }
                     }
                 }
-            ],
-            "required": ["enabled"]
+            ]
         },
         "producer": {
             "type": "object",
@@ -101,9 +100,7 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                true
-                            ]
+                            "const": true
                         }
                     },
                     "required": [
@@ -113,61 +110,40 @@
                 {
                     "properties": {
                         "enabled": {
-                            "enum": [
-                                false
-                            ]
+                            "const": false
                         }
                     }
                 }
-            ],
-            "required": [
-                "enabled"
             ]
         }
     },
-    "allOf" : [
+    "anyOf": [
         {
-            "anyOf": [
-                {
+            "properties": {
+                "consumer": {
                     "properties": {
-                        "consumer": {
-                            "properties": {
-                                "enabled": {
-                                    "enum": [
-                                        true
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "properties": {
-                        "producer": {
-                            "properties": {
-                                "enabled": {
-                                    "enum": [
-                                        true
-                                    ]
-                                }
-                            }
+                        "enabled": {
+                            "const": true
                         }
                     }
                 }
+            },
+            "required": [
+                "consumer"
             ]
         },
         {
-            "oneOf": [
-                {
-                    "required": [
-                        "consumer"
-                    ]
-                },
-                {
-                    "required": [
-                        "producer"
-                    ]
+            "properties": {
+                "producer": {
+                    "properties": {
+                        "enabled": {
+                            "const": true
+                        }
+                    }
                 }
+            },
+            "required": [
+                "producer"
             ]
         }
     ],
