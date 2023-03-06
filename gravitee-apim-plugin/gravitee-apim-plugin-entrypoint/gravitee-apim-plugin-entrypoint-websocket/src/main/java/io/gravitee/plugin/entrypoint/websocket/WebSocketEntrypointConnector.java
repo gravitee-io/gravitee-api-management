@@ -20,16 +20,16 @@ import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.SERVE
 import static io.gravitee.plugin.entrypoint.websocket.WebSocketCloseStatus.TRY_AGAIN_LATER;
 
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
-import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosCapability;
-import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
-import io.gravitee.gateway.jupiter.api.ws.WebSocket;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.message.DefaultMessage;
+import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.qos.QosCapability;
+import io.gravitee.gateway.reactive.api.qos.QosRequirement;
+import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.plugin.entrypoint.websocket.configuration.WebSocketEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;

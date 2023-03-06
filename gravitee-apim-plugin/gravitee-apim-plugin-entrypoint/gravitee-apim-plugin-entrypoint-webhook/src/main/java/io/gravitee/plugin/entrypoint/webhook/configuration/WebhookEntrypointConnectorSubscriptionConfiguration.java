@@ -17,7 +17,7 @@ package io.gravitee.plugin.entrypoint.webhook.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointConnectorSubscriptionConfiguration;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointConnectorSubscriptionConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.WebhookEntrypointConnector;
 import java.util.List;
 import lombok.Getter;

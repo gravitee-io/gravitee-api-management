@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
-import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
+import io.gravitee.gateway.reactive.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 
 /**

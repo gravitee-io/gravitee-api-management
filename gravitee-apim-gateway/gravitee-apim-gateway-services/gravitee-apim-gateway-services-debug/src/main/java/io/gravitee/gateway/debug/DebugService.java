@@ -20,7 +20,7 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.ListReverser;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
-import io.gravitee.gateway.jupiter.debug.DebugReactorEventListener;
+import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;

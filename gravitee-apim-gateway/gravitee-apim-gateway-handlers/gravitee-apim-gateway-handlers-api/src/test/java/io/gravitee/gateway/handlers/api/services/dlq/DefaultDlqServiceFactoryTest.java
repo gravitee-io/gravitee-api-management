@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.services.dlq;
 
-import static io.gravitee.gateway.jupiter.api.ConnectorMode.PUBLISH;
+import static io.gravitee.gateway.reactive.api.ConnectorMode.PUBLISH;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,11 +29,11 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.gateway.jupiter.api.ApiType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.jupiter.api.service.dlq.DlqService;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.DefaultManagedEndpoint;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.reactive.api.ApiType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
+import io.gravitee.gateway.reactive.api.service.dlq.DlqService;
+import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultManagedEndpoint;
+import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

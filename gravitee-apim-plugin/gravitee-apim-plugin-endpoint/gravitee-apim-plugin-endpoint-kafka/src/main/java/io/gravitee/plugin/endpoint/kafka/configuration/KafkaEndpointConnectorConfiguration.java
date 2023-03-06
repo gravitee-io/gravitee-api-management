@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka.configuration;
 
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -23,10 +23,10 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.TE;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.http.vertx.ws.VertxWebSocket;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;

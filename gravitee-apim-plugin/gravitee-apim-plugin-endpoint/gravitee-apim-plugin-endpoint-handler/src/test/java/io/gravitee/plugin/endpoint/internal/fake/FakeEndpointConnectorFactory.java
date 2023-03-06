@@ -19,17 +19,17 @@ import static io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector.SU
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.ApiType;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnector;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.ApiType;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnector;
+import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.qos.Qos;
 import java.util.Set;
 
 /**

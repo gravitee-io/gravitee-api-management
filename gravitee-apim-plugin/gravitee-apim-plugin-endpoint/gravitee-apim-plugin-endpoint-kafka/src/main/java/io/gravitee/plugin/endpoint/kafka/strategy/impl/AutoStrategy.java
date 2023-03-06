@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

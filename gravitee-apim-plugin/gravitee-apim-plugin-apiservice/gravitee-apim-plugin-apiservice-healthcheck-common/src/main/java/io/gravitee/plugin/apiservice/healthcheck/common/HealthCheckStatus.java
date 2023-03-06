@@ -15,12 +15,12 @@
  */
 package io.gravitee.plugin.apiservice.healthcheck.common;
 
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint.Status.DOWN;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint.Status.TRANSITIONALLY_DOWN;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint.Status.TRANSITIONALLY_UP;
-import static io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint.Status.UP;
+import static io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint.Status.DOWN;
+import static io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint.Status.TRANSITIONALLY_DOWN;
+import static io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint.Status.TRANSITIONALLY_UP;
+import static io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint.Status.UP;
 
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import lombok.Getter;
 import lombok.Setter;
 

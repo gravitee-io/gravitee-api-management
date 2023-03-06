@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.connector;
 
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import java.net.URL;

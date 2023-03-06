@@ -15,11 +15,11 @@
  */
 package io.gravitee.plugin.endpoint.internal.fake;
 
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosCapability;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.qos.QosCapability;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;
 import lombok.Builder;

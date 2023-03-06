@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.vertx.rxjava3.core.Vertx;

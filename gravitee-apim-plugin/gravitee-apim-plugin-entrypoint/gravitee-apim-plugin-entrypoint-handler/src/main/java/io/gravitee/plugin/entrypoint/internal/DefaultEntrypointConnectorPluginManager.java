@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.entrypoint.internal;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.core.api.AbstractConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorClassLoaderFactory;

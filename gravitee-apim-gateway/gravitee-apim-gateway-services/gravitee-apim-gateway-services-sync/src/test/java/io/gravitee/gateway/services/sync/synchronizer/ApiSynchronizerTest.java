@@ -530,8 +530,8 @@ public class ApiSynchronizerTest {
                 long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
                 apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
 
-                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
-                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                ArgumentCaptor<io.gravitee.gateway.reactive.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
                 SoftAssertions.assertSoftly(
@@ -545,9 +545,9 @@ public class ApiSynchronizerTest {
                     }
                 );
 
-                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionsCacheService)
-                    .register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                    .register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
             }
 
@@ -567,8 +567,8 @@ public class ApiSynchronizerTest {
                 long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
                 apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
 
-                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
-                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                ArgumentCaptor<io.gravitee.gateway.reactive.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
                 SoftAssertions.assertSoftly(
@@ -594,8 +594,8 @@ public class ApiSynchronizerTest {
                 long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
                 apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
 
-                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
-                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                ArgumentCaptor<io.gravitee.gateway.reactive.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
                 SoftAssertions.assertSoftly(
@@ -609,9 +609,9 @@ public class ApiSynchronizerTest {
                     }
                 );
 
-                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionsCacheService)
-                    .register(singletonList(new io.gravitee.gateway.jupiter.handlers.api.v4.Api(apiDefinition)));
+                    .register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionService).dispatchFor(singletonList(apiDefinition.getId()));
             }
 
@@ -630,8 +630,8 @@ public class ApiSynchronizerTest {
                 long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
                 apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
 
-                ArgumentCaptor<io.gravitee.gateway.jupiter.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
-                    io.gravitee.gateway.jupiter.handlers.api.v4.Api.class
+                ArgumentCaptor<io.gravitee.gateway.reactive.handlers.api.v4.Api> apiCaptor = ArgumentCaptor.forClass(
+                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
                 SoftAssertions.assertSoftly(

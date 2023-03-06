@@ -19,7 +19,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
+import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import java.util.Optional;

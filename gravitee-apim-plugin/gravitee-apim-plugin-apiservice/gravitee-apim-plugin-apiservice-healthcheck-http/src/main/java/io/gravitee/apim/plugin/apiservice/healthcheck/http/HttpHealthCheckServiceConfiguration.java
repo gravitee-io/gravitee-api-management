@@ -21,7 +21,7 @@ import static io.gravitee.plugin.apiservice.healthcheck.common.HealthCheckManage
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceConfiguration;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import java.util.List;
 import lombok.*;
 

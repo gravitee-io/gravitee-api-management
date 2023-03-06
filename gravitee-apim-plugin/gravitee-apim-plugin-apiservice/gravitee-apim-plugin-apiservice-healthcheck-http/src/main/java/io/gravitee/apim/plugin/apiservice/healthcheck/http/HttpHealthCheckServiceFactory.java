@@ -17,10 +17,10 @@ package io.gravitee.apim.plugin.apiservice.healthcheck.http;
 
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthCheckHelper;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
-import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import lombok.AllArgsConstructor;
 
 /**

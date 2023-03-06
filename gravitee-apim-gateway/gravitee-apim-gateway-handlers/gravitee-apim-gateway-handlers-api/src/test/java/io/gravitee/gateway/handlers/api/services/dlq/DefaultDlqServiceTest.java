@@ -19,9 +19,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.message.DefaultMessage;
-import io.gravitee.gateway.jupiter.api.message.Message;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
+import io.gravitee.gateway.reactive.api.message.DefaultMessage;
+import io.gravitee.gateway.reactive.api.message.Message;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;

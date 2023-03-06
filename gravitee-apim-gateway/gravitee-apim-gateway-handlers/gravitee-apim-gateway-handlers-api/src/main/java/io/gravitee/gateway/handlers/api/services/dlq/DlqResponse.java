@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.services.dlq;
 
-import io.gravitee.gateway.jupiter.core.context.AbstractResponse;
+import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

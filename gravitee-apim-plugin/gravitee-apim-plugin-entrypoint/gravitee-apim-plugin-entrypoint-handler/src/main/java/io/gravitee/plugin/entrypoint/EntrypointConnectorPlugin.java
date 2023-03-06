@@ -15,12 +15,12 @@
  */
 package io.gravitee.plugin.entrypoint;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
- * Interface describing a plugin for {@link io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector}
+ * Interface describing a plugin for {@link io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector}
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team

@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.services.dlq;
 
-import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.core.context.AbstractExecutionContext;
+import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.context.AbstractExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 
 /**

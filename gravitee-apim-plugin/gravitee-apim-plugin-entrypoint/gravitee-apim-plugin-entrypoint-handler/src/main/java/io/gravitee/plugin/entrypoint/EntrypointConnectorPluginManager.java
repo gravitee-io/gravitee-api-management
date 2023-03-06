@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import java.io.IOException;
 

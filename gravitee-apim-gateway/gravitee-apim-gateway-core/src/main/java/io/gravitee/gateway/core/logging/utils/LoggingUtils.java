@@ -21,7 +21,7 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.LoggingContext;
-import io.gravitee.gateway.jupiter.core.v4.analytics.BufferUtils;
+import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

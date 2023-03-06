@@ -15,11 +15,11 @@
  */
 package io.gravitee.plugin.entrypoint.http.proxy;
 
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.sync.EntrypointSyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.EntrypointSyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.entrypoint.http.proxy.configuration.HttpProxyEntrypointConnectorConfiguration;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

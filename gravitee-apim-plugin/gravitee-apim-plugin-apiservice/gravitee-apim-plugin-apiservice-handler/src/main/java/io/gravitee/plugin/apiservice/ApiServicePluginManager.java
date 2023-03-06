@@ -15,8 +15,8 @@
  */
 package io.gravitee.plugin.apiservice;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import java.util.List;
 

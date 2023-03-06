@@ -16,7 +16,7 @@
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient;
+import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.vertx.core.http.RequestOptions;
 import java.net.URL;
 import java.util.StringJoiner;

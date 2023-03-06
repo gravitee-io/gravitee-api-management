@@ -31,27 +31,27 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitial
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionService;
-import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
-import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
-import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
-import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
-import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactorFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
-import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
-import io.gravitee.gateway.jupiter.policy.PolicyFactory;
-import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
-import io.gravitee.gateway.jupiter.v4.flow.selection.ChannelSelectorConditionFilter;
-import io.gravitee.gateway.jupiter.v4.flow.selection.ConditionSelectorConditionFilter;
-import io.gravitee.gateway.jupiter.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
+import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
+import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageConditionFilter;
+import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
+import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
+import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
@@ -152,8 +152,8 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory() {
-        return new io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory(
+    public io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory() {
+        return new io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory(
             new CompositeConditionFilter<>(
                 new HttpMethodConditionFilter(),
                 new PathBasedConditionFilter(),
@@ -178,7 +178,7 @@ public class ApiHandlerConfiguration {
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         return new ApiReactorHandlerFactory(
@@ -214,22 +214,22 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory(
+    public io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory(
         final ReporterService reporterService
     ) {
-        return new io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
+        return new io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
     }
 
     @Bean
-    public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
+    public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> asyncApiReactorFactory(
         PolicyFactory policyFactory,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         ApiServicePluginManager apiServicePluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
-        io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
-        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
+        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         FlowResolverFactory v4FlowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         ReporterService reporterService

@@ -15,26 +15,26 @@
  */
 package io.gravitee.plugin.entrypoint.webhook;
 
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 import static io.vertx.core.http.HttpMethod.POST;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ExecutionFailure;
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
-import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
-import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
-import io.gravitee.gateway.jupiter.api.message.Message;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosCapability;
-import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
-import io.gravitee.gateway.jupiter.http.vertx.client.VertxHttpClient;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.qos.QosCapability;
+import io.gravitee.gateway.reactive.api.qos.QosRequirement;
+import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorConfiguration;
 import io.gravitee.plugin.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;

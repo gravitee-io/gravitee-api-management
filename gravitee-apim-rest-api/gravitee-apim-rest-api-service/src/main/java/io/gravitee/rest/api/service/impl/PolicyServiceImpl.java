@@ -142,7 +142,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                     // Policy development information
                     PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
                     developmentEntity.setClassName(policy.policy().getName());
-                    if (io.gravitee.gateway.jupiter.api.policy.Policy.class.isAssignableFrom(policy.policy())) {
+                    if (io.gravitee.gateway.reactive.api.policy.Policy.class.isAssignableFrom(policy.policy())) {
                         developmentEntity.setOnRequestMethod("setOnRequestMethod");
                         developmentEntity.setOnResponseMethod("setOnResponseMethod");
                     } else {

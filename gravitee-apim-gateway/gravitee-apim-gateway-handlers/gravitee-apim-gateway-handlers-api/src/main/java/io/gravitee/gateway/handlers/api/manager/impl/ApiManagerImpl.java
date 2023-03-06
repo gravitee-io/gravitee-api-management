@@ -85,8 +85,8 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
             Map.of(
                 Api.class,
                 new ApiDeployer(gatewayConfiguration, dataEncryptor),
-                io.gravitee.gateway.jupiter.handlers.api.v4.Api.class,
-                new io.gravitee.gateway.jupiter.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
+                io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
             );
     }
 

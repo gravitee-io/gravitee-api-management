@@ -22,7 +22,7 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.jupiter.core.context.AbstractRequest;
+import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.List;
 

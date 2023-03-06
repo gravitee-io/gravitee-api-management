@@ -18,8 +18,8 @@ package io.gravitee.gateway.debug.vertx;
 import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
 import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
 
-import io.gravitee.gateway.jupiter.debug.vertx.DebugHttpProtocolVerticle;
-import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.reactive.debug.vertx.DebugHttpProtocolVerticle;
+import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;

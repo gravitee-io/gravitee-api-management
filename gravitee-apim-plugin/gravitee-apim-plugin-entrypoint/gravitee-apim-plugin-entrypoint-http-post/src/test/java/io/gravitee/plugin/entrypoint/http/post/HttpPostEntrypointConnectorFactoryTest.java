@@ -18,11 +18,11 @@ package io.gravitee.plugin.entrypoint.http.post;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

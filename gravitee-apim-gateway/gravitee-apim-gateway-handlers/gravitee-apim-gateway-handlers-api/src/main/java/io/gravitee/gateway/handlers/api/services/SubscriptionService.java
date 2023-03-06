@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.services;
 
-import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.API_KEY;
-import static io.gravitee.gateway.jupiter.api.policy.SecurityToken.TokenType.CLIENT_ID;
+import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.API_KEY;
+import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.CLIENT_ID;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,8 +25,8 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.jupiter.api.policy.SecurityToken;
-import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.reactive.api.policy.SecurityToken;
+import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheManager;

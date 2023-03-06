@@ -16,7 +16,7 @@
 package io.gravitee.gateway.resource.internal;
 
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;

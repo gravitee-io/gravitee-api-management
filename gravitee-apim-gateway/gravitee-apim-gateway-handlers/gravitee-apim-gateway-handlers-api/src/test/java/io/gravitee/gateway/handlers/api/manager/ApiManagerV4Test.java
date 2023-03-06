@@ -36,7 +36,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.api.cache.EntryEvent;

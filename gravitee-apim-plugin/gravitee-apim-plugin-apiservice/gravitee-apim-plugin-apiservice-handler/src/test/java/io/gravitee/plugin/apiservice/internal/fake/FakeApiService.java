@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.apiservice.internal.fake;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
+import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.Builder;
 import lombok.Getter;

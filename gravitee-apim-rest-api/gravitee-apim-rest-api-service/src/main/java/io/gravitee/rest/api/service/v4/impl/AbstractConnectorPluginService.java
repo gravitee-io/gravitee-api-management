@@ -20,10 +20,10 @@ import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.gateway.jupiter.api.connector.ConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
@@ -75,8 +75,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         if (connectorFactory.supportedApi() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
-        if (connectorFactory.supportedApi() == io.gravitee.gateway.jupiter.api.ApiType.ASYNC) {
-            Set<io.gravitee.gateway.jupiter.api.qos.Qos> supportedQos = null;
+        if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.ASYNC) {
+            Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = null;
             if (connectorFactory instanceof EntrypointAsyncConnectorFactory) {
                 supportedQos = ((EntrypointAsyncConnectorFactory) connectorFactory).supportedQos();
             } else if (connectorFactory instanceof EndpointAsyncConnectorFactory) {
@@ -133,7 +133,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                 plugin ->
                     ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
                         .supportedApi()
-                        .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
+                        .equals(io.gravitee.gateway.reactive.api.ApiType.fromLabel(apiType.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());
@@ -148,7 +148,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                 plugin ->
                     ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
                         .supportedModes()
-                        .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
+                        .contains(io.gravitee.gateway.reactive.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());

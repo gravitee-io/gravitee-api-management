@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.apiservice.internal;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceConfiguration;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import io.gravitee.plugin.core.api.AbstractSingleSubTypesFinder;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
