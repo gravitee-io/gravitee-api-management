@@ -230,6 +230,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
             !cachedSubscription.getClientId().equals(subscription.getClientId())
         ) {
             cacheByApiClientId.evict(buildClientIdCacheKey(cachedSubscription));
+            cacheByApiClientId.evict(buildClientIdCacheKey(cachedSubscription.getApi(), cachedSubscription.getClientId(), null));
         }
 
         // put or remove subscription from cache according to its status

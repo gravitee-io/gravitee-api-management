@@ -117,7 +117,7 @@ public class SyncConfiguration {
 
     @Bean
     public ApiSynchronizer apiSynchronizer(
-        @Qualifier("syncExecutor") ExecutorService executor,
+        @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository,
         ApiKeysCacheService apiKeysCacheService,
@@ -153,7 +153,7 @@ public class SyncConfiguration {
     @Bean
     public DictionarySynchronizer dictionarySynchronizer(
         ObjectMapper objectMapper,
-        @Qualifier("syncExecutor") ExecutorService executor,
+        @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository,
         DictionaryManager dictionaryManager
@@ -164,7 +164,7 @@ public class SyncConfiguration {
     @Bean
     public OrganizationSynchronizer organizationSynchronizer(
         ObjectMapper objectMapper,
-        @Qualifier("syncExecutor") ExecutorService executor,
+        @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
         EventRepository eventRepository,
         OrganizationManager organizationManager,

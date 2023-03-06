@@ -29,6 +29,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,12 +45,12 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
 
     private final ObjectMapper objectMapper;
 
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
 
     public DictionarySynchronizer(
         EventRepository eventRepository,
         ObjectMapper objectMapper,
-        ExecutorService executor,
+        ThreadPoolExecutor executor,
         int bulkItems,
         DictionaryManager dictionaryManager
     ) {

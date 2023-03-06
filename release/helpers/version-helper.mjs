@@ -16,6 +16,7 @@ export function computeVersion(releasingVersion) {
     version: releasingVersion,
     branch: branch(releasingVersion),
     trimmed: trimmed(releasingVersion),
+    pattern: pattern(releasingVersion),
   };
 }
 
@@ -32,4 +33,9 @@ function branch(releasingVersion) {
 function trimmed(releasingVersion) {
   const split = releasingVersion.split('.');
   return `${split[0]}.${split[1]}`;
+}
+
+function pattern(releasingVersion) {
+  const releaseBranch = branch(releasingVersion);
+  return releaseBranch === 'master' ? '' : releaseBranch.replace('x', '*');
 }

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.service;
+package io.gravitee.gateway.handlers.api.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.gateway.api.service.ApiKey;
-import io.gravitee.gateway.handlers.api.services.ApiKeyService;
 import io.gravitee.node.cache.standalone.StandaloneCacheManager;
 import org.junit.jupiter.api.Test;
 

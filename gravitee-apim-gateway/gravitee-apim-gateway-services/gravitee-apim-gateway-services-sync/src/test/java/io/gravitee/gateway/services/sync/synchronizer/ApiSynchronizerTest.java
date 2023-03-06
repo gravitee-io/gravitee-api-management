@@ -48,6 +48,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -110,6 +111,8 @@ public class ApiSynchronizerTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    private ThreadPoolExecutor executor;
+
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
@@ -117,10 +120,11 @@ public class ApiSynchronizerTest {
         var planFetcher = new PlanFetcher(objectMapper, planRepository);
         var eventToReactableApiAdapter = new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository);
 
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
         apiSynchronizer =
             new ApiSynchronizer(
                 eventRepository,
-                Executors.newFixedThreadPool(1),
+                executor,
                 BULK_SIZE,
                 apiKeysCacheService,
                 subscriptionsCacheService,
@@ -136,6 +140,7 @@ public class ApiSynchronizerTest {
 
     @AfterEach
     void tearDown() {
+        executor.shutdown();
         reset(eventRepository, environmentRepository, organizationRepository);
     }
 
@@ -182,6 +187,20 @@ public class ApiSynchronizerTest {
                     softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
                 }
             );
+        }
+
+        @Test
+        public void should_wait_for_active_tasks_to_complete() {
+            // Simulate a long running background task.
+            executor.execute(
+                () -> {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ignored) {}
+                }
+            );
+
+            apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
         }
     }
 
