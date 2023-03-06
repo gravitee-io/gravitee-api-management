@@ -17,10 +17,10 @@ package io.gravitee.plugin.apiservice.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.apiservice.ApiService;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiService;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServiceConfiguration;

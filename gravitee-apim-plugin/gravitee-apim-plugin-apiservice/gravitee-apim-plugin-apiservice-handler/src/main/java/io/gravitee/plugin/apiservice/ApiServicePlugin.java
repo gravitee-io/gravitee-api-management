@@ -15,11 +15,11 @@
  */
 package io.gravitee.plugin.apiservice;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceConfiguration;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.connector.endpoint.EndpointConnectorFactory;
+import io.gravitee.gateway.reactive.api.apiservice.ApiService;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**

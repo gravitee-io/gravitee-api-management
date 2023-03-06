@@ -19,9 +19,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
-import io.gravitee.gateway.jupiter.reactor.v4.subscription.DefaultSubscriptionAcceptor;
-import io.gravitee.gateway.jupiter.reactor.v4.subscription.SubscriptionAcceptor;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
+import io.gravitee.gateway.reactive.reactor.v4.subscription.DefaultSubscriptionAcceptor;
+import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import java.util.ArrayList;

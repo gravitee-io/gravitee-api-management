@@ -21,7 +21,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.handlers.api.v4.deployer.AbstractApiDeployer;
+import io.gravitee.gateway.reactive.handlers.api.v4.deployer.AbstractApiDeployer;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.stream.Collectors;

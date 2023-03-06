@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.apiservice.spring;
 
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.apiservice.ApiServiceClassLoaderFactory;
 import io.gravitee.plugin.apiservice.internal.DefaultApiServiceClassLoaderFactory;
 import io.gravitee.plugin.apiservice.internal.DefaultApiServicePluginManager;

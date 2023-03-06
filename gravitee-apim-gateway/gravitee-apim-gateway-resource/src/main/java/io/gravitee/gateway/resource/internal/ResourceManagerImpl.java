@@ -17,7 +17,7 @@ package io.gravitee.gateway.resource.internal;
 
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;

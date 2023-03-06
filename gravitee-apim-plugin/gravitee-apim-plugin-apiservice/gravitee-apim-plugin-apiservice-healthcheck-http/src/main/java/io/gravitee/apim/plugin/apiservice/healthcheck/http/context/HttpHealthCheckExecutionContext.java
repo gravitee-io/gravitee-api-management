@@ -18,12 +18,12 @@ package io.gravitee.apim.plugin.apiservice.healthcheck.http.context;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthCheckServiceConfiguration;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.core.context.AbstractExecutionContext;
-import io.gravitee.gateway.jupiter.handlers.api.el.ApiTemplateVariableProvider;
-import io.gravitee.gateway.jupiter.handlers.api.el.ContentTemplateVariableProvider;
-import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.core.context.AbstractExecutionContext;
+import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.List;
 

@@ -15,10 +15,10 @@
  */
 package io.gravitee.plugin.entrypoint.http.proxy;
 
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.sync.EntrypointSyncConnector;
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.sync.EntrypointSyncConnector;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.plugin.entrypoint.http.proxy.configuration.HttpProxyEntrypointConnectorConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Set;

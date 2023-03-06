@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import lombok.Getter;
 import lombok.Setter;
 

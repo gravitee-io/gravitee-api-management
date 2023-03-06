@@ -22,9 +22,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
-import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;

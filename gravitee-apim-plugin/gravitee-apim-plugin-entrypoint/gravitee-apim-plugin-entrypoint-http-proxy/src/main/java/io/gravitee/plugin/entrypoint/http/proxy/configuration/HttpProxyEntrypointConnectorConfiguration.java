@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.entrypoint.http.proxy.configuration;
 
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnectorConfiguration;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 

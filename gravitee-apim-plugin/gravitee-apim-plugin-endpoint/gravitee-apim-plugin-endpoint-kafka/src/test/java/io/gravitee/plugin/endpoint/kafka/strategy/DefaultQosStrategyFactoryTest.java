@@ -18,8 +18,8 @@ package io.gravitee.plugin.endpoint.kafka.strategy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.gravitee.gateway.jupiter.api.qos.Qos;
-import io.gravitee.gateway.jupiter.api.qos.QosRequirement;
+import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.AutoStrategy;
 import io.gravitee.plugin.endpoint.kafka.strategy.impl.NoneStrategy;

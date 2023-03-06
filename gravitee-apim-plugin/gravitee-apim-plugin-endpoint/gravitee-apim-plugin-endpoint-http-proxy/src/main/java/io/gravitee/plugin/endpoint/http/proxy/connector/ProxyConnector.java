@@ -15,7 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.connector;
 
-import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
 /**

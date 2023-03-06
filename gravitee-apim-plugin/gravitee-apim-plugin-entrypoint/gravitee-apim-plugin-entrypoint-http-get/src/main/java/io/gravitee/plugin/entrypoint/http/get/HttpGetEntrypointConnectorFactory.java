@@ -17,13 +17,13 @@ package io.gravitee.plugin.entrypoint.http.get;
 
 import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.SUPPORTED_QOS;
 
-import io.gravitee.gateway.jupiter.api.ConnectorMode;
-import io.gravitee.gateway.jupiter.api.ListenerType;
-import io.gravitee.gateway.jupiter.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
-import io.gravitee.gateway.jupiter.api.context.DeploymentContext;
-import io.gravitee.gateway.jupiter.api.exception.PluginConfigurationException;
-import io.gravitee.gateway.jupiter.api.helper.PluginConfigurationHelper;
-import io.gravitee.gateway.jupiter.api.qos.Qos;
+import io.gravitee.gateway.reactive.api.ConnectorMode;
+import io.gravitee.gateway.reactive.api.ListenerType;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
+import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.http.get.configuration.HttpGetEntrypointConnectorConfiguration;
 import java.util.Set;
 import lombok.AllArgsConstructor;

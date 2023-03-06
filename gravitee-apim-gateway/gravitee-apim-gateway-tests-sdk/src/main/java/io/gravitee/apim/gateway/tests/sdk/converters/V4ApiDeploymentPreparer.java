@@ -32,7 +32,7 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
     @Override
     public ReactableApi<Api> toReactable(Api definition) {
-        return new io.gravitee.gateway.jupiter.handlers.api.v4.Api(definition);
+        return new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
     }
 
     @Override

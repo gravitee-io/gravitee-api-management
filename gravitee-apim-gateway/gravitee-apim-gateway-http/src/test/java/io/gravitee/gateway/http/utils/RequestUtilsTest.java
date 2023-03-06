@@ -30,8 +30,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.jupiter.api.context.Request;
-import io.gravitee.gateway.jupiter.api.context.Response;
+import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.Response;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;

@@ -17,7 +17,7 @@ package io.gravitee.plugin.apiservice.healthcheck.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gateway.jupiter.core.v4.endpoint.ManagedEndpoint;
+import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import org.junit.jupiter.api.Test;
 
 /**

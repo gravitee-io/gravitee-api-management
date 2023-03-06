@@ -80,7 +80,7 @@ public class EventToReactableApiAdapter {
                 );
 
                 // Update definition with required information for deployment phase
-                api = new io.gravitee.gateway.jupiter.handlers.api.v4.Api(eventApiDefinition);
+                api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(eventApiDefinition);
             }
 
             api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);

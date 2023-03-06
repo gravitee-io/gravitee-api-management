@@ -34,23 +34,6 @@ import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.jupiter.debug.DebugReactorEventListener;
-import io.gravitee.gateway.jupiter.debug.policy.DebugPolicyChainFactory;
-import io.gravitee.gateway.jupiter.debug.policy.condition.DebugExpressionLanguageConditionFilter;
-import io.gravitee.gateway.jupiter.debug.policy.condition.DebugExpressionLanguageMessageConditionFilter;
-import io.gravitee.gateway.jupiter.debug.reactor.DebugHttpRequestDispatcher;
-import io.gravitee.gateway.jupiter.debug.reactor.processor.DebugPlatformProcessorChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
-import io.gravitee.gateway.jupiter.policy.PolicyFactory;
-import io.gravitee.gateway.jupiter.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.jupiter.reactor.handler.DefaultHttpAcceptorResolver;
-import io.gravitee.gateway.jupiter.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.jupiter.reactor.processor.AbstractPlatformProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.PlatformPolicyManager;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -61,6 +44,23 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
+import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
+import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
+import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
+import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageMessageConditionFilter;
+import io.gravitee.gateway.reactive.debug.reactor.DebugHttpRequestDispatcher;
+import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
+import io.gravitee.gateway.reactive.policy.PolicyFactory;
+import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.reactive.reactor.handler.DefaultHttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.processor.AbstractPlatformProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -246,9 +246,9 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public io.gravitee.gateway.jupiter.policy.PolicyChainFactory debugPlatformPolicyChainFactory(
+    public io.gravitee.gateway.reactive.policy.PolicyChainFactory debugPlatformPolicyChainFactory(
         io.gravitee.node.api.configuration.Configuration configuration,
-        io.gravitee.gateway.jupiter.platform.PlatformPolicyManager platformPolicyManager
+        io.gravitee.gateway.reactive.platform.PlatformPolicyManager platformPolicyManager
     ) {
         return new DebugPolicyChainFactory("platform", platformPolicyManager, configuration);
     }
@@ -300,7 +300,7 @@ public class DebugConfiguration {
 
     @Bean
     public DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory(
-        io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
+        io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
@@ -338,7 +338,7 @@ public class DebugConfiguration {
     public ReactorFactory<Api> debugReactorHandlerFactory(
         @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         @Qualifier("debugPolicyFactory") PolicyFactory policyFactory,
-        @Qualifier("debugPlatformPolicyChainFactory") io.gravitee.gateway.jupiter.policy.PolicyChainFactory platformPolicyChainFactory,
+        @Qualifier("debugPlatformPolicyChainFactory") io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
         @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,

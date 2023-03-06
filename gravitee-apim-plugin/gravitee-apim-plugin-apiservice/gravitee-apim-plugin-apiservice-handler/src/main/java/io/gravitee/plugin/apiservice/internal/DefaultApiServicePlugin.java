@@ -15,9 +15,9 @@
  */
 package io.gravitee.plugin.apiservice.internal;
 
-import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceConfiguration;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiServiceFactory;
+import io.gravitee.gateway.reactive.api.apiservice.ApiService;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
+import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.plugin.apiservice.ApiServicePlugin;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginManifest;
