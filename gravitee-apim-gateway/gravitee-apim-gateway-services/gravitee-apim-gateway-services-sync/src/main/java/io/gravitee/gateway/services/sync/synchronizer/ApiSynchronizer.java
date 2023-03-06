@@ -39,7 +39,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApiSynchronizer extends AbstractSynchronizer {
 
+    private static final int WAIT_TASK_COMPLETION_DELAY = 100;
     private final Logger logger = LoggerFactory.getLogger(ApiSynchronizer.class);
 
     private final ApiKeysCacheService apiKeysCacheService;
@@ -62,14 +63,14 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final GatewayConfiguration gatewayConfiguration;
 
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
 
     private final EventToReactableApiAdapter eventToReactableApiAdapter;
     private final PlanFetcher planFetcher;
 
     public ApiSynchronizer(
         EventRepository eventRepository,
-        ExecutorService executor,
+        ThreadPoolExecutor executor,
         int bulkItems,
         ApiKeysCacheService apiKeysCacheService,
         SubscriptionsCacheService subscriptionsCacheService,
@@ -96,6 +97,8 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
         if (lastRefreshAt == -1) {
             count = initialSynchronizeApis(nextLastRefreshAt, environments);
+            waitForAllTasksCompletion();
+            logger.info("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
         } else {
             count =
                 this.searchLatestEvents(
@@ -112,12 +115,23 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     .compose(this::processApiEvents)
                     .count()
                     .blockingGet();
+            logger.debug("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
+        }
+    }
+
+    private void waitForAllTasksCompletion() {
+        // This is the very first sync process. Need to wait for all background task to finish before continuing (api keys, subscriptions, ...).
+        if (executor.getActiveCount() > 0) {
+            logger.info("There are still sync tasks running in background. Waiting for them to finish before continuing...");
         }
 
-        if (lastRefreshAt == -1) {
-            logger.info("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
-        } else {
-            logger.debug("{} apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
+        while (executor.getActiveCount() > 0 || !executor.getQueue().isEmpty()) {
+            try {
+                Thread.sleep(WAIT_TASK_COMPLETION_DELAY);
+            } catch (InterruptedException e) {
+                logger.warn("An error occurred waiting for first api sync process to finish", e);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

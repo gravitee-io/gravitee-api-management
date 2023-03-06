@@ -35,7 +35,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +54,12 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
 
     private final ObjectMapper objectMapper;
 
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
 
     public OrganizationSynchronizer(
         EventRepository eventRepository,
         ObjectMapper objectMapper,
-        ExecutorService executor,
+        ThreadPoolExecutor executor,
         int bulkItems,
         OrganizationManager organizationManager,
         GatewayConfiguration gatewayConfiguration

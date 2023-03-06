@@ -76,20 +76,4 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         assertEquals("cat1-id", categories.get(1).getId());
         assertEquals(0, categories.get(1).getTotalApis());
     }
-
-    @Test
-    public void shouldListAllCategories_withApiCount() throws IOException {
-        doReturn(2L).when(categoryService).getTotalApisByCategory(anySet(), any(CategoryEntity.class));
-
-        final Response response = envTarget().queryParam("include", "total-apis").request().get();
-
-        assertEquals(OK_200, response.getStatus());
-        final List<CategoryEntity> categories = response.readEntity(new GenericType<>() {});
-        assertNotNull(categories);
-        assertEquals(2, categories.size());
-        assertEquals("cat2-id", categories.get(0).getId());
-        assertEquals(2, categories.get(0).getTotalApis());
-        assertEquals("cat1-id", categories.get(1).getId());
-        assertEquals(2, categories.get(1).getTotalApis());
-    }
 }

@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +56,13 @@ public class DictionarySynchronizerTest {
     @BeforeEach
     void setUp() {
         dictionarySynchronizer =
-            new DictionarySynchronizer(eventRepository, objectMapper, Executors.newFixedThreadPool(1), 100, dictionaryManager);
+            new DictionarySynchronizer(
+                eventRepository,
+                objectMapper,
+                (ThreadPoolExecutor) Executors.newFixedThreadPool(1),
+                100,
+                dictionaryManager
+            );
     }
 
     @Test
