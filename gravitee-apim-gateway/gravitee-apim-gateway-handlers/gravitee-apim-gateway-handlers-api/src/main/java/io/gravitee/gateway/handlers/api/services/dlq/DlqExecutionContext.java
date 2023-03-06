@@ -25,7 +25,7 @@ import io.reactivex.rxjava3.core.Flowable;
  */
 public class DlqExecutionContext extends AbstractExecutionContext<DlqRequest, DlqResponse> {
 
-    public DlqExecutionContext(Flowable<Message> messages) {
+    public DlqExecutionContext(final Flowable<Message> messages) {
         super(new DlqRequest(messages), new DlqResponse());
     }
 }

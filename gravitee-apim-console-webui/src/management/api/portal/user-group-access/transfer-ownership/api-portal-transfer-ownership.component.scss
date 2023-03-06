@@ -5,6 +5,10 @@
 }
 
 .card {
+  &__userOrGroup_radio {
+    padding-left: 8px;
+  }
+
   &__userOrGroup {
     &__field {
       width: 100%;

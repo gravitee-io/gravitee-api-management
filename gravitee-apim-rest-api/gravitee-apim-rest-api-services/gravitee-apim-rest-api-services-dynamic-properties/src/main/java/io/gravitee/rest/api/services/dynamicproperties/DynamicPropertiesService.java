@@ -35,9 +35,11 @@ import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Alexandre FARIA (lusoalex on github.com)
@@ -67,6 +69,10 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private Node node;
+
+    @Autowired
+    @Qualifier("dynamicPropertiesExecutor")
+    private Executor executor;
 
     @Override
     protected String name() {
@@ -119,7 +125,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
 
             if (currentDynamicPropertyService != null) {
-                if (!Objects.equals(currentDynamicPropertyService, dynamicPropertyService)) {
+                if (!dynamicPropertyService.isEnabled()) {
+                    stopDynamicProperties(api);
+                } else if (!Objects.equals(currentDynamicPropertyService, dynamicPropertyService)) {
                     // Configuration has changed. Need to stop the current timer before restarting it.
                     stopDynamicProperties(api);
                     startDynamicProperties(api);
@@ -134,7 +142,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         if (api.getState() == Lifecycle.State.STARTED) {
             DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
             if (dynamicPropertyService != null && dynamicPropertyService.isEnabled()) {
-                DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api);
+                DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor);
 
                 if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);

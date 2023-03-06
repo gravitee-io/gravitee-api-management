@@ -65,12 +65,12 @@ public class HttpProxyEntrypointConnector extends EntrypointSyncConnector {
     }
 
     @Override
-    public Completable handleRequest(ExecutionContext executionContext) {
+    public Completable handleRequest(final ExecutionContext ctx) {
         return Completable.complete();
     }
 
     @Override
-    public Completable handleResponse(ExecutionContext executionContext) {
+    public Completable handleResponse(ExecutionContext ctx) {
         return Completable.complete();
     }
 }

@@ -50,7 +50,7 @@ public class WebSocketAdapter implements io.gravitee.gateway.api.ws.WebSocket {
 
     @Override
     public io.gravitee.gateway.api.ws.WebSocket reject(int statusCode) {
-        webSocket.reject((short) statusCode).subscribe();
+        webSocket.close((short) statusCode).subscribe();
         return this;
     }
 

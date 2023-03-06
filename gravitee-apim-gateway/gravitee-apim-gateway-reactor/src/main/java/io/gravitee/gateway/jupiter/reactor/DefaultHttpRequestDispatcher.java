@@ -25,8 +25,9 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
-import io.gravitee.gateway.http.utils.WebSocketUtils;
+import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
@@ -324,15 +325,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * There is a dedicated RFC to support WebSockets over HTTP2: https://tools.ietf.org/html/rfc8441
      *
      * @param httpServerRequest
-     * @return
+     * @return <code>true</code> if given request is websocket, <code>false</code> otherwise
      */
     private boolean isV3WebSocket(HttpServerRequest httpServerRequest) {
-        String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
-        String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
-        return (
-            (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
-            WebSocketUtils.isWebSocket(httpServerRequest.method().name(), connectionHeader, upgradeHeader)
-        );
+        return RequestUtils.isWebSocket(httpServerRequest);
     }
 
     private void processResponse(

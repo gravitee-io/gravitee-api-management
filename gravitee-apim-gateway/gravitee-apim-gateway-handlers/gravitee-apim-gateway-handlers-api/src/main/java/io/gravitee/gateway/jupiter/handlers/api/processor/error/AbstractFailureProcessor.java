@@ -17,10 +17,8 @@ package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
@@ -31,7 +29,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.List;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -93,7 +91,7 @@ public abstract class AbstractFailureProcessor implements Processor {
 
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-            ctx.response().body(payload);
+            ctx.response().chunks(Flowable.just(payload));
         }
         return Completable.complete();
     }

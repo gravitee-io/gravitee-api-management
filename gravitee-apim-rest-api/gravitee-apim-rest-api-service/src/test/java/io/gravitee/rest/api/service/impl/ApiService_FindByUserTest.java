@@ -40,6 +40,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -158,11 +159,13 @@ public class ApiService_FindByUserTest {
         when(api.getId()).thenReturn("api-1");
         when(
             apiRepository.search(
-                getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(api.getId()).build(),
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(1).build(),
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(singletonList(api));
+            .thenReturn(new Page<>(singletonList(api), 0, 1, 1));
         when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean())).thenReturn(Set.of("api-1"));
 
         UserEntity admin = new UserEntity();
@@ -194,11 +197,13 @@ public class ApiService_FindByUserTest {
         when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
         when(
             apiRepository.search(
-                getDefaultApiCriteriaBuilder().environmentId("DEFAULT").ids(List.of(api1.getId())).build(),
+                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(1).build(),
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(singletonList(api1));
+            .thenReturn(new Page<>(singletonList(api1), 0, 1, 1));
 
         final Page<ApiEntity> apiPage = apiService.findByUser(
             GraviteeContext.getExecutionContext(),

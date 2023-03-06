@@ -281,7 +281,6 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.clickValidate();
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-        // expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         expect(await step21Harness.hasListenersForm()).toEqual(false);
       });
@@ -762,8 +761,11 @@ describe('ApiCreationV4Component', () => {
       expect(step3Endpoints2ConfigHarness).toBeTruthy();
       expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
 
+      await step3Endpoints2ConfigHarness.clickValidate();
+
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
+          configuration: {},
           id: 'http-proxy',
           name: 'HTTP Proxy',
           icon: undefined,

@@ -29,7 +29,13 @@ import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.node.api.configuration.Configuration;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.*;
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.OpenSSLEngineOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.MalformedURLException;
@@ -114,7 +120,11 @@ public class VertxHttpClient {
             .setIdleTimeout((int) (httpOptions.getIdleTimeout() / 1000))
             .setConnectTimeout((int) httpOptions.getConnectTimeout())
             .setMaxPoolSize(httpOptions.getMaxConcurrentConnections())
-            .setTryUseCompression(httpOptions.isUseCompression());
+            .setTryUseCompression(httpOptions.isUseCompression())
+            .setTryUsePerFrameWebSocketCompression(httpOptions.isUseCompression())
+            .setTryUsePerMessageWebSocketCompression(httpOptions.isUseCompression())
+            .setWebSocketCompressionAllowClientNoContext(httpOptions.isUseCompression())
+            .setWebSocketCompressionRequestServerNoContext(httpOptions.isUseCompression());
 
         if (httpOptions.getVersion() == ProtocolVersion.HTTP_2) {
             options

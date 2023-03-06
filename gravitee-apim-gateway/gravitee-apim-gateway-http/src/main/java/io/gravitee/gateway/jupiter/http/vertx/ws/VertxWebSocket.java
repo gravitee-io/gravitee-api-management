@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.jupiter.http.vertx.ws;
 
-import static io.vertx.rxjava3.core.http.WebSocketFrame.*;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.binaryFrame;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.continuationFrame;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.pingFrame;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.pongFrame;
+import static io.vertx.rxjava3.core.http.WebSocketFrame.textFrame;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
@@ -43,6 +47,10 @@ public class VertxWebSocket implements WebSocket {
         this.httpServerRequest = httpServerRequest;
     }
 
+    public ServerWebSocket getDelegate() {
+        return webSocket;
+    }
+
     @Override
     public Single<WebSocket> upgrade() {
         if (!upgraded) {
@@ -61,15 +69,6 @@ public class VertxWebSocket implements WebSocket {
         }
 
         return Single.just(this);
-    }
-
-    @Override
-    public Completable reject(int statusCode) {
-        if (isValid()) {
-            return webSocket.rxClose((short) statusCode);
-        }
-
-        return Completable.complete();
     }
 
     @Override
@@ -132,6 +131,15 @@ public class VertxWebSocket implements WebSocket {
     public Completable close() {
         if (isValid()) {
             return webSocket.rxClose();
+        }
+
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable close(int status) {
+        if (isValid()) {
+            return webSocket.rxClose((short) status);
         }
 
         return Completable.complete();

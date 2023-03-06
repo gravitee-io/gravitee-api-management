@@ -93,7 +93,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
         // Remove schema with empty input
-        this.entrypointSchemas = omitBy(schemas, (schema) => isEmpty(schema.properties));
+        this.entrypointSchemas = omitBy(schemas, (schema) => isEmpty(schema?.properties));
         this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
       });
   }
@@ -104,7 +104,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
-    const pathsValue = this.formGroup.get('paths').value;
+    const pathsValue = this.formGroup.get('paths')?.value ?? [];
 
     this.stepService.validStep((previousPayload) => {
       const paths: HttpListenerPath[] = this.enableVirtualHost

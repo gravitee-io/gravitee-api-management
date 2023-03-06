@@ -62,6 +62,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
+            <artifactId>gravitee-apim-plugin-entrypoint-http-proxy</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.endpoint</groupId>
+            <artifactId>gravitee-apim-plugin-endpoint-http-proxy</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc</artifactId>
             <scope>test</scope>

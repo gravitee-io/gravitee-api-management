@@ -25,8 +25,12 @@ import io.gravitee.gateway.jupiter.api.message.Message;
 import io.gravitee.gateway.jupiter.api.ws.WebSocket;
 import io.gravitee.gateway.jupiter.core.BufferFlow;
 import io.gravitee.gateway.jupiter.core.MessageFlow;
-import io.gravitee.reporter.api.http.Metrics;
-import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.FlowableTransformer;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.MaybeTransformer;
+import io.reactivex.rxjava3.core.Single;
 import java.util.function.Function;
 import javax.net.ssl.SSLSession;
 
@@ -170,6 +174,10 @@ public abstract class AbstractRequest implements MutableRequest {
         return ended;
     }
 
+    public boolean isStreaming() {
+        return false;
+    }
+
     @Override
     public boolean isWebSocket() {
         return webSocket != null;
@@ -279,7 +287,7 @@ public abstract class AbstractRequest implements MutableRequest {
 
     protected final BufferFlow lazyBufferFlow() {
         if (bufferFlow == null) {
-            bufferFlow = new BufferFlow();
+            bufferFlow = new BufferFlow(this::isStreaming);
         }
 
         return this.bufferFlow;

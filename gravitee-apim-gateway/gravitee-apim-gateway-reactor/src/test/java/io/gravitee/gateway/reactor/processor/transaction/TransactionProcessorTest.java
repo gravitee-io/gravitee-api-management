@@ -52,6 +52,7 @@ public class TransactionProcessorTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
+        Mockito.when(request.id()).thenReturn(UUID.random().toString());
         Mockito.when(request.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(response.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());

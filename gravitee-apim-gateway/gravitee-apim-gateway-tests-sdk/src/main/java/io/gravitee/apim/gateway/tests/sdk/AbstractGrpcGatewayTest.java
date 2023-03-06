@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
 
     public static final String LOCALHOST = "localhost";
-    protected int websocketPort;
 
     protected Vertx vertx;
     protected int grpcServerPort;
@@ -70,6 +69,8 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
         grpcServerPort = getAvailablePort();
         if (isLegacyApi(definitionClass)) {
             updateEndpointsPort((Api) api.getDefinition(), grpcServerPort);
+        } else if (isV4Api(definitionClass)) {
+            updateEndpointsPort((io.gravitee.definition.model.v4.Api) api.getDefinition(), grpcServerPort);
         }
     }
 

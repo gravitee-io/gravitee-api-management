@@ -60,20 +60,23 @@
             <gio-selection-list-option-layout-title> Message </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <div>
-                Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs. If you want to learn more about
-                Gravitee’s new capabilities, you can read about our Service Management Ecosystem.
-              </div>
+              <div>Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs.</div>
               <div>
                 Such as:
-                <span class="gio-badge-neutral">WebSocket</span>
-                <span class="gio-badge-neutral">Webhook</span>
-                <span class="gio-badge-neutral">gRPC</span>
-                <span class="gio-badge-neutral">GraphQL</span>
+                <span class="gio-badge-neutral">HTTP Get</span>
+                <span class="gio-badge-neutral">HTTP Post</span>
                 <span class="gio-badge-neutral">SSE</span>
-                <span class="gio-badge-neutral">SSE Advanced</span>
+                <span class="gio-badge-neutral">Webhook</span>
+                <span class="gio-badge-neutral">Websocket</span>
               </div>
             </gio-selection-list-option-layout-body>
+
+            <gio-selection-list-option-layout-action>
+              <button type="button" mat-stroked-button (click)="onMoreInfoMessageClick($event)">
+                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+                More information
+              </button>
+            </gio-selection-list-option-layout-action>
           </gio-selection-list-option-layout>
         </div>
       </mat-list-option>

@@ -105,12 +105,12 @@ class VertxWebSocketTest {
     }
 
     @Test
-    void shouldReject() {
+    void shouldCloseWithStatus() {
         ReflectionTestUtils.setField(cut, "upgraded", true);
         ReflectionTestUtils.setField(cut, "webSocket", webSocket);
 
         when(webSocket.rxClose((short) 400)).thenReturn(Completable.complete());
-        final TestObserver<Void> obs = cut.reject(400).test();
+        final TestObserver<Void> obs = cut.close(400).test();
 
         obs.assertComplete();
     }
@@ -119,7 +119,7 @@ class VertxWebSocketTest {
     void shouldNotRejectIfNotUpgraded() {
         ReflectionTestUtils.setField(cut, "upgraded", false);
 
-        final TestObserver<Void> obs = cut.reject(400).test();
+        final TestObserver<Void> obs = cut.close(400).test();
 
         obs.assertComplete();
         verify(webSocket, never()).rxClose(anyShort());

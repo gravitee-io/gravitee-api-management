@@ -53,7 +53,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
     )
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
-        this.endpointSchemas = omitBy(schemas, (schema) => isEmpty(schema.properties));
+        this.endpointSchemas = omitBy(schemas, (schema) => isEmpty(schema?.properties));
 
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
 

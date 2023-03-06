@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
