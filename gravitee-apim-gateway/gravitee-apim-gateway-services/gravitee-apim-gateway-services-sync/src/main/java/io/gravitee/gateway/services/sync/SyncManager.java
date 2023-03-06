@@ -16,10 +16,7 @@
 package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.DebugApiSynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.Synchronizer;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,16 +49,7 @@ public class SyncManager extends AbstractService<SyncManager> {
     public static final int TIMEFRAME_AFTER_DELAY = 30000;
 
     @Autowired
-    private ApiSynchronizer apiSynchronizer;
-
-    @Autowired
-    private DictionarySynchronizer dictionarySynchronizer;
-
-    @Autowired
-    private OrganizationSynchronizer organizationSynchronizer;
-
-    @Autowired
-    private DebugApiSynchronizer debugApiSynchronizer;
+    private List<Synchronizer> synchronizers;
 
     @Autowired
     private ClusterManager clusterManager;
@@ -94,18 +83,28 @@ public class SyncManager extends AbstractService<SyncManager> {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        apiSynchronizer.start();
-        dictionarySynchronizer.start();
-        organizationSynchronizer.start();
-        debugApiSynchronizer.start();
+        synchronizers.forEach(
+            synchronizer -> {
+                try {
+                    synchronizer.start();
+                } catch (Exception e) {
+                    logger.error("An error occurs while starting synchronizer {}", synchronizer.getClass().getSimpleName(), e);
+                }
+            }
+        );
     }
 
     @Override
     protected void doStop() throws Exception {
-        apiSynchronizer.stop();
-        dictionarySynchronizer.stop();
-        organizationSynchronizer.stop();
-        debugApiSynchronizer.stop();
+        synchronizers.forEach(
+            synchronizer -> {
+                try {
+                    synchronizer.stop();
+                } catch (Exception e) {
+                    logger.error("An error occurs while stoping synchronizer {}", synchronizer.getClass().getSimpleName(), e);
+                }
+            }
+        );
 
         if (scheduledFuture != null) {
             scheduledFuture.cancel(false);
@@ -124,45 +123,25 @@ public class SyncManager extends AbstractService<SyncManager> {
 
     public void refresh() {
         final long nextLastRefreshAt = System.currentTimeMillis();
-        boolean error = false;
+        AtomicBoolean error = new AtomicBoolean(false);
 
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
-            logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+            logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now());
             logger.debug("Refreshing gateway state...");
 
-            try {
-                organizationSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
-            } catch (Exception ex) {
-                error = true;
-                lastErrorMessage = ex.getMessage();
-                logger.error("An error occurs while synchronizing organizations", ex);
-            }
+            synchronizers.forEach(
+                synchronizer -> {
+                    try {
+                        synchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
+                    } catch (Exception e) {
+                        error.set(true);
+                        lastErrorMessage = e.getMessage();
+                        logger.error("An error occurs while synchronizing organizations", e);
+                    }
+                }
+            );
 
-            try {
-                apiSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
-            } catch (Exception ex) {
-                error = true;
-                lastErrorMessage = ex.getMessage();
-                logger.error("An error occurs while synchronizing APIs", ex);
-            }
-
-            try {
-                dictionarySynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
-            } catch (Exception ex) {
-                error = true;
-                lastErrorMessage = ex.getMessage();
-                logger.error("An error occurs while synchronizing dictionaries", ex);
-            }
-
-            try {
-                debugApiSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
-            } catch (Exception ex) {
-                error = true;
-                lastErrorMessage = ex.getMessage();
-                logger.error("An error occurs while synchronizing debug APIs", ex);
-            }
-
-            if (error) {
+            if (error.get()) {
                 errors++;
                 totalErrors++;
             } else {
@@ -171,7 +150,7 @@ public class SyncManager extends AbstractService<SyncManager> {
         }
 
         // If there was no error during the sync process, let's continue it with the next period of time
-        if (!error) {
+        if (!error.get()) {
             allApisSync = true;
 
             if (lastRefreshAt == -1) {

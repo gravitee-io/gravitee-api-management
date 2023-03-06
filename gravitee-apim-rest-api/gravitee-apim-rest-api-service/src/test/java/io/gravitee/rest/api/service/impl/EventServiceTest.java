@@ -25,6 +25,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -89,6 +90,9 @@ public class EventServiceTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private NewEventEntity newEvent;
@@ -165,10 +169,10 @@ public class EventServiceTest {
     }
 
     @Test
-    public void shouldDelete() throws TechnicalException {
-        eventService.delete(EVENT_ID);
+    public void shouldDeleteApiEvents() throws TechnicalException {
+        eventService.deleteApiEvents(GraviteeContext.getExecutionContext(), API_ID);
 
-        verify(eventRepository).delete(EVENT_ID);
+        verify(eventLatestRepository).delete(API_ID);
     }
 
     @Test
@@ -560,7 +564,7 @@ public class EventServiceTest {
             GraviteeContext.getExecutionContext(),
             Set.of(),
             io.gravitee.rest.api.model.EventType.DEBUG_API,
-            null,
+            (Api) null,
             Map.of()
         );
 

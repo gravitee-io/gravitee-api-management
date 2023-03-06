@@ -118,7 +118,6 @@ public class ApiStateServiceImpl implements ApiStateService {
             api.setPicture(null);
 
             Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
             properties.put(Event.EventProperties.USER.getValue(), authenticatedUser);
 
             addDeploymentLabelToProperties(executionContext, apiId, properties, apiDeploymentEntity);
@@ -264,7 +263,6 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setUpdatedAt(new Date());
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
-                properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
                 properties.put(Event.EventProperties.USER.getValue(), userId);
 
                 // Clear useless field for history

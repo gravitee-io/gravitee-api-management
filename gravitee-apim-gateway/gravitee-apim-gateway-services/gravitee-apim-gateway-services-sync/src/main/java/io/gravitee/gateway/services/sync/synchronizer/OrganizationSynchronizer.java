@@ -25,6 +25,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -57,14 +58,14 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     private final ThreadPoolExecutor executor;
 
     public OrganizationSynchronizer(
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         ObjectMapper objectMapper,
         ThreadPoolExecutor executor,
         int bulkItems,
         OrganizationManager organizationManager,
         GatewayConfiguration gatewayConfiguration
     ) {
-        super(eventRepository, bulkItems);
+        super(eventLatestRepository, bulkItems);
         this.objectMapper = objectMapper;
         this.executor = executor;
         this.organizationManager = organizationManager;
@@ -79,14 +80,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
             count = initialSynchronizeOrganizations(nextLastRefreshAt, environments);
         } else {
             count =
-                this.searchLatestEvents(
-                        lastRefreshAt,
-                        nextLastRefreshAt,
-                        true,
-                        ORGANIZATION_ID,
-                        environments,
-                        EventType.PUBLISH_ORGANIZATION
-                    )
+                this.searchLatestEvents(lastRefreshAt, nextLastRefreshAt, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
                     .compose(this::processOrganizationEvents)
                     .count()
                     .blockingGet();
@@ -100,7 +94,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     }
 
     private long initialSynchronizeOrganizations(long nextLastRefreshAt, List<String> environments) {
-        return this.searchLatestEvents(null, nextLastRefreshAt, true, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
+        return this.searchLatestEvents(null, nextLastRefreshAt, ORGANIZATION_ID, environments, EventType.PUBLISH_ORGANIZATION)
             .compose(this::processOrganizationEvents)
             .count()
             .blockingGet();

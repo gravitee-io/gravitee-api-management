@@ -15,10 +15,8 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.AsyncResult;
@@ -35,18 +33,15 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EventsHandler extends AbstractHandler {
+public class EventsLatestHandler extends AbstractHandler {
 
     @Autowired
-    private EventRepository eventRepository;
+    private EventLatestRepository eventLatestRepository;
 
-    private static final long DEFAULT_PAGE_SIZE = 10;
-    private static final long DEFAULT_PAGE_NUMBER = 1;
-
-    public EventsHandler(WorkerExecutor bridgeWorkerExecutor) {
+    public EventsLatestHandler(WorkerExecutor bridgeWorkerExecutor) {
         super(bridgeWorkerExecutor);
     }
 
@@ -54,43 +49,26 @@ public class EventsHandler extends AbstractHandler {
         final JsonObject searchPayload = ctx.getBodyAsJson();
         final EventCriteria eventCriteria = readCriteria(searchPayload);
 
-        final String sPageNumber = ctx.request().getParam("page");
+        bridgeWorkerExecutor.executeBlocking(
+            (Handler<Promise<List<Event>>>) promise -> {
+                Long pageSize = getPageSize(ctx, null);
+                Long pageNumber = getPageNumber(ctx, null);
+                Event.EventProperties group = getGroup(ctx);
 
-        if (sPageNumber != null) {
-            bridgeWorkerExecutor.executeBlocking(
-                promise -> {
-                    Long pageSize = getPageSize(ctx, DEFAULT_PAGE_SIZE);
-                    Long pageNumber = getPageNumber(ctx, DEFAULT_PAGE_NUMBER);
+                try {
+                    promise.complete(eventLatestRepository.search(eventCriteria, group, pageNumber, pageSize));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for events", ex);
+                    promise.fail(ex);
+                }
+            },
+            false,
+            event -> handleResponse(ctx, event)
+        );
+    }
 
-                    try {
-                        promise.complete(
-                            eventRepository.search(
-                                eventCriteria,
-                                new PageableBuilder().pageNumber(pageNumber.intValue()).pageSize(pageSize.intValue()).build()
-                            )
-                        );
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for events", ex);
-                        promise.fail(ex);
-                    }
-                },
-                false,
-                (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event)
-            );
-        } else {
-            bridgeWorkerExecutor.executeBlocking(
-                (Handler<Promise<List<Event>>>) promise -> {
-                    try {
-                        promise.complete(eventRepository.search(eventCriteria));
-                    } catch (Exception ex) {
-                        LOGGER.error("Unable to search for events", ex);
-                        promise.fail(ex);
-                    }
-                },
-                false,
-                event -> handleResponse(ctx, event)
-            );
-        }
+    private Event.EventProperties getGroup(RoutingContext ctx) {
+        return Event.EventProperties.valueOf(ctx.request().getParam("group"));
     }
 
     private Long getPageSize(RoutingContext ctx, Long defaultValue) {
@@ -112,61 +90,12 @@ public class EventsHandler extends AbstractHandler {
         }
     }
 
-    public void create(RoutingContext ctx) {
-        bridgeWorkerExecutor.executeBlocking(
-            promise -> {
-                try {
-                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                    promise.complete(eventRepository.create(event));
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to create an event", ex);
-                    promise.fail(ex);
-                }
-            },
-            false,
-            (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
-        );
-    }
-
-    public void update(RoutingContext ctx) {
-        bridgeWorkerExecutor.executeBlocking(
-            promise -> {
-                try {
-                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                    promise.complete(eventRepository.update(event));
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to update an event", ex);
-                    promise.fail(ex);
-                }
-            },
-            false,
-            (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
-        );
-    }
-
-    public void findById(RoutingContext ctx) {
-        final String idParam = ctx.request().getParam("eventId");
-
-        bridgeWorkerExecutor.executeBlocking(
-            (Handler<Promise<Optional<Event>>>) promise -> {
-                try {
-                    promise.complete(eventRepository.findById(idParam));
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to find event by id {}", idParam, ex);
-                    promise.fail(ex);
-                }
-            },
-            false,
-            event -> handleResponse(ctx, event)
-        );
-    }
-
     public void createOrPatch(RoutingContext ctx) {
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
                 try {
                     Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                    promise.complete(eventRepository.createOrPatch(event));
+                    promise.complete(eventLatestRepository.createOrPatch(event));
                 } catch (Exception ex) {
                     LOGGER.error("Unable to create or update an event", ex);
                     promise.fail(ex);

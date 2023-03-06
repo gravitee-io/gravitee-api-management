@@ -62,6 +62,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
@@ -198,7 +199,7 @@ public class ApiStateServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.PUBLISH_API),
-                argThat(argApi -> argApi.getId().equals(API_ID)),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
             );
 
@@ -237,7 +238,7 @@ public class ApiStateServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.START_API),
-                argThat(argApi -> argApi.getId().equals(API_ID)),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
             );
 
@@ -297,7 +298,7 @@ public class ApiStateServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.STOP_API),
-                argThat(argApi -> argApi.getId().equals(API_ID)),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(properties)
             );
 

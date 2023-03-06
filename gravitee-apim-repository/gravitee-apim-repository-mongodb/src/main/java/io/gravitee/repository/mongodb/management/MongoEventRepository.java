@@ -123,12 +123,6 @@ public class MongoEventRepository implements EventRepository {
     }
 
     @Override
-    public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
-        List<EventMongo> eventsMongo = internalEventRepo.searchLatest(criteria, group, page, size);
-        return mapper.collection2list(eventsMongo, EventMongo.class, Event.class);
-    }
-
-    @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
         Page<EventMongo> eventsMongo = internalEventRepo.search(filter, pageable);
 

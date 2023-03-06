@@ -152,11 +152,17 @@ public class BridgeService extends AbstractService {
             EventsHandler eventsHandler = new EventsHandler(bridgeWorkerExecutor);
             applicationContext.getAutowireCapableBeanFactory().autowireBean(eventsHandler);
             bridgeRouter.post("/events/_search").handler(eventsHandler::search);
-            bridgeRouter.post("/events/_searchLatest").handler(eventsHandler::searchLatest);
             bridgeRouter.post("/events").handler(eventsHandler::create);
             bridgeRouter.post("/events/_createOrPatch").handler(eventsHandler::createOrPatch);
             bridgeRouter.put("/events/:eventId").handler(eventsHandler::update);
             bridgeRouter.get("/events/:eventId").handler(eventsHandler::findById);
+
+            // Events latest handler
+            EventsLatestHandler eventsLatestHandler = new EventsLatestHandler(bridgeWorkerExecutor);
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(eventsLatestHandler);
+            bridgeRouter.post("/eventsLatest/_search").handler(eventsLatestHandler::search);
+            bridgeRouter.post("/events/_searchLatest").handler(eventsLatestHandler::search);
+            bridgeRouter.post("/eventsLatest/_createOrPatch").handler(eventsLatestHandler::createOrPatch);
 
             // Dictionaries handler
             DictionariesHandler dictionariesHandler = new DictionariesHandler(bridgeWorkerExecutor);

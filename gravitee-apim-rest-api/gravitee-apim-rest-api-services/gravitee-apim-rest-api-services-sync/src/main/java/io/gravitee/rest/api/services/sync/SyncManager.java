@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
@@ -60,7 +60,7 @@ public class SyncManager {
 
     @Lazy
     @Autowired
-    private EventRepository eventRepository;
+    private EventLatestRepository eventLatestRepository;
 
     @Autowired
     private ApiManager apiManager;
@@ -110,8 +110,8 @@ public class SyncManager {
             .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
             .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
-        Map<String, Event> apiEvents = eventRepository
-            .searchLatest(criteriaBuilder.build(), Event.EventProperties.API_ID, null, null)
+        Map<String, Event> apiEvents = eventLatestRepository
+            .search(criteriaBuilder.build(), Event.EventProperties.API_ID, null, null)
             .stream()
             .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
 
@@ -125,8 +125,8 @@ public class SyncManager {
             .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
             .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
-        Map<String, Event> dictionaryEvents = eventRepository
-            .searchLatest(criteriaBuilder.build(), Event.EventProperties.DICTIONARY_ID, null, null)
+        Map<String, Event> dictionaryEvents = eventLatestRepository
+            .search(criteriaBuilder.build(), Event.EventProperties.DICTIONARY_ID, null, null)
             .stream()
             .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
 

@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.*;
@@ -43,7 +43,7 @@ public class DictionarySynchronizerTest {
     private DictionarySynchronizer dictionarySynchronizer;
 
     @Mock
-    private EventRepository eventRepository;
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private DictionaryManager dictionaryManager;
@@ -57,7 +57,7 @@ public class DictionarySynchronizerTest {
     void setUp() {
         dictionarySynchronizer =
             new DictionarySynchronizer(
-                eventRepository,
+                eventLatestRepository,
                 objectMapper,
                 (ThreadPoolExecutor) Executors.newFixedThreadPool(1),
                 100,
@@ -72,7 +72,7 @@ public class DictionarySynchronizerTest {
 
         final Event mockEvent = mockEvent(dictionary, EventType.PUBLISH_DICTIONARY);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -98,7 +98,7 @@ public class DictionarySynchronizerTest {
 
         final Event mockEvent = mockEvent(dictionary, EventType.PUBLISH_DICTIONARY);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -131,7 +131,7 @@ public class DictionarySynchronizerTest {
         final Event mockEvent = mockEvent(dictionary, EventType.PUBLISH_DICTIONARY);
         final Event mockEvent2 = mockEvent(dictionary2, EventType.PUBLISH_DICTIONARY);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -145,7 +145,7 @@ public class DictionarySynchronizerTest {
             .thenReturn(singletonList(mockEvent));
 
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -172,7 +172,7 @@ public class DictionarySynchronizerTest {
 
         final Event mockEvent = mockEvent(dictionary, EventType.UNPUBLISH_DICTIONARY);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -205,7 +205,7 @@ public class DictionarySynchronizerTest {
         final Event mockEvent = mockEvent(dictionary, EventType.UNPUBLISH_DICTIONARY);
         final Event mockEvent2 = mockEvent(dictionary2, EventType.UNPUBLISH_DICTIONARY);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -219,7 +219,7 @@ public class DictionarySynchronizerTest {
             .thenReturn(singletonList(mockEvent));
 
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -256,7 +256,7 @@ public class DictionarySynchronizerTest {
 
             if (i % 100 == 0) {
                 when(
-                    eventRepository.searchLatest(
+                    eventLatestRepository.search(
                         argThat(criteria ->
                             criteria != null &&
                             criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)) &&
@@ -288,7 +288,7 @@ public class DictionarySynchronizerTest {
         Event mockEvent = mockEvent(dictionary, EventType.PUBLISH_DICTIONARY);
         when(objectMapper.readValue(mockEvent.getPayload(), Dictionary.class)).thenThrow(new NullPointerException());
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))

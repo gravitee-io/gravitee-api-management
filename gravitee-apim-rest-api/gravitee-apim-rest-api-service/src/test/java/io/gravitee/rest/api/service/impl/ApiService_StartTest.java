@@ -47,6 +47,7 @@ import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -145,7 +146,7 @@ public class ApiService_StartTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.START_API),
-                argThat(argApi -> argApi.getId().equals(API_ID)),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
                 eq(event.getProperties())
             );
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
@@ -167,7 +168,7 @@ public class ApiService_StartTest {
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
-        verify(eventService, times(0)).createApiEvent(any(), any(), any(), any(), any());
+        verify(eventService, times(0)).createApiEvent(any(), any(), any(), any(Api.class), any());
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 

@@ -19,6 +19,7 @@ import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELA
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
 import io.gravitee.node.api.Node;
@@ -39,22 +40,22 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugApiSynchronizer extends AbstractSynchronizer {
+public class DebugApiSynchronizer extends AbstractService<Synchronizer> implements Synchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(DebugApiSynchronizer.class);
+    private final EventRepository eventRepository;
     private final EventManager eventManager;
     private final Node node;
     private final boolean isDebugModeAvailable;
 
     public DebugApiSynchronizer(
         EventRepository eventRepository,
-        int bulkItems,
         EventManager eventManager,
         PluginRegistry pluginRegistry,
         Configuration configuration,
         Node node
     ) {
-        super(eventRepository, bulkItems);
+        this.eventRepository = eventRepository;
         this.eventManager = eventManager;
         this.node = node;
 
@@ -63,7 +64,6 @@ public class DebugApiSynchronizer extends AbstractSynchronizer {
             configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true);
     }
 
-    @Override
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         if (isDebugModeAvailable) {
             final long start = System.currentTimeMillis();

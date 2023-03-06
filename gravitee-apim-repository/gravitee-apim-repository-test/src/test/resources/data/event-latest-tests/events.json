@@ -1,0 +1,84 @@
+[
+  {
+    "id": "api-1",
+    "environments": ["DEFAULT"],
+    "type": "PUBLISH_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-1"
+    },
+    "updatedAt": 1451606400000
+  },
+  {
+    "id": "api-2",
+    "environments": ["DEFAULT"],
+    "type": "UNPUBLISH_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-2"
+    },
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000
+  },
+  {
+    "id": "api-3",
+    "environments": ["DEFAULT"],
+    "type": "STOP_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-3"
+    },
+    "updatedAt": 1459468800000
+  },
+  {
+    "id": "dictionary-1",
+    "environments": ["DEFAULT"],
+    "type": "PUBLISH_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-1"
+    },
+    "createdAt": 1475280000000,
+    "updatedAt": 1475280000000
+  },
+  {
+    "id": "api-4",
+    "environments": ["DEFAULT"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-4"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1464739200000
+  },
+  {
+    "id": "api-5",
+    "environments": ["DEFAULT"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-5"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1464739200000
+  },
+  {
+    "id": "dictionary-2",
+    "environments": ["OTHER"],
+    "type": "STOP_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-2"
+    },
+    "createdAt": 1475380000000,
+    "updatedAt": 1475380000000
+  }
+]

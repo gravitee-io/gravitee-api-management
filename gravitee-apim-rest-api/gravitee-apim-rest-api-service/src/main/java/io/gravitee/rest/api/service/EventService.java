@@ -36,6 +36,14 @@ public interface EventService {
 
     EventEntity createApiEvent(
         ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        EventType type,
+        String apiId,
+        Map<String, String> properties
+    );
+
+    EventEntity createApiEvent(
+        ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,
         Api api,
@@ -66,7 +74,7 @@ public interface EventService {
         Map<String, String> properties
     );
 
-    void delete(String eventId);
+    void deleteApiEvents(final ExecutionContext executionContext, String apiId);
 
     Page<EventEntity> search(
         ExecutionContext executionContext,

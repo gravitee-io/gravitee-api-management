@@ -19,6 +19,7 @@ import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELA
 import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
@@ -31,16 +32,16 @@ import java.util.List;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractSynchronizer extends AbstractService<AbstractSynchronizer> {
+public abstract class AbstractSynchronizer extends AbstractService<Synchronizer> implements Synchronizer {
 
     public static final int DEFAULT_BULK_SIZE = 100;
 
-    protected EventRepository eventRepository;
+    protected EventLatestRepository eventLatestRepository;
 
     protected int bulkItems;
 
-    protected AbstractSynchronizer(EventRepository eventRepository, int bulkItems) {
-        this.eventRepository = eventRepository;
+    protected AbstractSynchronizer(EventLatestRepository eventLatestRepository, int bulkItems) {
+        this.eventLatestRepository = eventLatestRepository;
         this.bulkItems = bulkItems;
     }
 
@@ -54,19 +55,9 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
         super.doStop();
     }
 
-    /**
-     * Synchronize the elements retrieving events from the datasource.
-     *
-     * @param lastRefreshAt the last timestamp the synchronization has been made. If -1 an initial synchronization will be perform, then incremental synchronization will be made.
-     * @param nextLastRefreshAt the timestamp of the next synchronization planed.
-     * @param environments the list of environments to filter events
-     */
-    public abstract void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments);
-
     protected Flowable<Event> searchLatestEvents(
         Long from,
         Long to,
-        boolean strictMode,
         Event.EventProperties group,
         List<String> environments,
         EventType... eventTypes
@@ -80,13 +71,12 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
                         .types(eventTypes)
                         .from(from == null ? 0 : from - TIMEFRAME_BEFORE_DELAY)
                         .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
-                        .strictMode(strictMode)
                         .environments(environments);
 
                     List<Event> events;
 
                     do {
-                        events = eventRepository.searchLatest(criteriaBuilder.build(), group, page, (long) size);
+                        events = eventLatestRepository.search(criteriaBuilder.build(), group, page, (long) size);
                         events.forEach(emitter::onNext);
                         page++;
                     } while (!events.isEmpty() && events.size() == size);

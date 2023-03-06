@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -197,7 +198,7 @@ public class ApiLoggingConditionUpgraderTest {
                 eq(executionContext),
                 any(),
                 eq(PUBLISH_API),
-                argThat(argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
                 any()
             );
     }
@@ -230,7 +231,7 @@ public class ApiLoggingConditionUpgraderTest {
                 eq(executionContext),
                 any(),
                 eq(PUBLISH_API),
-                argThat(argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
                 any()
             );
     }

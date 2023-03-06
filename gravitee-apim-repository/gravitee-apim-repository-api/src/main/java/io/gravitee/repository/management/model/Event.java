@@ -19,11 +19,18 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode
 public class Event implements Serializable {
 
     /**
@@ -66,70 +73,8 @@ public class Event implements Serializable {
      */
     private Date updatedAt;
 
-    public Set<String> getEnvironments() {
-        return environments;
-    }
-
-    public void setEnvironments(Set<String> environments) {
-        this.environments = environments;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public EventType getType() {
-        return type;
-    }
-
-    public void setType(EventType type) {
-        this.type = type;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
+    @RequiredArgsConstructor
+    @Getter
     public enum EventProperties {
         ID("id"),
         API_ID("api_id"),
@@ -144,14 +89,6 @@ public class Event implements Serializable {
         ENVIRONMENTS_HRIDS_PROPERTY("environments_hrids"),
         ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids");
 
-        private String value;
-
-        EventProperties(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return this.value;
-        }
+        private final String value;
     }
 }

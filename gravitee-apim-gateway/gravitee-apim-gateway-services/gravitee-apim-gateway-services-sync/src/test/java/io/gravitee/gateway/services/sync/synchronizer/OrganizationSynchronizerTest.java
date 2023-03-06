@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -44,7 +45,7 @@ public class OrganizationSynchronizerTest {
     private OrganizationSynchronizer organizationSynchronizer;
 
     @Mock
-    private EventRepository eventRepository;
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private OrganizationManager organizationManager;
@@ -63,7 +64,7 @@ public class OrganizationSynchronizerTest {
     void setUp() {
         organizationSynchronizer =
             new OrganizationSynchronizer(
-                eventRepository,
+                eventLatestRepository,
                 objectMapper,
                 (ThreadPoolExecutor) Executors.newFixedThreadPool(1),
                 100,
@@ -79,7 +80,7 @@ public class OrganizationSynchronizerTest {
 
         final Event mockEvent = mockEvent(organization);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
@@ -105,7 +106,7 @@ public class OrganizationSynchronizerTest {
 
         final Event mockEvent = mockEvent(organization);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
@@ -138,7 +139,7 @@ public class OrganizationSynchronizerTest {
         final Event mockEvent = mockEvent(organization);
         final Event mockEvent2 = mockEvent(organization2);
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
@@ -152,7 +153,7 @@ public class OrganizationSynchronizerTest {
             .thenReturn(singletonList(mockEvent));
 
         when(
-            eventRepository.searchLatest(
+            eventLatestRepository.search(
                 argThat(criteria ->
                     criteria != null &&
                     criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
@@ -187,7 +188,7 @@ public class OrganizationSynchronizerTest {
 
             if (i % 100 == 0) {
                 when(
-                    eventRepository.searchLatest(
+                    eventLatestRepository.search(
                         argThat(criteria ->
                             criteria != null &&
                             criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&

@@ -159,7 +159,6 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
 
         if (apiDeploymentEntity != null) {
             Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
 
             // Clear useless field for history
             api.setPicture(null);

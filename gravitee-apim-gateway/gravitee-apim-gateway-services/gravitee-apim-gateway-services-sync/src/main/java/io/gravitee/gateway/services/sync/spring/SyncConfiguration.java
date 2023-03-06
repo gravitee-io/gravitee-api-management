@@ -38,11 +38,15 @@ import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.reactivex.rxjava3.annotations.NonNull;
-import java.util.concurrent.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,7 +123,7 @@ public class SyncConfiguration {
     public ApiSynchronizer apiSynchronizer(
         @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         ApiKeysCacheService apiKeysCacheService,
         SubscriptionsCacheService subscriptionsCacheService,
         SubscriptionService subscriptionService,
@@ -129,7 +133,7 @@ public class SyncConfiguration {
         GatewayConfiguration gatewayConfiguration
     ) {
         return new ApiSynchronizer(
-            eventRepository,
+            eventLatestRepository,
             executor,
             bulkItems,
             apiKeysCacheService,
@@ -143,11 +147,8 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public DebugApiSynchronizer debugApiSynchronizer(
-        @Value("${services.sync.bulk_items:100}") int bulkItems,
-        EventRepository eventRepository
-    ) {
-        return new DebugApiSynchronizer(eventRepository, bulkItems, eventManager, pluginRegistry, configuration, node);
+    public DebugApiSynchronizer debugApiSynchronizer(EventRepository eventRepository) {
+        return new DebugApiSynchronizer(eventRepository, eventManager, pluginRegistry, configuration, node);
     }
 
     @Bean
@@ -155,10 +156,10 @@ public class SyncConfiguration {
         ObjectMapper objectMapper,
         @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         DictionaryManager dictionaryManager
     ) {
-        return new DictionarySynchronizer(eventRepository, objectMapper, executor, bulkItems, dictionaryManager);
+        return new DictionarySynchronizer(eventLatestRepository, objectMapper, executor, bulkItems, dictionaryManager);
     }
 
     @Bean
@@ -166,11 +167,18 @@ public class SyncConfiguration {
         ObjectMapper objectMapper,
         @Qualifier("syncExecutor") ThreadPoolExecutor executor,
         @Value("${services.sync.bulk_items:100}") int bulkItems,
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         OrganizationManager organizationManager,
         GatewayConfiguration gatewayConfiguration
     ) {
-        return new OrganizationSynchronizer(eventRepository, objectMapper, executor, bulkItems, organizationManager, gatewayConfiguration);
+        return new OrganizationSynchronizer(
+            eventLatestRepository,
+            objectMapper,
+            executor,
+            bulkItems,
+            organizationManager,
+            gatewayConfiguration
+        );
     }
 
     @Bean

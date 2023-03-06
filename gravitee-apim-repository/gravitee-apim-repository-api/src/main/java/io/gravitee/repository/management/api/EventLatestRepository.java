@@ -15,43 +15,29 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import java.util.List;
 
 /**
- * Event API.
- *
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EventRepository extends CrudRepository<Event, String> {
+public interface EventLatestRepository {
     /**
-     * Search for {@link Event} with {@link Pageable} feature.
+     * Search for latest {@link Event} matching the corresponding criteria for each event related to the specified group criteria (ex: 'api_id, 'dictionary_id').
      *
-     * <p>
-     *  Note that events must be ordered by update date in DESC mode.
-     * </p>
+     * @param criteria Event criteria to search for {@link Event}.
+     *                 Only one event is stored so strictMode is ignored.
+     * @param group the property to search for in order to retrieve the latest event. Can be {@link io.gravitee.repository.management.model.Event.EventProperties#API_ID} to retrieve latest event for each api
+     *              or {@link io.gravitee.repository.management.model.Event.EventProperties#DICTIONARY_ID} to retrieve latest event for each dictionary.
+     * @param page optional page number starting from 0, <code>null</code> means no paging.
+     * @param size optional number of events to retrieve, <code>null</code> means no limit.
      *
-     * @param filter Event criteria to search for {@link Event}.
-     * @param pageable If user wants a paginable result. Can be <code>null</code>.
-     * @return the list of events.
+     * @return the list of the latest events.
      */
-    Page<Event> search(EventCriteria filter, Pageable pageable);
-    /**
-     * Search for {@link Event}.
-     *
-     * <p>
-     *  Note that events must be ordered by update date in DESC mode.
-     * </p>
-     * @param filter Event criteria to search for {@link Event}.
-     * @return the list of events.
-     */
-    List<Event> search(EventCriteria filter);
+    List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
 
     /**
      * This method allows to create an event if it does not exist in database or patch it if it's present.
@@ -68,4 +54,12 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @throws TechnicalException
      */
     Event createOrPatch(Event event) throws TechnicalException;
+
+    /**
+     * This method allows to delete an event from its id
+     *
+     * @param eventId
+     * @throws TechnicalException
+     */
+    void delete(String eventId) throws TechnicalException;
 }

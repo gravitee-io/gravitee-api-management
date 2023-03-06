@@ -41,7 +41,7 @@ import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
 import io.gravitee.gateway.services.sync.synchronizer.api.PlanFetcher;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -83,7 +83,7 @@ public class ApiSynchronizerTest {
     private ApiSynchronizer apiSynchronizer;
 
     @Mock
-    private EventRepository eventRepository;
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private EnvironmentRepository environmentRepository;
@@ -123,7 +123,7 @@ public class ApiSynchronizerTest {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
         apiSynchronizer =
             new ApiSynchronizer(
-                eventRepository,
+                eventLatestRepository,
                 executor,
                 BULK_SIZE,
                 apiKeysCacheService,
@@ -141,7 +141,7 @@ public class ApiSynchronizerTest {
     @AfterEach
     void tearDown() {
         executor.shutdown();
-        reset(eventRepository, environmentRepository, organizationRepository);
+        reset(eventLatestRepository, environmentRepository, organizationRepository);
     }
 
     @Nested
@@ -150,7 +150,7 @@ public class ApiSynchronizerTest {
         @Test
         void should_fetch_only_api_register_events() throws Exception {
             // 6 events to return in 2 calls because the bulkSize is 5
-            when(eventRepository.searchLatest(any(), any(), anyLong(), anyLong()))
+            when(eventLatestRepository.search(any(), any(), anyLong(), anyLong()))
                 .thenReturn(
                     List.of(
                         anEvent(anApiV2().id("api-1").build(), EventType.PUBLISH_API),
@@ -170,8 +170,8 @@ public class ApiSynchronizerTest {
             var eventPropertiesCaptor = ArgumentCaptor.forClass(Event.EventProperties.class);
             var pageCaptor = ArgumentCaptor.forClass(Long.class);
             var pageSizeCaptor = ArgumentCaptor.forClass(Long.class);
-            verify(eventRepository, times(2))
-                .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
+            verify(eventLatestRepository, times(2))
+                .search(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
 
             SoftAssertions.assertSoftly(softly -> {
                 var criteria = criteriaCaptor.getValue();
@@ -206,7 +206,7 @@ public class ApiSynchronizerTest {
         @Test
         void should_fetch_api_register_and_unregister_events() throws Exception {
             // 6 events to return in 2 calls because the bulkSize is 5
-            when(eventRepository.searchLatest(any(), any(), anyLong(), anyLong()))
+            when(eventLatestRepository.search(any(), any(), anyLong(), anyLong()))
                 .thenReturn(
                     List.of(
                         anEvent(anApiV2().id(API_ID).build(), EventType.PUBLISH_API),
@@ -226,8 +226,8 @@ public class ApiSynchronizerTest {
             var eventPropertiesCaptor = ArgumentCaptor.forClass(Event.EventProperties.class);
             var pageCaptor = ArgumentCaptor.forClass(Long.class);
             var pageSizeCaptor = ArgumentCaptor.forClass(Long.class);
-            verify(eventRepository, times(2))
-                .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
+            verify(eventLatestRepository, times(2))
+                .search(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
 
             SoftAssertions.assertSoftly(softly -> {
                 var criteria = criteriaCaptor.getValue();
@@ -800,7 +800,7 @@ public class ApiSynchronizerTest {
 
                 if (i % bulkSize == 0) {
                     when(
-                        eventRepository.searchLatest(
+                        eventLatestRepository.search(
                             any(EventCriteria.class),
                             eq(Event.EventProperties.API_ID),
                             eq(page),
@@ -905,7 +905,7 @@ public class ApiSynchronizerTest {
     }
 
     void givenEvents(List<Event> events) {
-        when(eventRepository.searchLatest(any(EventCriteria.class), eq(Event.EventProperties.API_ID), anyLong(), anyLong()))
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), anyLong(), anyLong()))
             .thenReturn(events);
     }
 

@@ -28,6 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -52,8 +53,6 @@ import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -85,6 +84,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Lazy
     @Autowired
     private EventRepository eventRepository;
+
+    @Lazy
+    @Autowired
+    private EventLatestRepository eventLatestRepository;
 
     @Autowired
     private UserService userService;
@@ -133,11 +136,40 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         ExecutionContext executionContext,
         Set<String> environmentsIds,
         EventType type,
+        String apiId,
+        Map<String, String> properties
+    ) {
+        if (apiId != null) {
+            if (properties == null) {
+                properties = new HashMap<>();
+            }
+            properties.put(Event.EventProperties.API_ID.getValue(), apiId);
+        }
+        EventEntity event = createEvent(executionContext, environmentsIds, type, null, properties);
+        createOrPatchLatestEvent(apiId, event);
+        return event;
+    }
+
+    @Override
+    public EventEntity createApiEvent(
+        ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        EventType type,
         Api api,
         Map<String, String> properties
     ) {
         Api apiDefinition = api != null ? buildApiEventPayload(executionContext, api) : null;
-        return createEvent(executionContext, environmentsIds, type, apiDefinition, properties);
+        if (apiDefinition != null) {
+            if (properties == null) {
+                properties = new HashMap<>();
+            }
+            properties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
+        }
+        EventEntity event = createEvent(executionContext, environmentsIds, type, apiDefinition, properties);
+        if (apiDefinition != null) {
+            createOrPatchLatestEvent(apiDefinition.getId(), event);
+        }
+        return event;
     }
 
     @Override
@@ -159,7 +191,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Dictionary dictionary,
         Map<String, String> properties
     ) {
-        return createEvent(executionContext, environmentsIds, type, dictionary, properties);
+        if (dictionary != null) {
+            if (properties == null) {
+                properties = new HashMap<>();
+            }
+            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getId());
+        }
+        EventEntity event = createEvent(executionContext, environmentsIds, type, dictionary, properties);
+        if (dictionary != null) {
+            createOrPatchLatestEvent(dictionary.getId(), event);
+        }
+        return event;
     }
 
     @Override
@@ -170,7 +212,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         OrganizationEntity organization,
         Map<String, String> properties
     ) {
-        return createEvent(executionContext, environmentsIds, type, organization, properties);
+        if (organization != null) {
+            if (properties == null) {
+                properties = new HashMap<>();
+            }
+            properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organization.getId());
+        }
+        EventEntity event = createEvent(executionContext, environmentsIds, type, organization, properties);
+        if (organization != null) {
+            createOrPatchLatestEvent(organization.getId(), event);
+        }
+        return event;
     }
 
     private EventEntity createEvent(
@@ -224,13 +276,26 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public void delete(String eventId) {
+    public void deleteApiEvents(final ExecutionContext executionContext, final String apiId) {
+        final EventQuery query = new EventQuery();
+        query.setApi(apiId);
+        search(executionContext, query)
+            .forEach(
+                event -> {
+                    String eventId = event.getId();
+                    try {
+                        LOGGER.debug("Delete Event {}", eventId);
+                        eventRepository.delete(eventId);
+                    } catch (TechnicalException ex) {
+                        throw new TechnicalManagementException("An error occurs while trying to delete Event " + eventId, ex);
+                    }
+                }
+            );
         try {
-            LOGGER.debug("Delete Event {}", eventId);
-            eventRepository.delete(eventId);
+            LOGGER.debug("Delete Event Latest {}", apiId);
+            eventLatestRepository.delete(apiId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete Event {}", eventId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete Event " + eventId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete Event Latest " + apiId, ex);
         }
     }
 
@@ -460,5 +525,34 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         apiDefinitionV4.setPlans(planMapper.toDefinitions(plans));
         apiDefinitionV4.setFlows(flowServiceV4.findByReference(FlowReferenceType.API, api.getId()));
         return apiDefinitionV4;
+    }
+
+    private void createOrPatchLatestEvent(final String latestEventId, final EventEntity event) {
+        Event latestEvent = convert(event);
+        latestEvent.setId(latestEventId);
+        if (latestEvent.getProperties() == null) {
+            latestEvent.setProperties(new HashMap<>());
+        }
+        latestEvent.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
+        try {
+            LOGGER.debug("Create or Patch latest event {}.", latestEventId);
+            eventLatestRepository.createOrPatch(latestEvent);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying create or patch " + latestEvent, ex);
+        }
+    }
+
+    private Event convert(EventEntity eventEntity) {
+        Event event = new Event();
+        event.setId(eventEntity.getId());
+        event.setParentId(eventEntity.getParentId());
+        event.setEnvironments(eventEntity.getEnvironments());
+        event.setType(io.gravitee.repository.management.model.EventType.valueOf(eventEntity.getType().toString()));
+        event.setPayload(eventEntity.getPayload());
+        event.setProperties(new HashMap<>(eventEntity.getProperties()));
+        event.setCreatedAt(eventEntity.getCreatedAt());
+        event.setUpdatedAt(eventEntity.getUpdatedAt());
+
+        return event;
     }
 }

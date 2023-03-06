@@ -30,6 +30,7 @@ import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.synchronizer.api.EventToReactableApiAdapter;
 import io.gravitee.gateway.services.sync.synchronizer.api.PlanFetcher;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -69,7 +70,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private final PlanFetcher planFetcher;
 
     public ApiSynchronizer(
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         ThreadPoolExecutor executor,
         int bulkItems,
         ApiKeysCacheService apiKeysCacheService,
@@ -80,7 +81,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         PlanFetcher planFetcher,
         GatewayConfiguration gatewayConfiguration
     ) {
-        super(eventRepository, bulkItems);
+        super(eventLatestRepository, bulkItems);
         this.apiKeysCacheService = apiKeysCacheService;
         this.subscriptionsCacheService = subscriptionsCacheService;
         this.subscriptionService = subscriptionService;
@@ -104,7 +105,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 this.searchLatestEvents(
                         lastRefreshAt,
                         nextLastRefreshAt,
-                        true,
                         API_ID,
                         environments,
                         EventType.PUBLISH_API,
@@ -139,7 +139,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      * Run the initial synchronization which focus on api PUBLISH and START events only.
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
-        return this.searchLatestEvents(null, nextLastRefreshAt, true, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+        return this.searchLatestEvents(null, nextLastRefreshAt, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
             .compose(this::processApiRegisterEvents)
             .count()
             .blockingGet();

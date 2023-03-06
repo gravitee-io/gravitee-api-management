@@ -47,6 +47,7 @@ import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -145,7 +146,7 @@ public class ApiService_StopTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.STOP_API),
-                argThat(apiArg -> apiArg.getId().equals(API_ID)),
+                argThat((ArgumentMatcher<Api>) apiArg -> apiArg.getId().equals(API_ID)),
                 eq(event.getProperties())
             );
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STOPPED), eq(API_ID), any());

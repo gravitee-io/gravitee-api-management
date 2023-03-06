@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.event;
+package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import java.util.List;
 
@@ -27,8 +28,6 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EventMongoRepositoryCustom {
-    Page<EventMongo> search(EventCriteria criteria, Pageable pageable);
-
-    Event patch(Event event);
+public interface EventLatestMongoRepositoryCustom {
+    List<EventLatestMongo> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
 }

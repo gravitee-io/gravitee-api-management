@@ -167,22 +167,13 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     private void createPublishOrganizationEvent(ExecutionContext executionContext, OrganizationEntity organizationEntity) {
-        Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
-
         Set<String> environmentIds = environmentService
             .findByOrganization(organizationEntity.getId())
             .stream()
             .map(EnvironmentEntity::getId)
             .collect(Collectors.toSet());
 
-        eventService.createOrganizationEvent(
-            executionContext,
-            environmentIds,
-            EventType.PUBLISH_ORGANIZATION,
-            organizationEntity,
-            properties
-        );
+        eventService.createOrganizationEvent(executionContext, environmentIds, EventType.PUBLISH_ORGANIZATION, organizationEntity, null);
     }
 
     @Override

@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.DICT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -48,13 +49,13 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     private final ThreadPoolExecutor executor;
 
     public DictionarySynchronizer(
-        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
         ObjectMapper objectMapper,
         ThreadPoolExecutor executor,
         int bulkItems,
         DictionaryManager dictionaryManager
     ) {
-        super(eventRepository, bulkItems);
+        super(eventLatestRepository, bulkItems);
         this.objectMapper = objectMapper;
         this.executor = executor;
         this.dictionaryManager = dictionaryManager;
@@ -71,7 +72,6 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
                 this.searchLatestEvents(
                         lastRefreshAt,
                         nextLastRefreshAt,
-                        false,
                         DICTIONARY_ID,
                         environments,
                         EventType.PUBLISH_DICTIONARY,
@@ -94,7 +94,6 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         return this.searchLatestEvents(
                 null,
                 nextLastRefreshAt,
-                false,
                 DICTIONARY_ID,
                 environments,
                 EventType.PUBLISH_DICTIONARY,

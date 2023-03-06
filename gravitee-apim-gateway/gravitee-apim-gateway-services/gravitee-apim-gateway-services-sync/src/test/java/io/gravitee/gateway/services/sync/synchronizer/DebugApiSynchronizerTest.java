@@ -16,8 +16,15 @@
 package io.gravitee.gateway.services.sync.synchronizer;
 
 import static java.util.Collections.singletonList;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -32,7 +39,11 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,7 +85,7 @@ public class DebugApiSynchronizerTest {
         when(pluginRegistry.plugins()).thenReturn(List.of(debugPlugin));
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(true);
 
-        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, eventManager, pluginRegistry, configuration, node);
         lenient().when(node.id()).thenReturn(GATEWAY_ID);
     }
 
@@ -112,7 +123,7 @@ public class DebugApiSynchronizerTest {
     @Test
     void shouldNotSyncIfDebugModeServiceIsDisabled() {
         when(configuration.getProperty("gravitee.services.gateway-debug.enabled", Boolean.class, true)).thenReturn(false);
-        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
@@ -123,7 +134,7 @@ public class DebugApiSynchronizerTest {
     @Test
     void shouldNotSyncIfDebugModePluginIsAbsent() {
         when(pluginRegistry.plugins()).thenReturn(List.of());
-        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, 100, eventManager, pluginRegistry, configuration, node);
+        debugApiSynchronizer = new DebugApiSynchronizer(eventRepository, eventManager, pluginRegistry, configuration, node);
 
         debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 

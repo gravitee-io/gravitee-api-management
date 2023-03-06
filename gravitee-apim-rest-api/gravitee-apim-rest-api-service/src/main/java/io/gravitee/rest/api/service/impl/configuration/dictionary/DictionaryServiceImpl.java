@@ -22,11 +22,19 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProvider;
+import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.configuration.dictionary.*;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -34,7 +42,12 @@ import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,16 +104,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             dictionary = dictionaryRepository.update(dictionary);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-
             // And create event
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.PUBLISH_DICTIONARY,
                 dictionary,
-                properties
+                null
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {

@@ -68,22 +68,6 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     }
 
     @Override
-    public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
-        try {
-            return blockingGet(
-                post("/events/_searchLatest", BodyCodecs.list(Event.class))
-                    .addQueryParam("group", group.name())
-                    .addQueryParam("page", Long.toString(page))
-                    .addQueryParam("size", Long.toString(size))
-                    .send(criteria)
-            )
-                .payload();
-        } catch (TechnicalException te) {
-            throw new IllegalStateException(te);
-        }
-    }
-
-    @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
         try {
             return blockingGet(

@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.event;
+package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepositoryCustom;
+import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
-import java.util.List;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EventMongoRepositoryCustom {
-    Page<EventMongo> search(EventCriteria criteria, Pageable pageable);
-
-    Event patch(Event event);
-}
+@Repository
+public interface EventLatestMongoRepository extends MongoRepository<EventLatestMongo, String>, EventLatestMongoRepositoryCustom {}
