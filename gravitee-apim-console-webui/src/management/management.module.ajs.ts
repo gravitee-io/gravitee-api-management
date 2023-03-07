@@ -282,7 +282,7 @@ import DialogImportPathMappingController from './api/analytics/pathMappings/moda
 import RouterService from '../services/router.service';
 
 import MessageService from '../services/message.service';
-import MessagesComponent from './messages/messages.component';
+import { MessagesComponent } from './messages/messages.component';
 import apisMessagesRouterConfig from './api/messages/apis.messages.route';
 
 import ApiPortalHeaderComponent from '../management/configuration/api-portal-header/api-portal-header.component';
@@ -992,7 +992,7 @@ graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ 
 // Router
 graviteeManagementModule.service('RouterService', RouterService);
 
-graviteeManagementModule.component('messages', MessagesComponent);
+graviteeManagementModule.directive('ngMessages', downgradeComponent({ component: MessagesComponent }));
 
 // Dictionaries
 graviteeManagementModule.service('DictionaryService', DictionaryService);

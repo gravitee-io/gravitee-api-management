@@ -24,7 +24,6 @@ import { ApiService } from '../services/api.service';
 import ApplicationService from '../services/application.service';
 import DashboardService from '../services/dashboard.service';
 import InstancesService from '../services/instances.service';
-import RoleService from '../services/role.service';
 import TicketService from '../services/ticket.service';
 
 /* @ngInject */
@@ -224,18 +223,11 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.messages', {
       url: '/messages',
-      component: 'messages',
+      component: 'ngMessages',
       data: {
-        perms: {
-          only: ['environment-message-c'],
-        },
         docs: {
           page: 'management-messages',
         },
-      },
-      resolve: {
-        resolvedScope: () => 'ENVIRONMENT',
-        resolvedRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT'),
       },
     })
     .state('management.tasks', {

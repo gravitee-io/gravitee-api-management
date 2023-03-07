@@ -27,9 +27,11 @@ import { ApisModule } from './api/apis.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 import { InstanceDetailsModule } from './instances/instance-details/instance-details.module';
 import { ApiCreationV4Module } from './api/creation/v4/api-creation-v4.module';
+import { MessagesModule } from './messages/messages.module';
 
 import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -46,6 +48,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     ApisModule,
     SettingsNavigationModule,
     InstanceDetailsModule.withRouting({ stateNamePrefix: 'management.instances.detail' }),
+    MessagesModule,
   ],
   declarations: [],
   entryComponents: [],
