@@ -31,7 +31,7 @@ public class ManagedEndpoint extends AbstractEndpoint implements EndpointStatusL
 
     public ManagedEndpoint(final io.gravitee.definition.model.Endpoint endpoint, final Connector connector) {
         this.endpoint = endpoint;
-        this.endpoint.addEndpointAvailabilityListener(this);
+        this.endpoint.addEndpointStatusListener(this);
         this.connector = connector;
     }
 
