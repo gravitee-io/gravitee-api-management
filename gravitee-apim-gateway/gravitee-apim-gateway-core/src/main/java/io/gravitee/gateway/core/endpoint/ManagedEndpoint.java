@@ -82,6 +82,7 @@ public class ManagedEndpoint extends AbstractEndpoint implements EndpointStatusL
 
     @Override
     public void onStatusChanged(Endpoint.Status status) {
+        this.endpoint.setStatus(status);
         listeners.forEach(listener -> listener.onAvailabilityChange(this, status != Endpoint.Status.DOWN));
     }
 }

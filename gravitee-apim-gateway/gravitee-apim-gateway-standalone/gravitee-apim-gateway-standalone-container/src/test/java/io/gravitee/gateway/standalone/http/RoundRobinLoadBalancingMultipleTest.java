@@ -65,10 +65,10 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
         Iterator<Endpoint> endpointsIte = api.getProxy().getGroups().iterator().next().getEndpoints().iterator();
 
         // Set the first endpoint with down status
-        endpointsIte.next().setStatus(Endpoint.Status.DOWN);
+        endpointsIte.next().updateStatus(Endpoint.Status.DOWN);
 
         // Set the second endpoint with down status
-        endpointsIte.next().setStatus(Endpoint.Status.DOWN);
+        endpointsIte.next().updateStatus(Endpoint.Status.DOWN);
 
         Request request = Request.Get("http://localhost:8082/api");
 
