@@ -3,7 +3,7 @@
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
-  "type": "async",
+  "type": "message",
   "description": "API v4 using webhook entrypoint",
   "listeners": [
     {

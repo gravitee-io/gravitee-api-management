@@ -75,7 +75,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         if (connectorFactory.supportedApi() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
-        if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.ASYNC) {
+        if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.MESSAGE) {
             Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = null;
             if (connectorFactory instanceof EntrypointAsyncConnectorFactory) {
                 supportedQos = ((EntrypointAsyncConnectorFactory) connectorFactory).supportedQos();

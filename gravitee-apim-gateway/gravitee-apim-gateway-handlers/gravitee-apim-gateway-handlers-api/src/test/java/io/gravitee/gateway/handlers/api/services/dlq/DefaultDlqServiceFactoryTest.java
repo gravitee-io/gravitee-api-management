@@ -81,7 +81,7 @@ class DefaultDlqServiceFactoryTest {
                     criteria ->
                         criteria.getName().equals(endpointTarget) &&
                         criteria.getModes().equals(Set.of(PUBLISH)) &&
-                        criteria.getApiType() == ApiType.ASYNC
+                        criteria.getApiType() == ApiType.MESSAGE
                 )
             );
     }

@@ -134,7 +134,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(mqtt5EndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(mqtt5EndpointConnector.supportedApi()).isEqualTo(ApiType.MESSAGE);
     }
 
     @Test

@@ -72,7 +72,7 @@ public class EntrypointPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-        when(mockFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(mockFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
         when(mockFactory.supportedListenerType()).thenReturn(ListenerType.HTTP);
     }
@@ -136,7 +136,7 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
 
-        Set<ConnectorPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.ASYNC);
+        Set<ConnectorPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.MESSAGE);
 
         assertNotNull(result);
         assertEquals(1, result.size());

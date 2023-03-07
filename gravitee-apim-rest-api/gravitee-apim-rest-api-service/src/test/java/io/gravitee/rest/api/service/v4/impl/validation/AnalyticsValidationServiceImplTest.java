@@ -90,7 +90,7 @@ public class AnalyticsValidationServiceImplTest {
     @Test
     public void should_add_default_analytics_if_no_analytics() {
         // No analytics
-        assertNotNull(analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.SYNC, null));
+        assertNotNull(analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.PROXY, null));
 
         // Default logging
         Analytics analytics = new Analytics();
@@ -98,7 +98,7 @@ public class AnalyticsValidationServiceImplTest {
         analytics.setLogging(defaultLogging);
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertSame(defaultLogging, sanitizedAnalytics.getLogging());
@@ -114,7 +114,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertSame(logging, sanitizedAnalytics.getLogging());
@@ -140,7 +140,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertSame(logging, sanitizedAnalytics.getLogging());
@@ -156,7 +156,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -173,7 +173,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -190,7 +190,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -207,7 +207,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -227,7 +227,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -249,7 +249,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -271,7 +271,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -293,7 +293,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -315,7 +315,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -345,7 +345,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -362,7 +362,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -379,7 +379,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -396,7 +396,7 @@ public class AnalyticsValidationServiceImplTest {
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -431,7 +431,7 @@ public class AnalyticsValidationServiceImplTest {
         analytics.getLogging().setCondition(condition);
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             analytics
         );
         assertEquals(LoggingMode.builder().entrypoint(true).endpoint(true).build(), sanitizedAnalytics.getLogging().getMode());
@@ -442,7 +442,7 @@ public class AnalyticsValidationServiceImplTest {
     public void should_set_default_analytics_without_sampling_when_sync_api() {
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.SYNC,
+            ApiType.PROXY,
             null
         );
         assertEquals(new Analytics(), sanitizedAnalytics);
@@ -452,7 +452,7 @@ public class AnalyticsValidationServiceImplTest {
     public void should_set_default_analytics_with_sampling_when_async_api() {
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.ASYNC,
+            ApiType.MESSAGE,
             null
         );
         Analytics expected = new Analytics();
@@ -468,7 +468,7 @@ public class AnalyticsValidationServiceImplTest {
         Analytics analytics = new Analytics();
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.ASYNC,
+            ApiType.MESSAGE,
             analytics
         );
         Analytics expected = new Analytics();
@@ -488,7 +488,7 @@ public class AnalyticsValidationServiceImplTest {
         analytics.setMessageSampling(messageSampling);
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
-            ApiType.ASYNC,
+            ApiType.MESSAGE,
             analytics
         );
         assertEquals(analytics, sanitizedAnalytics);
@@ -503,7 +503,7 @@ public class AnalyticsValidationServiceImplTest {
         analytics.setMessageSampling(messageSampling);
         assertThrows(
             AnalyticsMessageSamplingValueInvalidException.class,
-            () -> analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.ASYNC, analytics)
+            () -> analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.MESSAGE, analytics)
         );
     }
 }

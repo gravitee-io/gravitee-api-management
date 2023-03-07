@@ -22,7 +22,6 @@ import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.node.api.Node;
-
 import java.util.Collections;
 
 /**

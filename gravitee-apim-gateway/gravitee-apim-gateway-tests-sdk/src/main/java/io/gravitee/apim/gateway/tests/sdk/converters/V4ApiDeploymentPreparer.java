@@ -69,7 +69,7 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
      * Add a default endpoint group to the api
      */
     private void addDefaultEndpointGroupIfNeeded(Api api) {
-        if (ApiType.SYNC.equals(api.getType())) {
+        if (ApiType.PROXY.equals(api.getType())) {
             // TODO: implement this when sync api endpoints will be implemented
         }
     }

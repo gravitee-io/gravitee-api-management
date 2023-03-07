@@ -27,10 +27,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ApiType {
-    SYNC("sync"),
-    ASYNC("async");
+    PROXY("proxy"),
+    MESSAGE("message");
 
-    private static final Map<String, ApiType> LABELS_MAP = Map.of(SYNC.label, SYNC, ASYNC.label, ASYNC);
+    private static final Map<String, ApiType> LABELS_MAP = Map.of(PROXY.label, PROXY, MESSAGE.label, MESSAGE);
 
     @JsonValue
     private final String label;

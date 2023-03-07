@@ -261,7 +261,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setId(API);
         updateApiEntity.setApiVersion("v1");
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.MESSAGE);
         updateApiEntity.setName("api-name");
         updateApiEntity.setDescription("api-description");
         updateApiEntity.setVisibility(Visibility.PUBLIC);

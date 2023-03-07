@@ -163,7 +163,7 @@ public class ListenerValidationServiceImplTest {
         httpListener.setEntrypoints(List.of(entrypoint));
         List<Listener> listeners = List.of(httpListener);
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
         when(connectorPluginEntity.getSupportedQos()).thenReturn(Set.of(Qos.AUTO));
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
@@ -353,7 +353,7 @@ public class ListenerValidationServiceImplTest {
         entrypoint.setQos(Qos.AT_LEAST_ONCE);
         httpListener.setEntrypoints(List.of(entrypoint));
         ConnectorPluginEntity connectorPluginEntity = mock(ConnectorPluginEntity.class);
-        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.ASYNC);
+        when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
         assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)

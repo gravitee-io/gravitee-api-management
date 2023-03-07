@@ -183,7 +183,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
         apiEntity.setApiVersion("v1");
-        apiEntity.setType(ApiType.SYNC);
+        apiEntity.setType(ApiType.PROXY);
         apiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));
@@ -218,7 +218,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
         apiEntity.setApiVersion("v1");
-        apiEntity.setType(ApiType.SYNC);
+        apiEntity.setType(ApiType.PROXY);
         apiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));

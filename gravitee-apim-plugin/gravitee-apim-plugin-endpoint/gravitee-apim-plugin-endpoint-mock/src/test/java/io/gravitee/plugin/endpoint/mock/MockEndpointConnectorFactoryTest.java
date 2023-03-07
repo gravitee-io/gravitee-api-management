@@ -48,7 +48,7 @@ class MockEndpointConnectorFactoryTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.MESSAGE);
     }
 
     @Test

@@ -53,7 +53,7 @@ class FlowResolverFactoryTest {
     void init() {
         cut = new FlowResolverFactory(syncFilter, asyncFilter);
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        definition.setType(ApiType.SYNC);
+        definition.setType(ApiType.PROXY);
         api = new Api(definition);
         definition.setFlowExecution(new FlowExecution());
     }

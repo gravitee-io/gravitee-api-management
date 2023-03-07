@@ -779,10 +779,10 @@ components:
         ApiType:
             type: string
             description: API's type.
-            example: async
+            example: message
             enum:
-                - async
-                - sync
+                - message
+                - proxy
         ApiVisibility:
             type: string
             description: The visibility of the API regarding the portal.

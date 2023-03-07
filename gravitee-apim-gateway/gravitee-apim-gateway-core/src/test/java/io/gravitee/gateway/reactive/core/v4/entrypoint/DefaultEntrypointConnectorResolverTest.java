@@ -92,7 +92,7 @@ class DefaultEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         final EntrypointAsyncConnectorFactory asyncConnectorFactory = mock(EntrypointAsyncConnectorFactory.class);
-        when(asyncConnectorFactory.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(asyncConnectorFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenAnswer(invocation -> asyncConnectorFactory);
 
         when(entrypointAsyncConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);

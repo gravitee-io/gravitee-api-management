@@ -199,7 +199,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
-        this.isEventNative = this.api.getDefinition().getType() == ApiType.ASYNC;
+        this.isEventNative = this.api.getDefinition().getType() == ApiType.MESSAGE;
     }
 
     @Override

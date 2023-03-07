@@ -67,7 +67,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
@@ -80,7 +80,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.get("id"));
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.get("supportedApiType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
@@ -96,7 +96,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENDPOINT_ID);
         connectorPlugin.setName("Fake Endpoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
         when(endpointConnectorPluginService.getSchema(FAKE_ENDPOINT_ID)).thenReturn("schemaResponse");
@@ -113,7 +113,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENDPOINT_ID);
         connectorPlugin.setName("Fake Endpoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
 
@@ -136,7 +136,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENDPOINT_ID);
         connectorPlugin.setName("Fake Endpoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
         when(endpointConnectorPluginService.getDocumentation(FAKE_ENDPOINT_ID)).thenReturn("documentationResponse");
@@ -153,7 +153,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENDPOINT_ID);
         connectorPlugin.setName("Fake Endpoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
 
@@ -177,7 +177,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENDPOINT_ID);
         connectorPlugin.setName("Fake Endpoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
 
@@ -189,7 +189,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals(FAKE_ENDPOINT_ID, endpoint.getId());
         assertEquals("Fake Endpoint", endpoint.getName());
         assertEquals("1.0", endpoint.getVersion());
-        assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.ASYNC, endpoint.getSupportedApiType());
+        assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.MESSAGE, endpoint.getSupportedApiType());
         assertEquals(Set.of(io.gravitee.rest.api.management.v4.rest.model.ConnectorMode.SUBSCRIBE), endpoint.getSupportedModes());
     }
 }

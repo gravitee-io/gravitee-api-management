@@ -37,7 +37,7 @@ public class BestMatchFlowSelector {
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile("/");
 
     public static <T> T forPath(List<T> flows, String path) {
-        return forPath(ApiType.SYNC, flows, path);
+        return forPath(ApiType.PROXY, flows, path);
     }
 
     /**
@@ -161,13 +161,13 @@ public class BestMatchFlowSelector {
             return splitPath(((Flow) flow).getPath());
         } else if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
             io.gravitee.definition.model.v4.flow.Flow flowV4 = (io.gravitee.definition.model.v4.flow.Flow) flow;
-            if (apiType == ApiType.SYNC) {
+            if (apiType == ApiType.PROXY) {
                 Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.HTTP);
                 if (selectorOpt.isPresent()) {
                     HttpSelector httpSelector = (HttpSelector) selectorOpt.get();
                     return splitPath(httpSelector.getPath());
                 }
-            } else if (apiType == ApiType.ASYNC) {
+            } else if (apiType == ApiType.MESSAGE) {
                 Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.CHANNEL);
                 if (selectorOpt.isPresent()) {
                     ChannelSelector channelSelector = (ChannelSelector) selectorOpt.get();
