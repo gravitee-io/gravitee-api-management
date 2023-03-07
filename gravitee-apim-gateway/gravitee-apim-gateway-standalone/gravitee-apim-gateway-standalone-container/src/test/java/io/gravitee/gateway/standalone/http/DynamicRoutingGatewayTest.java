@@ -54,7 +54,7 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
     public void call_dynamic_api_unavailable() throws Exception {
         String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
 
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.DOWN);
 
         HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
