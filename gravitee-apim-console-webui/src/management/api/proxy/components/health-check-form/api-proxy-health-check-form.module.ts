@@ -23,12 +23,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioBannerModule, GioFormHeadersModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormHeadersModule, GioIconsModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
 import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
-
-import { GioFormSlideToggleModule } from '../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   declarations: [ApiProxyHealthCheckFormComponent],

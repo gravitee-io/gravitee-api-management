@@ -19,7 +19,7 @@ import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioSaveBarModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,7 +35,6 @@ import { ApiProxyGroupEndpointModule } from './endpoint/api-proxy-group-endpoint
 
 import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioFormSlideToggleModule } from '../../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   declarations: [
