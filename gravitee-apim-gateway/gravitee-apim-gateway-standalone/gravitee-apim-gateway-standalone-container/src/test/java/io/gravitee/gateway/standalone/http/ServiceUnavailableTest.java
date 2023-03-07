@@ -47,7 +47,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_unavailable_api() throws Exception {
         // Set the endpoint as down
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.DOWN);
 
         HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
@@ -61,7 +61,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         // Set the endpoint as down
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.DOWN);
 
         HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
@@ -70,7 +70,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
         wireMockRule.verify(0, getRequestedFor(urlEqualTo("/team/my_team")));
 
         // Set the endpoint as up
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.UP);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.UP);
 
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
