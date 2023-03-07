@@ -112,7 +112,20 @@ public class Endpoint implements Serializable {
         return status;
     }
 
+    /**
+     * This method should only be used by listeners to update the status of the endpoint.
+     * Indeed, if listeners call updateStatus, it will end in an infinite loop
+     * @param status
+     */
     public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    /**
+     * This method is used by the HealtchCheck service of the gateway to update the status and notify listeners (actually io.gravitee.gateway.core.endpoint.ManagedEndpoint).
+     * @param status
+     */
+    public void updateStatus(Status status) {
         this.status = status;
         listeners.forEach(endpointStatusListener -> endpointStatusListener.onStatusChanged(status));
     }
