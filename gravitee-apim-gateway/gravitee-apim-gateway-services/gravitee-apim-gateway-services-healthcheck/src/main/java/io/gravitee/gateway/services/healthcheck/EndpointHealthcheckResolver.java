@@ -157,7 +157,7 @@ public class EndpointHealthcheckResolver implements InitializingBean {
                 // the one from the ManagedEndpoint. This is a temporary fix that need to be addressed, for details see
                 // https://github.com/gravitee-io/issues/issues/6437
                 HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
-                endpoint.getEndpointAvailabilityListeners().forEach(httpEndpoint::addEndpointAvailabilityListener);
+                endpoint.getEndpointStatusListeners().forEach(httpEndpoint::addEndpointStatusListener);
                 return httpEndpoint;
             } catch (JsonProcessingException e) {
                 LOGGER.warn("Cannot convert endpoint to http endpoint", e);
