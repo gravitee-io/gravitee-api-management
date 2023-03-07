@@ -137,7 +137,7 @@ public class Endpoint implements Serializable {
         this.inherit = inherit;
     }
 
-    public void addEndpointAvailabilityListener(EndpointStatusListener listener) {
+    public void addEndpointStatusListener(EndpointStatusListener listener) {
         listeners.add(listener);
     }
 
@@ -158,7 +158,7 @@ public class Endpoint implements Serializable {
     }
 
     @JsonIgnore
-    public Set<EndpointStatusListener> getEndpointAvailabilityListeners() {
+    public Set<EndpointStatusListener> getEndpointStatusListeners() {
         return this.listeners;
     }
 
