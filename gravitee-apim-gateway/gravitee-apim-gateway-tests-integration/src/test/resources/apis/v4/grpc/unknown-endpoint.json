@@ -2,7 +2,7 @@
   "id": "api-streaming-greeter-v4",
   "name": "streaming-greeter-v4",
   "gravitee": "4.0.0",
-  "type": "sync",
+  "type": "proxy",
   "listeners": [
     {
       "type": "http",

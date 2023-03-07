@@ -58,7 +58,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
 
@@ -70,7 +70,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.get("id"));
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.get("supportedApiType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
@@ -82,7 +82,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
         when(endpointConnectorPluginService.getSchema(connectorPlugin.getId())).thenReturn("schema");
@@ -96,7 +96,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.get("id"));
         assertEquals("name", pluginEntity.get("name"));
         assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.ASYNC.getLabel(), pluginEntity.get("supportedApiType"));
+        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.get("supportedApiType"));
         ArrayList<String> arrayList = new ArrayList<>();
         arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(arrayList, pluginEntity.get("supportedModes"));
@@ -110,7 +110,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId("id");
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById("id")).thenReturn(connectorPlugin);
 

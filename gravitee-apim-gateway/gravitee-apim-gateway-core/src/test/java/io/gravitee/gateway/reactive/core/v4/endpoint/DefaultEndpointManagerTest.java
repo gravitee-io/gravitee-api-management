@@ -61,7 +61,7 @@ class DefaultEndpointManagerTest {
     private static final String ENDPOINT_CONFIG = "{ \"config\": \"something\"}";
     private static final String MOCK_EXCEPTION = "Mock exception";
     private static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
-    private static final ApiType SUPPORTED_API_TYPE = ApiType.ASYNC;
+    private static final ApiType SUPPORTED_API_TYPE = ApiType.MESSAGE;
 
     @Mock
     private ExecutionContext ctx;
@@ -440,12 +440,12 @@ class DefaultEndpointManagerTest {
         final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
         final String groupName = expectedEndpointGroup.getName();
         final EndpointConnector connector = mock(EndpointConnector.class);
-        when(connector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
 
         final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
         cut.start();
-        final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.SYNC, null));
+        final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.PROXY, null));
 
         assertThat(next).isNull();
     }
@@ -458,12 +458,12 @@ class DefaultEndpointManagerTest {
         final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
         final String endpointName = expectedEndpoint.getName();
         final EndpointConnector connector = mock(EndpointConnector.class);
-        when(connector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
 
         final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
         cut.start();
-        final ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, ApiType.SYNC, null));
+        final ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, ApiType.PROXY, null));
 
         assertThat(next).isNull();
     }
@@ -475,13 +475,13 @@ class DefaultEndpointManagerTest {
         final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
         final String groupName = expectedEndpointGroup.getName();
         final EndpointConnector connector = mock(EndpointConnector.class);
-        when(connector.supportedApi()).thenReturn(ApiType.ASYNC);
+        when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG)).thenReturn(connector);
 
         final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
         cut.start();
 
-        final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.ASYNC, null));
+        final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.MESSAGE, null));
 
         assertThat(next).isNotNull();
         assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.

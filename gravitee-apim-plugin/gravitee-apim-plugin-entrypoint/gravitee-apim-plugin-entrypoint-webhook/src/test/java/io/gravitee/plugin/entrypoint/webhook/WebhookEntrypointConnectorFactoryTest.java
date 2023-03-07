@@ -57,7 +57,7 @@ class WebhookEntrypointConnectorFactoryTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(webhookEntrypointConnectorFactory.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(webhookEntrypointConnectorFactory.supportedApi()).isEqualTo(ApiType.MESSAGE);
     }
 
     @Test

@@ -150,7 +150,7 @@ class KafkaEndpointConnectorTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(kafkaEndpointConnector.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(kafkaEndpointConnector.supportedApi()).isEqualTo(ApiType.MESSAGE);
     }
 
     @Test

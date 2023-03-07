@@ -71,7 +71,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
 
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
         if (flow.getSelectors() != null) {
-            if (ApiType.SYNC == apiType) {
+            if (ApiType.PROXY == apiType) {
                 Set<String> invalidSelectors = flow
                     .getSelectors()
                     .stream()
@@ -81,7 +81,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
                 if (!invalidSelectors.isEmpty()) {
                     throw new FlowSelectorsInvalidException(flow.getName(), apiType, invalidSelectors);
                 }
-            } else if (ApiType.ASYNC == apiType) {
+            } else if (ApiType.MESSAGE == apiType) {
                 Set<String> invalidSelectors = flow
                     .getSelectors()
                     .stream()
@@ -108,7 +108,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
             ChannelSelector channelSelector = channelSelectorOpt.get();
             if (channelSelector.getEntrypoints() != null) {
                 Set<String> asyncEntrypoints = entrypointConnectorPluginService
-                    .findBySupportedApi(ApiType.ASYNC)
+                    .findBySupportedApi(ApiType.MESSAGE)
                     .stream()
                     .map(PlatformPluginEntity::getId)
                     .collect(Collectors.toSet());

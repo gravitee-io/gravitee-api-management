@@ -2,7 +2,7 @@
   "id": "my-api-latency-v4",
   "name": "my-api-latency-v4",
   "gravitee": "4.0.0",
-  "type": "sync",
+  "type": "proxy",
   "listeners": [
     {
       "type": "http",

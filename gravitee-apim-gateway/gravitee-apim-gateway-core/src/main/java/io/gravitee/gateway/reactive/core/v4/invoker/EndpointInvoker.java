@@ -78,7 +78,7 @@ public class EndpointInvoker implements Invoker {
             );
         }
 
-        if (endpointConnector.supportedApi() == ApiType.ASYNC) {
+        if (endpointConnector.supportedApi() == ApiType.MESSAGE) {
             return validateQoSAndConnect((EndpointAsyncConnector) endpointConnector, ctx);
         } else {
             return connect(endpointConnector, ctx);

@@ -331,7 +331,7 @@ class DefaultApiReactorTest {
         lenient().when(api.getDeployedAt()).thenReturn(new Date());
         lenient().when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
-        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.ASYNC);
+        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.MESSAGE);
         lenient().when(apiDefinition.getAnalytics()).thenReturn(new Analytics());
         lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
         lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
@@ -385,7 +385,7 @@ class DefaultApiReactorTest {
         lenient()
             .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
             .thenReturn(entrypointConnector);
-        lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.ASYNC);
+        lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
 
         when(configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
@@ -473,7 +473,7 @@ class DefaultApiReactorTest {
     @Test
     void shouldExecuteRequestAndResponsePhasesOnlyWhenUsingSyncEntrypoint() {
         when(entrypointConnectorResolver.resolve(ctx)).thenReturn(entrypointConnector);
-        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.SYNC);
+        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
         cut = buildApiReactor();
         cut.handle(ctx).test().assertComplete();
@@ -545,7 +545,7 @@ class DefaultApiReactorTest {
     @Test
     void shouldSkipInvoker() {
         when(entrypointConnectorResolver.resolve(ctx)).thenReturn(entrypointConnector);
-        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.SYNC);
+        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
         when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP)).thenReturn(true);
 
@@ -958,7 +958,7 @@ class DefaultApiReactorTest {
 
     @Test
     void shouldHandleRequestWithLegacyInvoker() {
-        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.SYNC);
+        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
         io.gravitee.gateway.core.invoker.EndpointInvoker endpointInvoker = mock(io.gravitee.gateway.core.invoker.EndpointInvoker.class);
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(endpointInvoker);

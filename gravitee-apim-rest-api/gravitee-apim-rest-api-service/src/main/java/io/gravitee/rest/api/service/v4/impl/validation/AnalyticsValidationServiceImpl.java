@@ -65,7 +65,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
     public Analytics validateAndSanitize(final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
         if (analytics == null) {
             Analytics defaultAnalytics = new Analytics();
-            if (type == ApiType.ASYNC) {
+            if (type == ApiType.MESSAGE) {
                 setDefaultMessageSampling(defaultAnalytics);
             }
             return defaultAnalytics;
@@ -85,10 +85,10 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
     }
 
     private void validateAndSanitizeSampling(final ApiType type, final Analytics analytics) {
-        if (ApiType.SYNC.equals(type) && analytics.getMessageSampling() != null) {
+        if (ApiType.PROXY.equals(type) && analytics.getMessageSampling() != null) {
             throw new AnalyticsIncompatibleApiTypeConfigurationException(Map.of("analytics.messageSampling", "invalid"));
         }
-        if (ApiType.ASYNC.equals(type)) {
+        if (ApiType.MESSAGE.equals(type)) {
             if (analytics.getMessageSampling() == null) {
                 setDefaultMessageSampling(analytics);
             }
@@ -109,7 +109,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
             // Validate logging option according to api
             if (
                 (
-                    type == ApiType.SYNC &&
+                    type == ApiType.PROXY &&
                     (
                         logging.getContent().isMessageHeaders() ||
                         logging.getContent().isMessagePayload() ||
@@ -117,7 +117,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                         logging.getMessageCondition() != null
                     )
                 ) ||
-                (type == ApiType.ASYNC && logging.getContent().isPayload())
+                (type == ApiType.MESSAGE && logging.getContent().isPayload())
             ) {
                 throw new LoggingInvalidConfigurationException();
             }

@@ -167,7 +167,7 @@ public class ApiProcessorChainFactory {
 
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
         Analytics analytics = apiDefinition.getAnalytics();
-        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.ASYNC) {
+        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.MESSAGE) {
             processors.add(new EntrypointRequestReporterMessageProcessor(reporterService));
         }
 
@@ -178,7 +178,7 @@ public class ApiProcessorChainFactory {
         List<Processor> processors = new ArrayList<>();
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
         Analytics analytics = apiDefinition.getAnalytics();
-        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.ASYNC) {
+        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.MESSAGE) {
             processors.add(new EntrypointResponseReporterMessageProcessor(reporterService));
         }
 
@@ -233,7 +233,7 @@ public class ApiProcessorChainFactory {
             if (AnalyticsUtils.isLoggingEnabled(analytics)) {
                 processors.add(LogResponseProcessor.instance());
             }
-            if (apiDefinition.getType() == ApiType.ASYNC && analytics.isEnabled()) {
+            if (apiDefinition.getType() == ApiType.MESSAGE && analytics.isEnabled()) {
                 processors.add(new EventNativeReporterProcessor(reporterService));
             }
         }

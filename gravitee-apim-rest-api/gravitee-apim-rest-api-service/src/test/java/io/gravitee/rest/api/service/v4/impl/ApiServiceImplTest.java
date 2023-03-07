@@ -375,7 +375,7 @@ public class ApiServiceImplTest {
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.SYNC);
+        newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));
@@ -387,7 +387,7 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getId()).isNotNull();
         assertThat(apiEntity.getName()).isEqualTo(API_NAME);
         assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.PROXY);
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
@@ -442,7 +442,7 @@ public class ApiServiceImplTest {
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setName(API_NAME);
         newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.SYNC);
+        newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/context")));
@@ -457,7 +457,7 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getId()).isNotNull();
         assertThat(apiEntity.getName()).isEqualTo(API_NAME);
         assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.SYNC);
+        assertThat(apiEntity.getType()).isEqualTo(ApiType.PROXY);
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
@@ -1100,7 +1100,7 @@ public class ApiServiceImplTest {
         updateApiEntity.setApiVersion("v1");
         updateApiEntity.setDescription("Ma description");
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.ASYNC);
+        updateApiEntity.setType(ApiType.MESSAGE);
 
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName(endpointGroupName);

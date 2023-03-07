@@ -53,7 +53,7 @@ public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
         when(request.pathInfo()).thenReturn(requestPath);
 
         List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.SYNC, flows, requestPath);
+        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.PROXY, flows, requestPath);
 
         if (expectedBestMatchResult == null) {
             assertThat(bestMatchFlow).isNull();
@@ -72,7 +72,7 @@ public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
         when(request.pathInfo()).thenReturn(requestPath);
 
         List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.ASYNC, flows, requestPath);
+        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.MESSAGE, flows, requestPath);
 
         if (expectedBestMatchResult == null) {
             assertThat(bestMatchFlow).isNull();

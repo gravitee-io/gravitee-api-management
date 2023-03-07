@@ -62,7 +62,7 @@ public class DefaultDlqServiceFactory implements DlqServiceFactory {
         final String targetEndpoint = dlqMapping.get(connector.id());
 
         if (targetEndpoint != null) {
-            final EndpointCriteria criteria = new EndpointCriteria(targetEndpoint, ApiType.ASYNC, Set.of(ConnectorMode.PUBLISH));
+            final EndpointCriteria criteria = new EndpointCriteria(targetEndpoint, ApiType.MESSAGE, Set.of(ConnectorMode.PUBLISH));
             final ManagedEndpoint managedEndpoint = endpointManager.next(criteria);
 
             if (managedEndpoint != null) {

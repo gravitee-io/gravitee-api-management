@@ -45,7 +45,7 @@ class Mqtt5EndpointConnectorFactoryTest {
 
     @Test
     void shouldSupportAsyncApi() {
-        assertThat(mqtt5EndpointConnectorFactory.supportedApi()).isEqualTo(ApiType.ASYNC);
+        assertThat(mqtt5EndpointConnectorFactory.supportedApi()).isEqualTo(ApiType.MESSAGE);
     }
 
     @Test

@@ -58,7 +58,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getSchema(FAKE_ENTRYPOINT)).thenReturn("schemaResponse");
@@ -75,7 +75,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 
@@ -104,7 +104,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getDocumentation(FAKE_ENTRYPOINT)).thenReturn("documentationResponse");
@@ -121,7 +121,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 
@@ -150,7 +150,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT)).thenReturn("subscriptionSchemaResponse");
@@ -167,7 +167,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT));
 
@@ -196,7 +196,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT);
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.ASYNC);
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT)).thenReturn(connectorPlugin);
 

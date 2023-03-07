@@ -52,7 +52,7 @@ export class ApisV4Faker {
       groups: [],
       listeners: [],
       tags: [],
-      type: NewApiEntityV4TypeEnum.ASYNC,
+      type: NewApiEntityV4TypeEnum.MESSAGE,
       ...attributes,
     };
   }

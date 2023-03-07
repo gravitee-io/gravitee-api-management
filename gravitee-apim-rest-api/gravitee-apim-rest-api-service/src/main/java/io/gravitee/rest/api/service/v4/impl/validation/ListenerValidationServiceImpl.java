@@ -156,12 +156,12 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void checkEntrypointQos(final Entrypoint entrypoint, final ConnectorPluginEntity connectorPlugin) {
-        if (connectorPlugin.getSupportedApiType() == ApiType.ASYNC) {
+        if (connectorPlugin.getSupportedApiType() == ApiType.MESSAGE) {
             if (entrypoint.getQos() == null) {
                 throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
             }
             if (
-                connectorPlugin.getSupportedApiType() == ApiType.ASYNC &&
+                connectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
                 (connectorPlugin.getSupportedQos() == null || !connectorPlugin.getSupportedQos().contains(entrypoint.getQos()))
             ) {
                 throw new ListenerEntrypointUnsupportedQosException(entrypoint.getType(), entrypoint.getQos().getLabel());

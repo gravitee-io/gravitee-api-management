@@ -58,7 +58,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
         Api api = new Api();
-        api.setType(ApiType.SYNC);
+        api.setType(ApiType.PROXY);
         when(reactableApi.getDefinition()).thenReturn(api);
         when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
 
@@ -86,7 +86,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
         Api api = new Api();
-        api.setType(ApiType.ASYNC);
+        api.setType(ApiType.MESSAGE);
         when(reactableApi.getDefinition()).thenReturn(api);
         when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
 

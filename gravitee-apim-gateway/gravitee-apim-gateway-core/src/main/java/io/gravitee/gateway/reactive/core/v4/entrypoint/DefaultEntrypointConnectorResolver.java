@@ -73,7 +73,7 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
         EntrypointConnectorFactory<?> connectorFactory = entrypointConnectorPluginManager.getFactoryById(entrypoint.getType());
 
         if (connectorFactory != null) {
-            if (connectorFactory.supportedApi() == ApiType.ASYNC) {
+            if (connectorFactory.supportedApi() == ApiType.MESSAGE) {
                 EntrypointAsyncConnectorFactory<EntrypointAsyncConnector> entrypointAsyncConnectorFactory = (EntrypointAsyncConnectorFactory<EntrypointAsyncConnector>) connectorFactory;
                 Qos qos = Qos.AUTO;
                 if (entrypoint.getQos() != null) {

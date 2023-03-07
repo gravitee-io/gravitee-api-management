@@ -164,7 +164,7 @@ const deleteV4Api = async (orgId: string, envId: string, apiId: string) => {
           endpointGroups: apiToDelete.endpointGroups,
           listeners: apiToDelete.listeners,
           analytics: apiToDelete.analytics,
-          type: UpdateApiEntityV4TypeEnum.ASYNC,
+          type: UpdateApiEntityV4TypeEnum.MESSAGE,
         },
       });
     }

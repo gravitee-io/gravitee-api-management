@@ -51,7 +51,7 @@ class HttpProxyEntrypointConnectorTest {
 
     @Test
     void shouldSupportSyncApi() {
-        assertThat(cut.supportedApi()).isEqualTo(ApiType.SYNC);
+        assertThat(cut.supportedApi()).isEqualTo(ApiType.PROXY);
     }
 
     @Test
