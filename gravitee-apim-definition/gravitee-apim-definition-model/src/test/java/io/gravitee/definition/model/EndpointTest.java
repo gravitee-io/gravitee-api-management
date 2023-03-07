@@ -59,7 +59,7 @@ public class EndpointTest {
         };
 
         Endpoint endpoint = new Endpoint("my-type", "my-name", "my-target");
-        endpoint.addEndpointAvailabilityListener(unserializableStatusListener);
+        endpoint.addEndpointStatusListener(unserializableStatusListener);
 
         String serializedEndpoint = new ObjectMapper().writeValueAsString(endpoint);
 
