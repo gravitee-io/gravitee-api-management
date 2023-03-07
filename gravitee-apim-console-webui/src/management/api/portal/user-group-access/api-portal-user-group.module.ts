@@ -15,7 +15,14 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioAvatarModule, GioBannerModule, GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioAvatarModule,
+  GioBannerModule,
+  GioConfirmDialogModule,
+  GioIconsModule,
+  GioSaveBarModule,
+  GioFormSlideToggleModule,
+} from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -34,7 +41,6 @@ import { ApiPortalTransferOwnershipComponent } from './transfer-ownership/api-po
 import { ApiPortalGroupsMembersComponent } from './members/api-portal-groups-members/api-portal-groups-members.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormSlideToggleModule } from '../../../../shared/components/gio-form-slide-toogle/gio-form-slide-toggle.module';
 import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 
