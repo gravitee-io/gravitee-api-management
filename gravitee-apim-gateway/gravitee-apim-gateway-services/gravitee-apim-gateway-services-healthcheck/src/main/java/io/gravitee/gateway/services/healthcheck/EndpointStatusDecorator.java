@@ -53,7 +53,7 @@ public class EndpointStatusDecorator {
 
         // Set status only if changed
         if (previousStatus == null || previousStatus != counter.status()) {
-            endpoint.setStatus(counter.status());
+            endpoint.updateStatus(counter.status());
             previousStatus = endpoint.getStatus();
         }
     }
