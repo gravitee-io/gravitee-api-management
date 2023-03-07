@@ -1,0 +1,35 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  &__field {
+    padding-bottom: 16px;
+
+    &__two-columns {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 16px;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  gio-form-headers {
+    margin-bottom: 16px;
+  }
+}
+
+mat-card-footer {
+  margin: 0 0 16px;
+}
