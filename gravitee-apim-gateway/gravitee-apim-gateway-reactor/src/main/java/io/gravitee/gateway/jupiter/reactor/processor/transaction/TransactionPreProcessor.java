@@ -27,12 +27,12 @@ import io.reactivex.Completable;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessor implements Processor {
+public class TransactionPreProcessor implements Processor {
 
     private final String transactionHeader;
     private final String requestHeader;
 
-    TransactionProcessor(final String transactionHeader, final String requestHeader) {
+    TransactionPreProcessor(final String transactionHeader, final String requestHeader) {
         this.transactionHeader = transactionHeader;
         this.requestHeader = requestHeader;
     }
@@ -47,7 +47,7 @@ public class TransactionProcessor implements Processor {
 
     @Override
     public String getId() {
-        return "processor-transaction";
+        return "pre-processor-transaction";
     }
 
     @Override
