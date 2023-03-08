@@ -15,7 +15,7 @@
  */
 import * as jsYAML from 'js-yaml';
 
-const schema = jsYAML.FAILSAFE_SCHEMA.extend([]);
+const schema = jsYAML.JSON_SCHEMA.extend([]);
 
 export function readYaml(content: string): any {
   return jsYAML.load(content, { schema });
