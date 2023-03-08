@@ -123,7 +123,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     // Skip step 3-list if api type is sync
     this.stepService.goToNextStep({
       groupNumber: 3,
-      component: this.apiType === 'async' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
+      component: this.apiType === 'message' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
     });
   }
 

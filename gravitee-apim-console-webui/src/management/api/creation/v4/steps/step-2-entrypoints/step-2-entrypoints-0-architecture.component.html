@@ -25,9 +25,9 @@
   <form *ngIf="form" [formGroup]="form">
     <mat-selection-list class="gio-selection-list" disableRipple="true" multiple="false" formControlName="type">
       <mat-list-option
-        value="sync"
+        value="proxy"
         #syncOption
-        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('sync')"
+        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('proxy')"
       >
         <div class="option">
           <!-- Note for migration: Angular Material 15 automatically add radio -->
@@ -49,9 +49,9 @@
         </div>
       </mat-list-option>
       <mat-list-option
-        value="async"
+        value="message"
         #asyncOption
-        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('async')"
+        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('message')"
       >
         <div class="option">
           <!-- Note form migration: Angular Material 15 automatically add radio -->

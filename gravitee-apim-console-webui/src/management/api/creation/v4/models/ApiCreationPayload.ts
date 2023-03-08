@@ -22,7 +22,7 @@ export type ApiCreationPayload = Partial<{
   description?: string;
 
   // Entrypoints
-  type?: 'sync' | 'async';
+  type?: 'proxy' | 'message';
   paths?: HttpListenerPath[];
   selectedEntrypoints?: {
     id: string;
