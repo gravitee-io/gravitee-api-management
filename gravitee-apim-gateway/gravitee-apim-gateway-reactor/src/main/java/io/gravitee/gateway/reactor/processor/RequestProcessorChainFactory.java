@@ -22,7 +22,7 @@ import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionRequestProcessorFactory;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
@@ -39,8 +39,8 @@ public class RequestProcessorChainFactory implements InitializingBean {
     private final List<ProcessorProvider<ExecutionContext, Processor<ExecutionContext>>> providers = new ArrayList<>();
 
     @Autowired
-    @Qualifier("v3TransactionHandlerFactory")
-    private TransactionProcessorFactory transactionHandlerFactory;
+    @Qualifier("v3TransactionRequestProcessorFactory")
+    private TransactionRequestProcessorFactory transactionRequestProcessorFactory;
 
     @Autowired
     @Qualifier("v3TraceContextProcessorFactory")
@@ -59,7 +59,7 @@ public class RequestProcessorChainFactory implements InitializingBean {
             providers.add(new ProcessorSupplier<>(() -> traceContextHandlerFactory.create()));
         }
 
-        providers.add(new ProcessorSupplier<>(() -> transactionHandlerFactory.create()));
+        providers.add(new ProcessorSupplier<>(() -> transactionRequestProcessorFactory.create()));
     }
 
     public Processor<ExecutionContext> create() {
