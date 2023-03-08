@@ -23,7 +23,7 @@ export function fakeApiEntity(modifier?: Partial<ApiEntity> | ((baseApi: ApiEnti
     name: 'Event Consumption - SSE',
     apiVersion: '1.0',
     definitionVersion: '4.0.0',
-    type: 'async',
+    type: 'message',
     createdAt: '1674228285055',
     updatedAt: '1674228285055',
     description: 'Event Consumption - SSE',

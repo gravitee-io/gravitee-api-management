@@ -22,5 +22,5 @@ export interface ConnectorListItem {
   icon?: string;
   supportedListenerType: string;
   supportedTypes: string[];
-  supportedApiType: 'sync' | 'async';
+  supportedApiType: 'proxy' | 'message';
 }

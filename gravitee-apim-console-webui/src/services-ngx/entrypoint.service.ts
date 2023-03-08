@@ -60,13 +60,13 @@ export class EntrypointService {
 
   v4ListSyncEntrypointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
     return this.v4ListEntrypointPlugins(expands).pipe(
-      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'sync')),
+      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'proxy')),
     );
   }
 
   v4ListAsyncEntrypointPlugins(expands: ListPluginsExpand[] = ['icon']): Observable<ConnectorListItem[]> {
     return this.v4ListEntrypointPlugins(expands).pipe(
-      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'async')),
+      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'message')),
     );
   }
 

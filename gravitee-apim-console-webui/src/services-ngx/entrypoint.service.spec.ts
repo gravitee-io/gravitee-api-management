@@ -106,7 +106,7 @@ describe('EntrypointService', () => {
 
   describe('v4ListSyncEntrypointPlugins', () => {
     it('should call the API', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
 
       entrypointService.v4ListSyncEntrypointPlugins().subscribe((connectors) => {
         expect(connectors).toMatchObject([fakeConnectors[0]]);
@@ -124,7 +124,7 @@ describe('EntrypointService', () => {
 
   describe('v4ListAsyncEntrypointPlugins', () => {
     it('should call the API', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
 
       entrypointService.v4ListAsyncEntrypointPlugins().subscribe((connectors) => {
         expect(connectors).toMatchObject([fakeConnectors[1]]);
@@ -140,7 +140,7 @@ describe('EntrypointService', () => {
     });
 
     it('should call the API with expand', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'sync' }), fakeConnectorListItem({ supportedApiType: 'async' })];
+      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
 
       entrypointService.v4ListAsyncEntrypointPlugins(['schema', 'icon']).subscribe((connectors) => {
         expect(connectors).toMatchObject([fakeConnectors[1]]);

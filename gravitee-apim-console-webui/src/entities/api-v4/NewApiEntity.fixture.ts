@@ -22,7 +22,7 @@ export function fakeNewApiEntity(modifier?: Partial<NewApiEntity> | ((baseApi: N
     name: 'Event Consumption - SSE',
     apiVersion: '1.0',
     definitionVersion: '4.0.0',
-    type: 'async',
+    type: 'message',
     description: 'Event Consumption - SSE',
     listeners: [
       {

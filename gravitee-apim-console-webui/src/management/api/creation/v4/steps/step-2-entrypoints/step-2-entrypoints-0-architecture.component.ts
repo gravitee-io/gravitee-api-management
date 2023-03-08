@@ -44,7 +44,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   form: FormGroup;
   private httpProxyEntrypoint: ConnectorListItem;
 
-  private initialValue: { type: 'sync' | 'async'[] };
+  private initialValue: { type: 'proxy' | 'message'[] };
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -102,14 +102,14 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .subscribe((confirmed) => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
-            this.form.value.type[0] === 'sync' ? this.doSaveSync() : this.doSaveAsync();
+            this.form.value.type[0] === 'proxy' ? this.doSaveSync() : this.doSaveAsync();
           } else {
             this.form.setValue(this.initialValue);
           }
         });
       return;
     }
-    this.form.value.type[0] === 'sync' ? this.doSaveSync() : this.doSaveAsync();
+    this.form.value.type[0] === 'proxy' ? this.doSaveSync() : this.doSaveAsync();
   }
 
   private doSaveSync() {
@@ -120,7 +120,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         tap((httpProxyEndpoint) => {
           this.stepService.validStep((previousPayload) => ({
             ...previousPayload,
-            type: 'sync',
+            type: 'proxy',
             selectedEntrypoints: [
               {
                 id: this.httpProxyEntrypoint.id,
@@ -143,7 +143,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private doSaveAsync() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      type: 'async',
+      type: 'message',
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,

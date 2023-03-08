@@ -68,7 +68,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         map((endpointPlugins) =>
           endpointPlugins
-            .filter((endpoint) => endpoint.supportedApiType === 'async')
+            .filter((endpoint) => endpoint.supportedApiType === 'message')
             .sort((endpoint1, endpoint2) => {
               const name1 = endpoint1.name.toUpperCase();
               const name2 = endpoint2.name.toUpperCase();
