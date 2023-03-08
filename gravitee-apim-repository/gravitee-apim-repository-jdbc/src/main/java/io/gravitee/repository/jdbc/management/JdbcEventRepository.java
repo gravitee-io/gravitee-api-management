@@ -233,7 +233,8 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
         builder.append(" inner join (select e.id from " + this.tableName + " e ");
         if (criteria.isStrictMode()) {
-            appendCriteria(builder, criteria, args, "e");
+            builder.append(" inner join " + EVENT_ENVIRONMENTS + " ev1 on e.id = ev1.event_id");
+            appendCriteria(builder, criteria, args, "e", "ev1");
             builder
                 .append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE)
                 .append("e.id in(")
@@ -273,7 +274,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = createSearchQueryBuilder();
-        appendCriteria(builder, filter, args, "e");
+        appendCriteria(builder, filter, args, "e", "ev");
 
         builder.append(" order by updated_at desc, id desc ");
         return queryEvents(builder.toString(), args);
@@ -376,32 +377,39 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return builder;
     }
 
-    private void appendCriteria(StringBuilder builder, EventCriteria filter, List<Object> args, String tableAlias) {
-        boolean started = addPropertiesWhereClause(filter, args, builder, tableAlias);
+    private void appendCriteria(
+        StringBuilder builder,
+        EventCriteria filter,
+        List<Object> args,
+        String eventTableAlias,
+        String eventEnvionmentTableAlias
+    ) {
+        boolean started = addPropertiesWhereClause(filter, args, builder, eventTableAlias);
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(tableAlias + ".updated_at >= ?");
+            builder.append(eventTableAlias + ".updated_at >= ?");
             args.add(new Date(filter.getFrom()));
             started = true;
         }
         if (filter.getTo() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(tableAlias + ".updated_at < ?");
+            builder.append(eventTableAlias + ".updated_at < ?");
             args.add(new Date(filter.getTo()));
             started = true;
         }
         if (!isEmpty(filter.getEnvironments())) {
-            started = addStringsWhereClause(filter.getEnvironments(), "ev.environment_id", args, builder, started);
+            started =
+                addStringsWhereClause(filter.getEnvironments(), eventEnvionmentTableAlias + ".environment_id", args, builder, started);
         }
         if (!isEmpty(filter.getTypes())) {
             final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
-            addStringsWhereClause(types, tableAlias + ".type", args, builder, started);
+            addStringsWhereClause(types, eventTableAlias + ".type", args, builder, started);
         }
     }
 
-    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder, String tableAlias) {
+    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder, String eventTableAlias) {
         if (!isEmpty(filter.getProperties())) {
-            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = " + tableAlias + ".id ");
+            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = " + eventTableAlias + ".id ");
             builder.append(WHERE_CLAUSE);
             builder.append("(");
             boolean first = true;
@@ -449,7 +457,8 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             .append("inner join " + EVENT_PROPERTIES + " ep1 on e1.id = ep1.event_id and ep1.property_key = ? ");
 
         if (!criteria.isStrictMode()) {
-            appendCriteria(query, criteria, args, "e1");
+            query.append("inner join " + EVENT_ENVIRONMENTS + " ev1 on e1.id = ev1.event_id ");
+            appendCriteria(query, criteria, args, "e1", "ev1");
         }
 
         return query.append("group by ep1.property_value, ep1.event_id ) as t2 ").append("group by api_id ");
@@ -466,7 +475,8 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             );
 
         if (!criteria.isStrictMode()) {
-            appendCriteria(innerSelectLatestQuery, criteria, args, "e1");
+            innerSelectLatestQuery.append("inner join " + EVENT_ENVIRONMENTS + " ev1 on e1.id = ev1.event_id");
+            appendCriteria(innerSelectLatestQuery, criteria, args, "e1", "ev1");
         }
         return innerSelectLatestQuery.append(" group by ep1.property_value, ep1.event_id ");
     }
