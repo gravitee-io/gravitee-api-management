@@ -86,5 +86,3 @@ For example, if your repository is intended to support the `RATELIMIT` scope use
     </plugin>
 </plugins>
 ```
-⚠️ Please note that the whole mock package is excluded when building the jar, therefore, your test classes **must** not rely any class defined in this package.
-
