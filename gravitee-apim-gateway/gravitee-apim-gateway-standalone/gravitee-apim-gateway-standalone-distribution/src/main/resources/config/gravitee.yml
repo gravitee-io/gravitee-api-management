@@ -76,12 +76,12 @@
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
 management:
-  type: mongodb                  # repository type
-  mongodb:                       # mongodb repository
-#    prefix:                      # collections prefix
-    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
-    host: ${ds.mongodb.host}     # mongodb host (default localhost)
-    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+    type: mongodb # repository type
+    mongodb: # mongodb repository
+        #    prefix:                      # collections prefix
+        dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+        host: ${ds.mongodb.host} # mongodb host (default localhost)
+        port: ${ds.mongodb.port} # mongodb port (default 27017)
 
 ## Client settings
 #    description:                 # mongodb description (default gravitee.io)
@@ -151,67 +151,67 @@ management:
 # When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
 # In this example, we are using MongoDB to store counters.
 ratelimit:
-  type: mongodb
-  mongodb:
-    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+    type: mongodb
+    mongodb:
+        uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
 
 cache:
-  type: ehcache
+    type: ehcache
 
 # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
 reporters:
-  # logging configuration
-#  logging:
-#    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
-#    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
-  # Elasticsearch reporter
-  elasticsearch:
-    enabled: true # Is the reporter enabled or not (default to true)
-    endpoints:
-      - http://${ds.elastic.host}:${ds.elastic.port}
-#    lifecycle:
-#      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
-#      policies:
-#        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
-#        request: my_policy ## ILM policy for the gravitee-request-* indexes
-#        health: my_policy ## ILM policy for the gravitee-health-* indexes
-#        log: my_policy ## ILM policy for the gravitee-log-* indexes
-#    index: gravitee
-#    index_per_type: true
-#    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
-#    bulk:
-#      actions: 1000           # Number of requests action before flush
-#      flush_interval: 5       # Flush interval in seconds
-#    settings:
-#      number_of_shards: 1
-#      number_of_replicas: 1
-#      refresh_interval: 5s
-#    pipeline:
-#      plugins:
-#        ingest: geoip, user_agent      # geoip and user_agent are enabled by default
-#    security:
-#      username: user
-#      password: secret
-#    http:
-#      timeout: 30000 # in milliseconds
-#      proxy:
-#        type: HTTP #HTTP, SOCK4, SOCK5
-#        http:
-#          host: localhost
-#          port: 3128
-#          username: user
-#          password: secret
-#        https:
-#          host: localhost
-#          port: 3128
-#          username: user
-#          password: secret
-#    template_mapping:
-#      path: ${gravitee.home}/config/reporter/elasticsearch/templates
-#      extended_request_mapping: request.ftl
-  file:
-    enabled: false # Is the reporter enabled or not (default to false)
+    # logging configuration
+    #  logging:
+    #    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+    #    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
+    # Elasticsearch reporter
+    elasticsearch:
+        enabled: true # Is the reporter enabled or not (default to true)
+        endpoints:
+            - http://${ds.elastic.host}:${ds.elastic.port}
+    #    lifecycle:
+    #      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
+    #      policies:
+    #        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
+    #        request: my_policy ## ILM policy for the gravitee-request-* indexes
+    #        health: my_policy ## ILM policy for the gravitee-health-* indexes
+    #        log: my_policy ## ILM policy for the gravitee-log-* indexes
+    #    index: gravitee
+    #    index_per_type: true
+    #    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+    #    bulk:
+    #      actions: 1000           # Number of requests action before flush
+    #      flush_interval: 5       # Flush interval in seconds
+    #    settings:
+    #      number_of_shards: 1
+    #      number_of_replicas: 1
+    #      refresh_interval: 5s
+    #    pipeline:
+    #      plugins:
+    #        ingest: geoip, user_agent      # geoip and user_agent are enabled by default
+    #    security:
+    #      username: user
+    #      password: secret
+    #    http:
+    #      timeout: 30000 # in milliseconds
+    #      proxy:
+    #        type: HTTP #HTTP, SOCK4, SOCK5
+    #        http:
+    #          host: localhost
+    #          port: 3128
+    #          username: user
+    #          password: secret
+    #        https:
+    #          host: localhost
+    #          port: 3128
+    #          username: user
+    #          password: secret
+    #    template_mapping:
+    #      path: ${gravitee.home}/config/reporter/elasticsearch/templates
+    #      extended_request_mapping: request.ftl
+    file:
+        enabled: false # Is the reporter enabled or not (default to false)
 #    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
 #    output: json # Can be csv, json, elasticsearch or message_pack
 #    request: # (Following mapping section is also available for other types: node, health-check, log)
@@ -228,82 +228,84 @@ reporters:
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
 # 'local' service for an example).
 services:
-  core:
-    http:
-      enabled: true
-      port: 18082
-      host: localhost
-      authentication:
-        # authentication type to be used for the core services
-        # - none : to disable authentication
-        # - basic : to use basic authentication
-        # default is "basic"
-        type: basic
-        users:
-          admin: adminadmin
+    core:
+        http:
+            enabled: true
+            port: 18082
+            host: localhost
+            authentication:
+                # authentication type to be used for the core services
+                # - none : to disable authentication
+                # - basic : to use basic authentication
+                # default is "basic"
+                type: basic
+                users:
+                    admin: adminadmin
 
-  # The thresholds to determine if a probe is healthy or not
-#  health:
-#    threshold:
-#      cpu: # Default is 80%
-#      memory: # Default is 80%
+    # The thresholds to determine if a probe is healthy or not
+    #  health:
+    #    threshold:
+    #      cpu: # Default is 80%
+    #      memory: # Default is 80%
 
-  # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
-  # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
-  # and management UI
-  sync:
-    # Synchronization is done each 5 seconds
-    delay: 5000
-    unit: MILLISECONDS
-    distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
-    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
+    # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
+    # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
+    # and management UI
+    sync:
+        # Synchronization is done each 5 seconds
+        delay: 5000
+        unit: MILLISECONDS
+        distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
+        bulk_items:
+            100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
 
-     # [Alpha] Enable Kubernetes Synchronization
-     # This sync service requires to install Gravitee Kubernetes Operator
-#    kubernetes:
-#      enabled: false
 
-  # Local registry service.
-  # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
-  # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
-  # format to make it work....)
-  local:
-    enabled: false
-    path: ${gravitee.home}/apis # The path to API descriptors
+            # [Alpha] Enable Kubernetes Synchronization
+            # This sync service requires to install Gravitee Kubernetes Operator
+    #    kubernetes:
+    #      enabled: false
 
-  # Gateway monitoring service.
-  # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
-  monitoring:
-    delay: 5000
-    unit: MILLISECONDS
-    distributed: false # By enabling this mode, data monitoring gathering process is distributed over clustered API gateways.
+    # Local registry service.
+    # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+    # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+    # format to make it work....)
+    local:
+        enabled: false
+        path: ${gravitee.home}/apis # The path to API descriptors
 
-  # metrics service
-  metrics:
-    enabled: false
-# default: local, http_method, http_code
-#    labels:
-#      - local
-#      - remote
-#      - http_method
-#      - http_code
-#      - http_path
-    prometheus:
-      enabled: true
+    # Gateway monitoring service.
+    # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+    monitoring:
+        delay: 5000
+        unit: MILLISECONDS
+        distributed: false # By enabling this mode, data monitoring gathering process is distributed over clustered API gateways.
 
-  # heartbeat
-#  heartbeat:
-#    enabled: true
-#    delay: 5000
-#    unit: MILLISECONDS
-#    storeSystemProperties: true
+    # metrics service
+    metrics:
+        enabled: false
+        # default: local, http_method, http_code
+        #    labels:
+        #      - local
+        #      - remote
+        #      - http_method
+        #      - http_code
+        #      - http_path
+        prometheus:
+            enabled: true
 
-  tracing:
-    enabled: false
-    type: jaeger
-    jaeger:
-      host: localhost
-      port: 14250
+    # heartbeat
+    #  heartbeat:
+    #    enabled: true
+    #    delay: 5000
+    #    unit: MILLISECONDS
+    #    storeSystemProperties: true
+
+    tracing:
+        enabled: false
+        type: jaeger
+        jaeger:
+            host: localhost
+            port: 14250
 #      ssl:
 #        enabled: false
 
@@ -314,25 +316,35 @@ services:
 #      enabled: false
 #    # possible values: hex, uuid. Default: uuid.
 #    format: uuid
-#    transaction:
-#      # Default: X-Gravitee-Transaction-Id.
-#      header: X-Gravitee-Transaction-Id
 #    headers:
 #      # Override X-Forwarded-Prefix with context path. Disabled by default.
 #      x-forwarded-prefix: false
+#    transaction:
+#      # Default: X-Gravitee-Transaction-Id.
+#      header: X-Gravitee-Transaction-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
 #    request:
 #      # Default: X-Gravitee-Request-Id.
 #      header: X-Gravitee-Request-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
 
 # Referenced properties
 ds:
-  mongodb:
-    dbname: gravitee
-    host: localhost
-    port: 27017
-  elastic:
-    host: localhost
-    port: 9200
+    mongodb:
+        dbname: gravitee
+        host: localhost
+        port: 27017
+    elastic:
+        host: localhost
+        port: 9200
 
 #system:
 #  # Proxy configuration that can be used to proxy request to api endpoints (see endpoint http configuration -> Use system proxy).
@@ -365,43 +377,43 @@ ds:
 #    param: api-key
 
 #el:
-  # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
-  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
+# Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
+# A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
 #  whitelist:
-    # Allows to define if the specified list of method or classes should be append to the default one or should replace it.
-    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+# Allows to define if the specified list of method or classes should be append to the default one or should replace it.
+# We recommend you to always choose 'append' unless you absolutely know what you are doing.
 #    mode: append
-    # Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
-    # start with 'method' to allow a specific method (complete signature).
-    # start with 'class' to allow a complete class. All methods of the class will then be accessible.
+# Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
+# start with 'method' to allow a specific method (complete signature).
+# start with 'class' to allow a complete class. All methods of the class will then be accessible.
 #    list:
-      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
-      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
-      # Ex: allow access to all methods of DateTimeFormatter class
-      # - class java.time.format.DateTimeFormatter
+# Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+# - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+# Ex: allow access to all methods of DateTimeFormatter class
+# - class java.time.format.DateTimeFormatter
 
 #groovy:
-  # Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
-  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
+# Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
+# A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
 #  whitelist:
-    # Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
-    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+# Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
+# We recommend you to always choose 'append' unless you absolutely know what you are doing.
 #    mode: append
-    # Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
-    # start with 'method' to allow a specific method (complete signature).
-    # start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
-    # start with 'new' to allow a specific constructor (complete signature).
-    # start with 'field' to allow access to a specific field of a class.
-    # start with 'annotation' to allow use of a specific annotation.
+# Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
+# start with 'method' to allow a specific method (complete signature).
+# start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
+# start with 'new' to allow a specific constructor (complete signature).
+# start with 'field' to allow access to a specific field of a class.
+# start with 'annotation' to allow use of a specific annotation.
 #    list:
-      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
-      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
-      # Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
-      # - class java.time.format.DateTimeFormatter
-      # Ex: allow usage of field Integer.MAX_VALUE
-      # - field java.lang.Integer MAX_VALUE
-      # Ex: allow usage of @Override annotation
-      # - annotation java.lang.Override
+# Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+# - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+# Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
+# - class java.time.format.DateTimeFormatter
+# Ex: allow usage of field Integer.MAX_VALUE
+# - field java.lang.Integer MAX_VALUE
+# Ex: allow usage of @Override annotation
+# - annotation java.lang.Override
 
 # If you want to create cluster of nodes, you can change the Hazelcast file to configure the Hz network
 # Clustering capabilities can be used for:
@@ -422,25 +434,25 @@ ds:
 #        capacity: 8200  #if null defaults to 4096
 
 api:
-  # Encrypt API properties using this secret
-  properties:
-    encryption:
-      secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
-  # when an API is un-deployed (either because it has been stopped or because it has restarted due to a configuration
-  # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
+    # Encrypt API properties using this secret
+    properties:
+        encryption:
+            secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+    # when an API is un-deployed (either because it has been stopped or because it has restarted due to a configuration
+    # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
 #  pending_requests_timeout: 10000
 
 # Graceful shutdown.
 #gracefulShutdown:
-  # Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.
-  # When SIGTERM is sent to the gateway, the shutdown process begin, each client will be explicitly asked for closing connection and the shutdown delay will be applied.
-  # The shutdown delay should allow enough time to client to close their current active connections and create new one. In the same time the load balancer should progressively stop routing traffic to the gateway.
-  # After the delay is expired, the gateway continue the shutdown process. Any pending request will have a chance to finish gracefully and the gateway will stop normally unless it takes too much time and a SIGKILL signal is sent to the gateway.
+# Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.
+# When SIGTERM is sent to the gateway, the shutdown process begin, each client will be explicitly asked for closing connection and the shutdown delay will be applied.
+# The shutdown delay should allow enough time to client to close their current active connections and create new one. In the same time the load balancer should progressively stop routing traffic to the gateway.
+# After the delay is expired, the gateway continue the shutdown process. Any pending request will have a chance to finish gracefully and the gateway will stop normally unless it takes too much time and a SIGKILL signal is sent to the gateway.
 #  delay: 0
 #  unit: MILLISECONDS
 
 # Since v3.15.0, a new internal classloader used to load api policies is in place.
 # Setting it to true will switch back to the legacy mode used prior the v3.15.0.
 classloader:
-  legacy:
-    enabled: false
+    legacy:
+        enabled: false

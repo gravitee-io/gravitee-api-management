@@ -50,10 +50,7 @@ public class TransactionRequestProcessor extends AbstractProcessor<ExecutionCont
             context.request().headers().set(transactionHeader, transactionId);
         }
         context.request().metrics().setTransactionId(transactionId);
-        context.response().headers().set(transactionHeader, transactionId);
-
         context.request().headers().set(requestHeader, requestId);
-        context.response().headers().set(requestHeader, requestId);
 
         ((MutableExecutionContext) context).request(new TransactionRequest(transactionId, context.request()));
 
