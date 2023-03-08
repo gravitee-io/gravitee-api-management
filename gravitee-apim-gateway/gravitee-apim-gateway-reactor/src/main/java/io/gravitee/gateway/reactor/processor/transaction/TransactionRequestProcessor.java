@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.reactor.processor.transaction;
 
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
@@ -26,17 +29,14 @@ import io.gravitee.gateway.core.processor.AbstractProcessor;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessor extends AbstractProcessor<ExecutionContext> {
-
-    static final String DEFAULT_TRANSACTION_ID_HEADER = "X-Gravitee-Transaction-Id";
-    static final String DEFAULT_REQUEST_ID_HEADER = "X-Gravitee-Request-Id";
+public class TransactionRequestProcessor extends AbstractProcessor<ExecutionContext> {
 
     private String transactionHeader = DEFAULT_TRANSACTION_ID_HEADER;
     private String requestHeader = DEFAULT_REQUEST_ID_HEADER;
 
-    TransactionProcessor() {}
+    TransactionRequestProcessor() {}
 
-    TransactionProcessor(String transactionHeader, String requestHeader) {
+    TransactionRequestProcessor(String transactionHeader, String requestHeader) {
         this.transactionHeader = transactionHeader;
         this.requestHeader = requestHeader;
     }
