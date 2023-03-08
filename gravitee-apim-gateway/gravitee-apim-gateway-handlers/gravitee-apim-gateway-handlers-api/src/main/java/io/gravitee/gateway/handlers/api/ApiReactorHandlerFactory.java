@@ -46,6 +46,7 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
 import io.gravitee.gateway.jupiter.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
@@ -55,11 +56,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFacto
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.jupiter.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.policy.PolicyChainProviderLoader;
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -588,7 +585,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         PolicyChainProviderLoader policyChainProviderLoader,
         FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
-        return new ResponseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, node, flowPolicyResolverFactory);
+        return new ResponseProcessorChainFactory(
+            api,
+            policyChainFactory,
+            policyChainProviderLoader,
+            node,
+            flowPolicyResolverFactory,
+            new TransactionResponseProcessorConfiguration(configuration)
+        );
     }
 
     public OnErrorProcessorChainFactory errorProcessorChainFactory(Api api, PolicyChainFactory policyChainFactory) {
