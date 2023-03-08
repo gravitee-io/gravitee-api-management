@@ -63,6 +63,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             } else {
                 aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
             }
+            if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
+                aggregationOperations.add(Aggregation.match(Criteria.where("environments").in(criteria.getEnvironments())));
+            }
         } else {
             aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
             List<Criteria> criteriaList = buildDBCriteria(criteria);
@@ -73,7 +76,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
 
         // Project only useful field to avoid memory consumption during pipeline execution on mongodb side (this excludes the payload from sort and group and avoid 'Command failed with error 292').
-        aggregationOperations.add(Aggregation.project(Aggregation.fields("_id", "updatedAt", "type", "properties")));
+        aggregationOperations.add(Aggregation.project(Aggregation.fields("_id", "updatedAt", "type", "properties", "environments")));
 
         // Sort.
         aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
