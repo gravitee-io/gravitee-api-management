@@ -15,25 +15,26 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.transaction;
 
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessorFactory {
+public class TransactionPreProcessorFactory {
 
-    public static final String DEFAULT_TRANSACTION_ID_HEADER = "X-Gravitee-Transaction-Id";
-    public static final String DEFAULT_REQUEST_ID_HEADER = "X-Gravitee-Request-Id";
 
     private final String transactionHeader;
     private final String requestHeader;
 
-    public TransactionProcessorFactory(final String transactionHeader, final String requestHeader) {
+    public TransactionPreProcessorFactory(final String transactionHeader, final String requestHeader) {
         this.transactionHeader = transactionHeader == null ? DEFAULT_TRANSACTION_ID_HEADER : transactionHeader;
         this.requestHeader = requestHeader == null ? DEFAULT_REQUEST_ID_HEADER : requestHeader;
     }
 
-    public TransactionProcessor create() {
-        return new TransactionProcessor(transactionHeader, requestHeader);
+    public TransactionPreProcessor create() {
+        return new TransactionPreProcessor(transactionHeader, requestHeader);
     }
 }

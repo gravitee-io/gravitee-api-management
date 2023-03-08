@@ -29,8 +29,8 @@ import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultPlatformProcessorChainFactoryTest {
 
     @Mock
-    private TransactionProcessorFactory transactionHandlerFactory;
+    private TransactionPreProcessorFactory transactionHandlerFactory;
 
     @Mock
     private ReporterService reporterService;
@@ -69,7 +69,7 @@ class DefaultPlatformProcessorChainFactoryTest {
 
     @BeforeEach
     public void setup() {
-        lenient().when(transactionHandlerFactory.create()).thenReturn(mock(TransactionProcessor.class));
+        lenient().when(transactionHandlerFactory.create()).thenReturn(mock(TransactionPreProcessor.class));
     }
 
     @Nested
@@ -90,7 +90,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
             assertEquals(4, processors.size());
-            assertTrue(processors.get(0) instanceof TransactionProcessor);
+            assertTrue(processors.get(0) instanceof TransactionPreProcessor);
             assertTrue(processors.get(1) instanceof MetricsProcessor);
             assertTrue(processors.get(2) instanceof XForwardForProcessor);
             assertTrue(processors.get(3) instanceof TraceContextProcessor);
@@ -111,7 +111,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
             assertEquals(3, processors.size());
-            assertTrue(processors.get(0) instanceof TransactionProcessor);
+            assertTrue(processors.get(0) instanceof TransactionPreProcessor);
             assertTrue(processors.get(1) instanceof MetricsProcessor);
             assertTrue(processors.get(2) instanceof XForwardForProcessor);
         }
