@@ -314,15 +314,25 @@ services:
 #      enabled: false
 #    # possible values: hex, uuid. Default: uuid.
 #    format: uuid
-#    transaction:
-#      # Default: X-Gravitee-Transaction-Id.
-#      header: X-Gravitee-Transaction-Id
 #    headers:
 #      # Override X-Forwarded-Prefix with context path. Disabled by default.
 #      x-forwarded-prefix: false
+#    transaction:
+#      # Default: X-Gravitee-Transaction-Id.
+#      header: X-Gravitee-Transaction-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
 #    request:
 #      # Default: X-Gravitee-Request-Id.
 #      header: X-Gravitee-Request-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
 
 # Referenced properties
 ds:
