@@ -45,13 +45,10 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.policy.PolicyChainProviderLoader;
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyFactoryCreator;
-import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
@@ -596,7 +593,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         PolicyChainProviderLoader policyChainProviderLoader,
         FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
-        return new ResponseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, node, flowPolicyResolverFactory);
+        return new ResponseProcessorChainFactory(
+            api,
+            policyChainFactory,
+            policyChainProviderLoader,
+            node,
+            flowPolicyResolverFactory,
+            new TransactionResponseProcessorConfiguration(configuration)
+        );
     }
 
     public OnErrorProcessorChainFactory errorProcessorChainFactory(Api api, PolicyChainFactory policyChainFactory) {
