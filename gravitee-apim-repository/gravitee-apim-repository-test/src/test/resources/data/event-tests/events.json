@@ -108,14 +108,14 @@
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "dictionary_id": "dictionary-2"
+      "dictionary_id": "dictionary-3"
     },
     "createdAt": 1475280000000,
     "updatedAt": 1475280000000
   },
   {
     "id": "event11",
-    "environments": ["DEFAULT"],
+    "environments": ["OTHER"],
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
@@ -127,15 +127,15 @@
   },
   {
     "id": "event12",
-    "environments": ["DEFAULT"],
+    "environments": ["OTHER"],
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "api_id": "api-5"
+      "api_id": "api-4"
     },
     "createdAt": 1464739200000,
-    "updatedAt": 1464739200000
+    "updatedAt": 1464740200000
   },
   {
     "id": "event13",
@@ -144,9 +144,35 @@
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "dictionary_id": "dictionary-2"
+      "dictionary_id": "dictionary-3"
     },
     "createdAt": 1475380000000,
     "updatedAt": 1475380000000
+  },
+  {
+    "id": "event14",
+    "environments": [
+      "OTHER"
+    ],
+    "type": "STOP_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-4"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1465740200000
+  },
+  {
+    "id": "event15",
+    "environments": ["ANOTHER_ENV"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-5"
+    },
+    "createdAt": 1463739200000,
+    "updatedAt": 1463740200000
   }
 ]
