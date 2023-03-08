@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -208,19 +209,23 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public Page<String> searchIds(List<ApiCriteria> criteria, Pageable pageable, Sortable sortable) {
         LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
 
-        final StringBuilder sbQuery = new StringBuilder("select a.id from ")
-            .append(this.tableName)
-            .append(" a left join ")
-            .append(API_CATEGORIES)
-            .append(" ac on a.id = ac.api_id ");
+        final StringBuilder sbQuery = new StringBuilder("select distinct a.id");
 
-        Optional<ApiCriteria> hasGroups = criteria.stream().filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
-        Optional<ApiCriteria> hasLabels = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
-        if (hasGroups.isPresent()) {
-            sbQuery.append("left join " + API_GROUPS + " ag on a.id = ag.api_id ");
+        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+            sbQuery.append(",").append(sortable.field());
         }
+        sbQuery.append(" from ").append(this.tableName).append(" a ");
+        Optional<ApiCriteria> hasCategory = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getCategory())).findFirst();
+        if (hasCategory.isPresent()) {
+            sbQuery.append("left join ").append(API_CATEGORIES).append(" ac on a.id = ac.api_id ");
+        }
+        Optional<ApiCriteria> hasGroups = criteria.stream().filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
+        if (hasGroups.isPresent()) {
+            sbQuery.append("left join ").append(API_GROUPS).append(" ag on a.id = ag.api_id ");
+        }
+        Optional<ApiCriteria> hasLabels = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
         if (hasLabels.isPresent()) {
-            sbQuery.append("left join " + API_LABELS + " al on a.id = al.api_id ");
+            sbQuery.append("left join ").append(API_LABELS).append(" al on a.id = al.api_id ");
         }
 
         List<String> clauses = criteria.stream().map(this::convert).filter(Objects::nonNull).collect(Collectors.toList());
@@ -397,6 +402,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from ").append(this.tableName).append(" a ");
         sbQuery.append("left join " + API_CATEGORIES + " ac on a.id = ac.api_id ");
         addCriteriaClauses(sbQuery, apiCriteria);
+        if (sortable == null) {
+            sortable = new SortableBuilder().field("name").setAsc(true).build();
+        }
         applySortable(sortable, sbQuery);
 
         List<Api> apis = executeQuery(sbQuery, apiCriteria, rowMapper);
@@ -438,9 +446,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 query.append(" lower(a.").append(sortable.field()).append(") ");
             }
 
-            query.append(sortable.order().equals(Order.ASC) ? " asc " : " desc ");
-        } else {
-            query.append("order by a.name");
+            query.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
         }
     }
 
@@ -496,18 +502,10 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private String convert(ApiCriteria apiCriteria) {
         List<String> clauses = new ArrayList<>();
         if (!isEmpty(apiCriteria.getGroups())) {
-            clauses.add(
-                new StringBuilder()
-                    .append("ag.group_id in (")
-                    .append(getOrm().buildInClause(apiCriteria.getGroups()))
-                    .append(")")
-                    .toString()
-            );
+            clauses.add("ag.group_id in (" + getOrm().buildInClause(apiCriteria.getGroups()) + ")");
         }
         if (!isEmpty(apiCriteria.getIds())) {
-            clauses.add(
-                new StringBuilder().append("a.id in (").append(getOrm().buildInClause(apiCriteria.getIds())).append(")").toString()
-            );
+            clauses.add("a.id in (" + getOrm().buildInClause(apiCriteria.getIds()) + ")");
         }
         if (hasText(apiCriteria.getLabel())) {
             clauses.add("al.label = ?");
@@ -531,25 +529,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             clauses.add("a.cross_id = ?");
         }
         if (!isEmpty(apiCriteria.getLifecycleStates())) {
-            clauses.add(
-                new StringBuilder()
-                    .append("a.api_lifecycle_state in (")
-                    .append(getOrm().buildInClause(apiCriteria.getLifecycleStates()))
-                    .append(")")
-                    .toString()
-            );
+            clauses.add("a.api_lifecycle_state in (" + getOrm().buildInClause(apiCriteria.getLifecycleStates()) + ")");
         }
         if (hasText(apiCriteria.getEnvironmentId())) {
             clauses.add("a.environment_id = ?");
         }
         if (!isEmpty(apiCriteria.getEnvironments())) {
-            clauses.add(
-                new StringBuilder()
-                    .append("a.environment_id in (")
-                    .append(getOrm().buildInClause(apiCriteria.getEnvironments()))
-                    .append(")")
-                    .toString()
-            );
+            clauses.add("a.environment_id in (" + getOrm().buildInClause(apiCriteria.getEnvironments()) + ")");
         }
         if (!isEmpty(apiCriteria.getDefinitionVersion())) {
             List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());

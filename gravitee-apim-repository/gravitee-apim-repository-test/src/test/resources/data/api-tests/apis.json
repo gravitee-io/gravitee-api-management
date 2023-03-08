@@ -169,5 +169,23 @@
     "categories": ["my-async-category"],
     "apiLifecycleState": "CREATED",
     "disableMembershipNotifications": true
+  },
+  {
+    "id": "api-with-many-categories",
+    "environmentId": "ENV8",
+    "origin": "management",
+    "mode": "async-api_definition_only",
+    "name": "api-with-many-categories name",
+    "definitionVersion": "2.0.0",
+    "version": "4",
+    "definition" : "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/another_product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "visibility" : "PRIVATE",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "labels": [ "my-many-label-1", "my-many-label-2"],
+    "lifecycleState": "STARTED",
+    "categories": ["my-many-category","my-many-category-2"],
+    "apiLifecycleState": "CREATED",
+    "disableMembershipNotifications": true
   }
 ]

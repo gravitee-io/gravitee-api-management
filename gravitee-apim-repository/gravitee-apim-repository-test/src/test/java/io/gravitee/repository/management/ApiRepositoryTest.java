@@ -414,6 +414,18 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldReturnUniqueApiWhenSearchApisWithCategories() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().ids(List.of("api-with-many-categories")).build(),
+            ApiFieldFilter.allFields()
+        );
+
+        assertNotNull(apis);
+        assertEquals(1, apis.size());
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-with-many-categories")));
+    }
+
+    @Test
     public void shouldListCategories() throws TechnicalException {
         final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().build());
         assertNotNull(categories);
@@ -423,6 +435,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         expectedCategories.add("hiking");
         expectedCategories.add("my-async-category");
         expectedCategories.add("my-category");
+        expectedCategories.add("my-many-category");
+        expectedCategories.add("my-many-category-2");
         assertEquals(expectedCategories, categories);
     }
 
@@ -492,12 +506,49 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldReturnUniqueIdsWhenSearchApisWithCategories() {
+        Page<String> apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().ids(List.of("api-with-many-categories")).build()),
+            new PageableBuilder().pageNumber(0).pageSize(2).build(),
+            null
+        );
+
+        assertEquals(1, apiIds.getTotalElements());
+        assertEquals(1, apiIds.getPageElements());
+
+        assertEquals("api-with-many-categories", apiIds.getContent().get(0));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null
+            );
+
+        assertEquals(4, apiIds.getTotalElements());
+        assertEquals(2, apiIds.getPageElements());
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("grouped-api", apiIds.getContent().get(1));
+
+        apiIds =
+            apiRepository.searchIds(
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build()
+            );
+
+        assertEquals("api-to-update", apiIds.getContent().get(0));
+        assertEquals("api-to-delete", apiIds.getContent().get(1));
+    }
+
+    @Test
     public void shouldStreamSearch() throws NoSuchFieldException, IllegalAccessException {
         List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).collect(toList());
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(10, apis.size());
+        assertEquals(11, apis.size());
     }
 
     @Test
