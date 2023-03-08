@@ -34,6 +34,8 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponsePro
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.transaction.TransactionPostProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -50,9 +52,12 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
+
+    private final Configuration configuration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
+        this.configuration = configuration;
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.clientIdentifierHeader =
             configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
@@ -104,6 +109,7 @@ public class ApiProcessorChainFactory {
     private List<Processor> getAfterApiExecutionProcessors(Api api) {
         List<Processor> postProcessorList = new ArrayList<>();
         postProcessorList.add(new ShutdownProcessor(node));
+        postProcessorList.add(new TransactionPostProcessor(new TransactionPostProcessorConfiguration(configuration)));
 
         Cors cors = api.getDefinition().getProxy().getCors();
         if (cors != null && cors.isEnabled()) {

@@ -35,6 +35,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponsePro
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Flowable;
@@ -196,9 +197,10 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
+            .assertValueCount(3)
             .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof CorsSimpleRequestProcessor);
+            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
+            .assertValueAt(2, processor -> processor instanceof CorsSimpleRequestProcessor);
     }
 
     @Test
@@ -213,7 +215,12 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof ShutdownProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
+            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor);
     }
 
     @Test
@@ -229,9 +236,10 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
+            .assertValueCount(3)
             .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
+            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
+            .assertValueAt(2, processor -> processor instanceof PathMappingProcessor);
     }
 
     @Test
@@ -247,10 +255,11 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(3)
+            .assertValueCount(4)
             .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor)
-            .assertValueAt(2, processor -> processor instanceof SimpleFailureProcessor);
+            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
+            .assertValueAt(2, processor -> processor instanceof PathMappingProcessor)
+            .assertValueAt(3, processor -> processor instanceof SimpleFailureProcessor);
     }
 
     @Test
