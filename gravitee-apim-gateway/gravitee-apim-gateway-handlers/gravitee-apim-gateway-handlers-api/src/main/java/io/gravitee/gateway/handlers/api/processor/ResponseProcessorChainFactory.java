@@ -23,7 +23,6 @@ import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
-import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
@@ -39,6 +38,8 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessor;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.StreamType;
@@ -55,23 +56,28 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
     private Node node;
 
+    private TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration;
+
     public ResponseProcessorChainFactory(
         final Api api,
         final PolicyChainFactory policyChainFactory,
         final PolicyChainProviderLoader policyChainProviderLoader,
         final Node node,
-        FlowPolicyResolverFactory flowPolicyResolverFactory
+        FlowPolicyResolverFactory flowPolicyResolverFactory,
+        final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration
     ) {
         super(api, policyChainFactory);
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.node = node;
         this.flowPolicyResolverFactory = flowPolicyResolverFactory;
+        this.transactionResponseProcessorConfiguration = transactionResponseProcessorConfiguration;
 
         this.initialize();
     }
 
     private void initialize() {
         add(() -> new ShutdownProcessor(node));
+        add(() -> new TransactionResponseProcessor(this.transactionResponseProcessorConfiguration));
 
         final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
             new HttpMethodConditionEvaluator(),
