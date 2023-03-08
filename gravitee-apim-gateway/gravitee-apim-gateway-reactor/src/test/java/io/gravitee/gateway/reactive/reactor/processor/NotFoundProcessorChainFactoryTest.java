@@ -24,10 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
@@ -35,14 +32,12 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
-import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -65,7 +60,7 @@ import org.springframework.core.env.StandardEnvironment;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class NotFoundProcessorChainFactoryTest {
 
-    private TransactionProcessorFactory transactionHandlerFactory = new TransactionProcessorFactory(null, null);
+    private TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(null, null);
 
     @Mock
     private ReporterService reporterService;
@@ -82,7 +77,7 @@ class NotFoundProcessorChainFactoryTest {
     @Test
     void should_have_notFoundProcessors() {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-            transactionHandlerFactory,
+                transactionPreProcessorFactory,
             new StandardEnvironment(),
             reporterService,
             false,
@@ -92,7 +87,7 @@ class NotFoundProcessorChainFactoryTest {
         List<Processor> processors = notFoundProcessorChainFactory.buildProcessorChain();
 
         assertEquals(5, processors.size());
-        assertTrue(processors.get(0) instanceof TransactionProcessor);
+        assertTrue(processors.get(0) instanceof TransactionPreProcessor);
         assertTrue(processors.get(1) instanceof MetricsProcessor);
         assertTrue(processors.get(2) instanceof NotFoundProcessor);
         assertTrue(processors.get(3) instanceof ResponseTimeProcessor);
@@ -105,7 +100,7 @@ class NotFoundProcessorChainFactoryTest {
         DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response);
 
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-            transactionHandlerFactory,
+                transactionPreProcessorFactory,
             new StandardEnvironment(),
             reporterService,
             true,

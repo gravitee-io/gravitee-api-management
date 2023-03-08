@@ -20,7 +20,7 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
@@ -38,7 +38,7 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
     private final GatewayConfiguration gatewayConfiguration;
 
     public DefaultPlatformProcessorChainFactory(
-        TransactionProcessorFactory transactionHandlerFactory,
+        TransactionPreProcessorFactory transactionHandlerFactory,
         boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,

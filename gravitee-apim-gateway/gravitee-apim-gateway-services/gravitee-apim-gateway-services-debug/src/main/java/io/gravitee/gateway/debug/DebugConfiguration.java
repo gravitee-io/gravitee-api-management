@@ -57,8 +57,8 @@ import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.reactive.reactor.processor.AbstractPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactor;
@@ -300,7 +300,7 @@ public class DebugConfiguration {
 
     @Bean
     public DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory(
-        io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
+        TransactionPreProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
         ReporterService reporterService,
         AlertEventProducer eventProducer,

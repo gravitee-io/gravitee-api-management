@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.transaction;
 
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -25,27 +25,27 @@ import org.junit.jupiter.api.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessorFactoryTest {
+public class TransactionPreProcessorFactoryTest {
 
     @Test
     public void shouldTransactionProcessorHaveDefaultHeader() {
-        TransactionProcessorFactory transactionProcessorFactory = new TransactionProcessorFactory(
+        TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(
             DEFAULT_TRANSACTION_ID_HEADER,
             DEFAULT_REQUEST_ID_HEADER
         );
-        TransactionProcessor transactionProcessor = transactionProcessorFactory.create();
-        assertThat(transactionProcessor.transactionHeader()).isEqualTo(DEFAULT_TRANSACTION_ID_HEADER);
-        assertThat(transactionProcessor.requestHeader()).isEqualTo(DEFAULT_REQUEST_ID_HEADER);
+        TransactionPreProcessor transactionPreProcessor = transactionPreProcessorFactory.create();
+        assertThat(transactionPreProcessor.transactionHeader()).isEqualTo(DEFAULT_TRANSACTION_ID_HEADER);
+        assertThat(transactionPreProcessor.requestHeader()).isEqualTo(DEFAULT_REQUEST_ID_HEADER);
     }
 
     @Test
     public void shouldTransactionProcessorHaveCustomHeader() {
-        TransactionProcessorFactory transactionProcessorFactory = new TransactionProcessorFactory(
+        TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(
             "CUSTOM_TRANSACTION_ID_HEADER",
             "CUSTOM_REQUEST_ID_HEADER"
         );
-        TransactionProcessor transactionProcessor = transactionProcessorFactory.create();
-        assertThat(transactionProcessor.transactionHeader()).isEqualTo("CUSTOM_TRANSACTION_ID_HEADER");
-        assertThat(transactionProcessor.requestHeader()).isEqualTo("CUSTOM_REQUEST_ID_HEADER");
+        TransactionPreProcessor transactionPreProcessor = transactionPreProcessorFactory.create();
+        assertThat(transactionPreProcessor.transactionHeader()).isEqualTo("CUSTOM_TRANSACTION_ID_HEADER");
+        assertThat(transactionPreProcessor.requestHeader()).isEqualTo("CUSTOM_REQUEST_ID_HEADER");
     }
 }

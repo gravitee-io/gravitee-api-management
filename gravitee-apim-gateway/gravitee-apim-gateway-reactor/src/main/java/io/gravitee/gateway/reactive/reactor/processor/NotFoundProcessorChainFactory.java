@@ -24,7 +24,7 @@ import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ import org.springframework.core.env.Environment;
  */
 public class NotFoundProcessorChainFactory {
 
-    private final TransactionProcessorFactory transactionHandlerFactory;
+    private final TransactionPreProcessorFactory transactionHandlerFactory;
     private final Environment environment;
     private final ReporterService reporterService;
     private final boolean notFoundAnalyticsEnabled;
@@ -45,7 +45,7 @@ public class NotFoundProcessorChainFactory {
     private ProcessorChain processorChain;
 
     public NotFoundProcessorChainFactory(
-        final TransactionProcessorFactory transactionHandlerFactory,
+        final TransactionPreProcessorFactory transactionHandlerFactory,
         final Environment environment,
         final ReporterService reporterService,
         boolean notFoundAnalyticsEnabled,

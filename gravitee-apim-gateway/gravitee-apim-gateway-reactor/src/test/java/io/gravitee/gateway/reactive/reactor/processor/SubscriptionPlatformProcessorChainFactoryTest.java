@@ -24,14 +24,13 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessor;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SubscriptionPlatformProcessorChainFactoryTest {
 
     @Mock
-    private TransactionProcessorFactory transactionHandlerFactory;
+    private TransactionPreProcessorFactory transactionHandlerFactory;
 
     @Mock
     private ReporterService reporterService;
@@ -63,7 +62,7 @@ class SubscriptionPlatformProcessorChainFactoryTest {
 
     @BeforeEach
     public void setup() {
-        when(transactionHandlerFactory.create()).thenReturn(mock(TransactionProcessor.class));
+        when(transactionHandlerFactory.create()).thenReturn(mock(TransactionPreProcessor.class));
     }
 
     @Test
@@ -80,7 +79,7 @@ class SubscriptionPlatformProcessorChainFactoryTest {
         List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
         assertThat(processors).hasSize(2);
-        assertThat(processors.get(0)).isInstanceOf(TransactionProcessor.class);
+        assertThat(processors.get(0)).isInstanceOf(TransactionPreProcessor.class);
         assertThat(processors.get(1)).isInstanceOf(MetricsProcessor.class);
     }
 }

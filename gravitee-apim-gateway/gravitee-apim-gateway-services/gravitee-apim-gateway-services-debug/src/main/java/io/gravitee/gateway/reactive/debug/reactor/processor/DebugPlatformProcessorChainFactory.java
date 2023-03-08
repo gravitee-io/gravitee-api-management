@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
@@ -36,7 +36,7 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
     private final ObjectMapper objectMapper;
 
     public DebugPlatformProcessorChainFactory(
-        final TransactionProcessorFactory transactionHandlerFactory,
+        final TransactionPreProcessorFactory transactionHandlerFactory,
         final boolean traceContext,
         final ReporterService reporterService,
         final AlertEventProducer eventProducer,

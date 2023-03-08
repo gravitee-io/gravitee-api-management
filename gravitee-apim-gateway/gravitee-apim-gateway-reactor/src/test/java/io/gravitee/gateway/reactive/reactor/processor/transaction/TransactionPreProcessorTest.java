@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.transaction;
 
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_REQUEST_ID_HEADER;
-import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionProcessorFactory.DEFAULT_TRANSACTION_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -32,22 +32,22 @@ import org.junit.jupiter.api.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionProcessorTest extends AbstractProcessorTest {
+public class TransactionPreProcessorTest extends AbstractProcessorTest {
 
     private static final String CUSTOM_TRANSACTION_ID_HEADER = "X-My-Transaction-Id";
     private static final String CUSTOM_REQUEST_ID_HEADER = "X-My-Request-Id";
-    private TransactionProcessor transactionProcessor;
+    private TransactionPreProcessor transactionPreProcessor;
 
     @BeforeEach
     public void setUp() throws Exception {
-        transactionProcessor = new TransactionProcessor(DEFAULT_TRANSACTION_ID_HEADER, DEFAULT_REQUEST_ID_HEADER);
+        transactionPreProcessor = new TransactionPreProcessor(DEFAULT_TRANSACTION_ID_HEADER, DEFAULT_REQUEST_ID_HEADER);
     }
 
     @Test
     public void shouldHaveTransactionId() {
         String requestId = UUID.toString(UUID.random());
         when(mockRequest.id()).thenReturn(requestId);
-        transactionProcessor.execute(ctx).test().assertResult();
+        transactionPreProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).transactionId(eq(requestId));
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyRequestHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
@@ -61,7 +61,7 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
         String requestId = UUID.toString(UUID.random());
         when(mockRequest.id()).thenReturn(requestId);
         spyRequestHeaders.set(DEFAULT_TRANSACTION_ID_HEADER, transactionId);
-        transactionProcessor.execute(ctx).test().assertResult();
+        transactionPreProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).transactionId(eq(transactionId));
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyRequestHeaders.get(DEFAULT_REQUEST_ID_HEADER)).isEqualTo(requestId);
@@ -71,10 +71,10 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldHaveTransactionIdWithCustomHeader() {
-        transactionProcessor = new TransactionProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER);
+        transactionPreProcessor = new TransactionPreProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER);
         String requestId = UUID.toString(UUID.random());
         when(mockRequest.id()).thenReturn(requestId);
-        transactionProcessor.execute(ctx).test().assertResult();
+        transactionPreProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).transactionId(eq(requestId));
         assertThat(spyRequestHeaders.get(CUSTOM_TRANSACTION_ID_HEADER)).isEqualTo(requestId);
         assertThat(spyRequestHeaders.get(DEFAULT_TRANSACTION_ID_HEADER)).isNull();
@@ -88,12 +88,12 @@ public class TransactionProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void shouldPropagateSameTransactionIdWithCustomHeader() {
-        transactionProcessor = new TransactionProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER);
+        transactionPreProcessor = new TransactionPreProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER);
         String transactionId = UUID.toString(UUID.random());
         String requestId = UUID.toString(UUID.random());
         when(mockRequest.id()).thenReturn(requestId);
         spyRequestHeaders.set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        transactionProcessor.execute(ctx).test().assertResult();
+        transactionPreProcessor.execute(ctx).test().assertResult();
         verify(mockRequest).transactionId(eq(transactionId));
         assertThat(spyRequestHeaders.get(CUSTOM_TRANSACTION_ID_HEADER)).isEqualTo(transactionId);
         assertThat(spyRequestHeaders.get(CUSTOM_REQUEST_ID_HEADER)).isEqualTo(requestId);
