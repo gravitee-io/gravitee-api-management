@@ -55,6 +55,16 @@ $typography: map.get(gio.$mat-theme, typography);
         gap: 4px;
         flex-wrap: wrap;
       }
+      &__container {
+        display: flex;
+        flex-wrap: wrap;
+        border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+        border-radius: 4px;
+        max-width: fit-content;
+        padding: 16px;
+        gap: 10px;
+        align-items: center;
+      }
     }
   }
 
