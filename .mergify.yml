@@ -8,6 +8,15 @@ pull_request_rules:
           - master
         assignees:
           - "{{ author }}"
+        body: |
+          This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          ----
+          
+          {{ body }}
+          
+          ----
+          {{ cherry_pick_error }}
+        title: "{{ title }} - master"
   - name: Apply patches on `3.20.x`
     conditions:
       - label=apply-on-3-20-x
@@ -17,6 +26,15 @@ pull_request_rules:
           - 3.20.x
         assignees:
           - "{{ author }}"
+        body: |
+          This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          ----
+          
+          {{ body }}
+          
+          ----
+          {{ cherry_pick_error }}
+        title: "{{ title }} - 3.20.x"          
   - name: Apply patches on `3.19.x`
     conditions:
       - label=apply-on-3-19-x
@@ -26,6 +44,15 @@ pull_request_rules:
           - 3.19.x
         assignees:
           - "{{ author }}"
+        body: |
+          This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          ----
+          
+          {{ body }}
+          
+          ----
+          {{ cherry_pick_error }}
+        title: "{{ title }} - 3.19.x"          
   - name: Apply patches on `3.18.x`
     conditions:
       - label=apply-on-3-18-x
@@ -35,3 +62,12 @@ pull_request_rules:
           - 3.18.x
         assignees:
           - "{{ author }}"          
+        body: |
+          This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          ----
+          
+          {{ body }}
+          
+          ----
+          {{ cherry_pick_error }}
+        title: "{{ title }} - 3.18.x"
