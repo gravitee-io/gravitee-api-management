@@ -10,6 +10,7 @@ pull_request_rules:
           - "{{ author }}"
         body: |
           This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          
           ----
           
           {{ body }}
@@ -28,6 +29,7 @@ pull_request_rules:
           - "{{ author }}"
         body: |
           This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          
           ----
           
           {{ body }}
@@ -46,6 +48,7 @@ pull_request_rules:
           - "{{ author }}"
         body: |
           This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          
           ----
           
           {{ body }}
@@ -64,6 +67,7 @@ pull_request_rules:
           - "{{ author }}"          
         body: |
           This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          
           ----
           
           {{ body }}
