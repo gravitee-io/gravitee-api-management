@@ -66,7 +66,9 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
     protected String getDatabaseName() {
         String uri = environment.getProperty("management.mongodb.uri");
         if (uri != null && !uri.isEmpty()) {
-            return URI.create(uri).getPath().substring(1);
+            // Remove user:password from the URI as it can contain special characters and isn't needed for the database name
+            String uriWithoutCredentials = uri.replaceAll("://.*@", "://");
+            return URI.create(uriWithoutCredentials).getPath().substring(1);
         }
 
         return environment.getProperty("management.mongodb.dbname", "gravitee");
