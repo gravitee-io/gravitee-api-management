@@ -27,6 +27,7 @@ import { MenuStepItem } from './components/api-creation-stepper-menu/api-creatio
 import { Step1MenuItemComponent } from './steps/step-1-menu-item/step-1-menu-item.component';
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
+import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-item.component';
 
 import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -71,6 +72,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     {
       groupNumber: 4,
       label: 'Security',
+      menuItemComponent: Step4MenuItemComponent,
     },
     {
       groupNumber: 5,
