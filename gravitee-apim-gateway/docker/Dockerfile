@@ -21,7 +21,9 @@ ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 # Second stage to add the folder and change the permissions and ownership
 FROM base as builder
 ADD ./distribution ${GRAVITEEIO_HOME}/
-RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
+RUN addgroup -g 1000 graviteeio \
+    && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
+RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
@@ -34,3 +36,4 @@ ENTRYPOINT ["./bin/gravitee"]
 VOLUME ${GRAVITEEIO_HOME}/logs
 HEALTHCHECK --interval=5s --timeout=3s --retries=6 --start-period=30s \
             CMD curl --user admin:adminadmin --fail http://localhost:18082/_node/health || exit 1
+USER graviteeio

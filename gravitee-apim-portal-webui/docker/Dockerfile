@@ -22,3 +22,6 @@ ADD ./docker/config /etc/confd
 COPY ./dist /usr/share/nginx/html/
 
 CMD ["sh", "/run.sh"]
+
+USER nginx
+

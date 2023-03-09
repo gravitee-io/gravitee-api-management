@@ -35,3 +35,5 @@ RUN apk update \
   && rm -rf /tmp/* \
 
 CMD ["sh", "/run.sh"]
+
+USER nginx
