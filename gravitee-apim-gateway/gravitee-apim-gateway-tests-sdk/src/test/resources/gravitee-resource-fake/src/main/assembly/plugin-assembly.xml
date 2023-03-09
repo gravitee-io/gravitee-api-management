@@ -1,0 +1,62 @@
+<assembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
+    <id>policy</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <!-- Include the main Policy Jar file -->
+    <files>
+        <file>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+        </file>
+    </files>
+
+    <fileSets>
+        <!-- Then include Policy configuration schemas -->
+        <fileSet>
+            <directory>src/main/resources/schemas</directory>
+            <outputDirectory>schemas</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/resources/images</directory>
+            <outputDirectory>images</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>${basedir}</directory>
+            <includes>
+                <include>README.adoc</include>
+            </includes>
+            <outputDirectory>docs</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>${basedir}</directory>
+            <includes>
+                <include>${icon}</include>
+            </includes>
+        </fileSet>
+
+        <!-- Create the empty lib directory in case of no libraries is required -->
+        <!-- As there is no maven-assembly-plugin's method do to that, we hack it ourself -->
+        <fileSet>
+            <directory>${project.basedir}/src/assembly</directory>
+            <outputDirectory>lib</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+
+    <!-- Finally include Policy dependencies -->
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
+    </dependencySets>
+</assembly>
