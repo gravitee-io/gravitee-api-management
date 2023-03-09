@@ -344,3 +344,8 @@ IMPORTANT: The difference between the previously mentioned method is that `loadP
 ** EventRepository
 ** ApiKeyRepository
 
+==== Fake policy & resource
+
+The `DefaultClassLoaderTest` class in `gravitee-apim-gateway-core` use fake policy & resource jar.
+Source code of these fake plugins are saved into the `test/resources` directory of this module.
+

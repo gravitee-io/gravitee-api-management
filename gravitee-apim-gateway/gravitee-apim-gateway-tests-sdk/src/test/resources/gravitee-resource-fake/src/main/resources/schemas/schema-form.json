@@ -1,0 +1,7 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:io:gravitee:resource:fake:configuration:FakeResourceConfiguration",
+  "properties" : {},
+  "required": [
+  ]
+}

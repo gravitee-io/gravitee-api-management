@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:policy:fake:configuration:FakePolicyConfiguration",
+  "properties": {
+  },
+  "required": [
+  ]
+}
