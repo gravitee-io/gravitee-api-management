@@ -872,6 +872,9 @@ describe('ApiCreationV4Component', () => {
       expect(step3Summary).toContain('Field' + 'Value');
       expect(step3Summary).toContain('Kafka');
       expect(step3Summary).toContain('Mock');
+
+      const step4Summary = await step6Harness.getStepSummaryTextContent(4);
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
@@ -951,6 +954,32 @@ describe('ApiCreationV4Component', () => {
       const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
       expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
+    });
+
+    it('should go back to step 4 after clicking Change button', async () => {
+      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+
+      let step4Summary = await step6Harness.getStepSummaryTextContent(4);
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+
+      await step6Harness.clickChangeButton(4);
+
+      fixture.detectChanges();
+
+      const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+
+      await step4Security1PlansListHarness.clickRemovePlanButton();
+      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
+
+      await step4Security1PlansListHarness.clickValidate();
+      await fillAndValidateStep5Documentation();
+
+      // Reinitialize step6Harness after step4 validation
+      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+
+      step4Summary = await step6Harness.getStepSummaryTextContent(4);
+      expect(step4Summary).toContain('No plans are selected.');
     });
 
     it('should go to confirmation page after clicking Create my API', async () => {

@@ -51,6 +51,8 @@ export class Step4Security1PlansListComponent implements OnInit {
         type: PlanSecurityType.KEY_LESS,
         description: 'Default unsecured plan',
       });
+    } else {
+      this.plans = currentStepPayload.plans;
     }
   }
 

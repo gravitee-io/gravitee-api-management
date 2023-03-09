@@ -104,7 +104,15 @@
     <div id="step-4" class="step-6-summary__step">
       <div class="mat-h3">Security</div>
       <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">🚧🚧🚧</div>
+        <div class="step-6-summary__step__info">
+          <div *ngIf="currentStepPayload.plans?.length > 0; else elseBlock">
+            <div class="step-6-summary__step__info__container" *ngFor="let plan of currentStepPayload.plans">
+              <span class="mat-body-strong">{{ plan.name }}</span
+              ><span class="gio-badge-neutral">{{ plan.type }}</span>
+            </div>
+          </div>
+          <ng-template #elseBlock> No plans are selected. </ng-template>
+        </div>
         <div>
           <button mat-stroked-button (click)="onChangeStepInfo('Security')">Change</button>
         </div>
