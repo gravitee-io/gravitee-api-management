@@ -44,6 +44,7 @@ import { Step3Endpoints2ConfigComponent } from './steps/step-3-endpoints/step-3-
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 import { Step2Entrypoints0ArchitectureComponent } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.component';
+import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-item.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
@@ -91,6 +92,7 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     Step3Endpoints1ListComponent,
     Step3Endpoints2ConfigComponent,
     StepEndpointMenuItemComponent,
+    Step4MenuItemComponent,
     Step4Security1PlansListComponent,
     Step5DocumentationComponent,
     Step6SummaryComponent,
