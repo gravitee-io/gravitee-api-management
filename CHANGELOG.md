@@ -1,3 +1,12 @@
+# [4.1.0-alpha.8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.7...4.1.0-alpha.8) (2023-03-10)
+
+
+### Features
+
+* add support for ES 8.x ([fd10d8a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/fd10d8a8881339fec00ed3606b3e451cf68b7dc3))
+* support ES 8.x ([efec022](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/efec022f844b51335328ffc7702a4369359c4282))
+* support ES 8.x ([f045a5f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/f045a5fac0372cc6172d8b1fb8bf426cc7ea8ffe))
+
 # [4.1.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.6...4.1.0-alpha.7) (2023-02-01)
 
 
