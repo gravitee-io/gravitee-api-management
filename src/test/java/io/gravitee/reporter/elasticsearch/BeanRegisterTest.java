@@ -23,6 +23,7 @@ import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.es5.ES5BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es7.ES7BulkIndexer;
+import io.gravitee.reporter.elasticsearch.indexer.es8.ES8BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
@@ -30,6 +31,7 @@ import io.gravitee.reporter.elasticsearch.mapping.es5.ES5MultiTypeIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es5.ES5PerTypeIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -144,6 +146,34 @@ class BeanRegisterTest {
     }
 
     @Nested
+    class ElasticSearch8 {
+
+        @Test
+        void should_instantiate_beans_for_elasticsearch_8_daily_mode() {
+            var reporterConfiguration = new ReporterConfiguration();
+            reporterConfiguration.setIndexMode("daily");
+
+            register.registerBeans(elasticsearchInfo("8.5.2"), reporterConfiguration);
+
+            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES8BulkIndexer.class);
+            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES8IndexPreparer.class);
+            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+        }
+
+        @Test
+        void should_instantiate_beans_for_elasticsearch_8_ilm_mode() {
+            var reporterConfiguration = new ReporterConfiguration();
+            reporterConfiguration.setIndexMode("ilm");
+
+            register.registerBeans(elasticsearchInfo("8.5.2"), reporterConfiguration);
+
+            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES8BulkIndexer.class);
+            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES8IndexPreparer.class);
+            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeIndexNameGenerator.class);
+        }
+    }
+
+    @Nested
     class OpenSearch1 {
 
         @Test
@@ -172,7 +202,7 @@ class BeanRegisterTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = { "elastic:8.0.0", "opensearch:2.12.7" }, delimiter = ':')
+    @CsvSource(value = { "opensearch:2.12.7" }, delimiter = ':')
     void should_ignore_unsupported_version(String distribution, String version) {
         register.registerBeans(elasticsearchInfo(distribution, version), new ReporterConfiguration());
 
