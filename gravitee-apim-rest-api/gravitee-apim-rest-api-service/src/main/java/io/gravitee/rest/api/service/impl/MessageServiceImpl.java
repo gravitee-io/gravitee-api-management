@@ -264,9 +264,10 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 // Get apps allowed to consume the api
                 List<String> applicationIds = subscriptionRepository
                     .search(
-                        new SubscriptionCriteria.Builder()
+                        SubscriptionCriteria
+                            .builder()
                             .apis(Collections.singleton(api.getId()))
-                            .status(Subscription.Status.ACCEPTED)
+                            .statuses(List.of(Subscription.Status.ACCEPTED.name()))
                             .build()
                     )
                     .stream()

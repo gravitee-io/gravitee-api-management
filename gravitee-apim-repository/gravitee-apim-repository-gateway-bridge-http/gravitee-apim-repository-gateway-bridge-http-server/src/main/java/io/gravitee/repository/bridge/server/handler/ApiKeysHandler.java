@@ -15,12 +15,16 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import static java.util.stream.Collectors.*;
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.readSortable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
@@ -29,7 +33,11 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,15 +60,16 @@ public class ApiKeysHandler extends AbstractHandler {
     }
 
     public void findByCriteria(RoutingContext ctx) {
-        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final JsonObject searchPayload = ctx.body().asJsonObject();
 
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
+        final Sortable sortable = readSortable(ctx);
 
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
                 try {
-                    promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                    promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria, sortable));
                 } catch (TechnicalException te) {
                     LOGGER.error("Unable to find the API Key", te);
                     promise.fail(te);
@@ -78,7 +87,7 @@ public class ApiKeysHandler extends AbstractHandler {
      */
     @Deprecated(since = "3.17.0", forRemoval = true)
     public void search(RoutingContext ctx) {
-        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final JsonObject searchPayload = ctx.body().asJsonObject();
 
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
@@ -86,7 +95,7 @@ public class ApiKeysHandler extends AbstractHandler {
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
                 try {
-                    List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
+                    List<io.gravitee.repository.management.model.ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria, null);
                     Map<String, Subscription> subscriptionsById = findSubscriptions(apiKeys);
                     promise.complete(
                         apiKeys.stream().flatMap(apiKey -> this.getApiKeysDefinitionsFromModel(apiKey, subscriptionsById)).collect(toList())
@@ -126,27 +135,42 @@ public class ApiKeysHandler extends AbstractHandler {
     }
 
     private ApiKeyCriteria readCriteria(JsonObject payload) {
-        ApiKeyCriteria.Builder builder = new ApiKeyCriteria.Builder();
+        ApiKeyCriteria.ApiKeyCriteriaBuilder builder = ApiKeyCriteria.builder();
+        if (payload != null) {
+            Long fromVal = payload.getLong("from");
+            if (fromVal != null && fromVal > 0) {
+                builder.from(fromVal);
+            }
 
-        Long fromVal = payload.getLong("from");
-        if (fromVal != null && fromVal > 0) {
-            builder.from(fromVal);
+            Long toVal = payload.getLong("to");
+            if (toVal != null && toVal > 0) {
+                builder.to(toVal);
+            }
+
+            Long expireAfterVal = payload.getLong("expireAfter");
+            if (expireAfterVal != null && expireAfterVal > 0) {
+                builder.expireAfter(expireAfterVal);
+            }
+
+            Long expireBeforeVal = payload.getLong("expireBefore");
+            if (expireBeforeVal != null && expireBeforeVal > 0) {
+                builder.expireBefore(expireBeforeVal);
+            }
+
+            Boolean includeWithoutExpirationVal = payload.getBoolean("includeWithoutExpiration");
+            if (includeWithoutExpirationVal != null) {
+                builder.includeWithoutExpiration(includeWithoutExpirationVal);
+            }
+
+            Boolean revokeVal = payload.getBoolean("includeRevoked", false);
+            builder.includeRevoked(revokeVal);
+
+            JsonArray subscriptionsArr = payload.getJsonArray("subscriptions");
+            if (subscriptionsArr != null) {
+                Set<String> subscriptions = subscriptionsArr.stream().map(String.class::cast).collect(Collectors.toSet());
+                builder.subscriptions(subscriptions);
+            }
         }
-
-        Long toVal = payload.getLong("to");
-        if (toVal != null && toVal > 0) {
-            builder.to(toVal);
-        }
-
-        Boolean revokeVal = payload.getBoolean("includeRevoked", false);
-        builder.includeRevoked(revokeVal);
-
-        JsonArray plansArr = payload.getJsonArray("plans");
-        if (plansArr != null) {
-            Set<String> plans = plansArr.stream().map(obj -> (String) obj).collect(Collectors.toSet());
-            builder.plans(plans);
-        }
-
         return builder.build();
     }
 

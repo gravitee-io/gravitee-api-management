@@ -190,7 +190,6 @@ public class ApiStateServiceImplTest {
         verify(apiRepository, times(2)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
@@ -230,7 +229,6 @@ public class ApiStateServiceImplTest {
         verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         verify(eventService)
@@ -290,7 +288,6 @@ public class ApiStateServiceImplTest {
         verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STOPPED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         verify(eventService)

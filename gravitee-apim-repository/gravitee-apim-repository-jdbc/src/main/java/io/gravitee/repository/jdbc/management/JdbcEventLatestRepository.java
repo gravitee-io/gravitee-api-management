@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createOffsetClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+import static io.gravitee.repository.jdbc.management.JdbcEventRepository.CHILD_ADDER;
+import static io.gravitee.repository.jdbc.management.JdbcEventRepository.appendCriteria;
+import static io.gravitee.repository.jdbc.management.JdbcEventRepository.criteriaToString;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.addCondition;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -32,18 +30,13 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,31 +64,9 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         EVENT_ENVIRONMENTS = getTableNameFor("events_latest_environments");
     }
 
-    private static final JdbcHelper.ChildAdder<Event> CHILD_ADDER = (Event parent, ResultSet rs) -> {
-        Map<String, String> properties = parent.getProperties();
-        if (properties == null) {
-            properties = new HashMap<>();
-            parent.setProperties(properties);
-        }
-        if (rs.getString("property_key") != null) {
-            properties.put(rs.getString("property_key"), rs.getString("property_value"));
-        }
-
-        Set<String> environments = parent.getEnvironments();
-        if (environments == null) {
-            environments = new HashSet<>();
-            parent.setEnvironments(environments);
-        }
-        if (rs.getString("environment_id") != null) {
-            environments.add(rs.getString("environment_id"));
-        }
-    };
-
     @Override
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
-        if (log.isDebugEnabled()) {
-            log.debug("JdbcEventLatestRepository.search({})", criteriaToString(criteria));
-        }
+        log.debug("JdbcEventLatestRepository.search({})", criteriaToString(criteria));
 
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = new StringBuilder(
@@ -109,19 +80,17 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             " ev on evt.id = ev.event_id"
         );
 
-        appendCriteria(builder, criteria, args, "evt");
-        builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("evp.property_key = ? and evp.property_value is not null");
-        args.add(group.getValue());
+        appendCriteria(builder, criteria, args, "evt", "ev", EVENT_PROPERTIES);
+        if (group != null) {
+            builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("evp.property_key = ? and evp.property_value is not null ");
+            args.add(group.getValue());
+        }
 
+        builder.append("order by evt.updated_at asc, evt.id asc ");
         if (page != null && size != null && size > 0) {
             final int limit = size.intValue();
             builder.append(createPagingClause(limit, (page.intValue() * limit)));
-        } else {
-            // Hack to add offset O because some db engines do not support ordering sub query without specifying offset (-> sqlserver), others do not support offset without limit (--> mysql).
-            builder.append(createOffsetClause(0L));
         }
-        builder.append(" order by evt.updated_at desc, evt.id desc");
-
         return queryEvents(builder.toString(), args);
     }
 
@@ -177,7 +146,7 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     }
 
     @Override
-    public Event createOrPatch(Event event) throws TechnicalException {
+    public Event createOrPatch(Event event) {
         if (event == null || event.getId() == null || event.getType() == null) {
             throw new IllegalStateException("Event to create or update must have an id and a type");
         }
@@ -186,14 +155,13 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         if (updatedEventCount <= 0) {
             createEvent(event);
         } else {
-            // update properties only if event was correctly updated
-            patchEventProperties(event);
+            storeProperties(event, true);
             storeEnvironments(event, true);
         }
         return event;
     }
 
-    public void createEvent(Event event) {
+    private void createEvent(Event event) {
         jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(event));
         storeProperties(event, false);
         storeEnvironments(event, false);
@@ -243,6 +211,10 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             args.add(event.getParentId());
             hasSet = true;
         }
+        if (event.getCreatedAt() != null) {
+            queryBuilder.append(hasSet ? "," : " set").append(" created_at = ?");
+            args.add(event.getCreatedAt());
+        }
         if (event.getUpdatedAt() != null) {
             queryBuilder.append(hasSet ? "," : " set").append(" updated_at = ?");
             args.add(event.getUpdatedAt());
@@ -250,21 +222,6 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         queryBuilder.append(" where id = ? ");
         args.add(event.getId());
         return jdbcTemplate.update(queryBuilder.toString(), args.toArray());
-    }
-
-    private void patchEventProperties(Event event) {
-        if (event.getProperties() != null) {
-            event.getProperties().forEach((property, value) -> updateEventProperty(event.getId(), property, value));
-        }
-    }
-
-    private void updateEventProperty(String eventId, String propertyKey, String value) {
-        jdbcTemplate.update(
-            "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
-            value,
-            eventId,
-            propertyKey
-        );
     }
 
     List<Event> queryEvents(String sql, List<Object> args) {
@@ -294,70 +251,5 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         final List<Event> events = rowCallbackHandler.getRows();
         log.debug("Events found: {}", events);
         return events;
-    }
-
-    void appendCriteria(StringBuilder builder, EventCriteria filter, List<Object> args, String tableAlias) {
-        boolean started = addPropertiesWhereClause(filter, args, builder, tableAlias);
-        if (filter.getFrom() > 0) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(tableAlias + ".updated_at >= ?");
-            args.add(new Date(filter.getFrom()));
-            started = true;
-        }
-        if (filter.getTo() > 0) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(tableAlias + ".updated_at < ?");
-            args.add(new Date(filter.getTo()));
-            started = true;
-        }
-        if (!isEmpty(filter.getEnvironments())) {
-            started = addStringsWhereClause(filter.getEnvironments(), "ev.environment_id", args, builder, started);
-        }
-        if (!isEmpty(filter.getTypes())) {
-            final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
-            addStringsWhereClause(types, tableAlias + ".type", args, builder, started);
-        }
-    }
-
-    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder, String tableAlias) {
-        if (!isEmpty(filter.getProperties())) {
-            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = " + tableAlias + ".id ");
-            builder.append(WHERE_CLAUSE);
-            builder.append("(");
-            boolean first = true;
-            for (Map.Entry<String, Object> property : filter.getProperties().entrySet()) {
-                if (property.getValue() instanceof Collection) {
-                    for (Object value : (Collection) property.getValue()) {
-                        first = addCondition(first, builder, property.getKey(), value, args);
-                    }
-                } else {
-                    first = addCondition(first, builder, property.getKey(), property.getValue(), args);
-                }
-            }
-            builder.append(")");
-            return true;
-        }
-        return false;
-    }
-
-    String criteriaToString(EventCriteria filter) {
-        return (
-            "{ " +
-            "from: " +
-            filter.getFrom() +
-            ", " +
-            "props: " +
-            filter.getProperties() +
-            ", " +
-            "to: " +
-            filter.getTo() +
-            ", " +
-            "environments: " +
-            filter.getEnvironments() +
-            ", " +
-            "types: " +
-            filter.getTypes() +
-            " }"
-        );
     }
 }

@@ -83,8 +83,7 @@ public class DictionaryServiceImpl_StopTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(EventType.STOP_DICTIONARY),
-                eq(null),
-                any()
+                eq("dictionaryId")
             );
         verify(auditService, times(1))
             .createAuditLog(

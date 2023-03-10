@@ -106,8 +106,7 @@ public class DictionaryServiceImpl_UpdateTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(EventType.START_DICTIONARY),
-                eq(null),
-                any()
+                eq("dictionaryId")
             );
         verify(auditService, times(1))
             .createAuditLog(

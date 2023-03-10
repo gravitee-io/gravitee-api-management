@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
@@ -58,7 +60,7 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
         aggregationOperations.add(Aggregation.project(Aggregation.fields("_id", "updatedAt", "type", "properties")));
 
         // Sort.
-        aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
+        aggregationOperations.add(Aggregation.sort(Sort.Direction.ASC, "updatedAt", "_id"));
 
         // Pagination
         if (page != null && size != null && size > 0) {
@@ -84,33 +86,33 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
     protected List<Criteria> buildDBCriteria(final EventCriteria criteria) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        if (criteria.getTypes() != null && !criteria.getTypes().isEmpty()) {
+        if (!isEmpty(criteria.getTypes())) {
             criteriaList.add(Criteria.where("type").in(criteria.getTypes()));
         }
 
-        if (criteria.getProperties() != null && !criteria.getProperties().isEmpty()) {
+        if (!isEmpty(criteria.getProperties())) {
             // set criteria query
             criteria
                 .getProperties()
-                .forEach(
-                    (k, v) -> {
-                        if (v instanceof Collection) {
-                            criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
-                        } else {
-                            criteriaList.add(Criteria.where("properties." + k).is(v));
-                        }
+                .forEach((k, v) -> {
+                    if (v instanceof Collection) {
+                        criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
+                    } else {
+                        criteriaList.add(Criteria.where("properties." + k).is(v));
                     }
-                );
+                });
         }
 
         // set range query
-        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
-            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
-        } else if (criteria.getFrom() != 0) {
+        if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lte(new Date(criteria.getTo())));
+        } else if (criteria.getFrom() > 0) {
             criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+        } else if (criteria.getTo() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").lte(new Date(criteria.getTo())));
         }
 
-        if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
+        if (!isEmpty(criteria.getEnvironments())) {
             criteriaList.add(Criteria.where("environments").in(criteria.getEnvironments()));
         }
 

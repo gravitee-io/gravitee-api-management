@@ -16,83 +16,22 @@
 package io.gravitee.rest.api.model.key;
 
 import java.util.Collection;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+@EqualsAndHashCode
 public class ApiKeyQuery {
 
-    private Collection<String> plans;
+    private Collection<String> subscriptions;
 
-    private long from, to;
+    private long from = -1;
+    private long to = -1;
 
     private boolean includeRevoked;
 
-    private long expireAfter, expireBefore;
-
-    public Collection<String> getPlans() {
-        return plans;
-    }
-
-    public void setPlans(Collection<String> plans) {
-        this.plans = plans;
-    }
-
-    public long getFrom() {
-        return from;
-    }
-
-    public void setFrom(long from) {
-        this.from = from;
-    }
-
-    public long getTo() {
-        return to;
-    }
-
-    public void setTo(long to) {
-        this.to = to;
-    }
-
-    public boolean isIncludeRevoked() {
-        return includeRevoked;
-    }
-
-    public void setIncludeRevoked(boolean includeRevoked) {
-        this.includeRevoked = includeRevoked;
-    }
-
-    public long getExpireAfter() {
-        return expireAfter;
-    }
-
-    public void setExpireAfter(long expireAfter) {
-        this.expireAfter = expireAfter;
-    }
-
-    public long getExpireBefore() {
-        return expireBefore;
-    }
-
-    public void setExpireBefore(long expireBefore) {
-        this.expireBefore = expireBefore;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApiKeyQuery that = (ApiKeyQuery) o;
-        return (
-            from == that.from &&
-            to == that.to &&
-            includeRevoked == that.includeRevoked &&
-            expireAfter == that.expireAfter &&
-            expireBefore == that.expireBefore &&
-            Objects.equals(plans, that.plans)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(plans, from, to, includeRevoked, expireAfter, expireBefore);
-    }
+    private long expireAfter = -1;
+    private long expireBefore = -1;
 }

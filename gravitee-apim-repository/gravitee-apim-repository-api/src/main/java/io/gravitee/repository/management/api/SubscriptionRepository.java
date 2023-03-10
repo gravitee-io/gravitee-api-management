@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
@@ -32,7 +33,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface SubscriptionRepository extends CrudRepository<Subscription, String> {
-    Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException;
+    Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
+
+    List<Subscription> search(SubscriptionCriteria criteria, Sortable sortable) throws TechnicalException;
 
     List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;
 

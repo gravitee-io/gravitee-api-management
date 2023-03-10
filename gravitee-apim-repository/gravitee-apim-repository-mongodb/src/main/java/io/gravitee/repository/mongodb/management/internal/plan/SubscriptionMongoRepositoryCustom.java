@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.plan;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import java.util.Set;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SubscriptionMongoRepositoryCustom {
-    Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable);
+    Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable);
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order);
 }

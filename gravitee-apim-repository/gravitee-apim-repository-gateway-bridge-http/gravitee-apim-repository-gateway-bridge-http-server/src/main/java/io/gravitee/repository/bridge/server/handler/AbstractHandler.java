@@ -85,15 +85,21 @@ public abstract class AbstractHandler {
                     response.end(jpe.getMessage());
                 }
             } else {
-                LOGGER.error("Unexpected error from the bridge", result.cause());
-                response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                response.end(result.cause().getMessage());
+                endWithError(result.cause(), response);
             }
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error from the bridge", result.cause());
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            response.end(result.cause().getMessage());
+            endWithError(result.cause(), response);
         }
+    }
+
+    private <T> void endWithError(final Throwable throwable, final HttpServerResponse response) {
+        LOGGER.error("Unexpected error from the bridge", throwable);
+        response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+        String errorMessage = throwable.getMessage();
+        if (errorMessage == null) {
+            errorMessage = "Unexpected error from the bridge";
+        }
+        response.end(errorMessage);
     }
 
     protected Set<String> readListParam(String strList) {

@@ -49,7 +49,6 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -353,7 +352,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             // Check existing subscriptions
             List<Subscription> subscriptions = subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
+                SubscriptionCriteria
+                    .builder()
                     .applications(Collections.singleton(application))
                     .apis(Collections.singleton(genericPlanEntity.getApiId()))
                     .build()
@@ -1023,13 +1023,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private void pauseNonSharedApiKeys(ExecutionContext executionContext, Subscription subscription, ApplicationEntity application) {
-        if (!application.hasApiKeySharedMode()) {
-            streamActiveApiKeys(executionContext, subscription.getId())
-                .forEach(apiKey -> {
+        streamActiveApiKeys(executionContext, subscription.getId())
+            .forEach(apiKey -> {
+                // Only paused key if the applicatio is not using shared api key
+                if (!application.hasApiKeySharedMode()) {
                     apiKey.setPaused(true);
-                    apiKeyService.update(executionContext, apiKey);
-                });
-        }
+                }
+                // Anyway update the shared key updateAt timestamp to detect changes
+                apiKeyService.update(executionContext, apiKey);
+            });
     }
 
     @Override
@@ -1316,7 +1318,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Search subscriptions {}", query);
 
-            final SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
+            final SubscriptionCriteria.SubscriptionCriteriaBuilder builder = toSubscriptionCriteriaBuilder(query);
 
             Set<String> subscriptionsIds = null;
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
@@ -1388,10 +1390,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 return new Page<>(filteredSubscriptions, 1, filteredSubscriptions.size(), filteredSubscriptions.size());
             } else {
-                final SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
+                final SubscriptionCriteria.SubscriptionCriteriaBuilder builder = toSubscriptionCriteriaBuilder(query);
 
                 Page<Subscription> pageSubscription = subscriptionRepository.search(
                     builder.build(),
+                    null,
                     new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
                 );
 
@@ -1443,28 +1446,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         });
     }
 
-    private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
-        SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
+    private SubscriptionCriteria.SubscriptionCriteriaBuilder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
+        SubscriptionCriteria.SubscriptionCriteriaBuilder builder = SubscriptionCriteria
+            .builder()
             .apis(query.getApis())
             .applications(query.getApplications())
             .plans(query.getPlans())
             .from(query.getFrom())
             .to(query.getTo())
             .endingAtAfter(query.getEndingAtAfter())
-            .endingAtBefore(query.getEndingAtBefore());
+            .endingAtBefore(query.getEndingAtBefore())
+            .includeWithoutEnd(query.isIncludeWithoutEnd());
 
         if (query.getStatuses() != null) {
-            builder.statuses(
-                query
-                    .getStatuses()
-                    .stream()
-                    .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                    .collect(toSet())
-            );
+            builder.statuses(query.getStatuses().stream().map(Enum::name).collect(toSet()));
         }
 
         if (query.getPlanSecurityTypes() != null) {
-            builder.planSecurityTypes(query.getPlanSecurityTypes().stream().map(Plan.PlanSecurityType::valueOf).collect(toList()));
+            builder.planSecurityTypes(query.getPlanSecurityTypes());
         }
 
         return builder;

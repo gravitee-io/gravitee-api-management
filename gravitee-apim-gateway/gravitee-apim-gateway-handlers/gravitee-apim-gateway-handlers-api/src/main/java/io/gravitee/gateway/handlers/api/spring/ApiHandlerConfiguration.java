@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -29,8 +28,8 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.handlers.api.services.ApiKeyService;
-import io.gravitee.gateway.handlers.api.services.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
@@ -48,7 +47,6 @@ import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
@@ -59,13 +57,11 @@ import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
-import io.gravitee.repository.management.api.CommandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -197,20 +193,13 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ApiKeyService apiKeyService(CacheManager cacheManager) {
-        return new ApiKeyService(cacheManager);
+    public ApiKeyCacheService apiKeyService(CacheManager cacheManager) {
+        return new ApiKeyCacheService(cacheManager);
     }
 
     @Bean
-    public SubscriptionService subscriptionService(
-        CacheManager cacheManager,
-        ApiKeyService apiKeyService,
-        SubscriptionDispatcher subscriptionDispatcher,
-        @Lazy CommandRepository commandRepository,
-        Node node,
-        ObjectMapper objectMapper
-    ) {
-        return new SubscriptionService(cacheManager, apiKeyService, subscriptionDispatcher, commandRepository, node, objectMapper);
+    public SubscriptionCacheService subscriptionService(CacheManager cacheManager, ApiKeyCacheService apiKeyService) {
+        return new SubscriptionCacheService(cacheManager, apiKeyService);
     }
 
     @Bean

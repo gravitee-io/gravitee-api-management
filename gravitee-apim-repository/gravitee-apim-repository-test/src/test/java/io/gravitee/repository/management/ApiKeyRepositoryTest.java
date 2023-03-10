@@ -19,13 +19,23 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 
 public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
@@ -109,8 +119,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull("ApiKeys not found", apiKeys);
         assertEquals(2, apiKeys.size());
-        assertTrue(apiKeys.stream().anyMatch(apiKey -> apiKey.getId().equals("id-of-apikey-1")));
-        assertTrue(apiKeys.stream().anyMatch(apiKey -> apiKey.getId().equals("id-of-apikey-2")));
+        assertTrue(Set.of("id-of-apikey-1", "id-of-apikey-2").containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList())));
     }
 
     @Test
@@ -158,7 +167,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, apiKeys.size());
 
         ApiKey apiKey = apiKeys.iterator().next();
-        assertTrue(apiKey.getSubscriptions().containsAll(Set.of("subscription2", "subscriptionX")));
+        assertTrue(Set.of("subscription2", "subscriptionX").containsAll(apiKey.getSubscriptions()));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -179,28 +188,32 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_without_time_range() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(false).plans(singleton("plan1")).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(false).subscriptions(singleton("sub3")).build()
+        );
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 2 apikeys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1");
-        assertTrue(apiKeys.stream().map(ApiKey::getKey).collect(toList()).containsAll(expectedKeys));
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
         assertNotEquals(apiKeys.get(0).getKey(), apiKeys.get(1).getKey());
     }
 
     @Test
-    public void findByCriteria_should_find_by_plan_and_read_subscriptions() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(false).plans(singleton("plan5")).build());
+    public void findByCriteria_should_find_by_subscriptions() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(false).subscriptions(List.of("sub4", "sub5", "sub6")).build()
+        );
         assertEquals(1, apiKeys.size());
-        assertTrue(apiKeys.get(0).getSubscriptions().containsAll(Set.of("sub4", "sub5", "sub6")));
+        assertTrue(Set.of("sub4", "sub5", "sub6").containsAll(apiKeys.get(0).getSubscriptions()));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_time_range() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            new Builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).plans(singleton("plan1")).build()
+            ApiKeyCriteria.builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).subscriptions(singleton("sub3")).build()
         );
 
         assertNotNull("found api key", apiKeys);
@@ -210,70 +223,101 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void findByCriteria_should_find_multiple_by_plan_criteria_with_time_range() throws Exception {
+    public void findByCriteria_should_find_multiple_by_subscriptions_criteria_with_time_range() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            new Builder().from(1486771200000L).to(1486771900000L).plans(Set.of("plan1", "plan5")).build()
+            ApiKeyCriteria.builder().from(1486771200000L).to(1486771900000L).subscriptions(Set.of("sub3", "sub4")).build()
         );
 
         assertEquals(3, apiKeys.size());
         assertTrue(
-            apiKeys.stream().map(ApiKey::getId).collect(toList()).containsAll(Set.of("id-of-apikey-4", "id-of-apikey-6", "id-of-apikey-7"))
+            Set.of("id-of-apikey-4", "id-of-apikey-6", "id-of-apikey-7").containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList()))
         );
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_without_time_range_and_revoked() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(true).plans(singleton("plan1")).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(true).subscriptions(singleton("sub3")).build()
+        );
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 3 apikeys", 3, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria1", "findByCriteria2", "findByCriteria1Revoked");
-        assertTrue(apiKeys.stream().map(ApiKey::getKey).collect(toList()).containsAll(expectedKeys));
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_between_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            new Builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build()
+            ApiKeyCriteria.builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build()
         );
 
         assertEquals("found 2 apikeys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
-        assertTrue(apiKeys.stream().map(ApiKey::getKey).collect(toList()).containsAll(expectedKeys));
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireAfter(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
 
         assertEquals("found 2 apikeys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
-        assertTrue(apiKeys.stream().map(ApiKey::getKey).collect(toList()).containsAll(expectedKeys));
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
+    }
+
+    @Test
+    public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates_including_no_expire_date() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().expireAfter(30019401755L).includeWithoutExpiration(true).build()
+        );
+
+        assertEquals("found 4 apikeys", 4, apiKeys.size());
+
+        List<String> expectedKeys = List.of(
+            "the-key-of-api-key-7",
+            "the-key-of-api-key-8",
+            "d449098d-8c31-4275-ad59-8dd707865a34",
+            "d449098d-8c31-4275-ad59-8dd707865a35"
+        );
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireBefore(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireBefore(30019401755L).build());
 
         assertEquals("found 2 apikeys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1");
-        assertTrue(apiKeys.stream().map(ApiKey::getKey).collect(toList()).containsAll(expectedKeys));
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
+    }
+
+    @Test
+    public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates_including_no_expire_date() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().expireBefore(30019401755L).includeWithoutExpiration(true).build()
+        );
+
+        assertEquals("found 4 apikeys", 4, apiKeys.size());
+
+        List<String> expectedKeys = List.of("findByCriteria2", "the-key-of-api-key-7", "the-key-of-api-key-8", "findByCriteria1");
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_read_subscriptions_list() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireAfter(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
         apiKeys.sort(Comparator.comparing(apikey -> apikey.getSubscriptions().size()));
 
         assertEquals(1, apiKeys.get(0).getSubscriptions().size());
         assertEquals("subscription1", apiKeys.get(0).getSubscriptions().get(0));
         assertEquals(2, apiKeys.get(1).getSubscriptions().size());
-        assertTrue(apiKeys.get(1).getSubscriptions().containsAll(Set.of("subscription2", "subscriptionX")));
+        assertTrue(List.of("subscription2", "subscriptionX").containsAll(apiKeys.get(1).getSubscriptions()));
     }
 
     @Test
@@ -313,7 +357,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("app4", apiKey.getApplication());
         assertNotNull(apiKey.getSubscriptions());
         assertEquals(3, apiKey.getSubscriptions().size());
-        assertTrue(apiKey.getSubscriptions().containsAll(Set.of("sub4", "sub5", "sub6")));
+        assertTrue(Set.of("sub4", "sub5", "sub6").containsAll(apiKey.getSubscriptions()));
     }
 
     @Test
@@ -328,5 +372,33 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
                     apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
                 )
         );
+    }
+
+    @Test
+    public void shouldSearchSortedById() throws TechnicalException {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
+            new SortableBuilder().order(Order.ASC).field("id").build()
+        );
+        assertNotNull("found api key", apiKeys);
+        assertFalse("found api key", apiKeys.isEmpty());
+        assertEquals("found 3 apikeys", 3, apiKeys.size());
+
+        List<String> expectedKeys = List.of("findByCriteria1", "findByCriteria1Revoked", "findByCriteria2");
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
+    }
+
+    @Test
+    public void shouldSearchSortedByCreated() throws TechnicalException {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
+            new SortableBuilder().order(Order.DESC).field("updatedAt").build()
+        );
+        assertNotNull("found api key", apiKeys);
+        assertFalse("found api key", apiKeys.isEmpty());
+        assertEquals("found 3 apikeys", 3, apiKeys.size());
+
+        List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1Revoked", "findByCriteria1");
+        assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 }

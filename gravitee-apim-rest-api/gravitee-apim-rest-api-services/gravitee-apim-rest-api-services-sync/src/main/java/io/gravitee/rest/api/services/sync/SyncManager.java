@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicLong;
@@ -105,13 +106,15 @@ public class SyncManager {
     }
 
     private void synchronizeApis(long nextLastRefreshAt) {
-        final EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+        final EventCriteria eventCriteria = EventCriteria
+            .builder()
+            .types(Set.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))
             .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+            .build();
 
         Map<String, Event> apiEvents = eventLatestRepository
-            .search(criteriaBuilder.build(), Event.EventProperties.API_ID, null, null)
+            .search(eventCriteria, Event.EventProperties.API_ID, null, null)
             .stream()
             .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
 
@@ -120,13 +123,15 @@ public class SyncManager {
     }
 
     private void synchronizeDictionaries(long nextLastRefreshAt) throws Exception {
-        final EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
-            .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
+        final EventCriteria eventCriteria = EventCriteria
+            .builder()
+            .types(Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY))
             .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+            .build();
 
         Map<String, Event> dictionaryEvents = eventLatestRepository
-            .search(criteriaBuilder.build(), Event.EventProperties.DICTIONARY_ID, null, null)
+            .search(eventCriteria, Event.EventProperties.DICTIONARY_ID, null, null)
             .stream()
             .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
 

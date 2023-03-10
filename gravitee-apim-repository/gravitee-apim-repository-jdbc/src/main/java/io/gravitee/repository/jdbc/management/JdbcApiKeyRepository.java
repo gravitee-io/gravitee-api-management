@@ -16,19 +16,27 @@
 package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static org.springframework.util.CollectionUtils.*;
+import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.management.JdbcHelper.CollatingRowMapper;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -128,7 +136,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public List<ApiKey> findByCriteria(ApiKeyCriteria criteria) throws TechnicalException {
+    public List<ApiKey> findByCriteria(final ApiKeyCriteria filter) throws TechnicalException {
+        return findByCriteria(filter, null);
+    }
+
+    @Override
+    public List<ApiKey> findByCriteria(final ApiKeyCriteria criteria, final Sortable sortable) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findByCriteria({})", criteria);
         try {
             List<Object> args = new ArrayList<>();
@@ -140,15 +153,15 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             boolean first = true;
 
-            if (!isEmpty(criteria.getPlans())) {
+            if (!isEmpty(criteria.getSubscriptions())) {
                 first = addClause(first, query);
                 query
-                    .append(" k.id in (")
-                    .append("   select key_id from " + keySubscriptions + " ks")
-                    .append("   join " + subscription + " s on s.id = ks.subscription_id")
-                    .append("   where s." + escapeReservedWord("plan") + " in (" + getOrm().buildInClause(criteria.getPlans()) + ")")
-                    .append(")");
-                args.addAll(criteria.getPlans());
+                    .append("k.id in ( select key_id from ")
+                    .append(keySubscriptions)
+                    .append(" where subscription_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getSubscriptions()))
+                    .append(" ) )");
+                args.addAll(criteria.getSubscriptions());
             }
 
             if (!criteria.isIncludeRevoked()) {
@@ -171,17 +184,30 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             if (criteria.getExpireAfter() > 0) {
                 first = addClause(first, query);
-                query.append(" ( k.expire_at >= ? ) ");
+                if (criteria.isIncludeWithoutExpiration()) {
+                    query.append(" ( k.expire_at is NULL or k.expire_at >= ? ) ");
+                } else {
+                    query.append("( k.expire_at >= ? )");
+                }
                 args.add(new Date(criteria.getExpireAfter()));
             }
 
             if (criteria.getExpireBefore() > 0) {
                 addClause(first, query);
-                query.append(" ( k.expire_at <= ? ) ");
+                if (criteria.isIncludeWithoutExpiration()) {
+                    query.append(" ( k.expire_at is NULL or k.expire_at <= ? ) ");
+                } else {
+                    query.append("( k.expire_at <= ? )");
+                }
                 args.add(new Date(criteria.getExpireBefore()));
             }
-
-            query.append(" order by k.updated_at desc ");
+            if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+                query.append(" order by k.");
+                query.append(toSnakeCase(sortable.field()));
+                query.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
+            } else {
+                query.append(" order by k.updated_at desc ");
+            }
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString(), rowMapper, args.toArray());

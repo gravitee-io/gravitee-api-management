@@ -18,12 +18,19 @@ package io.gravitee.rest.api.model.subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode
 public class SubscriptionQuery {
 
     private Collection<String> apis;
@@ -38,30 +45,18 @@ public class SubscriptionQuery {
 
     private String apiKey;
 
-    private long from, to;
+    private long from = -1;
+    private long to = -1;
 
-    private long endingAtAfter, endingAtBefore;
+    private long endingAtAfter = -1;
+    private long endingAtBefore = -1;
 
-    public Collection<String> getApis() {
-        return apis;
-    }
-
-    public void setApis(Collection<String> apis) {
-        this.apis = apis;
-    }
+    private boolean includeWithoutEnd;
 
     public void setApi(String api) {
         if (api != null) {
             this.apis = Collections.singleton(api);
         }
-    }
-
-    public Collection<String> getPlans() {
-        return plans;
-    }
-
-    public void setPlans(Collection<String> plans) {
-        this.plans = plans;
     }
 
     public void setPlan(String plan) {
@@ -70,98 +65,10 @@ public class SubscriptionQuery {
         }
     }
 
-    public Collection<SubscriptionStatus> getStatuses() {
-        return statuses;
-    }
-
-    public void setStatuses(Collection<SubscriptionStatus> statuses) {
-        this.statuses = statuses;
-    }
-
-    public Collection<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(Collection<String> applications) {
-        this.applications = applications;
-    }
-
     public void setApplication(String application) {
         if (application != null) {
             this.applications = Collections.singleton(application);
         }
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    public long getFrom() {
-        return from;
-    }
-
-    public void setFrom(long from) {
-        this.from = from;
-    }
-
-    public long getTo() {
-        return to;
-    }
-
-    public void setTo(long to) {
-        this.to = to;
-    }
-
-    public long getEndingAtAfter() {
-        return endingAtAfter;
-    }
-
-    public void setEndingAtAfter(long endingAtAfter) {
-        this.endingAtAfter = endingAtAfter;
-    }
-
-    public long getEndingAtBefore() {
-        return endingAtBefore;
-    }
-
-    public void setEndingAtBefore(long endingAtBefore) {
-        this.endingAtBefore = endingAtBefore;
-    }
-
-    public Collection<String> getPlanSecurityTypes() {
-        return planSecurityTypes;
-    }
-
-    public void setPlanSecurityTypes(Collection<String> planSecurityTypes) {
-        this.planSecurityTypes = planSecurityTypes;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SubscriptionQuery)) return false;
-        SubscriptionQuery that = (SubscriptionQuery) o;
-        return (
-            from == that.from &&
-            to == that.to &&
-            endingAtAfter == that.endingAtAfter &&
-            endingAtBefore == that.endingAtBefore &&
-            Objects.equals(apis, that.apis) &&
-            Objects.equals(plans, that.plans) &&
-            Objects.equals(statuses, that.statuses) &&
-            Objects.equals(applications, that.applications) &&
-            Objects.equals(planSecurityTypes, that.planSecurityTypes) &&
-            Objects.equals(apiKey, that.apiKey)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(apis, plans, statuses, applications, planSecurityTypes, apiKey, from, to, endingAtAfter, endingAtBefore);
     }
 
     public boolean matchesApi(String api) {

@@ -15,12 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
-import java.util.Collection;
 import java.util.List;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -29,7 +27,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApiKeyMongoRepositoryCustom {
-    List<ApiKeyMongo> search(ApiKeyCriteria filter);
+    List<ApiKeyMongo> search(ApiKeyCriteria filter, final Sortable sortable);
 
     List<ApiKeyMongo> findByKeyAndApi(String key, String api);
 

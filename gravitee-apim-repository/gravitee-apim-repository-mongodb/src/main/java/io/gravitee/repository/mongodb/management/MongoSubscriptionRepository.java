@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
@@ -48,8 +49,8 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     private SubscriptionMongoRepository internalSubscriptionRepository;
 
     @Override
-    public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
-        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, pageable);
+    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, sortable, pageable);
 
         List<Subscription> content = mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
         return new Page<>(
@@ -61,10 +62,15 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
-    public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
-        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, null);
+    public List<Subscription> search(SubscriptionCriteria criteria, Sortable sortable) throws TechnicalException {
+        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, sortable, null);
 
         return mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
+    }
+
+    @Override
+    public List<Subscription> search(final SubscriptionCriteria criteria) throws TechnicalException {
+        return search(criteria, null);
     }
 
     @Override

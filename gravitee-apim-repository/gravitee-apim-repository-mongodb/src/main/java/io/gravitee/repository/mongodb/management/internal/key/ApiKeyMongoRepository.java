@@ -15,9 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;

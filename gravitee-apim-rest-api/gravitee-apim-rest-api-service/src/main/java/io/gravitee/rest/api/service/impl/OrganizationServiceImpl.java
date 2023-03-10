@@ -173,7 +173,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             .map(EnvironmentEntity::getId)
             .collect(Collectors.toSet());
 
-        eventService.createOrganizationEvent(executionContext, environmentIds, EventType.PUBLISH_ORGANIZATION, organizationEntity, null);
+        eventService.createOrganizationEvent(executionContext, environmentIds, EventType.PUBLISH_ORGANIZATION, organizationEntity);
     }
 
     @Override

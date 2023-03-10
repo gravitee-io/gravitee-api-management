@@ -135,8 +135,7 @@ public class OrganizationService_CreateTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Set.of("env_1", "env_2")),
                 eq(EventType.PUBLISH_ORGANIZATION),
-                any(),
-                eq(Map.of("organization_id", "org_id"))
+                any()
             );
     }
 
@@ -188,8 +187,7 @@ public class OrganizationService_CreateTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Set.of("env_1", "env_2")),
                 eq(EventType.PUBLISH_ORGANIZATION),
-                any(),
-                eq(Map.of("organization_id", "org_id"))
+                any()
             );
     }
 }

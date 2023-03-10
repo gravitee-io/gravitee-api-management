@@ -16,12 +16,14 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.client.http.HttpRequest;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
@@ -62,19 +64,31 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
     }
 
     @Override
-    public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
-        return blockingGet(
-            post("/subscriptions/_search", BodyCodecs.page(Subscription.class))
+    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        HttpRequest<Page<Subscription>> postRequest = post("/subscriptions/_searchPageable", BodyCodecs.page(Subscription.class));
+        if (sortable != null) {
+            postRequest.addQueryParam("order", sortable.order().name()).addQueryParam("field", sortable.field());
+        }
+        if (pageable != null) {
+            postRequest
                 .addQueryParam("page", Integer.toString(pageable.pageNumber()))
-                .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                .send(criteria)
-        )
-            .payload();
+                .addQueryParam("size", Integer.toString(pageable.pageSize()));
+        }
+        return blockingGet(postRequest.send(criteria)).payload();
     }
 
     @Override
-    public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
-        return blockingGet(post("/subscriptions/_search", BodyCodecs.list(Subscription.class)).send(criteria)).payload();
+    public List<Subscription> search(SubscriptionCriteria criteria, Sortable sortable) throws TechnicalException {
+        HttpRequest<List<Subscription>> postRequest = post("/subscriptions/_search", BodyCodecs.list(Subscription.class));
+        if (sortable != null) {
+            postRequest.addQueryParam("order", sortable.order().name()).addQueryParam("field", sortable.field());
+        }
+        return blockingGet(postRequest.send(criteria)).payload();
+    }
+
+    @Override
+    public List<Subscription> search(final SubscriptionCriteria criteria) throws TechnicalException {
+        return search(criteria, null);
     }
 
     @Override

@@ -15,17 +15,28 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
-import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.exclude;
-import static com.mongodb.client.model.Projections.fields;
+import static com.mongodb.client.model.Aggregates.lookup;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Aggregates.unwind;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.gte;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.lt;
+import static com.mongodb.client.model.Filters.lte;
+import static com.mongodb.client.model.Filters.or;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
-import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
-import java.util.*;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,51 +57,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     private String tablePrefix;
 
     @Override
-    public List<ApiKeyMongo> search(ApiKeyCriteria filter) {
-        // if filter contains no plans, do the search from keys collection as there is no need to join subscriptions collection
-        // if filter contains a period from/to, do the search from keys collection as subscriptions lookup will be optimized
-        if (CollectionUtils.isEmpty(filter.getPlans()) || filter.getFrom() != 0 || filter.getTo() != 0) {
-            return getListFromAggregate(searchFromKeysJoiningSubscription(filter));
-        }
-        // elsewhere, do the search from the subscription collection, joining the keys collection
-        return getListFromSubscriptionAggregate(searchFromSubscriptionJoiningKeys(filter));
-    }
-
-    private AggregateIterable<Document> searchFromSubscriptionJoiningKeys(ApiKeyCriteria filter) {
-        List<Bson> pipeline = new ArrayList<>();
-
-        pipeline.add(match(in("plan", filter.getPlans())));
-
-        pipeline.add(lookup(tablePrefix + "keys", "_id", "subscriptions", "keys"));
-        pipeline.add(unwind("$keys"));
-
-        pipeline.add(project(fields(exclude("keys._class", "_class"))));
-
-        if (!filter.isIncludeRevoked()) {
-            pipeline.add(match(eq("keys.revoked", false)));
-        }
-
-        // set range query
-        if (filter.getFrom() != 0 && filter.getTo() != 0) {
-            pipeline.add(match(and(gte("keys.updatedAt", new Date(filter.getFrom())), lte("keys.updatedAt", new Date(filter.getTo())))));
-        }
-
-        if (filter.getExpireAfter() > 0 && filter.getExpireBefore() > 0) {
-            pipeline.add(
-                match(
-                    and(gte("keys.expireAt", new Date(filter.getExpireAfter())), lte("keys.expireAt", new Date(filter.getExpireBefore())))
-                )
-            );
-        } else if (filter.getExpireAfter() > 0) {
-            pipeline.add(match(gte("keys.expireAt", new Date(filter.getExpireAfter()))));
-        } else if (filter.getExpireBefore() > 0) {
-            pipeline.add(match(lte("keys.expireAt", new Date(filter.getExpireBefore()))));
-        }
-
-        return mongoTemplate.getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class)).aggregate(pipeline);
-    }
-
-    private AggregateIterable<Document> searchFromKeysJoiningSubscription(ApiKeyCriteria filter) {
+    public List<ApiKeyMongo> search(ApiKeyCriteria filter, final Sortable sortable) {
         List<Bson> pipeline = new ArrayList<>();
 
         if (!filter.isIncludeRevoked()) {
@@ -98,29 +65,50 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         }
 
         // set range query
-        if (filter.getFrom() != 0 && filter.getTo() != 0) {
+        if (filter.getFrom() > 0 && filter.getTo() > 0) {
             pipeline.add(match(and(gte("updatedAt", new Date(filter.getFrom())), lte("updatedAt", new Date(filter.getTo())))));
+        } else if (filter.getFrom() > 0) {
+            pipeline.add(match(gte("updatedAt", new Date(filter.getFrom()))));
+        } else if (filter.getTo() > 0) {
+            pipeline.add(match(lte("updatedAt", new Date(filter.getTo()))));
         }
 
-        if (filter.getExpireAfter() > 0 && filter.getExpireBefore() > 0) {
-            pipeline.add(
-                match(and(gte("expireAt", new Date(filter.getExpireAfter())), lte("expireAt", new Date(filter.getExpireBefore()))))
-            );
-        } else if (filter.getExpireAfter() > 0) {
-            pipeline.add(match(gte("expireAt", new Date(filter.getExpireAfter()))));
-        } else if (filter.getExpireBefore() > 0) {
-            pipeline.add(match(lte("expireAt", new Date(filter.getExpireBefore()))));
+        if (filter.getExpireAfter() > 0) {
+            Bson expireAfterAt = gte("expireAt", new Date(filter.getExpireAfter()));
+            if (filter.isIncludeWithoutExpiration()) {
+                pipeline.add(match(or(eq("expireAt", null), expireAfterAt)));
+            } else {
+                pipeline.add(match(expireAfterAt));
+            }
+        }
+        if (filter.getExpireBefore() > 0) {
+            Bson expireBeforeAt = lte("expireAt", new Date(filter.getExpireBefore()));
+            if (filter.isIncludeWithoutExpiration()) {
+                pipeline.add(match(or(eq("expireAt", null), expireBeforeAt)));
+            } else {
+                pipeline.add(match(expireBeforeAt));
+            }
         }
 
-        if (!CollectionUtils.isEmpty(filter.getPlans())) {
-            pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));
-            pipeline.add(unwind("$sub"));
-            pipeline.add(match(in("sub.plan", filter.getPlans())));
+        if (!CollectionUtils.isEmpty(filter.getSubscriptions())) {
+            pipeline.add(match(in("subscriptions", filter.getSubscriptions())));
         }
 
-        pipeline.add(sort(Sorts.descending("updatedAt")));
+        if (sortable != null) {
+            if (sortable.order().equals(Order.ASC)) {
+                pipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
+            } else {
+                pipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
+            }
+        } else {
+            pipeline.add(sort(Sorts.descending("updatedAt")));
+        }
 
-        return mongoTemplate.getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class)).aggregate(pipeline);
+        AggregateIterable<Document> aggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .aggregate(pipeline);
+
+        return getListFromAggregate(aggregate);
     }
 
     @Override
@@ -157,14 +145,6 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         ArrayList<ApiKeyMongo> apiKeys = new ArrayList<>();
         for (Document doc : aggregate) {
             apiKeys.add(mongoTemplate.getConverter().read(ApiKeyMongo.class, doc));
-        }
-        return apiKeys;
-    }
-
-    private List<ApiKeyMongo> getListFromSubscriptionAggregate(AggregateIterable<Document> aggregate) {
-        ArrayList<ApiKeyMongo> apiKeys = new ArrayList<>();
-        for (Document doc : aggregate) {
-            apiKeys.add(mongoTemplate.getConverter().read(ApiKeyMongo.class, doc.get("keys", Document.class)));
         }
         return apiKeys;
     }

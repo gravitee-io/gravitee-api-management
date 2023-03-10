@@ -196,7 +196,6 @@ public class ApiService_StartTest {
         node.set("id", factory.textNode(API_ID));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         Api api = new Api();

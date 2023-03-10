@@ -19,6 +19,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
+import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
@@ -29,6 +30,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.sql.PreparedStatement;
@@ -152,13 +154,19 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
-    public Page<Subscription> search(final SubscriptionCriteria criteria, final Pageable pageable) throws TechnicalException {
-        return searchPage(criteria, pageable);
+    public List<Subscription> search(final SubscriptionCriteria criteria) throws TechnicalException {
+        return search(criteria, null);
     }
 
     @Override
-    public List<Subscription> search(final SubscriptionCriteria criteria) throws TechnicalException {
-        return searchPage(criteria, null).getContent();
+    public List<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable) throws TechnicalException {
+        return searchPage(criteria, sortable, null).getContent();
+    }
+
+    @Override
+    public Page<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable)
+        throws TechnicalException {
+        return searchPage(criteria, sortable, pageable);
     }
 
     @Override
@@ -220,7 +228,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         };
     }
 
-    private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Pageable pageable) {
+    private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
         final List<Object> argsList = new ArrayList<>();
         JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -260,15 +268,24 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             argsList.add(criteria.getClientId());
             started = true;
         }
+
         if (criteria.getEndingAtAfter() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("s.ending_at >= ?");
+            if (criteria.isIncludeWithoutEnd()) {
+                builder.append("( s.ending_at is NULL or s.ending_at >= ? )");
+            } else {
+                builder.append("s.ending_at >= ?");
+            }
             argsList.add(new Date(criteria.getEndingAtAfter()));
             started = true;
         }
         if (criteria.getEndingAtBefore() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("s.ending_at <= ?");
+            if (criteria.isIncludeWithoutEnd()) {
+                builder.append("( s.ending_at is NULL or s.ending_at <= ? )");
+            } else {
+                builder.append("s.ending_at <= ?");
+            }
             argsList.add(new Date(criteria.getEndingAtBefore()));
             started = true;
         }
@@ -280,7 +297,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         addStringsWhereClause(criteria.getStatuses(), "s.status", argsList, builder, started);
 
-        builder.append(" order by s.created_at desc ");
+        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+            builder.append(" order by s.");
+            builder.append(toSnakeCase(sortable.field()));
+            builder.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
+        } else {
+            builder.append(" order by s.created_at desc ");
+        }
 
         try {
             jdbcTemplate.query(builder.toString(), rowMapper, argsList.toArray());

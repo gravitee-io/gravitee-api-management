@@ -15,11 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
@@ -27,7 +29,6 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,8 +79,13 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) {
+        return mapper.collection2list(internalApiKeyRepo.search(filter, sortable), ApiKeyMongo.class, ApiKey.class);
+    }
+
+    @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
-        return mapper.collection2list(internalApiKeyRepo.search(filter), ApiKeyMongo.class, ApiKey.class);
+        return findByCriteria(filter, null);
     }
 
     @Override

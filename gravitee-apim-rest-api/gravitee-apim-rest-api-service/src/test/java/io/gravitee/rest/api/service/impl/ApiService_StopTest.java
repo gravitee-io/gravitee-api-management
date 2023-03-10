@@ -176,7 +176,6 @@ public class ApiService_StopTest {
         node.set("id", factory.textNode(API_ID));
 
         Map<String, String> properties = new HashMap<String, String>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         Api api = new Api();

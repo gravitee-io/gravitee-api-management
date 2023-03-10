@@ -16,96 +16,39 @@
 package io.gravitee.repository.management.api.search;
 
 import java.util.Collection;
+import java.util.Set;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@Getter
+@RequiredArgsConstructor
+@EqualsAndHashCode
 public class ApiKeyCriteria {
 
-    private final Collection<String> plans;
+    @Singular
+    private final Set<String> subscriptions;
 
-    private final long from, to;
+    @Builder.Default
+    private final long from = -1;
+
+    @Builder.Default
+    private final long to = -1;
 
     private final boolean includeRevoked;
 
-    private final long expireAfter, expireBefore;
+    @Builder.Default
+    private final long expireAfter = -1;
 
-    ApiKeyCriteria(ApiKeyCriteria.Builder builder) {
-        this.from = builder.from;
-        this.to = builder.to;
-        this.plans = builder.plans;
-        this.includeRevoked = builder.includeRevoked;
-        this.expireAfter = builder.expireAfter;
-        this.expireBefore = builder.expireBefore;
-    }
+    @Builder.Default
+    private final long expireBefore = -1;
 
-    public Collection<String> getPlans() {
-        return plans;
-    }
-
-    public long getFrom() {
-        return from;
-    }
-
-    public long getTo() {
-        return to;
-    }
-
-    public boolean isIncludeRevoked() {
-        return includeRevoked;
-    }
-
-    public long getExpireAfter() {
-        return expireAfter;
-    }
-
-    public long getExpireBefore() {
-        return expireBefore;
-    }
-
-    public static class Builder {
-
-        private Collection<String> plans;
-
-        private long from, to;
-
-        private boolean includeRevoked;
-
-        private long expireAfter, expireBefore;
-
-        public ApiKeyCriteria.Builder from(long from) {
-            this.from = from;
-            return this;
-        }
-
-        public ApiKeyCriteria.Builder to(long to) {
-            this.to = to;
-            return this;
-        }
-
-        public ApiKeyCriteria.Builder plans(Collection<String> plans) {
-            this.plans = plans;
-            return this;
-        }
-
-        public ApiKeyCriteria.Builder includeRevoked(boolean include) {
-            this.includeRevoked = include;
-            return this;
-        }
-
-        public ApiKeyCriteria.Builder expireAfter(long expireAtAfter) {
-            this.expireAfter = expireAtAfter;
-            return this;
-        }
-
-        public ApiKeyCriteria.Builder expireBefore(long expireAtBefore) {
-            this.expireBefore = expireAtBefore;
-            return this;
-        }
-
-        public ApiKeyCriteria build() {
-            return new ApiKeyCriteria(this);
-        }
-    }
+    private final boolean includeWithoutExpiration;
 }

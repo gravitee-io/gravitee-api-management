@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.handlers.api.services.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.LazyJwtToken;
 import io.gravitee.reporter.api.http.Metrics;
@@ -53,7 +53,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
     private AuthenticationContext authenticationContext;
 
     @Mock
-    private SubscriptionService subscriptionService;
+    private SubscriptionCacheService subscriptionService;
 
     @Mock
     private Plan plan;

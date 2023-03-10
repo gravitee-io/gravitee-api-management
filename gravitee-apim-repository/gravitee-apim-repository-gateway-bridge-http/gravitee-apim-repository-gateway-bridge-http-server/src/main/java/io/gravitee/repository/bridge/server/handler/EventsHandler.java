@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageNumber;
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageSize;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -93,25 +96,6 @@ public class EventsHandler extends AbstractHandler {
         }
     }
 
-    private Long getPageSize(RoutingContext ctx, Long defaultValue) {
-        final String sPageSize = ctx.request().getParam("size");
-        try {
-            return Long.parseLong(sPageSize);
-        } catch (NumberFormatException nfe) {
-            return defaultValue;
-        }
-    }
-
-    private Long getPageNumber(RoutingContext ctx, Long defaultValue) {
-        final String sPageNumber = ctx.request().getParam("page");
-
-        try {
-            return Long.parseLong(sPageNumber);
-        } catch (NumberFormatException nfe) {
-            return defaultValue;
-        }
-    }
-
     public void create(RoutingContext ctx) {
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
@@ -177,41 +161,37 @@ public class EventsHandler extends AbstractHandler {
         );
     }
 
-    private EventCriteria readCriteria(JsonObject payload) {
-        EventCriteria.Builder builder = new EventCriteria.Builder();
+    static EventCriteria readCriteria(JsonObject payload) {
+        EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder();
 
-        Long fromVal = payload.getLong("from");
-        if (fromVal != null && fromVal > 0) {
-            builder.from(fromVal);
-        }
+        if (payload != null) {
+            Long fromVal = payload.getLong("from");
+            if (fromVal != null && fromVal > 0) {
+                builder.from(fromVal);
+            }
 
-        Long toVal = payload.getLong("to");
-        if (toVal != null && toVal > 0) {
-            builder.to(toVal);
-        }
+            Long toVal = payload.getLong("to");
+            if (toVal != null && toVal > 0) {
+                builder.to(toVal);
+            }
 
-        JsonArray typesArr = payload.getJsonArray("types");
-        if (typesArr != null) {
-            Set<EventType> types = typesArr.stream().map(obj -> EventType.valueOf((String) obj)).collect(Collectors.toSet());
+            JsonArray typesArr = payload.getJsonArray("types");
+            if (typesArr != null) {
+                Set<EventType> types = typesArr.stream().map(obj -> EventType.valueOf((String) obj)).collect(Collectors.toSet());
+                builder.types(types);
+            }
 
-            builder.types(types.toArray(new EventType[types.size()]));
-        }
+            JsonObject propertiesObj = payload.getJsonObject("properties");
+            if (propertiesObj != null) {
+                propertiesObj.getMap().forEach(builder::property);
+            }
 
-        JsonObject propertiesObj = payload.getJsonObject("properties");
-        if (propertiesObj != null) {
-            propertiesObj.getMap().forEach(builder::property);
-        }
+            JsonArray environmentsArr = payload.getJsonArray("environments");
+            if (environmentsArr != null) {
+                final List<String> environments = environmentsArr.stream().map(String.class::cast).collect(Collectors.toList());
 
-        JsonArray environmentsArr = payload.getJsonArray("environments");
-        if (environmentsArr != null) {
-            final List<String> environments = environmentsArr.stream().map(obj -> (String) obj).collect(Collectors.toList());
-
-            builder.environments(environments);
-        }
-
-        Boolean strictMode = payload.getBoolean("strictMode");
-        if (strictMode != null) {
-            builder.strictMode(strictMode);
+                builder.environments(environments);
+            }
         }
 
         return builder.build();

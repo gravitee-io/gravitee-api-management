@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createOffsetClause;
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.addCondition;
@@ -88,7 +86,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             .build();
     }
 
-    private static final JdbcHelper.ChildAdder<Event> CHILD_ADDER = (Event parent, ResultSet rs) -> {
+    static final JdbcHelper.ChildAdder<Event> CHILD_ADDER = (Event parent, ResultSet rs) -> {
         Map<String, String> properties = parent.getProperties();
         if (properties == null) {
             properties = new HashMap<>();
@@ -169,11 +167,17 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
                 CHILD_ADDER,
                 "id"
             );
-            final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " e ");
-            builder.append("left join ").append(EVENT_PROPERTIES).append(" ep on e.id = ep.event_id ");
-            builder.append("left join ").append(EVENT_ENVIRONMENTS).append(" ev on e.id = ev.event_id ");
-            builder.append("where e.id = ?");
-            jdbcTemplate.query(builder.toString(), rowMapper, id);
+            String builder =
+                getOrm().getSelectAllSql() +
+                " e " +
+                "left join " +
+                EVENT_PROPERTIES +
+                " ep on e.id = ep.event_id " +
+                "left join " +
+                EVENT_ENVIRONMENTS +
+                " ev on e.id = ev.event_id " +
+                "where e.id = ?";
+            jdbcTemplate.query(builder, rowMapper, id);
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find event by id", ex);
@@ -244,9 +248,9 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = createSearchQueryBuilder();
-        appendCriteria(builder, filter, args, "e", "ev");
+        appendCriteria(builder, filter, args, "e", "ev", EVENT_PROPERTIES);
 
-        builder.append(" order by updated_at desc, id desc ");
+        builder.append(" order by e.updated_at desc, e.id desc ");
         return queryEvents(builder.toString(), args);
     }
 
@@ -260,8 +264,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         if (updatedEventCount <= 0) {
             return create(event);
         } else {
-            // update properties only if event was correctly updated
-            patchEventProperties(event);
+            storeProperties(event, true);
             storeEnvironments(event, true);
             return event;
         }
@@ -294,21 +297,6 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         queryBuilder.append(" where id = ? ");
         args.add(event.getId());
         return jdbcTemplate.update(queryBuilder.toString(), args.toArray());
-    }
-
-    private void patchEventProperties(Event event) {
-        if (event.getProperties() != null) {
-            event.getProperties().forEach((property, value) -> updateEventProperty(event.getId(), property, value));
-        }
-    }
-
-    private void updateEventProperty(String eventId, String propertyKey, String value) {
-        jdbcTemplate.update(
-            "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
-            value,
-            eventId,
-            propertyKey
-        );
     }
 
     private List<Event> queryEvents(String sql, List<Object> args) {
@@ -347,14 +335,15 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return builder;
     }
 
-    void appendCriteria(
+    static void appendCriteria(
         StringBuilder builder,
         EventCriteria filter,
         List<Object> args,
         String eventTableAlias,
-        String eventEnvionmentTableAlias
+        String eventEnvironmentTableAlias,
+        String eventPropertiesTable
     ) {
-        boolean started = addPropertiesWhereClause(filter, args, builder, eventTableAlias);
+        boolean started = addPropertiesWhereClause(filter, args, builder, eventPropertiesTable, eventTableAlias);
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append(eventTableAlias + ".updated_at >= ?");
@@ -369,7 +358,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         if (!isEmpty(filter.getEnvironments())) {
             started =
-                addStringsWhereClause(filter.getEnvironments(), eventEnvionmentTableAlias + ".environment_id", args, builder, started);
+                addStringsWhereClause(filter.getEnvironments(), eventEnvironmentTableAlias + ".environment_id", args, builder, started);
         }
         if (!isEmpty(filter.getTypes())) {
             final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
@@ -377,13 +366,19 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
     }
 
-    private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder, String eventTableAlias) {
+    private static boolean addPropertiesWhereClause(
+        EventCriteria filter,
+        List<Object> args,
+        StringBuilder builder,
+        final String propertiesTable,
+        String tableAlias
+    ) {
         if (!isEmpty(filter.getProperties())) {
-            builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = " + eventTableAlias + ".id ");
+            builder.append(" left join " + propertiesTable + " prop on prop.event_id = " + tableAlias + ".id ");
             builder.append(WHERE_CLAUSE);
             builder.append("(");
             boolean first = true;
-            for (Entry<String, Object> property : filter.getProperties().entrySet()) {
+            for (Map.Entry<String, Object> property : filter.getProperties().entrySet()) {
                 if (property.getValue() instanceof Collection) {
                     for (Object value : (Collection) property.getValue()) {
                         first = addCondition(first, builder, property.getKey(), value, args);
@@ -398,7 +393,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return false;
     }
 
-    String criteriaToString(EventCriteria filter) {
+    static String criteriaToString(EventCriteria filter) {
         return (
             "{ " +
             "from: " +

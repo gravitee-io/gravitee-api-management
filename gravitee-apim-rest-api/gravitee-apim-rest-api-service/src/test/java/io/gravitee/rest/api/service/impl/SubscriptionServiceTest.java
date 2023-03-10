@@ -294,7 +294,7 @@ public class SubscriptionServiceTest {
         sub2.setStatus(REJECTED);
         sub2.setApplication(APPLICATION_ID);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton(APPLICATION_ID)).build()))
+        when(subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton(APPLICATION_ID)).build()))
             .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
@@ -318,7 +318,7 @@ public class SubscriptionServiceTest {
         sub2.setStatus(REJECTED);
         sub2.setApi(API_ID);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().apis(singleton(API_ID)).applications(null).build()))
+        when(subscriptionRepository.search(SubscriptionCriteria.builder().apis(singleton(API_ID)).applications(null).build()))
             .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
@@ -343,7 +343,7 @@ public class SubscriptionServiceTest {
         sub2.setId("subscription-2");
         sub2.setStatus(REJECTED);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton(PLAN_ID)).build()))
+        when(subscriptionRepository.search(SubscriptionCriteria.builder().plans(singleton(PLAN_ID)).build()))
             .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -417,9 +417,7 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
 
         when(
-            subscriptionRepository.search(
-                new SubscriptionCriteria.Builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build()
-            )
+            subscriptionRepository.search(SubscriptionCriteria.builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build())
         )
             .thenReturn(List.of(existingSubscription));
         // Run
@@ -1519,7 +1517,7 @@ public class SubscriptionServiceTest {
         query.setApis(List.of("api-id-1"));
 
         Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
-        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+        when(subscriptionRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         Page<SubscriptionEntity> page = subscriptionService.search(
             GraviteeContext.getExecutionContext(),
@@ -1542,7 +1540,7 @@ public class SubscriptionServiceTest {
         query.setApis(List.of("api-id-1"));
 
         Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
-        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+        when(subscriptionRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         PlanEntity foundPlan = new PlanEntity();
         foundPlan.setId("plan-id");
@@ -1569,7 +1567,7 @@ public class SubscriptionServiceTest {
         query.setApis(List.of("api-id-1"));
 
         Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", ACCEPTED, "plan-id", null, null);
-        when(subscriptionRepository.search(any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
+        when(subscriptionRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(subscription1), 1, 1, 1));
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setKey("my-api-key");

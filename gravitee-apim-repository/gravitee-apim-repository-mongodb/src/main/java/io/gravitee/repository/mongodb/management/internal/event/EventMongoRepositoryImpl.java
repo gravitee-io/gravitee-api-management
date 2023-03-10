@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -96,11 +98,10 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     private List<Criteria> buildDBCriteria(EventCriteria criteria) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        if (criteria.getTypes() != null && !criteria.getTypes().isEmpty()) {
+        if (!isEmpty(criteria.getTypes())) {
             criteriaList.add(Criteria.where("type").in(criteria.getTypes()));
         }
-
-        if (criteria.getProperties() != null && !criteria.getProperties().isEmpty()) {
+        if (!isEmpty(criteria.getProperties())) {
             // set criteria query
             criteria
                 .getProperties()
@@ -114,13 +115,15 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
 
         // set range query
-        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
+        if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
             criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
-        } else if (criteria.getFrom() != 0) {
+        } else if (criteria.getFrom() > 0) {
             criteriaList.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+        } else if (criteria.getTo() > 0) {
+            criteriaList.add(Criteria.where("updatedAt").lt(new Date(criteria.getFrom())));
         }
 
-        if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
+        if (!isEmpty(criteria.getEnvironments())) {
             criteriaList.add(Criteria.where("environments").in(criteria.getEnvironments()));
         }
 

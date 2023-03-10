@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import static io.gravitee.repository.bridge.server.handler.EventsHandler.readCriteria;
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageNumber;
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageSize;
+
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
@@ -27,7 +31,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,16 +49,15 @@ public class EventsLatestHandler extends AbstractHandler {
     }
 
     public void search(RoutingContext ctx) {
-        final JsonObject searchPayload = ctx.getBodyAsJson();
-        final EventCriteria eventCriteria = readCriteria(searchPayload);
-
         bridgeWorkerExecutor.executeBlocking(
             (Handler<Promise<List<Event>>>) promise -> {
-                Long pageSize = getPageSize(ctx, null);
-                Long pageNumber = getPageNumber(ctx, null);
-                Event.EventProperties group = getGroup(ctx);
-
                 try {
+                    EventCriteria eventCriteria = readCriteria(ctx.body().asJsonObject());
+
+                    Long pageSize = getPageSize(ctx, null);
+                    Long pageNumber = getPageNumber(ctx, null);
+                    Event.EventProperties group = getGroup(ctx);
+
                     promise.complete(eventLatestRepository.search(eventCriteria, group, pageNumber, pageSize));
                 } catch (Exception ex) {
                     LOGGER.error("Unable to search for events", ex);
@@ -68,25 +70,10 @@ public class EventsLatestHandler extends AbstractHandler {
     }
 
     private Event.EventProperties getGroup(RoutingContext ctx) {
-        return Event.EventProperties.valueOf(ctx.request().getParam("group"));
-    }
-
-    private Long getPageSize(RoutingContext ctx, Long defaultValue) {
-        final String sPageSize = ctx.request().getParam("size");
         try {
-            return Long.parseLong(sPageSize);
-        } catch (NumberFormatException nfe) {
-            return defaultValue;
-        }
-    }
-
-    private Long getPageNumber(RoutingContext ctx, Long defaultValue) {
-        final String sPageNumber = ctx.request().getParam("page");
-
-        try {
-            return Long.parseLong(sPageNumber);
-        } catch (NumberFormatException nfe) {
-            return defaultValue;
+            return Event.EventProperties.valueOf(ctx.request().getParam("group"));
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -94,7 +81,7 @@ public class EventsLatestHandler extends AbstractHandler {
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
                 try {
-                    Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                    Event event = ctx.body().asJsonObject().mapTo(Event.class);
                     promise.complete(eventLatestRepository.createOrPatch(event));
                 } catch (Exception ex) {
                     LOGGER.error("Unable to create or update an event", ex);
@@ -104,45 +91,5 @@ public class EventsLatestHandler extends AbstractHandler {
             false,
             (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
         );
-    }
-
-    private EventCriteria readCriteria(JsonObject payload) {
-        EventCriteria.Builder builder = new EventCriteria.Builder();
-
-        Long fromVal = payload.getLong("from");
-        if (fromVal != null && fromVal > 0) {
-            builder.from(fromVal);
-        }
-
-        Long toVal = payload.getLong("to");
-        if (toVal != null && toVal > 0) {
-            builder.to(toVal);
-        }
-
-        JsonArray typesArr = payload.getJsonArray("types");
-        if (typesArr != null) {
-            Set<EventType> types = typesArr.stream().map(obj -> EventType.valueOf((String) obj)).collect(Collectors.toSet());
-
-            builder.types(types.toArray(new EventType[types.size()]));
-        }
-
-        JsonObject propertiesObj = payload.getJsonObject("properties");
-        if (propertiesObj != null) {
-            propertiesObj.getMap().forEach(builder::property);
-        }
-
-        JsonArray environmentsArr = payload.getJsonArray("environments");
-        if (environmentsArr != null) {
-            final List<String> environments = environmentsArr.stream().map(obj -> (String) obj).collect(Collectors.toList());
-
-            builder.environments(environments);
-        }
-
-        Boolean strictMode = payload.getBoolean("strictMode");
-        if (strictMode != null) {
-            builder.strictMode(strictMode);
-        }
-
-        return builder.build();
     }
 }

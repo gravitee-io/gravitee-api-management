@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 
 public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest {
@@ -90,52 +91,47 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals("Invalid updated event properties.", properties, eventUpdated.getProperties());
         assertTrue("Invalid updated environment id.", eventUpdated.getEnvironments().contains("DEFAULT"));
 
-        List<Event> eventFounds = eventLatestRepository.search(
-            new EventCriteria.Builder().property("key", "value").build(),
-            null,
-            null,
-            null
-        );
+        List<Event> eventFounds = eventLatestRepository.search(EventCriteria.builder().property("key", "value").build(), null, null, null);
         assertEquals("Invalid found event", eventUpdated, eventFounds.get(0));
     }
 
     @Test
     public void shouldReturnAllApiEventsWhenSearchingWithoutPagingAndSize() {
-        List<Event> events = eventLatestRepository.search(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, null, null);
+        List<Event> events = eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.API_ID, null, null);
 
         assertEquals(5L, events.size());
         final Iterator<Event> iterator = events.iterator();
-        assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-4", iterator.next().getId());
-        assertEquals("api-3", iterator.next().getId());
-        assertEquals("api-2", iterator.next().getId());
         assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-3", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
     }
 
     @Test
     public void shouldReturnApiEventsForApi2WhenSearchingForPage3Size1() {
-        List<Event> events = eventLatestRepository.search(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 3L, 1L);
+        List<Event> events = eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.API_ID, 3L, 1L);
 
         assertEquals(1L, events.size());
         final Iterator<Event> iterator = events.iterator();
-        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
     }
 
     @Test
     public void shouldReturnApiEventsInSameOrderWhenSearchWithPagination() {
         //The order of events should be always the same, whatever the page size is
-        final EventCriteria eventCriteria = new EventCriteria.Builder().build();
+        final EventCriteria eventCriteria = EventCriteria.builder().build();
 
         // Test 1 by 1
         List<Event> events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 1L);
         Iterator<Event> iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-5", iterator.next().getId());
+        assertEquals("api-1", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 1L);
         iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 2L, 1L);
         iterator = events.iterator();
@@ -145,78 +141,79 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 3L, 1L);
         iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 4L, 1L);
         iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
 
         // Test 2 by 2
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 2L);
         iterator = events.iterator();
         assertEquals(2L, events.size());
-        assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 2L);
         assertEquals(2L, events.size());
         iterator = events.iterator();
         assertEquals("api-3", iterator.next().getId());
-        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 2L, 2L);
         iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
 
         // Test 3 by 3
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 3L);
         iterator = events.iterator();
         assertEquals(3L, events.size());
-        assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
         assertEquals("api-3", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 3L);
         iterator = events.iterator();
         assertEquals(2L, events.size());
-        assertEquals("api-2", iterator.next().getId());
-        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
 
         // Test 4 by 4
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 4L);
         iterator = events.iterator();
         assertEquals(4L, events.size());
-        assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-4", iterator.next().getId());
-        assertEquals("api-3", iterator.next().getId());
+        assertEquals("api-1", iterator.next().getId());
         assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-3", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
 
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 1L, 4L);
         iterator = events.iterator();
         assertEquals(1L, events.size());
-        assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
 
         // Test 5 by 5
         events = eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, 0L, 5L);
         iterator = events.iterator();
         assertEquals(5L, events.size());
-        assertEquals("api-5", iterator.next().getId());
-        assertEquals("api-4", iterator.next().getId());
-        assertEquals("api-3", iterator.next().getId());
-        assertEquals("api-2", iterator.next().getId());
         assertEquals("api-1", iterator.next().getId());
+        assertEquals("api-2", iterator.next().getId());
+        assertEquals("api-3", iterator.next().getId());
+        assertEquals("api-4", iterator.next().getId());
+        assertEquals("api-5", iterator.next().getId());
     }
 
     @Test
     public void shouldReturnApiEventsWhenSearchingWithTime() {
         List<Event> events = eventLatestRepository.search(
-            new EventCriteria.Builder()
+            EventCriteria
+                .builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), "api-3")
-                .types(EventType.START_API, EventType.STOP_API)
+                .types(Set.of(EventType.START_API, EventType.STOP_API))
                 .build(),
             Event.EventProperties.API_ID,
             0L,
@@ -229,12 +226,12 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldReturnApiEventsWhenSearchingWithStrictModeEnabled() {
+    public void shouldReturnApiEventsWhenSearching() {
         List<Event> events = eventLatestRepository.search(
-            new EventCriteria.Builder()
+            EventCriteria
+                .builder()
                 .property(Event.EventProperties.API_ID.getValue(), "api-1")
-                .types(EventType.START_API, EventType.PUBLISH_API)
-                .strictMode(true)
+                .types(Set.of(EventType.START_API, EventType.PUBLISH_API))
                 .build(),
             Event.EventProperties.API_ID,
             0L,
@@ -245,27 +242,9 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldReturnApiEventsWhenSearchingWithStrictModeDisabled() {
-        List<Event> events = eventLatestRepository.search(
-            new EventCriteria.Builder()
-                .property(Event.EventProperties.API_ID.getValue(), "api-1")
-                .types(EventType.START_API, EventType.PUBLISH_API)
-                .strictMode(false)
-                .build(),
-            Event.EventProperties.API_ID,
-            0L,
-            10L
-        );
-
-        assertEquals(1L, events.size());
-        final Iterator<Event> iterator = events.iterator();
-        assertEquals("api-1", iterator.next().getId());
-    }
-
-    @Test
     public void shouldReturnDictionaryEventsWhenSearchingBetweenTime() {
         List<Event> events = eventLatestRepository.search(
-            new EventCriteria.Builder().from(1475200000000L).to(1475381000000L).types(EventType.PUBLISH_DICTIONARY).build(),
+            EventCriteria.builder().from(1475200000000L).to(1475381000000L).type(EventType.PUBLISH_DICTIONARY).build(),
             Event.EventProperties.DICTIONARY_ID,
             0L,
             10L
@@ -278,22 +257,17 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldReturnAllDictionaryEventsWhenSearchingWithoutPagination() {
-        List<Event> events = eventLatestRepository.search(
-            new EventCriteria.Builder().build(),
-            Event.EventProperties.DICTIONARY_ID,
-            null,
-            null
-        );
+        List<Event> events = eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.DICTIONARY_ID, null, null);
 
         assertEquals(2L, events.size());
         final Iterator<Event> iterator = events.iterator();
-        assertEquals("dictionary-2", iterator.next().getId());
         assertEquals("dictionary-1", iterator.next().getId());
+        assertEquals("dictionary-2", iterator.next().getId());
     }
 
     @Test
     public void shouldDeleteEventFromExistingId() throws Exception {
-        EventCriteria eventCriteria = new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), "api-5").build();
+        EventCriteria eventCriteria = EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api-5").build();
         List<Event> events = eventLatestRepository.search(eventCriteria, null, null, null);
         assertEquals("Invalid found event", 1, events.size());
         eventLatestRepository.delete("api-5");

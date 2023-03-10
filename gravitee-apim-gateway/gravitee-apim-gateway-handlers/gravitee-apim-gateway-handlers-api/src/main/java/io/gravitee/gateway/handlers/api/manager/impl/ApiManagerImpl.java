@@ -148,7 +148,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     }
 
     @Override
-    public ActionOnApi requiredActionFor(ReactableApi reactableApi) {
+    public ActionOnApi requiredActionFor(final ReactableApi<?> reactableApi) {
         ReactableApi<?> deployedApi = get(reactableApi.getId());
         if (gatewayConfiguration.hasMatchingTags(reactableApi.getTags())) {
             boolean apiToDeploy = deployedApi == null;

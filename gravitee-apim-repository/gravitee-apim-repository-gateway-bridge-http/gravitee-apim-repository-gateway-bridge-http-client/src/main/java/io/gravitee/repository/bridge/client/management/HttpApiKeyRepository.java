@@ -15,11 +15,13 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.repository.bridge.client.http.HttpRequest;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCoverage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.List;
 import java.util.Optional;
@@ -75,8 +77,17 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) throws TechnicalException {
+        HttpRequest<List<ApiKey>> postRequest = post("/keys/_findByCriteria", BodyCodecs.list(ApiKey.class));
+        if (sortable != null) {
+            postRequest.addQueryParam("order", sortable.order().name()).addQueryParam("field", sortable.field());
+        }
+        return blockingGet(postRequest.send(filter)).payload();
+    }
+
+    @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
-        return blockingGet(post("/keys/_findByCriteria", BodyCodecs.list(ApiKey.class)).send(filter)).payload();
+        return findByCriteria(filter, null);
     }
 
     @Override

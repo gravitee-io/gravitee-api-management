@@ -15,10 +15,15 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.readPageable;
+import static io.gravitee.repository.bridge.server.utils.ParamUtils.readSortable;
 import static java.util.Collections.emptyList;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AsyncResult;
@@ -46,13 +51,14 @@ public class SubscriptionsHandler extends AbstractHandler {
     }
 
     public void search(RoutingContext ctx) {
-        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final JsonObject searchPayload = ctx.body().asJsonObject();
         final SubscriptionCriteria subscriptionCriteria = readCriteria(searchPayload);
+        final Sortable sortable = readSortable(ctx);
 
         bridgeWorkerExecutor.executeBlocking(
             promise -> {
                 try {
-                    promise.complete(subscriptionRepository.search(subscriptionCriteria));
+                    promise.complete(subscriptionRepository.search(subscriptionCriteria, sortable));
                 } catch (TechnicalException te) {
                     LOGGER.error("Unable to search for subscriptions", te);
                     promise.fail(te);
@@ -63,10 +69,30 @@ public class SubscriptionsHandler extends AbstractHandler {
         );
     }
 
+    public void searchPageable(RoutingContext ctx) {
+        final JsonObject searchPayload = ctx.body().asJsonObject();
+        final SubscriptionCriteria subscriptionCriteria = readCriteria(searchPayload);
+        final Sortable sortable = readSortable(ctx);
+        final Pageable pageable = readPageable(ctx);
+
+        bridgeWorkerExecutor.executeBlocking(
+            promise -> {
+                try {
+                    promise.complete(subscriptionRepository.search(subscriptionCriteria, sortable, pageable));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to search for subscriptions", te);
+                    promise.fail(te);
+                }
+            },
+            false,
+            (Handler<AsyncResult<Page<Subscription>>>) result -> handleResponse(ctx, result)
+        );
+    }
+
     public void findByIds(RoutingContext ctx) {
-        List<String> ids = ctx.getBodyAsJsonArray() == null
+        List<String> ids = ctx.body().asJsonArray() == null
             ? emptyList()
-            : ctx.getBodyAsJsonArray().stream().map(String::valueOf).collect(Collectors.toList());
+            : ctx.body().asJsonArray().stream().map(String::valueOf).collect(Collectors.toList());
 
         ctx
             .vertx()
@@ -87,48 +113,73 @@ public class SubscriptionsHandler extends AbstractHandler {
     }
 
     private SubscriptionCriteria readCriteria(JsonObject payload) {
-        SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder();
+        SubscriptionCriteria.SubscriptionCriteriaBuilder builder = SubscriptionCriteria.builder();
+        if (payload != null) {
+            Long fromVal = payload.getLong("from");
+            if (fromVal != null && fromVal > 0) {
+                builder.from(fromVal);
+            }
 
-        Long fromVal = payload.getLong("from");
-        if (fromVal != null && fromVal > 0) {
-            builder.from(fromVal);
-        }
+            Long toVal = payload.getLong("to");
+            if (toVal != null && toVal > 0) {
+                builder.to(toVal);
+            }
 
-        Long toVal = payload.getLong("to");
-        if (toVal != null && toVal > 0) {
-            builder.to(toVal);
-        }
+            String clientIdVal = payload.getString("clientId");
+            if (clientIdVal != null && !clientIdVal.isEmpty()) {
+                builder.clientId(clientIdVal);
+            }
 
-        String clientIdVal = payload.getString("clientId");
-        if (clientIdVal != null && clientIdVal.isEmpty()) {
-            builder.clientId(clientIdVal);
-        }
+            JsonArray idsArr = payload.getJsonArray("ids");
+            if (idsArr != null) {
+                Set<String> ids = idsArr.stream().map(String.class::cast).collect(Collectors.toSet());
+                builder.ids(ids);
+            }
 
-        JsonArray plansArr = payload.getJsonArray("plans");
-        if (plansArr != null) {
-            Set<String> plans = plansArr.stream().map(obj -> (String) obj).collect(Collectors.toSet());
-            builder.plans(plans);
-        }
+            JsonArray apisArr = payload.getJsonArray("apis");
+            if (apisArr != null) {
+                Set<String> apis = apisArr.stream().map(String.class::cast).collect(Collectors.toSet());
+                builder.apis(apis);
+            }
 
-        JsonArray applicationsArr = payload.getJsonArray("applications");
-        if (applicationsArr != null) {
-            Set<String> applications = applicationsArr.stream().map(obj -> (String) obj).collect(Collectors.toSet());
-            builder.applications(applications);
-        }
+            JsonArray plansArr = payload.getJsonArray("plans");
+            if (plansArr != null) {
+                Set<String> plans = plansArr.stream().map(String.class::cast).collect(Collectors.toSet());
+                builder.plans(plans);
+            }
 
-        JsonArray apisArr = payload.getJsonArray("apis");
-        if (apisArr != null) {
-            Set<String> apis = apisArr.stream().map(obj -> (String) obj).collect(Collectors.toSet());
-            builder.apis(apis);
-        }
+            JsonArray applicationsArr = payload.getJsonArray("applications");
+            if (applicationsArr != null) {
+                Set<String> applications = applicationsArr.stream().map(String.class::cast).collect(Collectors.toSet());
+                builder.applications(applications);
+            }
 
-        JsonArray statusArr = payload.getJsonArray("status");
-        if (statusArr != null) {
-            Set<Subscription.Status> statuses = statusArr
-                .stream()
-                .map(obj -> Subscription.Status.valueOf((String) obj))
-                .collect(Collectors.toSet());
-            builder.statuses(statuses);
+            JsonArray statusArr = payload.getJsonArray("statuses");
+            if (statusArr != null) {
+                Set<String> statuses = statusArr.stream().map(String::valueOf).collect(Collectors.toSet());
+                builder.statuses(statuses);
+            }
+
+            JsonArray planSecurityTypesArr = payload.getJsonArray("planSecurityTypes");
+            if (planSecurityTypesArr != null) {
+                Set<String> planSecurityTypes = planSecurityTypesArr.stream().map(String::valueOf).collect(Collectors.toSet());
+                builder.planSecurityTypes(planSecurityTypes);
+            }
+
+            Long endingAtAfterVal = payload.getLong("endingAtAfter");
+            if (endingAtAfterVal != null && endingAtAfterVal > 0) {
+                builder.endingAtAfter(endingAtAfterVal);
+            }
+
+            Long endingAtBeforeVal = payload.getLong("endingAtBefore");
+            if (endingAtBeforeVal != null && endingAtBeforeVal > 0) {
+                builder.endingAtBefore(endingAtBeforeVal);
+            }
+
+            Boolean includeWithoutEndVal = payload.getBoolean("includeWithoutEnd");
+            if (includeWithoutEndVal != null) {
+                builder.includeWithoutEnd(includeWithoutEndVal);
+            }
         }
 
         return builder.build();

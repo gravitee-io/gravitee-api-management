@@ -54,9 +54,10 @@ public interface EventService {
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,
-        Dictionary dictionary,
-        Map<String, String> properties
+        Dictionary dictionary
     );
+
+    EventEntity createDictionaryEvent(ExecutionContext executionContext, Set<String> environmentsIds, EventType type, String dictionnaryId);
 
     EventEntity createDebugApiEvent(
         ExecutionContext executionContext,
@@ -70,8 +71,7 @@ public interface EventService {
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,
-        OrganizationEntity organizationEntity,
-        Map<String, String> properties
+        OrganizationEntity organizationEntity
     );
 
     void deleteApiEvents(final ExecutionContext executionContext, String apiId);

@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.vertx.core.AbstractVerticle;
@@ -27,22 +32,24 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -50,7 +57,8 @@ import org.mockito.MockitoAnnotations;
 /**
  * @author GraviteeSource Team
  */
-@RunWith(VertxUnitRunner.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(VertxExtension.class)
 public class ApiKeysHandlerTest {
 
     private final WorkerExecutor executor = Vertx.vertx().createSharedWorkerExecutor("apiKeysHandlerTestWorker");
@@ -65,13 +73,11 @@ public class ApiKeysHandlerTest {
     private final ApiKeysHandler apiKeysHandler = new ApiKeysHandler(executor);
 
     private WebClient client;
-    private Vertx vertx;
 
-    @Before
-    public void setUp(TestContext context) throws Exception {
+    @BeforeEach
+    public void beforeEach(Vertx vertx, VertxTestContext testContext) throws Exception {
         MockitoAnnotations.openMocks(this);
 
-        vertx = Vertx.vertx();
         Router router = Router.router(vertx);
 
         router.route().handler(BodyHandler.create());
@@ -89,82 +95,163 @@ public class ApiKeysHandlerTest {
                     vertx.createHttpServer().requestHandler(router).listen(port);
                 }
             },
-            context.asyncAssertSuccess()
+            testContext.succeedingThenComplete()
         );
     }
 
-    @After
-    public void tearDown(TestContext context) {
-        vertx.close(context.asyncAssertSuccess());
+    @AfterEach
+    public void afterEach(Vertx vertx, VertxTestContext testContext) {
+        vertx.close(testContext.succeedingThenComplete());
         executor.close();
     }
 
-    @Test
-    public void searchShouldRespondWithApiAndPlanAndSubscriptionProperties(TestContext context) throws TechnicalException {
-        Subscription subscription = new Subscription();
-        subscription.setId("subscription-id");
-        subscription.setApi("subscription-api-id");
-        subscription.setPlan("subscription-plan-id");
+    @Nested
+    class SearchTest {
 
-        ApiKey apiKey = new ApiKey();
-        apiKey.setSubscriptions(List.of("subscription-id"));
+        @Test
+        @Deprecated
+        void should_return_apiKey_with_api_plan_subscription(VertxTestContext testContext) throws TechnicalException {
+            Subscription subscription = new Subscription();
+            subscription.setId("subscription-id");
+            subscription.setApi("subscription-api-id");
+            subscription.setPlan("subscription-plan-id");
 
-        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(apiKey));
-        when(subscriptionRepository.findByIdIn(argThat(ids -> apiKey.getSubscriptions().containsAll(ids))))
-            .thenReturn(List.of(subscription));
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscriptions(List.of("subscription-id"));
 
-        Async async = context.async();
+            when(apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().build(), null)).thenReturn(List.of(apiKey));
+            when(subscriptionRepository.findByIdIn(argThat(ids -> apiKey.getSubscriptions().containsAll(ids))))
+                .thenReturn(List.of(subscription));
 
-        client
-            .post("/_search")
-            .expect(ResponsePredicate.SC_OK)
-            .expect(ResponsePredicate.JSON)
-            .as(BodyCodec.jsonArray())
-            .sendJsonObject(new JsonObject())
-            .onSuccess(response -> {
-                JsonArray responseBody = response.body();
-                context.assertEquals(1, responseBody.size());
-                JsonObject responseApiKey = responseBody.getJsonObject(0);
-                context.assertEquals("subscription-id", responseApiKey.getString("subscription"));
-                context.assertEquals("subscription-api-id", responseApiKey.getString("api"));
-                context.assertEquals("subscription-plan-id", responseApiKey.getString("plan"));
-                async.complete();
-            })
-            .onFailure(err -> {
-                context.fail(err);
-                async.complete();
-            });
+            client
+                .post("/_search")
+                .expect(ResponsePredicate.SC_OK)
+                .expect(ResponsePredicate.JSON)
+                .as(BodyCodec.jsonArray())
+                .sendJsonObject(new JsonObject())
+                .onComplete(
+                    testContext.succeeding(response ->
+                        testContext.verify(() -> {
+                            JsonArray responseBody = response.body();
+                            assertThat(responseBody.size()).isEqualTo(1);
+                            JsonObject responseApiKey = responseBody.getJsonObject(0);
+                            assertThat(responseApiKey.getString("subscription")).isEqualTo("subscription-id");
+                            assertThat(responseApiKey.getString("api")).isEqualTo("subscription-api-id");
+                            assertThat(responseApiKey.getString("plan")).isEqualTo("subscription-plan-id");
+                            testContext.completeNow();
+                        })
+                    )
+                )
+                .onFailure(testContext::failNow);
+        }
     }
 
-    @Test
-    public void findByCriteriaShouldRespondWithSubscriptionList(TestContext context) throws TechnicalException {
-        ApiKey apiKey = new ApiKey();
-        apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
+    @Nested
+    class CriteriaTest {
 
-        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(apiKey));
+        @Test
+        void should_return_apiKey_with_subscriptions_without_criteria(VertxTestContext testContext) throws TechnicalException {
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
 
-        Async async = context.async();
+            when(apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().build(), null)).thenReturn(List.of(apiKey));
 
-        client
-            .post("/_findByCriteria")
-            .expect(ResponsePredicate.SC_OK)
-            .expect(ResponsePredicate.JSON)
-            .as(BodyCodec.jsonArray())
-            .sendJsonObject(new JsonObject())
-            .onSuccess(response -> {
-                JsonArray responseBody = response.body();
-                context.assertEquals(1, responseBody.size());
-                JsonObject responseApiKey = responseBody.getJsonObject(0);
-                context.assertEquals("[subscription-id1, subscription-id2]", responseApiKey.getString("subscriptions"));
-                context.assertNull(responseApiKey.getString("subscription"));
-                context.assertNull(responseApiKey.getString("api"));
-                context.assertNull(responseApiKey.getString("plan"));
-                async.complete();
-            })
-            .onFailure(err -> {
-                context.fail(err);
-                async.complete();
-            });
+            client
+                .post("/_findByCriteria")
+                .expect(ResponsePredicate.SC_OK)
+                .expect(ResponsePredicate.JSON)
+                .as(BodyCodec.jsonArray())
+                .send()
+                .onComplete(
+                    testContext.succeeding(response ->
+                        testContext.verify(() -> {
+                            JsonArray responseBody = response.body();
+                            assertThat(responseBody.size()).isEqualTo(1);
+                            JsonObject responseApiKey = responseBody.getJsonObject(0);
+                            assertThat(responseApiKey.getString("subscriptions")).isEqualTo("[subscription-id1, subscription-id2]");
+                            assertThat(responseApiKey.containsKey("api")).isFalse();
+                            assertThat(responseApiKey.containsKey("plan")).isFalse();
+                            testContext.completeNow();
+                        })
+                    )
+                )
+                .onFailure(testContext::failNow);
+        }
+
+        @Test
+        void should_return_apiKey_with_subscriptions_with_criteria(VertxTestContext testContext) throws TechnicalException {
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
+
+            ApiKeyCriteria apiKeyCriteria = ApiKeyCriteria
+                .builder()
+                .subscriptions(List.of("subscription-id1", "subscription-id2"))
+                .to(123)
+                .from(123)
+                .expireAfter(123)
+                .expireBefore(123)
+                .includeWithoutExpiration(true)
+                .build();
+            when(apiKeyRepository.findByCriteria(apiKeyCriteria, null)).thenReturn(List.of(apiKey));
+
+            client
+                .post("/_findByCriteria")
+                .expect(ResponsePredicate.SC_OK)
+                .expect(ResponsePredicate.JSON)
+                .as(BodyCodec.jsonArray())
+                .sendJson(apiKeyCriteria)
+                .onComplete(
+                    testContext.succeeding(response ->
+                        testContext.verify(() -> {
+                            JsonArray responseBody = response.body();
+                            assertThat(responseBody.size()).isEqualTo(1);
+                            JsonObject responseApiKey = responseBody.getJsonObject(0);
+                            assertThat(responseApiKey.getString("subscriptions")).isEqualTo("[subscription-id1, subscription-id2]");
+                            assertThat(responseApiKey.containsKey("api")).isFalse();
+                            assertThat(responseApiKey.containsKey("plan")).isFalse();
+                            testContext.completeNow();
+                        })
+                    )
+                )
+                .onFailure(testContext::failNow);
+        }
+
+        @Test
+        void should_return_apiKey_without_criteria_but_with_sortable(VertxTestContext testContext) throws TechnicalException {
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));
+
+            when(
+                apiKeyRepository.findByCriteria(
+                    ApiKeyCriteria.builder().build(),
+                    new SortableBuilder().order(Order.ASC).field("field").build()
+                )
+            )
+                .thenReturn(List.of(apiKey));
+
+            client
+                .post("/_findByCriteria")
+                .addQueryParam("order", "ASC")
+                .addQueryParam("field", "field")
+                .expect(ResponsePredicate.SC_OK)
+                .expect(ResponsePredicate.JSON)
+                .as(BodyCodec.jsonArray())
+                .sendJsonObject(new JsonObject())
+                .onComplete(
+                    testContext.succeeding(response ->
+                        testContext.verify(() -> {
+                            JsonArray responseBody = response.body();
+                            assertThat(responseBody.size()).isEqualTo(1);
+                            JsonObject responseApiKey = responseBody.getJsonObject(0);
+                            assertThat(responseApiKey.getString("subscriptions")).isEqualTo("[subscription-id1, subscription-id2]");
+                            assertThat(responseApiKey.containsKey("api")).isFalse();
+                            assertThat(responseApiKey.containsKey("plan")).isFalse();
+                            testContext.completeNow();
+                        })
+                    )
+                )
+                .onFailure(testContext::failNow);
+        }
     }
 
     private int getRandomPort() throws IOException {

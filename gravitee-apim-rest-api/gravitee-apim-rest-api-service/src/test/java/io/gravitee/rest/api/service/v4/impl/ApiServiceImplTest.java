@@ -1054,7 +1054,6 @@ public class ApiServiceImplTest {
                 eq(EventType.PUBLISH_API),
                 eq(api),
                 argThat(properties ->
-                    properties.get(Event.EventProperties.API_ID.getValue()).equals(API_ID) &&
                     properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
                     properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("1") &&
                     properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())

@@ -29,8 +29,10 @@ import com.mongodb.client.model.Sorts;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
+import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -55,7 +57,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     private String tablePrefix;
 
     @Override
-    public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable) {
+    public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
         List<Bson> dataPipeline = new ArrayList<>();
 
         if (criteria.getClientId() != null) {
@@ -102,18 +104,30 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getFrom() > 0) {
+        // set range query
+        if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
+            dataPipeline.add(match(and(gte("updatedAt", new Date(criteria.getFrom())), lt("updatedAt", new Date(criteria.getTo())))));
+        } else if (criteria.getFrom() > 0) {
             dataPipeline.add(match(gte("updatedAt", new Date(criteria.getFrom()))));
-        }
-        if (criteria.getTo() > 0) {
-            dataPipeline.add(match(lte("updatedAt", new Date(criteria.getTo()))));
+        } else if (criteria.getTo() > 0) {
+            dataPipeline.add(match(lt("updatedAt", new Date(criteria.getTo()))));
         }
 
         if (criteria.getEndingAtAfter() > 0) {
-            dataPipeline.add(match(gte("endingAt", new Date(criteria.getEndingAtAfter()))));
+            Bson endingAfterAt = gte("endingAt", new Date(criteria.getEndingAtAfter()));
+            if (criteria.isIncludeWithoutEnd()) {
+                dataPipeline.add(match(or(eq("endingAt", null), endingAfterAt)));
+            } else {
+                dataPipeline.add(match(endingAfterAt));
+            }
         }
         if (criteria.getEndingAtBefore() > 0) {
-            dataPipeline.add(match(lte("endingAt", new Date(criteria.getEndingAtBefore()))));
+            Bson endingBeforeAt = lt("endingAt", new Date(criteria.getEndingAtBefore()));
+            if (criteria.isIncludeWithoutEnd()) {
+                dataPipeline.add(match(or(eq("endingAt", null), endingBeforeAt)));
+            } else {
+                dataPipeline.add(match(endingBeforeAt));
+            }
         }
 
         if (!isEmpty(criteria.getPlanSecurityTypes())) {
@@ -122,8 +136,16 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             dataPipeline.add(match(in("subscribedPlan.security", criteria.getPlanSecurityTypes())));
         }
 
-        // set sort by created at
-        dataPipeline.add(sort(Sorts.descending("createdAt")));
+        // set sortable
+        if (sortable != null) {
+            if (sortable.order().equals(Order.ASC)) {
+                dataPipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
+            } else {
+                dataPipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
+            }
+        } else {
+            dataPipeline.add(sort(Sorts.descending("createdAt")));
+        }
 
         dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
 

@@ -109,8 +109,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.PUBLISH_DICTIONARY,
-                dictionary,
-                null
+                dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
@@ -131,16 +130,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             dictionary = dictionaryRepository.update(dictionary);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-
             // And create event
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
-                dictionary,
-                properties
+                dictionary
             );
             return convert(dictionary);
         } catch (TechnicalException ex) {
@@ -162,16 +157,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-
             // And create event
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.START_DICTIONARY,
-                null,
-                properties
+                id
             );
 
             // Audit
@@ -203,16 +194,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-
             // And create event
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.STOP_DICTIONARY,
-                null,
-                properties
+                id
             );
 
             // Audit
@@ -282,14 +269,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // Force a new start event if the dictionary is already started when updating.
             if (updatedDictionary.getState() == LifecycleState.STARTED) {
-                Map<String, String> properties = new HashMap<>();
-                properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
                 eventService.createDictionaryEvent(
                     executionContext,
                     Collections.singleton(executionContext.getEnvironmentId()),
                     EventType.START_DICTIONARY,
-                    null,
-                    properties
+                    id
                 );
             }
 
@@ -333,16 +317,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             dictionaryRepository.delete(id);
 
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
-
             // And create event
             eventService.createDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
-                dictionary,
-                properties
+                dictionary
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);

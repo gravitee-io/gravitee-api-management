@@ -28,8 +28,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ManagementRepositoryProbe implements Probe {
 
-    @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    public void setEventRepository(EventRepository eventRepository) {
+        this.eventRepository = eventRepository;
+    }
 
     @Override
     public String id() {
@@ -42,9 +46,7 @@ public class ManagementRepositoryProbe implements Probe {
             // Search for an event to check repository connection
             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    eventRepository.search(
-                        new EventCriteria.Builder().from(System.currentTimeMillis()).to(System.currentTimeMillis()).build()
-                    );
+                    eventRepository.search(EventCriteria.builder().from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
                     return Result.healthy();
                 } catch (Exception ex) {
                     return Result.unhealthy(ex);

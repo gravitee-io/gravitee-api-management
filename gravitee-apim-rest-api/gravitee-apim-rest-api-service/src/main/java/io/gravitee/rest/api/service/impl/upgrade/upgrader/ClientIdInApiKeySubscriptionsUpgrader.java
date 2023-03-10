@@ -51,8 +51,8 @@ public class ClientIdInApiKeySubscriptionsUpgrader extends OneShotUpgrader {
 
     @Override
     protected void processOneShotUpgrade() throws TechnicalException {
-        SubscriptionCriteria.Builder criteriaBuilder = new SubscriptionCriteria.Builder();
-        criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY));
+        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
+        criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
         subscriptionRepository.search(criteriaBuilder.build()).forEach(this::updateApiKeySubscriptions);
     }
 
