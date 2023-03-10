@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiExportService;
 import io.gravitee.rest.api.service.ApiService;
@@ -115,7 +116,9 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private void generateAndSaveCrossId(ExecutionContext executionContext, PageEntity page) {
         if (StringUtils.isEmpty(page.getCrossId())) {
             page.setCrossId(UuidString.generateRandom());
-            pageService.update(executionContext, page.getId(), pageConverter.toUpdatePageEntity(page));
+            UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+            updatePageEntity.setCrossId(page.getCrossId());
+            pageService.update(executionContext, page.getId(), updatePageEntity, true);
         }
     }
 }
