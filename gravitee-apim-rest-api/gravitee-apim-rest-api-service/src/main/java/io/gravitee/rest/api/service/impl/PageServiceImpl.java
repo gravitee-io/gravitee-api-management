@@ -20,8 +20,7 @@ import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_CREAT
 import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_DELETED;
 import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_UPDATED;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
-import static io.gravitee.rest.api.model.PageType.SWAGGER;
-import static io.gravitee.rest.api.model.PageType.SYSTEM_FOLDER;
+import static io.gravitee.rest.api.model.PageType.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
@@ -925,7 +924,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 createRevision = true;
             }
 
-            if (newPageEntity.getContent() == null && newPageEntity.getSource() != null) {
+            if (newPageEntity.getContent() == null && newPageEntity.getSource() != null && newPageType != ROOT) {
                 fetchPage(newPageEntity);
             }
 
@@ -1236,7 +1235,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (updatePageEntity.getSource() != null) {
                 try {
-                    if (updatePageEntity.getContent() == null) {
+                    if (updatePageEntity.getContent() == null && !ROOT.name().equals(pageType)) {
                         fetchPage(updatePageEntity);
                     }
                 } catch (FetcherException e) {
