@@ -29,4 +29,8 @@ export class PlanV4Service {
   public create(plan: NewPlan): Observable<Plan> {
     return this.http.post<Plan>(`${this.constants.env.baseURL}/v4/apis/${plan.apiId}/plans`, plan);
   }
+
+  public publish(apiId: string, planId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/v4/apis/${apiId}/plans/${planId}/_publish`, {});
+  }
 }
