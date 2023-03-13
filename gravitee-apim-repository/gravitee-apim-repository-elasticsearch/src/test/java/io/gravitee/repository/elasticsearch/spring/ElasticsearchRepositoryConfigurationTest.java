@@ -76,6 +76,9 @@ public class ElasticsearchRepositoryConfigurationTest {
         elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
         elasticConfiguration.setUsername("elastic");
         elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
+        if (elasticsearchVersion.startsWith("5")) {
+            environment.getSystemProperties().put("analytics.elasticsearch.index_per_type", "true");
+        }
         return elasticConfiguration;
     }
 
