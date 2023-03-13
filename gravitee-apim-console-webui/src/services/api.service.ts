@@ -782,7 +782,7 @@ export class ApiService {
     Object.keys(query).forEach((key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
-        url += key + '=' + val + '&';
+        url += key + '=' + encodeURIComponent(val) + '&';
       }
     });
     return url;
