@@ -113,6 +113,11 @@
             <artifactId>gravitee-apim-plugin-apiservice-healthcheck-http</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-servicediscovery-consul</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

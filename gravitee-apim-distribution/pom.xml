@@ -695,6 +695,13 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-servicediscovery-consul</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>

@@ -1,0 +1,29 @@
+{
+    "node_name": "server1",
+    "server": true,
+    "ui_config": {
+        "enabled": false
+    },
+    "data_dir": "/consul/data",
+    "bootstrap_expect": 1,
+    "addresses": {
+        "http": "0.0.0.0",
+        "https": "0.0.0.0"
+    },
+    "tls": {
+        "defaults": {
+            "verify_incoming": true,
+            "verify_outgoing": true,
+            "ca_file": "/consul/config/certs/ca.pem",
+            "cert_file": "/consul/config/certs/server1.dc1.consul.crt",
+            "key_file": "/consul/config/certs/server1.dc1.consul.key"
+        },
+        "internal_rpc": {
+            "verify_server_hostname": true
+        }
+    },
+    "ports": {
+        "http": 8500,
+        "https": 8501
+    }
+}
