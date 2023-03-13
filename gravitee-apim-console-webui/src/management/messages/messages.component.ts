@@ -13,110 +13,144 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
-import * as _ from 'lodash';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { sortBy } from 'lodash';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
-import { ApiService } from '../../services/api.service';
-import MessageService from '../../services/message.service';
-import NotificationService from '../../services/notification.service';
+import { RoleService } from '../../services-ngx/role.service';
+import { UIRouterStateParams } from '../../ajs-upgraded-providers';
+import { HttpMessagePayload, MessageScope, TextMessagePayload } from '../../entities/message/messagePayload';
+import { MessageService } from '../../services-ngx/message.service';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
 
-const MessagesComponent: ng.IComponentOptions = {
-  bindings: {
-    resolvedScope: '<',
-    resolvedRoles: '<',
-    resolvedApiId: '<',
-  },
-  template: require('./messages.html'),
-  /* @ngInject */
-  controller: function (
-    $state: StateService,
-    NotificationService: NotificationService,
-    MessageService: MessageService,
-    ApiService: ApiService,
-  ) {
-    this.$onInit = () => {
-      const roles = _.sortBy(this.resolvedRoles, ['name']);
-      this.recipients = [];
-      if (this.resolvedApiId != null) {
-        this.recipients.push({ name: 'API_SUBSCRIBERS', displayName: 'API subscribers' });
-      }
+@Component({
+  selector: 'messages',
+  template: require('./messages.component.html'),
+  styles: [require('./messages.component.scss')],
+})
+export class MessagesComponent implements OnInit, OnDestroy {
+  channels = [
+    { id: 'PORTAL', name: 'Portal notifications' },
+    { id: 'MAIL', name: 'Email' },
+    { id: 'HTTP', name: 'POST HTTP message' },
+  ];
 
-      roles.forEach((role) => {
-        if (this.resolvedScope === 'APPLICATION') {
-          role.displayName = `Members with the ${role.name} role on subscribing applications`;
-        } else {
-          role.displayName = `Members with the ${role.name} role on ${this.resolvedScope} scope`;
+  form: FormGroup;
+  recipients: { name: string; displayName: string }[];
+  scope: MessageScope;
+  sending = false;
+  private apiId: string;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor(
+    private readonly roleService: RoleService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly messageService: MessageService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
+
+  ngOnInit(): void {
+    this.apiId = this.ajsStateParams.apiId;
+    this.scope = this.apiId ? 'APPLICATION' : 'ENVIRONMENT';
+    this.roleService
+      .list(this.scope)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((roles) => {
+        const sortedRoles = sortBy(roles, ['name']);
+        this.recipients = sortedRoles.map((role) => {
+          const displayName =
+            `Members with the ${role.name} role on ` + (this.scope === 'APPLICATION' ? `subscribing applications` : `ENVIRONMENT scope`);
+          return {
+            name: role.name,
+            displayName,
+          };
+        });
+        if (this.apiId) {
+          this.recipients.unshift({ name: 'API_SUBSCRIBERS', displayName: 'API subscribers' });
         }
-        this.recipients.push(role);
-      });
-
-      this.channels = [
-        { id: 'PORTAL', name: 'Portal Notifications' },
-        { id: 'MAIL', name: 'Email' },
-        { id: 'HTTP', name: 'POST HTTP message' },
-      ];
-      this.channel = 'PORTAL';
-      this.defaultHttpHeaders = ApiService.defaultHttpHeaders();
-      this.httpHeaders = [];
-      this.recipientValues = [];
-      this.newHttpHeader();
-    };
-
-    this.send = () => {
-      if (this.resolvedApiId) {
-        MessageService.sendFromApi(
-          this.resolvedApiId,
-          this.title,
-          this.text,
-          this.channel,
-          this.resolvedScope,
-          this.recipientValues,
-          this.url,
-          this.useSystemProxy,
-          this.httpHeaders,
-        ).then((response) => {
-          NotificationService.show(response.data + ' messages has been sent.');
-          this.resetForm();
+        this.form = new FormGroup({
+          channel: new FormControl('PORTAL', [Validators.required]),
+          recipients: new FormControl([], [Validators.required]),
+          title: new FormControl('', [Validators.required]),
+          url: new FormControl('', [Validators.required]),
+          text: new FormControl('', [Validators.required]),
+          useSystemProxy: new FormControl(false),
+          headers: new FormControl([]),
         });
-      } else {
-        MessageService.sendFromPortal(
-          this.title,
-          this.text,
-          this.channel,
-          this.resolvedScope,
-          this.recipientValues,
-          this.url,
-          this.useSystemProxy,
-          this.httpHeaders,
-        ).then((response) => {
-          NotificationService.show(response.data + ' messages has been sent.');
-          this.resetForm();
+        // Disable URL field as initial value for channel is PORTAL.
+        this.form.controls['url'].disable();
+
+        this.form.controls['channel'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
+          if (values === 'HTTP') {
+            this.form.controls['title'].disable();
+            this.form.controls['url'].enable();
+          } else {
+            this.form.controls['title'].enable();
+            this.form.controls['url'].disable();
+          }
         });
-      }
-    };
-
-    this.resetForm = () => {
-      this.title = '';
-      this.url = '';
-      this.text = '';
-      this.recipientValues = [];
-      this.httpHeaders = [];
-      this.newHttpHeader();
-      this.formMsg.$setPristine();
-      this.formMsg.$setUntouched();
-    };
-
-    this.newHttpHeader = () => {
-      this.httpHeaders.push({
-        key: '',
-        value: '',
       });
-    };
+  }
 
-    this.deleteHttpHeader = (idx) => {
-      this.httpHeaders.splice(idx, 1);
-    };
-  },
-};
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
 
-export default MessagesComponent;
+  sendMessage() {
+    this.sending = true;
+    const val = this.form.getRawValue();
+    const payload = val.channel === 'HTTP' ? this.getHttpPayload() : this.getTextMessagePayload();
+    const obs = this.apiId ? this.messageService.sendFromApi(this.apiId, payload) : this.messageService.sendFromPortal(payload);
+
+    obs.subscribe({
+      next: (res) => {
+        this.sending = false;
+        this.snackBarService.success(`Message sent to ${res} recipient${res > 1 ? 's' : ''}`);
+      },
+      error: (error) => {
+        this.sending = false;
+        let message = `Message could not be sent`;
+        if (error?.error?.message) message += ` because of ${error.error.message}`;
+        this.snackBarService.error(message);
+      },
+    });
+  }
+
+  requiredPermission() {
+    return this.scope === 'APPLICATION' ? { anyOf: ['api-message-c'] } : { anyOf: ['environment-message-c'] };
+  }
+
+  private getHttpPayload(): HttpMessagePayload {
+    const val = this.form.getRawValue();
+    const params = val.headers.reduce((params, header) => {
+      params[header.key] = header.value;
+      return params;
+    }, {});
+
+    return {
+      channel: 'HTTP',
+      text: val.text,
+      recipient: {
+        url: val.url,
+      },
+      params,
+      useSystemProxy: val.useSystemProxy,
+    };
+  }
+
+  private getTextMessagePayload(): TextMessagePayload {
+    const val = this.form.getRawValue();
+    return {
+      channel: val.channel,
+      title: val.title,
+      text: val.text,
+      recipient: {
+        role_scope: this.scope,
+        role_value: val.recipients,
+      },
+    };
+  }
+}

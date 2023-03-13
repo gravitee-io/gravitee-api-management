@@ -35,7 +35,7 @@ import java.util.Iterator;
  */
 public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<GroupByResponse> {
 
-    private static final String TEMPLATE = "groupBy.ftl";
+    private static final String TEMPLATE = "analytics/groupBy.ftl";
 
     @Override
     public Class<? extends Query<GroupByResponse>> getSupportedQuery() {

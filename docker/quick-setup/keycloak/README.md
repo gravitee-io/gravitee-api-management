@@ -17,7 +17,7 @@ In the Keycloak UI (https://docs.gravitee.io/apim/3.x/apim_installguide_authenti
 - Read how to create a new client for your application. (Already imported with `realm/realm-gio.json`)
 - Create a user in the "GIO" realm.
 
-You can read how to [https://docs.gravitee.io/apim/3.x/apim_installguide_authentication_keycloak.html#apim_console_configuration](configure the Identity provider following documentation) but it's already configured with docker environment.
+You can read how to [configure the Identity provider following documentation](https://docs.gravitee.io/apim/3.x/apim_installguide_authentication_keycloak.html#apim_console_configuration) but it's already configured with docker environment.
 
 ### How to test an api with `gravitee-resource-oauth2-provider-keycloak`
 

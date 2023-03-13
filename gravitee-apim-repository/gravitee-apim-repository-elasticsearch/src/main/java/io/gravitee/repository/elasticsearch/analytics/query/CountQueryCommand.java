@@ -30,7 +30,7 @@ import io.gravitee.repository.analytics.query.count.CountResponse;
  */
 public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountResponse> {
 
-    private static final String TEMPLATE = "count.ftl";
+    private static final String TEMPLATE = "analytics/count.ftl";
 
     @Override
     public Class<? extends Query<CountResponse>> getSupportedQuery() {

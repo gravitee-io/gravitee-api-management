@@ -73,8 +73,6 @@ public class EndpointInvoker implements Invoker {
                                 context
                             );
 
-                            connectionHandler.handle(decoratedProxyConnection);
-
                             // Plug underlying stream to connection stream
                             stream
                                 .bodyHandler(
@@ -88,6 +86,8 @@ public class EndpointInvoker implements Invoker {
                                     }
                                 )
                                 .endHandler(aVoid -> decoratedProxyConnection.end());
+
+                            connectionHandler.handle(decoratedProxyConnection);
 
                             // Inbound request could only be resume once we succeed to connect to the underlying backend
                             // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)

@@ -13,10 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as jsYAML from 'js-yaml';
-
-const schema = jsYAML.JSON_SCHEMA.extend([]);
-
-export function readYaml(content: string): any {
-  return jsYAML.load(content, { schema });
+export type MessageScope = 'ENVIRONMENT' | 'APPLICATION';
+export interface HttpRecipient {
+  url?: string;
 }
+export interface MessageRecipient {
+  role_scope?: MessageScope;
+  role_value?: string[];
+}
+
+export interface HttpMessagePayload {
+  channel: 'HTTP';
+  text: string;
+  recipient: HttpRecipient;
+  params: { [key: string]: string };
+  useSystemProxy: boolean;
+}
+
+export interface TextMessagePayload {
+  channel: 'MAIL' | 'PORTAL';
+  title: string;
+  text: string;
+  recipient: MessageRecipient;
+}
+
+export type MessagePayload = HttpMessagePayload | TextMessagePayload;

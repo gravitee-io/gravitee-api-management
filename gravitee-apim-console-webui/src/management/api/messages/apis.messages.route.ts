@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoleService from '../../../services/role.service';
 
 export default apisMessagesRouterConfig;
 
@@ -21,16 +20,8 @@ export default apisMessagesRouterConfig;
 function apisMessagesRouterConfig($stateProvider) {
   $stateProvider.state('management.apis.detail.messages', {
     url: '/messages',
-    component: 'messages',
-    resolve: {
-      resolvedScope: () => 'APPLICATION',
-      resolvedApiId: ($stateParams) => $stateParams.apiId,
-      resolvedRoles: (RoleService: RoleService) => RoleService.list('APPLICATION'),
-    },
+    component: 'ngMessages',
     data: {
-      perms: {
-        only: ['api-message-c'],
-      },
       docs: {
         page: 'management-messages',
       },

@@ -27,7 +27,11 @@
     "by_date" : {
       "date_histogram" : {
         "field" : "@timestamp",
+<#if useFixedInterval??>
+        "fixed_interval": "${query.timeRange().interval().toMillis()}ms",
+<#else>
         "interval": "${query.timeRange().interval().toMillis()}ms",
+</#if>
         "order" : {
           "_key" : "asc"
         },
