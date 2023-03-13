@@ -73,4 +73,22 @@ describe('ApiV4Service', () => {
       req.flush(fakeApiEntity());
     });
   });
+
+  describe('start', () => {
+    it('should call the API', (done) => {
+      const apiEntity = fakeApiEntity();
+
+      apiV4Service.start(apiEntity.id).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiEntity.id}/?action=start`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(apiEntity);
+    });
+  });
 });

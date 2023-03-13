@@ -66,4 +66,21 @@ describe('PlanV4Service', () => {
       planReq.flush(plan);
     });
   });
+
+  describe('publish', () => {
+    it('should publish api plans', (done) => {
+      const apiId = 'api-1';
+      const planId = 'plan-1';
+
+      planService.publish(apiId, planId).subscribe(() => {
+        done();
+      });
+
+      const publishPlanReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans/${planId}/_publish`,
+      });
+      publishPlanReq.flush({});
+    });
+  });
 });
