@@ -25,7 +25,6 @@ import static io.gravitee.gateway.reactive.reactor.processor.transaction.Transac
  */
 public class TransactionPreProcessorFactory {
 
-
     private final String transactionHeader;
     private final String requestHeader;
 

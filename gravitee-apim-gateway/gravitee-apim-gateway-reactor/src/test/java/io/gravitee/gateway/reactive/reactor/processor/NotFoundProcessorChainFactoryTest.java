@@ -77,7 +77,7 @@ class NotFoundProcessorChainFactoryTest {
     @Test
     void should_have_notFoundProcessors() {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-                transactionPreProcessorFactory,
+            transactionPreProcessorFactory,
             new StandardEnvironment(),
             reporterService,
             false,
@@ -100,7 +100,7 @@ class NotFoundProcessorChainFactoryTest {
         DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response);
 
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-                transactionPreProcessorFactory,
+            transactionPreProcessorFactory,
             new StandardEnvironment(),
             reporterService,
             true,

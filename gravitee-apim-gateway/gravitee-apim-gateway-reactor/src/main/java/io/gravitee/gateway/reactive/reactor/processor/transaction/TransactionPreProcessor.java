@@ -61,8 +61,6 @@ public class TransactionPreProcessor implements Processor {
                     ctx.request().headers().set(transactionHeader, transactionId);
                 }
                 ctx.request().headers().set(requestHeader, requestId);
-                ctx.response().headers().set(transactionHeader, transactionId);
-                ctx.response().headers().set(requestHeader, requestId);
 
                 ctx.request().transactionId(transactionId);
             }
