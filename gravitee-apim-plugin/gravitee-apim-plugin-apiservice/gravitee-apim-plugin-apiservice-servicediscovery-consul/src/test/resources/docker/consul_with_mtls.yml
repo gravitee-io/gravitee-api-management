@@ -1,0 +1,16 @@
+version: "3.5"
+
+services:
+    consul-server:
+        image: hashicorp/consul:1.15.1
+        restart: always
+        volumes:
+            - ./config/server_mtls.json:/consul/config/server.json:ro
+            - ./config/ssl/:/consul/config/certs/
+        #    ports:
+        #      - "8500:8500"
+        #      - "8501:8501"
+        #      - "8600:8600/tcp"
+        #      - "8600:8600/udp"
+        command: "agent"
+        hostname: server1

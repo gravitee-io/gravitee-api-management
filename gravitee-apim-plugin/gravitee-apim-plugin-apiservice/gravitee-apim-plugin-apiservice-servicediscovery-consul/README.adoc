@@ -1,0 +1,81 @@
+= Consul Service Discovery Service
+
+This api service plugin allows an api publishers to configure a Service Discovery feature on their APIs using https://developer.hashicorp.com/consul[HashiCorp Consul].
+
+Currently, this plugin only support `http-proxy` endpoint.
+
+== Configuration
+
+To use this plugin, you need to provide at least
+
+- the url of a Consul server
+- a service to query in Consul
+
+In addition, you can provide the data-center to query (`dc`) and the ACL token to use (`acl`).
+
+=== A simple configuration
+
+[source,json]
+----
+{
+    "url": "http://localhost:8500",
+    "service": "whattimeisit",
+    "dc": "dc1"
+}
+----
+
+A configuration using TLS
+
+[source,json]
+----
+{
+    "url": "http://localhost:8500",
+    "service": "whattimeisit",
+    "ssl": {
+        "hostnameVerifier": true,
+        "keyStore": {
+            "type": "JKS",
+            "path": "/opt/certs/keystore.jks",
+            "alias": "consul-client",
+            "password": "a-secured-password"
+        },
+        "trustStore": {
+            "type": "JKS",
+            "path": "/opt/certs/truststore.jks",
+            "password": "a-secured-password"
+        }
+    }
+}
+----
+
+=== Consul services
+
+To create an endpoint from a Consul service, we need
+
+- an `ID`
+- a `Name`
+- an `Address`
+- a `Port`
+
+From those fields we will build the `target` url of the endpoint.
+
+If your backend uses `https` or needs a path, this information can be provided by metadata
+
+- `gravitee_path` to define a path.
+- `gravitee_ssl` using a value `true` to build an `https` url.
+
+==== Example of service registration
+
+[source,bash]
+----
+curl -X PUT -d '{ "ID": "whattimeisit_2", "Name": "whattimeisit", "Address": "api.gravitee.io", "Meta": {"gravitee_path":"/echo", "gravitee_ssl":"true" }, "Port": 443}' http://localhost:8500/v1/agent/service/register
+----
+
+This call will "generate" an endpoint target: `https://api.gravitee.io:443/echo`
+
+==== Other metadata
+
+We also support other metadata to configure the endpoint:
+
+- `gravitee_weight` to set a weight on the endpoint to affect the load balancing.
+- `gravitee_tenant` to set a tenant value in the endpoint.
