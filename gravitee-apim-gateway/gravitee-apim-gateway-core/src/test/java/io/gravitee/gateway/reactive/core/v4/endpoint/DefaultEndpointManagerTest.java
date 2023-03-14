@@ -34,11 +34,14 @@ import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.plugin.endpoint.internal.DefaultEndpointConnectorPluginManager;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -255,6 +258,98 @@ class DefaultEndpointManagerTest {
     }
 
     @Nested
+    @ExtendWith(VertxExtension.class)
+    class AddOrUpdateEndpoint {
+
+        @Test
+        void should_provide_updated_endpoints_template_variable_when_endpoint_is_added() throws Exception {
+            var templateContext = mock(TemplateContext.class);
+            var api = buildApi();
+            var groupName = api.getEndpointGroups().get(0).getName();
+            var newEndpoint = anEndpointWithInheritedConfig();
+
+            final EndpointConnector connector = mock(EndpointConnector.class);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+
+            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+            cut.start();
+            cut.provide(templateContext);
+
+            final ArgumentCaptor<Map<String, String>> endpointsCaptor = ArgumentCaptor.forClass(Map.class);
+            verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
+
+            assertThat(endpointsCaptor.getValue()).hasSize(6);
+            reset(templateContext);
+
+            cut.addOrUpdateEndpoint(groupName, newEndpoint);
+            cut.provide(templateContext);
+
+            verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
+            assertThat(endpointsCaptor.getValue()).hasSize(7).containsKey(newEndpoint.getName());
+        }
+
+        @Test
+        void should_notify_listeners_when_endpoint_is_added(VertxTestContext context) throws Exception {
+            var api = buildApi();
+            var groupName = api.getEndpointGroups().get(0).getName();
+            var newEndpoint = anEndpointWithInheritedConfig();
+
+            final EndpointConnector connector = mock(EndpointConnector.class);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+
+            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+            cut.start();
+
+            cut.addListener((event, endpoint) -> {
+                assertThat(event).isEqualTo(EndpointManager.Event.ADD);
+                assertThat(endpoint.getDefinition().getName()).isEqualTo(newEndpoint.getName());
+                context.completeNow();
+            });
+            cut.addOrUpdateEndpoint(groupName, newEndpoint);
+        }
+
+        @Test
+        void should_notify_listeners_when_endpoint_is_updated(VertxTestContext context) throws Exception {
+            var checkpointEndpointRemoved = context.checkpoint();
+            var checkpointEndpointAdded = context.checkpoint();
+
+            var api = buildApi();
+            var groupName = api.getEndpointGroups().get(0).getName();
+            var endpointToUpdate = api.getEndpointGroups().get(0).getEndpoints().get(0);
+            var updatedEndpoint = Endpoint
+                .builder()
+                .name(endpointToUpdate.getName())
+                .type(endpointToUpdate.getType())
+                .configuration("updated")
+                .inheritConfiguration(true)
+                .build();
+
+            final EndpointConnector connector = mock(EndpointConnector.class);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+
+            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+            cut.start();
+
+            var endpointRemoved = new AtomicBoolean(false);
+            cut.addListener((event, endpoint) -> {
+                if (event.equals(EndpointManager.Event.REMOVE)) {
+                    checkpointEndpointRemoved.flag();
+                    assertThat(endpoint.getDefinition().getName()).isEqualTo(updatedEndpoint.getName());
+                    endpointRemoved.set(true);
+                }
+
+                if (event.equals(EndpointManager.Event.ADD)) {
+                    checkpointEndpointAdded.flag();
+                    assertThat(endpoint.getDefinition().getName()).isEqualTo(updatedEndpoint.getName());
+                    assertThat(endpointRemoved.get()).describedAs("Endpoint should have been removed first").isTrue();
+                }
+            });
+            cut.addOrUpdateEndpoint(groupName, updatedEndpoint);
+        }
+    }
+
+    @Nested
+    @ExtendWith(VertxExtension.class)
     class RemoveEndpoint {
 
         @Test
@@ -282,6 +377,31 @@ class DefaultEndpointManagerTest {
 
             verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
             assertThat(endpointsCaptor.getValue()).hasSize(5).doesNotContainKey(endpointToRemove);
+        }
+
+        @Test
+        void should_notify_listeners(VertxTestContext context) throws Exception {
+            final Api api = buildApi();
+            final String endpointToRemove = api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
+
+            final EndpointConnector connector1 = mock(EndpointConnector.class);
+            final EndpointConnector connector2 = mock(EndpointConnector.class);
+            final EndpointConnector connector3 = mock(EndpointConnector.class);
+            final EndpointConnector connector4 = mock(EndpointConnector.class);
+
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                .thenReturn(connector1, connector2, connector3, connector4);
+
+            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext);
+            cut.start();
+
+            cut.addListener((event, endpoint) -> {
+                assertThat(event).isEqualTo(EndpointManager.Event.REMOVE);
+                assertThat(endpoint.getDefinition().getName()).isEqualTo(endpointToRemove);
+                context.completeNow();
+            });
+
+            cut.removeEndpoint(endpointToRemove);
         }
     }
 
