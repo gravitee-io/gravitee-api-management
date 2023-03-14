@@ -9,15 +9,25 @@
         },
         "clearTextUpgrade":{
             "title":"Allow h2c Clear Text Upgrade",
-            "description":"If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge).",
             "type":"boolean",
-            "default":true
+            "default":true,
+            "gioConfig": {
+                "banner": {
+                    "title": "HTTP/2 Cleartext (H2C)",
+                    "text": "If enabled, an h2c connection is established using an HTTP/1.1 upgrade request. If disabled, h2c connection is established directly (with prior knowledge)."
+                }
+            }
         },
         "keepAlive":{
             "title":"Enable keep-alive",
-            "description":"Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.",
             "type":"boolean",
-            "default":true
+            "default": true,
+            "gioConfig": {
+                "banner": {
+                    "title": "Enable keep-alive",
+                    "text": "Use an HTTP persistent connection to send and receive multiple HTTP requests / responses."
+                }
+            }
         },
         "connectTimeout":{
             "type":"integer",
@@ -27,9 +37,14 @@
         },
         "pipelining":{
             "title":"Enable HTTP pipelining",
-            "description":"When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.\n",
             "type":"boolean",
-            "default":false
+            "default": false,
+            "gioConfig": {
+                "banner": {
+                    "title": "Enable HTTP pipelining",
+                    "text": "When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return"
+                }
+            }
         },
         "readTimeout":{
             "type":"integer",
@@ -39,21 +54,36 @@
         },
         "useCompression":{
             "title":"Enable compression (gzip, deflate)",
-            "description":"The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.",
-            "type":"boolean",
-            "default":true
+            "type": "boolean",
+            "default": true,
+            "gioConfig": {
+                "banner": {
+                    "title": "Enable compression (gzip, deflate)",
+                    "text": "The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server."
+                }
+            }
         },
         "idleTimeout":{
             "type":"integer",
             "title":"Idle timeout (ms)",
-            "description":"Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
-            "default":60000
+            "default": 60000,
+            "gioConfig": {
+                "banner": {
+                    "title": "Idle timeout",
+                    "text": "Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources."
+                }
+            }
         },
         "followRedirects":{
             "title":"Follow HTTP redirects",
-            "description":"When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.",
             "type":"boolean",
-            "default":false
+                    "default": false,
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Follow HTTP redirects",
+                            "text": "When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header."
+                        }
+                    }
         },
         "maxConcurrentConnections":{
             "type":"integer",
