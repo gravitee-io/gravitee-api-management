@@ -18,9 +18,8 @@ const AlertEnginePromotionComponent: ng.IComponentOptions = {
   template: require('./alert-engine-promotion.html'),
   /* @ngInject */
   controller: function () {
-    this.contactUrl = 'https://www.gravitee.io/contact-us-alerts/?utm_source=APIM&utm_medium=try_alert_engine&utm_campaign=contact_sales';
-    this.learnUrl =
-      'https://www.gravitee.io/platform/api-observability/?utm_source=APIM&utm_medium=try_alert_engine&utm_campaign=learn_more';
+    this.contactUrl = 'https://www.gravitee.io/contact-us-alert';
+    this.learnUrl = 'https://www.gravitee.io/get-started-alert-engine';
   },
 };
 
