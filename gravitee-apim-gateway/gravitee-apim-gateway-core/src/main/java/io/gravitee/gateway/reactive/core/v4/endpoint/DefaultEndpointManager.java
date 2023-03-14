@@ -26,7 +26,10 @@ import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
@@ -168,6 +171,41 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         templateContext.setVariable(TEMPLATE_VARIABLE_ENDPOINTS, endpointVariables);
     }
 
+    @Override
+    public void addOrUpdateEndpoint(String groupName, Endpoint endpoint) {
+        var group = groupsByName.get(groupName);
+        var existingEndpoint = endpointsByName.get(endpoint.getName());
+        if (existingEndpoint != null) {
+            if (existingEndpoint.getDefinition().getConfiguration().equals(endpoint.getConfiguration())) {
+                return;
+            }
+
+            log.info("The configuration of the endpoint [{}] of group [{}] has changed", endpoint.getName(), groupName);
+            removeEndpoint(endpoint.getName());
+        }
+
+        log.info("Start endpoint [{}] for group [{}]", endpoint.getName(), groupName);
+        createAndStartEndpoint(group, endpoint);
+    }
+
+    @Override
+    public void removeEndpoint(final String name) {
+        log.info("Remove endpoint [{}]", name);
+        try {
+            final ManagedEndpoint managedEndpoint = endpointsByName.remove(name);
+            endpointVariables.remove(name);
+
+            if (managedEndpoint != null) {
+                managedEndpoint.getGroup().removeManagedEndpoint(managedEndpoint);
+                managedEndpoint.getConnector().stop();
+
+                listeners.values().forEach(l -> l.accept(Event.REMOVE, managedEndpoint));
+            }
+        } catch (Exception e) {
+            log.warn("Unable to properly stop the endpoint connector {}: {}.", name, e.getMessage());
+        }
+    }
+
     private ManagedEndpointGroup createAndStartGroup(final EndpointGroup endpointGroup) {
         final ManagedEndpointGroup managedEndpointGroup = new DefaultManagedEndpointGroup(endpointGroup);
         groupsByName.put(endpointGroup.getName(), managedEndpointGroup);
@@ -210,22 +248,10 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             endpointsByName.put(endpoint.getName(), managedEndpoint);
             endpointVariables.put(endpoint.getName(), endpoint.getName() + ":");
             endpointVariables.put(managedEndpointGroup.getDefinition().getName(), managedEndpointGroup.getDefinition().getName() + ":");
+
+            listeners.values().forEach(l -> l.accept(Event.ADD, managedEndpoint));
         } catch (Exception e) {
             log.warn("Unable to properly start the endpoint connector {}: {}. Skipped.", endpoint.getName(), e.getMessage());
-        }
-    }
-
-    public void removeEndpoint(final String name) {
-        try {
-            final ManagedEndpoint managedEndpoint = endpointsByName.remove(name);
-            endpointVariables.remove(name);
-
-            if (managedEndpoint != null) {
-                managedEndpoint.getGroup().removeManagedEndpoint(managedEndpoint);
-                managedEndpoint.getConnector().stop();
-            }
-        } catch (Exception e) {
-            log.warn("Unable to properly stop the endpoint connector {}: {}.", name, e.getMessage());
         }
     }
 

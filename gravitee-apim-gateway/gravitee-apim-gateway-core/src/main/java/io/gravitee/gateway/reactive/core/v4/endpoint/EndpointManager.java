@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.core.v4.endpoint;
 
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -24,6 +25,24 @@ import java.util.function.BiConsumer;
  * @author GraviteeSource Team
  */
 public interface EndpointManager extends LifecycleComponent<EndpointManager> {
+    /**
+     * Add a new endpoint to the group or update it if an endpoint with the same name already exists.
+     *
+     * <p>
+     *     Updating an endpoint leads to removing the existing endpoint and then adding the "new" endpoint with updated
+     *     configuration.
+     * </p>
+     * @param groupName The group name where to add or update the endpoint
+     * @param endpoint The endpoint to add or update
+     */
+    void addOrUpdateEndpoint(String groupName, Endpoint endpoint);
+
+    /**
+     * Remove an endpoint
+     * @param name The endpoint name to remove
+     */
+    void removeEndpoint(String name);
+
     /**
      * Get the next available endpoint for the default group.
      *
