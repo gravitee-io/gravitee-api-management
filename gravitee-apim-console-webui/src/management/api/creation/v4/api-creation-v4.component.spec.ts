@@ -842,6 +842,7 @@ describe('ApiCreationV4Component', () => {
 
   describe('step6', () => {
     const API_ID = 'my-api';
+    const PLAN_ID = 'my-plan';
 
     beforeEach(async () => {
       await fillAndValidateStep1ApiDetails();
@@ -986,7 +987,7 @@ describe('ApiCreationV4Component', () => {
       const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickCreateMyApiButton();
 
-      expectCallsForApiCreation(API_ID);
+      expectCallsForApiCreation(API_ID, PLAN_ID);
 
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
     });
@@ -995,7 +996,7 @@ describe('ApiCreationV4Component', () => {
       const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       await step6Harness.clickDeployMyApiButton();
 
-      expectCallsForApiCreation(API_ID);
+      expectCallsForApiDeployment(API_ID, PLAN_ID);
 
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
     });
@@ -1130,7 +1131,7 @@ describe('ApiCreationV4Component', () => {
     fixture.detectChanges();
   }
 
-  function expectCallsForApiCreation(id: string) {
+  function expectCallsForApiCreation(apiId: string, planId: string) {
     const createApiRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
 
     // TODO: complete with all the expected fields
@@ -1139,10 +1140,10 @@ describe('ApiCreationV4Component', () => {
         name: 'API name',
       }),
     );
-    createApiRequest.flush(fakeApiEntity({ id }));
+    createApiRequest.flush(fakeApiEntity({ id: apiId }));
 
     const createPlansRequest = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${id}/plans`,
+      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans`,
       method: 'POST',
     });
     expect(createPlansRequest.request.body).toEqual(
@@ -1150,6 +1151,22 @@ describe('ApiCreationV4Component', () => {
         status: 'staging',
       }),
     );
-    createPlansRequest.flush([fakeV4Plan()]);
+    createPlansRequest.flush(fakeV4Plan({ apiId: apiId, id: planId }));
+  }
+
+  function expectCallsForApiDeployment(apiId: string, planId: string) {
+    expectCallsForApiCreation(apiId, planId);
+
+    const publishPlansRequest = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans/${planId}/_publish`,
+      method: 'POST',
+    });
+    publishPlansRequest.flush({});
+
+    const startApiRequest = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/?action=start`,
+      method: 'POST',
+    });
+    startApiRequest.flush(fakeApiEntity({ id: apiId }));
   }
 });
