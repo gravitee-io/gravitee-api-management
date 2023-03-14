@@ -19,11 +19,8 @@
   <mat-card>
     <div class="card__header">
       <div>
-        <h3>Direct members ({{ members?.length }})</h3>
-        <p>
-          API members can be a user or group. Each member has roles to manage and perform certain tasks and operations in the API according
-          to their role's permissions.
-        </p>
+        <h3>Members ({{ members?.length }})</h3>
+        <p>Add users or groups as members of your API, and define their roles to manage and perform tasks and operations.</p>
       </div>
       <div>
         <button *gioPermission="{ anyOf: ['api-member-c'] }" mat-raised-button type="button" (click)="addMember()" color="primary">
@@ -33,7 +30,7 @@
     </div>
 
     <gio-form-slide-toggle class="card__enable-notification-toggle">
-      Enable notifications when members are added to this API
+      Notify members when they are added to the API
       <mat-slide-toggle
         gioFormSlideToggle
         formControlName="isNotificationsEnabled"
