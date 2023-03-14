@@ -302,8 +302,8 @@ export interface ApiServicesV4 {
 }
 
 export const enum ApiEntityV4TypeEnum {
-  SYNC = 'SYNC',
-  ASYNC = 'ASYNC',
+  PROXY = 'PROXY',
+  MESSAGE = 'MESSAGE',
 }
 
 export const enum ApiEntityV4StateEnum {

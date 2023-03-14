@@ -39,7 +39,7 @@ export class ApisV4Fixture {
       groups: [],
       listeners: [],
       tags: [],
-      type: NewApiEntityV4TypeEnum.ASYNC,
+      type: NewApiEntityV4TypeEnum.MESSAGE,
       ...attributes,
     };
   }
