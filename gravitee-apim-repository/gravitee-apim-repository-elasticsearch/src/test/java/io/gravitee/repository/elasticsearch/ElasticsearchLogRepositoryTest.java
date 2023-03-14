@@ -76,6 +76,26 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     }
 
     @Test
+    public void testTabular_withLogQuery_termWithCurrency() throws Exception {
+        TabularResponse response = logRepository.query(
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*10$*").page(1).size(5).build()
+        );
+        assertNotNull(response);
+        assertEquals(1, response.getSize());
+        assertEquals(1, response.getLogs().size());
+    }
+
+    @Test
+    public void testTabular_withLogQuery_termWithEmail() throws Exception {
+        TabularResponse response = logRepository.query(
+            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*john@yopmail.com*").page(1).size(5).build()
+        );
+        assertNotNull(response);
+        assertEquals(1, response.getSize());
+        assertEquals(1, response.getLogs().size());
+    }
+
+    @Test
     public void testTabular_withLogQuery_page2() throws Exception {
         TabularResponse response = logRepository.query(
             tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(2).size(5).build()
