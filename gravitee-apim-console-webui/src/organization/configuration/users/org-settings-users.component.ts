@@ -18,13 +18,10 @@ import { StateService } from '@uirouter/core';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { UsersService } from '../../../services-ngx/users.service';
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PagedResult } from '../../../entities/pagedResult';
 import { User } from '../../../entities/user/user';

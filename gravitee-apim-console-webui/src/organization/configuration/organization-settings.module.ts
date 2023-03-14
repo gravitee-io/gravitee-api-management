@@ -45,6 +45,8 @@ import {
   GioFormTagsInputModule,
   GioSaveBarModule,
   GioFormSlideToggleModule,
+  GioFormFocusInvalidModule,
+  GioConfirmDialogModule,
 } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 
@@ -74,13 +76,11 @@ import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 
-import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioFormFocusInvalidModule } from '../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';

@@ -19,6 +19,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './org-settings-add-mapping-dialog.component';
@@ -31,10 +32,6 @@ import { GroupService } from '../../../services-ngx/group.service';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 

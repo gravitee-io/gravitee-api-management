@@ -19,14 +19,11 @@ import { Subject, combineLatest, EMPTY } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { Role, RoleScope } from '../../../entities/role/role';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
 

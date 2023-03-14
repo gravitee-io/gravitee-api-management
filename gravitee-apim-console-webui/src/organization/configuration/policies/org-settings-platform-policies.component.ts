@@ -18,6 +18,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { FlowService } from '../../../services-ngx/flow.service';
@@ -26,10 +27,6 @@ import { Organization } from '../../../entities/organization/organization';
 import { PlatformFlowSchema } from '../../../entities/flow/platformFlowSchema';
 import { PolicyListItem } from '../../../entities/policy';
 import { PathOperator, Step } from '../../../entities/flow/flow';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface FlowVM {

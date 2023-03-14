@@ -21,7 +21,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioSaveBarModule, GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
 import { PolicyStudioDesignComponent } from './design/policy-studio-design.component';
@@ -36,7 +36,6 @@ import { PolicyStudioResourcesModule } from './resources/policy-studio-resources
 import { PolicyStudioPropertiesModule } from './properties/policy-studio-properties.module';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { GioConfirmDialogModule } from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 
 @NgModule({
   imports: [

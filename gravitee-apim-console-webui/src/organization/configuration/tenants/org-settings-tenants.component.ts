@@ -19,6 +19,7 @@ import { EMPTY, Subject } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './org-settings-add-tenant.component';
 
@@ -27,10 +28,6 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { Tenant } from '../../../entities/tenant/tenant';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 
 @Component({
   selector: 'org-settings-tenants',

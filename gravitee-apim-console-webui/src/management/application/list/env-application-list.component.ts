@@ -18,6 +18,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, take
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { StateService } from '@uirouter/core';
 import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -25,10 +26,6 @@ import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-provid
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { Application } from '../../../entities/application/application';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 

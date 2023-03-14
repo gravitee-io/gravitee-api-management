@@ -18,6 +18,7 @@ import { combineLatest, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
@@ -25,10 +26,6 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';

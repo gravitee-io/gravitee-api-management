@@ -21,7 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormHeadersModule, GioIconsModule, GioSaveBarModule, GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -31,7 +31,6 @@ import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-respons
 import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-response-templates-list.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({

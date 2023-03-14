@@ -19,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import {
   OrgSettingsUserDetailAddGroupDialogComponent,
@@ -39,10 +40,6 @@ import { GroupService } from '../../../../services-ngx/group.service';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
-import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '../../../../shared/components/gio-confirm-dialog/gio-confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { UserHelper } from '../../../../entities/user/userHelper';
