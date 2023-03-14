@@ -37,10 +37,14 @@ import { PlanV4Service } from '../../../../services-ngx/plan-v4.service';
 import { Plan, PlanType, PlanValidation } from '../../../../entities/plan-v4';
 
 // TODO: Make better... Add apiId as req ?
-export interface Result<R> {
+export interface Result {
   status: 'success' | 'failure';
+  apiCreationPayload: ApiCreationPayload;
   message?: string;
-  result?: R;
+  result?: {
+    api?: ApiEntity;
+    plans?: Plan[];
+  };
 }
 
 @Component({
@@ -138,17 +142,22 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((p) => this.createApi$(p)),
         switchMap((apiCreationResult) => {
-          if (this.currentStep.payload.plans && apiCreationResult.status === 'success') {
-            return this.createPlans$(apiCreationResult.result, this.currentStep.payload);
+          if (apiCreationResult.apiCreationPayload.plans && apiCreationResult.status === 'success') {
+            return this.createPlans$(apiCreationResult);
           }
-          const apiResult: Result<{ apiId?: string }> = {
-            status: apiCreationResult.status,
-            message: apiCreationResult.message,
-            result: {
-              apiId: apiCreationResult.result?.id,
-            },
-          };
-          return of(apiResult);
+          return of(apiCreationResult);
+        }),
+        switchMap((planCreationResult) => {
+          if (planCreationResult.apiCreationPayload.deploy && planCreationResult.status === 'success') {
+            return this.publishPlans$(planCreationResult);
+          }
+          return of(planCreationResult);
+        }),
+        switchMap((planPublishResult) => {
+          if (planPublishResult.apiCreationPayload.deploy && planPublishResult.status === 'success') {
+            return this.startApi$(planPublishResult);
+          }
+          return of(planPublishResult);
         }),
       )
       .subscribe((result) => {
@@ -158,8 +167,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         } else {
           this.snackBarService.success(`API ${this.currentStep.payload.deploy ? 'deployed' : 'created'} successfully!`);
         }
-        if (result.result?.apiId) {
-          this.ajsState.go('management.apis.create-v4-confirmation', { apiId: result.result.apiId });
+        if (result.result?.api?.id) {
+          this.ajsState.go('management.apis.create-v4-confirmation', { apiId: result.result.api.id });
         }
       });
   }
@@ -173,7 +182,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     this.stepper.goToStepLabel(label);
   }
 
-  private createApi$(apiCreationPayload: ApiCreationPayload): Observable<Result<ApiEntity>> {
+  private createApi$(apiCreationPayload: ApiCreationPayload): Observable<Result> {
     this.isCreatingApi = true;
 
     // Get distinct listener types
@@ -222,16 +231,17 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         ),
       })
       .pipe(
-        map((apiEntity) => ({ result: apiEntity, status: 'success' as const })),
+        map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, status: 'success' as const })),
         catchError((err) => {
-          return of({ status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
+          return of({ apiCreationPayload, status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
         }),
       );
   }
 
-  private createPlans$(api: ApiEntity, payload: ApiCreationPayload): Observable<Result<{ plans?: Plan[]; apiId: string }>> {
+  private createPlans$(apiCreationStatus: Result): Observable<Result> {
+    const api = apiCreationStatus.result.api;
     return forkJoin(
-      payload.plans.map((plan) =>
+      apiCreationStatus.apiCreationPayload.plans.map((plan) =>
         this.planV4Service.create({
           apiId: api.id,
           description: plan.description,
@@ -244,12 +254,43 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         }),
       ),
     ).pipe(
-      map((plans) => ({ result: { plans, apiId: api.id }, status: 'success' as const })),
+      map((plans: Plan[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
       catchError((err) => {
         return of({
+          ...apiCreationStatus,
+          result: { ...apiCreationStatus.result, plans: [] },
           status: 'failure' as const,
           message: `Error while creating security plans: ${err.error?.message}`,
-          result: { apiId: api.id },
+        });
+      }),
+    );
+  }
+
+  private publishPlans$(apiCreationStatus: Result): Observable<Result> {
+    return forkJoin(
+      apiCreationStatus.result.plans.map((p: Plan) => {
+        return this.planV4Service.publish(apiCreationStatus.result.api.id, p.id);
+      }),
+    ).pipe(
+      map(() => apiCreationStatus),
+      catchError((err) => {
+        return of({
+          ...apiCreationStatus,
+          status: 'failure' as const,
+          message: `Error while publishing plans: ${err.error?.message}`,
+        });
+      }),
+    );
+  }
+
+  private startApi$(planPublishResult: Result): Observable<Result> {
+    return this.apiV4Service.start(planPublishResult.result.api.id).pipe(
+      map(() => planPublishResult),
+      catchError((err) => {
+        return of({
+          ...planPublishResult,
+          status: 'failure' as const,
+          message: `Error while starting API: ${err.error?.message}`,
         });
       }),
     );
