@@ -1,0 +1,10 @@
+= ApiType Migration
+
+Starting from 3.21.0, when you create a v4 API the expected values for the ApiType are :
+
+* PROXY instead of SYNC
+* MESSAGE instead of ASYNC
+
+The script api-type-migration.js aims to update the ApiType for V4 API.
+
+NOTE: If you are not using V4 APIs (currently in beta) you don't have to execute this script.
