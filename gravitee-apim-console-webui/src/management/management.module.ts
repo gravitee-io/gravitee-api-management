@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
 import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 import { EnvAuditModule } from './audit/env-audit.module';
@@ -29,7 +30,6 @@ import { InstanceDetailsModule } from './instances/instance-details/instance-det
 import { ApiCreationV4Module } from './api/creation/v4/api-creation-v4.module';
 import { MessagesModule } from './messages/messages.module';
 
-import { GioConfirmDialogModule } from '../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({

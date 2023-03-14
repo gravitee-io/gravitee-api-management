@@ -31,6 +31,7 @@ import {
   GioIconsModule,
   GioSaveBarModule,
   GioFormSlideToggleModule,
+  GioFormFocusInvalidModule,
 } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
@@ -40,7 +41,6 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
-import { GioFormFocusInvalidModule } from '../../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({

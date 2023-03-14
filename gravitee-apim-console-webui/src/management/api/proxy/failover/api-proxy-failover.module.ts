@@ -25,11 +25,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { GioFormTagsInputModule, GioSaveBarModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import {
+  GioFormTagsInputModule,
+  GioSaveBarModule,
+  GioFormSlideToggleModule,
+  GioFormFocusInvalidModule,
+} from '@gravitee/ui-particles-angular';
 
 import { ApiProxyFailoverComponent } from './api-proxy-failover.component';
-
-import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiProxyFailoverComponent],

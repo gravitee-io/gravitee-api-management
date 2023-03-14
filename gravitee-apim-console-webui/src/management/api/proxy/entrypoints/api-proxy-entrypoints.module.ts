@@ -21,7 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioConfirmDialogModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogModule, GioIconsModule, GioSaveBarModule, GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -33,7 +33,6 @@ import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-prox
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiProxyEntrypointsComponent, ApiProxyEntrypointsContextPathComponent, ApiProxyEntrypointsVirtualHostComponent],

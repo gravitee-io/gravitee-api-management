@@ -21,11 +21,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioSaveBarModule, GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProxyDeploymentsComponent } from './api-proxy-deployments.component';
-
-import { GioFormFocusInvalidModule } from '../../../../shared/components/gio-form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   declarations: [ApiProxyDeploymentsComponent],
