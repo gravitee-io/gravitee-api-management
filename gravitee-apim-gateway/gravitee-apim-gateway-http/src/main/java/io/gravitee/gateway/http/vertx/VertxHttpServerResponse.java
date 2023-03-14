@@ -135,6 +135,10 @@ public class VertxHttpServerResponse implements Response {
                         }
                     }
                 );
+        } else {
+            if (this.endHandler != null) {
+                this.endHandler.handle(null);
+            }
         }
     }
 
