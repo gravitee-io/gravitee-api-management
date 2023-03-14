@@ -98,6 +98,6 @@ export const enum NewApiEntityV4FlowModeEnum {
 }
 
 export const enum NewApiEntityV4TypeEnum {
-  SYNC = 'SYNC',
-  ASYNC = 'ASYNC',
+  PROXY = 'PROXY',
+  MESSAGE = 'MESSAGE',
 }
