@@ -35,7 +35,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.*;
-import java.net.URI;
+import java.net.URL;
 import org.springframework.core.env.Environment;
 
 /**
@@ -54,7 +54,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected RequestOptions prepareHttpClientRequest(URI request, HealthCheckStep step) {
+    protected RequestOptions prepareHttpClientRequest(URL request, HealthCheckStep step) {
         RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Set timeout on request
@@ -67,7 +67,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URI requestUri) throws Exception {
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl) throws Exception {
         // Prepare HTTP client
         HttpClientOptions httpClientOptions = new HttpClientOptions() // The queue size can contain only a single inflight request for HC
             .setMaxWaitQueueSize(1)
@@ -114,9 +114,9 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
         if (
-            HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
-            WSS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
-            GRPCS_SCHEME.equalsIgnoreCase(requestUri.getScheme())
+            HTTPS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol()) ||
+            WSS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol()) ||
+            GRPCS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol())
         ) {
             // Configure SSL
             httpClientOptions.setSsl(true).setUseAlpn(true);
