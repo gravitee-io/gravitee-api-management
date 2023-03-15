@@ -18,6 +18,7 @@ package io.gravitee.apim.plugin.apiservice.healthcheck.http;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static java.util.Optional.ofNullable;
 
+import com.google.common.base.Strings;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthCheckHelper;
 import io.gravitee.common.http.HttpHeader;
@@ -47,15 +48,19 @@ import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.plugin.apiservice.healthcheck.common.HealthCheckManagedEndpoint;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Function;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +87,7 @@ public class HttpHealthCheckService implements ApiService {
     public static final String HTTP_HEALTH_CHECK_TYPE = "http-health-check";
     public static final String DEFAULT_STEP = "default-step";
     public static final int LOG_ERROR_COUNT = 10;
+    public static final int UNREACHABLE_SERVICE = -1;
 
     private final Api api;
     private final DeploymentContext deploymentContext;
@@ -216,8 +222,12 @@ public class HttpHealthCheckService implements ApiService {
         HealthCheckManagedEndpoint hcManagedEndpoint,
         HttpHealthCheckExecutionContext ctx
     ) {
-        // The endpoint is an http one. Reuse it for efficiency.
-        return hcManagedEndpoint.getConnector().connect(ctx).andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
+        // The endpoint is a http one. Reuse it for efficiency.
+        return hcManagedEndpoint
+            .getConnector()
+            .connect(ctx)
+            .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
+            .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
     }
 
     private Completable checkUsingHttpClient(
@@ -250,7 +260,21 @@ public class HttpHealthCheckService implements ApiService {
                 }
             )
             .ignoreElement()
+            .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
             .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
+    }
+
+    private CompletableSource ignoreConnectionError(HttpHealthCheckExecutionContext ctx, Throwable err) {
+        if (err instanceof UnknownHostException || err instanceof SocketException) {
+            log.debug("HealthCheck failed, unable to connect to the Service", err);
+            final Response response = ctx.response();
+            response.status(UNREACHABLE_SERVICE);
+            if (!Strings.isNullOrEmpty(err.getMessage())) {
+                response.body(Buffer.buffer(err.getMessage()));
+            }
+            return Completable.complete();
+        }
+        return Completable.error(err);
     }
 
     private Completable continueOnError(ManagedEndpoint endpoint, AtomicLong errorCount, Throwable throwable) {
