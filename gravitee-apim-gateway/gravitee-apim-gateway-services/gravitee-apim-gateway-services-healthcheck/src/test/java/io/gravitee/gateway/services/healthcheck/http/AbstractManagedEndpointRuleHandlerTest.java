@@ -25,6 +25,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
@@ -36,6 +37,7 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.ProxyOptions;
 import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +59,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     private TemplateEngine templateEngine;
 
     @RegisterExtension
-    static WireMockExtension wm = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+    static WireMockExtension wm = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).proxyMode(true).build();
 
     @BeforeEach
     void setup() {
@@ -185,7 +187,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     @Test
     void shouldValidateFromRoot(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
-        wm.stubFor(get(urlEqualTo("/")).willReturn(ok()));
+        wm.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
         // Prepare
         EndpointRule rule = createEndpointRule("/additional-but-unused-path-for-hc");
@@ -220,9 +222,52 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         assertTrue(context.completed());
     }
 
-    private Endpoint createEndpoint(String targetPath) {
-        HttpEndpoint aDefault = new HttpEndpoint("default", "http://localhost:" + wm.getPort() + (targetPath != null ? targetPath : ""));
+    @Test
+    void shouldValidateWithUnderscoreInHostname(Vertx vertx, VertxTestContext context) throws Throwable {
+        // Prepare HTTP endpoint
+        wm.stubFor(get(urlEqualTo("/")).withHost(equalTo("my_local_host")).willReturn(ok("{\"status\": \"green\"}")));
+
+        // Prepare
+        EndpointRule rule = createEndpointRule("http://my_local_host", null, true);
+
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
+
+        step.setRequest(request);
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
+        step.setResponse(response);
+        when(rule.steps()).thenReturn(Collections.singletonList(step));
+
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
+
+        // Verify
+        runner.setStatusHandler(
+            (Handler<EndpointStatus>) status -> {
+                assertTrue(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/")));
+                context.completeNow();
+            }
+        );
+
+        // Run
+        runner.handle(null);
+
+        // Wait until completion
+        assertTrue(context.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(context.completed());
+    }
+
+    private Endpoint createEndpoint(String baseUrl, String targetPath, boolean useSystemProxy) {
+        HttpEndpoint aDefault = new HttpEndpoint("default", baseUrl + (targetPath != null ? targetPath : ""));
         aDefault.setHttpClientOptions(new HttpClientOptions());
+        if (useSystemProxy) {
+            HttpProxy httpProxy = new HttpProxy();
+            httpProxy.setUseSystemProxy(true);
+            httpProxy.setEnabled(true);
+            aDefault.setHttpProxy(httpProxy);
+        }
+
         return aDefault;
     }
 
@@ -231,13 +276,30 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     }
 
     private EndpointRule createEndpointRule(String targetPath) {
+        return createEndpointRule(wm.baseUrl(), targetPath, false);
+    }
+
+    private EndpointRule createEndpointRule(String baseUrl, String targetPath, boolean useSystemProxy) {
         EndpointRule rule = mock(EndpointRule.class);
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setId("an-api");
         Api api = new Api(apiDefinition);
-        when(rule.endpoint()).thenReturn(createEndpoint(targetPath));
+        when(rule.endpoint()).thenReturn(createEndpoint(baseUrl, targetPath, useSystemProxy));
         when(rule.api()).thenReturn(api);
         when(rule.schedule()).thenReturn("0 */10 * ? * *");
+        if (useSystemProxy) {
+            String proxyHost = System.getProperty("http.proxyHost", "none");
+            Integer proxyPort = Integer.valueOf(System.getProperty("http.proxyPort", "80"));
+
+            ProxyOptions proxyOptions = null;
+            if (!"none".equalsIgnoreCase(proxyHost)) {
+                proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(proxyHost);
+                proxyOptions.setPort(proxyPort);
+            }
+
+            when(rule.getSystemProxyOptions()).thenReturn(proxyOptions);
+        }
         return rule;
     }
 }
