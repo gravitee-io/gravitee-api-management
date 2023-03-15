@@ -24,6 +24,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,7 +35,9 @@ import lombok.ToString;
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -55,6 +59,7 @@ public class Endpoint implements Serializable {
 
     private List<String> tenants;
 
+    @Builder.Default
     private int weight = DEFAULT_WEIGHT;
 
     private boolean inheritConfiguration;
@@ -67,6 +72,7 @@ public class Endpoint implements Serializable {
     @JsonRawValue
     private String sharedConfigurationOverride;
 
+    @Builder.Default
     private EndpointServices services = new EndpointServices();
 
     @JsonSetter
