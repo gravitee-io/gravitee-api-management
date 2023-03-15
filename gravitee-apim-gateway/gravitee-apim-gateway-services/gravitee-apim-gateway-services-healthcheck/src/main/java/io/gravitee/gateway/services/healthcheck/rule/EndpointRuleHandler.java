@@ -44,8 +44,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.TimeoutException;
@@ -106,9 +106,9 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
         if (!rule.steps().isEmpty()) {
             // For now, we only allow one step per rule.
-            URI uri = createRequest(rule.endpoint(), rule.steps().get(0));
+            URL url = createRequest(rule.endpoint(), rule.steps().get(0));
 
-            HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), uri);
+            HttpClientOptions clientOptions = createHttpClientOptions(rule.endpoint(), url);
             httpClient = vertx.createHttpClient(clientOptions);
         } else {
             httpClient = null;
@@ -126,22 +126,23 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         }
     }
 
-    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URI requestUri) throws Exception;
+    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URL requestUrl) throws Exception;
 
-    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URI request, HealthCheckStep step) {
+    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
+        logger.debug("Health-check Request host {}", request.getHost());
         RequestOptions options = prepareHttpClientRequest(request, step);
-
+        logger.debug("Health-check create HttpClient Request with options {}", options.toJson().encodePrettily());
         return httpClient.request(options);
     }
 
-    protected RequestOptions prepareHttpClientRequest(URI request, HealthCheckStep step) {
-        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getScheme()) ? 443 : 80);
+    protected RequestOptions prepareHttpClientRequest(URL request, HealthCheckStep step) {
+        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getProtocol()) ? 443 : 80);
 
-        String relativeUri = (request.getRawQuery() == null) ? request.getRawPath() : request.getRawPath() + '?' + request.getRawQuery();
+        String relativeUrl = (request.getQuery() == null) ? request.getPath() : request.getPath() + '?' + request.getQuery();
 
         // Prepare request
         RequestOptions options = new RequestOptions()
-            .setURI(relativeUri)
+            .setURI(relativeUrl)
             .setPort(port)
             .setHost(request.getHost())
             .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
@@ -169,37 +170,35 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return options;
     }
 
-    protected URI createRequest(T endpoint, HealthCheckStep step) {
-        URI targetURI = URI.create(endpoint.getTarget());
-
+    protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {
+        URL targetURL = new URL(null, endpoint.getTarget());
+        logger.debug("Health-check step request{}", step.getRequest());
         if (step.getRequest().isFromRoot()) {
-            try {
-                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), null, null, null);
-            } catch (URISyntaxException ex) {
-                logger.error("Unexpected error while creating healthcheck request from target[{}]", endpoint.getTarget(), ex);
-            }
+            targetURL = new URL(targetURL.getProtocol(), targetURL.getHost(), targetURL.getPort(), "/");
         }
 
         final String path = step.getRequest().getPath();
 
         if (path == null || path.trim().isEmpty()) {
-            return targetURI;
+            return targetURL;
         }
 
-        final String uri;
+        final String url;
         if (path.startsWith("/") || path.startsWith("?")) {
-            uri = targetURI + path;
+            url = targetURL + path;
         } else {
-            uri = targetURI + "/" + path;
+            url = targetURL + "/" + path;
         }
 
-        return URI.create(DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/"));
+        URL resultURL = new URL(null, DUPLICATE_SLASH_REMOVER.matcher(url).replaceAll("/"));
+        logger.debug("Health-check URL {}", resultURL);
+        return resultURL;
     }
 
     protected void runStep(T endpoint, HealthCheckStep step) {
         try {
-            URI hcRequestUri = createRequest(endpoint, step);
-            Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUri, step);
+            URL hcRequestUrl = createRequest(endpoint, step);
+            Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUrl, step);
 
             healthRequestPromise.onComplete(
                 requestPreparationEvent -> {
@@ -212,7 +211,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
                     Request request = new Request();
                     request.setMethod(step.getRequest().getMethod());
-                    request.setUri(hcRequestUri.toString());
+                    request.setUri(hcRequestUrl.toString());
 
                     if (requestPreparationEvent.failed()) {
                         reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
@@ -335,6 +334,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             stepBuilder.fail(throwable.getMessage());
             healthResponse.setStatus(HttpStatusCode.BAD_GATEWAY_502);
         }
+
+        logger.debug("Health-check failing step because", throwable);
 
         stepBuilder.response(healthResponse);
         return stepBuilder.build();
