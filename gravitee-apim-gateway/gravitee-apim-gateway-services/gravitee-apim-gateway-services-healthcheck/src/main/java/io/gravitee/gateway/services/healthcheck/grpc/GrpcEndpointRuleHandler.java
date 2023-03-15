@@ -24,7 +24,7 @@ import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
-import java.net.URI;
+import java.net.URL;
 import org.springframework.core.env.Environment;
 
 /**
@@ -43,7 +43,7 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     @Override
     protected Future<HttpClientRequest> createHttpClientRequest(
         final HttpClient httpClient,
-        URI request,
+        URL request,
         io.gravitee.definition.model.services.healthcheck.Step step
     ) {
         RequestOptions options = prepareHttpClientRequest(request, step);
@@ -60,7 +60,7 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+    protected RequestOptions prepareHttpClientRequest(URL request, io.gravitee.definition.model.services.healthcheck.Step step) {
         RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Ensure required grpc headers
@@ -71,8 +71,8 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URI requestUri) throws Exception {
-        HttpClientOptions httpClientOptions = super.createHttpClientOptions((HttpEndpoint) endpoint, requestUri);
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl) throws Exception {
+        HttpClientOptions httpClientOptions = super.createHttpClientOptions((HttpEndpoint) endpoint, requestUrl);
 
         // Force HTTP_2 and disable Upgrade
         httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2).setHttp2ClearTextUpgrade(false);
