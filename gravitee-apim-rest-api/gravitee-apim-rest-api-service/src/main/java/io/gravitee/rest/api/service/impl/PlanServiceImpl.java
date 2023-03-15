@@ -15,19 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.definition.model.DefinitionVersion.V2;
-import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -56,6 +48,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.event.PlanEvent;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
@@ -73,6 +66,12 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeExcep
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,11 +83,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+
+import static io.gravitee.definition.model.DefinitionVersion.V2;
+import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -148,6 +151,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Autowired
     private TagsValidationService tagsValidationService;
+
+    @Autowired
+    private EventManager eventManager;
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
@@ -403,7 +409,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
 
-            return convert(plan);
+            PlanEntity planEntity = convert(plan);
+
+            eventManager.publishEvent(PlanEvent.UPDATED, planEntity);
+
+            return planEntity;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);
@@ -508,7 +518,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 plan
             );
 
-            return convert(plan);
+            PlanEntity planEntity = convert(plan);
+            eventManager.publishEvent(PlanEvent.UPDATED, planEntity);
+
+            return planEntity;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
