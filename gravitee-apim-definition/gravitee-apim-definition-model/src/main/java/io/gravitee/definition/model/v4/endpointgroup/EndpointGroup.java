@@ -58,6 +58,7 @@ public class EndpointGroup implements Serializable {
     @Valid
     private List<Endpoint> endpoints;
 
+    @Builder.Default
     private EndpointGroupServices services = new EndpointGroupServices();
 
     @JsonSetter
