@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
 import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
 import static java.util.stream.Collectors.toMap;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.Maps;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.event.MetadataEvent;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.function.Function;
@@ -57,6 +59,9 @@ public abstract class AbstractReferenceMetadataService {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private EventManager eventManager;
 
     protected List<ReferenceMetadataEntity> findAllByReference(
         final MetadataReferenceType referenceType,
@@ -139,6 +144,9 @@ public abstract class AbstractReferenceMetadataService {
                 metadataRepository.delete(metadataId, referenceId, referenceType);
                 // Audit
                 createReferenceAuditLog(executionContext, referenceType, referenceId, optMetadata.get(), null, METADATA_DELETED);
+
+                // Send Event
+                eventManager.publishEvent(MetadataEvent.DELETED, optMetadata.get());
             } else {
                 if (referenceType.equals(MetadataReferenceType.APPLICATION)) {
                     throw new ApplicationMetadataNotFoundException(referenceId, metadataId);
@@ -185,6 +193,10 @@ public abstract class AbstractReferenceMetadataService {
             metadataRepository.create(metadata);
             // Audit
             createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
+
+            // Send event
+            eventManager.publishEvent(MetadataEvent.CREATED, metadata);
+
             return convert(metadata);
         } catch (TechnicalException ex) {
             final String message =
@@ -268,13 +280,20 @@ public abstract class AbstractReferenceMetadataService {
                 savedMetadata = metadataRepository.update(metadata);
                 // Audit
                 createReferenceAuditLog(executionContext, referenceType, referenceId, referenceMetadata.get(), metadata, METADATA_UPDATED);
+
+                // Send event
+                eventManager.publishEvent(MetadataEvent.UPDATED, metadata);
             } else {
                 metadata.setCreatedAt(now);
                 metadata.setUpdatedAt(now);
                 savedMetadata = metadataRepository.create(metadata);
                 // Audit
                 createReferenceAuditLog(executionContext, referenceType, referenceId, null, metadata, METADATA_CREATED);
+
+                // Send event
+                eventManager.publishEvent(MetadataEvent.CREATED, metadata);
             }
+
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {
                 metadataService

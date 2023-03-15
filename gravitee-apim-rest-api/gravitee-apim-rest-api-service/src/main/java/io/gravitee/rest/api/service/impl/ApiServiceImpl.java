@@ -38,6 +38,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
@@ -89,6 +90,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.event.ApiEntityEvent;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
@@ -302,6 +304,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private TagsValidationService tagsValidationService;
+
+    @Autowired
+    private EventManager eventManager;
 
     @Lazy
     @Autowired
@@ -1191,6 +1196,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
+
+            eventManager.publishEvent(ApiEntityEvent.UPDATED, apiEntity);
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
