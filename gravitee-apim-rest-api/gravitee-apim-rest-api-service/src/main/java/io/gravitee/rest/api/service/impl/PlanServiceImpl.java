@@ -15,6 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.definition.model.DefinitionVersion.V2;
+import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -66,12 +75,6 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeExcep
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,15 +86,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static io.gravitee.definition.model.DefinitionVersion.V2;
-import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
