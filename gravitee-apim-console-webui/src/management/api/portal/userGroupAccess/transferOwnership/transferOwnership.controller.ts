@@ -19,10 +19,11 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../../services/api.service';
 import ApiPrimaryOwnerModeService from '../../../../../services/apiPrimaryOwnerMode.service';
 import UserService from '../../../../../services/user.service';
+import { MembershipListItem } from '../../../../../entities/role/membershipListItem';
 
 class ApiTransferOwnershipController {
   private api: any;
-  private members: any;
+  private readonly members: MembershipListItem[];
   private groupMembers: any;
   private groupIdsWithMembers: any;
   private roles: any;
@@ -32,7 +33,7 @@ class ApiTransferOwnershipController {
   private displayGroups: any;
   private usersSelected = [];
   private userFilterFn;
-  private defaultUsersList: string[];
+  public defaultUsersList: MembershipListItem[];
   private poGroups: any[];
   private newPrimaryOwnerGroup: string;
   private useGroupAsPrimaryOwner: boolean;
@@ -90,10 +91,7 @@ class ApiTransferOwnershipController {
         }) === -1
       );
     };
-
-    this.defaultUsersList = _.filter(this.members, (member: any) => {
-      return member.role !== 'PRIMARY_OWNER' && member.type === 'USER';
-    });
+    this.defaultUsersList = this.members.filter((member) => member.role !== 'PRIMARY_OWNER');
   }
 
   showTransferOwnershipConfirm(ev) {
