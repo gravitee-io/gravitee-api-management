@@ -20,35 +20,17 @@ import io.gravitee.rest.api.management.v4.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v4.rest.model.Environment;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.resource.api.ApisResource;
-import io.gravitee.rest.api.management.v4.rest.security.Permission;
-import io.gravitee.rest.api.management.v4.rest.security.Permissions;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Collection;
+import io.swagger.v3.oas.annotations.Parameter;
 import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Path("/environments")
-public class EnvironmentsResource extends AbstractResource {
+public class EnvironmentResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -56,16 +38,18 @@ public class EnvironmentsResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    @PathParam("envId")
+    @Parameter(name = "envId", required = true, description = "The environment ID")
+    private String envId;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<Environment> getEnvironments() {
-        //FIXME: get user's organization
-        String organizationId = GraviteeContext.getCurrentOrganization();
-        return EnvironmentMapper.INSTANCE.convertCollection(this.environmentService.findByOrganization(organizationId));
+    public Environment getEnvironment() {
+        return EnvironmentMapper.INSTANCE.convert(environmentService.findById(envId));
     }
 
-    @Path("{envId}")
-    public EnvironmentResource getEnvironmentResource() {
-        return resourceContext.getResource(EnvironmentResource.class);
+    @Path("/apis")
+    public ApisResource getApisResource() {
+        return resourceContext.getResource(ApisResource.class);
     }
 }

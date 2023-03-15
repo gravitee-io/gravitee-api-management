@@ -55,4 +55,9 @@ public class ApisResource extends AbstractResource {
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
     }
+
+    @Path("{apiId}")
+    public ApiResource getApiResource() {
+        return resourceContext.getResource(ApiResource.class);
+    }
 }

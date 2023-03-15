@@ -95,7 +95,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/apis";
+        return "/environments/" + ENVIRONMENT + "/apis";
     }
 
     @Before
@@ -391,8 +391,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotDeleteApiBecauseNotfound() throws TechnicalException {
-        doThrow(ApiNotFoundException.class).when(apiRepository).findById(UNKNOWN_API);
+    public void shouldNotDeleteApiBecauseNotfound() {
+        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API, false);
 
         final Response response = rootTarget(UNKNOWN_API).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());

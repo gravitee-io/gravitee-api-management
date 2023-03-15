@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +70,6 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/apis/{apiId}")
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -82,6 +82,7 @@ public class ApiResource extends AbstractResource {
     private ApiStateService apiStateService;
 
     @PathParam("apiId")
+    @Parameter(name = "apiId", required = true, description = "The ID of the API")
     private String apiId;
 
     @GET

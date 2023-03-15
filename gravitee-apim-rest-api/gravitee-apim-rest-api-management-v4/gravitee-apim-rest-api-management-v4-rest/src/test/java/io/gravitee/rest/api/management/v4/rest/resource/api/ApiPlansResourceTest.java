@@ -56,7 +56,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "apis";
+        return "environments/" + ENVIRONMENT + "/apis";
     }
 
     @Before
