@@ -109,7 +109,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
     expect(component.healthCheckForm.value).toEqual({
       enabled: false,
-      inherit: false,
+      inherit: true,
     });
   });
 
@@ -155,9 +155,8 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const assertion_1 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="1"]' }));
     await assertion_1.setValue('new assertion');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual({
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual({
       enabled: true,
-      inherit: false,
       schedule: '* * * * *',
       steps: [
         {
@@ -177,7 +176,9 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   it('should inherit health check', async () => {
-    initHealthCheckFormComponent();
+    initHealthCheckFormComponent({
+      inherit: false,
+    });
 
     const inheritHealthCheck: HealthCheck = {
       enabled: true,
@@ -207,7 +208,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     await enabledSlideToggle.check();
 
     const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
-    expect(await inheritSlideToggle.isChecked()).toEqual(false);
+    expect(await inheritSlideToggle.isChecked()).toEqual(true);
     await inheritSlideToggle.check();
 
     // Expect inherit preview :
@@ -241,7 +242,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion_0.isDisabled()).toEqual(true);
     expect(await assertion_0.getValue()).toEqual('inherit');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual({
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       enabled: true,
       inherit: true,
     });
@@ -250,7 +251,6 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   it('should display configured Health Check', async () => {
     const healthCheck: HealthCheck = {
       enabled: true,
-      inherit: false,
       schedule: '* * * * *',
       steps: [
         {
@@ -307,7 +307,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion.isDisabled()).toEqual(false);
     expect(await assertion.getValue()).toEqual('#response.status == 400');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm)).toEqual(healthCheck);
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual(healthCheck);
   });
 
   it('should be readonly', async () => {

@@ -112,7 +112,6 @@ describe('ApiProxyHealthCheckComponent', () => {
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
     expect(req.request.body.services['health-check']).toStrictEqual({
       enabled: true,
-      inherit: false,
       schedule: '* * * * *',
       steps: [
         {
