@@ -1612,6 +1612,9 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
                   var-name: SLACK_ACCESS_TOKEN
+            - keeper/env-export:
+                  secret-url: keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password
+                  var-name: JIRA_TOKEN
             - add_ssh_keys:
                   fingerprints:
                       - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
