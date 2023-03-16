@@ -332,7 +332,7 @@ services:
 #      header: X-Gravitee-Request-Id
 #      # Possible values of overrideMode are:
 #      #   - override: The header set by the APIM Gateway will override the one provided by the backend
-#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multi-valued)
 #      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
 #      overrideMode: override
 
