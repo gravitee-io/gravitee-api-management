@@ -103,7 +103,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
 
-        assertFalse(canHandle);
+        assertTrue(canHandle);
         verify(authenticationContext, times(1)).get(APIKEY_CONTEXT_ATTRIBUTE);
         verify(plan, never()).getId();
     }
