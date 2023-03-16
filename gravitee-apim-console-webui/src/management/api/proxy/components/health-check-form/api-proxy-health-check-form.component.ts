@@ -16,7 +16,7 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
 import '@gravitee/ui-components/wc/gv-cron-editor';
 
@@ -32,14 +32,13 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
 
   public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck, isReadOnly = true): FormGroup => {
     const healthCheckStep = healthCheck?.steps?.length > 0 ? healthCheck.steps[0] : undefined;
-
     return new FormGroup({
       enabled: new FormControl({
         value: healthCheck?.enabled ?? false,
         disabled: isReadOnly,
       }),
       inherit: new FormControl({
-        value: healthCheck?.inherit ?? false,
+        value: healthCheck?.inherit ?? true,
         disabled: isReadOnly,
       }),
       // Trigger
@@ -91,14 +90,14 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     });
   };
 
-  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup): HealthCheck {
+  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup, hasInheritToggle: boolean): HealthCheck {
     if (!healthCheckForm.get('enabled').value) {
       return {
         enabled: false,
       };
     }
 
-    if (healthCheckForm.get('enabled').value && healthCheckForm.get('inherit').value) {
+    if (hasInheritToggle && healthCheckForm.get('enabled').value && healthCheckForm.get('inherit').value) {
       return {
         enabled: true,
         inherit: true,
@@ -108,7 +107,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     return {
       enabled: healthCheckForm.get('enabled').value,
       schedule: healthCheckForm.get('schedule').value,
-      inherit: healthCheckForm.get('inherit').value,
+      ...(hasInheritToggle && { inherit: healthCheckForm.get('inherit').value }),
       steps: [
         {
           request: {
@@ -148,20 +147,30 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         this.healthCheckForm.get('inherit').valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value)),
       ]).pipe(
         takeUntil(this.unsubscribe$),
-        map(([enabledChecked, inheritChecked]) => this.healthCheckForm.get('enabled').disabled || !enabledChecked || inheritChecked),
+        map(([enabledChecked, inheritChecked]) => {
+          // if the enabled field is disabled, all fields are disabled
+          if (this.healthCheckForm.get('enabled').disabled) {
+            return true;
+          }
+
+          // if the health check is not enabled, all fields are enabled
+          if (!enabledChecked) {
+            return true;
+          }
+
+          // if the inherit health check is configured
+          if (this.inheritHealthCheck) {
+            // if the inherit health check is enabled, all fields are disabled
+            if (inheritChecked) {
+              return true;
+            }
+          }
+          return false;
+        }),
+        shareReplay(1),
       );
 
       this.isDisabled$.subscribe((disableAll) => {
-        if (this.inheritHealthCheck) {
-          // inherit health check is enable ony if :
-          // - the health check `enabled` field is not disabled
-          // - the health check `enabled` field is checked
-          // - the inherit health check is enabled
-          this.healthCheckForm.get('enabled').enabled && this.healthCheckForm.get('enabled').value && this.inheritHealthCheck.enabled
-            ? this.healthCheckForm.get('inherit').enable({ emitEvent: false })
-            : this.healthCheckForm.get('inherit').disable({ emitEvent: false });
-        }
-
         controlKeys.forEach((k) => {
           return disableAll
             ? this.healthCheckForm.get(k).disable({ emitEvent: false })
@@ -171,19 +180,35 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     }
 
     if (changes.inheritHealthCheck && this.inheritHealthCheck) {
+      // Disable the inherit checkbox when enabled is unchecked and emitEvent
+      // On disabled, the value is set inherit to true
+      this.healthCheckForm
+        .get('enabled')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
+        .subscribe((enabledChecked) => {
+          if (enabledChecked) {
+            this.healthCheckForm.get('inherit').enable({ emitEvent: true });
+          } else {
+            this.healthCheckForm.get('inherit').disable({ emitEvent: false });
+            this.healthCheckForm.get('inherit').setValue(true);
+          }
+        });
+
       this.healthCheckForm
         .get('inherit')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$))
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('inherit').value))
         .subscribe((checked) => {
           // Save or restore previous health check value.
           if (checked) {
             this.healthCheckFormInitialValue = omit(this.healthCheckForm.getRawValue(), ['inherit', 'enabled']);
 
-            const inheritHealthCheckFormValue = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
-              this.inheritHealthCheck,
-            ).getRawValue();
+            if (this.inheritHealthCheck.enabled) {
+              const inheritHealthCheckFormValue = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
+                this.inheritHealthCheck,
+              ).getRawValue();
 
-            this.healthCheckForm.patchValue(omit(inheritHealthCheckFormValue, ['inherit', 'enabled']));
+              this.healthCheckForm.patchValue(omit(inheritHealthCheckFormValue, ['inherit', 'enabled']));
+            }
           } else {
             this.healthCheckForm.patchValue(this.healthCheckFormInitialValue);
           }
