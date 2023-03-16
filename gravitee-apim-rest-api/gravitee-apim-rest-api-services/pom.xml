@@ -43,6 +43,7 @@
         <module>gravitee-apim-rest-api-services-v3-upgrader</module>
         <module>gravitee-apim-rest-api-services-auto-fetch</module>
         <module>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</module>
+        <module>gravitee-apim-rest-api-services-envoy-control-plane</module>
     </modules>
 
     <properties>
