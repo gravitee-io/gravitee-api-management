@@ -53,4 +53,8 @@ export class ApiCreationStepService {
   removeAllNextSteps() {
     this.stepper.removeAllNextSteps();
   }
+
+  invalidateAllNextSteps() {
+    this.stepper.invalidateAllNextSteps();
+  }
 }

@@ -78,7 +78,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         id,
         name,
         icon,
-        configuration: this.formGroup.get(id).value,
+        configuration: this.formGroup.get(id)?.value,
       })),
     }));
 

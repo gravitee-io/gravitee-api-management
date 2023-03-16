@@ -37,13 +37,14 @@ export class StepperMenuStepComponent implements OnChanges {
   @Output()
   goToStep = new EventEmitter<string>();
 
-  public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED';
+  public stepStatus: 'INACTIVE' | 'ACTIVE' | 'FILLED' | 'INVALID';
 
   public menuItemComponentInjector: Injector;
 
   private getStepStatus() {
     if (this.activeStep) return 'ACTIVE';
     if (this.step.state === 'valid') return 'FILLED';
+    if (this.step.state === 'invalid') return 'INVALID';
     return 'INACTIVE';
   }
 

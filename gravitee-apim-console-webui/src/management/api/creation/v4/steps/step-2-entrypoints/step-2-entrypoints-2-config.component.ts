@@ -115,7 +115,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
       const selectedEntrypoints: ApiCreationPayload['selectedEntrypoints'] = previousPayload.selectedEntrypoints.map((entrypoint) => ({
         ...entrypoint,
-        configuration: this.formGroup.get(entrypoint.id).value,
+        configuration: this.formGroup.get(entrypoint.id)?.value,
       }));
 
       return { ...previousPayload, paths, selectedEntrypoints };

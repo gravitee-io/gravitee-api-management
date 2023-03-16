@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 
 export class StepperMenuStepHarness extends ComponentHarness {
   static hostSelector = 'stepper-menu-step';
 
+  /**
+   * Gets a `HarnessPredicate` that can be used to search for a `StepperMenuStepHarness` that meets
+   * certain criteria.
+   *
+   * @param options Options for filtering which input instances are considered a match.
+   * @return a `HarnessPredicate` configured with the given options.
+   */
+  public static with(options: BaseHarnessFilters = {}): HarnessPredicate<StepperMenuStepHarness> {
+    return new HarnessPredicate(StepperMenuStepHarness, options);
+  }
+
   protected getIconElement = this.locatorForOptional(MatIconHarness);
+  protected getHeaderElement = this.locatorFor('.stepper-menu-step__header__info');
   protected getStepNumberElement = this.locatorFor('.stepper-menu-step__header__info__number');
   protected getStepTitleElement = this.locatorFor('.stepper-menu-step__header__info__title');
+  protected getInvalidStepTitleElement = this.locatorForAll('.stepper-menu-step__header__info__title-invalid');
 
   async getStepNumber(): Promise<string> {
     return this.getStepNumberElement().then((elt) => elt.text());
@@ -40,5 +53,14 @@ export class StepperMenuStepHarness extends ComponentHarness {
 
   async getStepContent(): Promise<string> {
     return this.locatorFor('.stepper-menu-step__content')().then((elt) => elt.text());
+  }
+
+  async isInvalidStep(): Promise<boolean> {
+    const invalidElements = await this.getInvalidStepTitleElement();
+    return invalidElements.length > 0;
+  }
+
+  async clickOnStepHeader() {
+    return this.getHeaderElement().then((elt) => elt.click());
   }
 }

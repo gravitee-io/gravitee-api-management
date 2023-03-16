@@ -36,6 +36,7 @@ import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-en
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
 import { Step2Entrypoints1ListComponent } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.harness';
+import { ApiCreationStepperMenuHarness } from './components/api-creation-stepper-menu/api-creation-stepper-menu.harness';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -45,7 +46,7 @@ import { fakeApiEntity } from '../../../../entities/api-v4';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
-import { toQueryParams, ListPluginsExpand } from '../../../../entities/plugin/ListPluginsExpand';
+import { ListPluginsExpand, toQueryParams } from '../../../../entities/plugin/ListPluginsExpand';
 import { PlanSecurityType } from '../../../../entities/plan-v4';
 import { fakeV4Plan } from '../../../../entities/plan-v4/plan.fixture';
 
@@ -360,7 +361,11 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {},
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
             id: 'sse',
             name: 'SSE',
             icon: undefined,
@@ -433,7 +438,11 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {},
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
             id: 'sse',
             name: 'SSE',
             icon: undefined,
@@ -480,7 +489,11 @@ describe('ApiCreationV4Component', () => {
         ]);
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           {
-            configuration: {},
+            configuration: {
+              headersAsComment: false,
+              heartbeatIntervalInMs: 5000,
+              metadataAsComment: false,
+            },
             icon: undefined,
             id: 'sse',
             name: 'SSE',
@@ -496,6 +509,52 @@ describe('ApiCreationV4Component', () => {
         ]);
 
         expectEndpointsGetRequest([]);
+      });
+
+      it('should allow to go back and ask confirmation if remove entrypoint', async () => {
+        // Configure Step 2
+        await fillAndValidateStep1ApiDetails('API', '2.0', 'Description');
+        await fillAndValidateStep2Entrypoints0Architecture('message');
+        const entrypoints: Partial<ConnectorListItem>[] = [
+          { id: 'http-get', supportedApiType: 'message', name: 'HTTP GET' },
+          { id: 'http-post', supportedApiType: 'message', name: 'HTTP POST' },
+        ];
+        await fillAndValidateStep2Entrypoints1List(entrypoints);
+        const entrypointsConfig: Partial<ConnectorListItem>[] = [
+          { id: 'http-get', name: 'HTTP GET', supportedApiType: 'message', supportedListenerType: 'http' },
+        ];
+        const paths: string[] = ['/api/my-api-3'];
+        await fillAndValidateStep2Entrypoints2Config(entrypointsConfig, paths);
+        expectEndpointsGetRequest([]);
+
+        // Go back to Step 2.0
+        const stepper = await harnessLoader.getHarness(ApiCreationStepperMenuHarness);
+        await stepper.clickOnStepById('2');
+        await fillAndValidateStep2Entrypoints0Architecture('message');
+
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        expectEntrypointsGetRequest(entrypoints);
+
+        // Change selected entrypoints : add one and remove one
+        await step21Harness.getEntrypoints().then(async (form) => {
+          await form.deselectOptionByValue('http-get');
+          return form.selectOptionsByIds(['http-post']);
+        });
+        await step21Harness.clickValidate();
+        const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
+
+        expectSchemaGetRequest([{ id: 'http-post' }]);
+
+        const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        expect(step22Harness).toBeDefined();
+
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { id: 'http-post', name: 'HTTP POST', supportedListenerType: 'http', icon: undefined, configuration: {} },
+        ]);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+        expectSchemaGetRequest(entrypoints);
+        expectApiGetPortalSettings();
       });
     });
 
@@ -911,7 +970,10 @@ describe('ApiCreationV4Component', () => {
       fixture.detectChanges();
 
       await step2Harness.clickValidate();
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
       fixture.detectChanges();
+
       await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
 
       await fillAndValidateStep3Endpoints1List();
@@ -944,6 +1006,8 @@ describe('ApiCreationV4Component', () => {
       expect(await list.getListValues({ selected: true })).toEqual(['mock']);
       fixture.detectChanges();
       await step3Harness.clickValidate();
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
 
       await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'message', name: 'Mock' }]);
 
@@ -1012,8 +1076,10 @@ describe('ApiCreationV4Component', () => {
   function expectSchemaGetRequest(connectors: Partial<ConnectorListItem>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
     connectors.forEach((connector) => {
       httpTestingController
-        .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/${connectorType}/${connector.id}/schema`, method: 'GET' })
-        .flush(getEntrypointConnectorSchema(connector.id));
+        .match({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/${connectorType}/${connector.id}/schema`, method: 'GET' })
+        .map((req) => {
+          if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
+        });
     });
   }
   function expectEndpointsGetRequest(connectors: Partial<ConnectorListItem>[], expands: ListPluginsExpand[] = ['icon']) {
