@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.0...4.0.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* use custom body analyzer ([a910eb3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/a910eb3faf7f41653162cda96ecd11a90282689c))
+
 # [4.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/3.12.4...4.0.0) (2022-12-09)
 
 
