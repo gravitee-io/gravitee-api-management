@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.Maps;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
@@ -80,6 +81,9 @@ public class UserMetadataServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private EventManager eventManager;
 
     private Metadata userMetadata;
     private Metadata toUserMetadata;

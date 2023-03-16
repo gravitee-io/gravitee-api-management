@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -77,6 +78,9 @@ public class PlanService_PublishTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private EventManager eventManager;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {

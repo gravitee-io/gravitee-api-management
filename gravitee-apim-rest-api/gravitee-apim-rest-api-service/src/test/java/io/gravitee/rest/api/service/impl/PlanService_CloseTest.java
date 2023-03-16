@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -83,6 +84,9 @@ public class PlanService_CloseTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private EventManager eventManager;
 
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {

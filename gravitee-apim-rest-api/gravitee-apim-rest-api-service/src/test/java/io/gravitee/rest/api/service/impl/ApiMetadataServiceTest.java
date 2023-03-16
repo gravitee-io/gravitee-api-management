@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
@@ -106,6 +107,9 @@ public class ApiMetadataServiceTest {
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
+
+    @Mock
+    private EventManager eventManager;
 
     @Before
     public void init() throws TechnicalException {
