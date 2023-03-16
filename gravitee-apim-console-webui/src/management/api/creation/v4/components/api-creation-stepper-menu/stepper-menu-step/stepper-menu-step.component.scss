@@ -51,6 +51,13 @@ $typography: map.get(gio.$mat-theme, typography);
 
           border-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
         }
+
+        &-invalid {
+          background: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
+
+          border-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+        }
       }
 
       &__title {
@@ -58,6 +65,10 @@ $typography: map.get(gio.$mat-theme, typography);
 
         &-not-started {
           color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+        }
+
+        &-invalid {
+          color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
         }
       }
     }

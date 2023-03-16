@@ -21,17 +21,16 @@
     <div class="stepper-menu-step__header__info" matRipple [matRippleDisabled]="!clickable" (click)="clickable && emitGoToStep()">
       <div
         class="stepper-menu-step__header__info__number mat-body-strong"
-        [ngClass]="
-          stepStatus === 'INACTIVE'
-            ? 'stepper-menu-step__header__info__number-not-started'
-            : 'stepper-menu-step__header__info__number-started'
-        "
+        [class.stepper-menu-step__header__info__number-not-started]="stepStatus === 'INACTIVE'"
+        [class.stepper-menu-step__header__info__number-invalid]="stepStatus === 'INVALID'"
+        [class.stepper-menu-step__header__info__number-started]="stepStatus === 'ACTIVE' || stepStatus === 'FILLED'"
       >
         {{ stepNumber }}
       </div>
       <div
         class="stepper-menu-step__header__info__title"
         [class.stepper-menu-step__header__info__title-not-started]="stepStatus === 'INACTIVE'"
+        [class.stepper-menu-step__header__info__title-invalid]="stepStatus === 'INVALID'"
       >
         <ng-content></ng-content>
       </div>

@@ -19,6 +19,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { isEqual } from 'lodash';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
 
@@ -47,6 +49,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly endpointService: EndpointService,
     private readonly matDialog: MatDialog,
+    private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
@@ -95,7 +98,34 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  save(): void {
+  save() {
+    const previousSelection = this.stepService.payload?.selectedEndpoints?.map((e) => e.id);
+    const newSelection = this.formGroup.value.selectedEndpointsIds;
+
+    if (previousSelection && !isEqual(newSelection, previousSelection)) {
+      // When changing the entrypoint selection, all previously filled steps will be marked as invalid to force user to review the whole configuration.
+      return this.confirmDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+          data: {
+            title: 'Are you sure?',
+            content:
+              'Changing the endpoints list has impact on all following configuration steps. You will have to review all previously entered data.',
+            confirmButton: 'Validate',
+            cancelButton: 'Discard',
+          },
+        })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.stepService.invalidateAllNextSteps();
+            this.saveChanges();
+          }
+        });
+    }
+    return this.saveChanges();
+  }
+
+  private saveChanges(): void {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints
       .map(({ id, name, icon }) => ({ id, name, icon }))

@@ -147,4 +147,12 @@ export class ApiCreationStepperService {
   removeAllNextSteps() {
     this.steps.splice(this.currentStepIndex + 1);
   }
+
+  invalidateAllNextSteps() {
+    this.steps.forEach((step, index) => {
+      if (index > this.currentStepIndex) {
+        step.state = 'invalid';
+      }
+    });
+  }
 }

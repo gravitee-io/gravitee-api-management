@@ -54,6 +54,12 @@ const FAKE_MENU_STEPS: MenuStepItem[] = [
     state: 'initial',
     payload: {},
   },
+  {
+    label: 'Step 4',
+    groupNumber: 4,
+    state: 'invalid',
+    payload: {},
+  },
 ];
 
 const CURRENT_STEP: ApiCreationStep = {
@@ -127,6 +133,14 @@ describe('ApiCreationStepperMenuComponent', () => {
     const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
 
     expect(await menuSteps[2].hasStepIcon()).toEqual(false);
+  });
+
+  it('should show invalid state', async () => {
+    await initConfigureTestingModule(FAKE_MENU_STEPS, CURRENT_STEP);
+    const menuSteps = await harnessLoader.getAllHarnesses(StepperMenuStepHarness);
+
+    expect(await menuSteps[3].hasStepIcon()).toEqual(false);
+    expect(await menuSteps[3].isInvalidStep()).toBeTruthy();
   });
 
   it('should show content', async () => {
