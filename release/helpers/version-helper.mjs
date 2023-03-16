@@ -1,3 +1,7 @@
+/**
+ * Get the version provided as argument or exit the process
+ * @returns {Promise<string>} the version to release
+ */
 export async function extractVersion() {
   if (argv.version) {
     return argv.version;
@@ -9,7 +13,8 @@ export async function extractVersion() {
 
 /**
  * @param {string} releasingVersion, for example: '3.15.11'
- * @return {object} looking like {'version': '3.15.11', 'branch': '3.15.x', 'trimmed': '3.15'}
+ * @returns {{version: string, branch: string, trimmed: string}} the version to release, the branch to release and the
+ * trimmed version (looking like {'version': '3.15.11', 'branch': '3.15.x', 'trimmed': '3.15'})
  */
 export function computeVersion(releasingVersion) {
   return {
