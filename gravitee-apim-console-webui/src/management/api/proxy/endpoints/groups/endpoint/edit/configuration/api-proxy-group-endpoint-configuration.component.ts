@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-
-import { ProxyGroupEndpoint } from '../../../../../../../../entities/proxy';
-import { ConfigurationEvent, SchemaFormEvent } from '../../../api-proxy-groups.model';
 
 @Component({
   selector: 'api-proxy-group-endpoint-configuration',
@@ -27,14 +24,11 @@ import { ConfigurationEvent, SchemaFormEvent } from '../../../api-proxy-groups.m
 export class ApiProxyGroupEndpointConfigurationComponent {
   @Input() configurationForm: FormGroup;
   @Input() configurationSchema: unknown;
-  @Input() endpoint: ProxyGroupEndpoint;
-  @Input() isReadOnly: boolean;
-  @Output() onConfigurationChange = new EventEmitter<ConfigurationEvent>();
 
-  public onChange(event: SchemaFormEvent): void {
-    this.onConfigurationChange.emit({
-      isSchemaValid: !event.detail?.validation?.errors?.length,
-      configuration: event.detail?.values,
-    });
+  public onProxyConfigurationError(error: unknown) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.configurationForm.get('proxyConfiguration').setErrors(error ? { error: true } : null);
+    }, 0);
   }
 }
