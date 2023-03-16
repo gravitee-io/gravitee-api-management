@@ -15,4 +15,6 @@
  */
 import { ProxyConfiguration, ProxyGroupEndpoint } from '../../../../../../../../entities/proxy';
 
-export type EndpointConfigurationData = Pick<ProxyGroupEndpoint, 'inherit'> & ProxyConfiguration;
+export type EndpointConfigurationData = Pick<ProxyGroupEndpoint, 'inherit'> & {
+  proxyConfiguration: ProxyConfiguration;
+};

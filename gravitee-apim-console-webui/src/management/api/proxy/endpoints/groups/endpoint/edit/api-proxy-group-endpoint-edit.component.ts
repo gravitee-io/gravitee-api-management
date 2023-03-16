@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
@@ -88,6 +88,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.configurationSchema = JSON.parse(
             this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase() ?? 'http'))?.schema,
           );
+          console.log('configurationSchema', this.configurationSchema);
         }),
       )
       .subscribe();
@@ -121,10 +122,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
-            {
-              ...this.updatedConfiguration,
-              inherit: this.configurationForm.getRawValue().inherit,
-            },
+            this.configurationForm.getRawValue(),
             ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm),
           );
 
@@ -198,8 +196,20 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
     });
 
+    const proxyConfigurationValue: ProxyConfiguration = {
+      headers: this.endpoint?.headers ?? [],
+      http: this.endpoint?.http ?? {},
+      proxy: this.endpoint?.proxy ?? { enabled: false},
+      ssl: this.endpoint?.ssl ?? {},
+    };
     this.configurationForm = this.formBuilder.group({
       inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
+      proxyConfiguration: [
+        {
+          value: proxyConfigurationValue,
+          disabled: this.isReadOnly,
+        },
+      ],
     });
 
     this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck, this.isReadOnly);

@@ -225,7 +225,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
         await inherit.toggle();
 
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeTruthy();
         expect(fixture.componentInstance.configurationForm.getRawValue().inherit).toStrictEqual(false);
 
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
@@ -248,10 +248,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   backup: false,
                   type: 'HTTP',
                   inherit: false,
-                  headers: undefined,
-                  http: undefined,
-                  proxy: undefined,
-                  ssl: undefined,
+                  headers: [],
+                  http: {},
+                  proxy: { enabled: false },
+                  ssl: {},
                   healthcheck: {
                     enabled: false,
                   },
