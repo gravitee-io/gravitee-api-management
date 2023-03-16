@@ -19,16 +19,33 @@
   <mat-card class="card">
     <p>
       Give full access to this API to another
-      <ng-container *ngIf="mode === 'USER'">user</ng-container>
+      <ng-container *ngIf="mode === 'USER'">
+        <mat-radio-group aria-label="Select User or Group" formControlName="userOrGroup">
+          <mat-radio-button class="card__userOrGroup_radio" value="apiMember">API member</mat-radio-button>
+          <span style="vertical-align: bottom"> or </span>
+          <mat-radio-button class="card__userOrGroup_radio" value="user">Other user</mat-radio-button>
+        </mat-radio-group>
+      </ng-container>
       <ng-container *ngIf="mode === 'GROUP'">group</ng-container>
       <ng-container *ngIf="mode === 'HYBRID'">
         <mat-radio-group aria-label="Select User or Group" formControlName="userOrGroup">
-          <mat-radio-button class="card__userOrGroup_radio" value="user">User</mat-radio-button
-          ><span style="vertical-align: bottom"> or </span>
+          <mat-radio-button class="card__userOrGroup_radio" value="apiMember">API member</mat-radio-button>
+          <span style="vertical-align: bottom"> or </span>
+          <mat-radio-button class="card__userOrGroup_radio" value="user">Other user</mat-radio-button>
+          <span style="vertical-align: bottom"> or </span>
           <mat-radio-button class="card__userOrGroup_radio" value="group">Group</mat-radio-button>
         </mat-radio-group>
       </ng-container>
     </p>
+
+    <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'apiMember'">
+      <mat-form-field class="card__userOrGroup__field">
+        <mat-label>Select API member</mat-label>
+        <mat-select formControlName="user">
+          <mat-option *ngFor="let member of apiMembers" [value]="member">{{ member.displayName }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
     <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'user'">
       <gio-form-user-autocomplete class="card__userOrGroup__field" formControlName="user"></gio-form-user-autocomplete>

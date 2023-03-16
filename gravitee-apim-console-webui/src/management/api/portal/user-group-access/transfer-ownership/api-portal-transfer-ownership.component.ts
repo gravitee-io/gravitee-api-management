@@ -25,7 +25,6 @@ import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiMemberService } from '../../../../../services-ngx/api-member.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { UsersService } from '../../../../../services-ngx/users.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { Group } from '../../../../../entities/group/group';
 import { RoleService } from '../../../../../services-ngx/role.service';
@@ -45,11 +44,12 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
   warnUseGroupAsPrimaryOwner = false;
 
   form: FormGroup;
-  formInitialValues: unknown;
 
   poGroups: Group[];
 
   poRoles: Role[];
+
+  apiMembers: SearchableUser[];
 
   private apiId: string;
 
@@ -57,7 +57,6 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiService,
     private readonly apiMembersService: ApiMemberService,
-    private readonly userService: UsersService,
     private readonly groupService: GroupService,
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
@@ -70,10 +69,15 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
 
     this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as 'USER' | 'GROUP' | 'HYBRID';
 
-    combineLatest([this.apiService.get(this.apiId), this.groupService.list(), this.roleService.list('API')])
+    combineLatest([
+      this.apiService.get(this.apiId),
+      this.groupService.list(),
+      this.roleService.list('API'),
+      this.apiMembersService.getMembers(this.apiId),
+    ])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(([api, groups, roles]) => {
+        tap(([api, groups, roles, apiMembers]) => {
           this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null);
           if (api.owner.type === 'GROUP') {
             this.poGroups = this.poGroups.filter((group) => group.id !== api.owner.id);
@@ -83,6 +87,15 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
 
           this.poRoles = roles.filter((role) => role.name !== 'PRIMARY_OWNER');
           const defaultRolePO = roles.find((role) => role.default);
+
+          this.apiMembers = apiMembers
+            .filter((member) => member.role !== 'PRIMARY_OWNER')
+            .map((member) => ({
+              reference: member.reference,
+              id: member.id,
+              displayName: member.displayName,
+            }));
+
           this.initForm(defaultRolePO, this.mode);
         }),
       )
@@ -121,7 +134,8 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
       type: 'GROUP',
     };
 
-    const isUserMode = this.form.get('userOrGroup').value === 'user';
+    const userMode = this.form.get('userOrGroup').value;
+    const isUserMode = userMode === 'user' || userMode === 'apiMember';
 
     confirm
       .afterClosed()
@@ -156,8 +170,10 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
             errors.userOrGroupRequired = true;
           }
 
-          const isUserMode = control.get('userOrGroup').value === 'user';
-          const isGroupMode = control.get('userOrGroup').value === 'group';
+          const userMode = control.get('userOrGroup').value;
+
+          const isUserMode = userMode === 'user' || userMode === 'apiMember';
+          const isGroupMode = userMode === 'group';
 
           if (isUserMode && isEmpty(control.get('user').value)) {
             errors.userRequired = true;
@@ -173,6 +189,13 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
         },
       ],
     );
-    this.formInitialValues = this.form.getRawValue();
+
+    this.form
+      .get('userOrGroup')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => {
+        this.form.get('user').reset();
+        this.form.get('groupId').reset();
+      });
   }
 }
