@@ -40,10 +40,7 @@
         <api-proxy-group-endpoint-configuration
           *ngIf="configurationForm && configurationSchema && endpoint"
           [configurationForm]="configurationForm"
-          [endpoint]="endpoint"
           [configurationSchema]="configurationSchema"
-          [isReadOnly]="isReadOnly"
-          (onConfigurationChange)="onConfigurationChange($event)"
         ></api-proxy-group-endpoint-configuration>
       </div>
     </mat-tab>

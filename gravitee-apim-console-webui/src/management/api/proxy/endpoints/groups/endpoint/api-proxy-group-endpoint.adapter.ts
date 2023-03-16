@@ -36,10 +36,10 @@ export const toProxyGroupEndpoint = (
     updatedEndpoint = {
       ...updatedEndpoint,
       inherit: false,
-      http: configurationData.http,
-      ssl: configurationData.ssl,
-      headers: configurationData.headers,
-      proxy: configurationData.proxy,
+      http: configurationData.proxyConfiguration.http,
+      ssl: configurationData.proxyConfiguration.ssl,
+      headers: configurationData.proxyConfiguration.headers,
+      proxy: configurationData.proxyConfiguration.proxy,
     };
   } else {
     updatedEndpoint = {

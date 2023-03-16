@@ -29,12 +29,13 @@
     </gio-form-slide-toggle>
 
     <div *ngIf="!configurationForm.get('inherit').value">
-      <gv-schema-form
-        [attr.readonly]="isReadOnly ? isReadOnly : null"
+      <gv-schema-form-group
+        ngDefaultControl
+        formControlName="proxyConfiguration"
         [schema]="configurationSchema"
-        [values]="endpoint"
-        (:gv-schema-form:change)="onChange($event)"
-      ></gv-schema-form>
+        [attr.readonly]="configurationForm.get('proxyConfiguration').enabled ? null : true"
+        (:gv-schema-form-group:error)="onProxyConfigurationError($event.detail)"
+      ></gv-schema-form-group>
     </div>
   </mat-card>
 </form>

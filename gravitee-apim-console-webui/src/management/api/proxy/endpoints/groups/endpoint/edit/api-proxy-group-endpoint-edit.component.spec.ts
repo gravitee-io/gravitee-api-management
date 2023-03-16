@@ -221,11 +221,11 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
       it('should update existing endpoint configuration', async () => {
         const inherit = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeFalsy();
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeFalsy();
 
         await inherit.toggle();
 
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form')).toBeTruthy();
+        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeTruthy();
         expect(fixture.componentInstance.configurationForm.getRawValue().inherit).toStrictEqual(false);
 
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
@@ -248,10 +248,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   backup: false,
                   type: 'HTTP',
                   inherit: false,
-                  headers: undefined,
-                  http: undefined,
-                  proxy: undefined,
-                  ssl: undefined,
+                  headers: [],
+                  http: {},
+                  proxy: { enabled: false },
+                  ssl: {},
                   healthcheck: {
                     enabled: false,
                   },
@@ -268,35 +268,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
             },
           ],
         });
-      });
-
-      it('should disable the save bar when the configuration form is invalid', async () => {
-        fixture.componentInstance.onConfigurationChange({
-          isSchemaValid: false,
-          configuration: {},
-        });
-
-        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
-        expect(fixture.componentInstance.endpointForm.valid).toBeFalsy();
-      });
-
-      it('should enable the save bar when the configuration form become valie', async () => {
-        fixture.componentInstance.onConfigurationChange({
-          isSchemaValid: false,
-          configuration: {},
-        });
-        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
-        expect(fixture.componentInstance.endpointForm.valid).toBeFalsy();
-        expect(fixture.componentInstance.endpointForm.hasError('invalidConfiguration')).toBeTruthy();
-
-        fixture.componentInstance.onConfigurationChange({
-          isSchemaValid: true,
-          configuration: {},
-        });
-
-        expect(await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
-        expect(fixture.componentInstance.endpointForm.valid).toBeTruthy();
-        expect(fixture.componentInstance.endpointForm.hasError('invalidConfiguration')).toBeFalsy();
       });
     });
   });
