@@ -31,7 +31,7 @@ import { ApiPortalTransferOwnershipComponent } from './api-portal-transfer-owner
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../api-portal-user-group.module';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { Api } from '../../../../../entities/api';
+import { Api, ApiMember } from '../../../../../entities/api';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
@@ -92,10 +92,11 @@ describe('ApiPortalTransferOwnershipComponent', () => {
       fakeRole({ name: 'DEFAULT_ROLE', default: true }),
       fakeRole({ name: 'PRIMARY_OWNER' }),
     ]);
+    expectApiMembersGetRequest();
 
     // Select User mode
     const userOrGroupRadio = await loader.getHarness(MatRadioGroupHarness);
-    await userOrGroupRadio.checkRadioButton({ label: 'User' });
+    await userOrGroupRadio.checkRadioButton({ label: 'Other user' });
 
     // Search and select user
     const userSelect = await loader.getHarness(GioFormUserAutocompleteHarness);
@@ -134,6 +135,56 @@ describe('ApiPortalTransferOwnershipComponent', () => {
     });
   });
 
+  it('should transfer ownership to api members', async () => {
+    const api = fakeApi({ id: apiId });
+    expectApiGetRequest(api);
+    expectGroupsGetRequest([]);
+    expectApiRoleGetRequest([
+      fakeRole({ name: 'ROLE_1', default: false }),
+      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+      fakeRole({ name: 'PRIMARY_OWNER' }),
+    ]);
+    const members: ApiMember[] = [{ id: '1', displayName: 'Joe', role: 'USER' }];
+    expectApiMembersGetRequest(members);
+
+    // Select User mode
+    const userOrGroupRadio = await loader.getHarness(MatRadioGroupHarness);
+    await userOrGroupRadio.checkRadioButton({ label: 'API member' });
+
+    // Search and select user
+    const userSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="user"]' }));
+    await userSelect.clickOptions({ text: 'Joe' });
+
+    // Select role
+    const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+    await roleSelect.open();
+    const roleOptions = await roleSelect.getOptions();
+    expect(roleOptions.length).toBe(2);
+    // Check that the default role is selected
+    expect(await roleSelect.getValueText()).toBe('DEFAULT_ROLE');
+    await roleSelect.clickOptions({ text: 'ROLE_1' });
+
+    // Submit
+    const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+    await transferBtn.click();
+
+    // Confirm dialog
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+
+    // Check request
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members/transfer_ownership`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({
+      id: '1',
+      reference: undefined,
+      role: 'ROLE_1',
+      type: 'USER',
+    });
+  });
+
   it('should transfer ownership to group', async () => {
     const api = fakeApi({ id: apiId });
     expectApiGetRequest(api);
@@ -146,6 +197,7 @@ describe('ApiPortalTransferOwnershipComponent', () => {
       fakeRole({ name: 'DEFAULT_ROLE', default: true }),
       fakeRole({ name: 'PRIMARY_OWNER' }),
     ]);
+    expectApiMembersGetRequest();
 
     // Select Group mode
     const userOrGroupRadio = await loader.getHarness(MatRadioGroupHarness);
@@ -202,5 +254,10 @@ describe('ApiPortalTransferOwnershipComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/search/users?q=${searchTerm}`,
       })
       .flush(searchableUsers);
+  }
+
+  function expectApiMembersGetRequest(members: ApiMember[] = []) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
+    fixture.detectChanges();
   }
 });
