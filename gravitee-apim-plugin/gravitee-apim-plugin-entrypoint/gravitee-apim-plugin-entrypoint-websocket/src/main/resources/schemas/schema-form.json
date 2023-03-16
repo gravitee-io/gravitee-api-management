@@ -1,11 +1,10 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebsocketEntrypointConnectorConfiguration",
     "properties": {
         "publisher": {
-            "type": "object",
             "title": "Publisher configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebsocketEntrypointConnectorConfiguration:Publisher",
+            "type": "object",
             "properties": {
                 "enabled": {
                     "title": "Enable the publication capability",
@@ -13,12 +12,12 @@
                     "type": "boolean",
                     "default": true
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "subscriber": {
-            "type": "object",
             "title": "Subscriber configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebsocketEntrypointConnectorConfiguration:Subscriber",
+            "type": "object",
             "properties": {
                 "enabled": {
                     "title": "Enable the subscription capability",
@@ -26,8 +25,10 @@
                     "type": "boolean",
                     "default": true
                 }
-            }
+            },
+            "additionalProperties": false
         }
     },
-    "required": []
+    "required": [],
+    "additionalProperties": false
 }

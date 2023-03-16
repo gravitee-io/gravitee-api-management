@@ -1,12 +1,12 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:KafkaEndpointConnectorConfiguration",
-    "additionalProperties": false,
-    "properties": {
+
+    "definitions": {
         "bootstrapServers": {
-            "type": "string",
-            "title": "bootstrap.servers",
+            "title": "Bootstrap servers (bootstrap.servers)",
             "description": "This list should be in the form host1:port1,host2:port2,...",
+            "type": "string",
             "gioConfig": {
                 "banner": {
                     "title": "Bootstrap servers",
@@ -14,24 +14,22 @@
                 }
             }
         },
+
         "consumer": {
             "type": "object",
-            "title": "Consumer configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:KafkaEndpointConnectorConfiguration:Consumer",
+            "title": "Consumer",
             "properties": {
                 "enabled": {
-                    "title": "Enable the consumer capability",
-                    "description": "Allow to enable or disable the consumer capability.",
-                    "type": "boolean",
-                    "default": false
+                    "const": true
                 },
                 "topics": {
+                    "title": "Topics",
+                    "description": "A list of kafka topics to use.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     },
-                    "title": "Topics",
-                    "description": "A list of kafka topics to use."
+                    "minItems": 1
                 },
                 "encodeMessageId": {
                     "title": "Encode message Id",
@@ -40,14 +38,10 @@
                     "default": true
                 },
                 "autoOffsetReset": {
-                    "title": "Auto offset reset",
+                    "title": "Auto offset reset (auto.offset.reset)",
                     "type": "string",
                     "default": "latest",
-                    "enum": [
-                        "latest",
-                        "earliest",
-                        "none"
-                    ],
+                    "enum": ["latest", "earliest", "none"],
                     "gioConfig": {
                         "banner": {
                             "title": "Auto offset reset",
@@ -56,98 +50,76 @@
                     }
                 }
             },
-            "oneOf": [
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    },
-                    "required": [
-                        "topics"
-                    ]
-                },
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": false
-                        }
-                    }
-                }
-            ]
+            "additionalProperties": false,
+            "required": ["enabled", "topics"]
         },
         "producer": {
             "type": "object",
-            "title": "Producer configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:kafka:configuration:KafkaEndpointConnectorConfiguration:Producer",
+            "title": "Producer",
             "properties": {
                 "enabled": {
-                    "title": "Enable the producer capability",
-                    "description": "Allow to enable or disable the producer capability.",
-                    "type": "boolean",
-                    "default": false
+                    "const": true
                 },
                 "topics": {
+                    "title": "Topics",
+                    "description": "A list of kafka topics to use.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     },
-                    "title": "Topics",
-                    "description": "A list of kafka topics to use."
+                    "minItems": 1
                 }
             },
-            "oneOf": [
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    },
-                    "required": [
-                        "topics"
-                    ]
-                },
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": false
-                        }
-                    }
-                }
-            ]
+            "additionalProperties": false,
+            "required": ["enabled", "topics"]
         }
     },
-    "anyOf": [
+
+    "oneOf": [
         {
+            "title": "Use Consumer",
             "properties": {
+                "bootstrapServers": {
+                    "$ref": "#/definitions/bootstrapServers"
+                },
                 "consumer": {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    }
+                    "$ref": "#/definitions/consumer"
                 }
             },
-            "required": [
-                "consumer"
-            ]
+            "required": ["bootstrapServers","consumer"],
+            "additionalProperties": false
         },
         {
+            "title": "Use Producer",
             "properties": {
+                "bootstrapServers": {
+                    "$ref": "#/definitions/bootstrapServers"
+                },
                 "producer": {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    }
+                    "$ref": "#/definitions/producer"
                 }
             },
-            "required": [
+            "required": ["bootstrapServers",
                 "producer"
-            ]
+            ],
+            "additionalProperties": false
+        },
+        {
+            "title": "Use Consumer and Producer",
+            "properties": {
+                "bootstrapServers": {
+                    "$ref": "#/definitions/bootstrapServers"
+                },
+                "producer": {
+                    "$ref": "#/definitions/producer"
+                },
+                "consumer": {
+                    "$ref": "#/definitions/consumer"
+                }
+            },
+            "required": ["bootstrapServers", "producer","consumer"
+            ],
+            "additionalProperties": false
         }
-    ],
-    "required": [
-        "bootstrapServers"
     ]
 }

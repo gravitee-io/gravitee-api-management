@@ -1,186 +1,118 @@
 {
-    "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:WebhookEntrypointConnectorConfiguration",
-    "properties": {
-        "http": {
-            "type": "object",
-            "title": "HTTP Options",
-            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:HttpOptions",
-            "properties": {
-                "connectTimeout": {
-                    "type": "integer",
-                    "title": "Connect timeout (ms)",
-                    "description": "Maximum time to connect to the webhook in milliseconds.",
-                    "default": 3000
-                },
-                "readTimeout": {
-                    "type": "integer",
-                    "title": "Read timeout (ms)",
-                    "description": "Maximum time given to the webhook to complete the request (including response) in milliseconds.",
-                    "default": 10000
-                },
-                "idleTimeout": {
-                    "type": "integer",
-                    "title": "Idle timeout (ms)",
-                    "description": "Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.",
-                    "default": 60000
-                }
-            }
-        },
-        "proxy": {
-            "type": "object",
-            "title": "Proxy Options",
-            "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:webhook:configuration:HttpProxyOptions",
-            "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "title": "Use proxy",
-                    "description": "Use proxy for client connections",
-                    "default": false
-                },
-                "type": {
-                    "type": "string",
-                    "title": "Proxy Type",
-                    "description": "The type of the proxy",
-                    "default": "HTTP",
-                    "enum": ["HTTP", "SOCKS4", "SOCKS5"],
-                    "x-schema-form": {
-                        "type": "select",
-                        "titleMap": {
-                            "HTTP": "HTTP CONNECT proxy",
-                            "SOCKS4": "SOCKS4/4a tcp proxy",
-                            "SOCKS5": "SOCKS5 tcp proxy"
+    "$schema":"http://json-schema.org/draft-07/schema#",
+    "type":"object",
+    "definitions":{
+        "proxy":{
+            "type":"object",
+            "title":"Proxy Options",
+            "oneOf":[
+                {
+                    "title":"No proxy",
+                    "properties":{
+                        "enabled":{
+                            "const":false
                         },
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ],
-                        "disabled": [
-                            {
-                                "$eq": {
-                                    "proxy.useSystemProxy": true
-                                }
-                            }
-                        ]
-                    }
-                },
-                "useSystemProxy": {
-                    "type": "boolean",
-                    "title": "Use system proxy",
-                    "description": "Use proxy configured at system level",
-                    "default": false,
-                    "x-schema-form": {
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ]
-                    }
-                },
-                "host": {
-                    "type": "string",
-                    "title": "Proxy host",
-                    "description": "Proxy host to connect to",
-                    "x-schema-form": {
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ],
-                        "disabled": [
-                            {
-                                "$eq": {
-                                    "proxy.useSystemProxy": true
-                                }
-                            }
-                        ]
-                    }
-                },
-                "port": {
-                    "type": "integer",
-                    "title": "Proxy port",
-                    "description": "Proxy port to connect to",
-                    "x-schema-form": {
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ],
-                        "disabled": [
-                            {
-                                "$eq": {
-                                    "proxy.useSystemProxy": true
-                                }
-                            }
-                        ]
-                    }
-                },
-                "username": {
-                    "type": "string",
-                    "title": "Proxy username",
-                    "description": "Optional proxy username",
-                    "x-schema-form": {
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ],
-                        "disabled": [
-                            {
-                                "$eq": {
-                                    "proxy.useSystemProxy": true
-                                }
-                            }
-                        ]
-                    }
-                },
-                "password": {
-                    "type": "string",
-                    "title": "Proxy password",
-                    "description": "Optional proxy password",
-                    "x-schema-form": {
-                        "type": "password",
-                        "hidden": [
-                            {
-                                "$eq": {
-                                    "proxy.enabled": false
-                                }
-                            }
-                        ],
-                        "disabled": [
-                            {
-                                "$eq": {
-                                    "proxy.useSystemProxy": true
-                                }
-                            }
-                        ]
-                    }
-                }
-            },
-            "oneOf": [
-                {
-                    "properties": { "enabled": { "const": false } }
+                        "useSystemProxy":{
+                            "const":false
+                        }
+                    },
+                    "additionalProperties":false
                 },
                 {
-                    "properties": { "useSystemProxy": { "const": true } }
+                    "title":"Use proxy configured at system level",
+                    "properties":{
+                        "enabled":{
+                            "const":true
+                        },
+                        "useSystemProxy":{
+                            "const":true
+                        }
+                    },
+                    "additionalProperties":false
                 },
                 {
-                    "properties": { "enabled": { "const": true }, "useSystemProxy": { "const": false } },
-                    "required": ["host", "port"]
+                    "title":"Use proxy for client connections",
+                    "properties":{
+                        "enabled":{
+                            "const":true
+                        },
+                        "useSystemProxy":{
+                            "const":false
+                        },
+                        "type":{
+                            "type":"string",
+                            "title":"Proxy Type",
+                            "description":"The type of the proxy",
+                            "default":"HTTP",
+                            "enum":[
+                                "HTTP",
+                                "SOCKS4",
+                                "SOCKS5"
+                            ]
+                        },
+                        "host":{
+                            "type":"string",
+                            "title":"Proxy host",
+                            "description":"Proxy host to connect to"
+                        },
+                        "port":{
+                            "type":"integer",
+                            "title":"Proxy port",
+                            "description":"Proxy port to connect to"
+                        },
+                        "username":{
+                            "type":"string",
+                            "title":"Proxy username",
+                            "description":"Optional proxy username"
+                        },
+                        "password":{
+                            "type":"string",
+                            "title":"Proxy password",
+                            "description":"Optional proxy password",
+                            "format":"password"
+                        }
+                    },
+                    "required":[
+                        "host",
+                        "port"
+                    ],
+                    "additionalProperties":false
                 }
             ]
         }
     },
-    "additionalProperties": false
+    "properties":{
+        "http":{
+            "type":"object",
+            "title":"HTTP Options",
+            "properties":{
+                "connectTimeout":{
+                    "type":"integer",
+                    "title":"Connect timeout (ms)",
+                    "description":"Maximum time to connect to the webhook in milliseconds.",
+                    "default":3000
+                },
+                "readTimeout":{
+                    "type":"integer",
+                    "title":"Read timeout (ms)",
+                    "description":"Maximum time given to the webhook to complete the request (including response) in milliseconds.",
+                    "default":10000
+                },
+                "idleTimeout":{
+                    "type":"integer",
+                    "title":"Idle timeout (ms)",
+                    "default":60000,
+                    "gioConfig":{
+                        "banner":{
+                            "title":"Idle timeout",
+                            "text":"Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources."
+                        }
+                    }
+                }
+            }
+        },
+        "proxy":{
+            "$ref":"#/definitions/proxy"
+        }
+    }
 }

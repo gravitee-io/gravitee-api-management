@@ -1,144 +1,186 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt:configuration:MqttEndpointConnectorConfiguration",
-    "additionalProperties": false,
-    "properties": {
+    "definitions": {
         "serverHost": {
             "type": "string",
-            "title": "Broker host",
-            "description": "Define the host of the MQTT broker."
+            "title": "Server host (serverHost)",
+            "gioConfig": {
+                "banner": {
+                    "title": "Server host",
+                    "text": "Define the host of the MQTT broker."
+                }
+            }
         },
         "serverPort": {
             "type": "integer",
-            "title": "Broker port",
-            "description": "Define the port of the MQTT broker."
+            "title": "Server port (serverPort)",
+            "gioConfig": {
+                "banner": {
+                    "title": "Server port",
+                    "text": "Define the port of the MQTT broker."
+                }
+            }
         },
-        "reconnectAttempts": {
+        "reconnectAttempt": {
             "type": "integer",
-            "title": "Reconnect attempts",
-            "description": "Number of reconnect attempts after any kind of disconnection.",
+            "title": "Reconnect attempt (reconnectAttempt)",
+            "description": "Between 0 and 10",
             "default": 3,
             "minimum": 0,
-            "maximum": 10
+            "maximum": 10,
+            "gioConfig": {
+                "banner": {
+                    "title": "Reconnect attempt",
+                    "text": "Number of reconnect attempt after any kind of disconnection."
+                }
+            }
         },
+
         "consumer": {
             "type": "object",
-            "title": "Consumer configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Consumer",
+            "title": "Consumer",
             "properties": {
                 "enabled": {
-                    "title": "Enable the consumer capability",
-                    "description": "Allow enabling or disabling the consumer capability.",
-                    "type": "boolean",
-                    "default": false
+                    "const": true
                 },
                 "topic": {
+                    "title": "Topic (topic)",
                     "type": "string",
-                    "title": "Topic",
-                    "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
-                }
-            },
-            "oneOf": [
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    },
-                    "required": [
-                        "topic"
-                    ]
-                },
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": false
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Topic",
+                            "text": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
                         }
                     }
                 }
+            },
+            "additionalProperties": false,
+            "required": [
+                "enabled",
+                "topic"
             ]
         },
+
         "producer": {
             "type": "object",
-            "title": "Producer configuration",
-            "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mqtt5:configuration:Mqtt5EndpointConnectorConfiguration:Producer",
+            "title": "Producer",
             "properties": {
                 "enabled": {
-                    "title": "Enable the producer capability",
-                    "description": "Allow enabling or disabling the producer capability.",
-                    "type": "boolean",
-                    "default": false
+                    "const": true
                 },
                 "topic": {
+                    "title": "Topic (topic)",
                     "type": "string",
-                    "title": "Topic",
-                    "description": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Topic",
+                            "text": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
+                        }
+                    }
                 },
                 "retained": {
-                    "title": "Retain flag",
-                    "description": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message.",
+                    "title": "Retained (Retained)",
                     "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Retained",
+                            "text": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message."
+                        }
+                    }
                 },
                 "responseTopic": {
-                    "title": "Response topic",
-                    "description": "The response topic represents the topics on which the responses from the receivers of the message are expected.",
-                    "type": "string"
-                }
-            },
-            "oneOf": [
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    },
-                    "required": [
-                        "topic"
-                    ]
-                },
-                {
-                    "properties": {
-                        "enabled": {
-                            "const": false
+                    "title": "Response Topic (responseTopic)",
+                    "type": "string",
+                    "gioConfig": {
+                        "banner": {
+                            "title": "Response Topic",
+                            "text": "The response topic represents the topics on which the responses from the receivers of the message are expected."
                         }
                     }
                 }
+            },
+            "additionalProperties": false,
+            "required": [
+                "enabled",
+                "topic"
             ]
         }
     },
-    "anyOf": [
+    "oneOf": [
         {
+            "title": "Use Consumer",
             "properties": {
+                "serverHost": {
+                    "$ref": "#/definitions/serverHost"
+                },
+                "serverPort": {
+                    "$ref": "#/definitions/serverPort"
+                },
+                "reconnectAttempt": {
+                    "$ref": "#/definitions/reconnectAttempt"
+                },
                 "consumer": {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    }
+                    "$ref": "#/definitions/consumer"
                 }
             },
             "required": [
+                "serverHost",
+                "serverPort",
                 "consumer"
-            ]
+            ],
+            "additionalProperties": false
         },
         {
+            "title": "Use Producer",
             "properties": {
+                "serverHost": {
+                    "$ref": "#/definitions/serverHost"
+                },
+                "serverPort": {
+                    "$ref": "#/definitions/serverPort"
+                },
+                "reconnectAttempt": {
+                    "$ref": "#/definitions/reconnectAttempt"
+                },
                 "producer": {
-                    "properties": {
-                        "enabled": {
-                            "const": true
-                        }
-                    }
+                    "$ref": "#/definitions/producer"
                 }
             },
             "required": [
+                "serverHost",
+                "serverPort",
                 "producer"
-            ]
+            ],
+            "additionalProperties": false
+        },
+        {
+            "title": "Use Consumer and Producer",
+            "properties": {
+                "serverHost": {
+                    "$ref": "#/definitions/serverHost"
+                },
+                "serverPort": {
+                    "$ref": "#/definitions/serverPort"
+                },
+                "reconnectAttempt": {
+                    "$ref": "#/definitions/reconnectAttempt"
+                },
+                "producer": {
+                    "$ref": "#/definitions/producer"
+                },
+                "consumer": {
+                    "$ref": "#/definitions/consumer"
+                }
+            },
+            "required": [
+                "serverHost",
+                "serverPort",
+                "producer",
+                "consumer"
+            ],
+            "additionalProperties": false
         }
-    ],
-    "required": [
-        "serverHost",
-        "serverPort"
     ]
 }
