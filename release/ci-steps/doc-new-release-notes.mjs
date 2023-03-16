@@ -1,4 +1,5 @@
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
 
 console.log(chalk.magenta(`#############################################`));
 console.log(chalk.magenta(`# 📰 Open APIM docs PR for new Release Note #`));
@@ -101,8 +102,20 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
   );
 }
 
+const version = await getJiraVersion(releasingVersion);
+const issues = await getJiraIssuesOfVersion(version.id);
+const changelog = issues
+  .map((issue) => {
+    const githubLink = `https://github.com/gravitee-io/issues/issues/${issue.fields.customfield_10115}`;
+    return `* ${issue.fields.summary} ${githubLink}[#${issue.fields.customfield_10115}]`;
+  })
+  .join('\n');
+
 let changelogPatchTemplate = `
 == APIM - ${releasingVersion} (${new Date().toISOString().slice(0, 10)})
+
+// Move these issues to the right section
+${changelog}
 
 === Gateway
 
