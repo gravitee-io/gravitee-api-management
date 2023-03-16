@@ -30,10 +30,10 @@ import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.ser
 import { toProxyGroupEndpoint } from '../api-proxy-group-endpoint.adapter';
 import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
-import { ConfigurationEvent } from '../../api-proxy-groups.model';
 import { GioPermissionService } from '../../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProxyHealthCheckFormComponent } from '../../../../components/health-check-form/api-proxy-health-check-form.component';
 import { HealthCheck } from '../../../../../../../entities/health-check';
+import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -44,7 +44,6 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
   private connectors: ConnectorListItem[];
-  private updatedConfiguration: ProxyConfiguration;
   private mode: 'edit' | 'new';
 
   public apiId: string;
@@ -121,10 +120,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
-            {
-              ...this.updatedConfiguration,
-              inherit: this.configurationForm.getRawValue().inherit,
-            },
+            this.configurationForm.getRawValue(),
             ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm),
           );
 
@@ -154,18 +150,6 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         tap(() => this.ngOnInit()),
       )
       .subscribe();
-  }
-
-  public onConfigurationChange(event: ConfigurationEvent) {
-    this.endpointForm.markAsDirty();
-    this.endpointForm.markAsTouched();
-    if (this.endpointForm.getError('invalidConfiguration') && event.isSchemaValid) {
-      delete this.endpointForm.errors['invalidConfiguration'];
-      this.endpointForm.updateValueAndValidity();
-    } else if (!event.isSchemaValid) {
-      this.endpointForm.setErrors({ invalidConfiguration: true });
-    }
-    this.updatedConfiguration = event.configuration;
   }
 
   private initForms(): void {
@@ -198,8 +182,21 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
     });
 
+    const proxyConfigurationValue: ProxyConfiguration = {
+      headers: this.endpoint?.headers ?? [],
+      http: this.endpoint?.http ?? {},
+      proxy: this.endpoint?.proxy ?? { enabled: false },
+      ssl: this.endpoint?.ssl ?? {},
+    };
+
     this.configurationForm = this.formBuilder.group({
       inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
+      proxyConfiguration: [
+        {
+          value: proxyConfigurationValue,
+          disabled: this.isReadOnly,
+        },
+      ],
     });
 
     this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck, this.isReadOnly);
