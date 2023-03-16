@@ -109,7 +109,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
     expect(component.healthCheckForm.value).toEqual({
       enabled: false,
-      inherit: false,
+      inherit: true,
     });
   });
 
@@ -120,6 +120,11 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
     await enabledSlideToggle.check();
+
+    // Disable inherit
+    const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
+    expect(await inheritSlideToggle.isChecked()).toEqual(true);
+    await inheritSlideToggle.check();
 
     // Trigger
     component.healthCheckForm.get('schedule').setValue('* * * * *');
@@ -177,7 +182,9 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   it('should inherit health check', async () => {
-    initHealthCheckFormComponent();
+    initHealthCheckFormComponent({
+      inherit: false,
+    });
 
     const inheritHealthCheck: HealthCheck = {
       enabled: true,

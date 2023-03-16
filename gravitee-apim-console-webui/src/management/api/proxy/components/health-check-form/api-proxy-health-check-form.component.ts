@@ -39,7 +39,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         disabled: isReadOnly,
       }),
       inherit: new FormControl({
-        value: healthCheck?.inherit ?? false,
+        value: healthCheck?.inherit ?? true,
         disabled: isReadOnly,
       }),
       // Trigger
@@ -171,9 +171,10 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     }
 
     if (changes.inheritHealthCheck && this.inheritHealthCheck) {
+
       this.healthCheckForm
         .get('inherit')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$))
+        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('inherit').value))
         .subscribe((checked) => {
           // Save or restore previous health check value.
           if (checked) {
