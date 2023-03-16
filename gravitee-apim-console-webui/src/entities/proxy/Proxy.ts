@@ -36,7 +36,7 @@ export interface ProxyConfiguration {
   proxy?: ProxyGroupProxy;
   http?: ProxyGroupHttpClientOptions;
   ssl?: ProxyGroupHttpClientSslOptions;
-  headers?: Record<string, string>;
+  headers?: { name: string; value: string }[];
 }
 
 export interface ProxyGroup extends ProxyConfiguration {
@@ -71,12 +71,12 @@ export interface ProxyGroupLoadBalancer {
 
 export interface ProxyGroupProxy {
   enabled: boolean;
-  useSystemProxy: boolean;
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  type: 'HTTP' | 'SOCKS4' | 'SOCKS5';
+  useSystemProxy?: boolean;
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  type?: 'HTTP' | 'SOCKS4' | 'SOCKS5';
 }
 
 export interface ProxyGroupHttpClientOptions {
