@@ -41,14 +41,19 @@
 
     <mat-divider></mat-divider>
 
-    <gio-banner-info
-      *ngIf="healthCheckForm.get('enabled').value && inheritHealthCheck && healthCheckForm.get('inherit').value"
-      class="health-check-card__banner"
-    >
-      Inherited configuration preview from global health-check settings.
+    <gio-banner-info *ngIf="inheritHealthCheck && healthCheckForm.get('inherit').value" class="health-check-card__banner">
+      {{
+        inheritHealthCheck.enabled
+          ? 'Inherited configuration preview from global health-check settings.'
+          : 'No global health-check settings defined. When defined, they will be inherited.'
+      }}
     </gio-banner-info>
 
-    <div [class.disabled]="isDisabled$ | async" class="health-check-card--forms">
+    <div
+      *ngIf="!inheritHealthCheck || !(inheritHealthCheck && !inheritHealthCheck.enabled && healthCheckForm.get('inherit').value)"
+      [class.disabled]="isDisabled$ | async"
+      class="health-check-card--forms"
+    >
       <!-- Trigger -->
       <h3>Trigger</h3>
       <div class="health-check-card__trigger">

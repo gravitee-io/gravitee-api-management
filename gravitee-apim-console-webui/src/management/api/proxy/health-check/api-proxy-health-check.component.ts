@@ -75,7 +75,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
             ...api,
             services: {
               ...api.services,
-              'health-check': ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm),
+              'health-check': ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false),
             },
           }),
         ),
