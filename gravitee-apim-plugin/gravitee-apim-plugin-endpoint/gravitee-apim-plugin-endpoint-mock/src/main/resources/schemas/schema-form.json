@@ -1,25 +1,26 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:endpoint:mock:configuration:MockEndpointConnectorConfiguration",
-    "additionalProperties": false,
     "properties": {
         "messageInterval": {
-            "type": "integer",
             "title": "Interval between messages publication",
             "description": "Interval between messages publication, in milliseconds.",
+            "type": "integer",
             "default": 1000
         },
         "messageContent": {
-            "type": "string",
             "title": "Content of published messages",
             "description": "Content of published messages. Will be suffixed with message index.",
+            "type": "string",
+            "format": "text",
             "default": "mock message"
         },
         "messageCount": {
-            "type": "integer",
             "title": "Count of published messages",
-            "description": "Count of published messages. If not specified, there is no limit."
+            "description": "Count of published messages. If not specified, there is no limit.",
+            "type": "integer"
         }
     },
-    "required": ["messageContent", "messageInterval"]
+    "required": ["messageContent", "messageInterval"],
+    "additionalProperties": false
 }

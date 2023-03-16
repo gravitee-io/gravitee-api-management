@@ -1,17 +1,16 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "id": "urn:jsonschema:io:gravitee:plugin:entrypoint:http:get:configuration:HttpGetEntrypointConnectorConfiguration",
     "properties": {
         "messagesLimitCount": {
             "type": "integer",
             "title": "Limit messages count",
-            "description": "Maximum number of messages to retrieve. Default is 500.",
+            "description": "Maximum number of messages to retrieve.",
             "default": 500
         },
         "messagesLimitDurationMs": {
             "type": "number",
             "title": "Limit messages duration (in ms)",
-            "description": "Default is 5000.",
             "default": 5000,
             "gioConfig": {
                 "banner": {
