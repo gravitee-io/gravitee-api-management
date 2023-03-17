@@ -15,4 +15,10 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-public interface EndpointConnectorPluginService extends ConnectorPluginService {}
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+
+public interface EndpointConnectorPluginService extends ConnectorPluginService {
+    String getSharedConfigurationSchema(String connectorId);
+
+    String validateSharedConfiguration(ConnectorPluginEntity endpointConnector, String configuration);
+}

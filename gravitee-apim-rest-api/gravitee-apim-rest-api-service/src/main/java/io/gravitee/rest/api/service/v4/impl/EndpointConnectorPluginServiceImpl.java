@@ -19,8 +19,11 @@ import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import java.io.IOException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,5 +44,24 @@ public class EndpointConnectorPluginServiceImpl
     @Override
     protected ConnectorFactory<?> getConnectorFactory(final String connectorId) {
         return ((EndpointConnectorPluginManager) pluginManager).getFactoryById(connectorId);
+    }
+
+    @Override
+    public String getSharedConfigurationSchema(final String connectorId) {
+        try {
+            logger.debug("Find endpoint shared configuration configuration schema by ID: {}", connectorId);
+            return ((EndpointConnectorPluginManager) pluginManager).getSharedConfigurationSchema(connectorId);
+        } catch (IOException ioex) {
+            logger.error("An error occurs while trying to get endpoint shared configuration schema for plugin {}", connectorId, ioex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get endpoint shared configuration schema for plugin " + connectorId,
+                ioex
+            );
+        }
+    }
+
+    @Override
+    public String validateSharedConfiguration(ConnectorPluginEntity endpointConnector, String configuration) {
+        return validatePluginConfigurationAgainstSchema(endpointConnector.getId(), configuration, this::getSharedConfigurationSchema);
     }
 }
