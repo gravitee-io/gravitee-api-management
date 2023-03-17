@@ -45,12 +45,10 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                Cors cors = getCors(ctx);
-                handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
-            }
-        );
+        return Completable.fromRunnable(() -> {
+            Cors cors = getCors(ctx);
+            handleSimpleCrossOriginRequest(cors, ctx.request(), ctx.response());
+        });
     }
 
     private void handleSimpleCrossOriginRequest(final Cors cors, final GenericRequest request, final GenericResponse response) {

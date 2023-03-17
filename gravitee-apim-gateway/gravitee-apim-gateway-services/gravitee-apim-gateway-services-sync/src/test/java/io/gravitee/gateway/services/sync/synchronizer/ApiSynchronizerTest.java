@@ -173,32 +173,28 @@ public class ApiSynchronizerTest {
             verify(eventRepository, times(2))
                 .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
 
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    var criteria = criteriaCaptor.getValue();
-                    softly.assertThat(criteria.getTypes()).containsAll(List.of(EventType.PUBLISH_API, EventType.START_API));
-                    softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
-                    softly.assertThat(criteria.isStrictMode()).isTrue();
-                    softly.assertThat(criteria.getFrom()).isZero();
-                    softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
+            SoftAssertions.assertSoftly(softly -> {
+                var criteria = criteriaCaptor.getValue();
+                softly.assertThat(criteria.getTypes()).containsAll(List.of(EventType.PUBLISH_API, EventType.START_API));
+                softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
+                softly.assertThat(criteria.isStrictMode()).isTrue();
+                softly.assertThat(criteria.getFrom()).isZero();
+                softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
 
-                    softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
-                    softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
-                    softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
-                }
-            );
+                softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
+                softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
+                softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
+            });
         }
 
         @Test
         public void should_wait_for_active_tasks_to_complete() {
             // Simulate a long running background task.
-            executor.execute(
-                () -> {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ignored) {}
-                }
-            );
+            executor.execute(() -> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {}
+            });
 
             apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
         }
@@ -233,22 +229,20 @@ public class ApiSynchronizerTest {
             verify(eventRepository, times(2))
                 .searchLatest(criteriaCaptor.capture(), eventPropertiesCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
 
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    var criteria = criteriaCaptor.getValue();
-                    softly
-                        .assertThat(criteria.getTypes())
-                        .containsAll(List.of(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API));
-                    softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
-                    softly.assertThat(criteria.isStrictMode()).isTrue();
-                    softly.assertThat(criteria.getFrom()).isEqualTo(lastRefreshAt - TIMEFRAME_BEFORE_DELAY);
-                    softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
+            SoftAssertions.assertSoftly(softly -> {
+                var criteria = criteriaCaptor.getValue();
+                softly
+                    .assertThat(criteria.getTypes())
+                    .containsAll(List.of(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API));
+                softly.assertThat(criteria.getEnvironments()).containsExactlyElementsOf(ENVIRONMENTS);
+                softly.assertThat(criteria.isStrictMode()).isTrue();
+                softly.assertThat(criteria.getFrom()).isEqualTo(lastRefreshAt - TIMEFRAME_BEFORE_DELAY);
+                softly.assertThat(criteria.getTo()).isEqualTo(nextLastRefresh + TIMEFRAME_AFTER_DELAY);
 
-                    softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
-                    softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
-                    softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
-                }
-            );
+                softly.assertThat(eventPropertiesCaptor.getValue()).isEqualTo(Event.EventProperties.API_ID);
+                softly.assertThat(pageSizeCaptor.getValue()).isEqualTo(BULK_SIZE.longValue());
+                softly.assertThat(pageCaptor.getAllValues()).containsExactly(0L, 1L);
+            });
         }
     }
 
@@ -287,16 +281,14 @@ public class ApiSynchronizerTest {
 
                 ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        Api verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                        softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-                        softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+                });
 
                 verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
                 verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
@@ -321,13 +313,11 @@ public class ApiSynchronizerTest {
 
                 ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        Api verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
             }
 
             @ParameterizedTest
@@ -346,16 +336,14 @@ public class ApiSynchronizerTest {
 
                 ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        Api verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                        softly.assertThat(verifyApi.getEnvironmentId()).isNull();
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
 
                 verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
                 verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
@@ -379,13 +367,11 @@ public class ApiSynchronizerTest {
 
                 ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        Api verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    Api verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
             }
 
             @ParameterizedTest
@@ -534,16 +520,14 @@ public class ApiSynchronizerTest {
                     io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        var verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                        softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-                        softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    var verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+                });
 
                 verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionsCacheService)
@@ -571,13 +555,11 @@ public class ApiSynchronizerTest {
                     io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        var verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    var verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
             }
 
             @ParameterizedTest
@@ -598,16 +580,14 @@ public class ApiSynchronizerTest {
                     io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        var verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                        softly.assertThat(verifyApi.getEnvironmentId()).isNull();
-                        softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    var verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                    softly.assertThat(verifyApi.getEnvironmentId()).isNull();
+                    softly.assertThat(verifyApi.getEnvironmentHrid()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
 
                 verify(apiKeysCacheService).register(singletonList(new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDefinition)));
                 verify(subscriptionsCacheService)
@@ -634,13 +614,11 @@ public class ApiSynchronizerTest {
                     io.gravitee.gateway.reactive.handlers.api.v4.Api.class
                 );
                 verify(apiManager).register(apiCaptor.capture());
-                SoftAssertions.assertSoftly(
-                    softly -> {
-                        var verifyApi = apiCaptor.getValue();
-                        softly.assertThat(verifyApi.getOrganizationId()).isNull();
-                        softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
-                    }
-                );
+                SoftAssertions.assertSoftly(softly -> {
+                    var verifyApi = apiCaptor.getValue();
+                    softly.assertThat(verifyApi.getOrganizationId()).isNull();
+                    softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
+                });
             }
 
             @ParameterizedTest
@@ -786,21 +764,19 @@ public class ApiSynchronizerTest {
 
             ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
             verify(apiManager).register(apiCaptor.capture());
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    Api verifyApi = apiCaptor.getValue();
-                    softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
-                    softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                    softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
-                    softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
+            SoftAssertions.assertSoftly(softly -> {
+                Api verifyApi = apiCaptor.getValue();
+                softly.assertThat(verifyApi.getId()).isEqualTo(API_ID);
+                softly.assertThat(verifyApi.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                softly.assertThat(verifyApi.getEnvironmentHrid()).isEqualTo(ENVIRONMENT_HRID);
+                softly.assertThat(verifyApi.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(verifyApi.getOrganizationHrid()).isEqualTo(ORGANIZATION_HRID);
 
-                    var plan = verifyApi.getDefinition().getPlan("plan-" + apiDefinition.getId());
-                    softly.assertThat(plan.getApi()).isEqualTo(apiDefinition.getId());
-                    softly.assertThat(plan.getStatus()).isEqualTo("PUBLISHED");
-                    softly.assertThat(plan.getPaths()).isNotEmpty();
-                }
-            );
+                var plan = verifyApi.getDefinition().getPlan("plan-" + apiDefinition.getId());
+                softly.assertThat(plan.getApi()).isEqualTo(apiDefinition.getId());
+                softly.assertThat(plan.getStatus()).isEqualTo("PUBLISHED");
+                softly.assertThat(plan.getPaths()).isNotEmpty();
+            });
 
             verify(apiKeysCacheService).register(singletonList(new Api(apiDefinition)));
             verify(subscriptionsCacheService).register(singletonList(new Api(apiDefinition)));
@@ -904,20 +880,18 @@ public class ApiSynchronizerTest {
     private void givenPlansFor(List<String> apiIds) throws Exception {
         var plans = apiIds
             .stream()
-            .map(
-                id -> {
-                    try {
-                        final Plan plan = new Plan();
-                        plan.setId("plan-" + id);
-                        plan.setApi(id);
-                        plan.setStatus(Plan.Status.PUBLISHED);
-                        plan.setDefinition(objectMapper.writeValueAsString(Map.of("/", List.of(new Rule()))));
-                        return plan;
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
+            .map(id -> {
+                try {
+                    final Plan plan = new Plan();
+                    plan.setId("plan-" + id);
+                    plan.setApi(id);
+                    plan.setStatus(Plan.Status.PUBLISHED);
+                    plan.setDefinition(objectMapper.writeValueAsString(Map.of("/", List.of(new Rule()))));
+                    return plan;
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
                 }
-            )
+            })
             .collect(Collectors.toList());
 
         when(planRepository.findByApis(anyList()))

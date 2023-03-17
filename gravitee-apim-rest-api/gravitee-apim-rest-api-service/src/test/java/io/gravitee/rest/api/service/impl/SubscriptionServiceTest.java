@@ -1757,11 +1757,10 @@ public class SubscriptionServiceTest {
         // verify subscription has been updated without any status change
         verify(subscriptionRepository)
             .update(
-                argThat(
-                    sub ->
-                        sub.getStatus() == ACCEPTED &&
-                        sub.getConfiguration().equals("{\"url\":\"my-url\"}") &&
-                        sub.getConsumerStatus().equals(Subscription.ConsumerStatus.STARTED)
+                argThat(sub ->
+                    sub.getStatus() == ACCEPTED &&
+                    sub.getConfiguration().equals("{\"url\":\"my-url\"}") &&
+                    sub.getConsumerStatus().equals(Subscription.ConsumerStatus.STARTED)
                 )
             );
     }

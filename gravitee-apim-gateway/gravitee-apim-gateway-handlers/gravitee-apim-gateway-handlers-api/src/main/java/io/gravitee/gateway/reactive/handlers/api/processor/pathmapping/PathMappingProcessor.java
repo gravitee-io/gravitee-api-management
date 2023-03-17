@@ -47,23 +47,21 @@ public class PathMappingProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                Map<String, Pattern> pathMappings = getPathMappings(ctx);
-                String path = ctx.request().pathInfo();
-                if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-                    path += '/';
-                }
-                final String finalPath = path;
-                pathMappings
-                    .entrySet()
-                    .stream()
-                    .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-                    .map(Map.Entry::getKey)
-                    .min(comparing(this::countOccurrencesOf))
-                    .ifPresent(resolvedMappedPath -> ctx.metrics().setMappedPath(resolvedMappedPath));
+        return Completable.fromRunnable(() -> {
+            Map<String, Pattern> pathMappings = getPathMappings(ctx);
+            String path = ctx.request().pathInfo();
+            if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
+                path += '/';
             }
-        );
+            final String finalPath = path;
+            pathMappings
+                .entrySet()
+                .stream()
+                .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
+                .map(Map.Entry::getKey)
+                .min(comparing(this::countOccurrencesOf))
+                .ifPresent(resolvedMappedPath -> ctx.metrics().setMappedPath(resolvedMappedPath));
+        });
     }
 
     private Map<String, Pattern> getPathMappings(final MutableExecutionContext ctx) {

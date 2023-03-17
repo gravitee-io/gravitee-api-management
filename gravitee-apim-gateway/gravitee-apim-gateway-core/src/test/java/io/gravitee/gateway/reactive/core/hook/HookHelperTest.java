@@ -164,12 +164,10 @@ class HookHelperTest {
 
     @Test
     public void shouldReturnMaybeWithoutHookingMaybe() {
-        Maybe<String> maybe = Maybe.fromCallable(
-            () -> {
-                mockCtx.getAttributes();
-                return "string";
-            }
-        );
+        Maybe<String> maybe = Maybe.fromCallable(() -> {
+            mockCtx.getAttributes();
+            return "string";
+        });
         HookHelper.hookMaybe(() -> maybe, "componentId", List.of(), mockCtx, ExecutionPhase.REQUEST).test().assertResult("string");
         verifyNoMoreInteractions(mockHook);
         verify(mockCtx).getAttributes();
@@ -179,12 +177,10 @@ class HookHelperTest {
     @Test
     public void shouldReturnMaybeWhenHookingMaybe() {
         // Just use call a mock to be sure the completable has been subscribed
-        Maybe<String> maybe = Maybe.fromCallable(
-            () -> {
-                mockCtx.getAttributes();
-                return "string";
-            }
-        );
+        Maybe<String> maybe = Maybe.fromCallable(() -> {
+            mockCtx.getAttributes();
+            return "string";
+        });
         HookHelper
             .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()
@@ -209,12 +205,10 @@ class HookHelperTest {
     @Test
     public void shouldReturnEmptyMaybeWhenHookingEmptyMaybe() {
         // Just use call a mock to be sure the completable has been subscribed
-        Maybe<String> maybe = Maybe.fromCallable(
-            () -> {
-                mockCtx.getAttributes();
-                return null;
-            }
-        );
+        Maybe<String> maybe = Maybe.fromCallable(() -> {
+            mockCtx.getAttributes();
+            return null;
+        });
         HookHelper
             .hookMaybe(() -> maybe, "componentId", List.of(mockHook, mockHook2), mockCtx, ExecutionPhase.REQUEST)
             .test()

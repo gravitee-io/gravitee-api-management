@@ -75,16 +75,14 @@ public class EndpointInvoker implements Invoker {
 
                             // Plug underlying stream to connection stream
                             stream
-                                .bodyHandler(
-                                    buffer -> {
-                                        decoratedProxyConnection.write(buffer);
+                                .bodyHandler(buffer -> {
+                                    decoratedProxyConnection.write(buffer);
 
-                                        if (decoratedProxyConnection.writeQueueFull()) {
-                                            context.request().pause();
-                                            decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
-                                        }
+                                    if (decoratedProxyConnection.writeQueueFull()) {
+                                        context.request().pause();
+                                        decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
                                     }
-                                )
+                                })
                                 .endHandler(aVoid -> decoratedProxyConnection.end());
 
                             connectionHandler.handle(decoratedProxyConnection);

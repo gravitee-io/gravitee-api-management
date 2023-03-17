@@ -51,22 +51,18 @@ public class LogRequestProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
+        return Completable.defer(() -> {
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
-                if (!analyticsContext.isLoggingEnabled()) {
-                    return Completable.complete();
-                }
-
-                return CONDITION_FILTER
-                    .filter(ctx, analyticsContext.getLoggingContext())
-                    .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
-                    .ignoreElement();
+            if (!analyticsContext.isLoggingEnabled()) {
+                return Completable.complete();
             }
-        );
+
+            return CONDITION_FILTER
+                .filter(ctx, analyticsContext.getLoggingContext())
+                .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
+                .ignoreElement();
+        });
     }
 
     private void initLogEntity(final HttpExecutionContext ctx, final LoggingContext loggingContext) {

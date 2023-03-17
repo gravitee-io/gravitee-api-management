@@ -54,74 +54,63 @@ public class WebSocketConnector extends HttpConnector {
     // Use NOOP Subscriber on websocket close so return completable could be ignored
     @Override
     public Completable connect(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final Request request = ctx.request();
-                final RequestOptions options = buildRequestOptions(ctx);
-                ctx.metrics().setEndpoint(options.getURI());
-                WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
-                return httpClientFactory
-                    .getOrBuildHttpClient(ctx, configuration)
-                    .rxWebSocket(webSocketConnectOptions)
-                    .flatMap(
-                        endpointWebSocket ->
-                            request
-                                .webSocket()
-                                .upgrade()
-                                .doOnSuccess(
-                                    requestWebSocket -> {
-                                        ServerWebSocket serverWebSocket = ((VertxWebSocket) requestWebSocket).getDelegate();
-                                        // Entrypoint to Endpoint
-                                        serverWebSocket.frameHandler(endpointWebSocket::writeFrame);
-                                        serverWebSocket.closeHandler(
-                                            v ->
-                                                // Use NOOP Subscriber to completable could be ignored
-                                                endpointWebSocket.close()
-                                        );
+        return Completable.defer(() -> {
+            final Request request = ctx.request();
+            final RequestOptions options = buildRequestOptions(ctx);
+            ctx.metrics().setEndpoint(options.getURI());
+            WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
+            return httpClientFactory
+                .getOrBuildHttpClient(ctx, configuration)
+                .rxWebSocket(webSocketConnectOptions)
+                .flatMap(endpointWebSocket ->
+                    request
+                        .webSocket()
+                        .upgrade()
+                        .doOnSuccess(requestWebSocket -> {
+                            ServerWebSocket serverWebSocket = ((VertxWebSocket) requestWebSocket).getDelegate();
+                            // Entrypoint to Endpoint
+                            serverWebSocket.frameHandler(endpointWebSocket::writeFrame);
+                            serverWebSocket.closeHandler(v ->
+                                // Use NOOP Subscriber to completable could be ignored
+                                endpointWebSocket.close()
+                            );
 
-                                        // Endpoint to Entrypoint
-                                        endpointWebSocket.frameHandler(serverWebSocket::writeFrame);
-                                        endpointWebSocket.closeHandler(
-                                            v ->
-                                                // Use NOOP Subscriber to completable could be ignored
-                                                serverWebSocket.close()
-                                        );
-                                        endpointWebSocket.exceptionHandler(
-                                            throwable -> serverWebSocket.close((short) HttpStatusCode.BAD_REQUEST_400)
-                                        );
-                                    }
+                            // Endpoint to Entrypoint
+                            endpointWebSocket.frameHandler(serverWebSocket::writeFrame);
+                            endpointWebSocket.closeHandler(v ->
+                                // Use NOOP Subscriber to completable could be ignored
+                                serverWebSocket.close()
+                            );
+                            endpointWebSocket.exceptionHandler(throwable -> serverWebSocket.close((short) HttpStatusCode.BAD_REQUEST_400));
+                        })
+                )
+                .ignoreElement()
+                .onErrorResumeNext(throwable -> {
+                    if (throwable instanceof UpgradeRejectedException) {
+                        UpgradeRejectedException rejectedException = (UpgradeRejectedException) throwable;
+                        return request
+                            .webSocket()
+                            .close(rejectedException.getStatus())
+                            .andThen(
+                                ctx.interruptWith(
+                                    new ExecutionFailure(rejectedException.getStatus())
+                                        .key(HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE)
+                                        .message(rejectedException.getMessage())
                                 )
-                    )
-                    .ignoreElement()
-                    .onErrorResumeNext(
-                        throwable -> {
-                            if (throwable instanceof UpgradeRejectedException) {
-                                UpgradeRejectedException rejectedException = (UpgradeRejectedException) throwable;
-                                return request
-                                    .webSocket()
-                                    .close(rejectedException.getStatus())
-                                    .andThen(
-                                        ctx.interruptWith(
-                                            new ExecutionFailure(rejectedException.getStatus())
-                                                .key(HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE)
-                                                .message(rejectedException.getMessage())
-                                        )
-                                    );
-                            }
-                            return request
-                                .webSocket()
-                                .close(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                                .andThen(
-                                    ctx.interruptWith(
-                                        new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                                            .key(HTTP_PROXY_WEBSOCKET_FAILURE)
-                                            .message("Endpoint Websocket connection in error")
-                                    )
-                                );
-                        }
-                    );
-            }
-        );
+                            );
+                    }
+                    return request
+                        .webSocket()
+                        .close(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                        .andThen(
+                            ctx.interruptWith(
+                                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                                    .key(HTTP_PROXY_WEBSOCKET_FAILURE)
+                                    .message("Endpoint Websocket connection in error")
+                            )
+                        );
+                });
+        });
     }
 
     protected Set<CharSequence> hopHeaders() {

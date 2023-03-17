@@ -72,54 +72,52 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
         Checkpoint messageCounter = testContext.checkpoint(MESSAGE_COUNT);
 
         // Start is asynchronous
-        rpcServer.start(
-            event -> {
-                // Get a stub to use for interacting with the remote service
-                StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
+        rpcServer.start(event -> {
+            // Get a stub to use for interacting with the remote service
+            StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
-                // Call the remote service
-                stub.sayHelloStreaming(
-                    new ClientResponseObserver<HelloRequest, HelloReply>() {
-                        private long timerID;
-                        private ClientCallStreamObserver<HelloRequest> clientCallStreamObserver;
+            // Call the remote service
+            stub.sayHelloStreaming(
+                new ClientResponseObserver<HelloRequest, HelloReply>() {
+                    private long timerID;
+                    private ClientCallStreamObserver<HelloRequest> clientCallStreamObserver;
 
-                        @Override
-                        public void beforeStart(ClientCallStreamObserver<HelloRequest> clientCallStreamObserver) {
-                            this.clientCallStreamObserver = clientCallStreamObserver;
+                    @Override
+                    public void beforeStart(ClientCallStreamObserver<HelloRequest> clientCallStreamObserver) {
+                        this.clientCallStreamObserver = clientCallStreamObserver;
 
-                            // Adding a latency to simulate multi calls to grpc service
-                            timerID =
-                                vertx.setPeriodic(
-                                    1000,
-                                    periodic -> clientCallStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build())
-                                );
-                        }
+                        // Adding a latency to simulate multi calls to grpc service
+                        timerID =
+                            vertx.setPeriodic(
+                                1000,
+                                periodic -> clientCallStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build())
+                            );
+                    }
 
-                        @Override
-                        public void onNext(HelloReply helloReply) {
-                            assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-                            messageCounter.flag();
+                    @Override
+                    public void onNext(HelloReply helloReply) {
+                        assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+                        messageCounter.flag();
 
-                            if (testContext.completed()) {
-                                vertx.cancelTimer(timerID);
-                                clientCallStreamObserver.onCompleted();
-                            }
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            testContext.failNow(throwable);
-                        }
-
-                        @Override
-                        public void onCompleted() {
-                            // TestContext should be completed thanks to the messageCounter
-                            assertThat(testContext.completed()).isTrue();
+                        if (testContext.completed()) {
+                            vertx.cancelTimer(timerID);
+                            clientCallStreamObserver.onCompleted();
                         }
                     }
-                );
-            }
-        );
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        testContext.failNow(throwable);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        // TestContext should be completed thanks to the messageCounter
+                        assertThat(testContext.completed()).isTrue();
+                    }
+                }
+            );
+        });
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }

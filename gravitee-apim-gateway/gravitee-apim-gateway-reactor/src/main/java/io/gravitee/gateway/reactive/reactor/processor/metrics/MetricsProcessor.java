@@ -82,8 +82,8 @@ public class MetricsProcessor implements Processor {
                     request.chunks(
                         request
                             .chunks()
-                            .doOnNext(
-                                buffer -> ctx.metrics().setRequestContentLength(ctx.metrics().getRequestContentLength() + buffer.length())
+                            .doOnNext(buffer ->
+                                ctx.metrics().setRequestContentLength(ctx.metrics().getRequestContentLength() + buffer.length())
                             )
                     );
                 }

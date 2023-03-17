@@ -67,19 +67,17 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
             // Unlike v4 resource, v2 Resource enabled flag has never been used. Keep this unchanged to avoid unexpected behavior or breaking changes.
             reactable
                 .dependencies(Resource.class)
-                .forEach(
-                    resource -> {
-                        log.debug("Loading resource {} for {}", resource.getName(), reactable);
-                        final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
-                            resource.getType(),
-                            resource.getConfiguration()
-                        );
+                .forEach(resource -> {
+                    log.debug("Loading resource {} for {}", resource.getName(), reactable);
+                    final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
+                        resource.getType(),
+                        resource.getConfiguration()
+                    );
 
-                        if (resourceInstance != null) {
-                            resources.put(resource.getName(), resourceInstance);
-                        }
+                    if (resourceInstance != null) {
+                        resources.put(resource.getName(), resourceInstance);
                     }
-                );
+                });
         }
     }
 }

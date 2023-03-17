@@ -315,12 +315,10 @@ class DefaultSubscriptionDispatcherTest {
                 assertEquals(1, activeSubscriptions.size());
                 assertSame(subscription, activeSubscriptions.get(SUBSCRIPTION_ID));
 
-                obs.assertError(
-                    t -> {
-                        assertThat(t).isInstanceOf(SubscriptionConnectionException.class).hasMessage("Connection error: Error message");
-                        return true;
-                    }
-                );
+                obs.assertError(t -> {
+                    assertThat(t).isInstanceOf(SubscriptionConnectionException.class).hasMessage("Connection error: Error message");
+                    return true;
+                });
             }
 
             @Test
@@ -344,16 +342,14 @@ class DefaultSubscriptionDispatcherTest {
             void should_dispose_subscription_when_retries_reach_the_limit() {
                 AtomicInteger atomicCpt = new AtomicInteger(0);
                 mockSubscriptionChain(
-                    Completable.create(
-                        emitter -> {
-                            int cpt = atomicCpt.incrementAndGet();
-                            if (cpt <= 10) {
-                                emitter.onError(new RuntimeException("exception " + cpt));
-                            } else {
-                                emitter.onComplete();
-                            }
+                    Completable.create(emitter -> {
+                        int cpt = atomicCpt.incrementAndGet();
+                        if (cpt <= 10) {
+                            emitter.onError(new RuntimeException("exception " + cpt));
+                        } else {
+                            emitter.onComplete();
                         }
-                    )
+                    })
                 );
                 final TestObserver<Void> obs = dispatcher.dispatch(subscription).test();
 
@@ -371,16 +367,14 @@ class DefaultSubscriptionDispatcherTest {
             void should_dispose_immediately_when_non_retryable_error_occurs() {
                 AtomicInteger atomicCpt = new AtomicInteger(0);
                 mockSubscriptionChain(
-                    Completable.create(
-                        emitter -> {
-                            int cpt = atomicCpt.incrementAndGet();
-                            if (cpt <= 10) {
-                                emitter.onError(new MessageProcessingException("exception " + cpt));
-                            } else {
-                                emitter.onComplete();
-                            }
+                    Completable.create(emitter -> {
+                        int cpt = atomicCpt.incrementAndGet();
+                        if (cpt <= 10) {
+                            emitter.onError(new MessageProcessingException("exception " + cpt));
+                        } else {
+                            emitter.onComplete();
                         }
-                    )
+                    })
                 );
 
                 final TestObserver<Void> obs = dispatcher.dispatch(subscription).test();
@@ -502,12 +496,10 @@ class DefaultSubscriptionDispatcherTest {
 
             dispatcher.dispatch(updatedSubscription).test().await().assertComplete();
 
-            SoftAssertions.assertSoftly(
-                softly -> {
-                    softly.assertThat(dispatcher.getActiveSubscriptions()).isEmpty();
-                    softly.assertThat(dispatcher.getActiveDisposables()).isEmpty();
-                }
-            );
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(dispatcher.getActiveSubscriptions()).isEmpty();
+                softly.assertThat(dispatcher.getActiveDisposables()).isEmpty();
+            });
         }
     }
 

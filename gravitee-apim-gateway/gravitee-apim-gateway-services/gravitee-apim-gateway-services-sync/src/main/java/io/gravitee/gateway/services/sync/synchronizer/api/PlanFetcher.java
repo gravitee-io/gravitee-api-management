@@ -56,15 +56,13 @@ public class PlanFetcher {
     public Flowable<ReactableApi<?>> fetchApiPlans(Flowable<ReactableApi<?>> upstream, int bulkSize) {
         return upstream
             .groupBy(ReactableApi::getDefinitionVersion)
-            .flatMap(
-                apisByDefinitionVersion -> {
-                    if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
-                        return apisByDefinitionVersion.buffer(bulkSize).flatMap(this::fetchV1ApiPlans);
-                    } else {
-                        return apisByDefinitionVersion;
-                    }
+            .flatMap(apisByDefinitionVersion -> {
+                if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
+                    return apisByDefinitionVersion.buffer(bulkSize).flatMap(this::fetchV1ApiPlans);
+                } else {
+                    return apisByDefinitionVersion;
                 }
-            );
+            });
     }
 
     private Flowable<ReactableApi<?>> fetchV1ApiPlans(List<ReactableApi<?>> apiDefinitions) {
@@ -82,28 +80,24 @@ public class PlanFetcher {
                 .stream()
                 .collect(Collectors.groupingBy(Plan::getApi));
 
-            plansByApi.forEach(
-                (key, value) -> {
-                    final io.gravitee.gateway.handlers.api.definition.Api api = apisById.get(key);
+            plansByApi.forEach((key, value) -> {
+                final io.gravitee.gateway.handlers.api.definition.Api api = apisById.get(key);
 
-                    if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-                        // Deploy only published plan
-                        api
-                            .getDefinition()
-                            .setPlans(
-                                value
-                                    .stream()
-                                    .filter(
-                                        plan ->
-                                            Plan.Status.PUBLISHED.equals(plan.getStatus()) ||
-                                            Plan.Status.DEPRECATED.equals(plan.getStatus())
-                                    )
-                                    .map(this::convert)
-                                    .collect(Collectors.toList())
-                            );
-                    }
+                if (api.getDefinitionVersion() == DefinitionVersion.V1) {
+                    // Deploy only published plan
+                    api
+                        .getDefinition()
+                        .setPlans(
+                            value
+                                .stream()
+                                .filter(plan ->
+                                    Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
+                                )
+                                .map(this::convert)
+                                .collect(Collectors.toList())
+                        );
                 }
-            );
+            });
         } catch (TechnicalException te) {
             logger.error("Unexpected error while loading plans of APIs: [{}]", apiV1Ids, te);
         }

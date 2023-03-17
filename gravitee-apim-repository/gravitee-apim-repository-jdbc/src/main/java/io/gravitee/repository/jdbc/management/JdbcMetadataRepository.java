@@ -109,16 +109,15 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
                     )
             );
             return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType())
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format(
-                                "No metadata found with id [%s, %s, %s]",
-                                metadata.getKey(),
-                                metadata.getReferenceId(),
-                                metadata.getReferenceType()
-                            )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format(
+                            "No metadata found with id [%s, %s, %s]",
+                            metadata.getKey(),
+                            metadata.getReferenceId(),
+                            metadata.getReferenceType()
                         )
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

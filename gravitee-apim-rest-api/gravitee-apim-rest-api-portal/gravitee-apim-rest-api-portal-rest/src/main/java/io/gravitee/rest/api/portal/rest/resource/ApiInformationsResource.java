@@ -46,14 +46,12 @@ public class ApiInformationsResource extends AbstractResource {
             List<ApiHeaderEntity> all = apiService.getPortalHeaders(executionContext, apiId);
             List<ApiInformation> information = all
                 .stream()
-                .map(
-                    apiHeaderEntity -> {
-                        ApiInformation ai = new ApiInformation();
-                        ai.setName(apiHeaderEntity.getName());
-                        ai.setValue(apiHeaderEntity.getValue());
-                        return ai;
-                    }
-                )
+                .map(apiHeaderEntity -> {
+                    ApiInformation ai = new ApiInformation();
+                    ai.setName(apiHeaderEntity.getName());
+                    ai.setValue(apiHeaderEntity.getValue());
+                    return ai;
+                })
                 .collect(Collectors.toList());
 
             return Response.ok(information).build();

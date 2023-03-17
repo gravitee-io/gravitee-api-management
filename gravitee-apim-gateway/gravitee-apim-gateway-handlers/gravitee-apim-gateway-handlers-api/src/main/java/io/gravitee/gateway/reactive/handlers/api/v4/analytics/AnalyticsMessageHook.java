@@ -57,49 +57,43 @@ public class AnalyticsMessageHook implements InvokerHook {
         if (!ctx.metrics().isEnabled()) {
             return Completable.complete();
         }
-        return Completable.defer(
-            () -> {
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
+        return Completable.defer(() -> {
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
-                if (analyticsContext == null || !analyticsContext.isEnabled()) {
-                    return Completable.complete();
-                }
-
-                MessageCounters atomicCounters = new MessageCounters();
-                return ctx
-                    .request()
-                    .onMessage(
-                        message -> {
-                            MessageCounters.Counters counters = atomicCounters.increment(message);
-                            if (MessageAnalyticsHelper.isRecordable(message)) {
-                                MessageMetrics messageMetrics = messageReporter.reportMessageMetricsWithLatency(
-                                    ctx,
-                                    MessageOperation.PUBLISH,
-                                    MessageConnectorType.ENDPOINT,
-                                    message,
-                                    counters
-                                );
-
-                                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-                                if (
-                                    loggingContext != null &&
-                                    loggingContext.endpointRequest() &&
-                                    MessageAnalyticsHelper.isRecordableWithLogging(message)
-                                ) {
-                                    return messageReporter.reportMessageLog(
-                                        messageMetrics,
-                                        message,
-                                        new MessageLogEndpointRequest(loggingContext, message)
-                                    );
-                                }
-                            }
-                            return Maybe.just(message);
-                        }
-                    );
+            if (analyticsContext == null || !analyticsContext.isEnabled()) {
+                return Completable.complete();
             }
-        );
+
+            MessageCounters atomicCounters = new MessageCounters();
+            return ctx
+                .request()
+                .onMessage(message -> {
+                    MessageCounters.Counters counters = atomicCounters.increment(message);
+                    if (MessageAnalyticsHelper.isRecordable(message)) {
+                        MessageMetrics messageMetrics = messageReporter.reportMessageMetricsWithLatency(
+                            ctx,
+                            MessageOperation.PUBLISH,
+                            MessageConnectorType.ENDPOINT,
+                            message,
+                            counters
+                        );
+
+                        final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+                        if (
+                            loggingContext != null &&
+                            loggingContext.endpointRequest() &&
+                            MessageAnalyticsHelper.isRecordableWithLogging(message)
+                        ) {
+                            return messageReporter.reportMessageLog(
+                                messageMetrics,
+                                message,
+                                new MessageLogEndpointRequest(loggingContext, message)
+                            );
+                        }
+                    }
+                    return Maybe.just(message);
+                });
+        });
     }
 
     @Override
@@ -107,58 +101,52 @@ public class AnalyticsMessageHook implements InvokerHook {
         if (!ctx.metrics().isEnabled()) {
             return Completable.complete();
         }
-        return Completable.defer(
-            () -> {
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
+        return Completable.defer(() -> {
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
-                if (analyticsContext == null || !analyticsContext.isEnabled()) {
-                    return Completable.complete();
-                }
-
-                MessageSamplingStrategy messageSamplingStrategy = analyticsContext.getMessageSamplingStrategy();
-
-                MessageCounters atomicCounters = new MessageCounters();
-                AtomicLong lastMessageTimestamp = new AtomicLong(-1);
-                return ctx
-                    .response()
-                    .onMessage(
-                        message -> {
-                            MessageCounters.Counters counters = atomicCounters.increment(message);
-                            if (
-                                MessageAnalyticsHelper.computeRecordable(
-                                    message,
-                                    messageSamplingStrategy,
-                                    counters.messageCount(),
-                                    lastMessageTimestamp.get()
-                                )
-                            ) {
-                                lastMessageTimestamp.set(message.timestamp());
-                                MessageMetrics messageMetrics = messageReporter.reportMessageMetrics(
-                                    ctx,
-                                    MessageOperation.SUBSCRIBE,
-                                    MessageConnectorType.ENDPOINT,
-                                    message,
-                                    counters
-                                );
-
-                                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-                                if (loggingContext != null && loggingContext.endpointResponse()) {
-                                    return messageReporter.reportConditionalMessageLog(
-                                        ctx,
-                                        messageMetrics,
-                                        loggingContext,
-                                        message,
-                                        new MessageLogEndpointResponse(loggingContext, message)
-                                    );
-                                }
-                            }
-                            return Maybe.just(message);
-                        }
-                    );
+            if (analyticsContext == null || !analyticsContext.isEnabled()) {
+                return Completable.complete();
             }
-        );
+
+            MessageSamplingStrategy messageSamplingStrategy = analyticsContext.getMessageSamplingStrategy();
+
+            MessageCounters atomicCounters = new MessageCounters();
+            AtomicLong lastMessageTimestamp = new AtomicLong(-1);
+            return ctx
+                .response()
+                .onMessage(message -> {
+                    MessageCounters.Counters counters = atomicCounters.increment(message);
+                    if (
+                        MessageAnalyticsHelper.computeRecordable(
+                            message,
+                            messageSamplingStrategy,
+                            counters.messageCount(),
+                            lastMessageTimestamp.get()
+                        )
+                    ) {
+                        lastMessageTimestamp.set(message.timestamp());
+                        MessageMetrics messageMetrics = messageReporter.reportMessageMetrics(
+                            ctx,
+                            MessageOperation.SUBSCRIBE,
+                            MessageConnectorType.ENDPOINT,
+                            message,
+                            counters
+                        );
+
+                        final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+                        if (loggingContext != null && loggingContext.endpointResponse()) {
+                            return messageReporter.reportConditionalMessageLog(
+                                ctx,
+                                messageMetrics,
+                                loggingContext,
+                                message,
+                                new MessageLogEndpointResponse(loggingContext, message)
+                            );
+                        }
+                    }
+                    return Maybe.just(message);
+                });
+        });
     }
 
     @Override

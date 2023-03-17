@@ -276,13 +276,11 @@ public class DefaultApiReactorFactoryTest {
 
             assertThat(templateVariableProviders)
                 .hasSize(2 + registeredApiTemplateVariableProvider.size())
-                .satisfies(
-                    list -> {
-                        assertThat(list.stream().filter(p -> p instanceof ApiTemplateVariableProvider).findFirst()).isPresent();
-                        assertThat(list.stream().filter(p -> registeredApiTemplateVariableProvider.contains(p)).findFirst()).isPresent();
-                        assertThat(list.stream().filter(p -> p instanceof EndpointManager).findFirst()).isPresent();
-                    }
-                );
+                .satisfies(list -> {
+                    assertThat(list.stream().filter(p -> p instanceof ApiTemplateVariableProvider).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> registeredApiTemplateVariableProvider.contains(p)).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> p instanceof EndpointManager).findFirst()).isPresent();
+                });
         }
 
         private List<TemplateVariableProvider> registerApiTemplateVariableProvider(List<TemplateVariableProvider> providers) {

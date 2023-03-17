@@ -180,12 +180,10 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         return membershipService
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
             .stream()
-            .filter(
-                m -> {
-                    final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
-                    return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
-                }
-            )
+            .filter(m -> {
+                final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+            })
             .map(MembershipEntity::getReferenceId)
             .collect(toList());
     }

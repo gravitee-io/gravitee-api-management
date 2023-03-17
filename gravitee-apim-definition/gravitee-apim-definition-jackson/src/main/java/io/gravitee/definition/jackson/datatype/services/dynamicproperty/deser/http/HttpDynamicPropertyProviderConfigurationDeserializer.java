@@ -75,16 +75,14 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
             final List<HttpHeader> headers = new ArrayList<>();
             headersNode
                 .elements()
-                .forEachRemaining(
-                    headerNode -> {
-                        if (headerNode.findValue("name") != null & headerNode.findValue("value") != null) {
-                            HttpHeader header = new HttpHeader();
-                            header.setName(headerNode.findValue("name").asText());
-                            header.setValue(headerNode.findValue("value").asText());
-                            headers.add(header);
-                        }
+                .forEachRemaining(headerNode -> {
+                    if (headerNode.findValue("name") != null & headerNode.findValue("value") != null) {
+                        HttpHeader header = new HttpHeader();
+                        header.setName(headerNode.findValue("name").asText());
+                        header.setValue(headerNode.findValue("value").asText());
+                        headers.add(header);
                     }
-                );
+                });
             configuration.setHeaders(headers);
         }
 

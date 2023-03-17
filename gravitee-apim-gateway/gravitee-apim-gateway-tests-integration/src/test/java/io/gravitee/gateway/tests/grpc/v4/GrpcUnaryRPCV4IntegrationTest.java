@@ -56,40 +56,38 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
         ManagedChannel channel = createManagedChannel();
 
         // Start is asynchronous
-        rpcServer.start(
-            event -> {
-                // Get a stub to use for interacting with the remote service
-                GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
+        rpcServer.start(event -> {
+            // Get a stub to use for interacting with the remote service
+            GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 
-                HelloRequest request = HelloRequest.newBuilder().setName("You").build();
+            HelloRequest request = HelloRequest.newBuilder().setName("You").build();
 
-                // Call the remote service
-                stub.sayHello(
-                    request,
-                    new StreamObserver<>() {
-                        private HelloReply helloReply;
+            // Call the remote service
+            stub.sayHello(
+                request,
+                new StreamObserver<>() {
+                    private HelloReply helloReply;
 
-                        @Override
-                        public void onNext(HelloReply helloReply) {
-                            this.helloReply = helloReply;
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            testContext.failNow(throwable.getMessage());
-                        }
-
-                        @Override
-                        public void onCompleted() {
-                            assertThat(helloReply).isNotNull();
-                            assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-
-                            testContext.completeNow();
-                        }
+                    @Override
+                    public void onNext(HelloReply helloReply) {
+                        this.helloReply = helloReply;
                     }
-                );
-            }
-        );
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        testContext.failNow(throwable.getMessage());
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        assertThat(helloReply).isNotNull();
+                        assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+
+                        testContext.completeNow();
+                    }
+                }
+            );
+        });
     }
 
     private static GreeterGrpc.GreeterImplBase buildRPCService() {

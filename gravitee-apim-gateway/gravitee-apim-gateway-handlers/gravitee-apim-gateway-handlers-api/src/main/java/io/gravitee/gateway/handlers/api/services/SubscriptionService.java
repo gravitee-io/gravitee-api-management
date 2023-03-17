@@ -128,14 +128,12 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
 
     @Override
     public void dispatchFor(List<String> apis) {
-        apis.forEach(
-            api -> {
-                final List<Subscription> subscriptions = dispatchableSubscriptionsByApi.evict(api);
-                if (subscriptions != null) {
-                    subscriptions.forEach(this::dispatch);
-                }
+        apis.forEach(api -> {
+            final List<Subscription> subscriptions = dispatchableSubscriptionsByApi.evict(api);
+            if (subscriptions != null) {
+                subscriptions.forEach(this::dispatch);
             }
-        );
+        });
     }
 
     private void cacheStandardSubscription(Subscription subscription) {
@@ -159,33 +157,29 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         subscriptionDispatcher
             .dispatch(subscription)
             .doOnComplete(() -> LOGGER.debug("Subscription [{}] has been dispatched", subscription.getId()))
-            .onErrorResumeNext(
-                t -> {
-                    LOGGER.error("Subscription [{}] failed with cause: {}", subscription.getId(), t);
-                    return sendFailureCommand(subscription, t);
-                }
-            )
+            .onErrorResumeNext(t -> {
+                LOGGER.error("Subscription [{}] failed with cause: {}", subscription.getId(), t);
+                return sendFailureCommand(subscription, t);
+            })
             .subscribe();
     }
 
     private Completable sendFailureCommand(Subscription subscription, Throwable throwable) {
         return Completable
-            .fromRunnable(
-                () -> {
-                    final Command command = new Command();
-                    Instant now = Instant.now();
-                    command.setId(UUID.random().toString());
-                    command.setFrom(node.id());
-                    command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
-                    command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
-                    command.setCreatedAt(Date.from(now));
-                    command.setUpdatedAt(Date.from(now));
+            .fromRunnable(() -> {
+                final Command command = new Command();
+                Instant now = Instant.now();
+                command.setId(UUID.random().toString());
+                command.setFrom(node.id());
+                command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+                command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                command.setCreatedAt(Date.from(now));
+                command.setUpdatedAt(Date.from(now));
 
-                    convertSubscriptionCommand(subscription, command, throwable.getMessage());
+                convertSubscriptionCommand(subscription, command, throwable.getMessage());
 
-                    saveCommand(subscription, command);
-                }
-            )
+                saveCommand(subscription, command);
+            })
             .subscribeOn(Schedulers.io());
     }
 

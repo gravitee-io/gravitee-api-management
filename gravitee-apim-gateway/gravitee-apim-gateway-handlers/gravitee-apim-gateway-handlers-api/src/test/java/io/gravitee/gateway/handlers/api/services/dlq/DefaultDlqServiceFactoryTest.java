@@ -77,11 +77,10 @@ class DefaultDlqServiceFactoryTest {
         assertThat(dlqService).isNotNull().isExactlyInstanceOf(DefaultDlqService.class);
         verify(endpointManager)
             .next(
-                argThat(
-                    criteria ->
-                        criteria.getName().equals(endpointTarget) &&
-                        criteria.getModes().equals(Set.of(PUBLISH)) &&
-                        criteria.getApiType() == ApiType.MESSAGE
+                argThat(criteria ->
+                    criteria.getName().equals(endpointTarget) &&
+                    criteria.getModes().equals(Set.of(PUBLISH)) &&
+                    criteria.getApiType() == ApiType.MESSAGE
                 )
             );
     }

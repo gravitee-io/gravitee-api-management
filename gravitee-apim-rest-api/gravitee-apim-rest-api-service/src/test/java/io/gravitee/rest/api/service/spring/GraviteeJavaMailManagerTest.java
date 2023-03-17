@@ -93,11 +93,10 @@ public class GraviteeJavaMailManagerTest {
             .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
             .findAll(
-                argThat(
-                    (List<Key> o) ->
-                        o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED) &&
-                        o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE) &&
-                        o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
+                argThat((List<Key> o) ->
+                    o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED) &&
+                    o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE) &&
+                    o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
                 ),
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ENVIRONMENT),

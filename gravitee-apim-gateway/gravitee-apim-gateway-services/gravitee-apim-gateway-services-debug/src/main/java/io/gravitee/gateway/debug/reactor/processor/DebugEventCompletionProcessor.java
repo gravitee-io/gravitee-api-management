@@ -219,20 +219,18 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         Map<String, Object> result = new HashMap<>();
         ds
             .getDebugDiffContent()
-            .forEach(
-                (key, value) -> {
-                    if (DebugStep.DIFF_KEY_HEADERS.equals(key)) {
-                        // Headers are converted to Map<String, List<String>>
-                        result.put(DebugStep.DIFF_KEY_HEADERS, convertHeaders((HttpHeaders) value));
-                    } else if (DebugStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
-                        // Body is converted from Buffer to String
-                        result.put(DebugStep.DIFF_KEY_BODY, value.toString());
-                    } else {
-                        // Everything else is kept as is
-                        result.put(key, value);
-                    }
+            .forEach((key, value) -> {
+                if (DebugStep.DIFF_KEY_HEADERS.equals(key)) {
+                    // Headers are converted to Map<String, List<String>>
+                    result.put(DebugStep.DIFF_KEY_HEADERS, convertHeaders((HttpHeaders) value));
+                } else if (DebugStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
+                    // Body is converted from Buffer to String
+                    result.put(DebugStep.DIFF_KEY_BODY, value.toString());
+                } else {
+                    // Everything else is kept as is
+                    result.put(key, value);
                 }
-            );
+            });
 
         debugStep.setResult(result);
         return debugStep;

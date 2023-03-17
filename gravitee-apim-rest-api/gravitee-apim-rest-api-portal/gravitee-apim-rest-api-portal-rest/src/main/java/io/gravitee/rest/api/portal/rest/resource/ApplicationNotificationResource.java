@@ -91,12 +91,10 @@ public class ApplicationNotificationResource extends AbstractResource {
 
         genericNotificationConfigService
             .findByReference(NotificationReferenceType.APPLICATION, applicationId)
-            .forEach(
-                genericConfig -> {
-                    genericConfig.setHooks(notification.getHooks());
-                    genericNotificationConfigService.update(genericConfig);
-                }
-            );
+            .forEach(genericConfig -> {
+                genericConfig.setHooks(notification.getHooks());
+                genericNotificationConfigService.update(genericConfig);
+            });
         return Response.ok(notification.getHooks()).build();
     }
 }

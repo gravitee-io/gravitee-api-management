@@ -38,7 +38,7 @@ public class UserDefinedProxyEndpointTest {
         expectedParameters.add("endpointParam", "v");
 
         ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
-        .createProxyRequest(mock(Request.class));
+            .createProxyRequest(mock(Request.class));
 
         Assert.assertNotNull(proxyRequest);
         Assert.assertNotNull(proxyRequest.parameters());
@@ -76,7 +76,7 @@ public class UserDefinedProxyEndpointTest {
         when(request.parameters()).thenReturn(requestQueryParameters);
 
         ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
-        .createProxyRequest(request);
+            .createProxyRequest(request);
 
         Assert.assertNotNull(proxyRequest);
         Assert.assertNotNull(proxyRequest.parameters());

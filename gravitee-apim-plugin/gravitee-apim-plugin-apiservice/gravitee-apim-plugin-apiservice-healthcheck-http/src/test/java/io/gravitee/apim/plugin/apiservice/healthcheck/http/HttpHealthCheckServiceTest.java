@@ -175,24 +175,20 @@ public class HttpHealthCheckServiceTest {
 
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
             when(endpointConnector.connect(any()))
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200);
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                );
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200);
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                });
 
             startHealthCheckAndValidate(countDownLatch, hcConfig.getSuccessThreshold(), 0, 0);
         }
@@ -215,24 +211,20 @@ public class HttpHealthCheckServiceTest {
 
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
             when(endpointConnector.connect(any()))
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200);
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                );
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200);
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                });
 
             startHealthCheckAndValidate(countDownLatch, hcConfig.getSuccessThreshold(), 0, 0);
         }
@@ -257,70 +249,56 @@ public class HttpHealthCheckServiceTest {
 
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold() + hcConfig.getSuccessThreshold() + 1);
 
-            doAnswer(
-                    invoker -> {
-                        EndpointStatus status = invoker.getArgument(0);
-                        if (!status.isTransition()) {
-                            // we do not count down if there is a transition because we want to be
-                            // sure that the alert will be sent
-                            countDownLatch.countDown();
-                        }
-                        return null;
+            doAnswer(invoker -> {
+                    EndpointStatus status = invoker.getArgument(0);
+                    if (!status.isTransition()) {
+                        // we do not count down if there is a transition because we want to be
+                        // sure that the alert will be sent
+                        countDownLatch.countDown();
                     }
-                )
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(alertEventProducer)
                 .send(any());
 
             when(endpointConnector.connect(any()))
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(500); // UP to TRANSITIONALLY_DOWN
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(500); // TRANSITIONALLY_DOWN to DOWN
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(500); // No transition (DOWN)
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200); // // DOWN to TRANSITIONALLY_UP
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200); // // TRANSITIONALLY_UP to UP
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                );
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(500); // UP to TRANSITIONALLY_DOWN
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(500); // TRANSITIONALLY_DOWN to DOWN
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(500); // No transition (DOWN)
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200); // // DOWN to TRANSITIONALLY_UP
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200); // // TRANSITIONALLY_UP to UP
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                });
 
             final int expectedTransition = 4;
             startHealthCheckAndValidate(
@@ -351,56 +329,46 @@ public class HttpHealthCheckServiceTest {
 
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold() + hcConfig.getSuccessThreshold() + 1);
 
-            doAnswer(
-                    invoker -> {
-                        EndpointStatus status = invoker.getArgument(0);
-                        if (!status.isTransition()) {
-                            // we do not count down if there is a transition because we want to be
-                            // sure that the alert will be sent
-                            countDownLatch.countDown();
-                        }
-                        return null;
+            doAnswer(invoker -> {
+                    EndpointStatus status = invoker.getArgument(0);
+                    if (!status.isTransition()) {
+                        // we do not count down if there is a transition because we want to be
+                        // sure that the alert will be sent
+                        countDownLatch.countDown();
                     }
-                )
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(alertEventProducer)
                 .send(any());
 
             when(endpointConnector.connect(any()))
                 .thenAnswer(invokable -> Completable.error(new UnknownHostException())) // UP to TRANSITIONALLY_DOWN
                 .thenAnswer(invokable -> Completable.error(new SocketException())) // TRANSITIONALLY_DOWN to DOWN
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(500); // No transition (DOWN)
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200); // // DOWN to TRANSITIONALLY_UP
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                )
-                .thenAnswer(
-                    invokable -> {
-                        ExecutionContext ctx = invokable.getArgument(0);
-                        ctx.response().status(200); // // TRANSITIONALLY_UP to UP
-                        ctx.metrics().setEndpoint(hcConfig.getTarget());
-                        return Completable.complete();
-                    }
-                );
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(500); // No transition (DOWN)
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200); // // DOWN to TRANSITIONALLY_UP
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                })
+                .thenAnswer(invokable -> {
+                    ExecutionContext ctx = invokable.getArgument(0);
+                    ctx.response().status(200); // // TRANSITIONALLY_UP to UP
+                    ctx.metrics().setEndpoint(hcConfig.getTarget());
+                    return Completable.complete();
+                });
 
             final int expectedTransition = 4;
             startHealthCheckAndValidate(
@@ -431,25 +399,23 @@ public class HttpHealthCheckServiceTest {
 
             verify(reporterService, times(expectedSuccess))
                 .report(
-                    argThat(
-                        (EndpointStatus reportable) ->
-                            reportable.getEndpoint().equals(ENDPOINT_NAME) &&
-                            reportable.getSteps().get(0).getRequest().getUri() != null &&
-                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
-                            reportable.isSuccess()
+                    argThat((EndpointStatus reportable) ->
+                        reportable.getEndpoint().equals(ENDPOINT_NAME) &&
+                        reportable.getSteps().get(0).getRequest().getUri() != null &&
+                        reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
+                        reportable.isSuccess()
                     )
                 );
 
             verify(reporterService, times(expectedFailure))
                 .report(
-                    argThat(
-                        (EndpointStatus reportable) ->
-                            reportable.getEndpoint().equals(ENDPOINT_NAME) &&
-                            (
-                                reportable.getSteps().get(0).getRequest().getUri() == null ||
-                                reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget())
-                            ) &&
-                            !reportable.isSuccess()
+                    argThat((EndpointStatus reportable) ->
+                        reportable.getEndpoint().equals(ENDPOINT_NAME) &&
+                        (
+                            reportable.getSteps().get(0).getRequest().getUri() == null ||
+                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget())
+                        ) &&
+                        !reportable.isSuccess()
                     )
                 );
 
@@ -507,12 +473,10 @@ public class HttpHealthCheckServiceTest {
             when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
@@ -530,11 +494,10 @@ public class HttpHealthCheckServiceTest {
 
             verify(reporterService, times(hcConfig.getSuccessThreshold()))
                 .report(
-                    argThat(
-                        (EndpointStatus reportable) ->
-                            reportable.getEndpoint().equals(ENDPOINT_NAME) &&
-                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
-                            reportable.isSuccess()
+                    argThat((EndpointStatus reportable) ->
+                        reportable.getEndpoint().equals(ENDPOINT_NAME) &&
+                        reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
+                        reportable.isSuccess()
                     )
                 );
         }
@@ -575,12 +538,10 @@ public class HttpHealthCheckServiceTest {
             when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold());
 
-            doAnswer(
-                    invoker -> {
-                        countDownLatch.countDown();
-                        return null;
-                    }
-                )
+            doAnswer(invoker -> {
+                    countDownLatch.countDown();
+                    return null;
+                })
                 .when(reporterService)
                 .report(any());
 
@@ -598,11 +559,10 @@ public class HttpHealthCheckServiceTest {
 
             verify(reporterService, times(hcConfig.getFailureThreshold()))
                 .report(
-                    argThat(
-                        (EndpointStatus reportable) ->
-                            reportable.getEndpoint().equals(ENDPOINT_NAME) &&
-                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
-                            !reportable.isSuccess()
+                    argThat((EndpointStatus reportable) ->
+                        reportable.getEndpoint().equals(ENDPOINT_NAME) &&
+                        reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
+                        !reportable.isSuccess()
                     )
                 );
         }

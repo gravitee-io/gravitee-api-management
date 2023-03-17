@@ -55,13 +55,11 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
     protected void processOneShotUpgrade() throws TechnicalException {
         organizationRepository
             .findAll()
-            .forEach(
-                organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeDefaultRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                }
-            );
+            .forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeDefaultRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
     }
 
     private void initializeDefaultRoles(ExecutionContext executionContext) {

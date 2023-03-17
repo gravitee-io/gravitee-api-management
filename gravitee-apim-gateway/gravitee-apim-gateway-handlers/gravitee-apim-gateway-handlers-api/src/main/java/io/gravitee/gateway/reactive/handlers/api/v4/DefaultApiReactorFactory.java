@@ -181,11 +181,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
                 final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory = new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(
-                    api.getId(),
-                    policyManager,
-                    configuration
-                );
+                final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory =
+                    new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
                 final FlowChainFactory flowChainFactory = new FlowChainFactory(
                     platformPolicyChainFactory,
@@ -203,11 +200,12 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
                 customComponentProvider.add(EndpointManager.class, endpointManager);
 
-                final io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory = new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(
-                    v4PolicyChainFactory,
-                    configuration,
-                    v4FlowResolverFactory
-                );
+                final io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory =
+                    new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(
+                        v4PolicyChainFactory,
+                        configuration,
+                        v4FlowResolverFactory
+                    );
 
                 final DefaultDlqServiceFactory dlqServiceFactory = new DefaultDlqServiceFactory(api.getDefinition(), endpointManager);
                 customComponentProvider.add(DlqServiceFactory.class, dlqServiceFactory);

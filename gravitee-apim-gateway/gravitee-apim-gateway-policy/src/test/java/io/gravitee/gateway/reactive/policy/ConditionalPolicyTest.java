@@ -200,9 +200,8 @@ class ConditionalPolicyTest {
         final FlowableTransformer<Message, Message> onMessages = upstream ->
             upstream.map(message -> new DefaultMessage(TRANSFORMED_MESSAGE_CONTENT));
         final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor = ArgumentCaptor.forClass(
-            Function.class
-        );
+        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
+            ArgumentCaptor.forClass(Function.class);
 
         doNothing().when(((MutableRequest) request)).setMessagesInterceptor(onMessagesInterceptor.capture());
         when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.just(cut));
@@ -223,9 +222,8 @@ class ConditionalPolicyTest {
     @Test
     void shouldNotExecutePolicyOnMessageRequestWhenConditionIsNotMet() {
         final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor = ArgumentCaptor.forClass(
-            Function.class
-        );
+        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
+            ArgumentCaptor.forClass(Function.class);
 
         doNothing().when(((MutableRequest) request)).setMessagesInterceptor(onMessagesInterceptor.capture());
         when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.empty());
@@ -260,9 +258,8 @@ class ConditionalPolicyTest {
         final FlowableTransformer<Message, Message> onMessages = upstream ->
             upstream.map(message -> new DefaultMessage(TRANSFORMED_MESSAGE_CONTENT));
         final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor = ArgumentCaptor.forClass(
-            Function.class
-        );
+        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
+            ArgumentCaptor.forClass(Function.class);
 
         doNothing().when(((MutableResponse) response)).setMessagesInterceptor(onMessagesInterceptor.capture());
         when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.just(cut));
@@ -283,9 +280,8 @@ class ConditionalPolicyTest {
     @Test
     void shouldNotExecutePolicyOnMessageResponseWhenConditionIsNotMet() {
         final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor = ArgumentCaptor.forClass(
-            Function.class
-        );
+        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
+            ArgumentCaptor.forClass(Function.class);
 
         doNothing().when(((MutableResponse) response)).setMessagesInterceptor(onMessagesInterceptor.capture());
         when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.empty());

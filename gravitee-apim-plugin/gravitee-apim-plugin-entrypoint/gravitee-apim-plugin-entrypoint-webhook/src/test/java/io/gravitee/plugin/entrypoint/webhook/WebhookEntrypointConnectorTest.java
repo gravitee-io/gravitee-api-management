@@ -380,10 +380,9 @@ class WebhookEntrypointConnectorTest {
         chunksObs.assertError(Throwable.class);
         verify(ctx)
             .interruptMessageWith(
-                argThat(
-                    executionFailure ->
-                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
-                        executionFailure.message().equals(MOCK_ERROR)
+                argThat(executionFailure ->
+                    executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                    executionFailure.message().equals(MOCK_ERROR)
                 )
             );
         verify(message, never()).ack();
@@ -427,11 +426,10 @@ class WebhookEntrypointConnectorTest {
 
         verify(ctx)
             .interruptMessageWith(
-                argThat(
-                    executionFailure ->
-                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
-                        executionFailure.key().equals(WEBHOOK_UNREACHABLE_KEY) &&
-                        executionFailure.message().equals(WEBHOOK_UNREACHABLE_MESSAGE)
+                argThat(executionFailure ->
+                    executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                    executionFailure.key().equals(WEBHOOK_UNREACHABLE_KEY) &&
+                    executionFailure.message().equals(WEBHOOK_UNREACHABLE_MESSAGE)
                 )
             );
 
@@ -475,11 +473,10 @@ class WebhookEntrypointConnectorTest {
 
         verify(ctx)
             .interruptMessageWith(
-                argThat(
-                    executionFailure ->
-                        executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
-                        executionFailure.key().equals(MESSAGE_PROCESSING_FAILED_KEY) &&
-                        executionFailure.message().equals(MESSAGE_PROCESSING_FAILED_MESSAGE)
+                argThat(executionFailure ->
+                    executionFailure.statusCode() == HttpStatusCode.INTERNAL_SERVER_ERROR_500 &&
+                    executionFailure.key().equals(MESSAGE_PROCESSING_FAILED_KEY) &&
+                    executionFailure.message().equals(MESSAGE_PROCESSING_FAILED_MESSAGE)
                 )
             );
         verify(message).error(true);

@@ -56,12 +56,10 @@ public class PermissionsFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
         findRequiredPermissions()
-            .ifPresent(
-                requiredPermissions -> {
-                    mustBeAuthenticated();
-                    filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
-                }
-            );
+            .ifPresent(requiredPermissions -> {
+                mustBeAuthenticated();
+                filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
+            });
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {

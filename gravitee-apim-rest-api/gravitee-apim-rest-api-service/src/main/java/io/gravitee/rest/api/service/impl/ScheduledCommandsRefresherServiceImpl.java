@@ -95,14 +95,12 @@ public class ScheduledCommandsRefresherServiceImpl
      * @param commands to process
      */
     private void processCastMode(List<CommandEntity> commands) {
-        commands.forEach(
-            command -> {
-                if (command.getTags() != null && command.getTags().size() == 1 && command.getTags().get(0).isUnicast()) {
-                    commandService.delete(command.getId());
-                } else {
-                    commandService.ack(command.getId());
-                }
+        commands.forEach(command -> {
+            if (command.getTags() != null && command.getTags().size() == 1 && command.getTags().get(0).isUnicast()) {
+                commandService.delete(command.getId());
+            } else {
+                commandService.ack(command.getId());
             }
-        );
+        });
     }
 }

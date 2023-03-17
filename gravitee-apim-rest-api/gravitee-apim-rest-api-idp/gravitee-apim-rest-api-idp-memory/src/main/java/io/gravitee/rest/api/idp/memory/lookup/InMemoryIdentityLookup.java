@@ -95,12 +95,8 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
-                    username,
-                    password,
-                    email,
-                    authorities
-                );
+                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser =
+                    new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);

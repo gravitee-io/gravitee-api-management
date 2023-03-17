@@ -78,20 +78,18 @@ public class IdentityProvidersResource extends AbstractResource {
         return identityProviderService
             .findAll(GraviteeContext.getExecutionContext())
             .stream()
-            .map(
-                identityProvider -> {
-                    IdentityProviderListItem item = new IdentityProviderListItem();
-                    item.setId(identityProvider.getId());
-                    item.setName(identityProvider.getName());
-                    item.setDescription(identityProvider.getDescription());
-                    item.setEnabled(identityProvider.isEnabled());
-                    item.setType(identityProvider.getType());
-                    item.setCreatedAt(identityProvider.getCreatedAt());
-                    item.setUpdatedAt(identityProvider.getUpdatedAt());
-                    item.setSync(identityProvider.isSyncMappings());
-                    return item;
-                }
-            )
+            .map(identityProvider -> {
+                IdentityProviderListItem item = new IdentityProviderListItem();
+                item.setId(identityProvider.getId());
+                item.setName(identityProvider.getName());
+                item.setDescription(identityProvider.getDescription());
+                item.setEnabled(identityProvider.isEnabled());
+                item.setType(identityProvider.getType());
+                item.setCreatedAt(identityProvider.getCreatedAt());
+                item.setUpdatedAt(identityProvider.getUpdatedAt());
+                item.setSync(identityProvider.isSyncMappings());
+                return item;
+            })
             .collect(Collectors.toList());
     }
 

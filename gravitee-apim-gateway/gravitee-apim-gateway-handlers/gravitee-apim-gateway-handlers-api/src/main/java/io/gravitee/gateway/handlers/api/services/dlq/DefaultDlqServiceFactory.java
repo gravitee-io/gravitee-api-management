@@ -47,14 +47,12 @@ public class DefaultDlqServiceFactory implements DlqServiceFactory {
             .getListeners()
             .stream()
             .flatMap(listener -> listener.getEntrypoints().stream())
-            .forEach(
-                entrypoint -> {
-                    final Dlq dlq = entrypoint.getDlq();
-                    if (dlq != null && dlq.getEndpoint() != null) {
-                        dlqMapping.put(entrypoint.getType(), dlq.getEndpoint());
-                    }
+            .forEach(entrypoint -> {
+                final Dlq dlq = entrypoint.getDlq();
+                if (dlq != null && dlq.getEndpoint() != null) {
+                    dlqMapping.put(entrypoint.getType(), dlq.getEndpoint());
                 }
-            );
+            });
     }
 
     @Override

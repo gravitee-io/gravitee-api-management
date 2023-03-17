@@ -80,11 +80,10 @@ public class OrganizationSynchronizerTest {
         final Event mockEvent = mockEvent(organization);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 anyLong(),
@@ -107,11 +106,10 @@ public class OrganizationSynchronizerTest {
         final Event mockEvent = mockEvent(organization);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 anyLong(),
@@ -141,11 +139,10 @@ public class OrganizationSynchronizerTest {
         final Event mockEvent2 = mockEvent(organization2);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 eq(0L),
@@ -156,11 +153,10 @@ public class OrganizationSynchronizerTest {
 
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 eq(1L),
@@ -192,11 +188,10 @@ public class OrganizationSynchronizerTest {
             if (i % 100 == 0) {
                 when(
                     eventRepository.searchLatest(
-                        argThat(
-                            criteria ->
-                                criteria != null &&
-                                criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
-                                criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                        argThat(criteria ->
+                            criteria != null &&
+                            criteria.getTypes().contains(EventType.PUBLISH_ORGANIZATION) &&
+                            criteria.getEnvironments().containsAll(ENVIRONMENTS)
                         ),
                         eq(Event.EventProperties.ORGANIZATION_ID),
                         eq(page),

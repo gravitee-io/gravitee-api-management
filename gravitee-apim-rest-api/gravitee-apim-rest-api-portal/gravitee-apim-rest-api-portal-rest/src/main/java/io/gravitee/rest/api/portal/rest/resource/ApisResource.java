@@ -156,19 +156,15 @@ public class ApisResource extends AbstractResource<Api, String> {
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
         return apiEntities
             .stream()
-            .map(
-                apiEntity -> {
-                    Api api = apiMapper.convert(executionContext, apiEntity);
-                    return addApiLinks(api);
+            .map(apiEntity -> {
+                Api api = apiMapper.convert(executionContext, apiEntity);
+                return addApiLinks(api);
+            })
+            .peek(api -> {
+                if (!apiShowTagsInApiHeaders) {
+                    api.setLabels(List.of());
                 }
-            )
-            .peek(
-                api -> {
-                    if (!apiShowTagsInApiHeaders) {
-                        api.setLabels(List.of());
-                    }
-                }
-            )
+            })
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(Collectors.toList());
     }

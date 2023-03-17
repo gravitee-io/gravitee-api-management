@@ -78,21 +78,19 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     ) {
         if (listeners != null && !listeners.isEmpty()) {
             checkDuplicatedListeners(listeners);
-            listeners.forEach(
-                listener -> {
-                    switch (listener.getType()) {
-                        case HTTP:
-                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
-                            break;
-                        case SUBSCRIPTION:
-                            validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
-                            break;
-                        case TCP:
-                        default:
-                            break;
-                    }
+            listeners.forEach(listener -> {
+                switch (listener.getType()) {
+                    case HTTP:
+                        validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
+                        break;
+                    case SUBSCRIPTION:
+                        validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
+                        break;
+                    case TCP:
+                    default:
+                        break;
                 }
-            );
+            });
         }
         return listeners;
     }
@@ -140,19 +138,17 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             throw new ListenerEntrypointMissingException(type);
         }
         checkDuplicatedEntrypoints(type, entrypoints);
-        entrypoints.forEach(
-            entrypoint -> {
-                if (entrypoint.getType() == null) {
-                    throw new ListenerEntrypointMissingTypeException();
-                }
-                final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
-
-                checkEntrypointListenerType(type, connectorPlugin);
-                checkEntrypointQos(entrypoint, connectorPlugin);
-                checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
-                checkEntrypointConfiguration(entrypoint);
+        entrypoints.forEach(entrypoint -> {
+            if (entrypoint.getType() == null) {
+                throw new ListenerEntrypointMissingTypeException();
             }
-        );
+            final ConnectorPluginEntity connectorPlugin = entrypointService.findById(entrypoint.getType());
+
+            checkEntrypointListenerType(type, connectorPlugin);
+            checkEntrypointQos(entrypoint, connectorPlugin);
+            checkEntrypointDlq(entrypoint, endpointGroups, connectorPlugin);
+            checkEntrypointConfiguration(entrypoint);
+        });
     }
 
     private void checkEntrypointQos(final Entrypoint entrypoint, final ConnectorPluginEntity connectorPlugin) {
@@ -189,19 +185,17 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private boolean checkEntrypointDlqEndpoint(List<EndpointGroup> endpointGroups, Dlq dlq) {
         return endpointGroups
             .stream()
-            .anyMatch(
-                endpointGroup -> {
-                    final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
-                    return (
-                        endpointConnectorPlugin != null &&
-                        endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
-                        (
-                            endpointGroup.getName().equals(dlq.getEndpoint()) ||
-                            endpointGroup.getEndpoints().stream().anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint()))
-                        )
-                    );
-                }
-            );
+            .anyMatch(endpointGroup -> {
+                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+                return (
+                    endpointConnectorPlugin != null &&
+                    endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
+                    (
+                        endpointGroup.getName().equals(dlq.getEndpoint()) ||
+                        endpointGroup.getEndpoints().stream().anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint()))
+                    )
+                );
+            });
     }
 
     private void checkEntrypointConfiguration(final Entrypoint entrypoint) {
@@ -235,17 +229,15 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private void validatePathMappings(final Set<String> pathMappings) {
         // validate regex on pathMappings
         if (pathMappings != null) {
-            pathMappings.forEach(
-                pathMapping -> {
-                    try {
-                        Pattern.compile(pathMapping);
-                    } catch (java.util.regex.PatternSyntaxException pse) {
-                        String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
-                        log.error(errorMsg, pse);
-                        throw new TechnicalManagementException(errorMsg, pse);
-                    }
+            pathMappings.forEach(pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
+                    log.error(errorMsg, pse);
+                    throw new TechnicalManagementException(errorMsg, pse);
                 }
-            );
+            });
         }
     }
 }

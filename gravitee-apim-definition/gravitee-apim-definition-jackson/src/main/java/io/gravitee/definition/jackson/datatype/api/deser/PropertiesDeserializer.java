@@ -48,16 +48,14 @@ public class PropertiesDeserializer extends StdScalarDeserializer<Properties> {
         if (node.isArray()) {
             node
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            Property property = jsonNode.traverse(jp.getCodec()).readValueAs(Property.class);
-                            values.add(property);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        Property property = jsonNode.traverse(jp.getCodec()).readValueAs(Property.class);
+                        values.add(property);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
         } else if (node.isObject()) {
             node.fields().forEachRemaining(jsonNode -> values.add(new Property(jsonNode.getKey(), jsonNode.getValue().asText())));
         }

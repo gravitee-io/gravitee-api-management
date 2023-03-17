@@ -133,11 +133,8 @@ public class ElasticsearchRepositoryConfiguration {
         // Wait for a connection to ES and retry each 5 seconds
         Single<ElasticsearchInfo> singleVersion = client
             .getInfo()
-            .retryWhen(
-                error ->
-                    error.flatMap(
-                        throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)
-                    )
+            .retryWhen(error ->
+                error.flatMap(throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST))
             );
 
         singleVersion.subscribe();

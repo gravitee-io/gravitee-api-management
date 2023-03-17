@@ -651,15 +651,13 @@ public class ReactorHandlerRegistryTest {
 
         List<Acceptor<?>> acceptors = Arrays
             .stream(httpAcceptors)
-            .peek(
-                acceptor -> {
-                    if (acceptor instanceof DefaultHttpAcceptor) {
-                        ((DefaultHttpAcceptor) acceptor).reactor(handler);
-                    } else if (acceptor instanceof DefaultSubscriptionAcceptor) {
-                        ((DefaultSubscriptionAcceptor) acceptor).reactor(handler);
-                    }
+            .peek(acceptor -> {
+                if (acceptor instanceof DefaultHttpAcceptor) {
+                    ((DefaultHttpAcceptor) acceptor).reactor(handler);
+                } else if (acceptor instanceof DefaultSubscriptionAcceptor) {
+                    ((DefaultSubscriptionAcceptor) acceptor).reactor(handler);
                 }
-            )
+            })
             .collect(Collectors.toList());
 
         when(handler.acceptors()).thenReturn(acceptors);

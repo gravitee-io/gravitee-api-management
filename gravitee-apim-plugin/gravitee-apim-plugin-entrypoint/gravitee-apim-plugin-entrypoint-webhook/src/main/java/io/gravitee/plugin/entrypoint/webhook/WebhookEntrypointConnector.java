@@ -133,51 +133,47 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+        return Completable.fromRunnable(() -> {
+            final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
 
-                // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
-                ctx
-                    .response()
-                    .chunks(
-                        ctx
-                            .response()
-                            .messages()
-                            .compose(applyStopHook())
-                            .flatMapSingle(message -> send(ctx, httpClient, message, buildRequestOptions(ctx, message)))
-                            .compose(upstream -> acknowledge(ctx, upstream))
-                            .ignoreElements()
-                            .onErrorComplete(throwable -> throwable instanceof GoAwayException)
-                            .doFinally(httpClient::close)
-                            .toFlowable()
-                    );
-            }
-        );
+            // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
+            ctx
+                .response()
+                .chunks(
+                    ctx
+                        .response()
+                        .messages()
+                        .compose(applyStopHook())
+                        .flatMapSingle(message -> send(ctx, httpClient, message, buildRequestOptions(ctx, message)))
+                        .compose(upstream -> acknowledge(ctx, upstream))
+                        .ignoreElements()
+                        .onErrorComplete(throwable -> throwable instanceof GoAwayException)
+                        .doFinally(httpClient::close)
+                        .toFlowable()
+                );
+        });
     }
 
     protected @NonNull Flowable<Message> acknowledge(final ExecutionContext ctx, final Flowable<Message> upstream) {
-        return upstream.flatMapMaybe(
-            message -> {
-                if (message.error()) {
-                    final ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+        return upstream.flatMapMaybe(message -> {
+            if (message.error()) {
+                final ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
-                    if (executionFailure != null) {
-                        return ctx.interruptMessageWith(executionFailure);
-                    }
-
-                    return ctx.interruptMessageWith(
-                        new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                            .key(MESSAGE_PROCESSING_FAILED_KEY)
-                            .message(MESSAGE_PROCESSING_FAILED_MESSAGE)
-                    );
+                if (executionFailure != null) {
+                    return ctx.interruptMessageWith(executionFailure);
                 }
 
-                message.ack();
-
-                return Maybe.just(message);
+                return ctx.interruptMessageWith(
+                    new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                        .key(MESSAGE_PROCESSING_FAILED_KEY)
+                        .message(MESSAGE_PROCESSING_FAILED_MESSAGE)
+                );
             }
-        );
+
+            message.ack();
+
+            return Maybe.just(message);
+        });
     }
 
     @Override
@@ -200,15 +196,13 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
         return httpClient
             .rxRequest(requestOptions)
-            .flatMap(
-                request -> {
-                    if (message.content() != null) {
-                        return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
-                    } else {
-                        return request.rxSend();
-                    }
+            .flatMap(request -> {
+                if (message.content() != null) {
+                    return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
+                } else {
+                    return request.rxSend();
                 }
-            )
+            })
             .flatMap(httpClientResponse -> handleWebhookResponse(ctx, httpClientResponse, message));
     }
 
@@ -229,25 +223,23 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     private Completable computeSubscriptionContextAttributes(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-                try {
-                    final WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = readSubscriptionConfiguration(
-                        subscription
-                    );
-                    computeSubscriptionContextAttributes(ctx, subscriptionConfiguration);
-                    return Completable.complete();
-                } catch (Exception ex) {
-                    return Completable.error(
-                        new IllegalArgumentException(
-                            "Unable to prepare the execution context for the webhook, with subscription id [" + subscription.getId() + "]",
-                            ex
-                        )
-                    );
-                }
+        return Completable.defer(() -> {
+            final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+            try {
+                final WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = readSubscriptionConfiguration(
+                    subscription
+                );
+                computeSubscriptionContextAttributes(ctx, subscriptionConfiguration);
+                return Completable.complete();
+            } catch (Exception ex) {
+                return Completable.error(
+                    new IllegalArgumentException(
+                        "Unable to prepare the execution context for the webhook, with subscription id [" + subscription.getId() + "]",
+                        ex
+                    )
+                );
             }
-        );
+        });
     }
 
     protected void computeSubscriptionContextAttributes(
@@ -273,15 +265,13 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         // for Webhook, we currently only support Timeout settings
         final var clientOptions = Optional
             .ofNullable(configuration.getHttpOptions())
-            .map(
-                opt -> {
-                    var timeOutOptions = new HttpClientOptions();
-                    timeOutOptions.setIdleTimeout(opt.getIdleTimeout());
-                    timeOutOptions.setReadTimeout(opt.getReadTimeout());
-                    timeOutOptions.setConnectTimeout(opt.getConnectTimeout());
-                    return timeOutOptions;
-                }
-            )
+            .map(opt -> {
+                var timeOutOptions = new HttpClientOptions();
+                timeOutOptions.setIdleTimeout(opt.getIdleTimeout());
+                timeOutOptions.setReadTimeout(opt.getReadTimeout());
+                timeOutOptions.setConnectTimeout(opt.getConnectTimeout());
+                return timeOutOptions;
+            })
             .orElse(new HttpClientOptions());
 
         return VertxHttpClient

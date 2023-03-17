@@ -93,38 +93,36 @@ public class PathValidationServiceImpl implements PathValidationService {
             .filter(api -> !api.getId().equals(apiId))
             .map(this::extractPaths)
             .filter(extractedPaths -> extractedPaths != null && !extractedPaths.isEmpty())
-            .forEach(
-                existingPaths -> {
-                    // Extract all paths with a host
-                    Map<String, List<String>> registeredPathWithHosts = existingPaths
+            .forEach(existingPaths -> {
+                // Extract all paths with a host
+                Map<String, List<String>> registeredPathWithHosts = existingPaths
+                    .stream()
+                    .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
+                    .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
+
+                // Check only paths with a host and compare to registered virtual hosts
+                if (!registeredPathWithHosts.isEmpty()) {
+                    sanitizedPaths
                         .stream()
                         .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
-                        .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
+                        .forEach(path -> checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost())));
+                }
 
-                    // Check only paths with a host and compare to registered virtual hosts
-                    if (!registeredPathWithHosts.isEmpty()) {
-                        sanitizedPaths
-                            .stream()
-                            .filter(path -> !Strings.isNullOrEmpty(path.getHost()))
-                            .forEach(path -> checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost())));
-                    }
+                // Extract all paths without host
+                List<String> registeredPathWithoutHost = existingPaths
+                    .stream()
+                    .filter(path -> Strings.isNullOrEmpty(path.getHost()))
+                    .map(Path::getPath)
+                    .collect(Collectors.toList());
 
-                    // Extract all paths without host
-                    List<String> registeredPathWithoutHost = existingPaths
+                // Then check remaining paths without a host and compare to registered paths without host
+                if (!registeredPathWithoutHost.isEmpty()) {
+                    sanitizedPaths
                         .stream()
                         .filter(path -> Strings.isNullOrEmpty(path.getHost()))
-                        .map(Path::getPath)
-                        .collect(Collectors.toList());
-
-                    // Then check remaining paths without a host and compare to registered paths without host
-                    if (!registeredPathWithoutHost.isEmpty()) {
-                        sanitizedPaths
-                            .stream()
-                            .filter(path -> Strings.isNullOrEmpty(path.getHost()))
-                            .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredPathWithoutHost));
-                    }
+                        .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredPathWithoutHost));
                 }
-            );
+            });
 
         return sanitizedPaths;
     }
@@ -152,9 +150,8 @@ public class PathValidationServiceImpl implements PathValidationService {
                         .stream()
                         .filter(listener -> listener instanceof HttpListener)
                         .map(listener -> (HttpListener) listener)
-                        .flatMap(
-                            httpListener ->
-                                httpListener.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
+                        .flatMap(httpListener ->
+                            httpListener.getPaths().stream().map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
                         )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {

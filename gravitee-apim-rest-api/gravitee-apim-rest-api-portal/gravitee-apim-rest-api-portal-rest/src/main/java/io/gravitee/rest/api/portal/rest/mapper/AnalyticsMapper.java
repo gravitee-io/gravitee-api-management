@@ -54,14 +54,13 @@ public class AnalyticsMapper {
         if (buckets != null && !buckets.isEmpty()) {
             return buckets
                 .stream()
-                .map(
-                    b ->
-                        new Bucket()
-                            .data(b.getData() == null ? null : Arrays.asList(b.getData()))
-                            .field(b.getField())
-                            .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
-                            .name(b.getName())
-                            .buckets(this.convertBucketList(b.getBuckets()))
+                .map(b ->
+                    new Bucket()
+                        .data(b.getData() == null ? null : Arrays.asList(b.getData()))
+                        .field(b.getField())
+                        .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
+                        .name(b.getName())
+                        .buckets(this.convertBucketList(b.getBuckets()))
                 )
                 .collect(Collectors.toList());
         }

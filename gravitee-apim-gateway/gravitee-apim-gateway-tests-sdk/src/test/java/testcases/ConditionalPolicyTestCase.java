@@ -56,22 +56,18 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, ENDPOINT)
             .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-ok").rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -89,13 +85,11 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, ENDPOINT)
             .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-no").rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
@@ -116,22 +110,18 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, ENDPOINT)
             .flatMap(request -> request.putHeader(CONDITION_HEADER, "condition-no").rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body).isNull();
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body).isNull();
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(

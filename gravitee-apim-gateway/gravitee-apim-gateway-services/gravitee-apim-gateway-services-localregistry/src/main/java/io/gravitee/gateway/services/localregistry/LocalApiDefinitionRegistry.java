@@ -122,75 +122,73 @@ public class LocalApiDefinitionRegistry extends AbstractService {
             this.init();
 
             executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "registry-monitor"));
-            executor.execute(
-                () -> {
-                    Path registry = Paths.get(registryPath);
-                    LOGGER.info("Start local registry monitor for directory {}", registry);
+            executor.execute(() -> {
+                Path registry = Paths.get(registryPath);
+                LOGGER.info("Start local registry monitor for directory {}", registry);
 
-                    try {
-                        WatchService watcher = registry.getFileSystem().newWatchService();
-                        registry.register(
-                            watcher,
-                            StandardWatchEventKinds.ENTRY_CREATE,
-                            StandardWatchEventKinds.ENTRY_DELETE,
-                            StandardWatchEventKinds.ENTRY_MODIFY
-                        );
+                try {
+                    WatchService watcher = registry.getFileSystem().newWatchService();
+                    registry.register(
+                        watcher,
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_DELETE,
+                        StandardWatchEventKinds.ENTRY_MODIFY
+                    );
 
-                        while (true) {
-                            WatchKey key;
-                            try {
-                                key = watcher.take();
-                            } catch (InterruptedException ex) {
-                                Thread.currentThread().interrupt();
-                                return;
-                            }
+                    while (true) {
+                        WatchKey key;
+                        try {
+                            key = watcher.take();
+                        } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
 
-                            for (WatchEvent<?> event : key.pollEvents()) {
-                                WatchEvent.Kind<?> kind = event.kind();
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            WatchEvent.Kind<?> kind = event.kind();
 
-                                @SuppressWarnings("unchecked")
-                                WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                                Path fileName = registry.resolve(ev.context().getFileName());
+                            @SuppressWarnings("unchecked")
+                            WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                            Path fileName = registry.resolve(ev.context().getFileName());
 
-                                LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
+                            LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
 
-                                if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                    Api loadedDefinition = loadDefinition(fileName.toFile());
-                                    Api existingDefinition = definitions.get(fileName);
-                                    if (existingDefinition != null) {
-                                        if (apiManager.get(existingDefinition.getId()) != null) {
-                                            apiManager.register(loadedDefinition);
-                                        } else {
-                                            apiManager.unregister(existingDefinition.getId());
-                                            definitions.remove(fileName);
-                                            definitions.put(fileName, loadedDefinition);
-                                        }
-                                    }
-                                } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                    Api loadedDefinition = loadDefinition(fileName.toFile());
-                                    boolean registered = apiManager.register(loadedDefinition);
-                                    if (registered) {
-                                        definitions.put(fileName, loadedDefinition);
-                                    }
-                                } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                    Api existingDefinition = definitions.get(fileName);
-                                    if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
+                            if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                Api loadedDefinition = loadDefinition(fileName.toFile());
+                                Api existingDefinition = definitions.get(fileName);
+                                if (existingDefinition != null) {
+                                    if (apiManager.get(existingDefinition.getId()) != null) {
+                                        apiManager.register(loadedDefinition);
+                                    } else {
                                         apiManager.unregister(existingDefinition.getId());
                                         definitions.remove(fileName);
+                                        definitions.put(fileName, loadedDefinition);
                                     }
                                 }
-
-                                boolean valid = key.reset();
-                                if (!valid) {
-                                    break;
+                            } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                Api loadedDefinition = loadDefinition(fileName.toFile());
+                                boolean registered = apiManager.register(loadedDefinition);
+                                if (registered) {
+                                    definitions.put(fileName, loadedDefinition);
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                Api existingDefinition = definitions.get(fileName);
+                                if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
+                                    apiManager.unregister(existingDefinition.getId());
+                                    definitions.remove(fileName);
                                 }
                             }
+
+                            boolean valid = key.reset();
+                            if (!valid) {
+                                break;
+                            }
                         }
-                    } catch (IOException ioe) {
-                        LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                     }
+                } catch (IOException ioe) {
+                    LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                 }
-            );
+            });
         }
     }
 

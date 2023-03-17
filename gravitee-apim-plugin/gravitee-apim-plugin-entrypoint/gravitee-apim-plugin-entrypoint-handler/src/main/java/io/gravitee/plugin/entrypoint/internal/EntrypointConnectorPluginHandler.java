@@ -46,7 +46,7 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
     @Override
     protected EntrypointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
         Class<? extends EntrypointConnectorConfiguration> configurationClass = new EntrypointConnectorConfigurationClassFinder()
-        .lookupFirst(pluginClass);
+            .lookupFirst(pluginClass);
 
         return new DefaultEntrypointConnectorPlugin(plugin, pluginClass, configurationClass);
     }

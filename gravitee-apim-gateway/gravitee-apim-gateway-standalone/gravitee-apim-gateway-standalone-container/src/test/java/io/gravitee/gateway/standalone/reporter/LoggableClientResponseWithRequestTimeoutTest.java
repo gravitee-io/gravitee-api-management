@@ -60,15 +60,13 @@ public class LoggableClientResponseWithRequestTimeoutTest extends AbstractWiremo
         final CountDownLatch latchMetric = new CountDownLatch(1);
         final CountDownLatch latchLog = new CountDownLatch(1);
 
-        fakeReporter.setReportableHandler(
-            reportable -> {
-                if (reportable instanceof Metrics) {
-                    latchMetric.countDown();
-                } else if (reportable instanceof Log) {
-                    latchLog.countDown();
-                }
+        fakeReporter.setReportableHandler(reportable -> {
+            if (reportable instanceof Metrics) {
+                latchMetric.countDown();
+            } else if (reportable instanceof Log) {
+                latchLog.countDown();
             }
-        );
+        });
 
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 

@@ -64,44 +64,40 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
     public Completable invoke(ExecutionContext ctx) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
         return Completable
-            .create(
-                nextEmitter -> {
-                    log.debug("Executing invoker {}", id);
+            .create(nextEmitter -> {
+                log.debug("Executing invoker {}", id);
 
-                    // Http status set to 0 to reflect the fact we are waiting for the backend http status.
-                    ctx.response().status(0);
+                // Http status set to 0 to reflect the fact we are waiting for the backend http status.
+                ctx.response().status(0);
 
-                    // Stream adapter allowing to write the request content to the upstream.
-                    final ReadWriteStreamAdapter streamAdapter = new ReadWriteStreamAdapter(adaptedCtx, nextEmitter);
+                // Stream adapter allowing to write the request content to the upstream.
+                final ReadWriteStreamAdapter streamAdapter = new ReadWriteStreamAdapter(adaptedCtx, nextEmitter);
 
-                    // Connection handler adapter to receive the response from the invoker.
-                    final ConnectionHandlerAdapter connectionHandlerAdapter = new ConnectionHandlerAdapter(ctx, nextEmitter);
+                // Connection handler adapter to receive the response from the invoker.
+                final ConnectionHandlerAdapter connectionHandlerAdapter = new ConnectionHandlerAdapter(ctx, nextEmitter);
 
-                    // Assign the chunks from the connection handler to the response.
-                    ctx.response().chunks(connectionHandlerAdapter.getChunks());
+                // Assign the chunks from the connection handler to the response.
+                ctx.response().chunks(connectionHandlerAdapter.getChunks());
 
-                    try {
-                        // Invoke to make the connection happen.
-                        invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
-                    } catch (Throwable t) {
-                        nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
-                    }
+                try {
+                    // Invoke to make the connection happen.
+                    invoke(adaptedCtx, streamAdapter, connectionHandlerAdapter);
+                } catch (Throwable t) {
+                    nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
                 }
-            )
+            })
             .doFinally(adaptedCtx::restore)
-            .onErrorResumeNext(
-                throwable -> {
-                    // In case of any error, make sure to reset the response content.
-                    ctx.response().chunks(Flowable.empty());
+            .onErrorResumeNext(throwable -> {
+                // In case of any error, make sure to reset the response content.
+                ctx.response().chunks(Flowable.empty());
 
-                    if (throwable instanceof InterruptionFailureException) {
-                        return ctx.interruptWith(((InterruptionFailureException) throwable).getExecutionFailure());
-                    } else {
-                        log.error("An error occurred when invoking the backend.", throwable);
-                        return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR));
-                    }
+                if (throwable instanceof InterruptionFailureException) {
+                    return ctx.interruptWith(((InterruptionFailureException) throwable).getExecutionFailure());
+                } else {
+                    log.error("An error occurred when invoking the backend.", throwable);
+                    return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR));
                 }
-            );
+            });
     }
 
     @Override

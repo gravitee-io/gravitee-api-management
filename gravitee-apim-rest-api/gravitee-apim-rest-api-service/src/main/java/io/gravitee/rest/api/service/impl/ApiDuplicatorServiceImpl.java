@@ -214,13 +214,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
             newApiEntity
                 .getPlans()
-                .forEach(
-                    plan -> {
-                        String newPlanId = UuidString.generateRandom();
-                        plansIdsMap.put(plan.getId(), newPlanId);
-                        plan.setId(newPlanId);
-                    }
-                );
+                .forEach(plan -> {
+                    String newPlanId = UuidString.generateRandom();
+                    plansIdsMap.put(plan.getId(), newPlanId);
+                    plan.setId(newPlanId);
+                });
         }
 
         final ApiEntity duplicatedApi = apiService.createWithApiDefinition(
@@ -241,21 +239,19 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
             if (primaryOwnerRole != null) {
                 String primaryOwnerRoleId = primaryOwnerRole.getId();
-                membershipsToDuplicate.forEach(
-                    membership -> {
-                        String roleId = membership.getRoleId();
-                        if (!primaryOwnerRoleId.equals(roleId)) {
-                            membershipService.addRoleToMemberOnReference(
-                                executionContext,
-                                io.gravitee.rest.api.model.MembershipReferenceType.API,
-                                duplicatedApi.getId(),
-                                membership.getMemberType(),
-                                membership.getMemberId(),
-                                roleId
-                            );
-                        }
+                membershipsToDuplicate.forEach(membership -> {
+                    String roleId = membership.getRoleId();
+                    if (!primaryOwnerRoleId.equals(roleId)) {
+                        membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            io.gravitee.rest.api.model.MembershipReferenceType.API,
+                            duplicatedApi.getId(),
+                            membership.getMemberType(),
+                            membership.getMemberId(),
+                            roleId
+                        );
                     }
-                );
+                });
             }
         }
 
@@ -273,16 +269,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
             planService
                 .findByApi(executionContext, apiId)
-                .forEach(
-                    plan -> {
-                        plan.setId(plansIdsMap.get(plan.getId()));
-                        plan.setApi(duplicatedApi.getId());
-                        if (plan.getGeneralConditions() != null) {
-                            plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
-                        }
-                        planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
+                .forEach(plan -> {
+                    plan.setId(plansIdsMap.get(plan.getId()));
+                    plan.setApi(duplicatedApi.getId());
+                    if (plan.getGeneralConditions() != null) {
+                        plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
                     }
-                );
+                    planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
+                });
         }
 
         return duplicatedApi;
@@ -441,17 +435,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .getMembersByReference(executionContext, MembershipReferenceType.API, apiId)
             .stream()
             .filter(member -> member.getType() == MembershipMemberType.USER)
-            .map(
-                member -> {
-                    UserEntity userEntity = userService.findById(executionContext, member.getId());
-                    return new MemberToImport(
-                        userEntity.getSource(),
-                        userEntity.getSourceId(),
-                        member.getRoles().stream().map(RoleEntity::getId).collect(toList()),
-                        null
-                    );
-                }
-            )
+            .map(member -> {
+                UserEntity userEntity = userService.findById(executionContext, member.getId());
+                return new MemberToImport(
+                    userEntity.getSource(),
+                    userEntity.getSourceId(),
+                    member.getRoles().stream().map(RoleEntity::getId).collect(toList()),
+                    null
+                );
+            })
             .collect(toSet());
     }
 
@@ -461,15 +453,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             !memberToImport.getRoles().isEmpty() &&
             membersAlreadyPresent
                 .stream()
-                .anyMatch(
-                    m -> {
-                        m.getRoles().sort(Comparator.naturalOrder());
-                        return (
-                            m.getRoles().equals(memberToImport.getRoles()) &&
-                            (m.getSourceId().equals(memberToImport.getSourceId()) && m.getSource().equals(memberToImport.getSource()))
-                        );
-                    }
-                )
+                .anyMatch(m -> {
+                    m.getRoles().sort(Comparator.naturalOrder());
+                    return (
+                        m.getRoles().equals(memberToImport.getRoles()) &&
+                        (m.getSourceId().equals(memberToImport.getSourceId()) && m.getSource().equals(memberToImport.getSource()))
+                    );
+                })
         );
     }
 
@@ -528,28 +518,26 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     false
                 );
 
-                rolesToImport.forEach(
-                    role -> {
-                        try {
-                            membershipService.addRoleToMemberOnReference(
-                                executionContext,
-                                MembershipReferenceType.API,
-                                apiId,
-                                MembershipMemberType.USER,
-                                userEntity.getId(),
-                                role
-                            );
-                        } catch (Exception e) {
-                            LOGGER.warn(
-                                "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
-                                role,
-                                userEntity.getId(),
-                                apiId,
-                                e.getMessage()
-                            );
-                        }
+                rolesToImport.forEach(role -> {
+                    try {
+                        membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            MembershipReferenceType.API,
+                            apiId,
+                            MembershipMemberType.USER,
+                            userEntity.getId(),
+                            role
+                        );
+                    } catch (Exception e) {
+                        LOGGER.warn(
+                            "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
+                            role,
+                            userEntity.getId(),
+                            apiId,
+                            e.getMessage()
+                        );
                     }
-                );
+                });
             } catch (UserNotFoundException unfe) {}
         }
     }
@@ -604,20 +592,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
             findRemovedPlans(existingPlans.values(), plansToImport)
-                .forEach(
-                    plan -> {
-                        planService.delete(executionContext, plan.getId());
-                        apiEntity.getPlans().remove(plan);
-                    }
-                );
+                .forEach(plan -> {
+                    planService.delete(executionContext, plan.getId());
+                    apiEntity.getPlans().remove(plan);
+                });
 
-            plansToImport.forEach(
-                planEntity -> {
-                    planEntity.setApi(apiEntity.getId());
-                    planService.createOrUpdatePlan(executionContext, planEntity);
-                    apiEntity.getPlans().add(planEntity);
-                }
-            );
+            plansToImport.forEach(planEntity -> {
+                planEntity.setApi(apiEntity.getId());
+                planService.createOrUpdatePlan(executionContext, planEntity);
+                apiEntity.getPlans().add(planEntity);
+            });
         }
     }
 
@@ -822,14 +806,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         plansNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasCrossId)
-            .forEach(
-                plan -> {
-                    PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
-                    plan.setApi(api.getId());
-                    plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
-                    recalculateGeneralConditionsPageId(plan, pagesIdsMap);
-                }
-            );
+            .forEach(plan -> {
+                PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
+                plan.setApi(api.getId());
+                plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
+                recalculateGeneralConditionsPageId(plan, pagesIdsMap);
+            });
     }
 
     /**
@@ -856,23 +838,21 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         pagesNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasCrossId)
-            .forEach(
-                page -> {
-                    String pageId = page.hasId() ? page.getId() : null;
-                    PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
-                    page.setApi(api.getId());
-                    if (matchingPage != null) {
-                        idsMap.put(pageId, matchingPage.getId());
-                        page.setId(matchingPage.getId());
-                        updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
-                    } else {
-                        String newPageId = UuidString.generateRandom();
-                        idsMap.put(pageId, newPageId);
-                        page.setId(newPageId);
-                        updatePagesHierarchy(pagesNodes, pageId, newPageId);
-                    }
+            .forEach(page -> {
+                String pageId = page.hasId() ? page.getId() : null;
+                PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
+                page.setApi(api.getId());
+                if (matchingPage != null) {
+                    idsMap.put(pageId, matchingPage.getId());
+                    page.setId(matchingPage.getId());
+                    updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
+                } else {
+                    String newPageId = UuidString.generateRandom();
+                    idsMap.put(pageId, newPageId);
+                    page.setId(newPageId);
+                    updatePagesHierarchy(pagesNodes, pageId, newPageId);
                 }
-            );
+            });
 
         return idsMap;
     }
@@ -895,13 +875,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         plansNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasId)
-            .forEach(
-                plan -> {
-                    plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
-                    plan.setApi(apiId);
-                    recalculateGeneralConditionsPageId(plan, pagesIdsMap);
-                }
-            );
+            .forEach(plan -> {
+                plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
+                plan.setApi(apiId);
+                recalculateGeneralConditionsPageId(plan, pagesIdsMap);
+            });
     }
 
     private static void recalculateGeneralConditionsPageId(ImportPlanJsonNode plan, Map<String, String> pagesIdsMap) {
@@ -927,16 +905,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         pagesNodes
             .stream()
             .filter(ImportJsonNodeWithIds::hasId)
-            .forEach(
-                page -> {
-                    String oldPageId = page.getId();
-                    String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
-                    idsMap.put(oldPageId, newPageId);
-                    page.setId(newPageId);
-                    page.setApi(apiId);
-                    updatePagesHierarchy(pagesNodes, oldPageId, newPageId);
-                }
-            );
+            .forEach(page -> {
+                String oldPageId = page.getId();
+                String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
+                idsMap.put(oldPageId, newPageId);
+                page.setId(newPageId);
+                page.setApi(apiId);
+                updatePagesHierarchy(pagesNodes, oldPageId, newPageId);
+            });
         return idsMap;
     }
 

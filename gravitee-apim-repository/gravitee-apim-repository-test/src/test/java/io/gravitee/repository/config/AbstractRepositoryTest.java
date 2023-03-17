@@ -73,8 +73,8 @@ public abstract class AbstractRepositoryTest {
 
         final File directory = new File(testCaseResource.toURI());
 
-        final File[] files = directory.listFiles(
-            pathname -> pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
+        final File[] files = directory.listFiles(pathname ->
+            pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
         );
 
         for (final File file : getSortedFilesList(files)) {

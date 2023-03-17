@@ -149,19 +149,17 @@ class FlowableProxyResponseTest {
         final AtomicInteger chunkCount = new AtomicInteger(0);
 
         // Simulate #REQUEST_COUNT chunks each time the proxy response is resumed.
-        setupChunkProducer(
-            () -> {
-                for (int i = 0; i < REQUEST_COUNT; i++) {
-                    if (chunkCount.get() == TOTAL_CHUNKS) {
-                        // All chunks have been produces, end the proxy response and exit.
-                        endHandlerCaptor.getValue().handle(null);
-                        return;
-                    }
-
-                    bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement()));
+        setupChunkProducer(() -> {
+            for (int i = 0; i < REQUEST_COUNT; i++) {
+                if (chunkCount.get() == TOTAL_CHUNKS) {
+                    // All chunks have been produces, end the proxy response and exit.
+                    endHandlerCaptor.getValue().handle(null);
+                    return;
                 }
+
+                bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement()));
             }
-        );
+        });
 
         final TestScheduler scheduler = new TestScheduler();
         final TestSubscriber<Buffer> obs = cut.subscribeOn(scheduler).test(0);
@@ -211,13 +209,11 @@ class FlowableProxyResponseTest {
 
     private void setupChunkProducer(Runnable runnable) {
         // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
-        doAnswer(
-                invocation -> {
-                    runnable.run();
+        doAnswer(invocation -> {
+                runnable.run();
 
-                    return null;
-                }
-            )
+                return null;
+            })
             .when(proxyResponse)
             .resume();
     }

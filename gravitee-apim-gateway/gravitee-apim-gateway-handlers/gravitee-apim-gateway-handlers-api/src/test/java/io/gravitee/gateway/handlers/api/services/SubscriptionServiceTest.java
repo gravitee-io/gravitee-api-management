@@ -285,12 +285,10 @@ class SubscriptionServiceTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         // When create(Command) is called, then the method is over, so we can count down the latch
-        doAnswer(
-                invocation -> {
-                    latch.countDown();
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                latch.countDown();
+                return null;
+            })
             .when(commandRepository)
             .create(any());
 
@@ -307,20 +305,18 @@ class SubscriptionServiceTest {
 
         final Command savedCommand = commandArgumentCaptor.getValue();
         assertThat(savedCommand)
-            .satisfies(
-                c -> {
-                    assertThat(c.getTags()).hasSize(1).allMatch(t -> t.equals(CommandTags.SUBSCRIPTION_FAILURE.name()));
-                    assertThat(c.getCreatedAt()).isEqualTo(c.getUpdatedAt());
-                    assertThat(c.getFrom()).isEqualTo("node-id");
-                    assertThat(c.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
-                    final SubscriptionFailureCommand subscriptionCommand = objectMapper.readValue(
-                        c.getContent(),
-                        SubscriptionFailureCommand.class
-                    );
-                    assertThat(subscriptionCommand.getSubscriptionId()).isEqualTo("sub-id");
-                    assertThat(subscriptionCommand.getFailureCause()).isEqualTo("Error! 💥");
-                }
-            );
+            .satisfies(c -> {
+                assertThat(c.getTags()).hasSize(1).allMatch(t -> t.equals(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                assertThat(c.getCreatedAt()).isEqualTo(c.getUpdatedAt());
+                assertThat(c.getFrom()).isEqualTo("node-id");
+                assertThat(c.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
+                final SubscriptionFailureCommand subscriptionCommand = objectMapper.readValue(
+                    c.getContent(),
+                    SubscriptionFailureCommand.class
+                );
+                assertThat(subscriptionCommand.getSubscriptionId()).isEqualTo("sub-id");
+                assertThat(subscriptionCommand.getFailureCause()).isEqualTo("Error! 💥");
+            });
 
         Optional<Subscription> optSubscription = subscriptionService.getById("sub-id");
         assertTrue(optSubscription.isEmpty());
@@ -337,12 +333,10 @@ class SubscriptionServiceTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         // When create(Command) is called, then the method is over, so we can count down the latch
-        doAnswer(
-                invocation -> {
-                    latch.countDown();
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                latch.countDown();
+                return null;
+            })
             .when(commandRepository)
             .create(any());
 
@@ -360,20 +354,18 @@ class SubscriptionServiceTest {
 
         final Command savedCommand = commandArgumentCaptor.getValue();
         assertThat(savedCommand)
-            .satisfies(
-                c -> {
-                    assertThat(c.getTags()).hasSize(1).allMatch(t -> t.equals(CommandTags.SUBSCRIPTION_FAILURE.name()));
-                    assertThat(c.getCreatedAt()).isEqualTo(c.getUpdatedAt());
-                    assertThat(c.getFrom()).isEqualTo("node-id");
-                    assertThat(c.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
-                    final SubscriptionFailureCommand subscriptionCommand = objectMapper.readValue(
-                        c.getContent(),
-                        SubscriptionFailureCommand.class
-                    );
-                    assertThat(subscriptionCommand.getSubscriptionId()).isEqualTo("sub-id");
-                    assertThat(subscriptionCommand.getFailureCause()).isEqualTo("Error! 💥");
-                }
-            );
+            .satisfies(c -> {
+                assertThat(c.getTags()).hasSize(1).allMatch(t -> t.equals(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                assertThat(c.getCreatedAt()).isEqualTo(c.getUpdatedAt());
+                assertThat(c.getFrom()).isEqualTo("node-id");
+                assertThat(c.getTo()).isEqualTo(MessageRecipient.MANAGEMENT_APIS.name());
+                final SubscriptionFailureCommand subscriptionCommand = objectMapper.readValue(
+                    c.getContent(),
+                    SubscriptionFailureCommand.class
+                );
+                assertThat(subscriptionCommand.getSubscriptionId()).isEqualTo("sub-id");
+                assertThat(subscriptionCommand.getFailureCause()).isEqualTo("Error! 💥");
+            });
 
         Optional<Subscription> optSubscription = subscriptionService.getById("sub-id");
         assertTrue(optSubscription.isEmpty());

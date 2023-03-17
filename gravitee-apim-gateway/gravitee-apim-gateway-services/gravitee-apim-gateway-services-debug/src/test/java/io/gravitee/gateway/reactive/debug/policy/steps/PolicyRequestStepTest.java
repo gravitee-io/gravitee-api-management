@@ -286,8 +286,8 @@ class PolicyRequestStepTest {
         policyRequestStep
             .pre(mockRequest, Map.of())
             .andThen(
-                Completable.defer(
-                    () -> policyRequestStep.error(new ExecutionFailure(500).key("key").message("error").contentType("contentType"))
+                Completable.defer(() ->
+                    policyRequestStep.error(new ExecutionFailure(500).key("key").message("error").contentType("contentType"))
                 )
             )
             .test()

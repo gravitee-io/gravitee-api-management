@@ -193,28 +193,25 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                                             LOGGER.debug("Web response status code : {}", response.statusCode());
 
                                             if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
-                                                response.bodyHandler(
-                                                    buffer -> {
-                                                        promise.complete(buffer);
+                                                response.bodyHandler(buffer -> {
+                                                    promise.complete(buffer);
 
-                                                        // Close client
-                                                        httpClient.close();
-                                                    }
-                                                );
+                                                    // Close client
+                                                    httpClient.close();
+                                                });
                                             } else {
-                                                response.bodyHandler(
-                                                    buffer ->
-                                                        promise.fail(
-                                                            new TechnicalManagementException(
-                                                                " Error on url '" +
-                                                                uri +
-                                                                "'. Status code: " +
-                                                                response.statusCode() +
-                                                                ". Message: " +
-                                                                buffer.toString(),
-                                                                null
-                                                            )
+                                                response.bodyHandler(buffer ->
+                                                    promise.fail(
+                                                        new TechnicalManagementException(
+                                                            " Error on url '" +
+                                                            uri +
+                                                            "'. Status code: " +
+                                                            response.statusCode() +
+                                                            ". Message: " +
+                                                            buffer.toString(),
+                                                            null
                                                         )
+                                                    )
                                                 );
                                             }
                                         }

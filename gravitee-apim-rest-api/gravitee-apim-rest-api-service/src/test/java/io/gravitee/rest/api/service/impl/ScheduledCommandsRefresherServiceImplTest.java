@@ -71,8 +71,8 @@ public class ScheduledCommandsRefresherServiceImplTest {
     public void shouldNotFindCommand() {
         when(
             commandService.search(
-                ArgumentMatchers.argThat(
-                    query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
+                ArgumentMatchers.argThat(query ->
+                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
                 )
             )
         )
@@ -98,8 +98,8 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
         when(
             commandService.search(
-                ArgumentMatchers.argThat(
-                    query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
+                ArgumentMatchers.argThat(query ->
+                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
                 )
             )
         )

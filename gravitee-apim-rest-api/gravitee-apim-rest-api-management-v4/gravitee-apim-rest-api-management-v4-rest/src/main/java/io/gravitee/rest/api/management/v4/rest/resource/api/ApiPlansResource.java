@@ -96,17 +96,12 @@ public class ApiPlansResource extends AbstractResource {
         List<PlanEntity> entities = planService
             .findByApi(executionContext, apiId)
             .stream()
-            .filter(
-                plan ->
-                    wishedStatus.contains(plan.getStatus()) &&
-                    (
-                        (isAuthenticated() && isAdmin()) ||
-                        groupService.isUserAuthorizedToAccessApiData(
-                            genericApiEntity,
-                            plan.getExcludedGroups(),
-                            getAuthenticatedUserOrNull()
-                        )
-                    )
+            .filter(plan ->
+                wishedStatus.contains(plan.getStatus()) &&
+                (
+                    (isAuthenticated() && isAdmin()) ||
+                    groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
+                )
             )
             .filter(plan -> security == null || security.contains(PlanSecurityType.valueOfLabel(plan.getSecurity().getType())))
             .sorted(comparingInt(PlanEntity::getOrder))

@@ -70,78 +70,75 @@ public class SubscriptionProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                String planId = ctx.getAttribute(ATTR_PLAN);
-                String applicationId = ctx.getAttribute(ATTR_APPLICATION);
-                String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
-                String transactionId = ctx.request().transactionId();
-                if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
-                    // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
-                    if (applicationId == null) {
-                        applicationId = APPLICATION_ANONYMOUS;
-                        ctx.setAttribute(ATTR_APPLICATION, applicationId);
-                    }
-                    if (planId == null) {
-                        planId = PLAN_ANONYMOUS;
-                        ctx.setAttribute(ATTR_PLAN, planId);
-                    }
-                    if (subscriptionId == null) {
-                        subscriptionId = ctx.request().remoteAddress();
-                        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscriptionId);
-                    }
+        return Completable.fromRunnable(() -> {
+            String planId = ctx.getAttribute(ATTR_PLAN);
+            String applicationId = ctx.getAttribute(ATTR_APPLICATION);
+            String subscriptionId = ctx.getAttribute(ATTR_SUBSCRIPTION_ID);
+            String transactionId = ctx.request().transactionId();
+            if (Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
+                // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
+                if (applicationId == null) {
+                    applicationId = APPLICATION_ANONYMOUS;
+                    ctx.setAttribute(ATTR_APPLICATION, applicationId);
                 }
-
-                String requestClientIdentifier = ctx.request().headers().get(this.clientIdentifierHeader);
-                String ctxClientIdentifier;
-
-                // If request doesn't contain ClientIdentifier header, generate new one
-                if (requestClientIdentifier == null || requestClientIdentifier.isBlank()) {
-                    ctxClientIdentifier = computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
-                    requestClientIdentifier = ctxClientIdentifier;
-                    ctx.response().headers().set(this.clientIdentifierHeader, ctxClientIdentifier);
-                } else {
-                    // Make sure given ClientIdentifier header, is ctx from subscription
-                    if ((!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId))) {
-                        ctxClientIdentifier =
-                            requestClientIdentifier + "-" + computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
-                    } else {
-                        ctxClientIdentifier = requestClientIdentifier;
-                    }
-                    ctx.response().headers().set(this.clientIdentifierHeader, requestClientIdentifier);
+                if (planId == null) {
+                    planId = PLAN_ANONYMOUS;
+                    ctx.setAttribute(ATTR_PLAN, planId);
                 }
-
-                ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, ctxClientIdentifier);
-                ctx.request().clientIdentifier(ctxClientIdentifier);
-
-                final Metrics metrics = ctx.metrics();
-                // Stores information about the resolved plan (according to the incoming request)
-                metrics.setPlanId(planId);
-                metrics.setApplicationId(ctx.getAttribute(ATTR_APPLICATION));
-                metrics.setSubscriptionId(subscriptionId);
-                metrics.setClientIdentifier(requestClientIdentifier);
-                if (metrics.getLog() != null) {
-                    metrics.getLog().setClientIdentifier(requestClientIdentifier);
+                if (subscriptionId == null) {
+                    subscriptionId = ctx.request().remoteAddress();
+                    ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscriptionId);
                 }
-
-                Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-                if (subscription == null) {
-                    subscription = new Subscription();
-                    subscription.setId(subscriptionId);
-                    subscription.setApi(ctx.getAttribute(ATTR_API));
-                    subscription.setPlan(planId);
-                    subscription.setApplication(applicationId);
-                    subscription.setStatus(ACCEPTED.name());
-                    ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
-                }
-                Collection<TemplateVariableProvider> templateVariableProviders = ctx.templateVariableProviders();
-                if (templateVariableProviders == null) {
-                    templateVariableProviders = new ArrayList<>();
-                }
-                templateVariableProviders.add(new SubscriptionTemplateVariableProvider(subscription));
-                ctx.templateVariableProviders(templateVariableProviders);
             }
-        );
+
+            String requestClientIdentifier = ctx.request().headers().get(this.clientIdentifierHeader);
+            String ctxClientIdentifier;
+
+            // If request doesn't contain ClientIdentifier header, generate new one
+            if (requestClientIdentifier == null || requestClientIdentifier.isBlank()) {
+                ctxClientIdentifier = computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
+                requestClientIdentifier = ctxClientIdentifier;
+                ctx.response().headers().set(this.clientIdentifierHeader, ctxClientIdentifier);
+            } else {
+                // Make sure given ClientIdentifier header, is ctx from subscription
+                if ((!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId))) {
+                    ctxClientIdentifier = requestClientIdentifier + "-" + computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
+                } else {
+                    ctxClientIdentifier = requestClientIdentifier;
+                }
+                ctx.response().headers().set(this.clientIdentifierHeader, requestClientIdentifier);
+            }
+
+            ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, ctxClientIdentifier);
+            ctx.request().clientIdentifier(ctxClientIdentifier);
+
+            final Metrics metrics = ctx.metrics();
+            // Stores information about the resolved plan (according to the incoming request)
+            metrics.setPlanId(planId);
+            metrics.setApplicationId(ctx.getAttribute(ATTR_APPLICATION));
+            metrics.setSubscriptionId(subscriptionId);
+            metrics.setClientIdentifier(requestClientIdentifier);
+            if (metrics.getLog() != null) {
+                metrics.getLog().setClientIdentifier(requestClientIdentifier);
+            }
+
+            Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+            if (subscription == null) {
+                subscription = new Subscription();
+                subscription.setId(subscriptionId);
+                subscription.setApi(ctx.getAttribute(ATTR_API));
+                subscription.setPlan(planId);
+                subscription.setApplication(applicationId);
+                subscription.setStatus(ACCEPTED.name());
+                ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+            }
+            Collection<TemplateVariableProvider> templateVariableProviders = ctx.templateVariableProviders();
+            if (templateVariableProviders == null) {
+                templateVariableProviders = new ArrayList<>();
+            }
+            templateVariableProviders.add(new SubscriptionTemplateVariableProvider(subscription));
+            ctx.templateVariableProviders(templateVariableProviders);
+        });
     }
 
     /**

@@ -396,21 +396,19 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map<String, char[]> result = new HashMap<>();
         Stream
             .of(Permission.findByScope(scope))
-            .forEach(
-                perm -> {
-                    for (int action : perms) {
-                        if (action / 100 == perm.getMask() / 100) {
-                            List<Character> crud = new ArrayList<>();
-                            for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
-                                if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
-                                    crud.add(rolePermissionAction.getId());
-                                }
+            .forEach(perm -> {
+                for (int action : perms) {
+                    if (action / 100 == perm.getMask() / 100) {
+                        List<Character> crud = new ArrayList<>();
+                        for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
+                            if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
+                                crud.add(rolePermissionAction.getId());
                             }
-                            result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[crud.size()])));
                         }
+                        result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[crud.size()])));
                     }
                 }
-            );
+            });
         return result;
     }
 

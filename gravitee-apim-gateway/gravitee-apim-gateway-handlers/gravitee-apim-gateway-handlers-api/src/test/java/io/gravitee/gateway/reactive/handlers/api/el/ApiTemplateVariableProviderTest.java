@@ -77,16 +77,14 @@ class ApiTemplateVariableProviderTest {
         buildTemplateEngine(noProperties)
             .eval("{#api.properties[prop1]}", String.class)
             .test()
-            .assertError(
-                e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
-                        .hasStackTraceContaining("EL1007E: Property or field 'prop1' cannot be found on null");
+            .assertError(e -> {
+                assertThat(e)
+                    .isInstanceOf(ExpressionEvaluationException.class)
+                    .hasCauseInstanceOf(SpelEvaluationException.class)
+                    .hasStackTraceContaining("EL1007E: Property or field 'prop1' cannot be found on null");
 
-                    return true;
-                }
-            );
+                return true;
+            });
     }
 
     private static TemplateEngine buildTemplateEngine(Api apiDefinition) {

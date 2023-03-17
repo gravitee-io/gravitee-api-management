@@ -197,16 +197,14 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.NOT_FOUND_404, failureException.getExecutionFailure().statusCode());
-                assertEquals(NO_ENDPOINT_FOUND_KEY, failureException.getExecutionFailure().key());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.NOT_FOUND_404, failureException.getExecutionFailure().statusCode());
+            assertEquals(NO_ENDPOINT_FOUND_KEY, failureException.getExecutionFailure().key());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 
     @Test
@@ -241,15 +239,13 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 
     @Test
@@ -267,16 +263,14 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
-                assertEquals(INCOMPATIBLE_QOS_KEY, failureException.getExecutionFailure().key());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
+            assertEquals(INCOMPATIBLE_QOS_KEY, failureException.getExecutionFailure().key());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 
     @Test
@@ -296,16 +290,14 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
-                assertEquals(INCOMPATIBLE_QOS_CAPABILITIES_KEY, failureException.getExecutionFailure().key());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
+            assertEquals(INCOMPATIBLE_QOS_CAPABILITIES_KEY, failureException.getExecutionFailure().key());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 
     @Test
@@ -323,15 +315,13 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 
     @ParameterizedTest(name = "[{index}] {1}")
@@ -371,18 +361,16 @@ class EndpointInvokerTest {
         cut
             .invoke(ctx)
             .test()
-            .assertError(
-                e -> {
-                    assertTrue(e instanceof InterruptionFailureException);
-                    final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                    assertThat(failureException.getExecutionFailure().message())
-                        .isNotNull()
-                        .isEqualTo("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid");
-                    assertThat(failureException.getExecutionFailure().key()).isEqualTo(EndpointInvoker.INVALID_HTTP_METHOD);
-                    return true;
-                }
-            );
+            .assertError(e -> {
+                assertTrue(e instanceof InterruptionFailureException);
+                final InterruptionFailureException failureException = (InterruptionFailureException) e;
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                assertThat(failureException.getExecutionFailure().message())
+                    .isNotNull()
+                    .isEqualTo("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid");
+                assertThat(failureException.getExecutionFailure().key()).isEqualTo(EndpointInvoker.INVALID_HTTP_METHOD);
+                return true;
+            });
     }
 
     private static Stream<Arguments> provideOverrideMethodAttributes() {

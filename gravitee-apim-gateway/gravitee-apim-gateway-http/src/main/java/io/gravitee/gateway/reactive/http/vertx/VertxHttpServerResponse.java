@@ -85,36 +85,33 @@ public class VertxHttpServerResponse extends AbstractResponse {
 
     @Override
     public Completable end(final GenericExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                if (vertxHttpServerRequest.isWebSocketUpgraded()) {
-                    return chunks().ignoreElements();
-                }
-
-                if (!opened()) {
-                    return Completable.error(new IllegalStateException("The response is already ended"));
-                }
-                prepareHeaders();
-
-                final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-
-                if (lazyBufferFlow().hasChunks()) {
-                    return nativeResponse
-                        .rxSend(
-                            chunks()
-                                .doOnSubscribe(subscriptionRef::set)
-                                .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                                .doOnNext(
-                                    buffer ->
-                                        ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
-                                )
-                        )
-                        .doOnDispose(() -> subscriptionRef.get().cancel());
-                }
-
-                return nativeResponse.rxEnd();
+        return Completable.defer(() -> {
+            if (vertxHttpServerRequest.isWebSocketUpgraded()) {
+                return chunks().ignoreElements();
             }
-        );
+
+            if (!opened()) {
+                return Completable.error(new IllegalStateException("The response is already ended"));
+            }
+            prepareHeaders();
+
+            final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+
+            if (lazyBufferFlow().hasChunks()) {
+                return nativeResponse
+                    .rxSend(
+                        chunks()
+                            .doOnSubscribe(subscriptionRef::set)
+                            .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            .doOnNext(buffer ->
+                                ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
+                            )
+                    )
+                    .doOnDispose(() -> subscriptionRef.get().cancel());
+            }
+
+            return nativeResponse.rxEnd();
+        });
     }
 
     @Override

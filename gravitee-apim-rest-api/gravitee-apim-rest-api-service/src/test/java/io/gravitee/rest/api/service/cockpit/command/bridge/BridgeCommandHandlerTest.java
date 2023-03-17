@@ -60,11 +60,10 @@ public class BridgeCommandHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("No handler found for this operation: UNKWOWN_OPERATION")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("No handler found for this operation: UNKWOWN_OPERATION")
         );
     }
 
@@ -82,11 +81,10 @@ public class BridgeCommandHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                reply.getMessage().equals("Fake operation handler")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+            reply.getMessage().equals("Fake operation handler")
         );
     }
 

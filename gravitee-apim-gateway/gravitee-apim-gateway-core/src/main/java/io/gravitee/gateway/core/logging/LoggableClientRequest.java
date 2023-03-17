@@ -60,32 +60,28 @@ public class LoggableClientRequest extends RequestWrapper {
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        request.bodyHandler(
-            chunk -> {
-                if (buffer == null) {
-                    buffer = Buffer.buffer();
-                    isContentTypeLoggable = isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
-                }
-                bodyHandler.handle(chunk);
-                if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {
-                    appendLog(buffer, chunk);
-                }
+        request.bodyHandler(chunk -> {
+            if (buffer == null) {
+                buffer = Buffer.buffer();
+                isContentTypeLoggable = isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
             }
-        );
+            bodyHandler.handle(chunk);
+            if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {
+                appendLog(buffer, chunk);
+            }
+        });
         return this;
     }
 
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-        request.endHandler(
-            result -> {
-                if (buffer != null) {
-                    log.getClientRequest().setBody(buffer.toString());
-                }
-
-                endHandler.handle(result);
+        request.endHandler(result -> {
+            if (buffer != null) {
+                log.getClientRequest().setBody(buffer.toString());
             }
-        );
+
+            endHandler.handle(result);
+        });
 
         return this;
     }

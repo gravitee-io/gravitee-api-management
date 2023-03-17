@@ -56,48 +56,38 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                UnicastProcessor<Message> errorEmitter = UnicastProcessor.create();
-                return ctx
-                    .request()
-                    .onMessages(
-                        upstream ->
-                            upstream.onErrorResumeNext(
-                                throwable -> {
-                                    return toMessageFlowable(ctx, throwable)
-                                        .doOnNext(
-                                            message -> {
-                                                errorEmitter.onNext(message);
-                                                errorEmitter.onComplete();
-                                            }
-                                        )
-                                        .ignoreElements()
-                                        .andThen(Flowable.empty());
-                                }
-                            )
-                    )
-                    .andThen(
-                        ctx
-                            .response()
-                            .onMessages(
-                                upstream ->
-                                    errorEmitter
+        return Completable.defer(() -> {
+            UnicastProcessor<Message> errorEmitter = UnicastProcessor.create();
+            return ctx
+                .request()
+                .onMessages(upstream ->
+                    upstream.onErrorResumeNext(throwable -> {
+                        return toMessageFlowable(ctx, throwable)
+                            .doOnNext(message -> {
+                                errorEmitter.onNext(message);
+                                errorEmitter.onComplete();
+                            })
+                            .ignoreElements()
+                            .andThen(Flowable.empty());
+                    })
+                )
+                .andThen(
+                    ctx
+                        .response()
+                        .onMessages(upstream ->
+                            errorEmitter
+                                .materialize()
+                                .mergeWith(
+                                    upstream
+                                        .onErrorResumeNext(throwable -> {
+                                            return toMessageFlowable(ctx, throwable);
+                                        })
                                         .materialize()
-                                        .mergeWith(
-                                            upstream
-                                                .onErrorResumeNext(
-                                                    throwable -> {
-                                                        return toMessageFlowable(ctx, throwable);
-                                                    }
-                                                )
-                                                .materialize()
-                                        )
-                                        .dematerialize(bufferNotification -> bufferNotification)
-                            )
-                    );
-            }
-        );
+                                )
+                                .dematerialize(bufferNotification -> bufferNotification)
+                        )
+                );
+        });
     }
 
     private Flowable<Message> toMessageFlowable(final MutableExecutionContext ctx, final Throwable throwable) {
@@ -109,7 +99,7 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
             if (executionFailure == null) {
                 executionFailure =
                     new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-                    .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+                        .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             }
             ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 

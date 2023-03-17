@@ -353,16 +353,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService
                     .findByPlan(executionContext, planId)
-                    .forEach(
-                        subscription -> {
-                            try {
-                                subscriptionService.close(executionContext, subscription.getId());
-                            } catch (SubscriptionNotClosableException snce) {
-                                // subscription status could not be closed (already closed or rejected)
-                                // ignore it
-                            }
+                    .forEach(subscription -> {
+                        try {
+                            subscriptionService.close(executionContext, subscription.getId());
+                        } catch (SubscriptionNotClosableException snce) {
+                            // subscription status could not be closed (already closed or rejected)
+                            // ignore it
                         }
-                    );
+                    });
             }
 
             // Save plan
@@ -585,19 +583,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))
             .sorted(Comparator.comparingInt(Plan::getOrder))
-            .forEachOrdered(
-                plan -> {
-                    try {
-                        if (plan.getOrder() > planRemoved.getOrder()) {
-                            plan.setOrder(plan.getOrder() - 1);
-                            planRepository.update(plan);
-                        }
-                    } catch (final TechnicalException ex) {
-                        logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
-                        throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
+            .forEachOrdered(plan -> {
+                try {
+                    if (plan.getOrder() > planRemoved.getOrder()) {
+                        plan.setOrder(plan.getOrder() - 1);
+                        planRepository.update(plan);
                     }
+                } catch (final TechnicalException ex) {
+                    logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
-            );
+            });
     }
 
     private PlanEntity mapToEntity(final Plan plan) {

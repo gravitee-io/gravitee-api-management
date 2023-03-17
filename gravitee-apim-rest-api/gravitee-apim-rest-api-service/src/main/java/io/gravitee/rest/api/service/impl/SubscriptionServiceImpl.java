@@ -379,13 +379,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .map(Subscription::getPlan)
                         .distinct()
                         .map(plan1 -> planSearchService.findById(executionContext, plan1))
-                        .filter(
-                            subPlan -> {
-                                PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
-                                PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
-                                return subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT;
-                            }
-                        )
+                        .filter(subPlan -> {
+                            PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
+                            PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
+                            return subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT;
+                        })
                         .count();
 
                     if (count > 0) {
@@ -402,13 +400,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .map(Subscription::getPlan)
                         .distinct()
                         .map(plan1 -> planSearchService.findById(executionContext, plan1))
-                        .filter(
-                            subPlan -> {
-                                PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
-                                PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
-                                return subPlanSecurityType == PlanSecurityType.API_KEY;
-                            }
-                        )
+                        .filter(subPlan -> {
+                            PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
+                            PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
+                            return subPlanSecurityType == PlanSecurityType.API_KEY;
+                        })
                         .count();
 
                     if (count > 0) {
@@ -607,20 +603,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             return subscriptionRepository
                 .findById(subscriptionId)
-                .map(
-                    subscription -> {
-                        subscription.setDaysToExpirationOnLastNotification(value);
-                        try {
-                            return subscriptionRepository.update(subscription);
-                        } catch (TechnicalException ex) {
-                            logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
-                            throw new TechnicalManagementException(
-                                String.format("An error occurs while trying to update subscription %s", subscriptionId),
-                                ex
-                            );
-                        }
+                .map(subscription -> {
+                    subscription.setDaysToExpirationOnLastNotification(value);
+                    try {
+                        return subscriptionRepository.update(subscription);
+                    } catch (TechnicalException ex) {
+                        logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to update subscription %s", subscriptionId),
+                            ex
+                        );
                     }
-                )
+                })
                 .map(this::convert)
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException ex) {
@@ -681,12 +675,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (planSecurityType == PlanSecurityType.API_KEY && endingAt != null) {
                     streamActiveApiKeys(executionContext, subscription.getId())
                         .filter(apiKey -> !apiKey.getApplication().hasApiKeySharedMode())
-                        .forEach(
-                            apiKey -> {
-                                apiKey.setExpireAt(endingAt);
-                                apiKeyService.update(executionContext, apiKey);
-                            }
-                        );
+                        .forEach(apiKey -> {
+                            apiKey.setExpireAt(endingAt);
+                            apiKeyService.update(executionContext, apiKey);
+                        });
                 }
 
                 return convert(subscription);
@@ -781,52 +773,48 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
                 searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(
-                        subscriberEmail -> {
-                            if (
-                                !notifierService.hasEmailNotificationFor(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                    application.getId(),
-                                    params,
-                                    subscriberEmail
-                                )
-                            ) {
-                                notifierService.triggerEmail(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                    apiId,
-                                    params,
-                                    subscriberEmail
-                                );
-                            }
+                    .ifPresent(subscriberEmail -> {
+                        if (
+                            !notifierService.hasEmailNotificationFor(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                                application.getId(),
+                                params,
+                                subscriberEmail
+                            )
+                        ) {
+                            notifierService.triggerEmail(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                                apiId,
+                                params,
+                                subscriberEmail
+                            );
                         }
-                    );
+                    });
             } else {
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
                 searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(
-                        subscriberEmail -> {
-                            if (
-                                !notifierService.hasEmailNotificationFor(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_REJECTED,
-                                    application.getId(),
-                                    params,
-                                    subscriberEmail
-                                )
-                            ) {
-                                notifierService.triggerEmail(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_REJECTED,
-                                    apiId,
-                                    params,
-                                    subscriberEmail
-                                );
-                            }
+                    .ifPresent(subscriberEmail -> {
+                        if (
+                            !notifierService.hasEmailNotificationFor(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_REJECTED,
+                                application.getId(),
+                                params,
+                                subscriberEmail
+                            )
+                        ) {
+                            notifierService.triggerEmail(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_REJECTED,
+                                apiId,
+                                params,
+                                subscriberEmail
+                            );
                         }
-                    );
+                    });
             }
 
             return subscriptionEntity;
@@ -996,12 +984,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private void pauseNonSharedApiKeys(ExecutionContext executionContext, Subscription subscription, ApplicationEntity application) {
         if (!application.hasApiKeySharedMode()) {
             streamActiveApiKeys(executionContext, subscription.getId())
-                .forEach(
-                    apiKey -> {
-                        apiKey.setPaused(true);
-                        apiKeyService.update(executionContext, apiKey);
-                    }
-                );
+                .forEach(apiKey -> {
+                    apiKey.setPaused(true);
+                    apiKeyService.update(executionContext, apiKey);
+                });
         }
     }
 
@@ -1113,12 +1099,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     private void resumeApiKeys(ExecutionContext executionContext, Subscription subscription) {
         streamActiveApiKeys(executionContext, subscription.getId())
-            .forEach(
-                apiKey -> {
-                    apiKey.setPaused(false);
-                    apiKeyService.update(executionContext, apiKey);
-                }
-            );
+            .forEach(apiKey -> {
+                apiKey.setPaused(false);
+                apiKeyService.update(executionContext, apiKey);
+            });
     }
 
     private static void validateConsumerStatus(Subscription subscription, GenericApiModel genericApiModel) {
@@ -1236,12 +1220,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // active API Keys are automatically unpause
                 streamActiveApiKeys(executionContext, subscription.getId())
-                    .forEach(
-                        apiKey -> {
-                            apiKey.setPaused(false);
-                            apiKeyService.update(executionContext, apiKey);
-                        }
-                    );
+                    .forEach(apiKey -> {
+                        apiKey.setPaused(false);
+                        apiKeyService.update(executionContext, apiKey);
+                    });
 
                 return convert(subscription);
             }
@@ -1355,12 +1337,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .findByKey(executionContext, query.getApiKey())
                     .stream()
                     .flatMap(apiKey -> findByIdIn(apiKey.getSubscriptionIds()).stream())
-                    .filter(
-                        subscription ->
-                            query.matchesApi(subscription.getApi()) &&
-                            query.matchesApplication(subscription.getApplication()) &&
-                            query.matchesPlan(subscription.getPlan()) &&
-                            query.matchesStatus(subscription.getStatus())
+                    .filter(subscription ->
+                        query.matchesApi(subscription.getApi()) &&
+                        query.matchesApplication(subscription.getApplication()) &&
+                        query.matchesPlan(subscription.getPlan()) &&
+                        query.matchesStatus(subscription.getStatus())
                     )
                     .collect(toList());
 
@@ -1406,23 +1387,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         planSearchService
             .findByIdIn(executionContext, subscriptionsByPlan.keySet())
-            .forEach(
-                plan -> {
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
-                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
-                }
-            );
+            .forEach(plan -> {
+                PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+                subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
+            });
     }
 
     private void fillApiKeys(ExecutionContext executionContext, List<SubscriptionEntity> subscriptions) {
-        subscriptions.forEach(
-            subscriptionEntity -> {
-                final List<String> keys = streamActiveApiKeys(executionContext, subscriptionEntity.getId())
-                    .map(ApiKeyEntity::getKey)
-                    .collect(toList());
-                subscriptionEntity.setKeys(keys);
-            }
-        );
+        subscriptions.forEach(subscriptionEntity -> {
+            final List<String> keys = streamActiveApiKeys(executionContext, subscriptionEntity.getId())
+                .map(ApiKeyEntity::getKey)
+                .collect(toList());
+            subscriptionEntity.setKeys(keys);
+        });
     }
 
     private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
@@ -1598,60 +1575,50 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         final Optional<Map<String, ApplicationListItem>> applicationsById = query
             .ifApplications()
-            .map(
-                withApplications -> {
-                    Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
-                    return applicationService
-                        .findByIds(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds)
-                        .stream()
-                        .collect(toMap(ApplicationListItem::getId, Function.identity()));
-                }
-            );
+            .map(withApplications -> {
+                Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
+                return applicationService
+                    .findByIds(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds)
+                    .stream()
+                    .collect(toMap(ApplicationListItem::getId, Function.identity()));
+            });
 
         final Optional<Map<String, GenericApiEntity>> apisById = query
             .ifApis()
-            .map(
-                withApis -> {
-                    Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
-                    return apiSearchService
-                        .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
-                        .stream()
-                        .collect(toMap(GenericApiEntity::getId, Function.identity()));
-                }
-            );
+            .map(withApis -> {
+                Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
+                return apiSearchService
+                    .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
+                    .stream()
+                    .collect(toMap(GenericApiEntity::getId, Function.identity()));
+            });
 
         final Optional<Map<String, GenericPlanEntity>> plansById = query
             .ifPlans()
-            .map(
-                withPlans -> {
-                    Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
-                    return planSearchService
-                        .findByIdIn(executionContext, planIds)
-                        .stream()
-                        .collect(toMap(GenericPlanEntity::getId, Function.identity()));
-                }
-            );
+            .map(withPlans -> {
+                Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
+                return planSearchService
+                    .findByIdIn(executionContext, planIds)
+                    .stream()
+                    .collect(toMap(GenericPlanEntity::getId, Function.identity()));
+            });
 
         final Optional<Map<String, UserEntity>> subscribersById = query
             .ifSubscribers()
-            .map(
-                withSubscribers -> {
-                    Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
-                    return userService
-                        .findByIds(executionContext, subscriberIds)
-                        .stream()
-                        .collect(toMap(UserEntity::getId, Function.identity()));
-                }
-            );
+            .map(withSubscribers -> {
+                Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
+                return userService
+                    .findByIds(executionContext, subscriberIds)
+                    .stream()
+                    .collect(toMap(UserEntity::getId, Function.identity()));
+            });
 
-        subscriptions.forEach(
-            subscription -> {
-                applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
-                apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
-                plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
-                subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
-            }
-        );
+        subscriptions.forEach(subscription -> {
+            applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
+            apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
+            plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
+            subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
+        });
 
         return metadata;
     }
@@ -1773,13 +1740,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         subscriptionQuery.setApplication(application.getId());
         return search(executionContext, subscriptionQuery)
             .stream()
-            .filter(
-                subscription -> {
-                    GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(genericPlanEntity.getPlanSecurity().getType());
-                    return planSecurityType == PlanSecurityType.API_KEY;
-                }
-            )
+            .filter(subscription -> {
+                GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+                PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(genericPlanEntity.getPlanSecurity().getType());
+                return planSecurityType == PlanSecurityType.API_KEY;
+            })
             .count();
     }
 

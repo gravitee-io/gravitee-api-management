@@ -64,12 +64,10 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
             .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
 
         when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
-            .thenAnswer(
-                invocationOnMock -> {
-                    PageEntity page = invocationOnMock.getArgument(2);
-                    return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
-                }
-            );
+            .thenAnswer(invocationOnMock -> {
+                PageEntity page = invocationOnMock.getArgument(2);
+                return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
+            });
 
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());

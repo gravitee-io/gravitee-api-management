@@ -46,18 +46,16 @@ public class EventNativeReporterProcessor implements Processor {
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable
-            .fromRunnable(
-                () -> {
-                    Metrics metrics = ctx.metrics();
-                    if (metrics != null && metrics.isEnabled()) {
-                        reporterService.report(metrics);
-                        if (metrics.getLog() != null) {
-                            metrics.getLog().setApiId(metrics.getApiId());
-                            reporterService.report(metrics.getLog());
-                        }
+            .fromRunnable(() -> {
+                Metrics metrics = ctx.metrics();
+                if (metrics != null && metrics.isEnabled()) {
+                    reporterService.report(metrics);
+                    if (metrics.getLog() != null) {
+                        metrics.getLog().setApiId(metrics.getApiId());
+                        reporterService.report(metrics.getLog());
                     }
                 }
-            )
+            })
             .doOnError(throwable -> log.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
     }

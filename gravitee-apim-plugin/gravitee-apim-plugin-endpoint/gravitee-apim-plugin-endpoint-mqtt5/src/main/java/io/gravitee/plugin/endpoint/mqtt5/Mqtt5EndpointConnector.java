@@ -103,47 +103,41 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     @Override
     public Completable connect(final ExecutionContext ctx) {
         return Completable
-            .defer(
-                () -> {
-                    Mqtt5RxClient mqtt5RxClient = prepareMqtt5Client(ctx).identifier(mqtt5ClientIdentifier(ctx)).buildRx();
-                    return RxJavaBridge.toV3Completable(
-                        mqtt5RxClient
-                            .connect(prepareMqttConnect(ctx).build())
-                            .doOnSuccess(mqtt5ConnAck -> ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT, mqtt5RxClient))
-                            .ignoreElement()
-                    );
-                }
-            )
+            .defer(() -> {
+                Mqtt5RxClient mqtt5RxClient = prepareMqtt5Client(ctx).identifier(mqtt5ClientIdentifier(ctx)).buildRx();
+                return RxJavaBridge.toV3Completable(
+                    mqtt5RxClient
+                        .connect(prepareMqttConnect(ctx).build())
+                        .doOnSuccess(mqtt5ConnAck -> ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT, mqtt5RxClient))
+                        .ignoreElement()
+                );
+            })
             .andThen(super.connect(ctx))
             .onErrorResumeNext(throwable -> interruptWith(ctx, throwable));
     }
 
     @Override
     public Completable subscribe(ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                if (configuration.getConsumer().isEnabled()) {
-                    ctx
-                        .response()
-                        .messages(
-                            Flowable.defer(
-                                () -> {
-                                    Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                                    String topic = getTopic(ctx, configuration.getConsumer().getTopic());
-                                    return RxJavaBridge
-                                        .toV3Flowable(
-                                            prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic)
-                                                .applySubscribe()
-                                                .<Message>map(mqtt5Publish -> transform(ctx, mqtt5Publish))
-                                        )
-                                        .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
-                                        .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe());
-                                }
-                            )
-                        );
-                }
+        return Completable.fromRunnable(() -> {
+            if (configuration.getConsumer().isEnabled()) {
+                ctx
+                    .response()
+                    .messages(
+                        Flowable.defer(() -> {
+                            Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
+                            String topic = getTopic(ctx, configuration.getConsumer().getTopic());
+                            return RxJavaBridge
+                                .toV3Flowable(
+                                    prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic)
+                                        .applySubscribe()
+                                        .<Message>map(mqtt5Publish -> transform(ctx, mqtt5Publish))
+                                )
+                                .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
+                                .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe());
+                        })
+                    );
             }
-        );
+        });
     }
 
     protected DefaultMessage transform(final ExecutionContext ctx, final Mqtt5Publish mqttPublish) {
@@ -172,37 +166,32 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     @Override
     public Completable publish(ExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
-            return Completable.defer(
-                () -> {
-                    Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                    String topic = getTopic(ctx, configuration.getProducer().getTopic());
-                    String responseTopic = getResponseTopic(ctx);
-                    return ctx
-                        .request()
-                        .onMessages(
-                            upstream ->
-                                RxJavaBridge
-                                    .toV3Flowable(
-                                        mqtt5RxClient
-                                            .publish(
-                                                RxJavaBridge.toV2Flowable(
-                                                    upstream.map(message -> prepareMqtt5Publish(ctx, topic, responseTopic, message).build())
-                                                )
-                                            )
-                                            .flatMapMaybe(
-                                                mqtt5PublishResult -> {
-                                                    if (mqtt5PublishResult.getError().isPresent()) {
-                                                        return Maybe.error(mqtt5PublishResult.getError().get());
-                                                    }
-                                                    return Maybe.<Message>empty();
-                                                }
-                                            )
+            return Completable.defer(() -> {
+                Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
+                String topic = getTopic(ctx, configuration.getProducer().getTopic());
+                String responseTopic = getResponseTopic(ctx);
+                return ctx
+                    .request()
+                    .onMessages(upstream ->
+                        RxJavaBridge
+                            .toV3Flowable(
+                                mqtt5RxClient
+                                    .publish(
+                                        RxJavaBridge.toV2Flowable(
+                                            upstream.map(message -> prepareMqtt5Publish(ctx, topic, responseTopic, message).build())
+                                        )
                                     )
-                                    .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
-                                    .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe())
-                        );
-                }
-            );
+                                    .flatMapMaybe(mqtt5PublishResult -> {
+                                        if (mqtt5PublishResult.getError().isPresent()) {
+                                            return Maybe.error(mqtt5PublishResult.getError().get());
+                                        }
+                                        return Maybe.<Message>empty();
+                                    })
+                            )
+                            .onErrorResumeNext(throwable -> interruptMessagesWith(ctx, throwable))
+                            .doFinally(() -> mqtt5RxClient.disconnect().onErrorComplete().subscribe())
+                    );
+            });
         } else {
             return Completable.complete();
         }
@@ -222,13 +211,11 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
             .serverHost(configuration.getServerHost())
             .serverPort(configuration.getServerPort())
             .automaticReconnectWithDefaultConfig()
-            .addDisconnectedListener(
-                context -> {
-                    if (context.getReconnector().getAttempts() >= configuration().getReconnectAttempts()) {
-                        context.getReconnector().reconnect(false);
-                    }
+            .addDisconnectedListener(context -> {
+                if (context.getReconnector().getAttempts() >= configuration().getReconnectAttempts()) {
+                    context.getReconnector().reconnect(false);
                 }
-            );
+            });
     }
 
     protected MqttConnectBuilder.Default prepareMqttConnect(final ExecutionContext ctx) {

@@ -92,12 +92,11 @@ public class ClientRegistrationService_UpdateTest {
         providerUpdatedMock.setName(existingPayload.getName());
         when(
             mockClientRegistrationProviderRepository.update(
-                argThat(
-                    p ->
-                        p.getId() == existingPayload.getId() &&
-                        p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
-                        p.getName() == providerPayload.getName() &&
-                        p.getUpdatedAt() != null
+                argThat(p ->
+                    p.getId() == existingPayload.getId() &&
+                    p.getEnvironmentId() == GraviteeContext.getExecutionContext().getEnvironmentId() &&
+                    p.getName() == providerPayload.getName() &&
+                    p.getUpdatedAt() != null
                 )
             )
         )

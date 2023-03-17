@@ -116,8 +116,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage -> ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()
@@ -163,9 +163,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()
@@ -211,9 +210,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()
@@ -265,9 +263,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()
@@ -312,9 +309,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()
@@ -360,9 +356,8 @@ class ResponseTemplateBasedFailureMessageProcessorTest extends AbstractV4Process
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY"))
             )
             .compose(requestMessages)
             .test()

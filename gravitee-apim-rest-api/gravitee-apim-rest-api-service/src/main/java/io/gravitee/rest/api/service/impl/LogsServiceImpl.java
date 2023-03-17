@@ -162,19 +162,17 @@ public class LogsServiceImpl implements LogsService {
 
                 logResponse
                     .getLogs()
-                    .forEach(
-                        logItem -> {
-                            String application = logItem.getApplication();
-                            String plan = logItem.getPlan();
+                    .forEach(logItem -> {
+                        String application = logItem.getApplication();
+                        String plan = logItem.getPlan();
 
-                            if (application != null) {
-                                metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
-                            }
-                            if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                            }
+                        if (application != null) {
+                            metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
                         }
-                    );
+                        if (plan != null) {
+                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                        }
+                    });
 
                 logResponse.setMetadata(metadata);
             }
@@ -239,19 +237,17 @@ public class LogsServiceImpl implements LogsService {
 
                 logResponse
                     .getLogs()
-                    .forEach(
-                        logItem -> {
-                            String api = logItem.getApi();
-                            String plan = logItem.getPlan();
+                    .forEach(logItem -> {
+                        String api = logItem.getApi();
+                        String plan = logItem.getPlan();
 
-                            if (api != null) {
-                                metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
-                            }
-                            if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                            }
+                        if (api != null) {
+                            metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
                         }
-                    );
+                        if (plan != null) {
+                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                        }
+                    });
 
                 logResponse.setMetadata(metadata);
             }
@@ -290,23 +286,21 @@ public class LogsServiceImpl implements LogsService {
 
                 logResponse
                     .getLogs()
-                    .forEach(
-                        logItem -> {
-                            String api = logItem.getApi();
-                            String application = logItem.getApplication();
-                            String plan = logItem.getPlan();
+                    .forEach(logItem -> {
+                        String api = logItem.getApi();
+                        String application = logItem.getApplication();
+                        String plan = logItem.getPlan();
 
-                            if (api != null) {
-                                metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
-                            }
-                            if (application != null) {
-                                metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
-                            }
-                            if (plan != null) {
-                                metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                            }
+                        if (api != null) {
+                            metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
                         }
-                    );
+                        if (application != null) {
+                            metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
+                        }
+                        if (plan != null) {
+                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                        }
+                    });
 
                 logResponse.setMetadata(metadata);
             }
@@ -451,9 +445,8 @@ public class LogsServiceImpl implements LogsService {
 
     private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
         GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
-        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
-            plan.getPlanSecurity().getType()
-        );
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
+            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
         if (
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.API_KEY == planSecurityType ||
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS == planSecurityType

@@ -166,17 +166,15 @@ class HttpGetEntrypointConnectorTest {
         cut
             .handleRequest(ctx)
             .test()
-            .assertError(
-                e -> {
-                    assertTrue(e instanceof InterruptionFailureException);
-                    assertEquals(HttpStatusCode.BAD_REQUEST_400, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
-                    assertEquals(
-                        "Unsupported accept header: " + requestHttpHeaders.getAll(HttpHeaderNames.ACCEPT),
-                        ((InterruptionFailureException) e).getExecutionFailure().message()
-                    );
-                    return true;
-                }
-            );
+            .assertError(e -> {
+                assertTrue(e instanceof InterruptionFailureException);
+                assertEquals(HttpStatusCode.BAD_REQUEST_400, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+                assertEquals(
+                    "Unsupported accept header: " + requestHttpHeaders.getAll(HttpHeaderNames.ACCEPT),
+                    ((InterruptionFailureException) e).getExecutionFailure().message()
+                );
+                return true;
+            });
     }
 
     @ParameterizedTest(name = "Expected: {0}, parameters: {1}")

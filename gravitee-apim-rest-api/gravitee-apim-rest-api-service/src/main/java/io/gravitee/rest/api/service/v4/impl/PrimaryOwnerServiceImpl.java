@@ -215,15 +215,13 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         final List<String> userIds = new ArrayList<>();
         final Set<String> groupIds = new HashSet<>();
 
-        memberships.forEach(
-            memberEntity -> {
-                if (memberEntity.getType() == MembershipMemberType.USER) {
-                    userIds.add(memberEntity.getId());
-                } else if (memberEntity.getType() == MembershipMemberType.GROUP) {
-                    groupIds.add(memberEntity.getId());
-                }
+        memberships.forEach(memberEntity -> {
+            if (memberEntity.getType() == MembershipMemberType.USER) {
+                userIds.add(memberEntity.getId());
+            } else if (memberEntity.getType() == MembershipMemberType.GROUP) {
+                groupIds.add(memberEntity.getId());
             }
-        );
+        });
         if (!userIds.isEmpty()) {
             userService
                 .findByIds(executionContext, userIds)

@@ -66,18 +66,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
         if (genericApiEntity.getTags() != null && !genericApiEntity.getTags().isEmpty()) {
             List<EntrypointEntity> organizationEntrypoints = entrypointService.findAll(executionContext);
-            organizationEntrypoints.forEach(
-                entrypoint -> {
-                    final String entrypointScheme = getScheme(entrypoint.getValue());
-                    final String entrypointValue = entrypoint.getValue();
-                    Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
-                    tagEntrypoints.retainAll(genericApiEntity.getTags());
+            organizationEntrypoints.forEach(entrypoint -> {
+                final String entrypointScheme = getScheme(entrypoint.getValue());
+                final String entrypointValue = entrypoint.getValue();
+                Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
+                tagEntrypoints.retainAll(genericApiEntity.getTags());
 
-                    if (tagEntrypoints.size() == entrypoint.getTags().length) {
-                        apiEntrypoints.addAll(getEntrypoints(genericApiEntity, entrypointScheme, entrypointValue, tagEntrypoints));
-                    }
+                if (tagEntrypoints.size() == entrypoint.getTags().length) {
+                    apiEntrypoints.addAll(getEntrypoints(genericApiEntity, entrypointScheme, entrypointValue, tagEntrypoints));
                 }
-            );
+            });
         }
 
         // If empty, get the default entrypoint
@@ -108,16 +106,15 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .getProxy()
                 .getVirtualHosts()
                 .stream()
-                .map(
-                    virtualHost ->
-                        getApiEntrypointEntity(
-                            entrypointScheme,
-                            entrypointHost,
-                            virtualHost.getHost(),
-                            virtualHost.getPath(),
-                            virtualHost.isOverrideEntrypoint(),
-                            tagEntrypoints
-                        )
+                .map(virtualHost ->
+                    getApiEntrypointEntity(
+                        entrypointScheme,
+                        entrypointHost,
+                        virtualHost.getHost(),
+                        virtualHost.getPath(),
+                        virtualHost.isOverrideEntrypoint(),
+                        tagEntrypoints
+                    )
                 )
                 .collect(Collectors.toList());
         } else {
@@ -126,22 +123,19 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .getListeners()
                 .stream()
                 .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .flatMap(
-                    listener -> {
-                        HttpListener httpListener = (HttpListener) listener;
-                        return httpListener.getPaths().stream();
-                    }
-                )
-                .map(
-                    path ->
-                        getApiEntrypointEntity(
-                            entrypointScheme,
-                            entrypointHost,
-                            path.getHost(),
-                            path.getPath(),
-                            path.isOverrideAccess(),
-                            tagEntrypoints
-                        )
+                .flatMap(listener -> {
+                    HttpListener httpListener = (HttpListener) listener;
+                    return httpListener.getPaths().stream();
+                })
+                .map(path ->
+                    getApiEntrypointEntity(
+                        entrypointScheme,
+                        entrypointHost,
+                        path.getHost(),
+                        path.getPath(),
+                        path.isOverrideAccess(),
+                        tagEntrypoints
+                    )
                 )
                 .collect(Collectors.toList());
         }

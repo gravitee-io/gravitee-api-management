@@ -149,17 +149,15 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     public Flowable<String> processApiEvents(Flowable<Event> upstream) {
         return upstream
             .groupBy(Event::getType)
-            .flatMap(
-                eventsByType -> {
-                    if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
-                        return eventsByType.compose(this::processApiRegisterEvents);
-                    } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
-                        return eventsByType.compose(this::processApiUnregisterEvents);
-                    } else {
-                        return Flowable.empty();
-                    }
+            .flatMap(eventsByType -> {
+                if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
+                    return eventsByType.compose(this::processApiRegisterEvents);
+                } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
+                    return eventsByType.compose(this::processApiUnregisterEvents);
+                } else {
+                    return Flowable.empty();
                 }
-            );
+            });
     }
 
     /**
@@ -177,22 +175,20 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return upstream
             .flatMapMaybe(eventToReactableApiAdapter::toReactableApi)
             .<ActionOnApi, ReactableApi<?>>groupBy(apiManager::requiredActionFor, reactableApi -> reactableApi)
-            .flatMap(
-                groupedFlowable -> {
-                    if (groupedFlowable.getKey() == ActionOnApi.DEPLOY) {
-                        return groupedFlowable
-                            .compose(g -> planFetcher.fetchApiPlans(g, getBulkSize()))
-                            .compose(this::filterByTags)
-                            .compose(this::fetchKeysAndSubscriptions)
-                            .compose(this::registerApi)
-                            .compose(this::dispatchSubscriptionsForApis);
-                    } else if (groupedFlowable.getKey() == ActionOnApi.UNDEPLOY) {
-                        return groupedFlowable.map(ReactableApi::getId).compose(this::unRegisterApi);
-                    } else {
-                        return groupedFlowable.map(ReactableApi::getId);
-                    }
+            .flatMap(groupedFlowable -> {
+                if (groupedFlowable.getKey() == ActionOnApi.DEPLOY) {
+                    return groupedFlowable
+                        .compose(g -> planFetcher.fetchApiPlans(g, getBulkSize()))
+                        .compose(this::filterByTags)
+                        .compose(this::fetchKeysAndSubscriptions)
+                        .compose(this::registerApi)
+                        .compose(this::dispatchSubscriptionsForApis);
+                } else if (groupedFlowable.getKey() == ActionOnApi.UNDEPLOY) {
+                    return groupedFlowable.map(ReactableApi::getId).compose(this::unRegisterApi);
+                } else {
+                    return groupedFlowable.map(ReactableApi::getId);
                 }
-            );
+            });
     }
 
     /**
@@ -214,15 +210,13 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(
-                api -> {
-                    try {
-                        apiManager.register(api);
-                    } catch (Exception e) {
-                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
-                    }
+            .doOnNext(api -> {
+                try {
+                    apiManager.register(api);
+                } catch (Exception e) {
+                    logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
                 }
-            )
+            })
             .sequential()
             .map(ReactableApi::getId);
     }
@@ -232,15 +226,13 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(
-                apiId -> {
-                    try {
-                        apiManager.unregister(apiId);
-                    } catch (Exception e) {
-                        logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
-                    }
+            .doOnNext(apiId -> {
+                try {
+                    apiManager.unregister(apiId);
+                } catch (Exception e) {
+                    logger.error("An error occurred when trying to unregister api [{}].", apiId, e);
                 }
-            )
+            })
             .sequential();
     }
 
@@ -258,47 +250,43 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<ReactableApi<?>> filterByTags(Flowable<ReactableApi<?>> upstream) {
         return upstream
             .filter(api -> gatewayConfiguration.hasMatchingTags(api.getTags()))
-            .map(
-                api -> {
-                    if (api.getDefinitionVersion() != DefinitionVersion.V4) {
-                        var plans = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlans();
-                        if (plans != null) {
-                            ((io.gravitee.definition.model.Api) api.getDefinition()).setPlans(
-                                    plans
-                                        .stream()
-                                        .filter(p -> p.getStatus() != null)
-                                        .filter(p -> filterPlanStatus(p.getStatus()))
-                                        .filter(p -> filterShardingTag(p.getName(), api.getName(), p.getTags()))
-                                        .collect(Collectors.toList())
-                                );
-                        }
-                        return api;
-                    }
-
-                    var plans = ((Api) api.getDefinition()).getPlans();
+            .map(api -> {
+                if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+                    var plans = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlans();
                     if (plans != null) {
-                        ((Api) api.getDefinition()).setPlans(
+                        ((io.gravitee.definition.model.Api) api.getDefinition()).setPlans(
                                 plans
                                     .stream()
                                     .filter(p -> p.getStatus() != null)
-                                    .filter(p -> filterPlanStatus(p.getStatus().getLabel()))
+                                    .filter(p -> filterPlanStatus(p.getStatus()))
                                     .filter(p -> filterShardingTag(p.getName(), api.getName(), p.getTags()))
                                     .collect(Collectors.toList())
                             );
                     }
                     return api;
                 }
-            )
-            .filter(
-                api -> {
-                    if (api.getDefinition() instanceof Api) {
-                        return !((Api) api.getDefinition()).getPlans().isEmpty();
-                    } else if (api.getDefinition() instanceof io.gravitee.definition.model.Api) {
-                        return !((io.gravitee.definition.model.Api) api.getDefinition()).getPlans().isEmpty();
-                    }
-                    return false;
+
+                var plans = ((Api) api.getDefinition()).getPlans();
+                if (plans != null) {
+                    ((Api) api.getDefinition()).setPlans(
+                            plans
+                                .stream()
+                                .filter(p -> p.getStatus() != null)
+                                .filter(p -> filterPlanStatus(p.getStatus().getLabel()))
+                                .filter(p -> filterShardingTag(p.getName(), api.getName(), p.getTags()))
+                                .collect(Collectors.toList())
+                        );
                 }
-            );
+                return api;
+            })
+            .filter(api -> {
+                if (api.getDefinition() instanceof Api) {
+                    return !((Api) api.getDefinition()).getPlans().isEmpty();
+                } else if (api.getDefinition() instanceof io.gravitee.definition.model.Api) {
+                    return !((io.gravitee.definition.model.Api) api.getDefinition()).getPlans().isEmpty();
+                }
+                return false;
+            });
     }
 
     private boolean filterPlanStatus(final String planStatus) {
@@ -327,12 +315,10 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     private Flowable<ReactableApi<?>> fetchKeysAndSubscriptions(Flowable<ReactableApi<?>> upstream) {
         return upstream
             .buffer(getBulkSize())
-            .doOnNext(
-                apis -> {
-                    apiKeysCacheService.register(apis);
-                    subscriptionsCacheService.register(apis);
-                }
-            )
+            .doOnNext(apis -> {
+                apiKeysCacheService.register(apis);
+                subscriptionsCacheService.register(apis);
+            })
             .flatMapIterable(apis -> apis);
     }
 

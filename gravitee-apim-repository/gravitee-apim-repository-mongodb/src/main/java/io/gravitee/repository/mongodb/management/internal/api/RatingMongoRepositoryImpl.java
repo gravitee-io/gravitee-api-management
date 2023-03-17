@@ -62,12 +62,10 @@ public class RatingMongoRepositoryImpl implements RatingMongoRepositoryCustom {
     public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) {
         AggregateIterable<Document> ratings = getSummariesByCriteria(ratingCriteria);
         Set<String> ranking = new LinkedHashSet<>();
-        ratings.forEach(
-            document -> {
-                String referenceId = document.getString("_id");
-                ranking.add(referenceId);
-            }
-        );
+        ratings.forEach(document -> {
+            String referenceId = document.getString("_id");
+            ranking.add(referenceId);
+        });
         return ranking;
     }
 }

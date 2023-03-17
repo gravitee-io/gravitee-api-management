@@ -68,15 +68,13 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         if (expectedBestMatchResult == null) {
             obs.assertNoValues();
         } else {
-            obs.assertValue(
-                bestMatchFlow -> {
-                    Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.HTTP);
-                    assertThat(selector).isPresent();
-                    HttpSelector httpSelector = (HttpSelector) selector.get();
-                    assertThat(httpSelector.getPath()).isEqualTo(expectedBestMatchResult);
-                    return true;
-                }
-            );
+            obs.assertValue(bestMatchFlow -> {
+                Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.HTTP);
+                assertThat(selector).isPresent();
+                HttpSelector httpSelector = (HttpSelector) selector.get();
+                assertThat(httpSelector.getPath()).isEqualTo(expectedBestMatchResult);
+                return true;
+            });
         }
     }
 
@@ -96,15 +94,13 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         if (expectedBestMatchResult == null) {
             obs.assertNoValues();
         } else {
-            obs.assertValue(
-                bestMatchFlow -> {
-                    Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.CHANNEL);
-                    assertThat(selector).isPresent();
-                    ChannelSelector channelSelector = (ChannelSelector) selector.get();
-                    assertThat(channelSelector.getChannel()).isEqualTo(expectedBestMatchResult);
-                    return true;
-                }
-            );
+            obs.assertValue(bestMatchFlow -> {
+                Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.CHANNEL);
+                assertThat(selector).isPresent();
+                ChannelSelector channelSelector = (ChannelSelector) selector.get();
+                assertThat(channelSelector.getChannel()).isEqualTo(expectedBestMatchResult);
+                return true;
+            });
         }
     }
 }
