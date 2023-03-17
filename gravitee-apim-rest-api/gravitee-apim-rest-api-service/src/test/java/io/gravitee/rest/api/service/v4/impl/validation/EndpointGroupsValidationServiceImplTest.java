@@ -16,10 +16,13 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -27,6 +30,7 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
@@ -62,7 +66,10 @@ public class EndpointGroupsValidationServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        lenient().when(endpointService.validateConnectorConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        lenient()
+            .when(endpointService.validateConnectorConfiguration(any(String.class), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        lenient().when(endpointService.validateSharedConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
     }
 
@@ -120,9 +127,10 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint endpoint = new Endpoint();
         endpoint.setName("endpoint");
         endpoint.setType("http");
+        endpoint.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup.setEndpoints(List.of(endpoint));
         List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
-        assertThat(endpointGroups.size()).isEqualTo(1);
+        assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
         assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
@@ -142,9 +150,11 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("my name");
         endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
         Endpoint endpoint = new Endpoint();
         endpoint.setName("endpoint");
         endpoint.setType("http");
+        endpoint.setInheritConfiguration(true);
         endpointGroup.setEndpoints(List.of(endpoint));
 
         Service healthCheck = new Service();
@@ -168,7 +178,7 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpointGroup.getServices())
             .isNotNull()
             .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
-        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNull();
+        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
     }
@@ -331,6 +341,7 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint endpoint = new Endpoint();
         endpoint.setName("my name");
         endpoint.setType("http");
+        endpoint.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup.setEndpoints(List.of(endpoint));
 
         EndpointGroup endpointGroup2 = new EndpointGroup();
@@ -339,6 +350,7 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint endpoint2 = new Endpoint();
         endpoint2.setName("my name");
         endpoint2.setType("http");
+        endpoint2.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
         assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
@@ -350,17 +362,21 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("group1");
         endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
         Endpoint endpoint = new Endpoint();
         endpoint.setName("my name");
         endpoint.setType("http");
+        endpoint.setInheritConfiguration(true);
         endpointGroup.setEndpoints(List.of(endpoint));
 
         EndpointGroup endpointGroup2 = new EndpointGroup();
         endpointGroup2.setName("my name");
         endpointGroup2.setType("http");
+        endpointGroup2.setSharedConfiguration("sharedConfiguration");
         Endpoint endpoint2 = new Endpoint();
         endpoint2.setName("endpoint2");
         endpoint2.setType("http");
+        endpoint2.setInheritConfiguration(true);
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
         assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class)
@@ -416,5 +432,121 @@ public class EndpointGroupsValidationServiceImplTest {
     @Test(expected = EndpointMissingException.class)
     public void shouldThrowExceptionWithNullParameter() {
         assertThat(endpointGroupsValidationService.validateAndSanitize(null)).isNull();
+    }
+
+    @Test
+    public void shouldValidateSharedConfiguration() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
+        endpointGroup.setEndpoints(List.of());
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+        assertThat(endpointGroups).hasSize(1);
+        EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
+        assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
+        assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
+        assertThat(validatedEndpointGroup.getEndpoints()).isEmpty();
+        assertThat(validatedEndpointGroup.getServices()).isEqualTo(services);
+        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+        verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
+    }
+
+    @Test
+    public void shouldValidateOverriddenSharedConfiguration() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http-proxy");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http-proxy");
+        endpoint.setInheritConfiguration(false);
+        endpoint.setSharedConfigurationOverride("overriddenSharedConfiguration");
+
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+        assertThat(endpointGroups).hasSize(1);
+        EndpointGroup validatedEndpointGroup = endpointGroups.get(0);
+        assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
+        assertThat(validatedEndpointGroup.getType()).isEqualTo(endpointGroup.getType());
+        assertThat(validatedEndpointGroup.getServices()).isEqualTo(services);
+        assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
+        assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+        assertThat(validatedEndpointGroup.getEndpoints())
+            .hasSize(1)
+            .first()
+            .extracting("sharedConfigurationOverride")
+            .isEqualTo("overriddenSharedConfiguration");
+        verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
+        verify(endpointService).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+    }
+
+    @Test
+    public void shouldNotValidateEndpointGroupWhenTryingToInheritANullSharedConfiguration() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http-proxy");
+        endpointGroup.setSharedConfiguration((String) null);
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http-proxy");
+        endpoint.setInheritConfiguration(true);
+        endpoint.setSharedConfigurationOverride("overriddenSharedConfiguration");
+
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        assertThatThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup)))
+            .isInstanceOf(EndpointConfigurationValidationException.class)
+            .hasMessage("Impossible to inherit from a null shared configuration for endpoint: endpoint");
+        verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
+        verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+    }
+
+    @Test
+    public void shouldNotValidateEndpointGroupWhenNotInheritingNorOverriding() {
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http-proxy");
+        endpointGroup.setSharedConfiguration("minimalSharedConfiguration");
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http-proxy");
+        endpoint.setInheritConfiguration(false);
+        endpoint.setSharedConfigurationOverride((String) null);
+
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        endpointGroupsValidationService.validateAndSanitize(List.of(endpointGroup));
+        verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
+        verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+        verify(endpointService).validateSharedConfiguration(any(), eq("{}"));
     }
 }

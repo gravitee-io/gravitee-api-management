@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.v4.ConnectorPluginService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -156,5 +157,25 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
     public String validateConnectorConfiguration(final String connectorPluginId, final String configuration) {
         ConnectorPluginEntity connectorPluginEntity = this.findById(connectorPluginId);
         return validateConfiguration(connectorPluginEntity.getId(), configuration);
+    }
+
+    @Override
+    public String validateConnectorConfiguration(final ConnectorPluginEntity connectorPluginEntity, final String configuration) {
+        return validateConfiguration(connectorPluginEntity.getId(), configuration);
+    }
+
+    /**
+     * Gets the schema belonging to the plugin and validate given configuration
+     * @param pluginId is the plugin for which validation is needed
+     * @param configuration is the configuration to validate against the plugin's schema
+     * @param schemaProvider is a function returning the schema for a given plugin id
+     * @return the validated configuration
+     */
+    protected String validatePluginConfigurationAgainstSchema(String pluginId, String configuration, UnaryOperator<String> schemaProvider) {
+        if (pluginId != null && configuration != null) {
+            String schema = schemaProvider.apply(pluginId);
+            return jsonSchemaService.validate(schema, configuration);
+        }
+        return configuration;
     }
 }
