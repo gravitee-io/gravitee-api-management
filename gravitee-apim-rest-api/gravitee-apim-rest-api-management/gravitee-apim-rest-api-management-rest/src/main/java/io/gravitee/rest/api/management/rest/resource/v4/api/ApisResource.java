@@ -70,7 +70,12 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity) {
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-        return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
+        return Response
+            .created(this.getLocationHeader(newApi.getId()))
+            .tag(String.valueOf(newApi.getUpdatedAt().getTime()))
+            .lastModified(newApi.getUpdatedAt())
+            .entity(newApi)
+            .build();
     }
 
     @Path("{api}")
