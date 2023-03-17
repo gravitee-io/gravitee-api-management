@@ -20,6 +20,6 @@
     "zx": "zx"
   },
   "devDependencies": {
-    "prettier": "2.5.1"
+    "prettier": "2.8.4"
   }
 }
