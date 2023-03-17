@@ -18,9 +18,9 @@
 
     <properties>
         <gravitee-bom.version>2.8</gravitee-bom.version>
-        <gravitee-reporter-api.version>1.25.0-alpha.4</gravitee-reporter-api.version>
-        <gravitee-gateway-api.version>2.1.0-apim-718-rename-v4-terms-SNAPSHOT</gravitee-gateway-api.version>
-        <gravitee-node.version>3.0.0-alpha.2</gravitee-node.version>
+        <gravitee-reporter-api.version>1.25.0</gravitee-reporter-api.version>
+        <gravitee-gateway-api.version>2.1.0</gravitee-gateway-api.version>
+        <gravitee-node.version>3.0.0</gravitee-node.version>
         <gravitee-apim.version>3.21.0-SNAPSHOT</gravitee-apim.version>
         <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
 
