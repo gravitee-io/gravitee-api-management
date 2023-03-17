@@ -55,48 +55,42 @@ public class EntrypointResponseReporterMessageProcessor implements MessageProces
         if (!ctx.metrics().isEnabled()) {
             return Completable.complete();
         }
-        return Completable.defer(
-            () -> {
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
+        return Completable.defer(() -> {
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
-                if (analyticsContext == null || !analyticsContext.isEnabled()) {
-                    return Completable.complete();
-                }
-
-                MessageCounters atomicCounters = new MessageCounters();
-                return ctx
-                    .response()
-                    .onMessage(
-                        message -> {
-                            MessageCounters.Counters counters = atomicCounters.increment(message);
-                            if (MessageAnalyticsHelper.isRecordable(message)) {
-                                MessageMetrics messageMetrics = messageReporter.reportMessageMetricsWithLatency(
-                                    ctx,
-                                    MessageOperation.SUBSCRIBE,
-                                    MessageConnectorType.ENTRYPOINT,
-                                    message,
-                                    counters
-                                );
-
-                                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-                                if (
-                                    loggingContext != null &&
-                                    loggingContext.entrypointResponse() &&
-                                    MessageAnalyticsHelper.isRecordableWithLogging(message)
-                                ) {
-                                    return messageReporter.reportMessageLog(
-                                        messageMetrics,
-                                        message,
-                                        new MessageLogEntrypointResponse(loggingContext, message)
-                                    );
-                                }
-                            }
-                            return Maybe.just(message);
-                        }
-                    );
+            if (analyticsContext == null || !analyticsContext.isEnabled()) {
+                return Completable.complete();
             }
-        );
+
+            MessageCounters atomicCounters = new MessageCounters();
+            return ctx
+                .response()
+                .onMessage(message -> {
+                    MessageCounters.Counters counters = atomicCounters.increment(message);
+                    if (MessageAnalyticsHelper.isRecordable(message)) {
+                        MessageMetrics messageMetrics = messageReporter.reportMessageMetricsWithLatency(
+                            ctx,
+                            MessageOperation.SUBSCRIBE,
+                            MessageConnectorType.ENTRYPOINT,
+                            message,
+                            counters
+                        );
+
+                        final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+                        if (
+                            loggingContext != null &&
+                            loggingContext.entrypointResponse() &&
+                            MessageAnalyticsHelper.isRecordableWithLogging(message)
+                        ) {
+                            return messageReporter.reportMessageLog(
+                                messageMetrics,
+                                message,
+                                new MessageLogEntrypointResponse(loggingContext, message)
+                            );
+                        }
+                    }
+                    return Maybe.just(message);
+                });
+        });
     }
 }

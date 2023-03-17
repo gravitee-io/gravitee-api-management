@@ -195,17 +195,15 @@ public class HttpHealthCheckService implements ApiService {
 
         return Observable
             .defer(() -> Observable.timer(nextExecutionTime(cron, triggerCtx), TimeUnit.MILLISECONDS))
-            .switchMapCompletable(
-                aLong -> {
-                    final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
+            .switchMapCompletable(aLong -> {
+                final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
 
-                    if (endpoint.getDefinition().getType().startsWith("http")) {
-                        return checkUsingEndpointConnector(hcConfiguration, hcManagedEndpoint, ctx);
-                    } else {
-                        return checkUsingHttpClient(hcConfiguration, hcManagedEndpoint, ctx);
-                    }
+                if (endpoint.getDefinition().getType().startsWith("http")) {
+                    return checkUsingEndpointConnector(hcConfiguration, hcManagedEndpoint, ctx);
+                } else {
+                    return checkUsingHttpClient(hcConfiguration, hcManagedEndpoint, ctx);
                 }
-            )
+            })
             .onErrorResumeNext(throwable -> continueOnError(endpoint, errorCount, throwable))
             .repeat()
             .subscribe(
@@ -248,17 +246,14 @@ public class HttpHealthCheckService implements ApiService {
 
         return getOrBuildHttpClient(hcConfiguration)
             .rxRequest(requestOptions)
-            .flatMap(
-                httpClientRequest ->
-                    hcConfiguration.getBody() != null ? httpClientRequest.rxSend(hcConfiguration.getBody()) : httpClientRequest.rxSend()
+            .flatMap(httpClientRequest ->
+                hcConfiguration.getBody() != null ? httpClientRequest.rxSend(hcConfiguration.getBody()) : httpClientRequest.rxSend()
             )
-            .doOnSuccess(
-                endpointResponse -> {
-                    response.status(endpointResponse.statusCode());
-                    response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
-                    endpointResponse.headers().forEach(header -> response.headers().add(header.getKey(), header.getValue()));
-                }
-            )
+            .doOnSuccess(endpointResponse -> {
+                response.status(endpointResponse.statusCode());
+                response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
+                endpointResponse.headers().forEach(header -> response.headers().add(header.getKey(), header.getValue()));
+            })
             .ignoreElement()
             .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
             .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
@@ -342,11 +337,9 @@ public class HttpHealthCheckService implements ApiService {
         final HttpHeaders configHeaders = ctx.request().headers();
         if (configHeaders != null && !configHeaders.isEmpty()) {
             final MultiMap headers = new HeadersMultiMap();
-            configHeaders.forEach(
-                header -> {
-                    headers.add(header.getKey(), header.getValue());
-                }
-            );
+            configHeaders.forEach(header -> {
+                headers.add(header.getKey(), header.getValue());
+            });
             requestOptions.setHeaders(headers);
         }
 
@@ -370,59 +363,51 @@ public class HttpHealthCheckService implements ApiService {
         final ExecutionContext ctx,
         final HttpHealthCheckServiceConfiguration hcConfiguration
     ) {
-        return defer(
-            () -> {
-                final long currentTimestamp = System.currentTimeMillis();
-                final Request request = ctx.request();
-                final Response response = ctx.response();
-                final io.gravitee.reporter.api.common.Request reportRequest = new io.gravitee.reporter.api.common.Request();
-                final io.gravitee.reporter.api.common.Response reportResponse = new io.gravitee.reporter.api.common.Response();
+        return defer(() -> {
+            final long currentTimestamp = System.currentTimeMillis();
+            final Request request = ctx.request();
+            final Response response = ctx.response();
+            final io.gravitee.reporter.api.common.Request reportRequest = new io.gravitee.reporter.api.common.Request();
+            final io.gravitee.reporter.api.common.Response reportResponse = new io.gravitee.reporter.api.common.Response();
 
-                return ctx
-                    .getTemplateEngine()
-                    .eval(hcConfiguration.getAssertion(), Boolean.class)
-                    .defaultIfEmpty(false)
-                    .onErrorReturnItem(false)
-                    .flatMapCompletable(
-                        success -> {
-                            reportRequest.setMethod(request.method());
-                            reportRequest.setUri(ctx.metrics().getEndpoint());
-                            reportResponse.setStatus(response.status());
+            return ctx
+                .getTemplateEngine()
+                .eval(hcConfiguration.getAssertion(), Boolean.class)
+                .defaultIfEmpty(false)
+                .onErrorReturnItem(false)
+                .flatMapCompletable(success -> {
+                    reportRequest.setMethod(request.method());
+                    reportRequest.setUri(ctx.metrics().getEndpoint());
+                    reportResponse.setStatus(response.status());
 
-                            final EndpointStatus.Builder statusBuilder = EndpointStatus
-                                .forEndpoint(api.getId(), hcEndpoint.getDefinition().getName())
-                                .on(request.timestamp());
+                    final EndpointStatus.Builder statusBuilder = EndpointStatus
+                        .forEndpoint(api.getId(), hcEndpoint.getDefinition().getName())
+                        .on(request.timestamp());
 
-                            final EndpointStatus.StepBuilder stepBuilder = EndpointStatus
-                                .forStep(DEFAULT_STEP)
-                                .request(reportRequest)
-                                .response(reportResponse)
-                                .responseTime(currentTimestamp - request.timestamp());
+                    final EndpointStatus.StepBuilder stepBuilder = EndpointStatus
+                        .forStep(DEFAULT_STEP)
+                        .request(reportRequest)
+                        .response(reportResponse)
+                        .responseTime(currentTimestamp - request.timestamp());
 
-                            if (success) {
-                                statusBuilder.step(stepBuilder.success().build());
-                                return Completable.fromRunnable(() -> hcEndpoint.reportStatus(true, statusBuilder.build()));
-                            } else {
-                                reportRequest.setHeaders(request.headers());
-                                reportRequest.setBody(hcConfiguration.getBody());
-                                reportResponse.setHeaders(response.headers());
+                    if (success) {
+                        statusBuilder.step(stepBuilder.success().build());
+                        return Completable.fromRunnable(() -> hcEndpoint.reportStatus(true, statusBuilder.build()));
+                    } else {
+                        reportRequest.setHeaders(request.headers());
+                        reportRequest.setBody(hcConfiguration.getBody());
+                        reportResponse.setHeaders(response.headers());
 
-                                return response
-                                    .bodyOrEmpty()
-                                    .doOnSuccess(
-                                        body -> {
-                                            reportResponse.setBody(body.toString());
-                                            statusBuilder.step(
-                                                stepBuilder.fail("Assertion not validated: " + hcConfiguration.getAssertion()).build()
-                                            );
-                                            hcEndpoint.reportStatus(false, statusBuilder.build());
-                                        }
-                                    )
-                                    .ignoreElement();
-                            }
-                        }
-                    );
-            }
-        );
+                        return response
+                            .bodyOrEmpty()
+                            .doOnSuccess(body -> {
+                                reportResponse.setBody(body.toString());
+                                statusBuilder.step(stepBuilder.fail("Assertion not validated: " + hcConfiguration.getAssertion()).build());
+                                hcEndpoint.reportStatus(false, statusBuilder.build());
+                            })
+                            .ignoreElement();
+                    }
+                });
+        });
     }
 }

@@ -128,21 +128,18 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         return promotionsPage
             .getContent()
             .stream()
-            .map(
-                promotionEntity -> {
-                    Optional<String> foundTargetApiId = promotionByApiWithTargetApiId
-                        .getOrDefault(promotionEntity.getApiId(), emptyList())
-                        .stream()
-                        .filter(StringUtils::hasText)
-                        .findFirst();
+            .map(promotionEntity -> {
+                Optional<String> foundTargetApiId = promotionByApiWithTargetApiId
+                    .getOrDefault(promotionEntity.getApiId(), emptyList())
+                    .stream()
+                    .filter(StringUtils::hasText)
+                    .findFirst();
 
-                    boolean isUpdate = foundTargetApiId.isPresent() && apiSearchService.exists(foundTargetApiId.get());
-                    return convert(promotionEntity, isUpdate, foundTargetApiId);
-                }
-            )
-            .filter(
-                taskEntity ->
-                    ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
+                boolean isUpdate = foundTargetApiId.isPresent() && apiSearchService.exists(foundTargetApiId.get());
+                return convert(promotionEntity, isUpdate, foundTargetApiId);
+            })
+            .filter(taskEntity ->
+                ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
             )
             .collect(toList());
     }

@@ -142,22 +142,20 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             .filter(HttpGetEntrypointConnector::isMediaTypeSupported)
             .map(MediaType::toMediaString)
             .findFirst()
-            .orElseGet(
-                () -> {
-                    // If no supported header, we use the first of the list
-                    // A null or empty header will return "text/plain"
-                    // A WILDCARD header will return "application/json"
-                    // else we simply return it
-                    String bestAcceptHeader = !mediaTypes.isEmpty() ? mediaTypes.get(0).toMediaString() : null;
-                    if (bestAcceptHeader == null || bestAcceptHeader.isEmpty()) {
-                        return MediaType.TEXT_PLAIN;
-                    } else if (bestAcceptHeader.equals(MediaType.WILDCARD)) {
-                        return MediaType.APPLICATION_JSON;
-                    } else {
-                        return bestAcceptHeader;
-                    }
+            .orElseGet(() -> {
+                // If no supported header, we use the first of the list
+                // A null or empty header will return "text/plain"
+                // A WILDCARD header will return "application/json"
+                // else we simply return it
+                String bestAcceptHeader = !mediaTypes.isEmpty() ? mediaTypes.get(0).toMediaString() : null;
+                if (bestAcceptHeader == null || bestAcceptHeader.isEmpty()) {
+                    return MediaType.TEXT_PLAIN;
+                } else if (bestAcceptHeader.equals(MediaType.WILDCARD)) {
+                    return MediaType.APPLICATION_JSON;
+                } else {
+                    return bestAcceptHeader;
                 }
-            );
+            });
     }
 
     @Override
@@ -167,52 +165,48 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                List<String> acceptHeaderValues = ctx.request().headers().getAll(HttpHeaderNames.ACCEPT);
-                final String contentType = selectContentType(acceptHeaderValues);
-                if (!isMediaTypeSupported(contentType)) {
-                    return ctx.interruptWith(
-                        new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).message("Unsupported accept header: " + acceptHeaderValues)
-                    );
-                }
-                ctx.putInternalAttribute(ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, contentType);
-
-                ctx.putInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS,
-                    configuration.getMessagesLimitDurationMs()
+        return Completable.defer(() -> {
+            List<String> acceptHeaderValues = ctx.request().headers().getAll(HttpHeaderNames.ACCEPT);
+            final String contentType = selectContentType(acceptHeaderValues);
+            if (!isMediaTypeSupported(contentType)) {
+                return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).message("Unsupported accept header: " + acceptHeaderValues)
                 );
-
-                int messagesLimitCount = configuration.getMessagesLimitCount();
-                if (ctx.request().parameters().containsKey(LIMIT_QUERY_PARAM)) {
-                    String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
-                    if (limit != null && !limit.isEmpty()) {
-                        messagesLimitCount = Math.min(messagesLimitCount, Integer.parseInt(limit));
-                    }
-                }
-                ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT, messagesLimitCount);
-
-                if (ctx.request().parameters().containsKey(CURSOR_QUERY_PARAM)) {
-                    String cursor = ctx.request().parameters().getFirst(CURSOR_QUERY_PARAM);
-                    if (cursor != null && !cursor.isEmpty()) {
-                        ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID, cursor);
-                    }
-                }
-
-                return Completable.complete();
             }
-        );
+            ctx.putInternalAttribute(ATTR_INTERNAL_RESPONSE_CONTENT_TYPE, contentType);
+
+            ctx.putInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS,
+                configuration.getMessagesLimitDurationMs()
+            );
+
+            int messagesLimitCount = configuration.getMessagesLimitCount();
+            if (ctx.request().parameters().containsKey(LIMIT_QUERY_PARAM)) {
+                String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
+                if (limit != null && !limit.isEmpty()) {
+                    messagesLimitCount = Math.min(messagesLimitCount, Integer.parseInt(limit));
+                }
+            }
+            ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT, messagesLimitCount);
+
+            if (ctx.request().parameters().containsKey(CURSOR_QUERY_PARAM)) {
+                String cursor = ctx.request().parameters().getFirst(CURSOR_QUERY_PARAM);
+                if (cursor != null && !cursor.isEmpty()) {
+                    ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID, cursor);
+                }
+            }
+
+            return Completable.complete();
+        });
     }
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                String contentType = ctx.getInternalAttribute(ATTR_INTERNAL_RESPONSE_CONTENT_TYPE);
-                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, contentType);
-                ctx.response().chunks(messagesToBuffer(ctx, contentType));
-            }
-        );
+        return Completable.fromRunnable(() -> {
+            String contentType = ctx.getInternalAttribute(ATTR_INTERNAL_RESPONSE_CONTENT_TYPE);
+            ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, contentType);
+            ctx.response().chunks(messagesToBuffer(ctx, contentType));
+        });
     }
 
     @Override
@@ -240,29 +234,25 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             return Flowable
                 .just(Buffer.buffer("{\"items\":["))
                 .concatWith(
-                    limitedMessageFlowable.flatMapMaybe(
-                        message -> {
-                            if (!message.error()) {
-                                ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
-                                return Maybe.just(toJsonBuffer(message, first.getAndSet(false)));
-                            } else {
-                                hasError.set(message);
-                                return Maybe.empty();
-                            }
+                    limitedMessageFlowable.flatMapMaybe(message -> {
+                        if (!message.error()) {
+                            ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
+                            return Maybe.just(toJsonBuffer(message, first.getAndSet(false)));
+                        } else {
+                            hasError.set(message);
+                            return Maybe.empty();
                         }
-                    )
+                    })
                 )
                 .concatWith(Flowable.just(Buffer.buffer("]")))
                 .concatWith(
-                    Flowable.defer(
-                        () -> {
-                            Message errorMessage = hasError.getAndSet(null);
-                            if (errorMessage != null) {
-                                return Flowable.fromArray(Buffer.buffer(",\"error\":"), toJsonBuffer(errorMessage, true));
-                            }
-                            return Flowable.empty();
+                    Flowable.defer(() -> {
+                        Message errorMessage = hasError.getAndSet(null);
+                        if (errorMessage != null) {
+                            return Flowable.fromArray(Buffer.buffer(",\"error\":"), toJsonBuffer(errorMessage, true));
                         }
-                    )
+                        return Flowable.empty();
+                    })
                 )
                 .concatWith(computePagination(ctx, contentType))
                 .concatWith(Flowable.just(Buffer.buffer("}")));
@@ -270,29 +260,25 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             return Flowable
                 .just(Buffer.buffer("<response><items>"))
                 .concatWith(
-                    limitedMessageFlowable.flatMapMaybe(
-                        message -> {
-                            if (!message.error()) {
-                                ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
-                                return Maybe.just(this.toXmlBuffer(message, "item"));
-                            } else {
-                                hasError.set(message);
-                                return Maybe.empty();
-                            }
+                    limitedMessageFlowable.flatMapMaybe(message -> {
+                        if (!message.error()) {
+                            ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
+                            return Maybe.just(this.toXmlBuffer(message, "item"));
+                        } else {
+                            hasError.set(message);
+                            return Maybe.empty();
                         }
-                    )
+                    })
                 )
                 .concatWith(Flowable.just(Buffer.buffer("</items>")))
                 .concatWith(
-                    Maybe.defer(
-                        () -> {
-                            Message errorMessage = hasError.getAndSet(null);
-                            if (errorMessage != null) {
-                                return Maybe.just(toXmlBuffer(errorMessage, "error"));
-                            }
-                            return Maybe.empty();
+                    Maybe.defer(() -> {
+                        Message errorMessage = hasError.getAndSet(null);
+                        if (errorMessage != null) {
+                            return Maybe.just(toXmlBuffer(errorMessage, "error"));
                         }
-                    )
+                        return Maybe.empty();
+                    })
                 )
                 .concatWith(computePagination(ctx, contentType))
                 .concatWith(Flowable.just(Buffer.buffer("</response>")));
@@ -300,28 +286,24 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             return Flowable
                 .just(Buffer.buffer("items\n"))
                 .concatWith(
-                    limitedMessageFlowable.flatMapMaybe(
-                        message -> {
-                            if (!message.error()) {
-                                ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
-                                return Maybe.just(toPlainTextBuffer(message, "item", first.getAndSet(false)));
-                            } else {
-                                hasError.set(message);
-                                return Maybe.empty();
-                            }
-                        }
-                    )
-                )
-                .concatWith(
-                    Maybe.defer(
-                        () -> {
-                            Message errorMessage = hasError.getAndSet(null);
-                            if (errorMessage != null) {
-                                return Maybe.just(toPlainTextBuffer(errorMessage, "error", false));
-                            }
+                    limitedMessageFlowable.flatMapMaybe(message -> {
+                        if (!message.error()) {
+                            ctx.putInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID, message.id());
+                            return Maybe.just(toPlainTextBuffer(message, "item", first.getAndSet(false)));
+                        } else {
+                            hasError.set(message);
                             return Maybe.empty();
                         }
-                    )
+                    })
+                )
+                .concatWith(
+                    Maybe.defer(() -> {
+                        Message errorMessage = hasError.getAndSet(null);
+                        if (errorMessage != null) {
+                            return Maybe.just(toPlainTextBuffer(errorMessage, "error", false));
+                        }
+                        return Maybe.empty();
+                    })
                 )
                 .concatWith(computePagination(ctx, contentType));
         }
@@ -365,16 +347,15 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             message
                 .headers()
                 .toListValuesMap()
-                .forEach(
-                    (header, values) ->
-                        messageBuilder
-                            .append("<")
-                            .append(header)
-                            .append(">")
-                            .append(String.join(",", values))
-                            .append("</")
-                            .append(header)
-                            .append(">")
+                .forEach((header, values) ->
+                    messageBuilder
+                        .append("<")
+                        .append(header)
+                        .append(">")
+                        .append(String.join(",", values))
+                        .append("</")
+                        .append(header)
+                        .append(">")
                 );
             messageBuilder.append("</headers>");
         }
@@ -382,8 +363,8 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
             messageBuilder.append("<metadata>");
             message
                 .metadata()
-                .forEach(
-                    (key, value) -> messageBuilder.append("<").append(key).append(">").append(value).append("</").append(key).append(">")
+                .forEach((key, value) ->
+                    messageBuilder.append("<").append(key).append(">").append(value).append("</").append(key).append(">")
                 );
             messageBuilder.append("</metadata>");
         }
@@ -425,41 +406,39 @@ public class HttpGetEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     private Flowable<Buffer> computePagination(ExecutionContext ctx, String contentType) {
-        return Flowable.defer(
-            () -> {
-                String nextCursor = ctx.getInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID);
-                if (nextCursor != null && !nextCursor.isEmpty()) {
-                    String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
+        return Flowable.defer(() -> {
+            String nextCursor = ctx.getInternalAttribute(ATTR_INTERNAL_LAST_MESSAGE_ID);
+            if (nextCursor != null && !nextCursor.isEmpty()) {
+                String limit = ctx.request().parameters().getFirst(LIMIT_QUERY_PARAM);
 
-                    if (contentType.equals(MediaType.APPLICATION_JSON)) {
-                        List<String> paginationString = new ArrayList<>();
-                        paginationString.add("\"nextCursor\":\"" + nextCursor + "\"");
-                        if (limit != null && !limit.isEmpty()) {
-                            paginationString.add("\"limit\":\"" + limit + "\"");
-                        }
-                        return Flowable.just(Buffer.buffer(",\"pagination\":{" + String.join(",", paginationString) + "}"));
-                    } else if (contentType.equals(MediaType.APPLICATION_XML)) {
-                        StringBuilder paginationString = new StringBuilder("<pagination>");
-                        paginationString.append("<nextCursor>").append(nextCursor).append("</nextCursor>");
-                        if (limit != null && !limit.isEmpty()) {
-                            paginationString.append("<limit>").append(limit).append("</limit>");
-                        }
-                        paginationString.append("</pagination>");
-                        return Flowable.just(Buffer.buffer(paginationString.toString()));
-                    } else {
-                        StringBuilder paginationBuilder = new StringBuilder();
-                        paginationBuilder.append("\npagination");
-                        if (nextCursor != null && !nextCursor.isEmpty()) {
-                            paginationBuilder.append("\nnextCursor: ").append(nextCursor);
-                        }
-                        if (limit != null && !limit.isEmpty()) {
-                            paginationBuilder.append("\nlimit: ").append(limit);
-                        }
-                        return Flowable.just(Buffer.buffer(paginationBuilder.toString()));
+                if (contentType.equals(MediaType.APPLICATION_JSON)) {
+                    List<String> paginationString = new ArrayList<>();
+                    paginationString.add("\"nextCursor\":\"" + nextCursor + "\"");
+                    if (limit != null && !limit.isEmpty()) {
+                        paginationString.add("\"limit\":\"" + limit + "\"");
                     }
+                    return Flowable.just(Buffer.buffer(",\"pagination\":{" + String.join(",", paginationString) + "}"));
+                } else if (contentType.equals(MediaType.APPLICATION_XML)) {
+                    StringBuilder paginationString = new StringBuilder("<pagination>");
+                    paginationString.append("<nextCursor>").append(nextCursor).append("</nextCursor>");
+                    if (limit != null && !limit.isEmpty()) {
+                        paginationString.append("<limit>").append(limit).append("</limit>");
+                    }
+                    paginationString.append("</pagination>");
+                    return Flowable.just(Buffer.buffer(paginationString.toString()));
+                } else {
+                    StringBuilder paginationBuilder = new StringBuilder();
+                    paginationBuilder.append("\npagination");
+                    if (nextCursor != null && !nextCursor.isEmpty()) {
+                        paginationBuilder.append("\nnextCursor: ").append(nextCursor);
+                    }
+                    if (limit != null && !limit.isEmpty()) {
+                        paginationBuilder.append("\nlimit: ").append(limit);
+                    }
+                    return Flowable.just(Buffer.buffer(paginationBuilder.toString()));
                 }
-                return Flowable.empty();
             }
-        );
+            return Flowable.empty();
+        });
     }
 }

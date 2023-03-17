@@ -57,13 +57,11 @@ public class ApiDefinitionContextServiceTest {
 
         verify(apiRepository, times(1))
             .update(
-                argThat(
-                    api -> {
-                        assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
-                        assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
-                        return true;
-                    }
-                )
+                argThat(api -> {
+                    assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
+                    assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+                    return true;
+                })
             );
     }
 

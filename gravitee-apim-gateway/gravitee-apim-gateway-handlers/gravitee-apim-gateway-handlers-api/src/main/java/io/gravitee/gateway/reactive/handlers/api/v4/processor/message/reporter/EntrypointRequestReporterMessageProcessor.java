@@ -57,55 +57,49 @@ public class EntrypointRequestReporterMessageProcessor implements MessageProcess
         if (!ctx.metrics().isEnabled()) {
             return Completable.complete();
         }
-        return Completable.defer(
-            () -> {
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
+        return Completable.defer(() -> {
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
-                if (analyticsContext == null || !analyticsContext.isEnabled()) {
-                    return Completable.complete();
-                }
-
-                MessageSamplingStrategy messageSamplingStrategy = analyticsContext.getMessageSamplingStrategy();
-                MessageCounters atomicCounters = new MessageCounters();
-                AtomicLong lastMessageTimestamp = new AtomicLong(-1);
-                return ctx
-                    .request()
-                    .onMessage(
-                        message -> {
-                            MessageCounters.Counters counters = atomicCounters.increment(message);
-                            if (
-                                MessageAnalyticsHelper.computeRecordable(
-                                    message,
-                                    messageSamplingStrategy,
-                                    counters.messageCount(),
-                                    lastMessageTimestamp.get()
-                                )
-                            ) {
-                                lastMessageTimestamp.set(message.timestamp());
-                                MessageMetrics metrics = messageReporter.reportMessageMetrics(
-                                    ctx,
-                                    MessageOperation.PUBLISH,
-                                    MessageConnectorType.ENTRYPOINT,
-                                    message,
-                                    counters
-                                );
-                                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-                                if (loggingContext != null && loggingContext.entrypointRequest()) {
-                                    return messageReporter.reportConditionalMessageLog(
-                                        ctx,
-                                        metrics,
-                                        loggingContext,
-                                        message,
-                                        new MessageLogEntrypointRequest(loggingContext, message)
-                                    );
-                                }
-                            }
-                            return Maybe.just(message);
-                        }
-                    );
+            if (analyticsContext == null || !analyticsContext.isEnabled()) {
+                return Completable.complete();
             }
-        );
+
+            MessageSamplingStrategy messageSamplingStrategy = analyticsContext.getMessageSamplingStrategy();
+            MessageCounters atomicCounters = new MessageCounters();
+            AtomicLong lastMessageTimestamp = new AtomicLong(-1);
+            return ctx
+                .request()
+                .onMessage(message -> {
+                    MessageCounters.Counters counters = atomicCounters.increment(message);
+                    if (
+                        MessageAnalyticsHelper.computeRecordable(
+                            message,
+                            messageSamplingStrategy,
+                            counters.messageCount(),
+                            lastMessageTimestamp.get()
+                        )
+                    ) {
+                        lastMessageTimestamp.set(message.timestamp());
+                        MessageMetrics metrics = messageReporter.reportMessageMetrics(
+                            ctx,
+                            MessageOperation.PUBLISH,
+                            MessageConnectorType.ENTRYPOINT,
+                            message,
+                            counters
+                        );
+                        final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+                        if (loggingContext != null && loggingContext.entrypointRequest()) {
+                            return messageReporter.reportConditionalMessageLog(
+                                ctx,
+                                metrics,
+                                loggingContext,
+                                message,
+                                new MessageLogEntrypointRequest(loggingContext, message)
+                            );
+                        }
+                    }
+                    return Maybe.just(message);
+                });
+        });
     }
 }

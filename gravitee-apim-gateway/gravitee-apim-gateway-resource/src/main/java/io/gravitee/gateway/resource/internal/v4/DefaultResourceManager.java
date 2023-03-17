@@ -63,18 +63,16 @@ public class DefaultResourceManager extends LegacyResourceManagerImpl {
             .dependencies(Resource.class)
             .stream()
             .filter(Resource::isEnabled)
-            .forEach(
-                resource -> {
-                    log.debug("Loading resource {} for {}", resource.getName(), reactable);
-                    final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
-                        resource.getType(),
-                        resource.getConfiguration()
-                    );
+            .forEach(resource -> {
+                log.debug("Loading resource {} for {}", resource.getName(), reactable);
+                final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
+                    resource.getType(),
+                    resource.getConfiguration()
+                );
 
-                    if (resourceInstance != null) {
-                        resources.put(resource.getName(), resourceInstance);
-                    }
+                if (resourceInstance != null) {
+                    resources.put(resource.getName(), resourceInstance);
                 }
-            );
+            });
     }
 }

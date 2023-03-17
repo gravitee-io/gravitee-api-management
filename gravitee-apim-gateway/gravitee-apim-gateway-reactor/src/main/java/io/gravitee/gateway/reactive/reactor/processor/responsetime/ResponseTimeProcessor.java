@@ -34,17 +34,15 @@ public class ResponseTimeProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                Metrics metrics = ctx.metrics();
-                // Compute response-time and add it to the metrics
-                long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
-                metrics.setStatus(ctx.response().status());
-                metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
-                if (metrics.getEndpointResponseTimeMs() > -1) {
-                    metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
-                }
+        return Completable.fromRunnable(() -> {
+            Metrics metrics = ctx.metrics();
+            // Compute response-time and add it to the metrics
+            long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+            metrics.setStatus(ctx.response().status());
+            metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
+            if (metrics.getEndpointResponseTimeMs() > -1) {
+                metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
             }
-        );
+        });
     }
 }

@@ -100,14 +100,13 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .request()
-                    .webSocket()
-                    .upgrade()
-                    .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
-                    .ignoreElement()
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .webSocket()
+                .upgrade()
+                .doOnSuccess(webSocket -> ctx.request().messages(prepareRequestMessages(webSocket)))
+                .ignoreElement()
         );
     }
 
@@ -141,18 +140,16 @@ public class WebSocketEntrypointConnector extends EntrypointAsyncConnector {
                         .response()
                         .messages()
                         .compose(applyStopHook())
-                        .flatMapCompletable(
-                            message -> {
-                                if (!message.error()) {
-                                    return ctx.request().webSocket().write(message.content());
-                                } else {
-                                    if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
-                                        return Completable.error(new WebSocketException(TRY_AGAIN_LATER, TRY_AGAIN_LATER.reasonText()));
-                                    }
-                                    return Completable.error(new WebSocketException(SERVER_ERROR, message.content().toString()));
+                        .flatMapCompletable(message -> {
+                            if (!message.error()) {
+                                return ctx.request().webSocket().write(message.content());
+                            } else {
+                                if (Objects.equals(STOP_MESSAGE_ID, message.id())) {
+                                    return Completable.error(new WebSocketException(TRY_AGAIN_LATER, TRY_AGAIN_LATER.reasonText()));
                                 }
+                                return Completable.error(new WebSocketException(SERVER_ERROR, message.content().toString()));
                             }
-                        )
+                        })
                 );
         } else {
             completable = ctx.request().messages().ignoreElements();

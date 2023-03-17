@@ -90,11 +90,10 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         Flowable
             .just(new DefaultMessage("1"))
-            .flatMap(
-                defaultMessage ->
-                    ctx.interruptMessagesWith(
-                        new ExecutionFailure(HttpResponseStatus.NOT_FOUND.code()).message(HttpResponseStatus.NOT_FOUND.reasonPhrase())
-                    )
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(
+                    new ExecutionFailure(HttpResponseStatus.NOT_FOUND.code()).message(HttpResponseStatus.NOT_FOUND.reasonPhrase())
+                )
             )
             .compose(requestMessages)
             .test()
@@ -167,7 +166,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
 
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.NOT_FOUND.code())
-        .message(HttpResponseStatus.NOT_FOUND.reasonPhrase());
+            .message(HttpResponseStatus.NOT_FOUND.reasonPhrase());
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         Flowable
             .just(new DefaultMessage("1"))
@@ -208,7 +207,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
 
         FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.NOT_FOUND.code())
-        .message(HttpResponseStatus.NOT_FOUND.reasonPhrase());
+            .message(HttpResponseStatus.NOT_FOUND.reasonPhrase());
         String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         Flowable
             .just(new DefaultMessage("1"))

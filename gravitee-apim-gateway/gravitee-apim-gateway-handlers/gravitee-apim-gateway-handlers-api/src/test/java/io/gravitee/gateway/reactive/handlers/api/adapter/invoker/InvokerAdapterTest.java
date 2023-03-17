@@ -109,14 +109,12 @@ class InvokerAdapterTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
-                assertEquals(GATEWAY_CLIENT_CONNECTION_ERROR, ((InterruptionFailureException) e).getExecutionFailure().key());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+            assertEquals(GATEWAY_CLIENT_CONNECTION_ERROR, ((InterruptionFailureException) e).getExecutionFailure().key());
+            return true;
+        });
         verify(response).chunks(Flowable.empty());
     }
 
@@ -152,17 +150,15 @@ class InvokerAdapterTest {
         final CompletableEmitter nextEmitter = (CompletableEmitter) ReflectionTestUtils.getField(connectionHandlerAdapter, "nextEmitter");
         nextEmitter.tryOnError(interruptionFailureException);
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final ExecutionFailure executionFailure = ((InterruptionFailureException) e).getExecutionFailure();
-                assertEquals(INTERNAL_SERVER_ERROR_500, executionFailure.statusCode());
-                assertEquals(failureKey, executionFailure.key());
-                assertEquals(failureContentType, executionFailure.contentType());
-                assertEquals(MOCK_EXCEPTION_MESSAGE, executionFailure.message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final ExecutionFailure executionFailure = ((InterruptionFailureException) e).getExecutionFailure();
+            assertEquals(INTERNAL_SERVER_ERROR_500, executionFailure.statusCode());
+            assertEquals(failureKey, executionFailure.key());
+            assertEquals(failureContentType, executionFailure.contentType());
+            assertEquals(MOCK_EXCEPTION_MESSAGE, executionFailure.message());
+            return true;
+        });
         verify(response).chunks(Flowable.empty());
     }
 
@@ -219,30 +215,26 @@ class InvokerAdapterTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+            return true;
+        });
         verify(adaptedExecutionContext).restore();
         verify(response).chunks(Flowable.empty());
     }
 
     private void mockComplete() {
-        doAnswer(
-                invocation -> {
-                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                        ConnectionHandlerAdapter.class,
-                        "nextEmitter",
-                        connectionHandlerAdapter
-                    );
-                    ((CompletableEmitter) nextEmitter.get()).onComplete();
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                    ConnectionHandlerAdapter.class,
+                    "nextEmitter",
+                    connectionHandlerAdapter
+                );
+                ((CompletableEmitter) nextEmitter.get()).onComplete();
+                return null;
+            })
             .when(invoker)
             .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
     }

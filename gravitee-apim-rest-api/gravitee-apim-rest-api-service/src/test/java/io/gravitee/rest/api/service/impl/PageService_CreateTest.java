@@ -138,18 +138,17 @@ public class PageService_CreateTest {
 
         verify(pageRepository)
             .create(
-                argThat(
-                    pageToCreate ->
-                        pageToCreate.getId().split("-").length == 5 &&
-                        API_ID.equals(pageToCreate.getReferenceId()) &&
-                        PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
-                        name.equals(pageToCreate.getName()) &&
-                        contrib.equals(pageToCreate.getLastContributor()) &&
-                        content.equals(pageToCreate.getContent()) &&
-                        PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
-                        pageToCreate.getCreatedAt() != null &&
-                        pageToCreate.getUpdatedAt() != null &&
-                        pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())
+                argThat(pageToCreate ->
+                    pageToCreate.getId().split("-").length == 5 &&
+                    API_ID.equals(pageToCreate.getReferenceId()) &&
+                    PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
+                    name.equals(pageToCreate.getName()) &&
+                    contrib.equals(pageToCreate.getLastContributor()) &&
+                    content.equals(pageToCreate.getContent()) &&
+                    PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
+                    pageToCreate.getCreatedAt() != null &&
+                    pageToCreate.getUpdatedAt() != null &&
+                    pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())
                 )
             );
         assertNotNull(createdPage);

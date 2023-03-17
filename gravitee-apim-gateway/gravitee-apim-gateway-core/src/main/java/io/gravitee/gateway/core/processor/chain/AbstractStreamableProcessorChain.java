@@ -66,16 +66,12 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
         } else {
             ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
             if (streamableProcessorChain != null && tailPolicyStreamer != null) {
-                tailPolicyStreamer.bodyHandler(
-                    bodyPart -> {
-                        if (bodyHandler != null) bodyHandler.handle(bodyPart);
-                    }
-                );
-                tailPolicyStreamer.endHandler(
-                    result -> {
-                        if (endHandler != null) endHandler.handle(result);
-                    }
-                );
+                tailPolicyStreamer.bodyHandler(bodyPart -> {
+                    if (bodyHandler != null) bodyHandler.handle(bodyPart);
+                });
+                tailPolicyStreamer.endHandler(result -> {
+                    if (endHandler != null) endHandler.handle(result);
+                });
             }
 
             resultHandler.handle(data);

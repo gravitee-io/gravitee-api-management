@@ -72,12 +72,10 @@ public abstract class PolicyStep<T> {
 
     public Completable pre(final T source, final Map<String, Object> attributes) {
         return saveInputState(source, AttributeHelper.filterAndSerializeAttributes(attributes))
-            .doOnSuccess(
-                policyStepState -> {
-                    this.inputState = policyStepState;
-                    starTimeWatch();
-                }
-            )
+            .doOnSuccess(policyStepState -> {
+                this.inputState = policyStepState;
+                starTimeWatch();
+            })
             .ignoreElement();
     }
 
@@ -87,13 +85,11 @@ public abstract class PolicyStep<T> {
         return Completable
             .fromRunnable(this::stopTimeWatch)
             .andThen(computeDiff(source, this.inputState, AttributeHelper.filterAndSerializeAttributes(attributes)))
-            .doOnSuccess(
-                computedDiffMap -> {
-                    this.diffMap = computedDiffMap;
-                    this.inputState = null;
-                    this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
-                }
-            )
+            .doOnSuccess(computedDiffMap -> {
+                this.diffMap = computedDiffMap;
+                this.inputState = null;
+                this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
+            })
             .ignoreElement();
     }
 
@@ -127,28 +123,24 @@ public abstract class PolicyStep<T> {
     }
 
     public Completable error(Throwable ex) {
-        return Completable.fromRunnable(
-            () -> {
-                stopTimeWatch();
-                this.status = DebugStepStatus.ERROR;
-                this.error = new DebugStepError();
-                this.error.setMessage(ex.getMessage());
-            }
-        );
+        return Completable.fromRunnable(() -> {
+            stopTimeWatch();
+            this.status = DebugStepStatus.ERROR;
+            this.error = new DebugStepError();
+            this.error.setMessage(ex.getMessage());
+        });
     }
 
     public Completable error(ExecutionFailure executionFailure) {
-        return Completable.fromRunnable(
-            () -> {
-                stopTimeWatch();
-                this.status = DebugStepStatus.ERROR;
-                this.error = new DebugStepError();
-                this.error.setMessage(executionFailure.message());
-                this.error.setKey(executionFailure.key());
-                this.error.setStatus(executionFailure.statusCode());
-                this.error.setContentType(executionFailure.contentType());
-            }
-        );
+        return Completable.fromRunnable(() -> {
+            stopTimeWatch();
+            this.status = DebugStepStatus.ERROR;
+            this.error = new DebugStepError();
+            this.error.setMessage(executionFailure.message());
+            this.error.setKey(executionFailure.key());
+            this.error.setStatus(executionFailure.statusCode());
+            this.error.setContentType(executionFailure.contentType());
+        });
     }
 
     public void onConditionFilter(String condition, boolean isConditionTruthy) {

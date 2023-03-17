@@ -515,11 +515,10 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(planService, times(1))
             .createOrUpdatePlan(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    plan ->
-                        plan.getId().equals("plan-id1") &&
-                        plan.getName().equals("new name from imported description") &&
-                        plan.getDescription().equals("plan description before import")
+                argThat(plan ->
+                    plan.getId().equals("plan-id1") &&
+                    plan.getName().equals("new name from imported description") &&
+                    plan.getDescription().equals("plan description before import")
                 )
             );
     }

@@ -57,8 +57,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
                 .getListeners()
                 .stream()
                 .flatMap(listener -> listener.getEntrypoints().stream())
-                .map(
-                    entrypoint -> this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
+                .map(entrypoint ->
+                    this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
                 )
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
@@ -74,7 +74,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
 
         if (connectorFactory != null) {
             if (connectorFactory.supportedApi() == ApiType.MESSAGE) {
-                EntrypointAsyncConnectorFactory<EntrypointAsyncConnector> entrypointAsyncConnectorFactory = (EntrypointAsyncConnectorFactory<EntrypointAsyncConnector>) connectorFactory;
+                EntrypointAsyncConnectorFactory<EntrypointAsyncConnector> entrypointAsyncConnectorFactory =
+                    (EntrypointAsyncConnectorFactory<EntrypointAsyncConnector>) connectorFactory;
                 Qos qos = Qos.AUTO;
                 if (entrypoint.getQos() != null) {
                     qos = Qos.fromLabel(entrypoint.getQos().getLabel());
@@ -89,9 +90,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     public <T extends EntrypointConnector> T resolve(final ExecutionContext ctx) {
         Optional<EntrypointConnector> entrypointConnector = entrypointConnectors
             .stream()
-            .filter(
-                connector ->
-                    connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)
+            .filter(connector ->
+                connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)
             )
             .findFirst();
         return (T) entrypointConnector.orElse(null);

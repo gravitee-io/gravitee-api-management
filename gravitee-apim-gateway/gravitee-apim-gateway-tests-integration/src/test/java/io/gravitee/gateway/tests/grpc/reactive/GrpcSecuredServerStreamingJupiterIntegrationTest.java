@@ -70,35 +70,33 @@ public class GrpcSecuredServerStreamingJupiterIntegrationTest extends AbstractGr
         Checkpoint messageCounter = testContext.checkpoint(MESSAGE_COUNT);
 
         // Start is asynchronous
-        rpcServer.start(
-            event -> {
-                // Get a stub to use for interacting with the remote service
-                StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
+        rpcServer.start(event -> {
+            // Get a stub to use for interacting with the remote service
+            StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
-                // Call the remote service
-                final StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
-                    new StreamObserver<>() {
-                        @Override
-                        public void onNext(HelloReply helloReply) {
-                            messageCounter.flag();
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            testContext.failNow(throwable.getMessage());
-                        }
-
-                        @Override
-                        public void onCompleted() {
-                            // TestContext should be completed thanks to the messageCounter
-                            assertThat(testContext.completed()).isTrue();
-                        }
+            // Call the remote service
+            final StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
+                new StreamObserver<>() {
+                    @Override
+                    public void onNext(HelloReply helloReply) {
+                        messageCounter.flag();
                     }
-                );
 
-                requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
-            }
-        );
+                    @Override
+                    public void onError(Throwable throwable) {
+                        testContext.failNow(throwable.getMessage());
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        // TestContext should be completed thanks to the messageCounter
+                        assertThat(testContext.completed()).isTrue();
+                    }
+                }
+            );
+
+            requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
+        });
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }

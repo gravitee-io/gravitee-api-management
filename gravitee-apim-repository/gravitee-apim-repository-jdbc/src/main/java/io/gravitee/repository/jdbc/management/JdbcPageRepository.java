@@ -382,12 +382,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 id
             );
             Optional<Page> result = rowMapper.getRows().stream().findFirst();
-            result.ifPresent(
-                page -> {
-                    this.addAttachedMedia(page);
-                    this.addAccessControls(page);
-                }
-            );
+            result.ifPresent(page -> {
+                this.addAttachedMedia(page);
+                this.addAccessControls(page);
+            });
             LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
@@ -423,13 +421,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 .getRows()
                 .stream()
                 .limit(pageable.pageSize())
-                .map(
-                    p -> {
-                        addAccessControls(p);
-                        addAttachedMedia(p);
-                        return p;
-                    }
-                )
+                .map(p -> {
+                    addAccessControls(p);
+                    addAttachedMedia(p);
+                    return p;
+                })
                 .collect(Collectors.toList());
             LOGGER.debug("JdbcPageRepository.findAll() = {} result", result.size());
             return new io.gravitee.common.data.domain.Page<>(result, pageable.pageNumber(), result.size(), totalPages);

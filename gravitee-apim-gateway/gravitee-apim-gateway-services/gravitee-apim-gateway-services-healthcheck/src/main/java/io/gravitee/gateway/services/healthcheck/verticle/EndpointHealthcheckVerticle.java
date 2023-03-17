@@ -108,15 +108,13 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             .getGroups()
             .stream()
             .filter(group -> group.getEndpoints() != null)
-            .forEach(
-                group -> {
-                    final Set<Endpoint> endpoints = group.getEndpoints();
-                    if (endpoints instanceof ObservableSet) {
-                        apiHandlers.put(api, new ArrayList<>());
-                        ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
-                    }
+            .forEach(group -> {
+                final Set<Endpoint> endpoints = group.getEndpoints();
+                if (endpoints instanceof ObservableSet) {
+                    apiHandlers.put(api, new ArrayList<>());
+                    ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
                 }
-            );
+            });
 
         // Configure handlers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
@@ -171,19 +169,17 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 .filter(handler -> handler.getEndpoint().equals(endpoint))
                 .findFirst();
 
-            endpointCronHandler.ifPresent(
-                handler -> {
-                    LOGGER.debug(
-                        "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
-                        handler.getTimerId(),
-                        endpoint.getName(),
-                        endpoint.getType(),
-                        endpoint.getTarget()
-                    );
-                    handler.cancel();
-                    cronHandlers.remove(handler);
-                }
-            );
+            endpointCronHandler.ifPresent(handler -> {
+                LOGGER.debug(
+                    "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
+                    handler.getTimerId(),
+                    endpoint.getName(),
+                    endpoint.getType(),
+                    endpoint.getTarget()
+                );
+                handler.cancel();
+                cronHandlers.remove(handler);
+            });
         }
     }
 

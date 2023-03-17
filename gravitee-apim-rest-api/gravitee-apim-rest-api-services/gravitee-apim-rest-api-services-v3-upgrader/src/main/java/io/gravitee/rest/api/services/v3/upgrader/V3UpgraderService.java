@@ -95,12 +95,13 @@ public class V3UpgraderService extends AbstractService {
                             for (String role : roles) {
                                 String[] splittedRole = role.split(":");
                                 if ("1".equals(splittedRole[0])) {
-                                    Optional<Role> existingOrgaRoleWithSameName = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                                        RoleScope.ORGANIZATION,
-                                        splittedRole[1],
-                                        "DEFAULT",
-                                        RoleReferenceType.ORGANIZATION
-                                    );
+                                    Optional<Role> existingOrgaRoleWithSameName =
+                                        roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                            RoleScope.ORGANIZATION,
+                                            splittedRole[1],
+                                            "DEFAULT",
+                                            RoleReferenceType.ORGANIZATION
+                                        );
                                     if (existingOrgaRoleWithSameName.isPresent()) {
                                         newRoles.add("ORGANIZATION:" + splittedRole[1]);
                                     }

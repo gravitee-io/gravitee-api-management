@@ -55,15 +55,13 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             List<VirtualHost> virtualHosts = new ArrayList<>();
             virtualHostsNode
                 .elements()
-                .forEachRemaining(
-                    node1 -> {
-                        try {
-                            virtualHosts.add(node1.traverse(jp.getCodec()).readValueAs(VirtualHost.class));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEachRemaining(node1 -> {
+                    try {
+                        virtualHosts.add(node1.traverse(jp.getCodec()).readValueAs(VirtualHost.class));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
 
             proxy.setVirtualHosts(virtualHosts);
         }

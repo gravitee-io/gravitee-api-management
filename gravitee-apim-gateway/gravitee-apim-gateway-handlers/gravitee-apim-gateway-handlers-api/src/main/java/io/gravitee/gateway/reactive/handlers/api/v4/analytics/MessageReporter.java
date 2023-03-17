@@ -40,7 +40,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageReporter {
 
-    private static final ExpressionLanguageMessageConditionFilter<LoggingContext> MESSAGE_CONDITION_FILTER = new ExpressionLanguageMessageConditionFilter<>();
+    private static final ExpressionLanguageMessageConditionFilter<LoggingContext> MESSAGE_CONDITION_FILTER =
+        new ExpressionLanguageMessageConditionFilter<>();
 
     private final ReporterService reporterService;
 
@@ -154,12 +155,10 @@ public class MessageReporter {
         } else {
             return MESSAGE_CONDITION_FILTER
                 .filter(ctx, loggingContext, message)
-                .doOnSuccess(
-                    activeLoggingContext -> {
-                        message.attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING, true);
-                        reporterService.report(reportableMessageLog);
-                    }
-                )
+                .doOnSuccess(activeLoggingContext -> {
+                    message.attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING, true);
+                    reporterService.report(reportableMessageLog);
+                })
                 .ignoreElement()
                 .andThen(Maybe.just(message));
         }

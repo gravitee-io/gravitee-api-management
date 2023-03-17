@@ -80,22 +80,18 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
             .flatMap(request -> request.rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertPlatformHeaders(response);
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("Request timeout");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("Request timeout");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -115,22 +111,18 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
             .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader).rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertPlatformHeaders(response);
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -149,22 +141,18 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test-latency")
             .flatMap(request -> request.rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertPlatformHeaders(response);
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("Request timeout");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("Request timeout");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -184,22 +172,18 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test-latency")
             .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader).rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertPlatformHeaders(response);
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -217,22 +201,18 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
             .flatMap(request -> request.rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("Request timeout");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("Request timeout");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -247,15 +227,13 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     }
 
     private void addLatencyOnPlatformResponse() {
-        super.updateAndDeployOrganization(
-            organization -> {
-                final Step responseLatencyStep = new Step();
-                responseLatencyStep.setConfiguration("{\"delay\": 1000}");
-                responseLatencyStep.setName("latency");
-                responseLatencyStep.setPolicy("latency");
-                responseLatencyStep.setEnabled(true);
-                organization.getFlows().get(0).getPost().add(0, responseLatencyStep);
-            }
-        );
+        super.updateAndDeployOrganization(organization -> {
+            final Step responseLatencyStep = new Step();
+            responseLatencyStep.setConfiguration("{\"delay\": 1000}");
+            responseLatencyStep.setName("latency");
+            responseLatencyStep.setPolicy("latency");
+            responseLatencyStep.setEnabled(true);
+            organization.getFlows().get(0).getPost().add(0, responseLatencyStep);
+        });
     }
 }

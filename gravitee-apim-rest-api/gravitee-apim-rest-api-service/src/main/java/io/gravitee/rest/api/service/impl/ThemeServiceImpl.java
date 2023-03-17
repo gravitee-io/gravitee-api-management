@@ -301,38 +301,36 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
             String defaultDefinition = this.getDefaultDefinition();
             if (themes != null && !themes.isEmpty()) {
-                themes.forEach(
-                    theme -> {
-                        if (!MAPPER.isSame(defaultDefinition, theme.getDefinition())) {
-                            try {
-                                ThemeDefinition mergeDefinition = MAPPER.merge(defaultDefinition, theme.getDefinition());
-                                Theme themeUpdate = new Theme(theme);
-                                themeUpdate.setDefinition(MAPPER.writeValueAsString(mergeDefinition));
-                                theme.setUpdatedAt(new Date());
-                                this.themeRepository.update(themeUpdate);
-                                auditService.createAuditLog(
-                                    executionContext,
-                                    Collections.singletonMap(THEME, theme.getId()),
-                                    THEME_UPDATED,
-                                    new Date(),
-                                    theme,
-                                    themeUpdate
-                                );
-                            } catch (IOException ex) {
-                                final String error =
-                                    "Error while trying to merge default theme from the definition path: " +
-                                    themesPath +
-                                    DEFAULT_THEME_PATH +
-                                    " with theme " +
-                                    theme.toString();
-                                LOGGER.error(error, ex);
-                            } catch (TechnicalException ex) {
-                                final String error = "Error while trying to update theme after merge with default" + theme.toString();
-                                LOGGER.error(error, ex);
-                            }
+                themes.forEach(theme -> {
+                    if (!MAPPER.isSame(defaultDefinition, theme.getDefinition())) {
+                        try {
+                            ThemeDefinition mergeDefinition = MAPPER.merge(defaultDefinition, theme.getDefinition());
+                            Theme themeUpdate = new Theme(theme);
+                            themeUpdate.setDefinition(MAPPER.writeValueAsString(mergeDefinition));
+                            theme.setUpdatedAt(new Date());
+                            this.themeRepository.update(themeUpdate);
+                            auditService.createAuditLog(
+                                executionContext,
+                                Collections.singletonMap(THEME, theme.getId()),
+                                THEME_UPDATED,
+                                new Date(),
+                                theme,
+                                themeUpdate
+                            );
+                        } catch (IOException ex) {
+                            final String error =
+                                "Error while trying to merge default theme from the definition path: " +
+                                themesPath +
+                                DEFAULT_THEME_PATH +
+                                " with theme " +
+                                theme.toString();
+                            LOGGER.error(error, ex);
+                        } catch (TechnicalException ex) {
+                            final String error = "Error while trying to update theme after merge with default" + theme.toString();
+                            LOGGER.error(error, ex);
                         }
                     }
-                );
+                });
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all themes", ex);
@@ -549,29 +547,25 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             List<ThemeComponentDefinition> componentsData = mergedDefinition
                 .getData()
                 .stream()
-                .map(
-                    component -> {
-                        List<ThemeCssDefinition> cssMerged = component
-                            .getCss()
-                            .stream()
-                            .map(
-                                css -> {
-                                    ThemeCssDefinition customCss = getThemeCssDefinition(
-                                        overrideDefinitionFinal,
-                                        component.getName(),
-                                        css.getName()
-                                    );
-                                    if (customCss != null) {
-                                        css.setValue(customCss.getValue());
-                                    }
-                                    return css;
-                                }
-                            )
-                            .collect(Collectors.toList());
-                        component.setCss(cssMerged);
-                        return component;
-                    }
-                )
+                .map(component -> {
+                    List<ThemeCssDefinition> cssMerged = component
+                        .getCss()
+                        .stream()
+                        .map(css -> {
+                            ThemeCssDefinition customCss = getThemeCssDefinition(
+                                overrideDefinitionFinal,
+                                component.getName(),
+                                css.getName()
+                            );
+                            if (customCss != null) {
+                                css.setValue(customCss.getValue());
+                            }
+                            return css;
+                        })
+                        .collect(Collectors.toList());
+                    component.setCss(cssMerged);
+                    return component;
+                })
                 .collect(Collectors.toList());
 
             mergedDefinition.setData(componentsData);

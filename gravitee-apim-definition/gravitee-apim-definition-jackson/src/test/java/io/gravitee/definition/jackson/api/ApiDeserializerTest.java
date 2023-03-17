@@ -358,15 +358,13 @@ public class ApiDeserializerTest extends AbstractTest {
             .iterator()
             .next()
             .getEndpoints()
-            .forEach(
-                endpoint -> {
-                    if ("endpoint_0".equals(endpoint.getName())) {
-                        Assert.assertFalse(endpoint.isBackup());
-                    } else {
-                        assertTrue(endpoint.isBackup());
-                    }
+            .forEach(endpoint -> {
+                if ("endpoint_0".equals(endpoint.getName())) {
+                    Assert.assertFalse(endpoint.isBackup());
+                } else {
+                    assertTrue(endpoint.isBackup());
                 }
-            );
+            });
     }
 
     @Test

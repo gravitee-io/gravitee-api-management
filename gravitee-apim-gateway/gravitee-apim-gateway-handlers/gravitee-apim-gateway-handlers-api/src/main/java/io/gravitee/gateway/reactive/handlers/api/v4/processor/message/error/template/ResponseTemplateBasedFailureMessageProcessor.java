@@ -157,13 +157,11 @@ public class ResponseTemplateBasedFailureMessageProcessor extends AbstractFailur
             return templateEngine
                 .eval(template.getBody(), String.class)
                 .switchIfEmpty(Single.just(""))
-                .flatMap(
-                    body -> {
-                        Buffer payload = Buffer.buffer(body);
-                        httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-                        return Single.just(messageBuilder.headers(httpHeaders).content(payload).build());
-                    }
-                );
+                .flatMap(body -> {
+                    Buffer payload = Buffer.buffer(body);
+                    httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+                    return Single.just(messageBuilder.headers(httpHeaders).content(payload).build());
+                });
         }
         return Single.just(messageBuilder.headers(httpHeaders).build());
     }

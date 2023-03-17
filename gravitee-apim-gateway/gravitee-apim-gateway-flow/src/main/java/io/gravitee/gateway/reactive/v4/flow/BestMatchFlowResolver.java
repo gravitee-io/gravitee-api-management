@@ -43,15 +43,12 @@ public class BestMatchFlowResolver implements FlowResolver {
     public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
-            .flatMapMaybe(
-                flows ->
-                    Maybe.fromCallable(
-                        () -> {
-                            ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
-                            Api definition = (Api) reactableApi.getDefinition();
-                            return BestMatchFlowSelector.forPath(definition.getType(), flows, ctx.request().pathInfo());
-                        }
-                    )
+            .flatMapMaybe(flows ->
+                Maybe.fromCallable(() -> {
+                    ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
+                    Api definition = (Api) reactableApi.getDefinition();
+                    return BestMatchFlowSelector.forPath(definition.getType(), flows, ctx.request().pathInfo());
+                })
             )
             .toFlowable();
     }

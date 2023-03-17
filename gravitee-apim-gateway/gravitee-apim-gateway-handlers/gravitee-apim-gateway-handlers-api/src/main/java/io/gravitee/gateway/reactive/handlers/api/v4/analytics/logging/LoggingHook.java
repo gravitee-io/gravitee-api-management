@@ -43,42 +43,34 @@ public class LoggingHook implements InvokerHook {
 
     @Override
     public Completable pre(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
-        return Completable.fromRunnable(
-            () -> {
-                final Log log = ctx.metrics().getLog();
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
-                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.metrics().getLog();
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
-                if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
-                    final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-                    log.setEndpointRequest(logRequest);
-                    ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
-                }
+            if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
+                final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+                log.setEndpointRequest(logRequest);
+                ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
-        );
+        });
     }
 
     @Override
     public Completable post(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
-        return Completable.fromRunnable(
-            () -> {
-                final Log log = ctx.metrics().getLog();
-                final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
-                );
-                final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.metrics().getLog();
+            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
-                if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
-                    final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, ctx.response());
-                    log.setEndpointResponse(logResponse);
+            if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
+                final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, ctx.response());
+                log.setEndpointResponse(logResponse);
 
-                    final MutableResponse response = ((MutableExecutionContext) ctx).response();
-                    response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
-                }
+                final MutableResponse response = ((MutableExecutionContext) ctx).response();
+                response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
             }
-        );
+        });
     }
 
     @Override

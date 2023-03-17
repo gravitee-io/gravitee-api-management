@@ -268,18 +268,16 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
     private Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(
-                () -> {
-                    if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
-                        Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+                if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                        if (invoker != null) {
-                            return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                        }
+                    if (invoker != null) {
+                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .doOnSubscribe(disposable -> ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis()))
             .doOnDispose(() -> setApiResponseTimeMetric(ctx))
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
@@ -315,20 +313,19 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         if (requestTimeoutConfiguration.getRequestTimeout() <= 0) {
             return upstream;
         }
-        return Completable.defer(
-            () ->
-                upstream.timeout(
-                    Math.max(
-                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                        requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
-                    ),
-                    TimeUnit.MILLISECONDS,
-                    ctx
-                        .interruptWith(
-                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
-                        )
-                        .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-                )
+        return Completable.defer(() ->
+            upstream.timeout(
+                Math.max(
+                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                ),
+                TimeUnit.MILLISECONDS,
+                ctx
+                    .interruptWith(
+                        new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
+                    )
+                    .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+            )
         );
     }
 
@@ -354,15 +351,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
-        return Completable.fromRunnable(
-            () -> {
-                log.error("Unexpected error while handling request", throwable);
-                setApiResponseTimeMetric(ctx);
+        return Completable.fromRunnable(() -> {
+            log.error("Unexpected error while handling request", throwable);
+            setApiResponseTimeMetric(ctx);
 
-                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-            }
-        );
+            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        });
     }
 
     @Override

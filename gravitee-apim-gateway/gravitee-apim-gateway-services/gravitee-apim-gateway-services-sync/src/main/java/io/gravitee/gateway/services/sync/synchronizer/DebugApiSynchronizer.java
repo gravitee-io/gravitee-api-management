@@ -79,12 +79,10 @@ public class DebugApiSynchronizer extends AbstractSynchronizer {
                     .search(criteriaBuilder.build())
                     .stream()
                     .filter(event -> node.id().equals(event.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue())))
-                    .map(
-                        event -> {
-                            eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(event));
-                            return event.getId();
-                        }
-                    )
+                    .map(event -> {
+                        eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(event));
+                        return event.getId();
+                    })
                     .collect(Collectors.toList());
                 logger.debug("{} debug apis synchronized in {}ms", events.size(), (System.currentTimeMillis() - start));
             }

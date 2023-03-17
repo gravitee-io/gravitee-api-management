@@ -980,13 +980,12 @@ public class ApiService_UpdateTest {
         verify(emailService)
             .sendAsyncEmailNotification(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    emailNotification ->
-                        emailNotification
-                            .getTemplate()
-                            .equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate()) &&
-                        emailNotification.getTo().length == 1 &&
-                        emailNotification.getTo()[0].equals("Reviewer@ema.il")
+                argThat(emailNotification ->
+                    emailNotification
+                        .getTemplate()
+                        .equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate()) &&
+                    emailNotification.getTo().length == 1 &&
+                    emailNotification.getTo()[0].equals("Reviewer@ema.il")
                 )
             );
         verify(roleService).findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization());
@@ -1292,12 +1291,11 @@ public class ApiService_UpdateTest {
 
         verify(apiRepository)
             .update(
-                argThat(
-                    api ->
-                        api.getId().equals(API_ID) &&
-                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
-                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
-                        api.getLifecycleState().equals(LifecycleState.STARTED)
+                argThat(api ->
+                    api.getId().equals(API_ID) &&
+                    api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                    api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                    api.getLifecycleState().equals(LifecycleState.STARTED)
                 )
             );
     }
@@ -1316,12 +1314,11 @@ public class ApiService_UpdateTest {
 
         verify(apiRepository)
             .update(
-                argThat(
-                    api ->
-                        api.getId().equals(API_ID) &&
-                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
-                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
-                        api.getLifecycleState().equals(LifecycleState.STOPPED)
+                argThat(api ->
+                    api.getId().equals(API_ID) &&
+                    api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                    api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                    api.getLifecycleState().equals(LifecycleState.STOPPED)
                 )
             );
     }
@@ -1339,12 +1336,11 @@ public class ApiService_UpdateTest {
 
         verify(apiRepository)
             .update(
-                argThat(
-                    api ->
-                        api.getId().equals(API_ID) &&
-                        api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
-                        api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
-                        api.getLifecycleState().equals(LifecycleState.STARTED)
+                argThat(api ->
+                    api.getId().equals(API_ID) &&
+                    api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
+                    api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
+                    api.getLifecycleState().equals(LifecycleState.STARTED)
                 )
             );
     }

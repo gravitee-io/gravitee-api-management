@@ -98,40 +98,36 @@ public class FlowChain implements Hookable<ChainHook> {
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
             .switchIfEmpty(
-                Flowable.defer(
-                    () -> {
-                        // Only deal with execution flow matching if required
-                        if (validateFlowMatching && ExecutionPhase.REQUEST == phase) {
-                            boolean flowsMatch = false;
-                            // Retrieve previous flow chain resolution value
-                            Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
-                            if (previousChainFlowsMatch == null) {
-                                ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
-                            } else {
-                                flowsMatch = previousChainFlowsMatch;
-                            }
-                            if (interruptIfNoMatch && !flowsMatch) {
-                                return ctx
-                                    .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
-                                    .toFlowable();
-                            }
+                Flowable.defer(() -> {
+                    // Only deal with execution flow matching if required
+                    if (validateFlowMatching && ExecutionPhase.REQUEST == phase) {
+                        boolean flowsMatch = false;
+                        // Retrieve previous flow chain resolution value
+                        Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
+                        if (previousChainFlowsMatch == null) {
+                            ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
+                        } else {
+                            flowsMatch = previousChainFlowsMatch;
                         }
-
-                        return Flowable.empty();
+                        if (interruptIfNoMatch && !flowsMatch) {
+                            return ctx
+                                .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
+                                .toFlowable();
+                        }
                     }
-                )
+
+                    return Flowable.empty();
+                })
             )
-            .doOnNext(
-                flow -> {
-                    log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
-                    ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
+            .doOnNext(flow -> {
+                log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
 
-                    // Only deal with flow matching if required
-                    if (validateFlowMatching && phase == ExecutionPhase.REQUEST) {
-                        ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, true);
-                    }
+                // Only deal with flow matching if required
+                if (validateFlowMatching && phase == ExecutionPhase.REQUEST) {
+                    ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, true);
                 }
-            )
+            })
             .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
             .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
@@ -145,19 +141,17 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return the resolved flows.
      */
     private Flowable<Flow> resolveFlows(GenericExecutionContext ctx) {
-        return Flowable.defer(
-            () -> {
-                Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+        return Flowable.defer(() -> {
+            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-                if (flows == null) {
-                    // Resolves the flows once. Subsequent resolutions will return the same flows.
-                    flows = flowResolver.resolve(ctx).cache();
-                    ctx.setInternalAttribute(resolvedFlowAttribute, flows);
-                }
-
-                return flows;
+            if (flows == null) {
+                // Resolves the flows once. Subsequent resolutions will return the same flows.
+                flows = flowResolver.resolve(ctx).cache();
+                ctx.setInternalAttribute(resolvedFlowAttribute, flows);
             }
-        );
+
+            return flows;
+        });
     }
 
     /**

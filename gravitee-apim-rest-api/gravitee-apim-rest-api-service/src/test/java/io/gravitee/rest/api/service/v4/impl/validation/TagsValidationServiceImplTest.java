@@ -138,32 +138,24 @@ public class TagsValidationServiceImplTest {
     @Test
     public void shouldRejectPlanTagsIfApiNoTags() throws Exception {
         assertThatExceptionOfType(TagNotAllowedException.class)
-            .isThrownBy(
-                () -> tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V4, emptySet()))
+            .isThrownBy(() ->
+                tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V4, emptySet()))
             );
         assertThatExceptionOfType(TagNotAllowedException.class)
-            .isThrownBy(
-                () -> tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V2, emptySet()))
+            .isThrownBy(() ->
+                tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V2, emptySet()))
             );
     }
 
     @Test
     public void shouldRejectPlanTagsIfNoCommonApiTags() throws Exception {
         assertThatExceptionOfType(TagNotAllowedException.class)
-            .isThrownBy(
-                () ->
-                    tagsValidationService.validatePlanTagsAgainstApiTags(
-                        Set.of("planTag1"),
-                        mockApi(DefinitionVersion.V4, Set.of("apiTag1"))
-                    )
+            .isThrownBy(() ->
+                tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("planTag1"), mockApi(DefinitionVersion.V4, Set.of("apiTag1")))
             );
         assertThatExceptionOfType(TagNotAllowedException.class)
-            .isThrownBy(
-                () ->
-                    tagsValidationService.validatePlanTagsAgainstApiTags(
-                        Set.of("planTag1"),
-                        mockApi(DefinitionVersion.V2, Set.of("apiTag1"))
-                    )
+            .isThrownBy(() ->
+                tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("planTag1"), mockApi(DefinitionVersion.V2, Set.of("apiTag1")))
             );
     }
 

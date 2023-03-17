@@ -67,23 +67,21 @@ public class RatingMapper {
                 .getAnswers()
                 .stream()
                 .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
-                .map(
-                    rae -> {
-                        UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
-                        User answerAuthor = userMapper.convert(answerAuthorEntity);
-                        answerAuthor.setLinks(
-                            userMapper.computeUserLinks(
-                                usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
-                                answerAuthorEntity.getUpdatedAt()
-                            )
-                        );
-                        return new RatingAnswer()
-                            .id(rae.getId())
-                            .author(answerAuthor)
-                            .comment(rae.getComment())
-                            .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-                    }
-                )
+                .map(rae -> {
+                    UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
+                    User answerAuthor = userMapper.convert(answerAuthorEntity);
+                    answerAuthor.setLinks(
+                        userMapper.computeUserLinks(
+                            usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
+                            answerAuthorEntity.getUpdatedAt()
+                        )
+                    );
+                    return new RatingAnswer()
+                        .id(rae.getId())
+                        .author(answerAuthor)
+                        .comment(rae.getComment())
+                        .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+                })
                 .collect(Collectors.toList());
             rating.setAnswers(ratingsAnswer);
         }

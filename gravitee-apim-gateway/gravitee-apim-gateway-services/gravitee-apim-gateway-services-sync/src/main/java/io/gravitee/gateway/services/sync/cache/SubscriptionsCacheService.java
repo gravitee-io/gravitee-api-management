@@ -174,28 +174,26 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)
-                    .whenComplete(
-                        (result, throwable) -> {
-                            if (throwable != null) {
-                                // An error occurs, we must try to full refresh again
-                                register(apis);
+                    .whenComplete((result, throwable) -> {
+                        if (throwable != null) {
+                            // An error occurs, we must try to full refresh again
+                            register(apis);
+                        } else {
+                            // Once we are sure that the initial full refresh is a success, we cn move the plans to an incremental refresh
+                            if (result.succeeded()) {
+                                // Attach the plans to the global list
+                                plansPerApi.putAll(plansByApi);
                             } else {
-                                // Once we are sure that the initial full refresh is a success, we cn move the plans to an incremental refresh
-                                if (result.succeeded()) {
-                                    // Attach the plans to the global list
-                                    plansPerApi.putAll(plansByApi);
-                                } else {
-                                    LOGGER.error(
-                                        "An error occurs while doing a full subscriptions refresh for APIs [{}]",
-                                        apisById.keySet(),
-                                        result.cause()
-                                    );
-                                    // If not, try to fully refresh again
-                                    register(apis);
-                                }
+                                LOGGER.error(
+                                    "An error occurs while doing a full subscriptions refresh for APIs [{}]",
+                                    apisById.keySet(),
+                                    result.cause()
+                                );
+                                // If not, try to fully refresh again
+                                register(apis);
                             }
                         }
-                    );
+                    });
             } else {
                 // Keep track of all the plans to ensure that, once the node is becoming a master node, we are able
                 // to run incremental refresh for all the plans
@@ -232,19 +230,17 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                     // Prepare tasks
                     final List<Callable<Result<Boolean>>> callables = chunks
                         .stream()
-                        .map(
-                            plansChunk -> {
-                                IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
-                                    lastRefreshAt,
-                                    nextLastRefreshAt,
-                                    plansChunk
-                                );
-                                refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setSubscriptionService(subscriptionService);
+                        .map(plansChunk -> {
+                            IncrementalSubscriptionRefresher refresher = new IncrementalSubscriptionRefresher(
+                                lastRefreshAt,
+                                nextLastRefreshAt,
+                                plansChunk
+                            );
+                            refresher.setSubscriptionRepository(subscriptionRepository);
+                            refresher.setSubscriptionService(subscriptionService);
 
-                                return refresher;
-                            }
-                        )
+                            return refresher;
+                        })
                         .collect(Collectors.toList());
 
                     // And run...
@@ -253,17 +249,15 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
                         boolean failure = futures
                             .stream()
-                            .anyMatch(
-                                resultFuture -> {
-                                    try {
-                                        return resultFuture.get().failed();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    return false;
+                            .anyMatch(resultFuture -> {
+                                try {
+                                    return resultFuture.get().failed();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-                            );
+
+                                return false;
+                            });
 
                         // If there is no failure, move to the next period of time
                         if (!failure) {

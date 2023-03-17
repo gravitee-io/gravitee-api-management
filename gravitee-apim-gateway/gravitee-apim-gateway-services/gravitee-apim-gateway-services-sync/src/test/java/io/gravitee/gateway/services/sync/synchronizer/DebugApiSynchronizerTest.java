@@ -90,16 +90,15 @@ public class DebugApiSynchronizerTest {
 
         when(
             eventRepository.search(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().size() == 1 &&
-                        criteria.getTypes().contains(EventType.DEBUG_API) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS) &&
-                        criteria
-                            .getProperties()
-                            .get(Event.EventProperties.API_DEBUG_STATUS.name().toLowerCase())
-                            .equals(ApiDebugStatus.TO_DEBUG.name())
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().size() == 1 &&
+                    criteria.getTypes().contains(EventType.DEBUG_API) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS) &&
+                    criteria
+                        .getProperties()
+                        .get(Event.EventProperties.API_DEBUG_STATUS.name().toLowerCase())
+                        .equals(ApiDebugStatus.TO_DEBUG.name())
                 )
             )
         )

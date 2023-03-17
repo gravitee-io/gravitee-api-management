@@ -64,12 +64,11 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
         properties
             .entrySet()
             .stream()
-            .forEach(
-                propEntry ->
-                    unprefixedProperties.put(
-                        EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()),
-                        propEntry.getValue()
-                    )
+            .forEach(propEntry ->
+                unprefixedProperties.put(
+                    EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()),
+                    propEntry.getValue()
+                )
             );
         return unprefixedProperties;
     }

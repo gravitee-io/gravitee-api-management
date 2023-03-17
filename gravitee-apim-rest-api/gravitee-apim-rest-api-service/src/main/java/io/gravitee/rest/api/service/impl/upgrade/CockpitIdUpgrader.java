@@ -47,27 +47,22 @@ public class CockpitIdUpgrader implements Upgrader, Ordered {
         organizations
             .stream()
             .filter(org -> !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
-            .forEach(
-                org -> {
-                    UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
-                    newOrganization.setCockpitId(org.getId());
-                    organizationService.updateOrganization(executionContext, newOrganization);
-                }
-            );
+            .forEach(org -> {
+                UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
+                newOrganization.setCockpitId(org.getId());
+                organizationService.updateOrganization(executionContext, newOrganization);
+            });
 
-        organizations.forEach(
-            org ->
-                environmentService
-                    .findByOrganization(org.getId())
-                    .stream()
-                    .filter(env -> !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
-                    .forEach(
-                        env -> {
-                            UpdateEnvironmentEntity updateEnv = new UpdateEnvironmentEntity(env);
-                            updateEnv.setCockpitId(env.getId());
-                            environmentService.createOrUpdate(org.getId(), env.getId(), updateEnv);
-                        }
-                    )
+        organizations.forEach(org ->
+            environmentService
+                .findByOrganization(org.getId())
+                .stream()
+                .filter(env -> !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
+                .forEach(env -> {
+                    UpdateEnvironmentEntity updateEnv = new UpdateEnvironmentEntity(env);
+                    updateEnv.setCockpitId(env.getId());
+                    environmentService.createOrUpdate(org.getId(), env.getId(), updateEnv);
+                })
         );
 
         return true;

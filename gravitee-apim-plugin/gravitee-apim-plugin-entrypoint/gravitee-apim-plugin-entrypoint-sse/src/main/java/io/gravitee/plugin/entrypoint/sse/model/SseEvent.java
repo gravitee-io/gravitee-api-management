@@ -49,11 +49,9 @@ public class SseEvent {
             event.add("data: " + new String(data));
         }
         if (comments != null) {
-            comments.forEach(
-                (s, o) -> {
-                    event.add(String.format(":%s: %s", s, o.toString()));
-                }
-            );
+            comments.forEach((s, o) -> {
+                event.add(String.format(":%s: %s", s, o.toString()));
+            });
         }
         event.add("\n");
         return String.join("\n", event);

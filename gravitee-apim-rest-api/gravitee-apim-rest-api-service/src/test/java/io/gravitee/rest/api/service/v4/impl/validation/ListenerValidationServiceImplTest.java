@@ -118,8 +118,8 @@ public class ListenerValidationServiceImplTest {
         List<Listener> listeners = List.of(httpListener1, httpListener2);
         // When
         assertThatExceptionOfType(ListenersDuplicatedException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
             );
     }
 
@@ -191,14 +191,13 @@ public class ListenerValidationServiceImplTest {
         HttpListener httpListener = new HttpListener();
         // When
         assertThatExceptionOfType(HttpListenerPathMissingException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -209,14 +208,13 @@ public class ListenerValidationServiceImplTest {
         httpListener.setPaths(List.of(new Path("/path")));
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -228,14 +226,13 @@ public class ListenerValidationServiceImplTest {
         httpListener.setEntrypoints(List.of(new Entrypoint()));
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -249,14 +246,13 @@ public class ListenerValidationServiceImplTest {
         httpListener.setEntrypoints(List.of(entrypoint, entrypoint));
         // When
         assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -291,14 +287,13 @@ public class ListenerValidationServiceImplTest {
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
             );
     }
 
@@ -311,14 +306,13 @@ public class ListenerValidationServiceImplTest {
 
         // When
         assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
             );
     }
 
@@ -332,14 +326,13 @@ public class ListenerValidationServiceImplTest {
 
         // When
         assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
             );
     }
 
@@ -357,14 +350,13 @@ public class ListenerValidationServiceImplTest {
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
         // When
         assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -382,14 +374,13 @@ public class ListenerValidationServiceImplTest {
         when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
 
         assertThatExceptionOfType(ListenerEntrypointUnsupportedDlqException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -406,14 +397,13 @@ public class ListenerValidationServiceImplTest {
         when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
 
         assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -431,14 +421,13 @@ public class ListenerValidationServiceImplTest {
         when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
 
         assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
             );
     }
 
@@ -462,14 +451,13 @@ public class ListenerValidationServiceImplTest {
         final EndpointGroup endpointGroup = buildEndpointGroup();
 
         assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
             );
     }
 
@@ -490,14 +478,13 @@ public class ListenerValidationServiceImplTest {
         final EndpointGroup endpointGroup = buildEndpointGroup();
 
         assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
             );
     }
 
@@ -570,14 +557,13 @@ public class ListenerValidationServiceImplTest {
         final EndpointGroup endpointGroup = buildEndpointGroup();
 
         assertThatExceptionOfType(ListenerEntrypointUnsupportedListenerTypeException.class)
-            .isThrownBy(
-                () ->
-                    listenerValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
             );
     }
 

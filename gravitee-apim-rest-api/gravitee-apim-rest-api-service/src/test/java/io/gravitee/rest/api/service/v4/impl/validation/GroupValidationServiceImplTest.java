@@ -346,14 +346,13 @@ public class GroupValidationServiceImplTest {
 
         // When
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(
-                () ->
-                    groupValidationService.validateAndSanitize(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        groups,
-                        new PrimaryOwnerEntity(new UserEntity())
-                    )
+            .isThrownBy(() ->
+                groupValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    groups,
+                    new PrimaryOwnerEntity(new UserEntity())
+                )
             );
     }
 

@@ -64,56 +64,52 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
         if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
             oai
                 .getPaths()
-                .forEach(
-                    (key, pathItem) -> {
-                        String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
-                        if (swaggerDescriptor.isWithPathMapping()) {
-                            pathMappings.add(path);
-                        }
-
-                        if (swaggerDescriptor.isWithPolicyPaths()) {
-                            Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
-                            operations.forEach(
-                                (httpMethod, operation) -> {
-                                    final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
-
-                                    getVisitors()
-                                        .forEach(
-                                            (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                                if (policy.isPresent()) {
-                                                    final Step step = new Step();
-                                                    step.setName(policy.get().getName());
-                                                    step.setEnabled(true);
-                                                    step.setDescription(
-                                                        operation.getSummary() == null
-                                                            ? (
-                                                                operation.getOperationId() == null
-                                                                    ? operation.getDescription()
-                                                                    : operation.getOperationId()
-                                                            )
-                                                            : operation.getSummary()
-                                                    );
-
-                                                    step.setPolicy(policy.get().getName());
-                                                    String configuration = clearNullValues(policy.get().getConfiguration());
-                                                    step.setConfiguration(configuration);
-
-                                                    String scope = getScope(configuration);
-                                                    if (scope != null && scope.toLowerCase().equals("response")) {
-                                                        flow.getPost().add(step);
-                                                    } else {
-                                                        flow.getPre().add(step);
-                                                    }
-                                                }
-                                            }
-                                        );
-                                    allFlows.add(flow);
-                                }
-                            );
-                        }
+                .forEach((key, pathItem) -> {
+                    String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+                    if (swaggerDescriptor.isWithPathMapping()) {
+                        pathMappings.add(path);
                     }
-                );
+
+                    if (swaggerDescriptor.isWithPolicyPaths()) {
+                        Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
+                        operations.forEach((httpMethod, operation) -> {
+                            final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+
+                            getVisitors()
+                                .forEach(
+                                    (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                        Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                        if (policy.isPresent()) {
+                                            final Step step = new Step();
+                                            step.setName(policy.get().getName());
+                                            step.setEnabled(true);
+                                            step.setDescription(
+                                                operation.getSummary() == null
+                                                    ? (
+                                                        operation.getOperationId() == null
+                                                            ? operation.getDescription()
+                                                            : operation.getOperationId()
+                                                    )
+                                                    : operation.getSummary()
+                                            );
+
+                                            step.setPolicy(policy.get().getName());
+                                            String configuration = clearNullValues(policy.get().getConfiguration());
+                                            step.setConfiguration(configuration);
+
+                                            String scope = getScope(configuration);
+                                            if (scope != null && scope.toLowerCase().equals("response")) {
+                                                flow.getPost().add(step);
+                                            } else {
+                                                flow.getPre().add(step);
+                                            }
+                                        }
+                                    }
+                                );
+                            allFlows.add(flow);
+                        });
+                    }
+                });
         }
 
         // Path Mappings

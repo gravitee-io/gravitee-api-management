@@ -275,12 +275,11 @@ class SyncApiReactorTest {
         lenient()
             .when(
                 ctx.interruptWith(
-                    argThat(
-                        argument ->
-                            argument != null &&
-                            argument.statusCode() == 504 &&
-                            argument.message().equals("Request timeout") &&
-                            argument.key().equals("REQUEST_TIMEOUT")
+                    argThat(argument ->
+                        argument != null &&
+                        argument.statusCode() == 504 &&
+                        argument.message().equals("Request timeout") &&
+                        argument.key().equals("REQUEST_TIMEOUT")
                     )
                 )
             )

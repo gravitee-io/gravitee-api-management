@@ -63,10 +63,9 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
     protected Predicate<Endpoint> filter() {
         return super
             .filter()
-            .and(
-                endpoint ->
-                    (endpoint.getTenants() == null || endpoint.getTenants().isEmpty()) ||
-                    (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant))
+            .and(endpoint ->
+                (endpoint.getTenants() == null || endpoint.getTenants().isEmpty()) ||
+                (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant))
             );
     }
 }

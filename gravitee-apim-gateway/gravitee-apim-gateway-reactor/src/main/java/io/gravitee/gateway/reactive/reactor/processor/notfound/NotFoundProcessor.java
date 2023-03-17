@@ -45,26 +45,24 @@ public class NotFoundProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
+        return Completable.defer(() -> {
+            log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", ctx.request().path());
 
-                // Init not found metrics
-                Metrics metrics = ctx.metrics();
-                metrics.setApiId(UNKNOWN_SERVICE);
-                metrics.setApplicationId(UNKNOWN_SERVICE);
+            // Init not found metrics
+            Metrics metrics = ctx.metrics();
+            metrics.setApiId(UNKNOWN_SERVICE);
+            metrics.setApplicationId(UNKNOWN_SERVICE);
 
-                // Send a NOT_FOUND HTTP status code (404)
-                ctx.response().status(HttpStatusCode.NOT_FOUND_404);
-                String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
-                ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(message.length()));
-                ctx
-                    .response()
-                    .headers()
-                    .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
-                ctx.response().body(Buffer.buffer(message));
-                return ctx.response().end(ctx);
-            }
-        );
+            // Send a NOT_FOUND HTTP status code (404)
+            ctx.response().status(HttpStatusCode.NOT_FOUND_404);
+            String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
+            ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(message.length()));
+            ctx
+                .response()
+                .headers()
+                .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
+            ctx.response().body(Buffer.buffer(message));
+            return ctx.response().end(ctx);
+        });
     }
 }

@@ -310,33 +310,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 updateApiEntity
                     .getPlans()
-                    .forEach(
-                        planToUpdate -> {
-                            if (
-                                !planStatuses.containsKey(planToUpdate.getId()) ||
-                                (
-                                    planStatuses.containsKey(planToUpdate.getId()) &&
-                                    planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-                                    planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
-                                )
-                            ) {
-                                throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
-                            }
-
-                            try {
-                                tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
-                            } catch (TagNotAllowedException e) {
-                                final var missingTags = planToUpdate
-                                    .getTags()
-                                    .stream()
-                                    .filter(tag -> !updateApiEntity.getTags().contains(tag))
-                                    .collect(Collectors.toList());
-                                throw new InvalidDataException(
-                                    "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
-                                );
-                            }
+                    .forEach(planToUpdate -> {
+                        if (
+                            !planStatuses.containsKey(planToUpdate.getId()) ||
+                            (
+                                planStatuses.containsKey(planToUpdate.getId()) &&
+                                planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
+                            )
+                        ) {
+                            throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
                         }
-                    );
+
+                        try {
+                            tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
+                        } catch (TagNotAllowedException e) {
+                            final var missingTags = planToUpdate
+                                .getTags()
+                                .stream()
+                                .filter(tag -> !updateApiEntity.getTags().contains(tag))
+                                .collect(Collectors.toList());
+                            throw new InvalidDataException(
+                                "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
+                            );
+                        }
+                    });
             }
 
             // encrypt API properties
@@ -345,18 +343,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
                 planSearchService
                     .findByApi(executionContext, apiId)
-                    .forEach(
-                        plan -> {
-                            if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
-                                planService.deprecate(executionContext, plan.getId(), true);
-                                updateApiEntity
-                                    .getPlans()
-                                    .stream()
-                                    .filter(p -> p.getId().equals(plan.getId()))
-                                    .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
-                            }
+                    .forEach(plan -> {
+                        if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
+                            planService.deprecate(executionContext, plan.getId(), true);
+                            updateApiEntity
+                                .getPlans()
+                                .stream()
+                                .filter(p -> p.getId().equals(plan.getId()))
+                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
                         }
-                    );
+                    });
             }
 
             Api api = apiMapper.toRepository(executionContext, updateApiEntity);
@@ -407,12 +403,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // update API plans
             updateApiEntity
                 .getPlans()
-                .forEach(
-                    plan -> {
-                        plan.setApiId(api.getId());
-                        planService.createOrUpdatePlan(executionContext, plan);
-                    }
-                );
+                .forEach(plan -> {
+                    plan.setApiId(api.getId());
+                    planService.createOrUpdatePlan(executionContext, plan);
+                });
 
             // Audit
             auditService.createApiAuditLog(

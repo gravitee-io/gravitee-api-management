@@ -143,13 +143,11 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
         );
 
         Properties properties = new Properties();
-        parameters.forEach(
-            (key, value) -> {
-                if (!value.isEmpty()) {
-                    properties.setProperty(computeMailProperty(key), value.get(0));
-                }
+        parameters.forEach((key, value) -> {
+            if (!value.isEmpty()) {
+                properties.setProperty(computeMailProperty(key), value.get(0));
             }
-        );
+        });
 
         return properties;
     }

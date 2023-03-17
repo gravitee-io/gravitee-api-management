@@ -120,19 +120,17 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
 
         return findByApi(executionContext, query.getApi())
             .stream()
-            .filter(
-                p -> {
-                    boolean filtered = true;
-                    if (query.getName() != null) {
-                        filtered = query.getName().equals(p.getName());
-                    }
-                    if (filtered && query.getSecurityType() != null) {
-                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                        filtered = planSecurityType.equals(query.getSecurityType());
-                    }
-                    return filtered;
+            .filter(p -> {
+                boolean filtered = true;
+                if (query.getName() != null) {
+                    filtered = query.getName().equals(p.getName());
                 }
-            )
+                if (filtered && query.getSecurityType() != null) {
+                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                    filtered = planSecurityType.equals(query.getSecurityType());
+                }
+                return filtered;
+            })
             .collect(Collectors.toList());
     }
 

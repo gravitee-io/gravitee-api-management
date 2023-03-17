@@ -38,34 +38,29 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    String customHeader = event.headers().get(customHeaderName);
+            .webSocketHandler(event -> {
+                event.accept();
+                String customHeader = event.headers().get(customHeaderName);
 
-                    testContext.verify(() -> assertThat(customHeader).isNotNull());
-                    testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
-                    event.writeTextMessage("PING");
-                }
-            )
+                testContext.verify(() -> assertThat(customHeader).isNotNull());
+                testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
+                event.writeTextMessage("PING");
+            })
             .listen(websocketPort)
-            .map(
-                httpServer ->
-                    httpClient
-                        .webSocket(options)
-                        .subscribe(
-                            webSocket -> {
-                                webSocket.exceptionHandler(testContext::failNow);
-                                webSocket.frameHandler(
-                                    frame -> {
-                                        testContext.verify(() -> assertThat(frame.isText()).isTrue());
-                                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                        testContext.completeNow();
-                                    }
-                                );
-                            },
-                            testContext::failNow
-                        )
+            .map(httpServer ->
+                httpClient
+                    .webSocket(options)
+                    .subscribe(
+                        webSocket -> {
+                            webSocket.exceptionHandler(testContext::failNow);
+                            webSocket.frameHandler(frame -> {
+                                testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                                testContext.completeNow();
+                            });
+                        },
+                        testContext::failNow
+                    )
             )
             .subscribe();
 

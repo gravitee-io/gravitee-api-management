@@ -81,31 +81,27 @@ class ApiTemplateVariableProviderTest {
         engine
             .eval("{#properties[prop2]}", String.class)
             .test()
-            .assertError(
-                e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
-                        .hasStackTraceContaining("EL1007E: Property or field 'prop2' cannot be found on null");
+            .assertError(e -> {
+                assertThat(e)
+                    .isInstanceOf(ExpressionEvaluationException.class)
+                    .hasCauseInstanceOf(SpelEvaluationException.class)
+                    .hasStackTraceContaining("EL1007E: Property or field 'prop2' cannot be found on null");
 
-                    return true;
-                }
-            );
+                return true;
+            });
         engine
             .eval("{#api.properties[prop1]}", String.class)
             .test()
-            .assertError(
-                e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
-                        .hasStackTraceContaining(
-                            "EL1021E: A problem occurred whilst attempting to access the property 'properties': 'Unable to access property 'properties' through getter method"
-                        );
+            .assertError(e -> {
+                assertThat(e)
+                    .isInstanceOf(ExpressionEvaluationException.class)
+                    .hasCauseInstanceOf(SpelEvaluationException.class)
+                    .hasStackTraceContaining(
+                        "EL1021E: A problem occurred whilst attempting to access the property 'properties': 'Unable to access property 'properties' through getter method"
+                    );
 
-                    return true;
-                }
-            );
+                return true;
+            });
     }
 
     private static TemplateEngine buildTemplateEngine(io.gravitee.definition.model.Api apiDefinition) {

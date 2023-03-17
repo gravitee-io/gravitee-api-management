@@ -63,16 +63,13 @@ public class KafkaReceiverErrorTransformer extends AbstractKafkaErrorTransformer
         final AtomicReference<Consumer<K, V>> consumerRef
     ) {
         return Flux
-            .defer(
-                () ->
-                    qosStrategy
-                        .kafkaReceiver()
-                        .doOnConsumer(
-                            consumer -> {
-                                consumerRef.set(consumer);
-                                return true;
-                            }
-                        )
+            .defer(() ->
+                qosStrategy
+                    .kafkaReceiver()
+                    .doOnConsumer(consumer -> {
+                        consumerRef.set(consumer);
+                        return true;
+                    })
             )
             .cache()
             .repeat();
@@ -85,14 +82,12 @@ public class KafkaReceiverErrorTransformer extends AbstractKafkaErrorTransformer
         Flux
             .interval(Duration.ofMillis(KAFKA_CONNECTION_CHECK_INTERVAL))
             .publishOn(Schedulers.boundedElastic())
-            .doOnNext(
-                interval -> {
-                    Consumer<K, V> consumer = consumerRef.get();
-                    if (consumer != null) {
-                        mayThrowConnectionClosedException(kafkaErrorSink, consumer.metrics());
-                    }
+            .doOnNext(interval -> {
+                Consumer<K, V> consumer = consumerRef.get();
+                if (consumer != null) {
+                    mayThrowConnectionClosedException(kafkaErrorSink, consumer.metrics());
                 }
-            )
+            })
             .retryWhen(Retry.indefinitely().filter(throwable -> !(throwable instanceof KafkaConnectionClosedException)))
             .subscribe(
                 interval -> log.debug("Kafka endpoint connection validated."),

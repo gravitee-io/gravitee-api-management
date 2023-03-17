@@ -58,23 +58,21 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                         .onFailure(t -> LOGGER.error("Failed to run script on Redis {}", t.getMessage()))
                         .onComplete(asyncResultHandler)
             )
-            .map(
-                response -> {
-                    // It may happen when the rate has been expired while running the script
-                    // expired values return a list of 'null'
-                    if (response.size() > 0 && response.get(0) != null) {
-                        RateLimit rateLimit = new RateLimit(key);
-                        rateLimit.setCounter(response.get(0).toLong());
-                        rateLimit.setLimit(response.get(1).toLong());
-                        rateLimit.setResetTime(response.get(2).toLong());
-                        rateLimit.setSubscription(response.get(3).toString());
+            .map(response -> {
+                // It may happen when the rate has been expired while running the script
+                // expired values return a list of 'null'
+                if (response.size() > 0 && response.get(0) != null) {
+                    RateLimit rateLimit = new RateLimit(key);
+                    rateLimit.setCounter(response.get(0).toLong());
+                    rateLimit.setLimit(response.get(1).toLong());
+                    rateLimit.setResetTime(response.get(2).toLong());
+                    rateLimit.setSubscription(response.get(3).toString());
 
-                        return rateLimit;
-                    }
-
-                    return newRate;
+                    return rateLimit;
                 }
-            )
+
+                return newRate;
+            })
             .onErrorReturn(throwable -> newRate);
     }
 

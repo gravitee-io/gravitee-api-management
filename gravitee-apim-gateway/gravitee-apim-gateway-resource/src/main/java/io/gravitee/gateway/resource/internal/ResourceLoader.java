@@ -83,10 +83,8 @@ public class ResourceLoader {
             injectables.put(DeploymentContext.class, deploymentContext);
 
             if (resourcePlugin.configuration() != null) {
-                Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
-                    resourcePlugin.configuration().getName(),
-                    classLoader
-                );
+                Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                    (Class<? extends ResourceConfiguration>) ClassUtils.forName(resourcePlugin.configuration().getName(), classLoader);
                 injectables.put(
                     resourceConfigurationClass,
                     resourceConfigurationFactory.create(resourceConfigurationClass, resourceConfiguration)

@@ -101,51 +101,45 @@ public class HttpConnector implements ProxyConnector {
 
     @Override
     public Completable connect(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final Request request = ctx.request();
-                final Response response = ctx.response();
+        return Completable.defer(() -> {
+            final Request request = ctx.request();
+            final Response response = ctx.response();
 
-                final RequestOptions options = buildRequestOptions(ctx);
+            final RequestOptions options = buildRequestOptions(ctx);
 
-                ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(options, defaultHost, defaultPort));
+            ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(options, defaultHost, defaultPort));
 
-                return httpClientFactory
-                    .getOrBuildHttpClient(ctx, configuration)
-                    .rxRequest(options)
-                    .map(this::customizeHttpClientRequest)
-                    .flatMap(
-                        httpClientRequest ->
-                            httpClientRequest.rxSend(
-                                request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+            return httpClientFactory
+                .getOrBuildHttpClient(ctx, configuration)
+                .rxRequest(options)
+                .map(this::customizeHttpClientRequest)
+                .flatMap(httpClientRequest ->
+                    httpClientRequest.rxSend(
+                        request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                    )
+                )
+                .doOnSuccess(endpointResponse -> {
+                    response.status(endpointResponse.statusCode());
+
+                    copyHeaders(endpointResponse.headers(), response.headers());
+
+                    if (endpointResponse.version() == HttpVersion.HTTP_2) {
+                        endpointResponse.customFrameHandler(frame ->
+                            ((VertxHttpServerResponse) response).getNativeResponse().writeCustomFrame(frame)
+                        );
+                    }
+                    response.chunks(
+                        endpointResponse
+                            .toFlowable()
+                            .map(Buffer::buffer)
+                            .doOnComplete(() ->
+                                // Write trailers when chunks are completed
+                                copyHeaders(endpointResponse.trailers(), response.trailers())
                             )
-                    )
-                    .doOnSuccess(
-                        endpointResponse -> {
-                            response.status(endpointResponse.statusCode());
-
-                            copyHeaders(endpointResponse.headers(), response.headers());
-
-                            if (endpointResponse.version() == HttpVersion.HTTP_2) {
-                                endpointResponse.customFrameHandler(
-                                    frame -> ((VertxHttpServerResponse) response).getNativeResponse().writeCustomFrame(frame)
-                                );
-                            }
-                            response.chunks(
-                                endpointResponse
-                                    .toFlowable()
-                                    .map(Buffer::buffer)
-                                    .doOnComplete(
-                                        () ->
-                                            // Write trailers when chunks are completed
-                                            copyHeaders(endpointResponse.trailers(), response.trailers())
-                                    )
-                            );
-                        }
-                    )
-                    .ignoreElement();
-            }
-        );
+                    );
+                })
+                .ignoreElement();
+        });
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {

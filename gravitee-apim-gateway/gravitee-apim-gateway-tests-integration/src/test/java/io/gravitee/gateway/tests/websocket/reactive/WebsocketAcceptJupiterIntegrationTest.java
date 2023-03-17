@@ -38,34 +38,29 @@ public class WebsocketAcceptJupiterIntegrationTest extends AbstractWebsocketGate
     @Test
     public void websocket_accepted_request(VertxTestContext testContext) throws Throwable {
         httpServer
-            .webSocketHandler(
-                serverWebSocket -> {
-                    serverWebSocket.exceptionHandler(testContext::failNow);
-                    serverWebSocket.accept();
-                    serverWebSocket.writeTextMessage("PING");
-                }
-            )
+            .webSocketHandler(serverWebSocket -> {
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
+                serverWebSocket.writeTextMessage("PING");
+            })
             .listen(websocketPort)
-            .map(
-                httpServer ->
-                    httpClient
-                        .webSocket("/test")
-                        .subscribe(
-                            webSocket -> {
-                                webSocket.exceptionHandler(testContext::failNow);
-                                webSocket.frameHandler(
-                                    frame -> {
-                                        if (frame.isText()) {
-                                            testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                            testContext.completeNow();
-                                        } else {
-                                            testContext.failNow("The frame is not a text frame");
-                                        }
-                                    }
-                                );
-                            },
-                            testContext::failNow
-                        )
+            .map(httpServer ->
+                httpClient
+                    .webSocket("/test")
+                    .subscribe(
+                        webSocket -> {
+                            webSocket.exceptionHandler(testContext::failNow);
+                            webSocket.frameHandler(frame -> {
+                                if (frame.isText()) {
+                                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                                    testContext.completeNow();
+                                } else {
+                                    testContext.failNow("The frame is not a text frame");
+                                }
+                            });
+                        },
+                        testContext::failNow
+                    )
             )
             .subscribe();
 

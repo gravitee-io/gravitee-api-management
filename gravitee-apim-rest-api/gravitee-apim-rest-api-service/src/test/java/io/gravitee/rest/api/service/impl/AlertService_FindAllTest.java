@@ -60,11 +60,9 @@ public class AlertService_FindAllTest extends AlertServiceTest {
         results
             .stream()
             .map(AlertTriggerEntity::getId)
-            .forEach(
-                id -> {
-                    assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id)));
-                }
-            );
+            .forEach(id -> {
+                assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id)));
+            });
     }
 
     @Test(expected = TechnicalManagementException.class)

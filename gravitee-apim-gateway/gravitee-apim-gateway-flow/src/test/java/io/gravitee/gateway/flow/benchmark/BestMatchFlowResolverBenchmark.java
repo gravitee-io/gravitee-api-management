@@ -105,18 +105,16 @@ public class BestMatchFlowResolverBenchmark {
                 "/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/1"
             )
             .stream()
-            .map(
-                path -> {
-                    Flow flow = new Flow();
-                    PathOperator pathOperator = new PathOperator();
-                    pathOperator.setPath(path);
-                    // No need to test different operator in this test.
-                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                    pathOperator.setOperator(Operator.STARTS_WITH);
-                    flow.setPathOperator(pathOperator);
-                    return flow;
-                }
-            )
+            .map(path -> {
+                Flow flow = new Flow();
+                PathOperator pathOperator = new PathOperator();
+                pathOperator.setPath(path);
+                // No need to test different operator in this test.
+                // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                pathOperator.setOperator(Operator.STARTS_WITH);
+                flow.setPathOperator(pathOperator);
+                return flow;
+            })
             .collect(Collectors.toList());
     }
 

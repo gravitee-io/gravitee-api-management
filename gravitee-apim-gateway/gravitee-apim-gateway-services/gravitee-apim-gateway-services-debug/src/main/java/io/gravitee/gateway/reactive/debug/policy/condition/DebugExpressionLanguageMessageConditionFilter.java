@@ -32,14 +32,12 @@ public class DebugExpressionLanguageMessageConditionFilter extends ExpressionLan
     public Maybe<ConditionalPolicy> filter(final MessageExecutionContext ctx, final ConditionalPolicy elt, Message message) {
         return super
             .filter(ctx, elt, message)
-            .doOnEvent(
-                (conditionalPolicy, throwable) -> {
-                    if (ctx instanceof DebugExecutionContext && throwable == null) {
-                        DebugExecutionContext debugCtx = (DebugExecutionContext) ctx;
-                        boolean isConditionTruthy = conditionalPolicy != null;
-                        debugCtx.getCurrentDebugStep().onConditionFilter(elt.getCondition(), isConditionTruthy);
-                    }
+            .doOnEvent((conditionalPolicy, throwable) -> {
+                if (ctx instanceof DebugExecutionContext && throwable == null) {
+                    DebugExecutionContext debugCtx = (DebugExecutionContext) ctx;
+                    boolean isConditionTruthy = conditionalPolicy != null;
+                    debugCtx.getCurrentDebugStep().onConditionFilter(elt.getCondition(), isConditionTruthy);
                 }
-            );
+            });
     }
 }

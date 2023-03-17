@@ -178,12 +178,10 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             .aggregate(aggregations);
 
         Set<String> references = new LinkedHashSet<>();
-        subscriptions.forEach(
-            document -> {
-                String referenceId = document.getString("_id");
-                references.add(referenceId);
-            }
-        );
+        subscriptions.forEach(document -> {
+            String referenceId = document.getString("_id");
+            references.add(referenceId);
+        });
         return references;
     }
 

@@ -130,7 +130,7 @@ public class EndpointInvoker implements Invoker {
         if (qosRequirement == null) {
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
+                    .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
             );
         }
 
@@ -142,7 +142,7 @@ public class EndpointInvoker implements Invoker {
         if (supportedQos == null || qosCapabilities == null) {
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                .message("Invalid endpoint QoS implementation: supportedQos or qosCapabilities cannot be null")
+                    .message("Invalid endpoint QoS implementation: supportedQos or qosCapabilities cannot be null")
             );
         } else if (!supportedQos.contains(requiredQos)) {
             return ctx.interruptWith(
@@ -166,24 +166,22 @@ public class EndpointInvoker implements Invoker {
     }
 
     private Completable computeRequest(ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
-                if (requestMethodAttribute != null) {
-                    final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
-                    if (httpMethod == null) {
-                        return ctx.interruptWith(
-                            new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                                .key(INVALID_HTTP_METHOD)
-                                .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
-                        );
-                    } else {
-                        ctx.request().method(httpMethod);
-                    }
+        return Completable.defer(() -> {
+            final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
+            if (requestMethodAttribute != null) {
+                final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
+                if (httpMethod == null) {
+                    return ctx.interruptWith(
+                        new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                            .key(INVALID_HTTP_METHOD)
+                            .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
+                    );
+                } else {
+                    ctx.request().method(httpMethod);
                 }
-                return Completable.complete();
             }
-        );
+            return Completable.complete();
+        });
     }
 
     @SuppressWarnings("unchecked")

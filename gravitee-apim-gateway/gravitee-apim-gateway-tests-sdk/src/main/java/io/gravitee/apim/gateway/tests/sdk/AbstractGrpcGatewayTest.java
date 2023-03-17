@@ -48,13 +48,11 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     @AfterEach
     public void tearDown() {
         if (vertxServer != null) {
-            vertxServer.shutdown(
-                event -> {
-                    if (managedChannel != null) {
-                        managedChannel.shutdownNow();
-                    }
+            vertxServer.shutdown(event -> {
+                if (managedChannel != null) {
+                    managedChannel.shutdownNow();
                 }
-            );
+            });
         }
 
         if (managedChannel != null && !managedChannel.isShutdown()) {

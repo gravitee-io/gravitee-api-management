@@ -35,22 +35,20 @@ public class WebsocketRejectTest extends AbstractWebsocketV4GatewayTest {
         httpServer
             .webSocketHandler(webSocket -> webSocket.reject(UNAUTHORIZED_401))
             .listen(websocketPort)
-            .map(
-                httpServer ->
-                    httpClient
-                        .webSocket("/test")
-                        .subscribe(
-                            webSocket -> {
-                                testContext.failNow("Websocket connection should not succeed");
-                            },
-                            error -> {
-                                testContext.verify(() -> assertThat(error.getClass()).isEqualTo(UpgradeRejectedException.class));
-                                testContext.verify(
-                                    () -> assertThat(((UpgradeRejectedException) error).getStatus()).isEqualTo(UNAUTHORIZED_401)
-                                );
-                                testContext.completeNow();
-                            }
-                        )
+            .map(httpServer ->
+                httpClient
+                    .webSocket("/test")
+                    .subscribe(
+                        webSocket -> {
+                            testContext.failNow("Websocket connection should not succeed");
+                        },
+                        error -> {
+                            testContext.verify(() -> assertThat(error.getClass()).isEqualTo(UpgradeRejectedException.class));
+                            testContext.verify(() -> assertThat(((UpgradeRejectedException) error).getStatus()).isEqualTo(UNAUTHORIZED_401)
+                            );
+                            testContext.completeNow();
+                        }
+                    )
             )
             .subscribe();
 

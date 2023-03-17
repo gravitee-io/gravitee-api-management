@@ -330,8 +330,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // don't remove the primary owner group of this API.
                 groupEntityStream =
-                    groupEntityStream.filter(
-                        group -> StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getId().equals(primaryOwner.getMemberId())
+                    groupEntityStream.filter(group ->
+                        StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getId().equals(primaryOwner.getMemberId())
                     );
             } else {
                 groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
@@ -905,29 +905,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (swaggerApiEntity.getMetadata() != null && !swaggerApiEntity.getMetadata().isEmpty()) {
             swaggerApiEntity
                 .getMetadata()
-                .forEach(
-                    data -> {
-                        try {
-                            final ApiMetadataEntity apiMetadataEntity = this.apiMetadataService.findByIdAndApi(data.getKey(), apiId);
-                            UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
-                            updateApiMetadataEntity.setApiId(apiId);
-                            updateApiMetadataEntity.setFormat(data.getFormat());
-                            updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
-                            updateApiMetadataEntity.setName(data.getName());
-                            updateApiMetadataEntity.setValue(data.getValue());
-                            ApiMetadataEntity metadata = this.apiMetadataService.update(executionContext, updateApiMetadataEntity);
-                            updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
-                        } catch (ApiMetadataNotFoundException amnfe) {
-                            NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                            newMD.setApiId(apiId);
-                            newMD.setFormat(data.getFormat());
-                            newMD.setName(data.getName());
-                            newMD.setValue(data.getValue());
-                            ApiMetadataEntity metadata = this.apiMetadataService.create(executionContext, newMD);
-                            updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
-                        }
+                .forEach(data -> {
+                    try {
+                        final ApiMetadataEntity apiMetadataEntity = this.apiMetadataService.findByIdAndApi(data.getKey(), apiId);
+                        UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
+                        updateApiMetadataEntity.setApiId(apiId);
+                        updateApiMetadataEntity.setFormat(data.getFormat());
+                        updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
+                        updateApiMetadataEntity.setName(data.getName());
+                        updateApiMetadataEntity.setValue(data.getValue());
+                        ApiMetadataEntity metadata = this.apiMetadataService.update(executionContext, updateApiMetadataEntity);
+                        updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
+                    } catch (ApiMetadataNotFoundException amnfe) {
+                        NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                        newMD.setApiId(apiId);
+                        newMD.setFormat(data.getFormat());
+                        newMD.setName(data.getName());
+                        newMD.setValue(data.getValue());
+                        ApiMetadataEntity metadata = this.apiMetadataService.create(executionContext, newMD);
+                        updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
                     }
-                );
+                });
         }
 
         searchEngineService.index(executionContext, updatedApi, false);
@@ -1042,33 +1040,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 updateApiEntity
                     .getPlans()
-                    .forEach(
-                        planToUpdate -> {
-                            if (
-                                !planStatuses.containsKey(planToUpdate.getId()) ||
-                                (
-                                    planStatuses.containsKey(planToUpdate.getId()) &&
-                                    planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-                                    planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
-                                )
-                            ) {
-                                throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
-                            }
-
-                            try {
-                                tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
-                            } catch (TagNotAllowedException e) {
-                                final var missingTags = planToUpdate
-                                    .getTags()
-                                    .stream()
-                                    .filter(tag -> !updateApiEntity.getTags().contains(tag))
-                                    .collect(Collectors.toList());
-                                throw new InvalidDataException(
-                                    "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
-                                );
-                            }
+                    .forEach(planToUpdate -> {
+                        if (
+                            !planStatuses.containsKey(planToUpdate.getId()) ||
+                            (
+                                planStatuses.containsKey(planToUpdate.getId()) &&
+                                planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
+                            )
+                        ) {
+                            throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
                         }
-                    );
+
+                        try {
+                            tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
+                        } catch (TagNotAllowedException e) {
+                            final var missingTags = planToUpdate
+                                .getTags()
+                                .stream()
+                                .filter(tag -> !updateApiEntity.getTags().contains(tag))
+                                .collect(Collectors.toList());
+                            throw new InvalidDataException(
+                                "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
+                            );
+                        }
+                    });
             }
 
             // encrypt API properties
@@ -1077,18 +1073,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
                 planService
                     .findByApi(executionContext, apiId)
-                    .forEach(
-                        plan -> {
-                            if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                                planService.deprecate(executionContext, plan.getId(), true);
-                                updateApiEntity
-                                    .getPlans()
-                                    .stream()
-                                    .filter(p -> p.getId().equals(plan.getId()))
-                                    .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
-                            }
+                    .forEach(plan -> {
+                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                            planService.deprecate(executionContext, plan.getId(), true);
+                            updateApiEntity
+                                .getPlans()
+                                .stream()
+                                .filter(p -> p.getId().equals(plan.getId()))
+                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
                         }
-                    );
+                    });
             }
 
             Api api = convert(executionContext, apiId, updateApiEntity, apiToUpdate.getDefinition());
@@ -1158,12 +1152,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // update API plans
                 updateApiEntity
                     .getPlans()
-                    .forEach(
-                        plan -> {
-                            plan.setApi(api.getId());
-                            planService.createOrUpdatePlan(executionContext, plan);
-                        }
-                    );
+                    .forEach(plan -> {
+                        plan.setApi(api.getId());
+                        planService.createOrUpdatePlan(executionContext, plan);
+                    });
             }
 
             // Audit
@@ -1310,24 +1302,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (plans != null) {
             plans
                 .stream()
-                .forEach(
-                    plan -> {
-                        checkPathsPolicyConfiguration(plan.getPaths());
-                        checkFlowsPolicyConfiguration(plan.getFlows());
-                    }
-                );
+                .forEach(plan -> {
+                    checkPathsPolicyConfiguration(plan.getPaths());
+                    checkFlowsPolicyConfiguration(plan.getFlows());
+                });
         }
     }
 
     private void checkPathsPolicyConfiguration(Map<String, List<Rule>> paths) {
         if (paths != null) {
-            paths.forEach(
-                (s, rules) ->
-                    rules
-                        .stream()
-                        .filter(Rule::isEnabled)
-                        .map(Rule::getPolicy)
-                        .forEach(policy -> policyService.validatePolicyConfiguration(policy))
+            paths.forEach((s, rules) ->
+                rules
+                    .stream()
+                    .filter(Rule::isEnabled)
+                    .map(Rule::getPolicy)
+                    .forEach(policy -> policyService.validatePolicyConfiguration(policy))
             );
         }
     }
@@ -1337,15 +1326,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flows
                 .stream()
                 .filter(flow -> flow.getPre() != null)
-                .forEach(
-                    flow -> flow.getPre().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
+                .forEach(flow ->
+                    flow.getPre().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
 
             flows
                 .stream()
                 .filter(flow -> flow.getPost() != null)
-                .forEach(
-                    flow -> flow.getPost().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
+                .forEach(flow ->
+                    flow.getPost().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
         }
     }
@@ -1355,35 +1344,28 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (updateApiEntity.getPaths() != null) {
             updateApiEntity
                 .getPaths()
-                .forEach(
-                    (path, v) -> {
-                        try {
-                            Pattern.compile(path);
-                        } catch (java.util.regex.PatternSyntaxException pse) {
-                            LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
-                            throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
-                        }
+                .forEach((path, v) -> {
+                    try {
+                        Pattern.compile(path);
+                    } catch (java.util.regex.PatternSyntaxException pse) {
+                        LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
+                        throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
                     }
-                );
+                });
         }
 
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
             updateApiEntity
                 .getPathMappings()
-                .forEach(
-                    pathMapping -> {
-                        try {
-                            Pattern.compile(pathMapping);
-                        } catch (java.util.regex.PatternSyntaxException pse) {
-                            LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
-                            throw new TechnicalManagementException(
-                                "An error occurs while trying to parse the path mapping" + pathMapping,
-                                pse
-                            );
-                        }
+                .forEach(pathMapping -> {
+                    try {
+                        Pattern.compile(pathMapping);
+                    } catch (java.util.regex.PatternSyntaxException pse) {
+                        LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
+                        throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
                     }
-                );
+                });
         }
     }
 
@@ -1586,8 +1568,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         sync =
                             plans
                                 .stream()
-                                .noneMatch(
-                                    plan -> plan.getStatus() != PlanStatus.STAGING && plan.getNeedRedeployAt().after(api.getDeployedAt())
+                                .noneMatch(plan ->
+                                    plan.getStatus() != PlanStatus.STAGING && plan.getNeedRedeployAt().after(api.getDeployedAt())
                                 );
                     }
                 }
@@ -1604,13 +1586,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (api.getPaths() != null) {
             api
                 .getPaths()
-                .forEach(
-                    (s, rules) -> {
-                        if (rules != null) {
-                            rules.forEach(rule -> rule.setDescription(""));
-                        }
+                .forEach((s, rules) -> {
+                    if (rules != null) {
+                        rules.forEach(rule -> rule.setDescription(""));
                     }
-                );
+                });
         }
     }
 
@@ -1797,12 +1777,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         } else {
             getDefaultPicture()
-                .ifPresent(
-                    content -> {
-                        imageEntity.setType("image/png");
-                        imageEntity.setContent(content);
-                    }
-                );
+                .ifPresent(content -> {
+                    imageEntity.setType("image/png");
+                    imageEntity.setContent(content);
+                });
         }
 
         return imageEntity;
@@ -2028,20 +2006,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
         Map<String, Object> model = new HashMap<>();
         model.put("api", genericApiModel);
-        entities.forEach(
-            entity -> {
-                if (entity.getValue().contains("${")) {
-                    String entityValue =
-                        this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
-                                entity.getId() + entity.getUpdatedAt().toString(),
-                                entity.getValue(),
-                                model
-                            );
-                    entity.setValue(entityValue);
-                }
+        entities.forEach(entity -> {
+            if (entity.getValue().contains("${")) {
+                String entityValue =
+                    this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            executionContext.getOrganizationId(),
+                            entity.getId() + entity.getUpdatedAt().toString(),
+                            entity.getValue(),
+                            model
+                        );
+                entity.setValue(entityValue);
             }
-        );
+        });
         return entities
             .stream()
             .filter(apiHeaderEntity -> apiHeaderEntity.getValue() != null && !apiHeaderEntity.getValue().isEmpty())
@@ -2125,9 +2101,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .getProxy()
                         .getGroups()
                         .stream()
-                        .anyMatch(
-                            group ->
-                                group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)
+                        .anyMatch(group ->
+                            group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)
                         )
                 );
             }
@@ -2191,8 +2166,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .findByScope(RoleScope.API, executionContext.getOrganizationId())
             .stream()
             .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-            .flatMap(
-                role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, apiId, role.getId()).stream()
+            .flatMap(role ->
+                this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, apiId, role.getId()).stream()
             )
             .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
             .map(MembershipEntity::getMemberId)
@@ -2205,32 +2180,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         // find reviewers in group attached to the API
         final Set<String> groups = this.findById(executionContext, apiId).getGroups();
         if (groups != null && !groups.isEmpty()) {
-            groups.forEach(
-                group -> {
-                    reviewerEmails.addAll(
-                        roleService
-                            .findByScope(RoleScope.API, executionContext.getOrganizationId())
-                            .stream()
-                            .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-                            .flatMap(
-                                role ->
-                                    this.membershipService.getMembershipsByReferenceAndRole(
-                                            MembershipReferenceType.GROUP,
-                                            group,
-                                            role.getId()
-                                        )
-                                        .stream()
-                            )
-                            .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
-                            .map(MembershipEntity::getMemberId)
-                            .distinct()
-                            .map(id -> this.userService.findById(executionContext, id))
-                            .map(UserEntity::getEmail)
-                            .filter(Objects::nonNull)
-                            .collect(toSet())
-                    );
-                }
-            );
+            groups.forEach(group -> {
+                reviewerEmails.addAll(
+                    roleService
+                        .findByScope(RoleScope.API, executionContext.getOrganizationId())
+                        .stream()
+                        .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
+                        .flatMap(role ->
+                            this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId())
+                                .stream()
+                        )
+                        .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
+                        .map(MembershipEntity::getMemberId)
+                        .distinct()
+                        .map(id -> this.userService.findById(executionContext, id))
+                        .map(UserEntity::getEmail)
+                        .filter(Objects::nonNull)
+                        .collect(toSet())
+                );
+            });
         }
 
         return new ArrayList<>(reviewerEmails);

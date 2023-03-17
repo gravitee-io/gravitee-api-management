@@ -296,19 +296,17 @@ public class ThemeServiceTest {
 
         verify(themeRepository, times(1))
             .create(
-                argThat(
-                    argument -> {
-                        return (
-                            "NAME".equals(argument.getName()) &&
-                            argument.getDefinition() != null &&
-                            "DEFAULT".equals(argument.getReferenceId()) &&
-                            ENVIRONMENT.name().equals(argument.getReferenceType()) &&
-                            !argument.getId().isEmpty() &&
-                            argument.getCreatedAt() != null &&
-                            argument.getUpdatedAt() != null
-                        );
-                    }
-                )
+                argThat(argument -> {
+                    return (
+                        "NAME".equals(argument.getName()) &&
+                        argument.getDefinition() != null &&
+                        "DEFAULT".equals(argument.getReferenceId()) &&
+                        ENVIRONMENT.name().equals(argument.getReferenceType()) &&
+                        !argument.getId().isEmpty() &&
+                        argument.getCreatedAt() != null &&
+                        argument.getUpdatedAt() != null
+                    );
+                })
             );
         verify(auditService, times(1))
             .createAuditLog(
@@ -372,14 +370,13 @@ public class ThemeServiceTest {
 
         verify(themeRepository, times(1))
             .update(
-                argThat(
-                    argument ->
-                        "NAME".equals(argument.getName()) &&
-                        argument.getDefinition() != null &&
-                        "DEFAULT".equals(argument.getReferenceId()) &&
-                        ENVIRONMENT.name().equals(argument.getReferenceType()) &&
-                        THEME_ID.equals(argument.getId()) &&
-                        argument.getUpdatedAt() != null
+                argThat(argument ->
+                    "NAME".equals(argument.getName()) &&
+                    argument.getDefinition() != null &&
+                    "DEFAULT".equals(argument.getReferenceId()) &&
+                    ENVIRONMENT.name().equals(argument.getReferenceType()) &&
+                    THEME_ID.equals(argument.getId()) &&
+                    argument.getUpdatedAt() != null
                 )
             );
 
@@ -593,24 +590,22 @@ public class ThemeServiceTest {
 
         verify(themeRepository, times(1))
             .create(
-                argThat(
-                    argument -> {
-                        try {
-                            return (
-                                "Default".equals(argument.getName()) &&
-                                definitionMapper.readTree(argument.getDefinition()).equals(definitionMapper.readTree(definition)) &&
-                                "DEFAULT".equals(argument.getReferenceId()) &&
-                                ENVIRONMENT.name().equals(argument.getReferenceType()) &&
-                                !argument.getId().isEmpty() &&
-                                argument.getCreatedAt() != null &&
-                                argument.getUpdatedAt() != null
-                            );
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return false;
+                argThat(argument -> {
+                    try {
+                        return (
+                            "Default".equals(argument.getName()) &&
+                            definitionMapper.readTree(argument.getDefinition()).equals(definitionMapper.readTree(definition)) &&
+                            "DEFAULT".equals(argument.getReferenceId()) &&
+                            ENVIRONMENT.name().equals(argument.getReferenceType()) &&
+                            !argument.getId().isEmpty() &&
+                            argument.getCreatedAt() != null &&
+                            argument.getUpdatedAt() != null
+                        );
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                )
+                    return false;
+                })
             );
         verify(auditService, times(1))
             .createAuditLog(
@@ -651,24 +646,22 @@ public class ThemeServiceTest {
 
         verify(themeRepository, times(1))
             .update(
-                argThat(
-                    argument -> {
-                        try {
-                            return (
-                                "NAME".equals(argument.getName()) &&
-                                mapper.readTree(argument.getDefinition()).equals(mapper.readTree(mergeDefinition)) &&
-                                "DEFAULT".equals(argument.getReferenceId()) &&
-                                ENVIRONMENT.name().equals(argument.getReferenceType()) &&
-                                !argument.getId().isEmpty() &&
-                                argument.getCreatedAt() != null &&
-                                argument.getUpdatedAt() != null
-                            );
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return false;
+                argThat(argument -> {
+                    try {
+                        return (
+                            "NAME".equals(argument.getName()) &&
+                            mapper.readTree(argument.getDefinition()).equals(mapper.readTree(mergeDefinition)) &&
+                            "DEFAULT".equals(argument.getReferenceId()) &&
+                            ENVIRONMENT.name().equals(argument.getReferenceType()) &&
+                            !argument.getId().isEmpty() &&
+                            argument.getCreatedAt() != null &&
+                            argument.getUpdatedAt() != null
+                        );
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                )
+                    return false;
+                })
             );
         verify(auditService, times(1))
             .createAuditLog(

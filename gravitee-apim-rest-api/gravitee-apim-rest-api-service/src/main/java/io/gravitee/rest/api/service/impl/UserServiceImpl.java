@@ -259,13 +259,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         environmentService
                             .findByUser(executionContext.getOrganizationId(), userId)
-                            .forEach(
-                                env ->
-                                    applicationService.create(
-                                        new ExecutionContext(executionContext.getOrganizationId(), env.getId()),
-                                        defaultApp,
-                                        userId
-                                    )
+                            .forEach(env ->
+                                applicationService.create(
+                                    new ExecutionContext(executionContext.getOrganizationId(), env.getId()),
+                                    defaultApp,
+                                    userId
+                                )
                             );
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
@@ -391,14 +390,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (!users.isEmpty()) {
                 return users
                     .stream()
-                    .map(
-                        u ->
-                            this.convert(
-                                    executionContext,
-                                    u,
-                                    false,
-                                    withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : Collections.emptyList()
-                                )
+                    .map(u ->
+                        this.convert(
+                                executionContext,
+                                u,
+                                false,
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : Collections.emptyList()
+                            )
                     )
                     .collect(toSet());
             }
@@ -511,19 +509,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 invitations
                     .stream()
                     .filter(invitation -> invitation.getEmail().equals(email))
-                    .forEach(
-                        invitation -> {
-                            invitationService.addMember(
-                                executionContext,
-                                invitation.getReferenceType().name(),
-                                invitation.getReferenceId(),
-                                userId,
-                                invitation.getApiRole(),
-                                invitation.getApplicationRole()
-                            );
-                            invitationService.delete(invitation.getId(), invitation.getReferenceId());
-                        }
-                    );
+                    .forEach(invitation -> {
+                        invitationService.addMember(
+                            executionContext,
+                            invitation.getReferenceType().name(),
+                            invitation.getReferenceId(),
+                            userId,
+                            invitation.getApiRole(),
+                            invitation.getApplicationRole()
+                        );
+                        invitationService.delete(invitation.getId(), invitation.getReferenceId());
+                    });
             }
 
             // Set date fields
@@ -1214,29 +1210,27 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             RoleScope.APPLICATION
         );
 
-        users.forEach(
-            user -> {
-                final boolean apiPO = !membershipService
-                    .getMembershipsByMemberAndReferenceAndRole(
-                        MembershipMemberType.USER,
-                        user.getId(),
-                        MembershipReferenceType.API,
-                        apiPORole.getId()
-                    )
-                    .isEmpty();
-                final boolean appPO = !membershipService
-                    .getMembershipsByMemberAndReferenceAndRole(
-                        MembershipMemberType.USER,
-                        user.getId(),
-                        MembershipReferenceType.APPLICATION,
-                        applicationPORole.getId()
-                    )
-                    .isEmpty();
+        users.forEach(user -> {
+            final boolean apiPO = !membershipService
+                .getMembershipsByMemberAndReferenceAndRole(
+                    MembershipMemberType.USER,
+                    user.getId(),
+                    MembershipReferenceType.API,
+                    apiPORole.getId()
+                )
+                .isEmpty();
+            final boolean appPO = !membershipService
+                .getMembershipsByMemberAndReferenceAndRole(
+                    MembershipMemberType.USER,
+                    user.getId(),
+                    MembershipReferenceType.APPLICATION,
+                    applicationPORole.getId()
+                )
+                .isEmpty();
 
-                user.setPrimaryOwner(apiPO || appPO);
-                user.setNbActiveTokens(tokenService.findByUser(user.getId()).size());
-            }
-        );
+            user.setPrimaryOwner(apiPO || appPO);
+            user.setNbActiveTokens(tokenService.findByUser(user.getId()).size());
+        });
     }
 
     @Override
@@ -1482,11 +1476,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             this.environmentService.findByOrganization(executionContext.getOrganizationId())
                 .stream()
-                .flatMap(
-                    env ->
-                        membershipService
-                            .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, user.getId())
-                            .stream()
+                .flatMap(env ->
+                    membershipService
+                        .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, user.getId())
+                        .stream()
                 )
                 .filter(Objects::nonNull)
                 .forEach(roleEntity -> roles.add(convert(roleEntity)));
@@ -1495,21 +1488,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             Map<String, Set<UserRoleEntity>> envRolesMap = new HashMap<>();
             this.environmentService.findByOrganization(executionContext.getOrganizationId())
-                .forEach(
-                    env -> {
-                        Set<UserRoleEntity> envRoles = new HashSet<>();
-                        Set<RoleEntity> envRoleEntities = membershipService.getRoles(
-                            MembershipReferenceType.ENVIRONMENT,
-                            env.getId(),
-                            MembershipMemberType.USER,
-                            user.getId()
-                        );
-                        if (!envRoleEntities.isEmpty()) {
-                            envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
-                        }
-                        envRolesMap.put(env.getId(), envRoles);
+                .forEach(env -> {
+                    Set<UserRoleEntity> envRoles = new HashSet<>();
+                    Set<RoleEntity> envRoleEntities = membershipService.getRoles(
+                        MembershipReferenceType.ENVIRONMENT,
+                        env.getId(),
+                        MembershipMemberType.USER,
+                        user.getId()
+                    );
+                    if (!envRoleEntities.isEmpty()) {
+                        envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
                     }
-                );
+                    envRolesMap.put(env.getId(), envRoles);
+                });
             userEntity.setEnvRoles(envRolesMap);
         }
 
@@ -1715,29 +1706,27 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             roleService
                 .findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ENVIRONMENT, RoleScope.ORGANIZATION)
                 .stream()
-                .forEach(
-                    roleEntity -> {
-                        if (roleEntity.getScope().equals(RoleScope.ENVIRONMENT)) {
-                            Set<RoleEntity> envRoles = rolesToAddToEnvironments.get(
+                .forEach(roleEntity -> {
+                    if (roleEntity.getScope().equals(RoleScope.ENVIRONMENT)) {
+                        Set<RoleEntity> envRoles = rolesToAddToEnvironments.get(
+                            executionContext.hasEnvironmentId()
+                                ? executionContext.getEnvironmentId()
+                                : GraviteeContext.getDefaultEnvironment()
+                        );
+                        if (envRoles == null) {
+                            envRoles = new HashSet<>();
+                            rolesToAddToEnvironments.put(
                                 executionContext.hasEnvironmentId()
                                     ? executionContext.getEnvironmentId()
-                                    : GraviteeContext.getDefaultEnvironment()
+                                    : GraviteeContext.getDefaultEnvironment(),
+                                envRoles
                             );
-                            if (envRoles == null) {
-                                envRoles = new HashSet<>();
-                                rolesToAddToEnvironments.put(
-                                    executionContext.hasEnvironmentId()
-                                        ? executionContext.getEnvironmentId()
-                                        : GraviteeContext.getDefaultEnvironment(),
-                                    envRoles
-                                );
-                            }
-                            envRoles.add(roleEntity);
-                        } else if (roleEntity.getScope().equals(RoleScope.ORGANIZATION)) {
-                            rolesToAddToOrganization.add(roleEntity);
                         }
+                        envRoles.add(roleEntity);
+                    } else if (roleEntity.getScope().equals(RoleScope.ORGANIZATION)) {
+                        rolesToAddToOrganization.add(roleEntity);
                     }
-                );
+                });
         } else {
             for (RoleMappingEntity mapping : mappings) {
                 TemplateEngine templateEngine = TemplateEngine.templateEngine();
@@ -1753,23 +1742,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         try {
                             mapping
                                 .getEnvironments()
-                                .forEach(
-                                    (environmentName, environmentRoles) -> {
-                                        Set<RoleEntity> envRoles = rolesToAddToEnvironments.computeIfAbsent(
-                                            environmentName,
-                                            k -> new HashSet<>()
-                                        );
-                                        for (String environmentRoleName : environmentRoles) {
-                                            roleService
-                                                .findByScopeAndName(
-                                                    RoleScope.ENVIRONMENT,
-                                                    environmentRoleName,
-                                                    executionContext.getOrganizationId()
-                                                )
-                                                .ifPresent(envRoles::add);
-                                        }
+                                .forEach((environmentName, environmentRoles) -> {
+                                    Set<RoleEntity> envRoles = rolesToAddToEnvironments.computeIfAbsent(
+                                        environmentName,
+                                        k -> new HashSet<>()
+                                    );
+                                    for (String environmentRoleName : environmentRoles) {
+                                        roleService
+                                            .findByScopeAndName(
+                                                RoleScope.ENVIRONMENT,
+                                                environmentRoleName,
+                                                executionContext.getOrganizationId()
+                                            )
+                                            .ifPresent(envRoles::add);
                                     }
-                                );
+                                });
                         } catch (RoleNotFoundException rnfe) {
                             LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getEnvironments());
                         }
@@ -1779,11 +1766,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         try {
                             mapping
                                 .getOrganizations()
-                                .forEach(
-                                    org ->
-                                        roleService
-                                            .findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId())
-                                            .ifPresent(rolesToAddToOrganization::add)
+                                .forEach(org ->
+                                    roleService
+                                        .findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId())
+                                        .ifPresent(rolesToAddToOrganization::add)
                                 );
                         } catch (RoleNotFoundException rnfe) {
                             LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
@@ -1925,20 +1911,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     ) {
         return userOrganizationRoles
             .stream()
-            .map(
-                roleEntity -> {
-                    MembershipService.Membership membership = new MembershipService.Membership(
-                        new MembershipService.MembershipReference(
-                            MembershipReferenceType.ORGANIZATION,
-                            executionContext.getOrganizationId()
-                        ),
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
-                    );
-                    membership.setSource(identityProviderId);
-                    return membership;
-                }
-            )
+            .map(roleEntity -> {
+                MembershipService.Membership membership = new MembershipService.Membership(
+                    new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId()),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
+                );
+                membership.setSource(identityProviderId);
+                return membership;
+            })
             .collect(Collectors.toList());
     }
 
@@ -1948,28 +1929,22 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         Map<String, Set<RoleEntity>> userRolesByEnvironment
     ) {
         List<MembershipService.Membership> result = new ArrayList<>();
-        userRolesByEnvironment.forEach(
-            (environmentId, userRoles) ->
-                result.addAll(
-                    userRoles
-                        .stream()
-                        .map(
-                            roleEntity -> {
-                                MembershipService.Membership membership = new MembershipService.Membership(
-                                    new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, environmentId),
-                                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                                    new MembershipService.MembershipRole(
-                                        RoleScope.valueOf(roleEntity.getScope().name()),
-                                        roleEntity.getName()
-                                    )
-                                );
+        userRolesByEnvironment.forEach((environmentId, userRoles) ->
+            result.addAll(
+                userRoles
+                    .stream()
+                    .map(roleEntity -> {
+                        MembershipService.Membership membership = new MembershipService.Membership(
+                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, environmentId),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
+                        );
 
-                                membership.setSource(identityProviderId);
-                                return membership;
-                            }
-                        )
-                        .collect(Collectors.toList())
-                )
+                        membership.setSource(identityProviderId);
+                        return membership;
+                    })
+                    .collect(Collectors.toList())
+            )
         );
         return result;
     }
@@ -2012,64 +1987,57 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         List<Membership> overrideUserMemberships = new ArrayList<>();
         // Delete existing memberships
-        userMemberships.forEach(
-            membership -> {
-                // Consider only membership "created by" the identity provider
-                if (identityProviderId.equals(membership.getSource())) {
-                    // if there is no mapping configured on the social idp, we do not remove / reset it
-                    if (hasMapping) {
-                        membershipService.deleteReferenceMemberBySource(
-                            executionContext,
-                            MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                            membership.getReferenceId(),
-                            MembershipMemberType.USER,
-                            userId,
-                            membership.getSource()
-                        );
-                    }
-                } else {
-                    overrideUserMemberships.add(membership);
+        userMemberships.forEach(membership -> {
+            // Consider only membership "created by" the identity provider
+            if (identityProviderId.equals(membership.getSource())) {
+                // if there is no mapping configured on the social idp, we do not remove / reset it
+                if (hasMapping) {
+                    membershipService.deleteReferenceMemberBySource(
+                        executionContext,
+                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                        membership.getReferenceId(),
+                        MembershipMemberType.USER,
+                        userId,
+                        membership.getSource()
+                    );
                 }
+            } else {
+                overrideUserMemberships.add(membership);
             }
-        );
+        });
 
-        Map<MembershipService.MembershipReference, Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles = new HashMap<>();
+        Map<MembershipService.MembershipReference, Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles =
+            new HashMap<>();
         memberships
             .stream()
             .filter(membership -> !containsMembership(overrideUserMemberships, membership))
-            .forEach(
-                membership ->
-                    groupedRoles
-                        .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
-                        .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
-                        .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
-                        .add(membership.getRole())
+            .forEach(membership ->
+                groupedRoles
+                    .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
+                    .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
+                    .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
+                    .add(membership.getRole())
             );
         // Create updated memberships
-        groupedRoles.forEach(
-            (reference, memberMapping) ->
-                memberMapping.forEach(
-                    (member, sourceMapping) ->
-                        sourceMapping.forEach(
-                            (source, roles) ->
-                                membershipService.updateRolesToMemberOnReferenceBySource(executionContext, reference, member, roles, source)
-                        )
+        groupedRoles.forEach((reference, memberMapping) ->
+            memberMapping.forEach((member, sourceMapping) ->
+                sourceMapping.forEach((source, roles) ->
+                    membershipService.updateRolesToMemberOnReferenceBySource(executionContext, reference, member, roles, source)
                 )
+            )
         );
     }
 
     private boolean containsMembership(List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
         return overrideUserMemberships
             .stream()
-            .anyMatch(
-                membership1 -> {
-                    if (membership1.getReferenceId().equals(membership.getReference().getId())) {
-                        RoleEntity byId = roleService.findById(membership1.getRoleId());
-                        return membership.getRole().getScope().equals(byId.getScope());
-                    }
-                    return false;
+            .anyMatch(membership1 -> {
+                if (membership1.getReferenceId().equals(membership.getReference().getId())) {
+                    RoleEntity byId = roleService.findById(membership1.getRoleId());
+                    return membership.getRole().getScope().equals(byId.getScope());
                 }
-            );
+                return false;
+            });
     }
 
     @Override
@@ -2086,15 +2054,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (userMember != null) {
             userMember
                 .getRoles()
-                .forEach(
-                    role -> {
-                        if (!roleIds.contains(role.getId())) {
-                            membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
-                        } else {
-                            roleIds.remove(role.getId());
-                        }
+                .forEach(role -> {
+                    if (!roleIds.contains(role.getId())) {
+                        membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
+                    } else {
+                        roleIds.remove(role.getId());
                     }
-                );
+                });
         }
         if (!roleIds.isEmpty()) {
             this.addRolesToUser(

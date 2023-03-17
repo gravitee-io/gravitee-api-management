@@ -66,31 +66,28 @@ public class RedisClient {
         Redis
             .createClient(vertx, options)
             .connect()
-            .onSuccess(
-                conn -> {
-                    // make sure to invalidate old connection if present
-                    if (redisAPI != null) {
-                        redisAPI.close();
-                    }
-
-                    this.redisAPI = RedisAPI.api(conn);
-
-                    loadScript();
-
-                    // make sure the client is reconnected on error
-                    conn.exceptionHandler(
-                        e ->
-                            // attempt to reconnect,
-                            // if there is an unrecoverable error
-                            attemptReconnect(0)
-                    );
-                    // make sure the client is reconnected on connection close
-                    conn.endHandler(endEvent -> attemptReconnect(0));
-
-                    // allow further processing
-                    promise.complete(conn);
+            .onSuccess(conn -> {
+                // make sure to invalidate old connection if present
+                if (redisAPI != null) {
+                    redisAPI.close();
                 }
-            )
+
+                this.redisAPI = RedisAPI.api(conn);
+
+                loadScript();
+
+                // make sure the client is reconnected on error
+                conn.exceptionHandler(e ->
+                    // attempt to reconnect,
+                    // if there is an unrecoverable error
+                    attemptReconnect(0)
+                );
+                // make sure the client is reconnected on connection close
+                conn.endHandler(endEvent -> attemptReconnect(0));
+
+                // allow further processing
+                promise.complete(conn);
+            })
             .onFailure(promise::fail);
 
         return promise.future();

@@ -46,13 +46,12 @@ class RandomLoadBalancerTest {
     void shouldReturnRandomEndpoint() {
         List<ManagedEndpoint> endpoints = IntStream
             .range(0, 5)
-            .mapToObj(
-                i ->
-                    new DefaultManagedEndpoint(
-                        new Endpoint(),
-                        new DefaultManagedEndpointGroup(new EndpointGroup()),
-                        mock(EndpointConnector.class)
-                    )
+            .mapToObj(i ->
+                new DefaultManagedEndpoint(
+                    new Endpoint(),
+                    new DefaultManagedEndpointGroup(new EndpointGroup()),
+                    mock(EndpointConnector.class)
+                )
             )
             .collect(Collectors.toList());
         RandomLoadBalancer cut = new RandomLoadBalancer(endpoints);

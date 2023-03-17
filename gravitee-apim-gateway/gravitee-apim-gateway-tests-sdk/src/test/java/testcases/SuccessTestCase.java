@@ -51,22 +51,18 @@ public class SuccessTestCase extends AbstractGatewayTest {
         httpClient
             .rxRequest(HttpMethod.GET, "/test/my_team")
             .flatMap(request -> request.rxSend())
-            .flatMapPublisher(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                    return response.toFlowable();
-                }
-            )
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                return response.toFlowable();
+            })
             .test()
             .await()
             .assertComplete()
-            .assertValue(
-                body -> {
-                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                    return true;
-                }
-            )
+            .assertValue(body -> {
+                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(

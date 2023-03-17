@@ -145,14 +145,12 @@ public class MetadataServiceTest {
         verifyNoInteractions(auditService);
         verify(metadataRepository)
             .create(
-                argThat(
-                    meta -> {
-                        assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
-                        assertThat(meta.getName()).isEqualTo("test");
-                        assertThat(meta.getValue()).isEqualTo("value");
-                        return true;
-                    }
-                )
+                argThat(meta -> {
+                    assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                    assertThat(meta.getName()).isEqualTo("test");
+                    assertThat(meta.getValue()).isEqualTo("value");
+                    return true;
+                })
             );
     }
 
@@ -168,14 +166,12 @@ public class MetadataServiceTest {
 
         verify(metadataRepository)
             .create(
-                argThat(
-                    meta -> {
-                        assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
-                        assertThat(meta.getName()).isEqualTo("test");
-                        assertThat(meta.getValue()).isEqualTo("value");
-                        return true;
-                    }
-                )
+                argThat(meta -> {
+                    assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                    assertThat(meta.getName()).isEqualTo("test");
+                    assertThat(meta.getValue()).isEqualTo("value");
+                    return true;
+                })
             );
     }
 

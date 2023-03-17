@@ -208,12 +208,10 @@ public class GroupMembersResource extends AbstractResource {
                 final long membershipsToAddSize = memberships
                     .stream()
                     .map(GroupMembership::getId)
-                    .filter(
-                        s -> {
-                            final List<String> membershipIdsToSave = members.stream().map(MemberEntity::getId).collect(toList());
-                            return !membershipIdsToSave.contains(s);
-                        }
-                    )
+                    .filter(s -> {
+                        final List<String> membershipIdsToSave = members.stream().map(MemberEntity::getId).collect(toList());
+                        return !membershipIdsToSave.contains(s);
+                    })
                     .count();
                 if ((groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize) > groupEntity.getMaxInvitation()) {
                     throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());

@@ -87,16 +87,14 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
         return apiMetadata
             .stream()
-            .map(
-                data -> {
-                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                    newMD.setFormat(data.getFormat());
-                    newMD.setName(data.getName());
-                    newMD.setValue(data.getValue());
-                    newMD.setApiId(apiId);
-                    return newMD;
-                }
-            )
+            .map(data -> {
+                NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                newMD.setFormat(data.getFormat());
+                newMD.setName(data.getName());
+                newMD.setValue(data.getValue());
+                newMD.setApiId(apiId);
+                return newMD;
+            })
             .map(newApiMetadataEntity -> create(executionContext, newApiMetadataEntity))
             .collect(toList());
     }
@@ -135,8 +133,8 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
         List<ApiMetadataEntity> metadataList = findAllByApi(genericApiEntity.getId());
         final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
 
-        metadataList.forEach(
-            metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+        metadataList.forEach(metadata ->
+            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
         );
 
         String decodedValue =

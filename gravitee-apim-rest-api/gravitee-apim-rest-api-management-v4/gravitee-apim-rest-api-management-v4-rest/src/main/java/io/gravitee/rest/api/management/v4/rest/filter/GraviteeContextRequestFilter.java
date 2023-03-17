@@ -67,15 +67,13 @@ public class GraviteeContextRequestFilter implements ContainerRequestFilter {
             try {
                 apiRepository
                     .findById(apiId)
-                    .ifPresent(
-                        api -> {
-                            EnvironmentEntity apiEnv = environmentService.findById(api.getEnvironmentId());
-                            if (apiEnv != null) {
-                                GraviteeContext.setCurrentEnvironment(apiEnv.getId());
-                                GraviteeContext.setCurrentOrganization(apiEnv.getOrganizationId());
-                            }
+                    .ifPresent(api -> {
+                        EnvironmentEntity apiEnv = environmentService.findById(api.getEnvironmentId());
+                        if (apiEnv != null) {
+                            GraviteeContext.setCurrentEnvironment(apiEnv.getId());
+                            GraviteeContext.setCurrentOrganization(apiEnv.getOrganizationId());
                         }
-                    );
+                    });
             } catch (TechnicalException e) {
                 logger.error(String.format("Error while fetching execution context for API {}", apiId), e);
                 throw new ApiNotFoundException(apiId);

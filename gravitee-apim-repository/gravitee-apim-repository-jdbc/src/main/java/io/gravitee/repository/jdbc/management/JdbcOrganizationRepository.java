@@ -140,12 +140,10 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
             // Note: we should find a proper way to store domain restrictions and hrids to avoid such (N*2)+1 queries.
             // For now we assume that the number of organizations remains low and this function is not widely used.
-            organizations.forEach(
-                organization -> {
-                    addDomainRestrictions(organization);
-                    addHrids(organization);
-                }
-            );
+            organizations.forEach(organization -> {
+                addDomainRestrictions(organization);
+                addHrids(organization);
+            });
 
             return organizations;
         } catch (Exception e) {

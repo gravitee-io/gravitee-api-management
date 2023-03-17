@@ -62,22 +62,21 @@ public class UserMapper {
                 .stream()
                 .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
                 .map(UserRoleEntity::getPermissions)
-                .map(
-                    rolePermissions ->
-                        rolePermissions
-                            .entrySet()
-                            .stream()
-                            .collect(
-                                Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry ->
-                                        new String(entry.getValue())
-                                            .chars()
-                                            .mapToObj(c -> (char) c)
-                                            .map(String::valueOf)
-                                            .collect(Collectors.toList())
-                                )
+                .map(rolePermissions ->
+                    rolePermissions
+                        .entrySet()
+                        .stream()
+                        .collect(
+                            Collectors.toMap(
+                                Map.Entry::getKey,
+                                entry ->
+                                    new String(entry.getValue())
+                                        .chars()
+                                        .mapToObj(c -> (char) c)
+                                        .map(String::valueOf)
+                                        .collect(Collectors.toList())
                             )
+                        )
                 )
                 .reduce(
                     new HashMap<>(),

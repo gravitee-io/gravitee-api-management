@@ -38,16 +38,14 @@ public class DummyStreamablePolicy {
         return TransformableRequestStreamBuilder
             .on(request)
             .chain(policyChain)
-            .transform(
-                buffer -> {
-                    try {
-                        executionContext.setAttribute("stream", "On Request Content Dummy Streamable Policy");
-                        return Buffer.buffer("On Request Content Dummy Streamable Policy");
-                    } catch (Exception ioe) {
-                        throw new TransformationException("Unable to transform Dummy Streamable Policy Request: " + ioe.getMessage(), ioe);
-                    }
+            .transform(buffer -> {
+                try {
+                    executionContext.setAttribute("stream", "On Request Content Dummy Streamable Policy");
+                    return Buffer.buffer("On Request Content Dummy Streamable Policy");
+                } catch (Exception ioe) {
+                    throw new TransformationException("Unable to transform Dummy Streamable Policy Request: " + ioe.getMessage(), ioe);
                 }
-            )
+            })
             .build();
     }
 
@@ -56,16 +54,14 @@ public class DummyStreamablePolicy {
         return TransformableResponseStreamBuilder
             .on(response)
             .chain(policyChain)
-            .transform(
-                buffer -> {
-                    try {
-                        executionContext.setAttribute("stream", "On Response Content Dummy Streamable Policy");
-                        return Buffer.buffer("On Response Content Dummy Streamable Policy");
-                    } catch (Exception ioe) {
-                        throw new TransformationException("Unable to transform Dummy Streamable Policy Response: " + ioe.getMessage(), ioe);
-                    }
+            .transform(buffer -> {
+                try {
+                    executionContext.setAttribute("stream", "On Response Content Dummy Streamable Policy");
+                    return Buffer.buffer("On Response Content Dummy Streamable Policy");
+                } catch (Exception ioe) {
+                    throw new TransformationException("Unable to transform Dummy Streamable Policy Response: " + ioe.getMessage(), ioe);
                 }
-            )
+            })
             .build();
     }
 }

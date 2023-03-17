@@ -56,9 +56,8 @@ public class HttpHealthCheckExecutionContext extends AbstractExecutionContext<Ht
             // evaluate headers against templateProviders
             configuration
                 .getHeaders()
-                .forEach(
-                    header ->
-                        request.headers().set(header.getName(), getTemplateEngine().eval(header.getValue(), String.class).blockingGet())
+                .forEach(header ->
+                    request.headers().set(header.getName(), getTemplateEngine().eval(header.getValue(), String.class).blockingGet())
                 );
         }
     }

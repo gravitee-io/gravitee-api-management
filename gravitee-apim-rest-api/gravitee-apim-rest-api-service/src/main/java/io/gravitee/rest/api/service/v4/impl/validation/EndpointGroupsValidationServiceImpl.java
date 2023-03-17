@@ -69,30 +69,26 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
         final Set<String> names = new HashSet<>();
 
-        endpointGroups.forEach(
-            endpointGroup -> {
-                validateUniqueEndpointGroupName(endpointGroup.getName(), names);
-                validateEndpointGroupType(endpointGroup.getType());
-                validateServices(endpointGroup.getServices());
-                validateEndpointsExistence(endpointGroup);
-                if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
-                    endpointGroup
-                        .getEndpoints()
-                        .forEach(
-                            endpoint -> {
-                                validateUniqueEndpointName(endpoint.getName(), names);
-                                validateEndpointType(endpoint.getType());
-                                validateServices(endpointGroup.getServices(), endpoint.getServices());
-                                validateEndpointMatchType(endpointGroup, endpoint);
+        endpointGroups.forEach(endpointGroup -> {
+            validateUniqueEndpointGroupName(endpointGroup.getName(), names);
+            validateEndpointGroupType(endpointGroup.getType());
+            validateServices(endpointGroup.getServices());
+            validateEndpointsExistence(endpointGroup);
+            if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
+                endpointGroup
+                    .getEndpoints()
+                    .forEach(endpoint -> {
+                        validateUniqueEndpointName(endpoint.getName(), names);
+                        validateEndpointType(endpoint.getType());
+                        validateServices(endpointGroup.getServices(), endpoint.getServices());
+                        validateEndpointMatchType(endpointGroup, endpoint);
 
-                                endpoint.setConfiguration(
-                                    endpointService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
-                                );
-                            }
+                        endpoint.setConfiguration(
+                            endpointService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
                         );
-                }
+                    });
             }
-        );
+        });
 
         return endpointGroups;
     }

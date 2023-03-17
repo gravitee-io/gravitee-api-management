@@ -59,23 +59,21 @@ public interface ApiMapper {
         }
         return listeners
             .stream()
-            .map(
-                listener -> {
-                    if (listener instanceof HttpListener) {
-                        var httpListener = this.map((HttpListener) listener);
-                        return new ApiListenersInner(httpListener);
-                    }
-                    if (listener instanceof SubscriptionListener) {
-                        var subscriptionListener = this.map((SubscriptionListener) listener);
-                        return new ApiListenersInner(subscriptionListener);
-                    }
-                    if (listener instanceof TcpListener) {
-                        var tcpListener = this.map((TcpListener) listener);
-                        return new ApiListenersInner(tcpListener);
-                    }
-                    return null;
+            .map(listener -> {
+                if (listener instanceof HttpListener) {
+                    var httpListener = this.map((HttpListener) listener);
+                    return new ApiListenersInner(httpListener);
                 }
-            )
+                if (listener instanceof SubscriptionListener) {
+                    var subscriptionListener = this.map((SubscriptionListener) listener);
+                    return new ApiListenersInner(subscriptionListener);
+                }
+                if (listener instanceof TcpListener) {
+                    var tcpListener = this.map((TcpListener) listener);
+                    return new ApiListenersInner(tcpListener);
+                }
+                return null;
+            })
             .collect(Collectors.toList());
     }
 

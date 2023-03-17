@@ -44,20 +44,18 @@ public class ChannelSelectorConditionFilter implements ConditionFilter<Flow> {
 
     @Override
     public Maybe<Flow> filter(final GenericExecutionContext ctx, final Flow flow) {
-        return Maybe.fromCallable(
-            () -> {
-                Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.CHANNEL);
-                if (selectorOptional.isPresent()) {
-                    ChannelSelector channelSelector = (ChannelSelector) selectorOptional.get();
-                    if (isChannelMatches(ctx, channelSelector) && isEntrypointMatches(ctx, channelSelector)) {
-                        return flow;
-                    }
-                } else {
+        return Maybe.fromCallable(() -> {
+            Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.CHANNEL);
+            if (selectorOptional.isPresent()) {
+                ChannelSelector channelSelector = (ChannelSelector) selectorOptional.get();
+                if (isChannelMatches(ctx, channelSelector) && isEntrypointMatches(ctx, channelSelector)) {
                     return flow;
                 }
-                return null;
+            } else {
+                return flow;
             }
-        );
+            return null;
+        });
     }
 
     private boolean isChannelMatches(final GenericExecutionContext ctx, final ChannelSelector channelSelector) {

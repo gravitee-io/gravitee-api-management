@@ -61,34 +61,32 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
         ManagedChannel channel = createManagedChannel();
 
         // Start is asynchronous
-        rpcServer.start(
-            event -> {
-                // Get a stub to use for interacting with the remote service
-                StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
+        rpcServer.start(event -> {
+            // Get a stub to use for interacting with the remote service
+            StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
-                // Call the remote service
-                StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
-                    new StreamObserver<>() {
-                        @Override
-                        public void onNext(HelloReply helloReply) {
-                            assertThat(helloReply.getMessage()).startsWith("Hello You part");
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            testContext.failNow(throwable.getMessage());
-                        }
-
-                        @Override
-                        public void onCompleted() {
-                            testContext.completeNow();
-                        }
+            // Call the remote service
+            StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
+                new StreamObserver<>() {
+                    @Override
+                    public void onNext(HelloReply helloReply) {
+                        assertThat(helloReply.getMessage()).startsWith("Hello You part");
                     }
-                );
 
-                requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
-            }
-        );
+                    @Override
+                    public void onError(Throwable throwable) {
+                        testContext.failNow(throwable.getMessage());
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        testContext.completeNow();
+                    }
+                }
+            );
+
+            requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
+        });
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }

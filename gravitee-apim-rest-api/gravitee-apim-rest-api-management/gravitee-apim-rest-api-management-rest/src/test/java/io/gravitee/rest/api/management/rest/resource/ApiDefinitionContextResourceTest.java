@@ -65,12 +65,10 @@ public class ApiDefinitionContextResourceTest extends AbstractResourceTest {
         verify(definitionContextService, times(1))
             .setDefinitionContext(
                 eq(API_ID),
-                argThat(
-                    context -> {
-                        assertThat(context).usingRecursiveComparison().isEqualTo(newKubernetesContext());
-                        return true;
-                    }
-                )
+                argThat(context -> {
+                    assertThat(context).usingRecursiveComparison().isEqualTo(newKubernetesContext());
+                    return true;
+                })
             );
     }
 

@@ -31,32 +31,25 @@ public class WebsocketPingFrameTest extends AbstractWebsocketV4GatewayTest {
     @Test
     public void websocket_ping_request(VertxTestContext testContext) throws Throwable {
         httpServer
-            .webSocketHandler(
-                serverWebSocket -> {
-                    serverWebSocket.exceptionHandler(testContext::failNow);
-                    serverWebSocket.accept();
-                    serverWebSocket.frameHandler(
-                        frame -> {
-                            if (frame.isPing()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
-                            }
-                        }
-                    );
-                }
-            )
+            .webSocketHandler(serverWebSocket -> {
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
+                serverWebSocket.frameHandler(frame -> {
+                    if (frame.isPing()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        testContext.completeNow();
+                    }
+                });
+            })
             .listen(websocketPort)
-            .map(
-                httpServer ->
-                    httpClient
-                        .webSocket("/test")
-                        .flatMapCompletable(
-                            webSocket -> {
-                                webSocket.exceptionHandler(testContext::failNow);
-                                return webSocket.rxWritePing(Buffer.buffer("PING"));
-                            }
-                        )
-                        .subscribe(() -> {}, testContext::failNow)
+            .map(httpServer ->
+                httpClient
+                    .webSocket("/test")
+                    .flatMapCompletable(webSocket -> {
+                        webSocket.exceptionHandler(testContext::failNow);
+                        return webSocket.rxWritePing(Buffer.buffer("PING"));
+                    })
+                    .subscribe(() -> {}, testContext::failNow)
             )
             .subscribe();
 

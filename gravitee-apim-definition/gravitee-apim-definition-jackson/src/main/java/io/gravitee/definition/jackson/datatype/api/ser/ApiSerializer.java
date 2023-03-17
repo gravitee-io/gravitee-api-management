@@ -66,15 +66,13 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
                 jgen.writeObjectFieldStart("paths");
                 api
                     .getPaths()
-                    .forEach(
-                        (s, path) -> {
-                            try {
-                                jgen.writeObjectField(s, path);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                    .forEach((s, path) -> {
+                        try {
+                            jgen.writeObjectField(s, path);
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    );
+                    });
 
                 jgen.writeEndObject();
             }
@@ -110,15 +108,13 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             jgen.writeArrayFieldStart("tags");
             api
                 .getTags()
-                .forEach(
-                    tag -> {
-                        try {
-                            jgen.writeObject(tag);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(tag -> {
+                    try {
+                        jgen.writeObject(tag);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jgen.writeEndArray();
         }
 
@@ -127,15 +123,13 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             api
                 .getPathMappings()
                 .keySet()
-                .forEach(
-                    pathMapping -> {
-                        try {
-                            jgen.writeObject(pathMapping);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(pathMapping -> {
+                    try {
+                        jgen.writeObject(pathMapping);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jgen.writeEndArray();
         }
 

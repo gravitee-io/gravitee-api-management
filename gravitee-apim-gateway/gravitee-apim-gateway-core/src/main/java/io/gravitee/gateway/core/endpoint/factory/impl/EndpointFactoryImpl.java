@@ -105,15 +105,13 @@ public class EndpointFactoryImpl implements EndpointFactory {
 
         @Override
         public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
-            connection.responseHandler(
-                response -> {
-                    if (response instanceof ProcessorFailure) {
-                        responseHandler.handle(new ConnectionProxyErrorResponse(response));
-                    } else {
-                        responseHandler.handle(new ConnectionProxyResponse(response));
-                    }
+            connection.responseHandler(response -> {
+                if (response instanceof ProcessorFailure) {
+                    responseHandler.handle(new ConnectionProxyErrorResponse(response));
+                } else {
+                    responseHandler.handle(new ConnectionProxyResponse(response));
                 }
-            );
+            });
             return this;
         }
 

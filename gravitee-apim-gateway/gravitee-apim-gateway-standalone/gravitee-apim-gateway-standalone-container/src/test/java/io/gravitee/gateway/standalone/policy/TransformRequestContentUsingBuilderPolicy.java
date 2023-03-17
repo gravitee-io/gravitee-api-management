@@ -32,12 +32,10 @@ public class TransformRequestContentUsingBuilderPolicy {
     public ReadWriteStream onRequestContent(Request request, ExecutionContext executionContext) {
         return TransformableRequestStreamBuilder
             .on(request)
-            .transform(
-                buffer -> {
-                    String content = executionContext.getTemplateEngine().convert(buffer.toString());
-                    return Buffer.buffer(content);
-                }
-            )
+            .transform(buffer -> {
+                String content = executionContext.getTemplateEngine().convert(buffer.toString());
+                return Buffer.buffer(content);
+            })
             .build();
     }
 }

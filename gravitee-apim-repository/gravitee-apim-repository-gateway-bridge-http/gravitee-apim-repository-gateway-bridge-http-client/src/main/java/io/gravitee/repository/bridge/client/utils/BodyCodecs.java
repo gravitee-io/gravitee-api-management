@@ -41,32 +41,26 @@ public class BodyCodecs {
     }
 
     public static <T> BodyCodec<List<T>> list(Class<T> clazz) {
-        return new BodyCodecImpl<>(
-            buffer -> buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toList())
+        return new BodyCodecImpl<>(buffer ->
+            buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toList())
         );
     }
 
     public static <T> BodyCodec<Set<T>> set(Class<T> clazz) {
-        return new BodyCodecImpl<>(
-            buffer -> buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toSet())
+        return new BodyCodecImpl<>(buffer ->
+            buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toSet())
         );
     }
 
     public static <T> BodyCodec<Page<T>> page(Class<T> clazz) {
-        return new BodyCodecImpl<>(
-            buffer -> {
-                JsonObject pageObj = buffer.toJsonObject();
-                int page = pageObj.getInteger("pageNumber");
-                int size = pageObj.getInteger("pageElements");
-                int total = pageObj.getInteger("totalElements");
+        return new BodyCodecImpl<>(buffer -> {
+            JsonObject pageObj = buffer.toJsonObject();
+            int page = pageObj.getInteger("pageNumber");
+            int size = pageObj.getInteger("pageElements");
+            int total = pageObj.getInteger("totalElements");
 
-                List<T> content = pageObj
-                    .getJsonArray("content")
-                    .stream()
-                    .map(x -> ((JsonObject) x).mapTo(clazz))
-                    .collect(Collectors.toList());
-                return new Page<>(content, page, size, total);
-            }
-        );
+            List<T> content = pageObj.getJsonArray("content").stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toList());
+            return new Page<>(content, page, size, total);
+        });
     }
 }

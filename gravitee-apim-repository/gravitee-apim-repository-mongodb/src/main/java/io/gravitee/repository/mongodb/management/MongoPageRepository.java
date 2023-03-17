@@ -193,15 +193,13 @@ public class MongoPageRepository implements PageRepository {
     private List<PageMediaMongo> convert(List<PageMedia> attachedMedia) {
         return attachedMedia
             .stream()
-            .map(
-                pageMedia -> {
-                    PageMediaMongo pmm = new PageMediaMongo();
-                    pmm.setMediaHash(pageMedia.getMediaHash());
-                    pmm.setMediaName(pageMedia.getMediaName());
-                    pmm.setAttachedAt(pageMedia.getAttachedAt());
-                    return pmm;
-                }
-            )
+            .map(pageMedia -> {
+                PageMediaMongo pmm = new PageMediaMongo();
+                pmm.setMediaHash(pageMedia.getMediaHash());
+                pmm.setMediaName(pageMedia.getMediaName());
+                pmm.setAttachedAt(pageMedia.getAttachedAt());
+                return pmm;
+            })
             .collect(Collectors.toList());
     }
 

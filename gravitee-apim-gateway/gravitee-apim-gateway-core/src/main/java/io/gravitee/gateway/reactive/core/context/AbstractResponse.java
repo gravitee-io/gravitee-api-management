@@ -86,17 +86,15 @@ public abstract class AbstractResponse implements MutableResponse {
 
     @Override
     public Completable end(final GenericExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final BufferFlow bufferFlow = lazyBufferFlow();
-                if (bufferFlow.hasChunks()) {
-                    return bufferFlow.chunks().ignoreElements().andThen(Completable.fromRunnable(() -> ended = true));
-                }
-
-                ended = true;
-                return Completable.complete();
+        return Completable.defer(() -> {
+            final BufferFlow bufferFlow = lazyBufferFlow();
+            if (bufferFlow.hasChunks()) {
+                return bufferFlow.chunks().ignoreElements().andThen(Completable.fromRunnable(() -> ended = true));
             }
-        );
+
+            ended = true;
+            return Completable.complete();
+        });
     }
 
     @Override

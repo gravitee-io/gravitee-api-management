@@ -121,22 +121,20 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, times(1))
             .update(
-                argThat(
-                    o ->
-                        o.getScope().equals(RoleScope.ENVIRONMENT) &&
-                        Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0) ==
-                        Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
+                argThat(o ->
+                    o.getScope().equals(RoleScope.ENVIRONMENT) &&
+                    Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0) ==
+                    Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
                 )
             );
         verify(mockRoleRepository, times(4))
             .create(
-                argThat(
-                    o ->
-                        o.getScope().equals(RoleScope.API) ||
-                        o.getScope().equals(RoleScope.APPLICATION) ||
-                        o.getScope().equals(RoleScope.ORGANIZATION) ||
-                        o.getScope().equals(RoleScope.PLATFORM) ||
-                        o.getScope().equals(RoleScope.GROUP)
+                argThat(o ->
+                    o.getScope().equals(RoleScope.API) ||
+                    o.getScope().equals(RoleScope.APPLICATION) ||
+                    o.getScope().equals(RoleScope.ORGANIZATION) ||
+                    o.getScope().equals(RoleScope.PLATFORM) ||
+                    o.getScope().equals(RoleScope.GROUP)
                 )
             );
     }
@@ -182,13 +180,12 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         verify(mockRoleRepository, never()).update(any());
         verify(mockRoleRepository, times(4))
             .create(
-                argThat(
-                    o ->
-                        o.getScope().equals(RoleScope.API) ||
-                        o.getScope().equals(RoleScope.APPLICATION) ||
-                        o.getScope().equals(RoleScope.ORGANIZATION) ||
-                        o.getScope().equals(RoleScope.PLATFORM) ||
-                        o.getScope().equals(RoleScope.GROUP)
+                argThat(o ->
+                    o.getScope().equals(RoleScope.API) ||
+                    o.getScope().equals(RoleScope.APPLICATION) ||
+                    o.getScope().equals(RoleScope.ORGANIZATION) ||
+                    o.getScope().equals(RoleScope.PLATFORM) ||
+                    o.getScope().equals(RoleScope.GROUP)
                 )
             );
     }

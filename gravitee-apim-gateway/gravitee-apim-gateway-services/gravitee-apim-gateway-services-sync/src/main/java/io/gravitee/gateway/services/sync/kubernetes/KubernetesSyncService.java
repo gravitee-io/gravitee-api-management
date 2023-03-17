@@ -100,16 +100,14 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
         } else {
             // Just create one Websocket connection and filter the results
             return watchConfigMaps(null)
-                .filter(
-                    configMapEvent -> {
-                        for (String ns : namespaces) {
-                            if (ns.trim().equals(configMapEvent.getObject().getMetadata().getNamespace())) {
-                                return true;
-                            }
+                .filter(configMapEvent -> {
+                    for (String ns : namespaces) {
+                        if (ns.trim().equals(configMapEvent.getObject().getMetadata().getNamespace())) {
+                            return true;
                         }
-                        return false;
                     }
-                );
+                    return false;
+                });
         }
     }
 

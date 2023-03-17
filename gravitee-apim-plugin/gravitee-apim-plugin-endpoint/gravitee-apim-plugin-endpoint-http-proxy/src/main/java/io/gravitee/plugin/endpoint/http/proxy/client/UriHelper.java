@@ -56,19 +56,17 @@ public class UriHelper {
     private static String buildFinalUri(String targetUri, MultiValueMap<String, String> parameters) {
         if (parameters != null && !parameters.isEmpty()) {
             final StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
-            parameters.forEach(
-                (paramName, paramValues) -> {
-                    if (paramValues != null) {
-                        for (String paramValue : paramValues) {
-                            if (paramValue == null) {
-                                parametersAsString.add(paramName);
-                            } else {
-                                parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
-                            }
+            parameters.forEach((paramName, paramValues) -> {
+                if (paramValues != null) {
+                    for (String paramValue : paramValues) {
+                        if (paramValue == null) {
+                            parametersAsString.add(paramName);
+                        } else {
+                            parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
                         }
                     }
                 }
-            );
+            });
 
             if (targetUri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
                 return targetUri + URI_PARAM_SEPARATOR_CHAR + parametersAsString;

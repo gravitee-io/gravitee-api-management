@@ -68,20 +68,18 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                Request request = ctx.request();
-                ProxyConnector proxyConnector;
-                if (request.isWebSocket()) {
-                    proxyConnector = new WebSocketConnector(configuration, httpClientFactory);
-                } else if (isGrpc(request, configuration.getTarget())) {
-                    proxyConnector = new GrpcConnector(configuration, grpcHttpClientFactory);
-                } else {
-                    proxyConnector = new HttpConnector(configuration, httpClientFactory);
-                }
-                return proxyConnector.connect(ctx);
+        return Completable.defer(() -> {
+            Request request = ctx.request();
+            ProxyConnector proxyConnector;
+            if (request.isWebSocket()) {
+                proxyConnector = new WebSocketConnector(configuration, httpClientFactory);
+            } else if (isGrpc(request, configuration.getTarget())) {
+                proxyConnector = new GrpcConnector(configuration, grpcHttpClientFactory);
+            } else {
+                proxyConnector = new HttpConnector(configuration, httpClientFactory);
             }
-        );
+            return proxyConnector.connect(ctx);
+        });
     }
 
     private static boolean isGrpc(final HttpRequest httpRequest, final String target) {

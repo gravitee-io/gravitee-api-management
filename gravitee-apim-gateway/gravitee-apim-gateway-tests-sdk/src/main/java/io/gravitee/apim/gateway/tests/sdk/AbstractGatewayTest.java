@@ -288,12 +288,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
                 .filter(endpoint -> endpoint.getType().equals("http-proxy"))
                 .collect(Collectors.toList());
 
-            httpProxyEndpoints.forEach(
-                endpoint -> {
-                    var port = endpoint.getConfiguration().contains("https") ? wiremockHttpsPort : wiremockPort;
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(port)));
-                }
-            );
+            httpProxyEndpoints.forEach(endpoint -> {
+                var port = endpoint.getConfiguration().contains("https") ? wiremockHttpsPort : wiremockPort;
+                endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(port)));
+            });
 
             if (!httpProxyEndpoints.isEmpty()) {
                 // Workaround to re-deploy the api to update endpoint config:

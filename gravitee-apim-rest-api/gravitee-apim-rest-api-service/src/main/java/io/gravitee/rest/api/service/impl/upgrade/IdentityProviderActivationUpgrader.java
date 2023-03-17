@@ -60,18 +60,16 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
         ) {
             logger.info("    No activation found. Active all idp on all target by default if enabled.");
             this.identityProviderService.findAll(executionContext)
-                .forEach(
-                    idp -> {
-                        if (idp.isEnabled()) {
-                            this.identityProviderActivationService.activateIdpOnTargets(
-                                    executionContext,
-                                    idp.getId(),
-                                    defaultOrgTarget,
-                                    defaultEnvTarget
-                                );
-                        }
+                .forEach(idp -> {
+                    if (idp.isEnabled()) {
+                        this.identityProviderActivationService.activateIdpOnTargets(
+                                executionContext,
+                                idp.getId(),
+                                defaultOrgTarget,
+                                defaultEnvTarget
+                            );
                     }
-                );
+                });
         }
         return true;
     }

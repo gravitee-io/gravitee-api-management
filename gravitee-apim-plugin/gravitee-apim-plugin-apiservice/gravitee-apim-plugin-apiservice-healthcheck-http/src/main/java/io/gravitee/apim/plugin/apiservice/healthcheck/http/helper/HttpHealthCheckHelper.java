@@ -33,18 +33,16 @@ public class HttpHealthCheckHelper {
         return api
             .getEndpointGroups()
             .stream()
-            .anyMatch(
-                endpointGroup -> {
-                    // Http health check is enabled if enabled on at least one endpoint.
-                    return (
-                        (!isNull(endpointGroup.getServices()) && isServiceEnabled(endpointGroup.getServices().getHealthCheck())) ||
-                        (
-                            !isNull(endpointGroup.getEndpoints()) &&
-                            endpointGroup.getEndpoints().stream().anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant))
-                        )
-                    );
-                }
-            );
+            .anyMatch(endpointGroup -> {
+                // Http health check is enabled if enabled on at least one endpoint.
+                return (
+                    (!isNull(endpointGroup.getServices()) && isServiceEnabled(endpointGroup.getServices().getHealthCheck())) ||
+                    (
+                        !isNull(endpointGroup.getEndpoints()) &&
+                        endpointGroup.getEndpoints().stream().anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant))
+                    )
+                );
+            });
     }
 
     public static boolean isServiceEnabled(final ManagedEndpoint endpoint, final String tenant) {

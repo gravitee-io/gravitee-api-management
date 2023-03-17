@@ -35,15 +35,13 @@ class DefaultDlqService implements DlqService {
     public Flowable<Message> apply(Flowable<Message> messages) {
         return messages
             .groupBy(Message::error)
-            .flatMap(
-                grouped -> {
-                    if (Boolean.TRUE.equals(grouped.getKey())) {
-                        final DlqExecutionContext dlqCtx = new DlqExecutionContext(grouped);
-                        return endpointConnector.publish(dlqCtx).andThen(Flowable.defer(dlqCtx.request()::messages));
-                    } else {
-                        return grouped;
-                    }
+            .flatMap(grouped -> {
+                if (Boolean.TRUE.equals(grouped.getKey())) {
+                    final DlqExecutionContext dlqCtx = new DlqExecutionContext(grouped);
+                    return endpointConnector.publish(dlqCtx).andThen(Flowable.defer(dlqCtx.request()::messages));
+                } else {
+                    return grouped;
                 }
-            );
+            });
     }
 }
