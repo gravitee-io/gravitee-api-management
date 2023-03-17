@@ -120,7 +120,7 @@ public class EntrypointResource {
     @Path("subscriptionSchema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "🧪 Get a entrypoint's subscription schema",
+        summary = "🧪 Get an entrypoint subscription schema",
         description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
     )
     @ApiResponse(
