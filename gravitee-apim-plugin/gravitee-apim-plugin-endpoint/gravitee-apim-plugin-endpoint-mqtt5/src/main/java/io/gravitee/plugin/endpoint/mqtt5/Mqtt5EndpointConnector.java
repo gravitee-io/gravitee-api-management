@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.api.qos.QosCapability;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorSharedConfiguration;
 import io.reactivex.Maybe;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -75,6 +76,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     private static final String FAILURE_PARAMETERS_EXCEPTION = "exception";
     private static final String ENDPOINT_ID = "mqtt5";
     private final Mqtt5EndpointConnectorConfiguration configuration;
+    private final Mqtt5EndpointConnectorSharedConfiguration sharedConfiguration;
 
     @Override
     public String id() {
@@ -100,6 +102,10 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
         return configuration;
     }
 
+    protected Mqtt5EndpointConnectorSharedConfiguration sharedConfiguration() {
+        return sharedConfiguration;
+    }
+
     @Override
     public Completable connect(final ExecutionContext ctx) {
         return Completable
@@ -119,13 +125,13 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     @Override
     public Completable subscribe(ExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
-            if (configuration.getConsumer().isEnabled()) {
+            if (sharedConfiguration.getConsumer().isEnabled()) {
                 ctx
                     .response()
                     .messages(
                         Flowable.defer(() -> {
                             Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                            String topic = getTopic(ctx, configuration.getConsumer().getTopic());
+                            String topic = getTopic(ctx, sharedConfiguration().getConsumer().getTopic());
                             return RxJavaBridge
                                 .toV3Flowable(
                                     prepareMqtt5Subscribe(ctx, mqtt5RxClient, topic)
@@ -165,10 +171,10 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
 
     @Override
     public Completable publish(ExecutionContext ctx) {
-        if (configuration.getProducer().isEnabled()) {
+        if (sharedConfiguration.getProducer().isEnabled()) {
             return Completable.defer(() -> {
                 Mqtt5RxClient mqtt5RxClient = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT);
-                String topic = getTopic(ctx, configuration.getProducer().getTopic());
+                String topic = getTopic(ctx, sharedConfiguration().getProducer().getTopic());
                 String responseTopic = getResponseTopic(ctx);
                 return ctx
                     .request()
@@ -212,7 +218,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
             .serverPort(configuration.getServerPort())
             .automaticReconnectWithDefaultConfig()
             .addDisconnectedListener(context -> {
-                if (context.getReconnector().getAttempts() >= configuration().getReconnectAttempts()) {
+                if (context.getReconnector().getAttempts() >= sharedConfiguration().getReconnectAttempts()) {
                     context.getReconnector().reconnect(false);
                 }
             });
@@ -246,7 +252,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
             .builder()
             .topic(overrideConfigFromMessage(topic, message, CONTEXT_ATTRIBUTE_MQTT5_TOPIC))
             .responseTopic(overrideConfigFromMessage(responseTopic, message, CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC))
-            .retain(configuration.getProducer().isRetained())
+            .retain(sharedConfiguration.getProducer().isRetained())
             .qos(Mqtt5Publish.DEFAULT_QOS)
             .payload(message.content().getBytes())
             .noMessageExpiry();
@@ -275,7 +281,7 @@ public class Mqtt5EndpointConnector extends EndpointAsyncConnector {
     private String getResponseTopic(final ExecutionContext ctx) {
         String responseTopic = ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC);
         if (responseTopic == null || responseTopic.isEmpty()) {
-            responseTopic = configuration.getProducer().getResponseTopic();
+            responseTopic = sharedConfiguration.getProducer().getResponseTopic();
             if (responseTopic == null || responseTopic.isEmpty()) {
                 ctx.setAttribute(CONTEXT_ATTRIBUTE_MQTT5_RESPONSE_TOPIC, responseTopic);
             }

@@ -17,7 +17,7 @@ This is an _OSS_ edition for MQTT 5.x endpoint which allow subscribing or publis
 |===
 |Plugin version | APIM version
 
-|1.x and upper                  | 3.20.x to latest
+|1.x and upper                  | 3.21.x to latest
 |===
 
 == Endpoint identifier
@@ -27,30 +27,44 @@ In order to use this _OSS_ version, you have to declare the following identifier
 == Endpoint configuration
 
 === General configuration
+
+==== Endpoint level configuration
+
 |===
 |Attributes | Default | Mandatory | Description
 
-|identifier | N/A     | No | The client identifier identifies the MQTT client that connects to an MQTT broker.
 |serverHost | N/A     | Yes | Define the host of the MQTT broker.
 |serverPort | N/A     | Yes | Define the port of the MQTT broker.
-|topic | N/A     | Yes | Refers to an UTF-8 string that the broker uses to filter messages for each connected client.
 |===
 
-=== Consumer configuration
+==== Shared configuration
+
+Shared configuration can be done directly from the endpoint group `sharedConfiguration` field.
+
+If `inheritConfiguration` is false, then shared configuration can be overridden directly from endpoint `overriddenSharedConfiguration` field.
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|reconnectAttempts | N/A     | No | The number of attempt to reconnect to the broker.
+|===
+
+===== Consumer configuration
 
 |===
 |Attributes | Default | Mandatory | Description
 
 |enabled | false     | No | Allow enabling or disabling the consumer capability.
+|topic | N/A     | Yes | Refers to an UTF-8 string that the broker uses to filter messages for each connected client.
 |===
 
-=== Producer configuration
+===== Producer configuration
 |===
 |Attributes | Default | Mandatory | Description
 
 |enabled | false     | No | Allow enabling or disabling the producer capability.
+|topic | N/A     | Yes | Refers to an UTF-8 string that the broker uses to filter messages for each connected client.
 |retained | false     | No | Define if the retain flag must be set to every publish messages.
-|messageExpiryInterval | -1     | No | This interval defines the period of time that the broker stores the publish message for any matching subscribers that are not currently connected. When no message expiry interval is set, the broker must store the message for matching subscribers indefinitely. When the retained=true option is set on the PUBLISH message, this interval also defines how long a message is retained on a topic.
 |responseTopic |  N/A     | No | The response topic represents the topics on which the responses from the receivers of the message are expected.
 |===
 
@@ -67,15 +81,17 @@ Bellow you will find a full mqtt endpoint configuration example:
     "configuration": {
         "identifier": "gio-apim-identifier",
         "serverHost": "localhost",
-        "serverPort": "1883",
-        "topic": "python/mqtt",
+        "serverPort": "1883"
+    },
+    "sharedConfigurationOverride": {
         "consumer" : {
-            "enabled": true
+            "enabled": true,
+            "topic": "python/mqtt"
         },
         "producer": {
             "enabled": true,
+            "topic": "python/mqtt",
             "retained": false,
-            "messageExpiryInterval": 10,
             "responseTopic": "python/mqtt/response"
         }
     }

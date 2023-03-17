@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorSharedConfiguration;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +48,15 @@ public class Mqtt5EndpointConnectorFactory implements EndpointAsyncConnectorFact
     }
 
     @Override
-    public Mqtt5EndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
+    public Mqtt5EndpointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final String configuration,
+        final String sharedConfiguration
+    ) {
         try {
             return new Mqtt5EndpointConnector(
-                pluginConfigurationHelper.readConfiguration(Mqtt5EndpointConnectorConfiguration.class, configuration)
+                pluginConfigurationHelper.readConfiguration(Mqtt5EndpointConnectorConfiguration.class, configuration),
+                pluginConfigurationHelper.readConfiguration(Mqtt5EndpointConnectorSharedConfiguration.class, sharedConfiguration)
             );
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
