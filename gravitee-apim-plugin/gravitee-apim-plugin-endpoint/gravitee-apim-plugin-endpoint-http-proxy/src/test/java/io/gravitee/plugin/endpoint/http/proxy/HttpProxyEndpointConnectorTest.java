@@ -37,6 +37,7 @@ import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -89,6 +90,7 @@ class HttpProxyEndpointConnectorTest {
     private HttpHeaders requestHeaders;
     private HttpHeaders responseHeaders;
     private HttpProxyEndpointConnectorConfiguration configuration;
+    private HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private HttpProxyEndpointConnector cut;
 
     @BeforeEach
@@ -110,9 +112,10 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(response.headers()).thenReturn(responseHeaders);
 
         configuration = new HttpProxyEndpointConnectorConfiguration();
+        sharedConfiguration = new HttpProxyEndpointConnectorSharedConfiguration();
 
         configuration.setTarget("http://localhost:8080/team");
-        cut = new HttpProxyEndpointConnector(configuration);
+        cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
     }
 
     @Test
@@ -144,10 +147,10 @@ class HttpProxyEndpointConnectorTest {
             when(request.method()).thenReturn(HttpMethod.GET);
 
             spyHttpClientFactory = spy((HttpClientFactory) ReflectionTestUtils.getField(cut, "httpClientFactory"));
-            lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any());
+            lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "httpClientFactory", spyHttpClientFactory);
             spyGrpcHttpClientFactory = spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
-            lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any());
+            lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "grpcHttpClientFactory", spyGrpcHttpClientFactory);
         }
 
@@ -157,8 +160,8 @@ class HttpProxyEndpointConnectorTest {
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
             configuration.setTarget("grpc://target");
             cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
-            verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any());
-            verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any());
+            verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
         }
 
         @Test
@@ -169,8 +172,8 @@ class HttpProxyEndpointConnectorTest {
 
             // connect will throw an exception
             cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
-            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any());
-            verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any());
+            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(request).isWebSocket();
         }
 
@@ -179,8 +182,8 @@ class HttpProxyEndpointConnectorTest {
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
             cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
-            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any());
-            verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any());
+            verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
         }
     }
 }
