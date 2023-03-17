@@ -185,12 +185,6 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetEntrypointSubscriptionSchemaWhenPluginNotFound() {
-        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
-        connectorPlugin.setName("Fake Entrypoint");
-        connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
-        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
 
         final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscriptionSchema").request().get();
