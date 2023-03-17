@@ -35,6 +35,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class KafkaEndpointConnectorFactoryTest {
 
+    public static final String CONFIG = "{\"bootstrapServers\":\"localhost:8082\"}";
+    public static final String SHARED_CONFIG = "{\"consumer\":{\"autoOffsetReset\":\"latest\",\"topics\":[\"topic\"]}, \"producer\":{}}";
     private KafkaEndpointConnectorFactory kafkaEndpointConnectorFactory;
     private DeploymentContext deploymentContext;
 
@@ -57,45 +59,52 @@ class KafkaEndpointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, configuration);
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, configuration, SHARED_CONFIG);
+        assertThat(connector).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    void shouldNotCreateConnectorWithWrongGroupConfiguration(String sharedConfiguration) {
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, CONFIG, sharedConfiguration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(
-            deploymentContext,
-            "{\"bootstrapServers\":\"localhost:8082\",\"consumer\":{\"autoOffsetReset\":\"latest\",\"topics\":[\"topic\"]}, \"producer\":{}}"
-        );
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, CONFIG, SHARED_CONFIG);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isEqualTo("localhost:8082");
-        assertThat(connector.configuration.getConsumer().getTopics()).containsAll(Set.of("topic"));
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getConsumer().isEnabled()).isFalse();
-        assertThat(connector.configuration.getConsumer().getAutoOffsetReset()).isEqualTo("latest");
-        assertThat(connector.configuration.getProducer()).isNotNull();
-        assertThat(connector.configuration.getProducer().isEnabled()).isFalse();
-        assertThat(connector.configuration.getProducer().getTopics()).isNull();
+        assertThat(connector.sharedConfiguration).isNotNull();
+        assertThat(connector.sharedConfiguration.getConsumer().getTopics()).containsAll(Set.of("topic"));
+        assertThat(connector.sharedConfiguration.getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration.getConsumer().isEnabled()).isFalse();
+        assertThat(connector.sharedConfiguration.getConsumer().getAutoOffsetReset()).isEqualTo("latest");
+        assertThat(connector.sharedConfiguration.getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration.getProducer().isEnabled()).isFalse();
+        assertThat(connector.sharedConfiguration.getProducer().getTopics()).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, "{}");
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, "{}", "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isNull();
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration).isNotNull();
+        assertThat(connector.sharedConfiguration.getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration.getProducer()).isNotNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, null);
+        KafkaEndpointConnector connector = kafkaEndpointConnectorFactory.createConnector(deploymentContext, null, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getBootstrapServers()).isNull();
-        assertThat(connector.configuration.getConsumer()).isNotNull();
-        assertThat(connector.configuration.getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration).isNotNull();
+        assertThat(connector.sharedConfiguration.getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration.getProducer()).isNotNull();
     }
 }

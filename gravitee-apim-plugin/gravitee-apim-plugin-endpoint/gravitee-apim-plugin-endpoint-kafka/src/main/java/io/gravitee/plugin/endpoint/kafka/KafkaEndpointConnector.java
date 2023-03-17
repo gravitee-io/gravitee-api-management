@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.api.qos.QosCapability;
 import io.gravitee.gateway.reactive.api.qos.QosRequirement;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.kafka.error.KafkaConnectionClosedException;
 import io.gravitee.plugin.endpoint.kafka.error.KafkaReceiverErrorTransformer;
 import io.gravitee.plugin.endpoint.kafka.error.KafkaSenderErrorTransformer;
@@ -90,6 +91,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     private static final String FAILURE_PARAMETERS_EXCEPTION = "exception";
     private static final String ENDPOINT_ID = "kafka";
     protected final KafkaEndpointConnectorConfiguration configuration;
+    protected final KafkaEndpointConnectorSharedConfiguration sharedConfiguration;
     private final QosStrategyFactory qosStrategyFactory;
 
     private final KafkaReceiverFactory kafkaReceiverFactory = new KafkaReceiverFactory();
@@ -117,7 +119,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
     @Override
     public Completable publish(final ExecutionContext ctx) {
-        if (configuration.getProducer().isEnabled()) {
+        if (sharedConfiguration.getProducer().isEnabled()) {
             return Completable.defer(() -> {
                 Map<String, Object> config = new HashMap<>();
                 config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
@@ -128,7 +130,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                 addCustomProducerConfig(config);
                 SenderOptions<String, byte[]> senderOptions = SenderOptions.create(config);
                 KafkaSender<String, byte[]> kafkaSender = kafkaSenderFactory.createSender(senderOptions);
-                Set<String> topics = getTopics(ctx, configuration.getProducer().getTopics());
+                Set<String> topics = getTopics(ctx, sharedConfiguration.getProducer().getTopics());
                 return ctx
                     .request()
                     .onMessages(upstream ->
@@ -180,7 +182,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
     @Override
     public Completable subscribe(final ExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
-            if (configuration.getConsumer().isEnabled()) {
+            if (sharedConfiguration.getConsumer().isEnabled()) {
                 ctx
                     .response()
                     .messages(
@@ -197,7 +199,7 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
                             Map<String, Object> config = new HashMap<>();
                             config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
                             config.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS);
-                            KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
+                            KafkaEndpointConnectorSharedConfiguration.Consumer configurationConsumer = sharedConfiguration.getConsumer();
                             config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
 
                             // Set kafka consumer properties
@@ -212,12 +214,12 @@ public class KafkaEndpointConnector extends EndpointAsyncConnector {
 
                             ReceiverOptions<String, byte[]> receiverOptions = ReceiverOptions
                                 .<String, byte[]>create(config)
-                                .subscription(getTopics(ctx, configuration.getConsumer().getTopics()));
+                                .subscription(getTopics(ctx, sharedConfiguration.getConsumer().getTopics()));
 
                             return RxJava3Adapter
                                 .<Message>fluxToFlowable(
                                     qosStrategy
-                                        .receive(ctx, configuration, receiverOptions)
+                                        .receive(ctx, sharedConfiguration, receiverOptions)
                                         .transform(KafkaReceiverErrorTransformer.transform(qosStrategy))
                                         .map(consumerRecord -> {
                                             HttpHeaders httpHeaders = HttpHeaders.create();
