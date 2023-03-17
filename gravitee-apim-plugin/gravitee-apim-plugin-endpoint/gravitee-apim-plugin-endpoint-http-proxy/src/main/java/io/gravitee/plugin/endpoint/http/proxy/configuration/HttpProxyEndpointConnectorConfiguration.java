@@ -15,13 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.http.HttpHeader;
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
-import io.gravitee.definition.model.v4.http.HttpProxyOptions;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,16 +28,4 @@ import lombok.Setter;
 public class HttpProxyEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
 
     private String target;
-
-    @JsonProperty("proxy")
-    private HttpProxyOptions proxyOptions;
-
-    @JsonProperty("http")
-    private HttpClientOptions httpOptions = new HttpClientOptions();
-
-    @JsonProperty("ssl")
-    private SslOptions sslOptions;
-
-    @JsonProperty("headers")
-    private List<HttpHeader> headers;
 }

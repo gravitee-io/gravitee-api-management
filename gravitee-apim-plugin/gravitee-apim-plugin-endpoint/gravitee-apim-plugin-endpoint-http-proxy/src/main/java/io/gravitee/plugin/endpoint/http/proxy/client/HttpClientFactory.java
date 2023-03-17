@@ -19,6 +19,7 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,12 +33,16 @@ public class HttpClientFactory {
     private HttpClient httpClient;
     private final AtomicBoolean httpClientCreated = new AtomicBoolean(false);
 
-    public HttpClient getOrBuildHttpClient(final ExecutionContext ctx, final HttpProxyEndpointConnectorConfiguration configuration) {
+    public HttpClient getOrBuildHttpClient(
+        final ExecutionContext ctx,
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
+    ) {
         if (httpClient == null) {
             synchronized (this) {
                 // Double-checked locking.
                 if (httpClientCreated.compareAndSet(false, true)) {
-                    httpClient = buildHttpClient(ctx, configuration).build().createHttpClient();
+                    httpClient = buildHttpClient(ctx, configuration, sharedConfiguration).build().createHttpClient();
                 }
             }
         }
@@ -46,16 +51,17 @@ public class HttpClientFactory {
 
     protected VertxHttpClient.VertxHttpClientBuilder buildHttpClient(
         final ExecutionContext ctx,
-        final HttpProxyEndpointConnectorConfiguration configuration
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
         return VertxHttpClient
             .builder()
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())
-            .httpOptions(configuration.getHttpOptions())
-            .sslOptions(configuration.getSslOptions())
-            .proxyOptions(configuration.getProxyOptions());
+            .httpOptions(sharedConfiguration.getHttpOptions())
+            .sslOptions(sharedConfiguration.getSslOptions())
+            .proxyOptions(sharedConfiguration.getProxyOptions());
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")

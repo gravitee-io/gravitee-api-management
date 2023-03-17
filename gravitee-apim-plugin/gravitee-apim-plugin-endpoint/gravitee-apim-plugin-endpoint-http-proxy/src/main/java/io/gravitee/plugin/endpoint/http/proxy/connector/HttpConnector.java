@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
@@ -82,10 +83,16 @@ public class HttpConnector implements ProxyConnector {
     private final boolean defaultSsl;
     private final MultiValueMap<String, String> targetParameters;
     protected final HttpProxyEndpointConnectorConfiguration configuration;
+    protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     protected final HttpClientFactory httpClientFactory;
 
-    public HttpConnector(final HttpProxyEndpointConnectorConfiguration configuration, final HttpClientFactory httpClientFactory) {
+    public HttpConnector(
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
+        final HttpClientFactory httpClientFactory
+    ) {
         this.configuration = configuration;
+        this.sharedConfiguration = sharedConfiguration;
         this.httpClientFactory = httpClientFactory;
         final URL targetUrl = buildUrl(configuration.getTarget());
         this.relativeTarget = targetUrl.getPath();
@@ -110,7 +117,7 @@ public class HttpConnector implements ProxyConnector {
             ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(options, defaultHost, defaultPort));
 
             return httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration)
+                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest ->
@@ -177,7 +184,7 @@ public class HttpConnector implements ProxyConnector {
             requestHeaders.remove(HOST);
         }
 
-        if (!configuration.getHttpOptions().isPropagateClientAcceptEncoding()) {
+        if (!sharedConfiguration.getHttpOptions().isPropagateClientAcceptEncoding()) {
             // Let the API owner choose the Accept-Encoding between the gateway and the backend.
             requestHeaders.remove(HttpHeaders.ACCEPT_ENCODING);
         }
@@ -185,7 +192,7 @@ public class HttpConnector implements ProxyConnector {
         prepareUriAndQueryParameters(ctx, requestOptions);
 
         // Override any request headers that are configured at endpoint level.
-        final List<HttpHeader> configHeaders = configuration.getHeaders();
+        final List<HttpHeader> configHeaders = sharedConfiguration.getHeaders();
         if (configHeaders != null && !configHeaders.isEmpty()) {
             configHeaders.forEach(header -> requestHeaders.set(header.getName(), header.getValue()));
         }
@@ -201,8 +208,8 @@ public class HttpConnector implements ProxyConnector {
 
         return requestOptions
             .setMethod(HttpMethod.valueOf(request.method().name()))
-            .setTimeout(configuration.getHttpOptions().getReadTimeout())
-            .setFollowRedirects(configuration.getHttpOptions().isFollowRedirects());
+            .setTimeout(sharedConfiguration.getHttpOptions().getReadTimeout())
+            .setFollowRedirects(sharedConfiguration.getHttpOptions().isFollowRedirects());
     }
 
     protected Set<CharSequence> hopHeaders() {

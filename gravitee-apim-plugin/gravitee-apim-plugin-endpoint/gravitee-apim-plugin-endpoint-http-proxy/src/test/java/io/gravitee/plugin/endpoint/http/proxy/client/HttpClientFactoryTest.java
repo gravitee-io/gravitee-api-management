@@ -24,9 +24,9 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -51,21 +51,23 @@ class HttpClientFactoryTest {
 
     protected HttpClientFactory cut;
     protected HttpProxyEndpointConnectorConfiguration configuration;
+    protected HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
 
     @BeforeEach
     public void beforeEach() {
         cut = new HttpClientFactory();
         configuration = new HttpProxyEndpointConnectorConfiguration();
         configuration.setTarget("http://target");
+        sharedConfiguration = new HttpProxyEndpointConnectorSharedConfiguration();
     }
 
     @Test
     void should_instantiate_http_client_once() {
         when(ctx.getComponent(Vertx.class)).thenReturn(mock(Vertx.class));
         when(ctx.getComponent(Configuration.class)).thenReturn(mock(Configuration.class));
-        HttpClient prevHttpClient = cut.getOrBuildHttpClient(ctx, configuration);
+        HttpClient prevHttpClient = cut.getOrBuildHttpClient(ctx, configuration, sharedConfiguration);
         for (int i = 0; i < TIMEOUT_SECONDS; i++) {
-            HttpClient httpClient = cut.getOrBuildHttpClient(ctx, configuration);
+            HttpClient httpClient = cut.getOrBuildHttpClient(ctx, configuration, sharedConfiguration);
             assertSame(prevHttpClient, httpClient);
             prevHttpClient = httpClient;
         }

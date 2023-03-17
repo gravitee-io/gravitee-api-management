@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
@@ -44,11 +45,16 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
 
     protected final HttpProxyEndpointConnectorConfiguration configuration;
+    protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
 
-    public HttpProxyEndpointConnector(HttpProxyEndpointConnectorConfiguration configuration) {
+    public HttpProxyEndpointConnector(
+        HttpProxyEndpointConnectorConfiguration configuration,
+        HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
+    ) {
         this.configuration = configuration;
+        this.sharedConfiguration = sharedConfiguration;
         if (this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
             throw new IllegalArgumentException("target cannot be null or empty");
         }
@@ -72,11 +78,11 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
             Request request = ctx.request();
             ProxyConnector proxyConnector;
             if (request.isWebSocket()) {
-                proxyConnector = new WebSocketConnector(configuration, httpClientFactory);
+                proxyConnector = new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory);
             } else if (isGrpc(request, configuration.getTarget())) {
-                proxyConnector = new GrpcConnector(configuration, grpcHttpClientFactory);
+                proxyConnector = new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory);
             } else {
-                proxyConnector = new HttpConnector(configuration, httpClientFactory);
+                proxyConnector = new HttpConnector(configuration, sharedConfiguration, httpClientFactory);
             }
             return proxyConnector.connect(ctx);
         });

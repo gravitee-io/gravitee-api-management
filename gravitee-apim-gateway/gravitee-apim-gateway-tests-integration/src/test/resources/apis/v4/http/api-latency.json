@@ -29,7 +29,9 @@
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "target": "http://localhost:8080/endpoint",
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
             "http": {
               "connectTimeout": 3000,
               "readTimeout": 60000
