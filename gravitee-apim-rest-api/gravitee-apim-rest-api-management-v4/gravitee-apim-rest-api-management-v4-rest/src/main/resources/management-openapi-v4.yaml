@@ -487,6 +487,22 @@ paths:
                                 type: string
                 default:
                     $ref: "#/components/responses/Error"
+    /endpoints/{endpointId}/shared-configuration-schema:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get an endpoint shared configuration schema
+            description: |
+                # FIXME add a description
+            operationId: getSharedConfigurationSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     /entrypoints:
         get:

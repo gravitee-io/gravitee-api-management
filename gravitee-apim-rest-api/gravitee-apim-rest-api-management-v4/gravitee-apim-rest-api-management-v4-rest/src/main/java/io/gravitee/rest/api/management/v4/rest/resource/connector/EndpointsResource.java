@@ -19,7 +19,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
-import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -94,5 +93,15 @@ public class EndpointsResource {
         endpointService.findById(endpointId);
 
         return endpointService.getMoreInformation(endpointId);
+    }
+
+    @GET
+    @Path("/{endpointId}/shared-configuration-schema")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getSharedConfigurationSchema(@PathParam("endpointId") String endpointId) {
+        // Check that the entrypoint exists
+        endpointService.findById(endpointId);
+
+        return endpointService.getSharedConfigurationSchema(endpointId);
     }
 }
