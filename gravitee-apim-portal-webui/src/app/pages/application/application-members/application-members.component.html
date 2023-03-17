@@ -123,7 +123,7 @@
         <gv-confirm
           danger
           message="{{
-            'application.members.transferOwnership.confirm.message' | translate: { name: this.selectedUserForTransferOwnershipName }
+            'application.members.transferOwnership.confirm.message' | translate : { name: this.selectedUserForTransferOwnershipName }
           }}"
           okLabel="{{ 'application.members.transferOwnership.confirm.ok' | translate }}"
           cancelLabel="{{ 'application.members.transferOwnership.confirm.cancel' | translate }}"
@@ -177,7 +177,7 @@
           </li>
           <li class="info__miscellaneous_item">
             <span>{{ 'application.information.type' | translate }}</span>
-            {{ 'application.types' | translate: { type: application.applicationType } }}
+            {{ 'application.types' | translate : { type: application.applicationType } }}
           </li>
           <li class="info__miscellaneous_item">
             <span>{{ 'application.information.createdDate' | translate }}</span> {{ toLocaleDateString(application.created_at.toString()) }}
