@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Date;
 import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
@@ -159,6 +160,10 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
+
+        final Date date = new Date();
+        returnedApi.setUpdatedAt(date);
+
         doReturn(returnedApi)
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
@@ -166,5 +171,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+
+        var serializedDate = String.valueOf(returnedApi.getUpdatedAt().getTime());
+        assertEquals("\"" + serializedDate + "\"", response.getHeaders().getFirst(HttpHeaders.ETAG));
     }
 }
