@@ -46,7 +46,7 @@ const computeCommitInfo = async (gitLogOutput) => {
 async function getLastVersion() {
   let latestTagResult = await $`git tag -l --sort=-version:refname ${versions.pattern} | head -2 | tail -1`;
   let latestTag = String(latestTagResult).trim();
-  if (latestTag === "") {
+  if (latestTag === '') {
     latestTagResult = await $`git tag -l --sort=-version:refname | head -1`;
     latestTag = String(latestTagResult).trim();
   }
