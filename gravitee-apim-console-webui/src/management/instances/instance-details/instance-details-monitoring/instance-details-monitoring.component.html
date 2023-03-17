@@ -54,7 +54,7 @@
       </h2>
       <dl class="gio-description-list">
         <dt>Date</dt>
-        <dd>{{ monitoringData?.jvm?.timestamp | date: 'medium' }}</dd>
+        <dd>{{ monitoringData?.jvm?.timestamp | date : 'medium' }}</dd>
         <dt>Uptime</dt>
         <dd>{{ humanizeDuration(monitoringData?.jvm?.uptime_in_millis) }}</dd>
         <dt>Heap used</dt>
@@ -179,7 +179,7 @@
         <dt>Load average</dt>
         <dd>
           <div class="gio-instance-details-monitoring__load-average">
-            <ng-container *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue: originalOrder">
+            <ng-container *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue : originalOrder">
               <div>[{{ loadAverage.key }}]</div>
               <div>{{ loadAverage.value }}</div>
             </ng-container>

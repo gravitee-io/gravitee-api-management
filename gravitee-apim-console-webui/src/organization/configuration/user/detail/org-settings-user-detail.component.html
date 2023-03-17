@@ -70,14 +70,14 @@
         <ng-container *ngFor="let customField of user.customFields | keyvalue">
           <!-- TODO: try to display custom field Label ? -->
           <dt>{{ customField.key }}</dt>
-          <dd gioClipboardCopyWrapper [contentToCopy]="customField.value">{{ customField.value | slice: 0:94 }}</dd>
+          <dd gioClipboardCopyWrapper [contentToCopy]="customField.value">{{ customField.value | slice : 0 : 94 }}</dd>
         </ng-container>
 
         <dt>Last connection at</dt>
-        <dd>{{ user.lastConnectionAt | date: 'medium' }}</dd>
+        <dd>{{ user.lastConnectionAt | date : 'medium' }}</dd>
 
         <dt>Created at</dt>
-        <dd>{{ user.created_at | date: 'medium' }}</dd>
+        <dd>{{ user.created_at | date : 'medium' }}</dd>
       </dl>
     </div>
 
@@ -402,7 +402,7 @@
         <ng-container matColumnDef="createdAt">
           <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
           <td mat-cell *matCellDef="let token">
-            {{ token.createdAt | date: 'medium' }}
+            {{ token.createdAt | date : 'medium' }}
           </td>
         </ng-container>
 
@@ -410,7 +410,7 @@
         <ng-container matColumnDef="lastUseAt">
           <th mat-header-cell *matHeaderCellDef id="lastUseAt">Last use</th>
           <td mat-cell *matCellDef="let token">
-            {{ token.lastUseAt ? (token.lastUseAt | date: 'medium') : 'never' }}
+            {{ token.lastUseAt ? (token.lastUseAt | date : 'medium') : 'never' }}
           </td>
         </ng-container>
 

@@ -33,7 +33,7 @@ export enum PlanType {
 }
 
 export const PLAN_STATUS = ['staging', 'published', 'deprecated', 'closed'] as const;
-export type PlanStatus = typeof PLAN_STATUS[number];
+export type PlanStatus = (typeof PLAN_STATUS)[number];
 
 export interface PlanSecurity {
   type: PlanSecurityType;
