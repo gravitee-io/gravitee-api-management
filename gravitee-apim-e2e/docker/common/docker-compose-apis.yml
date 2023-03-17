@@ -31,9 +31,6 @@ services:
         condition: service_healthy
     ports:
       - "8083:8083"
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./jacoco:/opt/jacoco
     environment:
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_newsletter_enabled=false
@@ -64,9 +61,6 @@ services:
         condition: service_healthy
     ports:
       - "8082:8082"
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./jacoco:/opt/jacoco
     environment:
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
