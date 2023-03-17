@@ -27,6 +27,7 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnectorPlugin;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,13 +40,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultEndpointConnectorPluginManagerTest {
 
+    public static final String FAKE_ENDPOINT = "fake-endpoint";
+
     @Mock
     private DeploymentContext deploymentContext;
 
     private EndpointConnectorPluginManager cut;
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
         cut =
             new DefaultEndpointConnectorPluginManager(
                 new DefaultEndpointConnectorClassLoaderFactory(),
@@ -54,37 +57,51 @@ class DefaultEndpointConnectorPluginManagerTest {
     }
 
     @Test
-    public void shouldRegisterNewEndpointPluginWithoutConfiguration() {
+    void shouldRegisterNewEndpointPluginWithoutConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
             new FakeEndpointConnectorPlugin(),
             FakeEndpointConnectorFactory.class,
             null
         );
         cut.register(endpointPlugin);
-        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById("fake-endpoint");
+        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(fake).isNotNull();
-        final EndpointConnector fakeConnector = fake.createConnector(deploymentContext, null);
+        final EndpointConnector fakeConnector = fake.createConnector(deploymentContext, null, null);
         assertThat(fakeConnector).isNotNull();
     }
 
     @Test
-    public void shouldRegisterNewEndpointPluginWithConfiguration() {
+    void shouldRegisterNewEndpointPluginWithConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
             new FakeEndpointConnectorPlugin(),
             FakeEndpointConnectorFactory.class,
             EndpointConnectorConfiguration.class
         );
         cut.register(endpointPlugin);
-        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById("fake-endpoint");
+        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(fake).isNotNull();
-        final FakeEndpointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}");
+        final FakeEndpointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}", null);
         assertThat(fakeConnector).isNotNull();
         assertThat(fakeConnector.getConfiguration().getInfo()).isEqualTo("test");
     }
 
     @Test
-    public void shouldNotRetrieveUnRegisterPlugin() {
-        final EndpointConnector factoryById = cut.getFactoryById("fake-endpoint");
+    void shouldNotRetrieveUnRegisterPlugin() {
+        final EndpointConnector factoryById = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(factoryById).isNull();
+    }
+
+    @Test
+    void shouldNotFindEndpointGroupSchemaFile() throws IOException {
+        cut.register(new FakeEndpointConnectorPlugin(true));
+        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT);
+        assertThat(schema).isNull();
+    }
+
+    @Test
+    void shouldGetFirstEndpointGroupSchemaFile() throws IOException {
+        cut.register(new FakeEndpointConnectorPlugin());
+        final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT);
+        assertThat(schema).isEqualTo("{\n  \"schema\": \"sharedConfiguration\"\n}");
     }
 }

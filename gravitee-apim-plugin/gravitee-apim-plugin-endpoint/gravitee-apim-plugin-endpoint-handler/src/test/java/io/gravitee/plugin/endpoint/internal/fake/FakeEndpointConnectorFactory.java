@@ -19,15 +19,8 @@ import static io.gravitee.plugin.endpoint.internal.fake.FakeEndpointConnector.SU
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
-import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import java.util.Set;
@@ -43,7 +36,11 @@ public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     }
 
     @Override
-    public FakeEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
+    public FakeEndpointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final String configuration,
+        final String sharedConfiguration
+    ) {
         FakeEndpointConnector.FakeEndpointConnectorBuilder builder = FakeEndpointConnector.builder();
         if (configuration != null) {
             try {

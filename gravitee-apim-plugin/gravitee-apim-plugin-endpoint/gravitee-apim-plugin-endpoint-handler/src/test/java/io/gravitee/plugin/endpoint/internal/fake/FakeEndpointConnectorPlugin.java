@@ -17,14 +17,29 @@ package io.gravitee.plugin.endpoint.internal.fake;
 
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author GraviteeSource Team
  */
 public class FakeEndpointConnectorPlugin
     implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration> {
+
+    private static final String WITH_ENDPOINT_SHARED_CONFIGURATION_FILE = "with-endpoint-group-configuration";
+    private static final String WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE = "without-endpoint-group-configuration";
+
+    private final String resourceFolder;
+
+    public FakeEndpointConnectorPlugin(boolean withoutResource) {
+        resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+    }
+
+    public FakeEndpointConnectorPlugin() {
+        resourceFolder = WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+    }
 
     @Override
     public String id() {
@@ -48,7 +63,11 @@ public class FakeEndpointConnectorPlugin
 
     @Override
     public Path path() {
-        return null;
+        try {
+            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
