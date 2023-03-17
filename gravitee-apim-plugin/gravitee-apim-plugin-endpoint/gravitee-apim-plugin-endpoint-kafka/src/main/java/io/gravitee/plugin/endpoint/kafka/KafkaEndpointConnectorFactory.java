@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.kafka.strategy.DefaultQosStrategyFactory;
 import io.gravitee.plugin.endpoint.kafka.strategy.QosStrategyFactory;
 import java.util.Set;
@@ -56,10 +57,15 @@ public class KafkaEndpointConnectorFactory implements EndpointAsyncConnectorFact
     }
 
     @Override
-    public KafkaEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
+    public KafkaEndpointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final String configuration,
+        final String sharedConfiguration
+    ) {
         try {
             return new KafkaEndpointConnector(
                 pluginConfigurationHelper.readConfiguration(KafkaEndpointConnectorConfiguration.class, configuration),
+                pluginConfigurationHelper.readConfiguration(KafkaEndpointConnectorSharedConfiguration.class, sharedConfiguration),
                 qosStrategyFactory
             );
         } catch (PluginConfigurationException e) {

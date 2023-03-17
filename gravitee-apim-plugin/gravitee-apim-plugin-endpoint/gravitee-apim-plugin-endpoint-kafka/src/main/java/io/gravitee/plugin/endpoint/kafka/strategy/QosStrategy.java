@@ -16,7 +16,7 @@
 package io.gravitee.plugin.endpoint.kafka.strategy;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorSharedConfiguration;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
@@ -36,7 +36,7 @@ public interface QosStrategy<K, V> {
 
     Flux<ConsumerRecord<K, V>> receive(
         final ExecutionContext executionContext,
-        final KafkaEndpointConnectorConfiguration configuration,
+        final KafkaEndpointConnectorSharedConfiguration sharedConfiguration,
         final ReceiverOptions<K, V> receiverOptions
     );
 

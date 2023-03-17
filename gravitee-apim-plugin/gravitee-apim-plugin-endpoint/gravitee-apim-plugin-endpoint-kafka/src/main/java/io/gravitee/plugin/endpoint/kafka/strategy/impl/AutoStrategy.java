@@ -16,7 +16,7 @@
 package io.gravitee.plugin.endpoint.kafka.strategy.impl;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.kafka.configuration.KafkaEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.kafka.factory.KafkaReceiverFactory;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import reactor.core.publisher.Flux;
@@ -35,7 +35,7 @@ public class AutoStrategy<K, V> extends AbstractQosStrategy<K, V> {
     @Override
     public Flux<ConsumerRecord<K, V>> receive(
         final ExecutionContext executionContext,
-        final KafkaEndpointConnectorConfiguration configuration,
+        final KafkaEndpointConnectorSharedConfiguration sharedConfiguration,
         final ReceiverOptions<K, V> receiverOptions
     ) {
         return initReceiver(receiverOptions).receiveAutoAck().concatMap(c -> c);
