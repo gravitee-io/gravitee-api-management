@@ -181,7 +181,8 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
     private void createAndStartEndpoint(final ManagedEndpointGroup managedEndpointGroup, final Endpoint endpoint) {
         try {
-            final String configuration = getEndpointConfiguration(managedEndpointGroup.getDefinition(), endpoint);
+            final String configuration = getEndpointConfiguration(endpoint);
+            final String sharedConfiguration = getSharedConfiguration(managedEndpointGroup.getDefinition(), endpoint);
             final EndpointConnectorFactory<EndpointConnector> connectorFactory = endpointConnectorPluginManager.getFactoryById(
                 endpoint.getType()
             );
@@ -195,7 +196,7 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
                 return;
             }
 
-            final EndpointConnector connector = connectorFactory.createConnector(deploymentContext, configuration);
+            final EndpointConnector connector = connectorFactory.createConnector(deploymentContext, configuration, sharedConfiguration);
 
             if (connector == null) {
                 log.warn("Endpoint connector {} cannot be started. Skipped.", endpoint.getName());
@@ -228,7 +229,11 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         }
     }
 
-    private String getEndpointConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
-        return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getConfiguration();
+    private String getEndpointConfiguration(Endpoint endpoint) {
+        return endpoint.getConfiguration();
+    }
+
+    private String getSharedConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
+        return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getSharedConfigurationOverride();
     }
 }

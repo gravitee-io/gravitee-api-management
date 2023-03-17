@@ -63,6 +63,10 @@ public class Endpoint implements Serializable {
     @JsonRawValue
     private String configuration;
 
+    @Schema(implementation = Object.class)
+    @JsonRawValue
+    private String sharedConfigurationOverride;
+
     private EndpointServices services = new EndpointServices();
 
     @JsonSetter
@@ -74,5 +78,16 @@ public class Endpoint implements Serializable {
 
     public void setConfiguration(final String configuration) {
         this.configuration = configuration;
+    }
+
+    @JsonSetter
+    public void setSharedConfigurationOverride(final JsonNode overriddenSharedConfiguration) {
+        if (overriddenSharedConfiguration != null) {
+            this.sharedConfigurationOverride = overriddenSharedConfiguration.toString();
+        }
+    }
+
+    public void setSharedConfigurationOverride(final String overriddenSharedConfiguration) {
+        this.sharedConfigurationOverride = overriddenSharedConfiguration;
     }
 }
