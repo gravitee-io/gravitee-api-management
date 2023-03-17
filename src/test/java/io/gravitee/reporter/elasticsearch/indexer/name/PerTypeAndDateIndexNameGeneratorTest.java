@@ -15,15 +15,15 @@
  */
 package io.gravitee.reporter.elasticsearch.indexer.name;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import java.time.Instant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PerTypeAndDateIndexNameGeneratorTest {
 
-    private PerTypeAndDateIndexNameGenerator indexNameGenerator = new PerTypeAndDateIndexNameGenerator();
+    private final PerTypeAndDateIndexNameGenerator indexNameGenerator = new PerTypeAndDateIndexNameGenerator();
 
     @Test
     public void generate_should_generate_index_name_with_type_and_date() {
@@ -33,6 +33,6 @@ public class PerTypeAndDateIndexNameGeneratorTest {
 
         String indexName = indexNameGenerator.generate("indextype", Instant.parse("2018-04-28T18:35:24.00Z"));
 
-        assertEquals(indexName, "indexName-indextype-2018.04.28");
+        assertThat(indexName).isEqualTo("indexName-indextype-2018.04.28");
     }
 }

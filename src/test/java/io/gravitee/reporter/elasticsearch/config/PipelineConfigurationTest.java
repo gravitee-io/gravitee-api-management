@@ -15,100 +15,199 @@
  */
 package io.gravitee.reporter.elasticsearch.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.reporter.elasticsearch.UnitTestConfiguration;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  *
  * @author GraviteeSource Team
  * @author Guillaume Gillon
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = { UnitTestConfiguration.class })
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PipelineConfigurationTest {
 
-    @InjectMocks
-    private PipelineConfiguration pipelineConfiguration;
+    @Autowired
+    FreeMarkerComponent freeMarkerComponent;
 
-    @Mock
-    private FreeMarkerComponent freeMarkerComponent;
+    @Autowired
+    PipelineConfiguration pipelineConfiguration;
 
     @Test
-    public void createPipeline_should_not_create_pipeline_if_no_plugin() {
-        pipelineConfiguration.setIngestPlugins("");
-        String pipeline = pipelineConfiguration.createPipeline();
+    public void should_not_create_pipeline_if_no_plugin() {
+        String pipeline = new PipelineConfiguration("", null, freeMarkerComponent).createPipeline();
 
-        assertNull(pipeline);
+        assertThat(pipeline).isNull();
     }
 
     @Test
-    public void createPipeline_should_create_pipeline_with_geoip_plugin() {
-        mockPluginJson("geoip", "{my-geoip-plugin}");
-        mockPipelineJsonForPlugins("{my-geoip-plugin}", "{my-pipeline}");
-
-        pipelineConfiguration.setIngestPlugins("geoip");
+    public void should_create_default_pipeline() {
         String pipeline = pipelineConfiguration.createPipeline();
-
-        assertEquals("{my-pipeline}", pipeline);
+        assertThat(new JsonObject(pipeline))
+            .isEqualTo(
+                new JsonObject(
+                    Map.of(
+                        "description",
+                        "Gravitee pipeline",
+                        "processors",
+                        new JsonArray(
+                            Stream
+                                .concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
+                                .collect(Collectors.toList())
+                        )
+                    )
+                )
+            );
     }
 
     @Test
-    public void createPipeline_should_create_pipeline_with_geoip_and_useragent_plugin() {
-        mockPluginJson("geoip", "{my-geoip-plugin}");
-        mockPluginJson("user_agent", "{my-useragent-plugin}");
-        mockPipelineJsonForPlugins("{my-geoip-plugin},{my-useragent-plugin}", "{my-pipeline}");
+    public void should_ignore_unknown_plugins() {
+        String pipeline = new PipelineConfiguration(
+            "geoip, testAnother, unknown, user_agent, this does not exists",
+            null,
+            freeMarkerComponent
+        )
+            .createPipeline();
+        assertThat(new JsonObject(pipeline))
+            .isEqualTo(
+                new JsonObject(
+                    Map.of(
+                        "description",
+                        "Gravitee pipeline",
+                        "processors",
+                        new JsonArray(
+                            Stream
+                                .concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
+                                .collect(Collectors.toList())
+                        )
+                    )
+                )
+            );
+    }
 
-        pipelineConfiguration.setIngestPlugins("geoip, user_agent");
-        String pipeline = pipelineConfiguration.createPipeline();
+    @Nested
+    class UserAgentPlugin {
 
-        assertEquals("{my-pipeline}", pipeline);
+        @Test
+        public void should_create_pipeline_with_regex_file() {
+            String pipeline = new PipelineConfiguration("user_agent", "regexes_custom.yml", freeMarkerComponent).createPipeline();
+            JsonObject expectedPipeline = new JsonObject(
+                Map.of("description", "Gravitee pipeline", "processors", new JsonArray(expectedUserAgentProcessors("regexes_custom.yml")))
+            );
+            assertThat(new JsonObject(pipeline)).isEqualTo(expectedPipeline);
+        }
     }
 
     @Test
-    public void createPipeline_should_create_pipeline_ignoring_additional_unknown_plugins() {
-        mockPluginJson("geoip", "{my-geoip-plugin}");
-        mockPluginJson("user_agent", "{my-useragent-plugin}");
-        mockPipelineJsonForPlugins("{my-geoip-plugin},{my-useragent-plugin}", "{my-pipeline}");
-
-        pipelineConfiguration.setIngestPlugins("geoip, testAnother, unknown, user_agent, this does not exists");
-        String pipeline = pipelineConfiguration.createPipeline();
-
-        assertEquals("{my-pipeline}", pipeline);
-    }
-
-    @Test
-    public void createPipeline_should_return_pipeline_name() {
-        pipelineConfiguration.createPipeline();
+    public void should_return_pipeline_name_when_valid() {
         pipelineConfiguration.valid();
-
-        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipeline());
-        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
+        assertThat(pipelineConfiguration.getPipeline()).isEqualTo(pipelineConfiguration.getPipelineName());
     }
 
     @Test
-    public void createPipeline_should_not_return_pipeline_name_when_not_valided() {
-        pipelineConfiguration.createPipeline();
-
-        Assert.assertNull(pipelineConfiguration.getPipeline());
-        assertEquals("gravitee_pipeline", pipelineConfiguration.getPipelineName());
+    public void should_not_return_pipeline_name_when_not_valided() {
+        assertThat(pipelineConfiguration.getPipeline()).isNull();
     }
 
-    private void mockPluginJson(String pluginName, String pluginJson) {
-        when(freeMarkerComponent.generateFromTemplate(eq(pluginName + ".ftl"), any())).thenReturn(pluginJson);
+    List<JsonObject> expectedGeoIpProcessors() {
+        return List.of(
+            new JsonObject(Map.of("geoip", new JsonObject(Map.of("field", "remote-address")))),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(Map.entry("field", "geoip.city_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
+                    )
+                )
+            ),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(
+                            Map.entry("field", "geoip.continent_name"),
+                            Map.entry("value", "Unknown"),
+                            Map.entry("override", false)
+                        )
+                    )
+                )
+            ),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(
+                            Map.entry("field", "geoip.country_iso_code"),
+                            Map.entry("value", "Unknown"),
+                            Map.entry("override", false)
+                        )
+                    )
+                )
+            ),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(Map.entry("field", "geoip.region_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
+                    )
+                )
+            )
+        );
     }
 
-    private void mockPipelineJsonForPlugins(String pluginsJson, String pipelineJson) {
-        when(freeMarkerComponent.generateFromTemplate("pipeline.ftl", Map.of("processors", pluginsJson))).thenReturn(pipelineJson);
+    List<JsonObject> expectedUserAgentProcessors(String regexFile) {
+        Map<String, Object> userAgentProps = new HashMap<>();
+        userAgentProps.put("field", "user-agent");
+        if (null != regexFile) {
+            userAgentProps.put("regex_file", "regexes_custom.yml");
+        }
+
+        return List.of(
+            new JsonObject(Map.of("user_agent", new JsonObject(userAgentProps))),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(Map.entry("field", "user_agent.name"), Map.entry("value", "Unknown"), Map.entry("override", false))
+                    )
+                )
+            ),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(
+                            Map.entry("field", "user_agent.os_name"),
+                            Map.entry("value", "{{user_agent.os.name}}"),
+                            Map.entry("override", false)
+                        )
+                    )
+                )
+            ),
+            new JsonObject(
+                Map.of(
+                    "set",
+                    new JsonObject(
+                        Map.ofEntries(Map.entry("field", "user_agent.os_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
+                    )
+                )
+            )
+        );
     }
 }

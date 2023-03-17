@@ -21,8 +21,6 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -33,21 +31,21 @@ public class PipelineConfiguration {
 
     private static final List<String> RETAINED_INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
 
-    @Value("${reporters.elasticsearch.pipeline.plugins.ingest:geoip,user_agent}")
-    private String ingestPlugins;
+    private final String ingestPlugins;
 
-    @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}")
-    private String userAgentRegexFile;
+    private final String userAgentRegexFile;
 
-    /**
-     * Templating tool.
-     */
-    @Autowired
-    private FreeMarkerComponent freeMarkerComponent;
+    private final FreeMarkerComponent freeMarkerComponent;
 
     private final String pipeline = "gravitee_pipeline";
 
     private boolean valid = false;
+
+    public PipelineConfiguration(String ingestPlugins, String userAgentRegexFile, FreeMarkerComponent freeMarkerComponent) {
+        this.ingestPlugins = ingestPlugins;
+        this.userAgentRegexFile = userAgentRegexFile;
+        this.freeMarkerComponent = freeMarkerComponent;
+    }
 
     public String createPipeline() {
         if (ingestPlugins != null && !ingestPlugins.isEmpty()) {
@@ -80,13 +78,5 @@ public class PipelineConfiguration {
 
     public void valid() {
         this.valid = true;
-    }
-
-    public String getIngestPlugins() {
-        return ingestPlugins;
-    }
-
-    public void setIngestPlugins(String ingestorPlugins) {
-        this.ingestPlugins = ingestorPlugins;
     }
 }

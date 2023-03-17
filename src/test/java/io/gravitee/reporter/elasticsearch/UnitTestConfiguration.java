@@ -13,28 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.elasticsearch.spring;
+package io.gravitee.reporter.elasticsearch;
 
-import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.node.api.Node;
-import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.reporter.elasticsearch.node.DummyNode;
+import io.gravitee.reporter.elasticsearch.spring.ElasticsearchReporterConfiguration;
 import io.vertx.core.Vertx;
-import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * Spring configuration used for testing purpose.
- *
- * @author Guillaume Waignier
- * @author Sebastien Devaux
- */
 @Configuration
 @Import(ElasticsearchReporterConfiguration.class)
-public class ElasticsearchReporterConfigurationTest {
+public class UnitTestConfiguration {
 
     @Bean
     public Vertx vertx() {
@@ -42,20 +33,7 @@ public class ElasticsearchReporterConfigurationTest {
     }
 
     @Bean
-    public ReporterConfiguration configuration() {
-        ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
-        //        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
-        return elasticConfiguration;
-    }
-
-    @Bean
     public Node node() {
         return new DummyNode();
-    }
-
-    @Bean
-    public ElasticsearchNode elasticsearchNode() {
-        return new ElasticsearchNode();
     }
 }

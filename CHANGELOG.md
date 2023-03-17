@@ -1,3 +1,68 @@
+# [4.1.0-alpha.9](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.8...4.1.0-alpha.9) (2023-03-16)
+
+
+### Bug Fixes
+
+* bump common-elasticsearch version ([41173f7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/41173f77258ea39cb342b228f3c7d437c7044df0))
+
+# [4.1.0-alpha.8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.7...4.1.0-alpha.8) (2023-03-10)
+
+
+### Features
+
+* add support for ES 8.x ([fd10d8a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/fd10d8a8881339fec00ed3606b3e451cf68b7dc3))
+* support ES 8.x ([efec022](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/efec022f844b51335328ffc7702a4369359c4282))
+* support ES 8.x ([f045a5f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/f045a5fac0372cc6172d8b1fb8bf426cc7ea8ffe))
+
+# [4.1.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.6...4.1.0-alpha.7) (2023-02-01)
+
+
+### Bug Fixes
+
+* bump common elasticsearch version to get new error status on message metrics ([e0f1ab9](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/e0f1ab9d787327e1f937b0b3a5741fe1da4c0a9c))
+
+# [4.1.0-alpha.6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.5...4.1.0-alpha.6) (2023-01-27)
+
+
+### Bug Fixes
+
+* bump common elasticsearch version to 4.1.0-alpha.6 ([37628cf](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/37628cfd6c545751596c3c6e51b4fb59bc4a4ad2))
+
+# [4.1.0-alpha.5](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.4...4.1.0-alpha.5) (2023-01-25)
+
+
+### Bug Fixes
+
+* bump common elasticsearch version ([f6e9ece](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/f6e9ece91e16dbc78b1de68251e9376e881d8589))
+
+# [4.1.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.3...4.1.0-alpha.4) (2023-01-25)
+
+
+### Bug Fixes
+
+* rename v4 metrics ([91c644f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/91c644fa3943eea1d94455891c122cededa98fbd))
+
+# [4.1.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.2...4.1.0-alpha.3) (2023-01-24)
+
+
+### Bug Fixes
+
+* rename metrics for message ([08894e1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/08894e18b5fe4624f4519fd8d1341be4d0671ce7))
+
+# [4.1.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0-alpha.1...4.1.0-alpha.2) (2023-01-16)
+
+
+### Features
+
+* report v4 metrics & logs ([cf1ffd8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/cf1ffd82acea94234e5008b01773294118082342))
+
+# [4.1.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.0...4.1.0-alpha.1) (2022-12-22)
+
+
+### Features
+
+* share all ES templates in gravitee-common-elasticsearch ([d8c55f6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/d8c55f6844f60dd3ab1d9d284210a50433dfdaad))
+
 ## [4.0.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.0...4.0.1) (2023-03-16)
 
 

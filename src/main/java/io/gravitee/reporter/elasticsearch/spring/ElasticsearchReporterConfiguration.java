@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.vertx.rxjava3.core.Vertx;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -82,12 +83,16 @@ public class ElasticsearchReporterConfiguration {
     }
 
     @Bean
-    public PipelineConfiguration pipelineConfiguration() {
-        return new PipelineConfiguration();
+    public FreeMarkerComponent freeMarkerComponent() {
+        return new FreeMarkerComponent();
     }
 
     @Bean
-    public FreeMarkerComponent freeMarkerComponent() {
-        return new FreeMarkerComponent();
+    public PipelineConfiguration pipelineConfiguration(
+        @Value("${reporters.elasticsearch.pipeline.plugins.ingest:geoip,user_agent}") String ingestPlugins,
+        @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}") String userAgentRegexFile,
+        FreeMarkerComponent freeMarkerComponent
+    ) {
+        return new PipelineConfiguration(ingestPlugins, userAgentRegexFile, freeMarkerComponent);
     }
 }

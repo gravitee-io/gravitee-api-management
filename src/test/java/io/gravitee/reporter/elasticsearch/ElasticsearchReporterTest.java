@@ -16,13 +16,9 @@
 package io.gravitee.reporter.elasticsearch;
 
 import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.elasticsearch.version.ElasticsearchInfo;
-import io.gravitee.elasticsearch.version.Version;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
@@ -34,30 +30,28 @@ import io.gravitee.reporter.api.monitor.JvmInfo;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.monitor.OsInfo;
 import io.gravitee.reporter.api.monitor.ProcessInfo;
-import io.gravitee.reporter.elasticsearch.spring.ElasticsearchReporterConfigurationTest;
-import io.gravitee.reporter.elasticsearch.spring.context.*;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ElasticsearchReporterTest.TestConfig.class })
 public class ElasticsearchReporterTest {
 
@@ -67,7 +61,7 @@ public class ElasticsearchReporterTest {
     private TestScheduler testScheduler;
 
     @Configuration
-    @Import(ElasticsearchReporterConfigurationTest.class) // the actual configuration
+    @Import(IntegrationTestConfiguration.class) // the actual configuration
     public static class TestConfig {
 
         @Bean
@@ -76,7 +70,7 @@ public class ElasticsearchReporterTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(ignore -> testScheduler);
@@ -84,7 +78,7 @@ public class ElasticsearchReporterTest {
         this.reporter.start();
     }
 
-    @After
+    @AfterEach
     public void tearsDown() throws Exception {
         this.reporter.stop();
 
@@ -313,80 +307,6 @@ public class ElasticsearchReporterTest {
 
         metrics1.await();
         metrics1.assertNoErrors();
-    }
-
-    @Test
-    public void getBeanRegistrer_should_instantiate_es5_registrer_when_major_version_is_5() {
-        Version version = new Version();
-        version.setNumber("5.12.7");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertTrue(beanRegistrer instanceof Elastic5xBeanRegistrer);
-    }
-
-    @Test
-    public void getBeanRegistrer_should_instantiate_es6_registrer_when_major_version_is_6() {
-        Version version = new Version();
-        version.setNumber("6.12.7");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertTrue(beanRegistrer instanceof Elastic6xBeanRegistrer);
-    }
-
-    @Test
-    public void getBeanRegistrer_should_instantiate_es7_registrer_when_major_version_is_7() {
-        Version version = new Version();
-        version.setNumber("7.12.7");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertTrue(beanRegistrer instanceof Elastic7xBeanRegistrer);
-    }
-
-    @Test
-    public void getBeanRegistrer_should_instantiate_opensearch_registrer_when_opensearch_distribution_version_1() {
-        Version version = new Version();
-        version.setNumber("1.12.7");
-        version.setDistribution("opensearch");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertTrue(beanRegistrer instanceof OpenSearchBeanRegistrer);
-    }
-
-    @Test
-    public void getBeanRegistrer_should_instantiate_opensearch_registrer_when_opensearch_distribution_higher_version() {
-        Version version = new Version();
-        version.setNumber("2.12.7");
-        version.setDistribution("opensearch");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertNull(beanRegistrer);
-    }
-
-    @Test
-    public void getBeanRegistrer_should_return_null_when_unknown_major_version() {
-        Version version = new Version();
-        version.setNumber("9.12.7");
-        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
-        elasticsearchInfo.setVersion(version);
-
-        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
-
-        assertNull(beanRegistrer);
     }
 
     private Metrics mockRequestMetrics() {
