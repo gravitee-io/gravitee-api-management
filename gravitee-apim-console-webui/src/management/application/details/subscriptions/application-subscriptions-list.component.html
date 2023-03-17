@@ -39,10 +39,10 @@
               </a>
             </td>
             <td md-cell>{{ $ctrl.subscriptions.metadata[subscription.plan].name }}</td>
-            <td md-cell>{{ subscription.created_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td md-cell>{{ subscription.processed_at | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td md-cell>{{ subscription.starting_at || '-' | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td md-cell>{{ subscription.ending_at || '-' | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td md-cell>{{ subscription.created_at | date : 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td md-cell>{{ subscription.processed_at | date : 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td md-cell>{{ subscription.starting_at || '-' | date : 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td md-cell>{{ subscription.ending_at || '-' | date : 'yyyy-MM-dd HH:mm:ss' }}</td>
             <td md-cell class="status-cell">
               <md-tooltip ng-if="subscription.reason" md-direction="left">{{ subscription.reason }}</md-tooltip>
               {{ subscription.status }}
