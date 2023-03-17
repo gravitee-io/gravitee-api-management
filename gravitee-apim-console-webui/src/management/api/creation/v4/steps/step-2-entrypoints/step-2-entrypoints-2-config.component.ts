@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
-import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
@@ -93,7 +93,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((schemas: Record<string, GioJsonSchema>) => {
         // Remove schema with empty input
-        this.entrypointSchemas = omitBy(schemas, (schema) => isEmpty(schema?.properties));
+        this.entrypointSchemas = omitBy(schemas, (schema) => !GioFormJsonSchemaComponent.isDisplayable(schema));
         this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
       });
   }
