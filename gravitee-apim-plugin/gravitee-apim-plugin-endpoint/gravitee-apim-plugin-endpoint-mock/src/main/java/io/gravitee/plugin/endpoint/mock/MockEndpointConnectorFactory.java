@@ -48,7 +48,11 @@ public class MockEndpointConnectorFactory implements EndpointAsyncConnectorFacto
     }
 
     @Override
-    public MockEndpointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
+    public MockEndpointConnector createConnector(
+        final DeploymentContext deploymentContext,
+        final String configuration,
+        final String sharedConfiguration
+    ) {
         try {
             return new MockEndpointConnector(
                 pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration)
