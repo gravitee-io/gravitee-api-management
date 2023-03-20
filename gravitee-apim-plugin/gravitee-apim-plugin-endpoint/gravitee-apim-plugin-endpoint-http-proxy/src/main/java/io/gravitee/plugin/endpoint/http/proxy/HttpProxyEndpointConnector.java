@@ -84,8 +84,12 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
     private static boolean isGrpc(final HttpRequest httpRequest, final String target) {
         String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
-        MediaType mediaType = MediaType.parseMediaType(contentType);
-        return MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType) || target.startsWith("grpc://");
+        if (contentType == null) {
+            return target.startsWith("grpc://");
+        } else {
+            MediaType mediaType = MediaType.parseMediaType(contentType);
+            return MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType) || target.startsWith("grpc://");
+        }
     }
 
     @Override
