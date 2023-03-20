@@ -18,6 +18,25 @@ pull_request_rules:
           ----
           {{ cherry_pick_error }}
         title: "{{ title }} - master"
+  - name: Apply patches on `3.21.x`
+    conditions:
+      - label=apply-on-3-21-x
+    actions:
+      backport:
+        branches:
+          - 3.21.x
+        assignees:
+          - "{{ author }}"
+        body: |
+          This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+          
+          ----
+          
+          {{ body }}
+          
+          ----
+          {{ cherry_pick_error }}
+        title: "{{ title }} - 3.21.x"
   - name: Apply patches on `3.20.x`
     conditions:
       - label=apply-on-3-20-x
@@ -36,7 +55,7 @@ pull_request_rules:
           
           ----
           {{ cherry_pick_error }}
-        title: "{{ title }} - 3.20.x"          
+        title: "{{ title }} - 3.20.x"
   - name: Apply patches on `3.19.x`
     conditions:
       - label=apply-on-3-19-x
