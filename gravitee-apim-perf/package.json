@@ -10,7 +10,7 @@
     "dotenv": "^16.0.1",
     "fs-extra": "^10.1.0",
     "license-check-and-add": "4.0.3",
-    "prettier": "2.5.1",
+    "prettier": "2.8.4",
     "ts-command-line-args": "^2.3.1",
     "ts-node": "^10.2.1",
     "tsconfig-paths": "^4.0.0",
