@@ -232,7 +232,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim]
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim, publish_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1796,3 +1796,33 @@ workflows:
         jobs:
             - release_notes_apim:
                   context: cicd-orchestrator
+
+    publish_docker_images:
+        when:
+            and:
+              - equal: [publish_docker_images, << pipeline.parameters.gio_action >>]
+        jobs:
+            - setup:
+                context: cicd-orchestrator
+            - build:
+                context: cicd-orchestrator
+                requires:
+                    - setup
+            - build-images:
+                context: cicd-orchestrator
+                requires:
+                    - build
+            - webui-build:
+                name: Build APIM Console
+                context: cicd-orchestrator
+                apim-ui-project: gravitee-apim-console-webui
+                docker-image-name: apim-management-ui
+                requires:
+                    - setup
+            - webui-build:
+                name: Build APIM Portal
+                context: cicd-orchestrator
+                apim-ui-project: gravitee-apim-portal-webui
+                docker-image-name: apim-portal-ui
+                requires:
+                    - setup
