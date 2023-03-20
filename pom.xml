@@ -144,8 +144,10 @@
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-        <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
         <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
+        <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
+        <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
+        <skip.validation>false</skip.validation>
     </properties>
 
     <dependencyManagement>
@@ -831,10 +833,9 @@
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>${prettier-maven-plugin.version}</version>
+                <version>${maven-plugin-prettier.version}</version>
                 <configuration>
-                    <nodeVersion>12.13.0</nodeVersion>
-                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                    <prettierJavaVersion>${maven-plugin-prettier.prettierjava.version}</prettierJavaVersion>
                     <skip>${skip.validation}</skip>
                 </configuration>
                 <executions>
