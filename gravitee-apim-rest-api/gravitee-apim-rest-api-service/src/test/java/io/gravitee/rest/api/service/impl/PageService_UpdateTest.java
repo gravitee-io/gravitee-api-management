@@ -205,20 +205,18 @@ public class PageService_UpdateTest {
 
         verify(pageRepository, times(4))
             .update(
-                argThat(
-                    pageToUpdate -> {
-                        if (PAGE_ID.equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 2;
-                        }
-                        if ("2".equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 1;
-                        }
-                        if ("3".equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 3;
-                        }
-                        return false;
+                argThat(pageToUpdate -> {
+                    if (PAGE_ID.equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 2;
                     }
-                )
+                    if ("2".equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 1;
+                    }
+                    if ("3".equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 3;
+                    }
+                    return false;
+                })
             );
         // neither content nor name are updated
         verify(pageRevisionService, times(0)).create(any());
@@ -262,20 +260,18 @@ public class PageService_UpdateTest {
 
         verify(pageRepository, times(4))
             .update(
-                argThat(
-                    pageToUpdate -> {
-                        if (PAGE_ID.equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 2;
-                        }
-                        if ("2".equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 3;
-                        }
-                        if ("3".equals(pageToUpdate.getId())) {
-                            return pageToUpdate.getOrder() == 1;
-                        }
-                        return false;
+                argThat(pageToUpdate -> {
+                    if (PAGE_ID.equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 2;
                     }
-                )
+                    if ("2".equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 3;
+                    }
+                    if ("3".equals(pageToUpdate.getId())) {
+                        return pageToUpdate.getOrder() == 1;
+                    }
+                    return false;
+                })
             );
         // neither content nor name are updated
         verify(pageRevisionService, times(0)).create(any());

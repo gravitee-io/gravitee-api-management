@@ -78,11 +78,9 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
         promotionService
             .search(promotionQuery, null, null)
             .getContent()
-            .forEach(
-                promotionEntity -> {
-                    promotionEntity.setStatus(PromotionEntityStatus.REJECTED);
-                    promotionService.createOrUpdate(promotionEntity);
-                }
-            );
+            .forEach(promotionEntity -> {
+                promotionEntity.setStatus(PromotionEntityStatus.REJECTED);
+                promotionService.createOrUpdate(promotionEntity);
+            });
     }
 }

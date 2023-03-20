@@ -313,12 +313,11 @@ public class PlansDataFixUpgraderTest {
         verify(emailService, times(1))
             .sendAsyncEmailNotification(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    notification ->
-                        notification.getTo()[0].equals("primary-owner-email") &&
-                        notification.getParams().get("api") == api &&
-                        notification.getParams().get("createdPlans") == createdPlans &&
-                        notification.getParams().get("closedPlans") == closedPlans
+                argThat(notification ->
+                    notification.getTo()[0].equals("primary-owner-email") &&
+                    notification.getParams().get("api") == api &&
+                    notification.getParams().get("createdPlans") == createdPlans &&
+                    notification.getParams().get("closedPlans") == closedPlans
                 )
             );
     }

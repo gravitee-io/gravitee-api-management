@@ -269,9 +269,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         ComponentProvider componentProvider,
         DefaultReferenceRegister referenceRegister
     ) {
-        final io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory executionContextFactory = new io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory(
-            componentProvider
-        );
+        final io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory executionContextFactory =
+            new io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory(componentProvider);
 
         executionContextFactory.addTemplateVariableProvider(new ApiTemplateVariableProvider(api));
         executionContextFactory.addTemplateVariableProvider(referenceRegister);
@@ -456,7 +455,8 @@ public class ApiReactorHandlerFactory implements ReactorHandlerFactory<Api> {
         AuthenticationHandlerSelector authenticationHandlerSelector,
         FlowPolicyResolverFactory flowPolicyResolverFactory
     ) {
-        RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options = new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
+        RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options =
+            new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
         options.setMaxSizeLogMessage(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null));
         options.setOverrideXForwardedPrefix(
             configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)

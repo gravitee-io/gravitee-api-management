@@ -63,13 +63,11 @@ class UserDefinedProxyEndpoint extends AbstractProxyEndpoint {
         MultiValueMap<String, String> queryParameters = URIUtils.parameters(uri);
 
         if (parameters != null && !parameters.isEmpty()) {
-            parameters.forEach(
-                (name, values) -> {
-                    for (String value : values) {
-                        queryParameters.add(name, value);
-                    }
+            parameters.forEach((name, values) -> {
+                for (String value : values) {
+                    queryParameters.add(name, value);
                 }
-            );
+            });
         }
 
         return queryParameters;

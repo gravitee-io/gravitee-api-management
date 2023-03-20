@@ -64,18 +64,16 @@ class InvokerAdapterTest {
         when(ctx.response()).thenReturn(response);
 
         // Simulate the ConnectionHandlerAdapter behavior by completing the nextEmitter (this will complete the InvokerAdapter execution).
-        doAnswer(
-                invocation -> {
-                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                        ConnectionHandlerAdapter.class,
-                        "nextEmitter",
-                        connectionHandlerAdapter
-                    );
-                    ((CompletableEmitter) nextEmitter.get()).onComplete();
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                    ConnectionHandlerAdapter.class,
+                    "nextEmitter",
+                    connectionHandlerAdapter
+                );
+                ((CompletableEmitter) nextEmitter.get()).onComplete();
+                return null;
+            })
             .when(invoker)
             .invoke(any(ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
 

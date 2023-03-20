@@ -184,15 +184,13 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
             .findFirst()
-            .ifPresent(
-                transformer -> {
-                    try {
-                        indexer.index(transformer.transform(source), commit);
-                    } catch (TechnicalException te) {
-                        logger.error("Unexpected error while indexing a document", te);
-                    }
+            .ifPresent(transformer -> {
+                try {
+                    indexer.index(transformer.transform(source), commit);
+                } catch (TechnicalException te) {
+                    logger.error("Unexpected error while indexing a document", te);
                 }
-            );
+            });
     }
 
     private void deleteLocally(Indexable source) {
@@ -200,15 +198,13 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
             .findFirst()
-            .ifPresent(
-                transformer -> {
-                    try {
-                        indexer.remove(transformer.transform(source));
-                    } catch (TechnicalException te) {
-                        logger.error("Unexpected error while deleting a document", te);
-                    }
+            .ifPresent(transformer -> {
+                try {
+                    indexer.remove(transformer.transform(source));
+                } catch (TechnicalException te) {
+                    logger.error("Unexpected error while deleting a document", te);
                 }
-            );
+            });
     }
 
     private Indexable createInstance(String className) throws Exception {
@@ -228,28 +224,26 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .stream()
             .filter(searcher -> searcher.handle(query.getRoot()))
             .findFirst()
-            .flatMap(
-                searcher -> {
-                    try {
-                        if (searcher instanceof ApiDocumentSearcher) {
-                            Optional<DocumentSearcher> pageDocumentSearcher = searchers
-                                .stream()
-                                .filter(s -> s.handle(PageEntity.class))
-                                .findFirst();
-                            if (pageDocumentSearcher.isPresent()) {
-                                SearchResult apiReferences = pageDocumentSearcher.get().searchReference(executionContext, query);
-                                if (!apiReferences.getDocuments().isEmpty()) {
-                                    query.setIds(apiReferences.getDocuments());
-                                }
+            .flatMap(searcher -> {
+                try {
+                    if (searcher instanceof ApiDocumentSearcher) {
+                        Optional<DocumentSearcher> pageDocumentSearcher = searchers
+                            .stream()
+                            .filter(s -> s.handle(PageEntity.class))
+                            .findFirst();
+                        if (pageDocumentSearcher.isPresent()) {
+                            SearchResult apiReferences = pageDocumentSearcher.get().searchReference(executionContext, query);
+                            if (!apiReferences.getDocuments().isEmpty()) {
+                                query.setIds(apiReferences.getDocuments());
                             }
                         }
-                        return Optional.of(searcher.search(executionContext, query));
-                    } catch (TechnicalException te) {
-                        logger.error("Unexpected error while searching a document", te);
-                        return Optional.empty();
                     }
+                    return Optional.of(searcher.search(executionContext, query));
+                } catch (TechnicalException te) {
+                    logger.error("Unexpected error while searching a document", te);
+                    return Optional.empty();
                 }
-            );
+            });
 
         return results.orElse(null);
     }

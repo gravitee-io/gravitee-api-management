@@ -106,27 +106,25 @@ public class PlatformEventsResource extends AbstractResource {
 
         events
             .getContent()
-            .forEach(
-                event -> {
-                    Map<String, String> properties1 = event.getProperties();
-                    // Event relative to API
-                    if (properties1 != null && properties1.containsKey(Event.EventProperties.API_ID.getValue())) {
-                        // Remove payload content from response since it's not required anymore
-                        event.setPayload(null);
+            .forEach(event -> {
+                Map<String, String> properties1 = event.getProperties();
+                // Event relative to API
+                if (properties1 != null && properties1.containsKey(Event.EventProperties.API_ID.getValue())) {
+                    // Remove payload content from response since it's not required anymore
+                    event.setPayload(null);
 
-                        // Retrieve additional data
-                        String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
-                        try {
-                            ApiEntity api = apiService.findById(executionContext, apiId);
-                            properties1.put("api_name", api.getName());
-                            properties1.put("api_version", api.getVersion());
-                        } catch (ApiNotFoundException anfe) {
-                            properties1.put("deleted", Boolean.TRUE.toString());
-                            properties1.put("api_name", "Deleted API");
-                        }
+                    // Retrieve additional data
+                    String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
+                    try {
+                        ApiEntity api = apiService.findById(executionContext, apiId);
+                        properties1.put("api_name", api.getName());
+                        properties1.put("api_version", api.getVersion());
+                    } catch (ApiNotFoundException anfe) {
+                        properties1.put("deleted", Boolean.TRUE.toString());
+                        properties1.put("api_name", "Deleted API");
                     }
                 }
-            );
+            });
 
         return new EventEntityPage(events);
     }

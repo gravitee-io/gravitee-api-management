@@ -138,9 +138,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             final Optional<Metadata> optionalMetadata = metadataRepository
                 .findByReferenceType(MetadataReferenceType.DEFAULT)
                 .stream()
-                .filter(
-                    metadata ->
-                        !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
+                .filter(metadata ->
+                    !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
                 )
                 .findAny();
 

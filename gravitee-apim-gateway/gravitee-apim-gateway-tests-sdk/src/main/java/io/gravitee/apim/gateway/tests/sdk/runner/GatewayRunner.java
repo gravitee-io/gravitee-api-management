@@ -289,15 +289,13 @@ public class GatewayRunner {
     }
 
     private VertxEmbeddedContainer startServer(GatewayTestContainer container) throws InterruptedException {
-        final Thread starterThread = new Thread(
-            () -> {
-                try {
-                    container.start();
-                } catch (Exception e) {
-                    System.exit(-1);
-                }
+        final Thread starterThread = new Thread(() -> {
+            try {
+                container.start();
+            } catch (Exception e) {
+                System.exit(-1);
             }
-        );
+        });
 
         starterThread.start();
 
@@ -316,15 +314,13 @@ public class GatewayRunner {
 
     private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer) throws InterruptedException {
         if (container != null) {
-            final Thread stopThread = new Thread(
-                () -> {
-                    try {
-                        container.stop();
-                    } catch (Exception e) {
-                        System.exit(-1);
-                    }
+            final Thread stopThread = new Thread(() -> {
+                try {
+                    container.stop();
+                } catch (Exception e) {
+                    System.exit(-1);
                 }
-            );
+            });
 
             stopThread.start();
 

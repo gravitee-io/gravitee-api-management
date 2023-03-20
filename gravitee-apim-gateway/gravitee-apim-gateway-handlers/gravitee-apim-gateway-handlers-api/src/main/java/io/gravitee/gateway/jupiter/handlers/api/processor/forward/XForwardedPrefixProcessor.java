@@ -42,10 +42,9 @@ public class XForwardedPrefixProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () ->
-                // Override the X-Forwarded-Prefix with context path
-                ctx.request().headers().set(HttpHeaderNames.X_FORWARDED_PREFIX, ctx.request().contextPath())
+        return Completable.fromRunnable(() ->
+            // Override the X-Forwarded-Prefix with context path
+            ctx.request().headers().set(HttpHeaderNames.X_FORWARDED_PREFIX, ctx.request().contextPath())
         );
     }
 

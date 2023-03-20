@@ -63,16 +63,14 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
                         if (httpClientRequestEvt.succeeded()) {
                             httpClientRequestEvt
                                 .result()
-                                .send(
-                                    httpClientResponseEvt -> {
-                                        if (httpClientResponseEvt.succeeded()) {
-                                            assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
-                                            latch.countDown(); // We count down only when we are sure the response has been received.
-                                        } else {
-                                            logger.error("An error occurred during client response", httpClientResponseEvt.cause());
-                                        }
+                                .send(httpClientResponseEvt -> {
+                                    if (httpClientResponseEvt.succeeded()) {
+                                        assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
+                                        latch.countDown(); // We count down only when we are sure the response has been received.
+                                    } else {
+                                        logger.error("An error occurred during client response", httpClientResponseEvt.cause());
                                     }
-                                );
+                                });
                         } else {
                             logger.error("An error occurred during client request", httpClientRequestEvt.cause());
                         }

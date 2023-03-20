@@ -52,21 +52,15 @@ public class AuthenticationHandlerManager {
         logger.debug("Loading security providers...");
         List<AuthenticationHandler> availableSecurityProviders = securityProviderLoader.getSecurityProviders();
 
-        availableSecurityProviders.forEach(
-            authenticationHandler -> {
-                if (authenticationHandler instanceof ComponentResolver) {
-                    try {
-                        ((ComponentResolver) authenticationHandler).resolve(componentProvider);
-                    } catch (Exception e) {
-                        logger.debug(
-                            "An error occurs while loading security provider [{}]: {}",
-                            authenticationHandler.name(),
-                            e.getMessage()
-                        );
-                    }
+        availableSecurityProviders.forEach(authenticationHandler -> {
+            if (authenticationHandler instanceof ComponentResolver) {
+                try {
+                    ((ComponentResolver) authenticationHandler).resolve(componentProvider);
+                } catch (Exception e) {
+                    logger.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
                 }
             }
-        );
+        });
 
         // Filter security providers if a filter is defined
         if (authenticationHandlerEnhancer != null) {

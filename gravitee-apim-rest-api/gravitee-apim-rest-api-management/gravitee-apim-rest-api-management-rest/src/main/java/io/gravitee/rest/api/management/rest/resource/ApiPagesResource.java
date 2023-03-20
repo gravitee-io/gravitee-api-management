@@ -113,14 +113,12 @@ public class ApiPagesResource extends AbstractResource {
                 )
                 .stream()
                 .filter(page -> isDisplayable(apiEntity, page))
-                .map(
-                    page -> {
-                        // check if the page is used as GeneralCondition by an active Plan
-                        // and update the PageEntity to transfer the information to the FrontEnd
-                        page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, api));
-                        return page;
-                    }
-                )
+                .map(page -> {
+                    // check if the page is used as GeneralCondition by an active Plan
+                    // and update the PageEntity to transfer the information to the FrontEnd
+                    page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, page, api));
+                    return page;
+                })
                 .collect(Collectors.toList());
         }
         throw new ForbiddenAccessException();

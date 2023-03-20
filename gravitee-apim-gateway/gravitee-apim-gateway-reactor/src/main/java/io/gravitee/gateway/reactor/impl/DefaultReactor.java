@@ -91,25 +91,23 @@ public class DefaultReactor extends AbstractService<Reactor> implements Reactor,
         // Prepare handler chain
         requestProcessorChainFactory
             .create()
-            .handler(
-                ctx -> {
-                    HandlerEntrypoint entrypoint = entrypointResolver.resolve(ctx);
+            .handler(ctx -> {
+                HandlerEntrypoint entrypoint = entrypointResolver.resolve(ctx);
 
-                    if (entrypoint != null) {
-                        entrypoint
-                            .target()
-                            .handle(
-                                ctx,
-                                context1 -> {
-                                    // Ensure that response has been ended before going further
-                                    context1.response().endHandler(avoid -> processResponse(context1, handler)).end();
-                                }
-                            );
-                    } else {
-                        processNotFound(ctx, handler);
-                    }
+                if (entrypoint != null) {
+                    entrypoint
+                        .target()
+                        .handle(
+                            ctx,
+                            context1 -> {
+                                // Ensure that response has been ended before going further
+                                context1.response().endHandler(avoid -> processResponse(context1, handler)).end();
+                            }
+                        );
+                } else {
+                    processNotFound(ctx, handler);
                 }
-            )
+            })
             .errorHandler(__ -> processResponse(context, handler))
             .exitHandler(__ -> processResponse(context, handler))
             .handle(context);

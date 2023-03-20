@@ -53,25 +53,23 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                // Test if we are in the context of a preflight request
-                if (isPreflightRequest(ctx.request())) {
-                    Api api = ctx.getComponent(Api.class);
-                    Cors cors = api.getProxy().getCors();
-                    handlePreflightRequest(cors, ctx.request(), ctx.response());
-                    // If we don't want to run policies, exit request processing
-                    if (!cors.isRunPolicies()) {
-                        return ctx.interrupt();
-                    } else {
-                        ctx.setAttribute("skip-security-chain", true);
-                        ctx.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
-                        return Completable.complete();
-                    }
+        return Completable.defer(() -> {
+            // Test if we are in the context of a preflight request
+            if (isPreflightRequest(ctx.request())) {
+                Api api = ctx.getComponent(Api.class);
+                Cors cors = api.getProxy().getCors();
+                handlePreflightRequest(cors, ctx.request(), ctx.response());
+                // If we don't want to run policies, exit request processing
+                if (!cors.isRunPolicies()) {
+                    return ctx.interrupt();
+                } else {
+                    ctx.setAttribute("skip-security-chain", true);
+                    ctx.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
+                    return Completable.complete();
                 }
-                return Completable.complete();
             }
-        );
+            return Completable.complete();
+        });
     }
 
     private boolean isPreflightRequest(final Request request) {

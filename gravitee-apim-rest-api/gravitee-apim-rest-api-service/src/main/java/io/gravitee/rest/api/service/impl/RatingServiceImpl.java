@@ -391,23 +391,21 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 ratingEntity.setAnswers(
                     ratingAnswers
                         .stream()
-                        .map(
-                            ratingAnswer -> {
-                                final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
-                                ratingAnswerEntity.setId(ratingAnswer.getId());
-                                final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
-                                ratingAnswerEntity.setUser(userAnswer.getId());
+                        .map(ratingAnswer -> {
+                            final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
+                            ratingAnswerEntity.setId(ratingAnswer.getId());
+                            final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
+                            ratingAnswerEntity.setUser(userAnswer.getId());
 
-                                if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
-                                    ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
-                                } else {
-                                    ratingAnswerEntity.setUserDisplayName(userAnswer.getEmail());
-                                }
-                                ratingAnswerEntity.setComment(ratingAnswer.getComment());
-                                ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());
-                                return ratingAnswerEntity;
+                            if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
+                                ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
+                            } else {
+                                ratingAnswerEntity.setUserDisplayName(userAnswer.getEmail());
                             }
-                        )
+                            ratingAnswerEntity.setComment(ratingAnswer.getComment());
+                            ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());
+                            return ratingAnswerEntity;
+                        })
                         .sorted(comparing(RatingAnswerEntity::getCreatedAt, reverseOrder()))
                         .collect(toList())
                 );

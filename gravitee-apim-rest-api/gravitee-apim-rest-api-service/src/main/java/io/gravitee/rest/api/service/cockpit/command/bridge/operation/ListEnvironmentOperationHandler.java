@@ -69,24 +69,22 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
             multiReply.setReplies(
                 managedEnvironments
                     .stream()
-                    .map(
-                        environmentEntity -> {
-                            BridgeSimpleReply simpleReply = new BridgeSimpleReply();
-                            simpleReply.setCommandId(bridgeCommand.getId());
-                            simpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
-                            simpleReply.setOrganizationId(environmentEntity.getOrganizationId());
-                            simpleReply.setEnvironmentId(environmentEntity.getId());
-                            simpleReply.setInstallationId(installationService.get().getId());
-                            try {
-                                simpleReply.setPayload(objectMapper.writeValueAsString(environmentEntity));
-                            } catch (JsonProcessingException e) {
-                                logger.warn("Problem while serializing environment {}", environmentEntity.getId());
-                                simpleReply.setMessage("Problem while serializing environment: " + environmentEntity.getId());
-                                simpleReply.setCommandStatus(CommandStatus.ERROR);
-                            }
-                            return simpleReply;
+                    .map(environmentEntity -> {
+                        BridgeSimpleReply simpleReply = new BridgeSimpleReply();
+                        simpleReply.setCommandId(bridgeCommand.getId());
+                        simpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
+                        simpleReply.setOrganizationId(environmentEntity.getOrganizationId());
+                        simpleReply.setEnvironmentId(environmentEntity.getId());
+                        simpleReply.setInstallationId(installationService.get().getId());
+                        try {
+                            simpleReply.setPayload(objectMapper.writeValueAsString(environmentEntity));
+                        } catch (JsonProcessingException e) {
+                            logger.warn("Problem while serializing environment {}", environmentEntity.getId());
+                            simpleReply.setMessage("Problem while serializing environment: " + environmentEntity.getId());
+                            simpleReply.setCommandStatus(CommandStatus.ERROR);
                         }
-                    )
+                        return simpleReply;
+                    })
                     .collect(Collectors.toList())
             );
         } catch (TechnicalManagementException ex) {

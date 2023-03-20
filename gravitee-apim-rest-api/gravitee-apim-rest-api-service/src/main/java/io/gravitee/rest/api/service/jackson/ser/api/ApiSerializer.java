@@ -188,18 +188,16 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     memberEntities
                         .stream()
                         .filter(m -> m.getType() == MembershipMemberType.USER)
-                        .forEach(
-                            m -> {
-                                UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), m.getId());
-                                if (userEntity != null) {
-                                    Member member = new Member();
-                                    member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
-                                    member.setSource(userEntity.getSource());
-                                    member.setSourceId(userEntity.getSourceId());
-                                    members.add(member);
-                                }
+                        .forEach(m -> {
+                            UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), m.getId());
+                            if (userEntity != null) {
+                                Member member = new Member();
+                                member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
+                                member.setSource(userEntity.getSource());
+                                member.setSourceId(userEntity.getSourceId());
+                                members.add(member);
                             }
-                        );
+                        });
                 }
                 jsonGenerator.writeObjectField("members", members);
             }
@@ -214,23 +212,21 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     pages =
                         pages
                             .stream()
-                            .filter(
-                                pageEntity ->
-                                    !pageEntity.getType().equals(PageType.LINK.name()) &&
-                                    !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
-                                    !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name()) &&
-                                    !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
-                                    !pageEntity.getType().equals(PageType.ASCIIDOC.name())
+                            .filter(pageEntity ->
+                                !pageEntity.getType().equals(PageType.LINK.name()) &&
+                                !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
+                                !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name()) &&
+                                !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
+                                !pageEntity.getType().equals(PageType.ASCIIDOC.name())
                             )
                             .collect(Collectors.toList());
                 } else if (this.version().getVersion().equals("3.0")) {
                     pages =
                         pages
                             .stream()
-                            .filter(
-                                pageEntity ->
-                                    !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
-                                    !pageEntity.getType().equals(PageType.ASCIIDOC.name())
+                            .filter(pageEntity ->
+                                !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
+                                !pageEntity.getType().equals(PageType.ASCIIDOC.name())
                             )
                             .collect(Collectors.toList());
                 } else if (this.version().getVersion().equals("3.7")) {

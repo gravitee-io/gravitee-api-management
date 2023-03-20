@@ -97,17 +97,15 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     private Flowable<String> processDictionaryEvents(Flowable<Event> upstream) {
         return upstream
             .groupBy(Event::getType)
-            .flatMap(
-                eventsByType -> {
-                    if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY) {
-                        return eventsByType.compose(this::processDictionaryDeployEvents);
-                    } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY) {
-                        return eventsByType.compose(this::processDictionaryUndeployEvents);
-                    } else {
-                        return Flowable.empty();
-                    }
+            .flatMap(eventsByType -> {
+                if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY) {
+                    return eventsByType.compose(this::processDictionaryDeployEvents);
+                } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY) {
+                    return eventsByType.compose(this::processDictionaryUndeployEvents);
+                } else {
+                    return Flowable.empty();
                 }
-            );
+            });
     }
 
     @NonNull
@@ -125,19 +123,13 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(
-                dictionary -> {
-                    try {
-                        dictionaryManager.deploy(dictionary);
-                    } catch (Exception e) {
-                        logger.error(
-                            "An error occurred when trying to deploy dictionary {} [{}].",
-                            dictionary.getName(),
-                            dictionary.getId()
-                        );
-                    }
+            .doOnNext(dictionary -> {
+                try {
+                    dictionaryManager.deploy(dictionary);
+                } catch (Exception e) {
+                    logger.error("An error occurred when trying to deploy dictionary {} [{}].", dictionary.getName(), dictionary.getId());
                 }
-            )
+            })
             .sequential()
             .map(io.gravitee.gateway.dictionary.model.Dictionary::getId);
     }
@@ -147,15 +139,13 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(
-                dictionaryId -> {
-                    try {
-                        dictionaryManager.undeploy(dictionaryId);
-                    } catch (Exception e) {
-                        logger.error("An error occurred when trying to undeploy dictionary [{}].", dictionaryId);
-                    }
+            .doOnNext(dictionaryId -> {
+                try {
+                    dictionaryManager.undeploy(dictionaryId);
+                } catch (Exception e) {
+                    logger.error("An error occurred when trying to undeploy dictionary [{}].", dictionaryId);
                 }
-            )
+            })
             .sequential();
     }
 

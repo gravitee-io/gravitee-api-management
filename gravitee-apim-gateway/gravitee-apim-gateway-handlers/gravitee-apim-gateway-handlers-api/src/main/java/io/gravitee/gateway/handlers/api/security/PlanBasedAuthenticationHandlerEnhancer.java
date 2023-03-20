@@ -52,30 +52,28 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
         // Look into all plans for required authentication providers.
         api
             .getPlans()
-            .forEach(
-                plan -> {
-                    Optional<AuthenticationHandler> optionalProvider = authenticationHandlers
-                        .stream()
-                        .filter(provider -> provider.name().equalsIgnoreCase(plan.getSecurity()))
-                        .findFirst();
-                    if (optionalProvider.isPresent()) {
-                        AuthenticationHandler provider = optionalProvider.get();
-                        logger.debug(
-                            "Authentication handler [{}] is required by the plan [{}]. Installing...",
-                            provider.name(),
-                            plan.getName()
-                        );
+            .forEach(plan -> {
+                Optional<AuthenticationHandler> optionalProvider = authenticationHandlers
+                    .stream()
+                    .filter(provider -> provider.name().equalsIgnoreCase(plan.getSecurity()))
+                    .findFirst();
+                if (optionalProvider.isPresent()) {
+                    AuthenticationHandler provider = optionalProvider.get();
+                    logger.debug(
+                        "Authentication handler [{}] is required by the plan [{}]. Installing...",
+                        provider.name(),
+                        plan.getName()
+                    );
 
-                        if ("api_key".equals(provider.name())) {
-                            providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan));
-                        } else if ("jwt".equals(provider.name())) {
-                            providers.add(new JwtPlanBasedAuthenticationHandler(provider, plan, subscriptionRepository));
-                        } else {
-                            providers.add(new DefaultPlanBasedAuthenticationHandler(provider, plan));
-                        }
+                    if ("api_key".equals(provider.name())) {
+                        providers.add(new ApiKeyPlanBasedAuthenticationHandler(provider, plan));
+                    } else if ("jwt".equals(provider.name())) {
+                        providers.add(new JwtPlanBasedAuthenticationHandler(provider, plan, subscriptionRepository));
+                    } else {
+                        providers.add(new DefaultPlanBasedAuthenticationHandler(provider, plan));
                     }
                 }
-            );
+            });
 
         if (!providers.isEmpty()) {
             logger.debug("{} requires the following authentication handlers:", api);

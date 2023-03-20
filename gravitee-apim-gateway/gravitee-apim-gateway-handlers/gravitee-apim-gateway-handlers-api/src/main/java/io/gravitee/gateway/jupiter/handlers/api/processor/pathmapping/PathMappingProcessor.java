@@ -46,24 +46,22 @@ public class PathMappingProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                Api api = ctx.getComponent(Api.class);
-                Map<String, Pattern> pathMappings = api.getPathMappings();
-                String path = ctx.request().pathInfo();
-                if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-                    path += '/';
-                }
-                final String finalPath = path;
-                pathMappings
-                    .entrySet()
-                    .stream()
-                    .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-                    .map(Map.Entry::getKey)
-                    .min(comparing(this::countOccurrencesOf))
-                    .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
+        return Completable.fromRunnable(() -> {
+            Api api = ctx.getComponent(Api.class);
+            Map<String, Pattern> pathMappings = api.getPathMappings();
+            String path = ctx.request().pathInfo();
+            if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
+                path += '/';
             }
-        );
+            final String finalPath = path;
+            pathMappings
+                .entrySet()
+                .stream()
+                .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
+                .map(Map.Entry::getKey)
+                .min(comparing(this::countOccurrencesOf))
+                .ifPresent(resolvedMappedPath -> ctx.request().metrics().setMappedPath(resolvedMappedPath));
+        });
     }
 
     private Integer countOccurrencesOf(final String str) {

@@ -125,9 +125,8 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
 
     @Test
     public void shouldFindAllByIdentityProviderId() throws Exception {
-        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId(
-            "oidc"
-        );
+        final Set<IdentityProviderActivation> identityProviderActivations =
+            identityProviderActivationRepository.findAllByIdentityProviderId("oidc");
 
         assertNotNull(identityProviderActivations);
         assertEquals(2, identityProviderActivations.size());
@@ -135,10 +134,11 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
 
     @Test
     public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
-        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByReferenceIdAndReferenceType(
-            "DEFAULT",
-            IdentityProviderActivationReferenceType.ORGANIZATION
-        );
+        final Set<IdentityProviderActivation> identityProviderActivations =
+            identityProviderActivationRepository.findAllByReferenceIdAndReferenceType(
+                "DEFAULT",
+                IdentityProviderActivationReferenceType.ORGANIZATION
+            );
         assertNotNull(identityProviderActivations);
         assertEquals(1, identityProviderActivations.size());
     }

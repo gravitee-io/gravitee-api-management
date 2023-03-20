@@ -319,42 +319,38 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             final List<AlertTrigger> triggers = alertTriggerRepository.findByReferenceAndReferenceId(referenceType.name(), referenceId);
             return triggers
                 .stream()
-                .map(
-                    alertTrigger -> {
-                        AlertTriggerEntity entity = alertTriggerConverter.toAlertTriggerEntity(alertTrigger);
+                .map(alertTrigger -> {
+                    AlertTriggerEntity entity = alertTriggerConverter.toAlertTriggerEntity(alertTrigger);
 
-                        getLastEvent(entity.getId())
-                            .ifPresent(
-                                alertEvent -> {
-                                    entity.setLastAlertAt(alertEvent.getCreatedAt());
-                                    entity.setLastAlertMessage(alertEvent.getMessage());
-                                }
-                            );
+                    getLastEvent(entity.getId())
+                        .ifPresent(alertEvent -> {
+                            entity.setLastAlertAt(alertEvent.getCreatedAt());
+                            entity.setLastAlertMessage(alertEvent.getMessage());
+                        });
 
-                        final Date from = new Date(System.currentTimeMillis());
+                    final Date from = new Date(System.currentTimeMillis());
 
-                        Map<String, Integer> counters = new HashMap<>();
-                        counters.put(
-                            "5m",
-                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime())
-                        );
-                        counters.put(
-                            "1h",
-                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime())
-                        );
-                        counters.put(
-                            "1d",
-                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime())
-                        );
-                        counters.put(
-                            "1M",
-                            countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime())
-                        );
+                    Map<String, Integer> counters = new HashMap<>();
+                    counters.put(
+                        "5m",
+                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime())
+                    );
+                    counters.put(
+                        "1h",
+                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime())
+                    );
+                    counters.put(
+                        "1d",
+                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime())
+                    );
+                    counters.put(
+                        "1M",
+                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime())
+                    );
 
-                        entity.setCounters(counters);
-                        return entity;
-                    }
-                )
+                    entity.setCounters(counters);
+                    return entity;
+                })
                 .sorted(comparing(AlertTriggerEntity::getName))
                 .collect(toList());
         } catch (TechnicalException ex) {
@@ -400,14 +396,12 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         List<AlertEventEntity> alertEvents = alertEventsRepo
             .getContent()
             .stream()
-            .map(
-                alertEventRepo -> {
-                    AlertEventEntity alertEvent = new AlertEventEntity();
-                    alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
-                    alertEvent.setMessage(alertEventRepo.getMessage());
-                    return alertEvent;
-                }
-            )
+            .map(alertEventRepo -> {
+                AlertEventEntity alertEvent = new AlertEventEntity();
+                alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
+                alertEvent.setMessage(alertEventRepo.getMessage());
+                return alertEvent;
+            })
             .collect(toList());
 
         return new Page<>(
@@ -441,34 +435,32 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 if (apiIds != null) {
                     apiIds
                         .stream()
-                        .forEach(
-                            apiId -> {
-                                try {
-                                    boolean create = alertTriggerRepository
-                                        .findByReferenceAndReferenceId(API.name(), apiId)
-                                        .stream()
-                                        .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
+                        .forEach(apiId -> {
+                            try {
+                                boolean create = alertTriggerRepository
+                                    .findByReferenceAndReferenceId(API.name(), apiId)
+                                    .stream()
+                                    .noneMatch(alertTrigger -> alertId.equals(alertTrigger.getParentId()));
 
-                                    if (create) {
-                                        AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(alert);
-                                        AlertTriggerEntity triggerEntity = alertTriggerConverter.toAlertTriggerEntity(trigger);
-                                        triggerEntity.setId(UUID.toString(UUID.random()));
-                                        triggerEntity.setReferenceType(API);
-                                        triggerEntity.setReferenceId(apiId);
-                                        triggerEntity.setTemplate(false);
-                                        triggerEntity.setEnabled(true);
-                                        triggerEntity.setEventRules(null);
-                                        triggerEntity.setParentId(alertId);
-                                        triggerEntity.setCreatedAt(new Date());
-                                        triggerEntity.setUpdatedAt(trigger.getCreatedAt());
+                                if (create) {
+                                    AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(alert);
+                                    AlertTriggerEntity triggerEntity = alertTriggerConverter.toAlertTriggerEntity(trigger);
+                                    triggerEntity.setId(UUID.toString(UUID.random()));
+                                    triggerEntity.setReferenceType(API);
+                                    triggerEntity.setReferenceId(apiId);
+                                    triggerEntity.setTemplate(false);
+                                    triggerEntity.setEnabled(true);
+                                    triggerEntity.setEventRules(null);
+                                    triggerEntity.setParentId(alertId);
+                                    triggerEntity.setCreatedAt(new Date());
+                                    triggerEntity.setUpdatedAt(trigger.getCreatedAt());
 
-                                        create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
-                                    }
-                                } catch (TechnicalException te) {
-                                    LOGGER.error("Unable to create default alert for API {}", apiId, te);
+                                    create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
                                 }
+                            } catch (TechnicalException te) {
+                                LOGGER.error("Unable to create default alert for API {}", apiId, te);
                             }
-                        );
+                        });
                 }
             }
         } catch (TechnicalException te) {
@@ -492,13 +484,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
 
         // Set the email notifier configuration in case
-        notifications.forEach(
-            notification -> {
-                if (NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID.equalsIgnoreCase(notification.getType())) {
-                    setDefaultEmailNotifier(executionContext, notification);
-                }
+        notifications.forEach(notification -> {
+            if (NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID.equalsIgnoreCase(notification.getType())) {
+                setDefaultEmailNotifier(executionContext, notification);
             }
-        );
+        });
 
         // Filters
         List<Filter> filters = trigger.getFilters();
@@ -593,21 +583,19 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 findAll()
                     .stream()
                     .filter(alertTriggerEntity -> !alertTriggerEntity.isTemplate())
-                    .forEach(
-                        alertTriggerEntity -> {
-                            ExecutionContext executionContext = new ExecutionContext(
-                                environmentService.findById(alertTriggerEntity.getEnvironmentId())
-                            );
+                    .forEach(alertTriggerEntity -> {
+                        ExecutionContext executionContext = new ExecutionContext(
+                            environmentService.findById(alertTriggerEntity.getEnvironmentId())
+                        );
 
-                            fillNotificationsAndFilters(
-                                executionContext,
-                                alertTriggerEntity,
-                                alertTriggerEntity.getReferenceType(),
-                                alertTriggerEntity.getReferenceId()
-                            );
-                            triggerOrCancelAlert(alertTriggerEntity);
-                        }
-                    );
+                        fillNotificationsAndFilters(
+                            executionContext,
+                            alertTriggerEntity,
+                            alertTriggerEntity.getReferenceType(),
+                            alertTriggerEntity.getReferenceId()
+                        );
+                        triggerOrCancelAlert(alertTriggerEntity);
+                    });
                 LOGGER.info("Alert triggers synchronized with the alerting system.");
             }
         );
@@ -680,21 +668,19 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             Map<String, Map<String, Object>> values = new HashMap<>();
 
             if (properties != null) {
-                properties.forEach(
-                    (key, value) -> {
-                        switch (key) {
-                            case FIELD_API:
-                                values.put(key, getAPIMetadata(value));
-                                break;
-                            case FIELD_APPLICATION:
-                                values.put(key, getApplicationMetadata(value));
-                                break;
-                            case FIELD_PLAN:
-                                values.put(key, getPlanMetadata(value));
-                                break;
-                        }
+                properties.forEach((key, value) -> {
+                    switch (key) {
+                        case FIELD_API:
+                            values.put(key, getAPIMetadata(value));
+                            break;
+                        case FIELD_APPLICATION:
+                            values.put(key, getApplicationMetadata(value));
+                            break;
+                        case FIELD_PLAN:
+                            values.put(key, getPlanMetadata(value));
+                            break;
                     }
-                );
+                });
             }
 
             return values;

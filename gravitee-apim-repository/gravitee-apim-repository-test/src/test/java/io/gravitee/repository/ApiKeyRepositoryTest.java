@@ -325,9 +325,8 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertTrue(
             apiKeys
                 .stream()
-                .anyMatch(
-                    apiKey ->
-                        apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
+                .anyMatch(apiKey ->
+                    apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
                 )
         );
     }

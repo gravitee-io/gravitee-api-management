@@ -184,42 +184,38 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
-            .forEach(
-                trigger -> {
-                    if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
-                    }
-                    final Optional<Notification> notificationOpt = trigger
-                        .getNotifications()
-                        .stream()
-                        .filter(n -> DEFAULT_EMAIL_NOTIFIER.equals(n.getType()))
-                        .findFirst();
-
-                    if (notificationOpt.isPresent()) {
-                        Notification notification = notificationOpt.get();
-                        try {
-                            ObjectNode configuration = mapper.createObjectNode();
-
-                            JsonNode emailNode = mapper.readTree(notification.getConfiguration());
-                            configuration.put("to", emailNode.path("to").asText() + "," + email);
-                            configuration.put("from", emailNode.path("from").asText());
-                            configuration.put("subject", emailNode.path("subject").asText());
-                            configuration.put("body", emailNode.path("body").asText());
-                            notification.setConfiguration(mapper.writeValueAsString(configuration));
-                        } catch (JsonProcessingException e) {
-                            LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
-                            throw new TechnicalManagementException(
-                                "An error occurs while trying to add a recipient to the Alert notification"
-                            );
-                        }
-                    } else {
-                        trigger.setNotifications(
-                            createNotification(trigger.getType(), singletonList(email), executionContext.getOrganizationId())
-                        );
-                    }
-                    alertService.update(executionContext, convert(trigger));
+            .forEach(trigger -> {
+                if (trigger.getNotifications() == null) {
+                    trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
                 }
-            );
+                final Optional<Notification> notificationOpt = trigger
+                    .getNotifications()
+                    .stream()
+                    .filter(n -> DEFAULT_EMAIL_NOTIFIER.equals(n.getType()))
+                    .findFirst();
+
+                if (notificationOpt.isPresent()) {
+                    Notification notification = notificationOpt.get();
+                    try {
+                        ObjectNode configuration = mapper.createObjectNode();
+
+                        JsonNode emailNode = mapper.readTree(notification.getConfiguration());
+                        configuration.put("to", emailNode.path("to").asText() + "," + email);
+                        configuration.put("from", emailNode.path("from").asText());
+                        configuration.put("subject", emailNode.path("subject").asText());
+                        configuration.put("body", emailNode.path("body").asText());
+                        notification.setConfiguration(mapper.writeValueAsString(configuration));
+                    } catch (JsonProcessingException e) {
+                        LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
+                        throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
+                    }
+                } else {
+                    trigger.setNotifications(
+                        createNotification(trigger.getType(), singletonList(email), executionContext.getOrganizationId())
+                    );
+                }
+                alertService.update(executionContext, convert(trigger));
+            });
     }
 
     @Override
@@ -233,49 +229,45 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
         alertService
             .findByReference(AlertReferenceType.APPLICATION, applicationId)
-            .forEach(
-                trigger -> {
-                    if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
-                    }
+            .forEach(trigger -> {
+                if (trigger.getNotifications() == null) {
+                    trigger.setNotifications(createNotification(trigger.getType(), executionContext.getOrganizationId()));
+                }
 
-                    final Optional<Notification> notificationOpt = trigger
-                        .getNotifications()
-                        .stream()
-                        .filter(n -> DEFAULT_EMAIL_NOTIFIER.equals(n.getType()))
-                        .findFirst();
+                final Optional<Notification> notificationOpt = trigger
+                    .getNotifications()
+                    .stream()
+                    .filter(n -> DEFAULT_EMAIL_NOTIFIER.equals(n.getType()))
+                    .findFirst();
 
-                    if (notificationOpt.isPresent()) {
-                        final Notification notification = notificationOpt.get();
-                        try {
-                            ObjectNode configuration = mapper.createObjectNode();
+                if (notificationOpt.isPresent()) {
+                    final Notification notification = notificationOpt.get();
+                    try {
+                        ObjectNode configuration = mapper.createObjectNode();
 
-                            JsonNode emailNode = mapper.readTree(notification.getConfiguration());
+                        JsonNode emailNode = mapper.readTree(notification.getConfiguration());
 
-                            final String to = Arrays
-                                .stream(emailNode.path("to").asText().split(",|;|\\s"))
-                                .filter(mailTo -> !mailTo.equals(email))
-                                .collect(Collectors.joining(","));
+                        final String to = Arrays
+                            .stream(emailNode.path("to").asText().split(",|;|\\s"))
+                            .filter(mailTo -> !mailTo.equals(email))
+                            .collect(Collectors.joining(","));
 
-                            if (StringUtils.isEmpty(to)) {
-                                trigger.setNotifications(emptyList());
-                            } else {
-                                configuration.put("to", to);
-                                configuration.put("from", emailNode.path("from").asText());
-                                configuration.put("subject", emailNode.path("subject").asText());
-                                configuration.put("body", emailNode.path("body").asText());
-                                notification.setConfiguration(mapper.writeValueAsString(configuration));
-                            }
-                            alertService.update(executionContext, convert(trigger));
-                        } catch (JsonProcessingException e) {
-                            LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
-                            throw new TechnicalManagementException(
-                                "An error occurs while trying to add a recipient to the Alert notification"
-                            );
+                        if (StringUtils.isEmpty(to)) {
+                            trigger.setNotifications(emptyList());
+                        } else {
+                            configuration.put("to", to);
+                            configuration.put("from", emailNode.path("from").asText());
+                            configuration.put("subject", emailNode.path("subject").asText());
+                            configuration.put("body", emailNode.path("body").asText());
+                            notification.setConfiguration(mapper.writeValueAsString(configuration));
                         }
+                        alertService.update(executionContext, convert(trigger));
+                    } catch (JsonProcessingException e) {
+                        LOGGER.error("An error occurs while trying to add a recipient to the Alert notification", e);
+                        throw new TechnicalManagementException("An error occurs while trying to add a recipient to the Alert notification");
                     }
                 }
-            );
+            });
     }
 
     @Override
@@ -338,15 +330,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         // apply new recipients to each AlertTrigger related to applications to update
         alertService
             .findByReferences(AlertReferenceType.APPLICATION, new ArrayList<>(applicationIds))
-            .forEach(
-                trigger -> {
-                    if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType(), organizationId));
-                    }
-
-                    updateTriggerNotification(executionContext, trigger, recipientsByApplicationId.get(trigger.getReferenceId()));
+            .forEach(trigger -> {
+                if (trigger.getNotifications() == null) {
+                    trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                 }
-            );
+
+                updateTriggerNotification(executionContext, trigger, recipientsByApplicationId.get(trigger.getReferenceId()));
+            });
     }
 
     private void updateAllAlertsBody(String organizationId, String type, String body, String subject) {
@@ -358,15 +348,13 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .findByReferences(AlertReferenceType.APPLICATION, List.copyOf(ids))
             .stream()
             .filter(alert -> alert.getType().equals(type))
-            .forEach(
-                trigger -> {
-                    if (trigger.getNotifications() == null) {
-                        trigger.setNotifications(createNotification(trigger.getType(), organizationId));
-                    }
-
-                    updateTriggerNotification(executionContext, trigger, body, subject);
+            .forEach(trigger -> {
+                if (trigger.getNotifications() == null) {
+                    trigger.setNotifications(createNotification(trigger.getType(), organizationId));
                 }
-            );
+
+                updateTriggerNotification(executionContext, trigger, body, subject);
+            });
     }
 
     private String generateAlertName(ApplicationEntity application, NewAlertTriggerEntity alert) {
@@ -381,17 +369,15 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .collect(Collectors.toList());
 
         if (!CollectionUtils.isEmpty(groupIds)) {
-            groupIds.forEach(
-                group -> {
-                    members.addAll(
-                        membershipService
-                            .getMembershipsByReference(MembershipReferenceType.GROUP, group)
-                            .stream()
-                            .map(MembershipEntity::getMemberId)
-                            .collect(Collectors.toList())
-                    );
-                }
-            );
+            groupIds.forEach(group -> {
+                members.addAll(
+                    membershipService
+                        .getMembershipsByReference(MembershipReferenceType.GROUP, group)
+                        .stream()
+                        .map(MembershipEntity::getMemberId)
+                        .collect(Collectors.toList())
+                );
+            });
         }
 
         return userService
@@ -446,26 +432,24 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .stream()
             .filter(n -> DEFAULT_EMAIL_NOTIFIER.equals(n.getType()))
             .findFirst()
-            .ifPresent(
-                notification -> {
-                    try {
-                        ObjectNode configuration = mapper.createObjectNode();
+            .ifPresent(notification -> {
+                try {
+                    ObjectNode configuration = mapper.createObjectNode();
 
-                        JsonNode emailNode = mapper.readTree(notification.getConfiguration());
+                    JsonNode emailNode = mapper.readTree(notification.getConfiguration());
 
-                        configuration.put("to", recipients == null ? emailNode.path("to").asText() : String.join(",", recipients));
-                        configuration.put("from", emailNode.path("from").asText());
-                        configuration.put("subject", subject == null ? emailNode.path("subject").asText() : subject);
-                        configuration.put("body", body == null ? emailNode.path("body").asText() : body);
-                        notification.setConfiguration(mapper.writeValueAsString(configuration));
+                    configuration.put("to", recipients == null ? emailNode.path("to").asText() : String.join(",", recipients));
+                    configuration.put("from", emailNode.path("from").asText());
+                    configuration.put("subject", subject == null ? emailNode.path("subject").asText() : subject);
+                    configuration.put("body", body == null ? emailNode.path("body").asText() : body);
+                    notification.setConfiguration(mapper.writeValueAsString(configuration));
 
-                        alertService.update(executionContext, convert(trigger));
-                    } catch (JsonProcessingException e) {
-                        LOGGER.error("An error occurs while trying to update Alert notification", e);
-                        throw new TechnicalManagementException("An error occurs while trying to update Alert notification");
-                    }
+                    alertService.update(executionContext, convert(trigger));
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("An error occurs while trying to update Alert notification", e);
+                    throw new TechnicalManagementException("An error occurs while trying to update Alert notification");
                 }
-            );
+            });
     }
 
     private UpdateAlertTriggerEntity convert(AlertTriggerEntity trigger) {

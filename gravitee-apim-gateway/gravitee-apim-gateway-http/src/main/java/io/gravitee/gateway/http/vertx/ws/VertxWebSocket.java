@@ -112,12 +112,10 @@ class VertxWebSocket implements WebSocket {
     @Override
     public WebSocket closeHandler(Handler<Void> closeHandler) {
         if (upgraded) {
-            websocket.closeHandler(
-                event -> {
-                    closed = true;
-                    closeHandler.handle(event);
-                }
-            );
+            websocket.closeHandler(event -> {
+                closed = true;
+                closeHandler.handle(event);
+            });
         }
         return this;
     }

@@ -99,19 +99,17 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             api
                 .getProxy()
                 .getVirtualHosts()
-                .forEach(
-                    virtualHost -> {
-                        doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
-                        doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
-                        if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
-                            doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
-                            doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
-                        }
-                        if (pathIndex[0]++ == 0) {
-                            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
-                        }
+                .forEach(virtualHost -> {
+                    doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
+                    doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
+                    if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
+                        doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
+                        doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
                     }
-                );
+                    if (pathIndex[0]++ == 0) {
+                        doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(virtualHost.getPath()))));
+                    }
+                });
         }
 
         // labels
@@ -151,12 +149,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             api
                 .getMetadata()
                 .values()
-                .forEach(
-                    metadataValue -> {
-                        doc.add(new StringField(FIELD_METADATA, metadataValue.toString(), Field.Store.NO));
-                        doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue.toString(), Field.Store.NO));
-                    }
-                );
+                .forEach(metadataValue -> {
+                    doc.add(new StringField(FIELD_METADATA, metadataValue.toString(), Field.Store.NO));
+                    doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue.toString(), Field.Store.NO));
+                });
         }
 
         return doc;

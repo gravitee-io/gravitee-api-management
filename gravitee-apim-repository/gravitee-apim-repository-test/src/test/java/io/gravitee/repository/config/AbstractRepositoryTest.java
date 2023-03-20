@@ -217,8 +217,8 @@ public abstract class AbstractRepositoryTest {
 
         final File file = new File(AbstractRepositoryTest.class.getResource(getTestCasesPath()).toURI());
 
-        final File[] collectionsDumps = file.listFiles(
-            pathname -> pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
+        final File[] collectionsDumps = file.listFiles(pathname ->
+            pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
         );
         for (final File collectionsDump : asList(collectionsDumps)
             .stream()

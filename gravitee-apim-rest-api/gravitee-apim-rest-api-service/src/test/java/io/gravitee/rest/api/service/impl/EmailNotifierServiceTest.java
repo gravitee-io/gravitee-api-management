@@ -101,11 +101,10 @@ public class EmailNotifierServiceTest {
                 verify(mockEmailService, times(1))
                     .sendAsyncEmailNotification(
                         eq(GraviteeContext.getExecutionContext()),
-                        argThat(
-                            notification ->
-                                notification.getTo() != null &&
-                                notification.getTo().length == 1 &&
-                                notification.getTo()[0].equals("test@mail.com")
+                        argThat(notification ->
+                            notification.getTo() != null &&
+                            notification.getTo().length == 1 &&
+                            notification.getTo()[0].equals("test@mail.com")
                         )
                     );
                 verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -130,11 +129,8 @@ public class EmailNotifierServiceTest {
             verify(mockEmailService, times(1))
                 .sendAsyncEmailNotification(
                     eq(GraviteeContext.getExecutionContext()),
-                    argThat(
-                        notification ->
-                            notification.getTo() != null &&
-                            notification.getTo().length == 1 &&
-                            notification.getTo()[0].equals("test@mail.com")
+                    argThat(notification ->
+                        notification.getTo() != null && notification.getTo().length == 1 && notification.getTo()[0].equals("test@mail.com")
                     )
                 );
             verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -152,11 +148,10 @@ public class EmailNotifierServiceTest {
                 verify(mockEmailService, times(1))
                     .sendAsyncEmailNotification(
                         eq(GraviteeContext.getExecutionContext()),
-                        argThat(
-                            notification ->
-                                notification.getTo() != null &&
-                                notification.getTo().length == 1 &&
-                                notification.getTo()[0].equals("test@mail.com")
+                        argThat(notification ->
+                            notification.getTo() != null &&
+                            notification.getTo().length == 1 &&
+                            notification.getTo()[0].equals("test@mail.com")
                         )
                     );
                 verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -189,12 +184,11 @@ public class EmailNotifierServiceTest {
             verify(mockEmailService, times(1))
                 .sendAsyncEmailNotification(
                     eq(GraviteeContext.getExecutionContext()),
-                    argThat(
-                        notification ->
-                            notification.getTo() != null &&
-                            notification.getTo().length == 2 &&
-                            notification.getTo()[0].equals("test@mail.com") &&
-                            notification.getTo()[1].equals("primary@owner.com")
+                    argThat(notification ->
+                        notification.getTo() != null &&
+                        notification.getTo().length == 2 &&
+                        notification.getTo()[0].equals("test@mail.com") &&
+                        notification.getTo()[1].equals("primary@owner.com")
                     )
                 );
             verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());

@@ -86,16 +86,14 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
 
         apiDefinition
             .getPlans()
-            .forEach(
-                apiDefinitionPlan -> {
-                    if (
-                        apiDefinitionPlan.getFlows() != null &&
-                        !apiDefinitionPlan.getFlows().isEmpty() &&
-                        plansById.containsKey(apiDefinitionPlan.getId())
-                    ) {
-                        flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
-                    }
+            .forEach(apiDefinitionPlan -> {
+                if (
+                    apiDefinitionPlan.getFlows() != null &&
+                    !apiDefinitionPlan.getFlows().isEmpty() &&
+                    plansById.containsKey(apiDefinitionPlan.getId())
+                ) {
+                    flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
                 }
-            );
+            });
     }
 }

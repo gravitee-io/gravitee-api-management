@@ -489,16 +489,15 @@ public class UserServiceTest {
 
         verify(userRepository)
             .create(
-                argThat(
-                    userToCreate ->
-                        USER_NAME.equals(userToCreate.getSourceId()) &&
-                        USER_SOURCE.equals(userToCreate.getSource()) &&
-                        EMAIL.equals(userToCreate.getEmail()) &&
-                        FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                        LAST_NAME.equals(userToCreate.getLastname()) &&
-                        userToCreate.getCreatedAt() != null &&
-                        userToCreate.getUpdatedAt() != null &&
-                        userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())
+                argThat(userToCreate ->
+                    USER_NAME.equals(userToCreate.getSourceId()) &&
+                    USER_SOURCE.equals(userToCreate.getSource()) &&
+                    EMAIL.equals(userToCreate.getEmail()) &&
+                    FIRST_NAME.equals(userToCreate.getFirstname()) &&
+                    LAST_NAME.equals(userToCreate.getLastname()) &&
+                    userToCreate.getCreatedAt() != null &&
+                    userToCreate.getUpdatedAt() != null &&
+                    userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())
                 )
             );
 
@@ -571,14 +570,13 @@ public class UserServiceTest {
 
         verify(userRepository)
             .update(
-                argThat(
-                    userToUpdate ->
-                        USER_ID.equals(userToUpdate.getId()) &&
-                        GIO_SOURCE.equals(userToUpdate.getSource()) &&
-                        USER_EMAIL.equals(userToUpdate.getEmail()) &&
-                        USER_EMAIL.equals(userToUpdate.getSourceId()) && // update of sourceId authorized for gravitee source
-                        UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
-                        UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
+                argThat(userToUpdate ->
+                    USER_ID.equals(userToUpdate.getId()) &&
+                    GIO_SOURCE.equals(userToUpdate.getSource()) &&
+                    USER_EMAIL.equals(userToUpdate.getEmail()) &&
+                    USER_EMAIL.equals(userToUpdate.getSourceId()) && // update of sourceId authorized for gravitee source
+                    UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
+                    UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
                 )
             );
     }
@@ -620,14 +618,13 @@ public class UserServiceTest {
 
         verify(userRepository)
             .update(
-                argThat(
-                    userToUpdate ->
-                        USER_ID.equals(userToUpdate.getId()) &&
-                        SOURCE.equals(userToUpdate.getSource()) &&
-                        USER_EMAIL.equals(userToUpdate.getEmail()) &&
-                        USER_ID.equals(userToUpdate.getSourceId()) && //sourceId shouldn't be updated in this case
-                        UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
-                        UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
+                argThat(userToUpdate ->
+                    USER_ID.equals(userToUpdate.getId()) &&
+                    SOURCE.equals(userToUpdate.getSource()) &&
+                    USER_EMAIL.equals(userToUpdate.getEmail()) &&
+                    USER_ID.equals(userToUpdate.getSourceId()) && //sourceId shouldn't be updated in this case
+                    UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
+                    UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
                 )
             );
     }
@@ -895,12 +892,11 @@ public class UserServiceTest {
 
         verify(userRepository)
             .update(
-                argThat(
-                    userToCreate ->
-                        "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
-                        EMAIL.equals(userToCreate.getEmail()) &&
-                        FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                        LAST_NAME.equals(userToCreate.getLastname())
+                argThat(userToCreate ->
+                    "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
+                    EMAIL.equals(userToCreate.getEmail()) &&
+                    FIRST_NAME.equals(userToCreate.getFirstname()) &&
+                    LAST_NAME.equals(userToCreate.getLastname())
                 )
             );
     }
@@ -1107,23 +1103,21 @@ public class UserServiceTest {
         verify(userMetadataService)
             .update(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    entity ->
-                        entity.getKey().equals(existingField.getKey()) &&
-                        entity.getName().equals(existingField.getName()) &&
-                        entity.getUserId().equals(existingField.getUserId()) &&
-                        entity.getValue().equals(toUpdate.getCustomFields().get(existingField.getKey()))
+                argThat(entity ->
+                    entity.getKey().equals(existingField.getKey()) &&
+                    entity.getName().equals(existingField.getName()) &&
+                    entity.getUserId().equals(existingField.getUserId()) &&
+                    entity.getValue().equals(toUpdate.getCustomFields().get(existingField.getKey()))
                 )
             );
 
         verify(userMetadataService)
             .create(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    entity ->
-                        entity.getName().equals("fieldToCreate") &&
-                        entity.getUserId().equals(existingField.getUserId()) &&
-                        entity.getValue().equals(toUpdate.getCustomFields().get("fieldToCreate"))
+                argThat(entity ->
+                    entity.getName().equals("fieldToCreate") &&
+                    entity.getUserId().equals(existingField.getUserId()) &&
+                    entity.getValue().equals(toUpdate.getCustomFields().get("fieldToCreate"))
                 )
             );
     }
@@ -1534,10 +1528,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1549,10 +1542,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1564,10 +1556,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1579,10 +1570,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             )
@@ -1598,10 +1588,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1611,10 +1600,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1624,10 +1612,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1637,10 +1624,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1650,10 +1636,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             );
@@ -1714,10 +1699,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1729,10 +1713,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1744,10 +1727,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
@@ -1759,10 +1741,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             )
@@ -1778,10 +1759,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1791,10 +1771,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1804,10 +1783,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1817,10 +1795,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             );
@@ -1830,10 +1807,9 @@ public class UserServiceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(
-                    roles ->
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             );

@@ -97,64 +97,56 @@ public class PolicyAdapter implements Policy {
     }
 
     private Completable policyExecute(RequestExecutionContext ctx) {
-        return Completable.create(
-            emitter -> {
-                try {
-                    policy.execute(new PolicyChainAdapter(ctx, emitter), ExecutionContextAdapter.create(ctx));
-                } catch (Throwable t) {
-                    emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
-                }
+        return Completable.create(emitter -> {
+            try {
+                policy.execute(new PolicyChainAdapter(ctx, emitter), ExecutionContextAdapter.create(ctx));
+            } catch (Throwable t) {
+                emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
             }
-        );
+        });
     }
 
     private Completable policyStream(RequestExecutionContext ctx, ExecutionPhase phase) {
-        return Completable.create(
-            emitter -> {
-                try {
-                    // Invoke the policy to get the appropriate read/write stream.
-                    final ReadWriteStream<Buffer> stream = policy.stream(
-                        new PolicyChainAdapter(ctx, emitter),
-                        ExecutionContextAdapter.create(ctx)
-                    );
+        return Completable.create(emitter -> {
+            try {
+                // Invoke the policy to get the appropriate read/write stream.
+                final ReadWriteStream<Buffer> stream = policy.stream(
+                    new PolicyChainAdapter(ctx, emitter),
+                    ExecutionContextAdapter.create(ctx)
+                );
 
-                    if (stream == null) {
-                        // Null stream means that the policy does nothing.
+                if (stream == null) {
+                    // Null stream means that the policy does nothing.
+                    emitter.onComplete();
+                } else {
+                    final AtomicBoolean hasBody = new AtomicBoolean(false);
+                    final Buffer newBuffer = Buffer.buffer();
+                    // Add a body handler to capture all the chunks eventually written by the policy.
+                    stream.bodyHandler(buffer -> {
+                        newBuffer.appendBuffer(buffer);
+                        hasBody.set(true);
+                    });
+
+                    // Add an end handler to capture end of the legacy stream and continue the reactive chain.
+                    stream.endHandler(result -> {
+                        if (hasBody.get()) {
+                            // Replace the chunks of the request or response if not interrupted.
+                            setBody(ctx, phase, newBuffer);
+                        }
                         emitter.onComplete();
-                    } else {
-                        final AtomicBoolean hasBody = new AtomicBoolean(false);
-                        final Buffer newBuffer = Buffer.buffer();
-                        // Add a body handler to capture all the chunks eventually written by the policy.
-                        stream.bodyHandler(
-                            buffer -> {
-                                newBuffer.appendBuffer(buffer);
-                                hasBody.set(true);
-                            }
-                        );
+                    });
 
-                        // Add an end handler to capture end of the legacy stream and continue the reactive chain.
-                        stream.endHandler(
-                            result -> {
-                                if (hasBody.get()) {
-                                    // Replace the chunks of the request or response if not interrupted.
-                                    setBody(ctx, phase, newBuffer);
-                                }
-                                emitter.onComplete();
-                            }
-                        );
-
-                        getBody(ctx, phase)
-                            .doOnSuccess(stream::write)
-                            .doFinally(stream::end)
-                            .doOnError(emitter::tryOnError)
-                            .onErrorResumeNext(s -> {})
-                            .subscribe();
-                    }
-                } catch (Throwable t) {
-                    emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
+                    getBody(ctx, phase)
+                        .doOnSuccess(stream::write)
+                        .doFinally(stream::end)
+                        .doOnError(emitter::tryOnError)
+                        .onErrorResumeNext(s -> {})
+                        .subscribe();
                 }
+            } catch (Throwable t) {
+                emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));
             }
-        );
+        });
     }
 
     private Maybe<Buffer> getBody(RequestExecutionContext ctx, ExecutionPhase phase) {

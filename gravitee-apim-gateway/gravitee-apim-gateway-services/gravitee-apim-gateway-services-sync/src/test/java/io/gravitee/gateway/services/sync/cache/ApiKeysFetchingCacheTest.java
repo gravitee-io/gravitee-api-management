@@ -188,13 +188,11 @@ public class ApiKeysFetchingCacheTest {
         subscription.setStatus(ACCEPTED);
 
         when(apiKeyRepository.findByKeyAndApi("key-id", "api-id6"))
-            .thenAnswer(
-                invocation -> {
-                    // api key repository takes 1 second to search api key
-                    Thread.sleep(1_000);
-                    return Optional.of(apiKey);
-                }
-            );
+            .thenAnswer(invocation -> {
+                // api key repository takes 1 second to search api key
+                Thread.sleep(1_000);
+                return Optional.of(apiKey);
+            });
 
         ArgumentCaptor<SubscriptionCriteria> criteriaArgumentCaptor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
         when(subscriptionRepository.search(criteriaArgumentCaptor.capture())).thenReturn(List.of(subscription));
@@ -203,30 +201,26 @@ public class ApiKeysFetchingCacheTest {
         CompletableFuture<Optional<ApiKey>> futures[] = new CompletableFuture[100];
         for (int i = 0; i < 100; i++) {
             futures[i] =
-                CompletableFuture.supplyAsync(
-                    () -> {
-                        try {
-                            return apiKeysCache.get("api-id6", "key-id");
-                        } catch (TechnicalException e) {
-                            throw new RuntimeException(e);
-                        }
+                CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return apiKeysCache.get("api-id6", "key-id");
+                    } catch (TechnicalException e) {
+                        throw new RuntimeException(e);
                     }
-                );
+                });
         }
 
         // ensure 100 calls have returned the same API key
         CompletableFuture
             .allOf(futures)
-            .thenAccept(
-                v -> {
-                    for (int i = 1; i < 100; i++) {
-                        Optional<ApiKey> result = futures[i].join();
-                        assertTrue(result.isPresent());
-                        assertEquals("my-test-api-key", result.get().getId());
-                        assertSame(result.get(), apiKeysCache.cache.get("api-id6.key-id").get());
-                    }
+            .thenAccept(v -> {
+                for (int i = 1; i < 100; i++) {
+                    Optional<ApiKey> result = futures[i].join();
+                    assertTrue(result.isPresent());
+                    assertEquals("my-test-api-key", result.get().getId());
+                    assertSame(result.get(), apiKeysCache.cache.get("api-id6.key-id").get());
                 }
-            )
+            })
             .join();
 
         // ensure repository have been called only once during 100 calls

@@ -497,20 +497,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             return apiKeyRepository
                 .findById(apiKeyEntity.getId())
-                .map(
-                    dbApiKey -> {
-                        dbApiKey.setDaysToExpirationOnLastNotification(value);
-                        try {
-                            return apiKeyRepository.update(dbApiKey);
-                        } catch (TechnicalException ex) {
-                            LOGGER.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
-                            throw new TechnicalManagementException(
-                                String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
-                                ex
-                            );
-                        }
+                .map(dbApiKey -> {
+                    dbApiKey.setDaysToExpirationOnLastNotification(value);
+                    try {
+                        return apiKeyRepository.update(dbApiKey);
+                    } catch (TechnicalException ex) {
+                        LOGGER.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
+                            ex
+                        );
                     }
-                )
+                })
                 .map(apiKey -> convert(executionContext, apiKey))
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException ex) {
@@ -664,23 +662,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         key
             .getSubscriptions()
-            .forEach(
-                subscription -> {
-                    Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-                    properties.put(API_KEY, key.getKey());
-                    properties.put(API, subscription.getApi());
-                    properties.put(APPLICATION, key.getApplication().getId());
-                    auditService.createApiAuditLog(
-                        executionContext,
-                        subscription.getApi(),
-                        properties,
-                        event,
-                        eventDate,
-                        previousApiKey,
-                        key
-                    );
-                }
-            );
+            .forEach(subscription -> {
+                Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+                properties.put(API_KEY, key.getKey());
+                properties.put(API, subscription.getApi());
+                properties.put(APPLICATION, key.getApplication().getId());
+                auditService.createApiAuditLog(executionContext, subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+            });
     }
 
     private void triggerNotifierService(
@@ -712,14 +700,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         Set<SubscriptionEntity> subscriptions,
         NotificationParamsBuilder paramsBuilder
     ) {
-        subscriptions.forEach(
-            subscription -> {
-                PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
-                ApiModelEntity api = apiService.findByIdForTemplates(executionContext, subscription.getApi());
-                PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
-                notifierService.trigger(executionContext, apiHook, api.getId(), params);
-            }
-        );
+        subscriptions.forEach(subscription -> {
+            PlanEntity plan = planService.findById(executionContext, subscription.getPlan());
+            ApiModelEntity api = apiService.findByIdForTemplates(executionContext, subscription.getApi());
+            PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
+            notifierService.trigger(executionContext, apiHook, api.getId(), params);
+        });
     }
 }

@@ -170,20 +170,14 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                     // Prepare tasks
                     final List<Callable<Result<Boolean>>> callables = chunks
                         .stream()
-                        .map(
-                            chunk -> {
-                                IncrementalApiKeyRefresher refresher = new IncrementalApiKeyRefresher(
-                                    lastRefreshAt,
-                                    nextLastRefreshAt,
-                                    chunk
-                                );
-                                refresher.setApiKeyRepository(apiKeyRepository);
-                                refresher.setSubscriptionRepository(subscriptionRepository);
-                                refresher.setCache(buildApiKeysCache());
+                        .map(chunk -> {
+                            IncrementalApiKeyRefresher refresher = new IncrementalApiKeyRefresher(lastRefreshAt, nextLastRefreshAt, chunk);
+                            refresher.setApiKeyRepository(apiKeyRepository);
+                            refresher.setSubscriptionRepository(subscriptionRepository);
+                            refresher.setCache(buildApiKeysCache());
 
-                                return refresher;
-                            }
-                        )
+                            return refresher;
+                        })
                         .collect(Collectors.toList());
 
                     // And run...
@@ -192,17 +186,15 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
                         boolean failure = futures
                             .stream()
-                            .anyMatch(
-                                resultFuture -> {
-                                    try {
-                                        return resultFuture.get().failed();
-                                    } catch (Exception e) {
-                                        LOGGER.error("Unexpected error while running the api-keys refresher", e);
-                                    }
-
-                                    return false;
+                            .anyMatch(resultFuture -> {
+                                try {
+                                    return resultFuture.get().failed();
+                                } catch (Exception e) {
+                                    LOGGER.error("Unexpected error while running the api-keys refresher", e);
                                 }
-                            );
+
+                                return false;
+                            });
 
                         // If there is no failure, move to the next period of time
                         if (!failure) {
@@ -267,22 +259,20 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         final Map<String, Set<String>> plansByApi = apis
             .stream()
             .filter(Api::isEnabled)
-            .map(
-                api ->
-                    new AbstractMap.SimpleEntry<>(
-                        api.getId(),
-                        api
-                            .getPlans()
-                            .stream()
-                            .filter(
-                                plan ->
-                                    io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY
-                                        .name()
-                                        .equalsIgnoreCase(plan.getSecurity())
-                            )
-                            .map(Plan::getId)
-                            .collect(Collectors.toSet())
-                    )
+            .map(api ->
+                new AbstractMap.SimpleEntry<>(
+                    api.getId(),
+                    api
+                        .getPlans()
+                        .stream()
+                        .filter(plan ->
+                            io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY
+                                .name()
+                                .equalsIgnoreCase(plan.getSecurity())
+                        )
+                        .map(Plan::getId)
+                        .collect(Collectors.toSet())
+                )
             )
             // Remove if no plan.
             .filter(e -> !e.getValue().isEmpty())
@@ -300,28 +290,26 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
                 CompletableFuture
                     .supplyAsync(refresher::call, executorService)
-                    .whenComplete(
-                        (result, throwable) -> {
-                            if (throwable != null) {
-                                // An error occurs, we must try to full refresh again
-                                register(apis);
+                    .whenComplete((result, throwable) -> {
+                        if (throwable != null) {
+                            // An error occurs, we must try to full refresh again
+                            register(apis);
+                        } else {
+                            // Once we are sure that the initial full refresh is a success, we cn move the plans to an incremental refresh
+                            if (result.succeeded()) {
+                                // Attach the plans to the global list
+                                plansPerApi.putAll(plansByApi);
                             } else {
-                                // Once we are sure that the initial full refresh is a success, we cn move the plans to an incremental refresh
-                                if (result.succeeded()) {
-                                    // Attach the plans to the global list
-                                    plansPerApi.putAll(plansByApi);
-                                } else {
-                                    LOGGER.error(
-                                        "An error occurs while doing a full api-keys refresh for APIs [{}]",
-                                        apisById.keySet(),
-                                        result.cause()
-                                    );
-                                    // If not, try to fully refresh again
-                                    register(apis);
-                                }
+                                LOGGER.error(
+                                    "An error occurs while doing a full api-keys refresh for APIs [{}]",
+                                    apisById.keySet(),
+                                    result.cause()
+                                );
+                                // If not, try to fully refresh again
+                                register(apis);
                             }
                         }
-                    );
+                    });
             } else {
                 // Keep track of all the plans to ensure that, once the node is becoming a master node, we are able
                 // to run incremental refresh for all the plans

@@ -51,20 +51,18 @@ public class DictionaryRefresher implements Handler<Long> {
 
         provider
             .get()
-            .whenComplete(
-                (dynamicProperties, throwable) -> {
-                    if (throwable != null) {
-                        logger.error(
-                            "[{}] Unexpected error while getting dictionary's properties from provider: {}",
-                            dictionary.getId(),
-                            provider.name(),
-                            throwable
-                        );
-                    } else if (dynamicProperties != null) {
-                        updateDictionary(dynamicProperties);
-                    }
+            .whenComplete((dynamicProperties, throwable) -> {
+                if (throwable != null) {
+                    logger.error(
+                        "[{}] Unexpected error while getting dictionary's properties from provider: {}",
+                        dictionary.getId(),
+                        provider.name(),
+                        throwable
+                    );
+                } else if (dynamicProperties != null) {
+                    updateDictionary(dynamicProperties);
                 }
-            );
+            });
     }
 
     private void updateDictionary(Collection<DynamicProperty> dynProperties) {

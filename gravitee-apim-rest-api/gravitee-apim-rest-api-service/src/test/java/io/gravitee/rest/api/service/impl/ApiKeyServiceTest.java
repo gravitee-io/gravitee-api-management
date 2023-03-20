@@ -1083,12 +1083,11 @@ public class ApiKeyServiceTest {
         // the new key has been updated with 3 subscriptions from expired keys
         verify(apiKeyRepository, times(1))
             .update(
-                argThat(
-                    apiKey ->
-                        apiKey.getId().equals("apiKey-X") &&
-                        apiKey.getSubscriptions().contains("sub1") &&
-                        apiKey.getSubscriptions().contains("sub2") &&
-                        apiKey.getSubscriptions().contains("sub3")
+                argThat(apiKey ->
+                    apiKey.getId().equals("apiKey-X") &&
+                    apiKey.getSubscriptions().contains("sub1") &&
+                    apiKey.getSubscriptions().contains("sub2") &&
+                    apiKey.getSubscriptions().contains("sub3")
                 )
             );
     }

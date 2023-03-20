@@ -88,7 +88,7 @@ public class ApiAuditResource extends AbstractResource {
     public Response getApiAuditEvents() {
         if (events.isEmpty()) {
             Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model")
-            .getSubTypesOf(Audit.ApiAuditEvent.class);
+                .getSubTypesOf(Audit.ApiAuditEvent.class);
             for (Class<? extends Audit.ApiAuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
                     events.addAll(Arrays.asList(clazz.getEnumConstants()));

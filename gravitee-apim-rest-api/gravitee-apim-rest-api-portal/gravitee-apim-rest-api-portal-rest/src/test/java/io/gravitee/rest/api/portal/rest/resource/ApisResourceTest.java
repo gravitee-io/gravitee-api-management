@@ -527,15 +527,13 @@ public class ApisResourceTest extends AbstractResourceTest {
         return apiResponse
             .getData()
             .stream()
-            .map(
-                api -> {
-                    if (api.getLabels() != null) {
-                        return api.getLabels().size();
-                    } else {
-                        return 0;
-                    }
+            .map(api -> {
+                if (api.getLabels() != null) {
+                    return api.getLabels().size();
+                } else {
+                    return 0;
                 }
-            )
+            })
             .max(Comparator.comparingInt(i -> i))
             .orElse(0);
     }

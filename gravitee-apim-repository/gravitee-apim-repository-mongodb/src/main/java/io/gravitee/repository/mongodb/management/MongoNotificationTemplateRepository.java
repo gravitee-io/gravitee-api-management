@@ -182,12 +182,13 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
     ) throws TechnicalException {
         LOGGER.debug("Find all notificationTemplates by environment");
 
-        List<NotificationTemplateMongo> notificationTemplates = internalNotificationTemplateRepo.findByHookAndScopeAndReferenceIdAndReferenceType(
-            hook,
-            scope,
-            referenceId,
-            referenceType.name()
-        );
+        List<NotificationTemplateMongo> notificationTemplates =
+            internalNotificationTemplateRepo.findByHookAndScopeAndReferenceIdAndReferenceType(
+                hook,
+                scope,
+                referenceId,
+                referenceType.name()
+            );
         Set<NotificationTemplate> res = mapper.collection2set(
             notificationTemplates,
             NotificationTemplateMongo.class,

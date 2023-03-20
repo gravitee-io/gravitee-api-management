@@ -56,18 +56,16 @@ public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
 
-                    List<String> cookieHeaders = response.headers().getAll(HttpHeaderNames.SET_COOKIE);
-                    assertThat(cookieHeaders).hasSize(2);
-                    assertThat(cookieHeaders.get(0)).isEqualTo(cookie1);
-                    assertThat(cookieHeaders.get(1)).isEqualTo(cookie2);
+                List<String> cookieHeaders = response.headers().getAll(HttpHeaderNames.SET_COOKIE);
+                assertThat(cookieHeaders).hasSize(2);
+                assertThat(cookieHeaders.get(0)).isEqualTo(cookie1);
+                assertThat(cookieHeaders.get(1)).isEqualTo(cookie2);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         obs.assertNoErrors();
         wiremock.verify(getRequestedFor(urlPathEqualTo(ENDPOINT)));
     }
@@ -80,14 +78,12 @@ public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains("custom")).isTrue();
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains("custom")).isTrue();
 
-                    return true;
-                }
-            );
+                return true;
+            });
         obs.assertNoErrors();
         wiremock.verify(getRequestedFor(urlPathEqualTo(ENDPOINT)));
     }

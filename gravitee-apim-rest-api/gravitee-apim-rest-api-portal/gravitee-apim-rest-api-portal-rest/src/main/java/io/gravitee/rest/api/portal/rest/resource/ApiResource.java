@@ -193,47 +193,43 @@ public class ApiResource extends AbstractResource {
             )
             .stream()
             .filter(PageEntity::isPublished)
-            .forEach(
-                sysPage -> {
-                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+            .forEach(sysPage -> {
+                List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                    // for pages under sysFolder
-                    List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
-                    if (!links.isEmpty()) {
-                        CategorizedLinks catLinks = new CategorizedLinks();
-                        catLinks.setCategory(sysPage.getName());
-                        catLinks.setLinks(links);
-                        catLinks.setRoot(true);
-                        catLinksList.add(catLinks);
-                    }
-
-                    // for pages into folders
-                    pageService
-                        .search(
-                            GraviteeContext.getCurrentEnvironment(),
-                            new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(),
-                            acceptedLocale
-                        )
-                        .stream()
-                        .filter(PageEntity::isPublished)
-                        .filter(p -> p.getType().equals("FOLDER"))
-                        .forEach(
-                            folder -> {
-                                List<Link> folderLinks = getLinksFromFolder(folder, apiId, acceptedLocale);
-                                if (folderLinks != null && !folderLinks.isEmpty()) {
-                                    CategorizedLinks catLinks = new CategorizedLinks();
-                                    catLinks.setCategory(folder.getName());
-                                    catLinks.setLinks(folderLinks);
-                                    catLinks.setRoot(false);
-                                    catLinksList.add(catLinks);
-                                }
-                            }
-                        );
-                    if (!catLinksList.isEmpty()) {
-                        apiLinks.put(sysPage.getName().toLowerCase(), catLinksList);
-                    }
+                // for pages under sysFolder
+                List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
+                if (!links.isEmpty()) {
+                    CategorizedLinks catLinks = new CategorizedLinks();
+                    catLinks.setCategory(sysPage.getName());
+                    catLinks.setLinks(links);
+                    catLinks.setRoot(true);
+                    catLinksList.add(catLinks);
                 }
-            );
+
+                // for pages into folders
+                pageService
+                    .search(
+                        GraviteeContext.getCurrentEnvironment(),
+                        new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(),
+                        acceptedLocale
+                    )
+                    .stream()
+                    .filter(PageEntity::isPublished)
+                    .filter(p -> p.getType().equals("FOLDER"))
+                    .forEach(folder -> {
+                        List<Link> folderLinks = getLinksFromFolder(folder, apiId, acceptedLocale);
+                        if (folderLinks != null && !folderLinks.isEmpty()) {
+                            CategorizedLinks catLinks = new CategorizedLinks();
+                            catLinks.setCategory(folder.getName());
+                            catLinks.setLinks(folderLinks);
+                            catLinks.setRoot(false);
+                            catLinksList.add(catLinks);
+                        }
+                    });
+                if (!catLinksList.isEmpty()) {
+                    apiLinks.put(sysPage.getName().toLowerCase(), catLinksList);
+                }
+            });
 
         return Response.ok(new LinksResponse().slots(apiLinks)).build();
     }
@@ -248,24 +244,22 @@ public class ApiResource extends AbstractResource {
             .stream()
             .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity))
             .filter(p -> !PageType.FOLDER.name().equals(p.getType()) && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
-            .map(
-                p -> {
-                    if ("LINK".equals(p.getType())) {
-                        Link link = new Link()
-                            .name(p.getName())
-                            .resourceRef(p.getContent())
-                            .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
-                        String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
-                        if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
-                            link.setFolder(Boolean.valueOf(isFolderConfig));
-                        }
-
-                        return link;
-                    } else {
-                        return new Link().name(p.getName()).resourceRef(p.getId()).resourceType(ResourceTypeEnum.PAGE);
+            .map(p -> {
+                if ("LINK".equals(p.getType())) {
+                    Link link = new Link()
+                        .name(p.getName())
+                        .resourceRef(p.getContent())
+                        .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
+                    String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
+                    if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                        link.setFolder(Boolean.valueOf(isFolderConfig));
                     }
+
+                    return link;
+                } else {
+                    return new Link().name(p.getName()).resourceRef(p.getId()).resourceType(ResourceTypeEnum.PAGE);
                 }
-            )
+            })
             .collect(Collectors.toList());
     }
 

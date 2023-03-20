@@ -122,14 +122,12 @@ public class HttpProvider implements Provider {
                                                 final HttpClientResponse response = asyncResponse.result();
 
                                                 if (response.statusCode() == HttpStatusCode.OK_200) {
-                                                    response.bodyHandler(
-                                                        buffer -> {
-                                                            promise.complete(buffer);
+                                                    response.bodyHandler(buffer -> {
+                                                        promise.complete(buffer);
 
-                                                            // Close client
-                                                            httpClient.close();
-                                                        }
-                                                    );
+                                                        // Close client
+                                                        httpClient.close();
+                                                    });
                                                 } else {
                                                     promise.complete(null);
 

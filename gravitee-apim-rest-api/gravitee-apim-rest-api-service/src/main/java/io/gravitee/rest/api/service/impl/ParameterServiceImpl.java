@@ -322,34 +322,28 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             // Get System parameters
             for (Key keyToFind : keys) {
                 this.getSystemParameter(keyToFind)
-                    .ifPresent(
-                        p -> {
-                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                            keysToFind.remove(keyToFind);
-                        }
-                    );
+                    .ifPresent(p -> {
+                        result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                        keysToFind.remove(keyToFind);
+                    });
             }
 
             if (!keysToFind.isEmpty()) {
                 switch (referenceType) {
                     case ENVIRONMENT:
                         this.getEnvParameters(keysToFind, refIdToUse)
-                            .forEach(
-                                p -> {
-                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                    keysToFind.remove(Key.findByKey(p.getKey()));
-                                }
-                            );
+                            .forEach(p -> {
+                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                keysToFind.remove(Key.findByKey(p.getKey()));
+                            });
                         if (!keysToFind.isEmpty()) {
                             //String organizationId = "DEFAULT";//environmentService.findById(referenceId).getOrganizationId();
                             String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
                             this.getOrgParameters(keysToFind, organizationId)
-                                .forEach(
-                                    p -> {
-                                        result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                        keysToFind.remove(Key.findByKey(p.getKey()));
-                                    }
-                                );
+                                .forEach(p -> {
+                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                    keysToFind.remove(Key.findByKey(p.getKey()));
+                                });
                             if (!keysToFind.isEmpty()) {
                                 keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                             }
@@ -357,12 +351,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                         break;
                     case ORGANIZATION:
                         this.getOrgParameters(keysToFind, refIdToUse)
-                            .forEach(
-                                p -> {
-                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                    keysToFind.remove(Key.findByKey(p.getKey()));
-                                }
-                            );
+                            .forEach(p -> {
+                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                keysToFind.remove(Key.findByKey(p.getKey()));
+                            });
                         if (!keysToFind.isEmpty()) {
                             keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                         }

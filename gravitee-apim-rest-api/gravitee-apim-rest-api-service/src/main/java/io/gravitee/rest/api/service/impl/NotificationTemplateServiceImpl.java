@@ -204,16 +204,14 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         // First we add a loader for templates from Database since their priority is higher
         StringTemplateLoader orgCustomizedTemplatesLoader = new StringTemplateLoader();
         this.findAllInDatabase(currentOrganization, NotificationTemplateReferenceType.ORGANIZATION)
-            .forEach(
-                template -> {
-                    if (template.isEnabled()) {
-                        if (template.getTitle() != null && !template.getTitle().isEmpty()) {
-                            orgCustomizedTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
-                        }
-                        orgCustomizedTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
+            .forEach(template -> {
+                if (template.isEnabled()) {
+                    if (template.getTitle() != null && !template.getTitle().isEmpty()) {
+                        orgCustomizedTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
                     }
+                    orgCustomizedTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
                 }
-            );
+            });
         loaders.add(orgCustomizedTemplatesLoader);
 
         // Then we also add this loader to a map, so we can access them easily to update or remove a template
@@ -223,14 +221,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         StringTemplateLoader fileNotificationTemplatesLoader = new StringTemplateLoader();
         this.fromFilesNotificationTemplateEntities.values()
             .stream()
-            .forEach(
-                template -> {
-                    if (template.getTitle() != null && !template.getTitle().isEmpty()) {
-                        fileNotificationTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
-                    }
-                    fileNotificationTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
+            .forEach(template -> {
+                if (template.getTitle() != null && !template.getTitle().isEmpty()) {
+                    fileNotificationTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
                 }
-            );
+                fileNotificationTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
+            });
         loaders.add(fileNotificationTemplatesLoader);
 
         final MultiTemplateLoader multiTemplateLoader = new MultiTemplateLoader(loaders.toArray(new TemplateLoader[loaders.size()]));
@@ -385,10 +381,8 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     public Set<NotificationTemplateEntity> findByHookAndScope(String organizationId, String hook, String scope) {
         return this.findAll(organizationId)
             .stream()
-            .filter(
-                notificationTemplateEntity ->
-                    notificationTemplateEntity.getHook().equalsIgnoreCase(hook) &&
-                    notificationTemplateEntity.getScope().equalsIgnoreCase(scope)
+            .filter(notificationTemplateEntity ->
+                notificationTemplateEntity.getHook().equalsIgnoreCase(hook) && notificationTemplateEntity.getScope().equalsIgnoreCase(scope)
             )
             .collect(Collectors.toSet());
     }
@@ -438,8 +432,8 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 updatingNotificationTemplate.getId()
             );
 
-            NotificationTemplate notificationTemplateToUpdate = optNotificationTemplate.orElseThrow(
-                () -> new NotificationTemplateNotFoundException(updatingNotificationTemplate.getId())
+            NotificationTemplate notificationTemplateToUpdate = optNotificationTemplate.orElseThrow(() ->
+                new NotificationTemplateNotFoundException(updatingNotificationTemplate.getId())
             );
             notificationTemplateToUpdate.setTitle(updatingNotificationTemplate.getTitle());
             notificationTemplateToUpdate.setContent(updatingNotificationTemplate.getContent());

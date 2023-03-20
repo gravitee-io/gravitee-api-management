@@ -67,11 +67,9 @@ public class JsonSchemaServiceImpl implements JsonSchemaService {
                 } else {
                     e
                         .getCausingExceptions()
-                        .forEach(
-                            cause -> {
-                                checkAndUpdate(safeConfigurationJson, cause);
-                            }
-                        );
+                        .forEach(cause -> {
+                            checkAndUpdate(safeConfigurationJson, cause);
+                        });
                 }
             }
             return safeConfigurationJson.toString();
@@ -109,17 +107,15 @@ public class JsonSchemaServiceImpl implements JsonSchemaService {
         Arrays
             .stream(location.toString().split("/"))
             .filter(token -> !token.equals("properties") && !token.isEmpty())
-            .map(
-                property -> {
-                    if (!property.equals("#")) {
-                        if (!target.has(property)) {
-                            target.put(property, new JSONObject());
-                        }
-                        return target.getJSONObject(property);
+            .map(property -> {
+                if (!property.equals("#")) {
+                    if (!target.has(property)) {
+                        target.put(property, new JSONObject());
                     }
-                    return target;
+                    return target.getJSONObject(property);
                 }
-            )
+                return target;
+            })
             .reduce((toForgot, toKeep) -> toKeep)
             .ifPresent(propertyToUpdate -> propertyToUpdate.put(key, value));
     }

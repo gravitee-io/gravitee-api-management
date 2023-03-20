@@ -76,41 +76,35 @@ public class SecurityChain {
      * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
      */
     public Completable execute(RequestExecutionContext ctx) {
-        return defer(
-            () -> {
-                if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
-                    return chain
-                        .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
-                        .any(Boolean::booleanValue)
-                        .flatMapCompletable(
-                            securityHandled -> {
-                                if (!securityHandled) {
-                                    return ctx.interruptWith(
-                                        new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
-                                    );
-                                }
-                                return Completable.complete();
-                            }
-                        )
-                        .doOnSubscribe(disposable -> log.debug("Executing security chain"));
-                }
-
-                log.debug("Skipping security chain because it has been explicitly required");
-                return Completable.complete();
+        return defer(() -> {
+            if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
+                return chain
+                    .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
+                    .any(Boolean::booleanValue)
+                    .flatMapCompletable(securityHandled -> {
+                        if (!securityHandled) {
+                            return ctx.interruptWith(
+                                new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
+                            );
+                        }
+                        return Completable.complete();
+                    })
+                    .doOnSubscribe(disposable -> log.debug("Executing security chain"));
             }
-        );
+
+            log.debug("Skipping security chain because it has been explicitly required");
+            return Completable.complete();
+        });
     }
 
     private Single<Boolean> continueChain(RequestExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
-            .flatMap(
-                canExecute -> {
-                    if (canExecute) {
-                        return securityPlan.execute(ctx).andThen(TRUE);
-                    }
-                    return FALSE;
+            .flatMap(canExecute -> {
+                if (canExecute) {
+                    return securityPlan.execute(ctx).andThen(TRUE);
                 }
-            );
+                return FALSE;
+            });
     }
 }

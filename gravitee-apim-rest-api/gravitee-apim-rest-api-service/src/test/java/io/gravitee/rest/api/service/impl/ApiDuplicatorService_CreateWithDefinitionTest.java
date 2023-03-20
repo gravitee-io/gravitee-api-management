@@ -415,15 +415,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 eq(GraviteeContext.getExecutionContext()),
                 any(),
                 eq("admin"),
-                argThat(
-                    jsonNode -> {
-                        JsonNode plansDefinition = jsonNode.path("plans");
-                        return (
-                            plansDefinition.get(0).get("id").asText().equals(plan1newId) &&
-                            plansDefinition.get(1).get("id").asText().equals(plan2newId)
-                        );
-                    }
-                )
+                argThat(jsonNode -> {
+                    JsonNode plansDefinition = jsonNode.path("plans");
+                    return (
+                        plansDefinition.get(0).get("id").asText().equals(plan1newId) &&
+                        plansDefinition.get(1).get("id").asText().equals(plan2newId)
+                    );
+                })
             );
 
         // check find plans by API has been called once to remove potential pre-existing plans on target API

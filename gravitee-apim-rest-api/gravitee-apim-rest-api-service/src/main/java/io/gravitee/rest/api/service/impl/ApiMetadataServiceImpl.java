@@ -74,16 +74,14 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
         return apiMetadata
             .stream()
-            .map(
-                data -> {
-                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                    newMD.setFormat(data.getFormat());
-                    newMD.setName(data.getName());
-                    newMD.setValue(data.getValue());
-                    newMD.setApiId(apiId);
-                    return newMD;
-                }
-            )
+            .map(data -> {
+                NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                newMD.setFormat(data.getFormat());
+                newMD.setName(data.getName());
+                newMD.setValue(data.getValue());
+                newMD.setApiId(apiId);
+                return newMD;
+            })
             .map(newApiMetadataEntity -> create(executionContext, newApiMetadataEntity))
             .collect(toList());
     }

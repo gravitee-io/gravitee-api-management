@@ -32,11 +32,9 @@ public abstract class AttributeHelper {
             .stream()
             .filter(key -> attributes.get(key) != null)
             .filter(key -> attributes.get(key) instanceof Serializable)
-            .forEach(
-                key -> {
-                    filteredAttributes.put(key, (Serializable) attributes.get(key));
-                }
-            );
+            .forEach(key -> {
+                filteredAttributes.put(key, (Serializable) attributes.get(key));
+            });
 
         return filteredAttributes;
     }

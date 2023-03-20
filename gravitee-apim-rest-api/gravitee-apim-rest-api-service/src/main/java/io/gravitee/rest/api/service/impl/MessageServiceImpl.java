@@ -190,11 +190,10 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                     if (
                         httpWhitelist
                             .stream()
-                            .noneMatch(
-                                whitelistUrl ->
-                                    whitelistUrl.endsWith("/")
-                                        ? url.startsWith(whitelistUrl)
-                                        : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
+                            .noneMatch(whitelistUrl ->
+                                whitelistUrl.endsWith("/")
+                                    ? url.startsWith(whitelistUrl)
+                                    : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
                             )
                     ) {
                         throw new MessageUrlForbiddenException();

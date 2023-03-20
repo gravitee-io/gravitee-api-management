@@ -57,21 +57,17 @@ public class WebsocketPingFrameTest extends AbstractWebSocketGatewayTest {
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.frameHandler(
-                        frame -> {
-                            if (frame.isPing()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
-                            } else {
-                                testContext.failNow("The frame is not a text frame");
-                            }
-                        }
-                    );
-                }
-            )
+            .webSocketHandler(event -> {
+                event.accept();
+                event.frameHandler(frame -> {
+                    if (frame.isPing()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        testContext.completeNow();
+                    } else {
+                        testContext.failNow("The frame is not a text frame");
+                    }
+                });
+            })
             .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));

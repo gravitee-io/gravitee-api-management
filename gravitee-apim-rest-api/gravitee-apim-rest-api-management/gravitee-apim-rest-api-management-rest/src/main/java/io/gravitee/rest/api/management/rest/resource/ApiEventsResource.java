@@ -126,16 +126,14 @@ public class ApiEventsResource extends AbstractResource {
 
         apiEvents
             .getContent()
-            .forEach(
-                event -> {
-                    Map<String, String> properties1 = event.getProperties();
-                    // Remove payload content from response since it's not required anymore
-                    event.setPayload(null);
-                    // complete event with API info
-                    properties1.put("api_name", apiEntity.getName());
-                    properties1.put("api_version", apiEntity.getVersion());
-                }
-            );
+            .forEach(event -> {
+                Map<String, String> properties1 = event.getProperties();
+                // Remove payload content from response since it's not required anymore
+                event.setPayload(null);
+                // complete event with API info
+                properties1.put("api_name", apiEntity.getName());
+                properties1.put("api_version", apiEntity.getVersion());
+            });
 
         return new EventEntityPage(apiEvents);
     }

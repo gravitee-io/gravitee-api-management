@@ -165,13 +165,12 @@ public class InstallationServiceTest {
         verify(installationRepository).find();
         verify(installationRepository)
             .update(
-                ArgumentMatchers.argThat(
-                    argument ->
-                        argument != null &&
-                        INSTALLATION_ID.equals(argument.getId()) &&
-                        NOW.equals(argument.getCreatedAt()) &&
-                        NOW.before(argument.getUpdatedAt()) &&
-                        newAdditionalInformation.equals(argument.getAdditionalInformation())
+                ArgumentMatchers.argThat(argument ->
+                    argument != null &&
+                    INSTALLATION_ID.equals(argument.getId()) &&
+                    NOW.equals(argument.getCreatedAt()) &&
+                    NOW.before(argument.getUpdatedAt()) &&
+                    newAdditionalInformation.equals(argument.getAdditionalInformation())
                 )
             );
 

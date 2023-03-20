@@ -56,12 +56,10 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.close((short) HttpStatusCode.OK_200);
-                }
-            )
+            .webSocketHandler(event -> {
+                event.accept();
+                event.close((short) HttpStatusCode.OK_200);
+            })
             .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));

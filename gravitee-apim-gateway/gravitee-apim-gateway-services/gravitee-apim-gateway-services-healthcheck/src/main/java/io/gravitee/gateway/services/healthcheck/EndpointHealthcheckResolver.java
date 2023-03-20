@@ -91,22 +91,21 @@ public class EndpointHealthcheckResolver implements InitializingBean {
             .getGroups()
             .stream()
             .filter(group -> group.getEndpoints() != null)
-            .flatMap(
-                group ->
-                    group
-                        .getEndpoints()
-                        .stream()
-                        .map(this::convertToHttpEndpoint)
-                        .filter(Objects::nonNull)
-                        .peek(endpoint -> applyGroupSettings(group, endpoint))
+            .flatMap(group ->
+                group
+                    .getEndpoints()
+                    .stream()
+                    .map(this::convertToHttpEndpoint)
+                    .filter(Objects::nonNull)
+                    .peek(endpoint -> applyGroupSettings(group, endpoint))
             );
 
         // Filtering endpoints according to tenancy configuration
         if (gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
             httpEndpoints =
-                httpEndpoints.filter(
-                    endpoint -> endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant)
+                httpEndpoints.filter(endpoint ->
+                    endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant)
                 );
         }
 
@@ -115,22 +114,19 @@ public class EndpointHealthcheckResolver implements InitializingBean {
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
         httpEndpoints =
-            httpEndpoints.filter(
-                endpoint ->
+            httpEndpoints.filter(endpoint ->
+                (
+                    (endpoint.getHealthCheck() == null && hcEnabled) ||
                     (
-                        (endpoint.getHealthCheck() == null && hcEnabled) ||
-                        (
-                            endpoint.getHealthCheck() != null &&
-                            endpoint.getHealthCheck().isEnabled() &&
-                            !endpoint.getHealthCheck().isInherit()
-                        ) ||
-                        (
-                            endpoint.getHealthCheck() != null &&
-                            endpoint.getHealthCheck().isEnabled() &&
-                            endpoint.getHealthCheck().isInherit() &&
-                            hcEnabled
-                        )
+                        endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()
+                    ) ||
+                    (
+                        endpoint.getHealthCheck() != null &&
+                        endpoint.getHealthCheck().isEnabled() &&
+                        endpoint.getHealthCheck().isInherit() &&
+                        hcEnabled
                     )
+                )
             );
 
         return httpEndpoints

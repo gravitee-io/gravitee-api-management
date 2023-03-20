@@ -82,7 +82,8 @@ public class DebugReactor extends DefaultReactor {
     public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             logger.debug("Try to deploy api for debug...");
-            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
+            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper =
+                (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableWrapper.getContent();
             DebugApi reactableDebugApi = toReactableDebugApi(reactableWrapper.getContent());
             if (reactableDebugApi != null) {
@@ -108,27 +109,21 @@ public class DebugReactor extends DefaultReactor {
 
                     requestFuture
                         .flatMap(reqEvent -> req.getBody() == null ? reqEvent.send() : reqEvent.send(req.getBody()))
-                        .flatMap(
-                            result -> {
-                                logger.debug("Response status: {}", result.statusCode());
-                                return result.body();
-                            }
-                        )
-                        .onSuccess(
-                            bodyEvent -> {
-                                logger.debug("Response body: {}", bodyEvent);
-                                logger.info("Debugging successful, removing the handler.");
-                                reactorHandlerRegistry.remove(reactableDebugApi);
-                                logger.info("The debug handler has been removed");
-                            }
-                        )
-                        .onFailure(
-                            throwable -> {
-                                logger.error("Debugging API has failed, removing the handler.", throwable);
-                                reactorHandlerRegistry.remove(reactableDebugApi);
-                                failEvent(debugEvent);
-                            }
-                        );
+                        .flatMap(result -> {
+                            logger.debug("Response status: {}", result.statusCode());
+                            return result.body();
+                        })
+                        .onSuccess(bodyEvent -> {
+                            logger.debug("Response body: {}", bodyEvent);
+                            logger.info("Debugging successful, removing the handler.");
+                            reactorHandlerRegistry.remove(reactableDebugApi);
+                            logger.info("The debug handler has been removed");
+                        })
+                        .onFailure(throwable -> {
+                            logger.error("Debugging API has failed, removing the handler.", throwable);
+                            reactorHandlerRegistry.remove(reactableDebugApi);
+                            failEvent(debugEvent);
+                        });
                 } catch (TechnicalException e) {
                     logger.error(
                         "An error occurred when debugging api for event {}, removing the handler.",
@@ -206,12 +201,10 @@ public class DebugReactor extends DefaultReactor {
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
                     .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
             )
-            .map(
-                httpClientRequest -> {
-                    // Always set chunked mode for gRPC transport
-                    return httpClientRequest.setChunked(true);
-                }
-            );
+            .map(httpClientRequest -> {
+                // Always set chunked mode for gRPC transport
+                return httpClientRequest.setChunked(true);
+            });
         return future;
     }
 
