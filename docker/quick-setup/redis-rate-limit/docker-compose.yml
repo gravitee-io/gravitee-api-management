@@ -30,7 +30,7 @@ volumes:
 
 services:
   mongodb:
-    image: mongo:${MONGODB_VERSION:-5}
+    image: mongo:${MONGODB_VERSION:-6.0}
     container_name: gio_apim_mongodb
     restart: always
     volumes:
