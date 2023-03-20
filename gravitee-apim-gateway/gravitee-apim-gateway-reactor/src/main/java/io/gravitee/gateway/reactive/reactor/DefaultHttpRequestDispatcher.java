@@ -230,7 +230,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             requestProcessorChainFactory
                 .create()
                 .handler(ctx -> {
-                    reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
+                    reactorHandler.handle(
+                        ctx,
+                        executionContext ->
+                            executionContext.response().endHandler(aVoid -> processResponse(executionContext, endHandler)).end()
+                    );
                 })
                 .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
                 .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
