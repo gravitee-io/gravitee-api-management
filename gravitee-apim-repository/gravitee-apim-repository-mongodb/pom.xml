@@ -33,10 +33,13 @@
 	<properties>
         <!--
             According to https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#compatibility.matrix
-            spring data 3.4.x is compatible with mongo driver 4.6.x
+            and https://www.mongodb.com/docs/drivers/java/sync/current/compatibility/
+            spring data 3.4.x is compatible with mongo driver 4.6.x and up to mongo server 5.0.x
+            But "You can use newer server versions unless your application uses functionality that is affected by changes in the MongoDB server"
+            Meaning that we can use mongo server 6.0.x if we use basic functionalities.
         -->
-        <mongo.version>4.6.0</mongo.version>
-        <spring.data.mongodb.version>3.4.1</spring.data.mongodb.version>
+        <mongo.version>4.6.1</mongo.version>
+        <spring.data.mongodb.version>3.4.10</spring.data.mongodb.version>
         <jna.version>5.11.0</jna.version>
     </properties>
 
