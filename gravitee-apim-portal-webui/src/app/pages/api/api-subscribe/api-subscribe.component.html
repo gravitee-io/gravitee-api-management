@@ -53,7 +53,7 @@
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
             <p
               *ngIf="hasConnectedApps()"
-              [innerHTML]="'apiSubscribe.apps.connectedApps' | translate: { count: getConnectedAppsCount(), apiName: apiName }"
+              [innerHTML]="'apiSubscribe.apps.connectedApps' | translate : { count: getConnectedAppsCount(), apiName: apiName }"
             ></p>
             <p *ngIf="!hasAvailableApplications()">
               <strong>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</strong>
@@ -109,17 +109,17 @@
           </div>
 
           <div class="message" *ngIf="!subscribeForm.valid && !displayGeneralConditions()">
-            <p [innerHTML]="'apiSubscribe.validate.notCompleted' | translate: { apiName: apiName }"></p>
+            <p [innerHTML]="'apiSubscribe.validate.notCompleted' | translate : { apiName: apiName }"></p>
           </div>
 
           <div class="message" *ngIf="!hasSubscription() && subscribeForm.valid && !hasSubscriptionError">
             <p
               [innerHTML]="
                 'apiSubscribe.validate.askConfirmation'
-                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+                  | translate : { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
               "
             ></p>
-            <p [innerHTML]="'apiSubscribe.validate.information' | translate: { hasAutoValidation: hasAutoValidation() }"></p>
+            <p [innerHTML]="'apiSubscribe.validate.information' | translate : { hasAutoValidation: hasAutoValidation() }"></p>
           </div>
 
           <div class="message" *ngIf="hasSubscriptionError">
@@ -136,7 +136,7 @@
               <p
                 [innerHTML]="
                   'apiSubscribe.success.subscriptionAccepted'
-                    | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+                    | translate : { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
                 "
               ></p>
               <p *ngIf="getSubscriptionKey()">
@@ -172,7 +172,7 @@
             <p
               [innerHTML]="
                 'apiSubscribe.success.subscriptionPending'
-                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+                  | translate : { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
               "
             ></p>
             <div class="success-links">
@@ -189,7 +189,7 @@
             <p
               [innerHTML]="
                 'apiSubscribe.success.subscriptionRejected'
-                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+                  | translate : { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
               "
             ></p>
           </div>
@@ -271,7 +271,7 @@
 
     <gv-list
       [items]="connectedApps"
-      title="{{ 'apiSubscribe.connectedApps' | translate: { planName: getPlanName(), count: connectedApps ? connectedApps.length : 0 } }}"
+      title="{{ 'apiSubscribe.connectedApps' | translate : { planName: getPlanName(), count: connectedApps ? connectedApps.length : 0 } }}"
       clickable
     ></gv-list>
   </aside>
