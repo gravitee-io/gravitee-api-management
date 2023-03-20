@@ -21,7 +21,7 @@ volumes:
 
 services:
   database:
-    image: mongo:${MONGODB_VERSION:-5}
+    image: mongo:${MONGODB_VERSION:-6.0}
     container_name: gravitee-apim-e2e-mongodb
     restart: always
     ports:

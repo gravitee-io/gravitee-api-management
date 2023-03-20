@@ -58,7 +58,7 @@ services:
       - frontend
 
   mongodb:
-    image: mongo:${MONGODB_VERSION:-5}
+    image: mongo:${MONGODB_VERSION:-6.0}
     restart: always
     volumes:
       - data-mongo:/data/db
