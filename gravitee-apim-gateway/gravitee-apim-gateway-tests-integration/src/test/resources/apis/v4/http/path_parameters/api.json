@@ -1,0 +1,106 @@
+{
+  "id": "my-api-v4",
+  "name": "my-api-v4",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ],
+      "pathMappings" : [ "/:numberParam" ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint",
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/:numberParam",
+          "pathOperator": "START_WITH",
+          "methods": [
+            "GET"
+          ]
+        }
+      ],
+      "request": [
+        {
+          "name": "Path Params to Headers",
+          "description": "",
+          "enabled": true,
+          "policy": "path-param-to-headers",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-1",
+      "name": "Plan 1",
+      "status": "PUBLISHED",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+        {
+          "name": "flow-1",
+          "enabled": true,
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/:numberParam/item/:itemId",
+              "pathOperator": "START_WITH",
+              "methods": [
+                "GET"
+              ]
+            }
+          ],
+          "request": [
+            {
+              "name": "Path Params to Headers",
+              "description": "",
+              "enabled": true,
+              "policy": "path-param-to-headers",
+              "configuration": {}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

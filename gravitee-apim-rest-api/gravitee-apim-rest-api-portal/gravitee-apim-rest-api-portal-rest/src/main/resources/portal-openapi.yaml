@@ -10,7 +10,11 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
+<<<<<<< HEAD
   version: "3.20.5-SNAPSHOT"
+=======
+  version: "4.0.0-SNAPSHOT"
+>>>>>>> 6afe2ddb1e (test: add pathParameter integration testing)
 servers:
   - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
