@@ -45,15 +45,13 @@ public class Api3_7VersionSerializer extends ApiSerializer {
             jsonGenerator.writeArrayFieldStart("path_mappings");
             apiEntity
                 .getPathMappings()
-                .forEach(
-                    pathMapping -> {
-                        try {
-                            jsonGenerator.writeObject(pathMapping);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(pathMapping -> {
+                    try {
+                        jsonGenerator.writeObject(pathMapping);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jsonGenerator.writeEndArray();
         }
 

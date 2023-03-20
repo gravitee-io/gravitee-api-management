@@ -73,12 +73,11 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         return definition
             .getPlans()
             .stream()
-            .filter(
-                plan ->
-                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                    API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                    "api-key".equalsIgnoreCase(plan.getSecurity().getType()) ||
-                    SUBSCRIPTION.name().equalsIgnoreCase(plan.getSecurity().getType())
+            .filter(plan ->
+                OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
+                API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
+                "api-key".equalsIgnoreCase(plan.getSecurity().getType()) ||
+                SUBSCRIPTION.name().equalsIgnoreCase(plan.getSecurity().getType())
             )
             .map(Plan::getId)
             .collect(Collectors.toSet());
@@ -89,10 +88,8 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         return definition
             .getPlans()
             .stream()
-            .filter(
-                plan ->
-                    API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                    "api-key".equalsIgnoreCase(plan.getSecurity().getType())
+            .filter(plan ->
+                API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) || "api-key".equalsIgnoreCase(plan.getSecurity().getType())
             )
             .map(Plan::getId)
             .collect(Collectors.toSet());
@@ -116,22 +113,20 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         if (definition.getPlans() != null) {
             definition
                 .getPlans()
-                .forEach(
-                    plan -> {
-                        PlanSecurity security = plan.getSecurity();
-                        Policy secPolicy = new Policy();
-                        secPolicy.setName(security.getType());
+                .forEach(plan -> {
+                    PlanSecurity security = plan.getSecurity();
+                    Policy secPolicy = new Policy();
+                    secPolicy.setName(security.getType());
 
-                        if (secPolicy.getName() != null) {
-                            policies.add(secPolicy);
-                        }
-
-                        if (plan.getFlows() != null) {
-                            List<Flow> flows = plan.getFlows();
-                            addFlowsPolicies(policies, flows);
-                        }
+                    if (secPolicy.getName() != null) {
+                        policies.add(secPolicy);
                     }
-                );
+
+                    if (plan.getFlows() != null) {
+                        List<Flow> flows = plan.getFlows();
+                        addFlowsPolicies(policies, flows);
+                    }
+                });
         }
 
         // Load policies from flows
@@ -147,14 +142,12 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         flows
             .stream()
             .filter(Flow::isEnabled)
-            .forEach(
-                flow -> {
-                    policies.addAll(getPolicies(flow.getRequest()));
-                    policies.addAll(getPolicies(flow.getResponse()));
-                    policies.addAll(getPolicies(flow.getSubscribe()));
-                    policies.addAll(getPolicies(flow.getPublish()));
-                }
-            );
+            .forEach(flow -> {
+                policies.addAll(getPolicies(flow.getRequest()));
+                policies.addAll(getPolicies(flow.getResponse()));
+                policies.addAll(getPolicies(flow.getSubscribe()));
+                policies.addAll(getPolicies(flow.getPublish()));
+            });
     }
 
     private List<Policy> getPolicies(List<Step> flowStep) {
@@ -164,14 +157,12 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
         return flowStep
             .stream()
             .filter(Step::isEnabled)
-            .map(
-                step -> {
-                    Policy policy = new Policy();
-                    policy.setName(step.getPolicy());
-                    policy.setConfiguration(step.getConfiguration());
-                    return policy;
-                }
-            )
+            .map(step -> {
+                Policy policy = new Policy();
+                policy.setName(step.getPolicy());
+                policy.setConfiguration(step.getConfiguration());
+                return policy;
+            })
             .collect(Collectors.toList());
     }
 }

@@ -47,22 +47,20 @@ public class NotFoundReporter extends AbstractProcessor<ExecutionContext> {
             context
                 .request()
                 .bodyHandler(payload::appendBuffer)
-                .endHandler(
-                    aVoid -> {
-                        Log log = new Log(System.currentTimeMillis());
-                        log.setRequestId(context.request().id());
-                        log.setClientRequest(new io.gravitee.reporter.api.common.Request());
-                        log.getClientRequest().setMethod(context.request().method());
-                        log.getClientRequest().setUri(context.request().uri());
-                        log.getClientRequest().setHeaders(context.request().headers());
-                        log.getClientRequest().setBody(payload.toString());
+                .endHandler(aVoid -> {
+                    Log log = new Log(System.currentTimeMillis());
+                    log.setRequestId(context.request().id());
+                    log.setClientRequest(new io.gravitee.reporter.api.common.Request());
+                    log.getClientRequest().setMethod(context.request().method());
+                    log.getClientRequest().setUri(context.request().uri());
+                    log.getClientRequest().setHeaders(context.request().headers());
+                    log.getClientRequest().setBody(payload.toString());
 
-                        metrics.setLog(log);
+                    metrics.setLog(log);
 
-                        reporterService.report(metrics);
-                        next.handle(context);
-                    }
-                );
+                    reporterService.report(metrics);
+                    next.handle(context);
+                });
         } else {
             reporterService.report(metrics);
             next.handle(context);

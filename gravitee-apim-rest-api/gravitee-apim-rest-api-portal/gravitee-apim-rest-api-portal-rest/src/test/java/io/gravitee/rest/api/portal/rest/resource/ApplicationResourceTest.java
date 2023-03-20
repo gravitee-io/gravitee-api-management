@@ -236,8 +236,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldUpdateApplicationWithSimpleAppSettings() {
         ApplicationEntity appEntity = new ApplicationEntity();
-        io.gravitee.rest.api.model.application.ApplicationSettings appSettings = new io.gravitee.rest.api.model.application.ApplicationSettings();
-        io.gravitee.rest.api.model.application.SimpleApplicationSettings simpleApp = new io.gravitee.rest.api.model.application.SimpleApplicationSettings();
+        io.gravitee.rest.api.model.application.ApplicationSettings appSettings =
+            new io.gravitee.rest.api.model.application.ApplicationSettings();
+        io.gravitee.rest.api.model.application.SimpleApplicationSettings simpleApp =
+            new io.gravitee.rest.api.model.application.SimpleApplicationSettings();
         appSettings.setApp(simpleApp);
         appEntity.setSettings(appSettings);
         UserEntity userEntity = new UserEntity();
@@ -289,8 +291,10 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldUpdateApplicationWithOAuthClientSettings() {
         ApplicationEntity appEntity = new ApplicationEntity();
-        io.gravitee.rest.api.model.application.ApplicationSettings appSettings = new io.gravitee.rest.api.model.application.ApplicationSettings();
-        io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = new io.gravitee.rest.api.model.application.OAuthClientSettings();
+        io.gravitee.rest.api.model.application.ApplicationSettings appSettings =
+            new io.gravitee.rest.api.model.application.ApplicationSettings();
+        io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings =
+            new io.gravitee.rest.api.model.application.OAuthClientSettings();
         appSettings.setoAuthClient(oauthClientSettings);
         appEntity.setSettings(appSettings);
         UserEntity userEntity = new UserEntity();
@@ -314,7 +318,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
             .name(APPLICATION_ID)
             .settings(
                 new ApplicationSettings()
-                .oauth(
+                    .oauth(
                         new OAuthClientSettings()
                             .applicationType(APPLICATION_ID)
                             .clientId(APPLICATION_ID)

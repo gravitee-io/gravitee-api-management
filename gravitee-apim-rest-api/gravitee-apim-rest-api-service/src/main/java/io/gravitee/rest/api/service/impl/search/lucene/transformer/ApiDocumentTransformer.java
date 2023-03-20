@@ -115,11 +115,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                 apiEntity
                     .getProxy()
                     .getVirtualHosts()
-                    .forEach(
-                        virtualHost -> {
-                            appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath());
-                        }
-                    );
+                    .forEach(virtualHost -> {
+                        appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath());
+                    });
             }
         } else {
             io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) api;
@@ -129,12 +127,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                     .getListeners()
                     .stream()
                     .filter(listener -> listener.getType() == ListenerType.HTTP)
-                    .flatMap(
-                        listener -> {
-                            HttpListener httpListener = (HttpListener) listener;
-                            return httpListener.getPaths().stream();
-                        }
-                    )
+                    .flatMap(listener -> {
+                        HttpListener httpListener = (HttpListener) listener;
+                        return httpListener.getPaths().stream();
+                    })
                     .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
             }
         }
@@ -176,12 +172,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             api
                 .getMetadata()
                 .values()
-                .forEach(
-                    metadataValue -> {
-                        doc.add(new StringField(FIELD_METADATA, metadataValue.toString(), Field.Store.NO));
-                        doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue.toString(), Field.Store.NO));
-                    }
-                );
+                .forEach(metadataValue -> {
+                    doc.add(new StringField(FIELD_METADATA, metadataValue.toString(), Field.Store.NO));
+                    doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue.toString(), Field.Store.NO));
+                });
         }
 
         if (api.getDefinitionContext() != null && api.getDefinitionContext().getOrigin() != null) {

@@ -132,40 +132,35 @@ public class WebhookEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .response()
-                    .messages()
-                    .flatMapSingle(
-                        (Function<Message, SingleSource<?>>) message -> {
-                            // HTTP headers
-                            return client
-                                .rxRequest(HttpMethod.POST, requestUri)
-                                .flatMap(
-                                    request -> {
-                                        if (message.headers() != null) {
-                                            message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
-                                        }
-                                        if (message.content() != null) {
-                                            return request.rxSend(Buffer.buffer(message.content().getBytes()));
-                                        } else {
-                                            return request.rxSend();
-                                        }
-                                    }
-                                );
-                        }
-                    )
-                    .onErrorResumeNext(
-                        error -> {
-                            log.error("Error when dealing with response messages", error);
+        return Completable.defer(() ->
+            ctx
+                .response()
+                .messages()
+                .flatMapSingle(
+                    (Function<Message, SingleSource<?>>) message -> {
+                        // HTTP headers
+                        return client
+                            .rxRequest(HttpMethod.POST, requestUri)
+                            .flatMap(request -> {
+                                if (message.headers() != null) {
+                                    message.headers().forEach(header -> request.putHeader(header.getKey(), header.getValue()));
+                                }
+                                if (message.content() != null) {
+                                    return request.rxSend(Buffer.buffer(message.content().getBytes()));
+                                } else {
+                                    return request.rxSend();
+                                }
+                            });
+                    }
+                )
+                .onErrorResumeNext(error -> {
+                    log.error("Error when dealing with response messages", error);
 
-                            return subscriber -> {};
-                        }
-                    )
-                    .ignoreElements()
-                    .andThen(client.rxClose())
-                    .andThen(ctx.response().end())
+                    return subscriber -> {};
+                })
+                .ignoreElements()
+                .andThen(client.rxClose())
+                .andThen(ctx.response().end())
         );
     }
 }

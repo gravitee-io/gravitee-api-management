@@ -46,13 +46,11 @@ public class DefaultUserStatusUpgrader extends OrganizationUpgrader {
         userService
             .search(executionContext, new UserCriteria.Builder().noStatus().build(), new PageableImpl(1, Integer.MAX_VALUE))
             .getContent()
-            .forEach(
-                userEntity -> {
-                    if (userEntity.getStatus() == null) {
-                        userService.update(executionContext, userEntity.getId(), updateUserEntity);
-                    }
+            .forEach(userEntity -> {
+                if (userEntity.getStatus() == null) {
+                    userService.update(executionContext, userEntity.getId(), updateUserEntity);
                 }
-            );
+            });
     }
 
     @Override

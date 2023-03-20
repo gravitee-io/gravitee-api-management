@@ -50,32 +50,28 @@ public abstract class TemplateVariableProviderFactory {
             providers =
                 loadFactories(classLoader)
                     .stream()
-                    .map(
-                        name -> {
-                            try {
-                                Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(
-                                    name,
-                                    classLoader
-                                );
-                                return applicationContext.getBean(instance);
-                            } catch (ClassNotFoundException e) {
-                                logger.warn("TemplateVariableProvider class not found : {}", e.getMessage());
-                                return null;
-                            } catch (NoSuchBeanDefinitionException e) {
-                                logger.debug("No TemplateVariableProvider of type {} is defined", name);
-                                return null;
-                            }
+                    .map(name -> {
+                        try {
+                            Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(
+                                name,
+                                classLoader
+                            );
+                            return applicationContext.getBean(instance);
+                        } catch (ClassNotFoundException e) {
+                            logger.warn("TemplateVariableProvider class not found : {}", e.getMessage());
+                            return null;
+                        } catch (NoSuchBeanDefinitionException e) {
+                            logger.debug("No TemplateVariableProvider of type {} is defined", name);
+                            return null;
                         }
-                    )
-                    .filter(
-                        provider -> {
-                            if (provider != null) {
-                                TemplateVariable annotation = provider.getClass().getAnnotation(TemplateVariable.class);
-                                return annotation != null && Arrays.asList(annotation.scopes()).contains(getTemplateVariableScope());
-                            }
-                            return false;
+                    })
+                    .filter(provider -> {
+                        if (provider != null) {
+                            TemplateVariable annotation = provider.getClass().getAnnotation(TemplateVariable.class);
+                            return annotation != null && Arrays.asList(annotation.scopes()).contains(getTemplateVariableScope());
                         }
-                    )
+                        return false;
+                    })
                     .collect(Collectors.toList());
         }
 

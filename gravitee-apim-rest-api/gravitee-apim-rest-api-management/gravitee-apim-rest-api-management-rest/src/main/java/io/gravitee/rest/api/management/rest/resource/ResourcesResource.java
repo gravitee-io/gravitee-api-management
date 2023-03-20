@@ -77,8 +77,7 @@ public class ResourcesResource {
                 switch (s) {
                     case "schema":
                         stream =
-                            stream.peek(
-                                resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
+                            stream.peek(resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
                             );
                     case "icon":
                         stream =

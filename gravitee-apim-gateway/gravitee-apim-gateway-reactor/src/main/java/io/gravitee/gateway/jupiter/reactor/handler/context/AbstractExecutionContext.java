@@ -63,12 +63,10 @@ abstract class AbstractExecutionContext<RQ extends Request, RS extends Response>
 
     @Override
     public Completable interruptWith(ExecutionFailure executionFailure) {
-        return Completable.defer(
-            () -> {
-                internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
-                return Completable.error(new InterruptionFailureException(executionFailure));
-            }
-        );
+        return Completable.defer(() -> {
+            internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+            return Completable.error(new InterruptionFailureException(executionFailure));
+        });
     }
 
     @Override

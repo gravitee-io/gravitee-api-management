@@ -66,20 +66,18 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     public List<Listener> validateAndSanitize(final ExecutionContext executionContext, final String apiId, final List<Listener> listeners) {
         if (listeners != null && !listeners.isEmpty()) {
             checkDuplicatedListeners(listeners);
-            listeners.forEach(
-                listener -> {
-                    switch (listener.getType()) {
-                        case HTTP:
-                            // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
-                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
-                            break;
-                        case TCP:
-                        case SUBSCRIPTION:
-                        default:
-                            break;
-                    }
+            listeners.forEach(listener -> {
+                switch (listener.getType()) {
+                    case HTTP:
+                        // TODO this need to be improved when entrypoint connector are implemented in order to check the configuration schema
+                        validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
+                        break;
+                    case TCP:
+                    case SUBSCRIPTION:
+                    default:
+                        break;
                 }
-            );
+            });
         }
         return listeners;
     }
@@ -115,36 +113,30 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         if (entrypoints == null || entrypoints.isEmpty()) {
             throw new HttpListenerEntrypointMissingException();
         }
-        entrypoints.forEach(
-            entrypoint -> {
-                if (entrypoint.getType() == null) {
-                    throw new HttpListenerEntrypointMissingTypeException();
-                }
-                String entrypointConfiguration = null;
-                if (entrypoint.getConfiguration() != null) {
-                    entrypointConfiguration = entrypoint.getConfiguration();
-                }
-                entrypoint.setConfiguration(
-                    entrypointService.validateEntrypointConfiguration(entrypoint.getType(), entrypointConfiguration)
-                );
+        entrypoints.forEach(entrypoint -> {
+            if (entrypoint.getType() == null) {
+                throw new HttpListenerEntrypointMissingTypeException();
             }
-        );
+            String entrypointConfiguration = null;
+            if (entrypoint.getConfiguration() != null) {
+                entrypointConfiguration = entrypoint.getConfiguration();
+            }
+            entrypoint.setConfiguration(entrypointService.validateEntrypointConfiguration(entrypoint.getType(), entrypointConfiguration));
+        });
     }
 
     private void validatePathMappings(final Set<String> pathMappings) {
         // validate regex on pathMappings
         if (pathMappings != null) {
-            pathMappings.forEach(
-                pathMapping -> {
-                    try {
-                        Pattern.compile(pathMapping);
-                    } catch (java.util.regex.PatternSyntaxException pse) {
-                        String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
-                        log.error(errorMsg, pse);
-                        throw new TechnicalManagementException(errorMsg, pse);
-                    }
+            pathMappings.forEach(pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
+                    log.error(errorMsg, pse);
+                    throw new TechnicalManagementException(errorMsg, pse);
                 }
-            );
+            });
         }
     }
 }

@@ -57,14 +57,12 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header1");
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header1");
 
-                    return true;
-                }
-            )
+                return true;
+            })
             .assertNoErrors();
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header1")));
     }
@@ -79,14 +77,12 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
 
-                    return true;
-                }
-            )
+                return true;
+            })
             .assertNoErrors();
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }
@@ -94,12 +90,10 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
     @Test
     @DisplayName("Should test organization flow at test level using updateAndDeployOrganizationMethod")
     void shouldTestOrganizationFlowAtTestLevelWithMethodCall(WebClient webClient) {
-        super.updateAndDeployOrganization(
-            organization -> {
-                organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
-                organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
-            }
-        );
+        super.updateAndDeployOrganization(organization -> {
+            organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
+            organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
+        });
 
         wiremock.stubFor(get("/team").willReturn(ok()));
 
@@ -107,14 +101,12 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
 
-                    return true;
-                }
-            )
+                return true;
+            })
             .assertNoErrors();
         wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }

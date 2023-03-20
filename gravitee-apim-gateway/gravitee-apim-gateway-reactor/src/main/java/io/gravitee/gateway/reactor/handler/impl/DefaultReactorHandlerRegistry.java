@@ -59,16 +59,14 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         List<ReactorHandler> reactorHandlers = reactorFactoryManager.create(reactable);
         List<ReactorHandler> startedReactorHandlers = new ArrayList<>();
         if (reactorHandlers != null) {
-            reactorHandlers.forEach(
-                reactorHandler -> {
-                    try {
-                        reactorHandler.start();
-                        startedReactorHandlers.add(reactorHandler);
-                    } catch (Exception ex) {
-                        logger.error("Unable to start the new reactor handler: " + reactorHandler, ex);
-                    }
+            reactorHandlers.forEach(reactorHandler -> {
+                try {
+                    reactorHandler.start();
+                    startedReactorHandlers.add(reactorHandler);
+                } catch (Exception ex) {
+                    logger.error("Unable to start the new reactor handler: " + reactorHandler, ex);
                 }
-            );
+            });
         }
 
         return startedReactorHandlers;
@@ -95,11 +93,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
         if (reactableAcceptors != null && !reactableAcceptors.isEmpty()) {
             if (logger.isDebugEnabled()) {
-                reactableAcceptors.forEach(
-                    reactableHttpAcceptor -> {
-                        logger.debug("Handler is already deployed: {}", reactableHttpAcceptor.handler);
-                    }
-                );
+                reactableAcceptors.forEach(reactableHttpAcceptor -> {
+                    logger.debug("Handler is already deployed: {}", reactableHttpAcceptor.handler);
+                });
             }
 
             List<ReactorHandler> newReactorHandlers = prepare(reactable);
@@ -164,16 +160,14 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
         remove(acceptorHandlers);
 
-        reactableAcceptors.forEach(
-            reactableHttpAcceptor -> {
-                try {
-                    logger.debug("Stopping previous handler for: {}", reactable);
-                    reactableHttpAcceptor.handler.stop();
-                } catch (Exception ex) {
-                    logger.error("Unable to stop handler", ex);
-                }
+        reactableAcceptors.forEach(reactableHttpAcceptor -> {
+            try {
+                logger.debug("Stopping previous handler for: {}", reactable);
+                reactableHttpAcceptor.handler.stop();
+            } catch (Exception ex) {
+                logger.error("Unable to stop handler", ex);
             }
-        );
+        });
     }
 
     @Override

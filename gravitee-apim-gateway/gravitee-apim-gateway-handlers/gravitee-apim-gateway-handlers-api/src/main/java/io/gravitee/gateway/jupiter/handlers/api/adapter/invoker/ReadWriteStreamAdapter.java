@@ -45,22 +45,20 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
         final RequestAdapter requestAdapter = (RequestAdapter) ctx.request();
         final HttpRequest delegateRequest = ctx.getDelegate().request();
 
-        requestAdapter.onResume(
-            () -> {
-                ctx.request().bodyHandler(this::write);
-                ctx.request().endHandler(avoid -> this.end());
+        requestAdapter.onResume(() -> {
+            ctx.request().bodyHandler(this::write);
+            ctx.request().endHandler(avoid -> this.end());
 
-                final Handler<Buffer> bodyHandler = requestAdapter.getBodyHandler();
-                final Handler<Void> endHandler = requestAdapter.getEndHandler();
+            final Handler<Buffer> bodyHandler = requestAdapter.getBodyHandler();
+            final Handler<Void> endHandler = requestAdapter.getEndHandler();
 
-                delegateRequest
-                    .chunks()
-                    .doOnNext(bodyHandler::handle)
-                    .doOnComplete(() -> endHandler.handle(null))
-                    .doOnError(nextEmitter::tryOnError)
-                    .onErrorResumeNext(e -> {})
-                    .subscribe();
-            }
-        );
+            delegateRequest
+                .chunks()
+                .doOnNext(bodyHandler::handle)
+                .doOnComplete(() -> endHandler.handle(null))
+                .doOnError(nextEmitter::tryOnError)
+                .onErrorResumeNext(e -> {})
+                .subscribe();
+        });
     }
 }

@@ -116,11 +116,10 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
                 getOrm().buildUpdatePreparedStatementCreator(apiQualityRule, apiQualityRule.getApi(), apiQualityRule.getQualityRule())
             );
             return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-                        )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

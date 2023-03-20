@@ -75,16 +75,14 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
         resources
             .entrySet()
             .stream()
-            .forEach(
-                resource -> {
-                    try {
-                        logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                        resource.getValue().start();
-                    } catch (Exception ex) {
-                        logger.error("Unable to start resource", ex);
-                    }
+            .forEach(resource -> {
+                try {
+                    logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                    resource.getValue().start();
+                } catch (Exception ex) {
+                    logger.error("Unable to start resource", ex);
                 }
-            );
+            });
     }
 
     @Override
@@ -93,32 +91,28 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
         resources
             .entrySet()
             .stream()
-            .forEach(
-                resource -> {
-                    try {
-                        logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                        resource.getValue().stop();
-                    } catch (Exception ex) {
-                        logger.error("Unable to stop resource", ex);
-                    }
+            .forEach(resource -> {
+                try {
+                    logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
+                    resource.getValue().stop();
+                } catch (Exception ex) {
+                    logger.error("Unable to stop resource", ex);
                 }
-            );
+            });
 
         // Close resource classLoaders
         resources
             .values()
-            .forEach(
-                resource -> {
-                    ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
-                    if (resourceClassLoader instanceof PluginClassLoader) {
-                        try {
-                            ((PluginClassLoader) resourceClassLoader).close();
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
-                        }
+            .forEach(resource -> {
+                ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
+                if (resourceClassLoader instanceof PluginClassLoader) {
+                    try {
+                        ((PluginClassLoader) resourceClassLoader).close();
+                    } catch (IOException ioe) {
+                        logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
                     }
                 }
-            );
+            });
 
         // Be sure to remove all references to resources
         resources.clear();
@@ -127,58 +121,58 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
     protected void initialize() {
         Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
-        resourceDeps.forEach(
-            resource -> {
-                final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
-                if (resourcePlugin == null) {
-                    logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
-                    throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
-                }
+        resourceDeps.forEach(resource -> {
+            final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
+            if (resourcePlugin == null) {
+                logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
+                throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
+            }
 
-                PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
-                    resourcePlugin.id(),
-                    s -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
-                );
+            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
+                resourcePlugin.id(),
+                s -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
+            );
 
-                logger.debug("Loading resource {} for {}", resource.getName(), reactable);
+            logger.debug("Loading resource {} for {}", resource.getName(), reactable);
 
-                try {
-                    Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
+            try {
+                Class<? extends io.gravitee.resource.api.Resource> resourceClass =
+                    (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
                         resourcePlugin.resource().getName(),
                         resourceClassLoader
                     );
-                    Map<Class<?>, Object> injectables = new HashMap<>();
+                Map<Class<?>, Object> injectables = new HashMap<>();
 
-                    if (resourcePlugin.configuration() != null) {
-                        Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                if (resourcePlugin.configuration() != null) {
+                    Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                        (Class<? extends ResourceConfiguration>) ClassUtils.forName(
                             resourcePlugin.configuration().getName(),
                             resourceClassLoader
                         );
-                        injectables.put(
-                            resourceConfigurationClass,
-                            resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
-                        );
-                    }
+                    injectables.put(
+                        resourceConfigurationClass,
+                        resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
+                    );
+                }
 
-                    io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+                io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
 
-                    if (resourceInstance instanceof ApplicationContextAware) {
-                        ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
-                    }
+                if (resourceInstance instanceof ApplicationContextAware) {
+                    ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
+                }
 
-                    resources.put(resource.getName(), resourceInstance);
-                } catch (Exception ex) {
-                    logger.error("Unable to create resource", ex);
-                    if (resourceClassLoader != null) {
-                        try {
-                            resourceClassLoader.close();
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for resource", ioe);
-                        }
+                resources.put(resource.getName(), resourceInstance);
+            } catch (Exception ex) {
+                logger.error("Unable to create resource", ex);
+                if (resourceClassLoader != null) {
+                    try {
+                        resourceClassLoader.close();
+                    } catch (IOException ioe) {
+                        logger.error("Unable to close classloader for resource", ioe);
                     }
                 }
             }
-        );
+        });
     }
 
     @Override

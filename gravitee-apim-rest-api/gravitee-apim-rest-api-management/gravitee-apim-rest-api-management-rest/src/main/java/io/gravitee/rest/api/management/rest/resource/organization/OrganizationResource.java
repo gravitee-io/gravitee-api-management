@@ -107,12 +107,10 @@ public class OrganizationResource extends AbstractResource {
                 new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
                 identityProviderActivations
                     .stream()
-                    .filter(
-                        ipa -> {
-                            final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
-                            return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                        }
-                    )
+                    .filter(ipa -> {
+                        final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
+                        return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                    })
                     .map(IdentityProviderActivationEntity::getIdentityProvider)
                     .collect(Collectors.toList())
             );

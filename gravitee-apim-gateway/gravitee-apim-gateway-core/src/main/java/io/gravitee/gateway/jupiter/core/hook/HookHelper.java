@@ -50,9 +50,8 @@ public class HookHelper {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
                 .andThen(Completable.defer(completableSupplier::get))
                 .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
-                .onErrorResumeNext(
-                    throwable ->
-                        executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
+                .onErrorResumeNext(throwable ->
+                    executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
                 );
         } else {
             return completableSupplier.get();
@@ -71,11 +70,9 @@ public class HookHelper {
                 .andThen(Maybe.defer(maybeSupplier::get))
                 .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).toMaybe())
                 .flatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
-                .onErrorResumeNext(
-                    throwable -> {
-                        return executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable));
-                    }
-                );
+                .onErrorResumeNext(throwable -> {
+                    return executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable));
+                });
         } else {
             return maybeSupplier.get();
         }

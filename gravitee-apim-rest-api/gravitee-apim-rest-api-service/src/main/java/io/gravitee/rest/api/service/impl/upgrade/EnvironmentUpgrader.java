@@ -46,13 +46,11 @@ public abstract class EnvironmentUpgrader implements Upgrader, Ordered {
         try {
             environmentRepository
                 .findAll()
-                .forEach(
-                    environment -> {
-                        ExecutionContext executionContext = new ExecutionContext(environment);
-                        LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
-                        upgradeEnvironment(executionContext);
-                    }
-                );
+                .forEach(environment -> {
+                    ExecutionContext executionContext = new ExecutionContext(environment);
+                    LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                    upgradeEnvironment(executionContext);
+                });
         } catch (TechnicalException e) {
             LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
             return false;

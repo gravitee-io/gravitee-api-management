@@ -163,10 +163,9 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
 
                             MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
 
-                            MethodInfoList filter = methodInfo.filter(
-                                methodInfo1 ->
-                                    methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
-                                    methodInfo1.hasAnnotation(OnRequestContent.class.getName())
+                            MethodInfoList filter = methodInfo.filter(methodInfo1 ->
+                                methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
+                                methodInfo1.hasAnnotation(OnRequestContent.class.getName())
                             );
 
                             if (!filter.isEmpty()) {
@@ -174,10 +173,9 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                             }
 
                             filter =
-                                methodInfo.filter(
-                                    methodInfo12 ->
-                                        methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
-                                        methodInfo12.hasAnnotation(OnResponseContent.class.getName())
+                                methodInfo.filter(methodInfo12 ->
+                                    methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
+                                    methodInfo12.hasAnnotation(OnResponseContent.class.getName())
                                 );
 
                             if (!filter.isEmpty()) {

@@ -50,11 +50,9 @@ public class UpgraderServiceImpl extends AbstractService<UpgraderServiceImpl> im
             .values()
             .stream()
             .sorted(Comparator.comparing(Upgrader::getOrder))
-            .forEach(
-                upgrader -> {
-                    logger.info("Running upgrader {}", upgrader.getClass().getName());
-                    upgrader.upgrade();
-                }
-            );
+            .forEach(upgrader -> {
+                logger.info("Running upgrader {}", upgrader.getClass().getName());
+                upgrader.upgrade();
+            });
     }
 }

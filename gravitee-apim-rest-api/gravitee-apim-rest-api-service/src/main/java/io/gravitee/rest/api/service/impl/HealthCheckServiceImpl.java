@@ -100,8 +100,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 query
                     .getAggregations()
                     .stream()
-                    .forEach(
-                        aggregation -> queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
+                    .forEach(aggregation ->
+                        queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
                     );
             }
 
@@ -257,14 +257,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             searchLogResponseResponse
                 .getLogs()
-                .forEach(
-                    logItem -> {
-                        String gateway = logItem.getGateway();
-                        if (gateway != null) {
-                            metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
-                        }
+                .forEach(logItem -> {
+                    String gateway = logItem.getGateway();
+                    if (gateway != null) {
+                        metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
                     }
-                );
+                });
 
             searchLogResponseResponse.setMetadata(metadata);
         }
@@ -283,13 +281,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Set endpoint availability (unknown endpoints are removed)
         Map<String, Map<String, T>> buckets = new HashMap<>();
 
-        response.forEach(
-            bucket -> {
-                Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
+        response.forEach(bucket -> {
+            Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
 
-                buckets.put(bucket.getName(), bucketMetrics);
-            }
-        );
+            buckets.put(bucket.getName(), bucketMetrics);
+        });
         apiMetrics.setBuckets(buckets);
 
         if (!apiMetrics.getBuckets().isEmpty()) {
@@ -298,31 +294,26 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             apiMetrics
                 .getBuckets()
                 .values()
-                .forEach(
-                    stringTMap ->
-                        stringTMap.forEach(
-                            (key, value) -> {
-                                if (value.intValue() >= 0) {
-                                    Double total = values.getOrDefault(key, 0d);
-                                    total += value.doubleValue();
-                                    values.put(key, total);
-                                }
-                            }
-                        )
+                .forEach(stringTMap ->
+                    stringTMap.forEach((key, value) -> {
+                        if (value.intValue() >= 0) {
+                            Double total = values.getOrDefault(key, 0d);
+                            total += value.doubleValue();
+                            values.put(key, total);
+                        }
+                    })
                 );
 
-            values.forEach(
-                (key, value) -> {
-                    long availableBuckets = apiMetrics
-                        .getBuckets()
-                        .values()
-                        .stream()
-                        .filter(stringTMap -> stringTMap.get(key).intValue() >= 0)
-                        .count();
+            values.forEach((key, value) -> {
+                long availableBuckets = apiMetrics
+                    .getBuckets()
+                    .values()
+                    .stream()
+                    .filter(stringTMap -> stringTMap.get(key).intValue() >= 0)
+                    .count();
 
-                    values.put(key, value / availableBuckets);
-                }
-            );
+                values.put(key, value / availableBuckets);
+            });
 
             apiMetrics.setGlobal(values);
         }
@@ -333,15 +324,13 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         apiMetrics
             .getBuckets()
             .keySet()
-            .forEach(
-                name -> {
-                    if (field.equalsIgnoreCase("endpoint")) {
-                        metadata.put(name, getEndpointMetadata(api, name));
-                    } else if (field.equalsIgnoreCase("gateway")) {
-                        metadata.put(name, getGatewayMetadata(executionContext, name));
-                    }
+            .forEach(name -> {
+                if (field.equalsIgnoreCase("endpoint")) {
+                    metadata.put(name, getEndpointMetadata(api, name));
+                } else if (field.equalsIgnoreCase("gateway")) {
+                    metadata.put(name, getGatewayMetadata(executionContext, name));
                 }
-            );
+            });
 
         apiMetrics.setMetadata(metadata);
 

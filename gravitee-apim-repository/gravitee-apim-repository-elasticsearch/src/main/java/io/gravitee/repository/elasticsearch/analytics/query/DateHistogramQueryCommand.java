@@ -65,27 +65,25 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         List<io.gravitee.repository.analytics.query.Aggregation> overrideAggregations = dateHistogramQuery
             .aggregations()
             .stream()
-            .map(
-                aggregation -> {
-                    Integer aggregationSize = aggregationSizeMapping.getOrDefault(aggregation.field(), aggregation.size());
-                    return new io.gravitee.repository.analytics.query.Aggregation() {
-                        @Override
-                        public AggregationType type() {
-                            return aggregation.type();
-                        }
+            .map(aggregation -> {
+                Integer aggregationSize = aggregationSizeMapping.getOrDefault(aggregation.field(), aggregation.size());
+                return new io.gravitee.repository.analytics.query.Aggregation() {
+                    @Override
+                    public AggregationType type() {
+                        return aggregation.type();
+                    }
 
-                        @Override
-                        public String field() {
-                            return aggregation.field();
-                        }
+                    @Override
+                    public String field() {
+                        return aggregation.field();
+                    }
 
-                        @Override
-                        public Integer size() {
-                            return aggregationSize;
-                        }
-                    };
-                }
-            )
+                    @Override
+                    public Integer size() {
+                        return aggregationSize;
+                    }
+                };
+            })
             .collect(Collectors.toList());
 
         dateHistogramQuery.aggregations().clear();
@@ -142,16 +140,14 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         if (!query.aggregations().isEmpty()) {
             query
                 .aggregations()
-                .forEach(
-                    aggregation -> {
-                        String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
-                        if (aggregation.type() == AggregationType.FIELD) {
-                            key = "by_" + aggregation.field();
-                        }
-
-                        dateHistogramResponse.values().add(fieldBuckets.get(key));
+                .forEach(aggregation -> {
+                    String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
+                    if (aggregation.type() == AggregationType.FIELD) {
+                        key = "by_" + aggregation.field();
                     }
-                );
+
+                    dateHistogramResponse.values().add(fieldBuckets.get(key));
+                });
         }
         return dateHistogramResponse;
     }

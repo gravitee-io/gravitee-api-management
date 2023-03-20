@@ -124,17 +124,15 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return entrypoints
             .stream()
-            .map(
-                entrypointMongo -> {
-                    final Entrypoint entrypoint = new Entrypoint();
-                    entrypoint.setId(entrypointMongo.getId());
-                    entrypointMongo.setReferenceId(entrypoint.getReferenceId());
-                    entrypointMongo.setReferenceType(entrypoint.getReferenceType());
-                    entrypoint.setValue(entrypointMongo.getValue());
-                    entrypoint.setTags(entrypointMongo.getTags());
-                    return entrypoint;
-                }
-            )
+            .map(entrypointMongo -> {
+                final Entrypoint entrypoint = new Entrypoint();
+                entrypoint.setId(entrypointMongo.getId());
+                entrypointMongo.setReferenceId(entrypoint.getReferenceId());
+                entrypointMongo.setReferenceType(entrypoint.getReferenceType());
+                entrypoint.setValue(entrypointMongo.getValue());
+                entrypoint.setTags(entrypointMongo.getTags());
+                return entrypoint;
+            })
             .collect(Collectors.toSet());
     }
 

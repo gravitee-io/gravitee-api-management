@@ -107,12 +107,10 @@ public class DebugProxyConnection implements ProxyConnection {
 
         @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-            proxyResponse.bodyHandler(
-                chunk -> {
-                    context.getInvokerResponse().getBuffer().appendBuffer(chunk);
-                    bodyHandler.handle(chunk);
-                }
-            );
+            proxyResponse.bodyHandler(chunk -> {
+                context.getInvokerResponse().getBuffer().appendBuffer(chunk);
+                bodyHandler.handle(chunk);
+            });
 
             return this;
         }

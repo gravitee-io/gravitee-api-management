@@ -597,20 +597,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             subQuery.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
             subscriptionService
                 .search(executionContext, subQuery)
-                .forEach(
-                    subscriptionEntity -> {
-                        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                        updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                        updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                        updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                .forEach(subscriptionEntity -> {
+                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                        subscriptionService.update(
-                            executionContext,
-                            updateSubscriptionEntity,
-                            application.getMetadata().get(METADATA_CLIENT_ID)
-                        );
-                    }
-                );
+                    subscriptionService.update(
+                        executionContext,
+                        updateSubscriptionEntity,
+                        application.getMetadata().get(METADATA_CLIENT_ID)
+                    );
+                });
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
@@ -731,16 +729,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 null
             );
 
-            subscriptions.forEach(
-                subscription -> {
-                    try {
-                        subscriptionService.restore(executionContext, subscription.getId());
-                    } catch (SubscriptionNotPausedException snce) {
-                        // Subscription can not be closed because it is already closed or not yet accepted
-                        LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
-                    }
+            subscriptions.forEach(subscription -> {
+                try {
+                    subscriptionService.restore(executionContext, subscription.getId());
+                } catch (SubscriptionNotPausedException snce) {
+                    // Subscription can not be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
                 }
-            );
+            });
 
             UserEntity userEntity = userService.findById(executionContext, userId);
 
@@ -797,27 +793,23 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 null
             );
 
-            subscriptions.forEach(
-                subscription -> {
-                    List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(executionContext, subscription.getId());
-                    apiKeys.forEach(
-                        apiKey -> {
-                            try {
-                                apiKeyService.delete(apiKey.getKey());
-                            } catch (TechnicalManagementException tme) {
-                                LOGGER.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
-                            }
-                        }
-                    );
-
+            subscriptions.forEach(subscription -> {
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(executionContext, subscription.getId());
+                apiKeys.forEach(apiKey -> {
                     try {
-                        subscriptionService.close(executionContext, subscription.getId());
-                    } catch (SubscriptionNotClosableException snce) {
-                        // Subscription can not be closed because it is already closed or not yet accepted
-                        LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
+                        apiKeyService.delete(apiKey.getKey());
+                    } catch (TechnicalManagementException tme) {
+                        LOGGER.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
                     }
+                });
+
+                try {
+                    subscriptionService.close(executionContext, subscription.getId());
+                } catch (SubscriptionNotClosableException snce) {
+                    // Subscription can not be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
                 }
-            );
+            });
 
             // Archive the application
             application.setUpdatedAt(new Date());
@@ -902,9 +894,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         return applications
             .stream()
-            .map(
-                publicApplication ->
-                    convert(executionContext, publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())))
+            .map(publicApplication ->
+                convert(executionContext, publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())))
             )
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -912,23 +903,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private Set<ApplicationListItem> convertToSimpleList(Collection<Application> applications) {
         return applications
             .stream()
-            .map(
-                application -> {
-                    ApplicationListItem item = new ApplicationListItem();
-                    item.setId(application.getId());
-                    item.setName(application.getName());
-                    item.setDescription(application.getDescription());
-                    item.setDomain(application.getDomain());
-                    item.setCreatedAt(application.getCreatedAt());
-                    item.setUpdatedAt(application.getUpdatedAt());
-                    item.setType(application.getType().name());
-                    item.setStatus(application.getStatus().name());
-                    item.setPicture(application.getPicture());
-                    item.setBackground(application.getBackground());
-                    item.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-                    return item;
-                }
-            )
+            .map(application -> {
+                ApplicationListItem item = new ApplicationListItem();
+                item.setId(application.getId());
+                item.setName(application.getName());
+                item.setDescription(application.getDescription());
+                item.setDomain(application.getDomain());
+                item.setCreatedAt(application.getCreatedAt());
+                item.setUpdatedAt(application.getUpdatedAt());
+                item.setType(application.getType().name());
+                item.setStatus(application.getStatus().name());
+                item.setPicture(application.getPicture());
+                item.setBackground(application.getBackground());
+                item.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+                return item;
+            })
             .collect(toSet());
     }
 
@@ -959,33 +948,31 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         return entities
             .stream()
-            .map(
-                applicationEntity -> {
-                    ApplicationListItem item = new ApplicationListItem();
-                    item.setId(applicationEntity.getId());
-                    item.setName(applicationEntity.getName());
-                    item.setDescription(applicationEntity.getDescription());
-                    item.setDomain(applicationEntity.getDomain());
-                    item.setCreatedAt(applicationEntity.getCreatedAt());
-                    item.setUpdatedAt(applicationEntity.getUpdatedAt());
-                    item.setGroups(applicationEntity.getGroups());
-                    item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
-                    item.setType(applicationEntity.getType());
-                    item.setStatus(applicationEntity.getStatus());
-                    item.setPicture(applicationEntity.getPicture());
-                    item.setBackground(applicationEntity.getBackground());
-                    item.setApiKeyMode(applicationEntity.getApiKeyMode());
-                    item.setDisableMembershipNotifications(applicationEntity.isDisableMembershipNotifications());
+            .map(applicationEntity -> {
+                ApplicationListItem item = new ApplicationListItem();
+                item.setId(applicationEntity.getId());
+                item.setName(applicationEntity.getName());
+                item.setDescription(applicationEntity.getDescription());
+                item.setDomain(applicationEntity.getDomain());
+                item.setCreatedAt(applicationEntity.getCreatedAt());
+                item.setUpdatedAt(applicationEntity.getUpdatedAt());
+                item.setGroups(applicationEntity.getGroups());
+                item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
+                item.setType(applicationEntity.getType());
+                item.setStatus(applicationEntity.getStatus());
+                item.setPicture(applicationEntity.getPicture());
+                item.setBackground(applicationEntity.getBackground());
+                item.setApiKeyMode(applicationEntity.getApiKeyMode());
+                item.setDisableMembershipNotifications(applicationEntity.isDisableMembershipNotifications());
 
-                    final Application app = applications
-                        .stream()
-                        .filter(application -> application.getId().equals(applicationEntity.getId()))
-                        .findFirst()
-                        .get();
-                    item.setSettings(getSettings(executionContext, app));
-                    return item;
-                }
-            )
+                final Application app = applications
+                    .stream()
+                    .filter(application -> application.getId().equals(applicationEntity.getId()))
+                    .findFirst()
+                    .get();
+                item.setSettings(getSettings(executionContext, app));
+                return item;
+            })
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 

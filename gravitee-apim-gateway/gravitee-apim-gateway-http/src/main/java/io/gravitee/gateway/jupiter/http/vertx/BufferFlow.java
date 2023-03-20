@@ -42,13 +42,11 @@ public class BufferFlow {
     public Single<Buffer> bodyOrEmpty() {
         return body()
             .switchIfEmpty(
-                Single.fromCallable(
-                    () -> {
-                        final Buffer emptyBuffer = Buffer.buffer();
-                        cachedBuffer = Maybe.empty();
-                        return emptyBuffer;
-                    }
-                )
+                Single.fromCallable(() -> {
+                    final Buffer emptyBuffer = Buffer.buffer();
+                    cachedBuffer = Maybe.empty();
+                    return emptyBuffer;
+                })
             );
     }
 

@@ -142,11 +142,9 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
 
         return internalEnvironmentRepo
             .findByCockpitId(cockpitId)
-            .map(
-                environment -> {
-                    LOGGER.debug("Find environment by cockpit ID [{}] - Done", environment);
-                    return mapper.map(environment, Environment.class);
-                }
-            );
+            .map(environment -> {
+                LOGGER.debug("Find environment by cockpit ID [{}] - Done", environment);
+                return mapper.map(environment, Environment.class);
+            });
     }
 }

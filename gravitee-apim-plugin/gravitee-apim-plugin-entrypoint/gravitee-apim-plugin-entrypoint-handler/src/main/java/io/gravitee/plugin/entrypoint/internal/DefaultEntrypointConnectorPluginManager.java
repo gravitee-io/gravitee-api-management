@@ -53,9 +53,8 @@ public class DefaultEntrypointConnectorPluginManager
         // Create entrypoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<AbstractConnectorFactory<? extends EntrypointConnector>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EntrypointConnector>>) pluginClassLoader.loadClass(
-                plugin.clazz()
-            );
+            final Class<AbstractConnectorFactory<? extends EntrypointConnector>> connectorFactoryClass =
+                (Class<AbstractConnectorFactory<? extends EntrypointConnector>>) pluginClassLoader.loadClass(plugin.clazz());
             final AbstractConnectorFactory<? extends EntrypointConnector> factory = connectorFactoryClass
                 .getDeclaredConstructor()
                 .newInstance();

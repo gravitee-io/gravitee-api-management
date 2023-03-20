@@ -140,8 +140,8 @@ public class ListenerValidationServiceImplTest {
         HttpListener httpListener = new HttpListener();
         // When
         assertThatExceptionOfType(HttpListenerPathMissingException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
@@ -152,8 +152,8 @@ public class ListenerValidationServiceImplTest {
         httpListener.setPaths(List.of(new Path("/path")));
         // When
         assertThatExceptionOfType(HttpListenerEntrypointMissingException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 
@@ -165,8 +165,8 @@ public class ListenerValidationServiceImplTest {
         httpListener.setEntrypoints(List.of(new Entrypoint()));
         // When
         assertThatExceptionOfType(HttpListenerEntrypointMissingTypeException.class)
-            .isThrownBy(
-                () -> listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(httpListener))
             );
     }
 }

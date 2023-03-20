@@ -75,15 +75,13 @@ class EndpointInvokerTest {
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
-        obs.assertError(
-            e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertEquals(HttpStatusCode.NOT_FOUND_404, failureException.getExecutionFailure().statusCode());
-                assertEquals(NO_ENDPOINT_FOUND_KEY, failureException.getExecutionFailure().key());
-                assertNotNull(failureException.getExecutionFailure().message());
-                return true;
-            }
-        );
+        obs.assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertEquals(HttpStatusCode.NOT_FOUND_404, failureException.getExecutionFailure().statusCode());
+            assertEquals(NO_ENDPOINT_FOUND_KEY, failureException.getExecutionFailure().key());
+            assertNotNull(failureException.getExecutionFailure().message());
+            return true;
+        });
     }
 }

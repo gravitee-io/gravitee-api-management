@@ -91,12 +91,10 @@ class VertxHttpServerRequestTest {
             .chunks()
             .ignoreElements()
             .andThen(
-                Flowable.defer(
-                    () -> {
-                        cut.body(Buffer.buffer(NEW_CHUNK));
-                        return cut.chunks();
-                    }
-                )
+                Flowable.defer(() -> {
+                    cut.body(Buffer.buffer(NEW_CHUNK));
+                    return cut.chunks();
+                })
             )
             .test();
         obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));

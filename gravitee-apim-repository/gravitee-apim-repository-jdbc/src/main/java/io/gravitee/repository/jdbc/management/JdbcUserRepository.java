@@ -115,16 +115,14 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
         final String[] lastId = new String[1];
         List<String> uniqueIds = ids
             .stream()
-            .filter(
-                id -> {
-                    if (id.equals(lastId[0])) {
-                        return false;
-                    } else {
-                        lastId[0] = id;
-                        return true;
-                    }
+            .filter(id -> {
+                if (id.equals(lastId[0])) {
+                    return false;
+                } else {
+                    lastId[0] = id;
+                    return true;
                 }
-            )
+            })
             .collect(Collectors.toList());
         LOGGER.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {

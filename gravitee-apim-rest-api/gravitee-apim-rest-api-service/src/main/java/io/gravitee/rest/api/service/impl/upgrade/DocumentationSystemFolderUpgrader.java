@@ -72,9 +72,8 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
 
             if (!pagesToLink.isEmpty()) {
                 PageEntity docFolder = createFolder(executionContext, topFooterSystemFolderId, "Documentation");
-                pagesToLink.forEach(
-                    page ->
-                        createLink(executionContext, docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE)
+                pagesToLink.forEach(page ->
+                    createLink(executionContext, docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE)
                 );
             }
 

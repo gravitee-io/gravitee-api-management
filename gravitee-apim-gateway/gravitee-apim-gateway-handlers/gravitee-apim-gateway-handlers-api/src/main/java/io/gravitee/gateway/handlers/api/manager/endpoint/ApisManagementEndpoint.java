@@ -67,15 +67,13 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
             Collection<ListApiEntity> apis = apiManager
                 .apis()
                 .stream()
-                .map(
-                    api -> {
-                        ListApiEntity entity = new ListApiEntity();
-                        entity.setId(api.getId());
-                        entity.setName(api.getName());
-                        entity.setVersion(api.getApiVersion());
-                        return entity;
-                    }
-                )
+                .map(api -> {
+                    ListApiEntity entity = new ListApiEntity();
+                    entity.setId(api.getId());
+                    entity.setName(api.getName());
+                    entity.setVersion(api.getApiVersion());
+                    return entity;
+                })
                 .collect(Collectors.toList());
 
             final ObjectMapper objectMapper = DatabindCodec.prettyMapper();

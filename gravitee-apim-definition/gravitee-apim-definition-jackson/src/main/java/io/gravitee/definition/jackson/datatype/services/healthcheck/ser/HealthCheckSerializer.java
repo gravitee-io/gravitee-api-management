@@ -39,15 +39,13 @@ public class HealthCheckSerializer<T extends HealthCheckService> extends Schedul
             jgen.writeArrayFieldStart("steps");
             service
                 .getSteps()
-                .forEach(
-                    step -> {
-                        try {
-                            jgen.writeObject(step);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(step -> {
+                    try {
+                        jgen.writeObject(step);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jgen.writeEndArray();
         }
     }

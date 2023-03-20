@@ -54,76 +54,64 @@ public class DebugExecutionContext extends DefaultExecutionContext {
 
     public Completable prePolicyExecution(final String id, final ExecutionPhase executionPhase) {
         return Maybe
-            .fromCallable(
-                () -> {
-                    String flowStage = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE);
-                    PolicyStep<?> policyStep = PolicyStepFactory.createPolicyStep(id, executionPhase, flowStage);
-                    if (policyStep != null) {
-                        policySteps.add(policyStep);
-                        return policyStep;
-                    }
-                    return null;
+            .fromCallable(() -> {
+                String flowStage = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE);
+                PolicyStep<?> policyStep = PolicyStepFactory.createPolicyStep(id, executionPhase, flowStage);
+                if (policyStep != null) {
+                    policySteps.add(policyStep);
+                    return policyStep;
                 }
-            )
-            .flatMapCompletable(
-                currentPolicyStep -> {
-                    if (ExecutionPhase.REQUEST == currentPolicyStep.getExecutionPhase()) {
-                        return ((PolicyRequestStep) currentPolicyStep).pre(request(), getAttributes());
-                    } else if (ExecutionPhase.RESPONSE == currentPolicyStep.getExecutionPhase()) {
-                        return ((PolicyResponseStep) currentPolicyStep).pre(response(), getAttributes());
-                    }
-                    return Completable.complete();
+                return null;
+            })
+            .flatMapCompletable(currentPolicyStep -> {
+                if (ExecutionPhase.REQUEST == currentPolicyStep.getExecutionPhase()) {
+                    return ((PolicyRequestStep) currentPolicyStep).pre(request(), getAttributes());
+                } else if (ExecutionPhase.RESPONSE == currentPolicyStep.getExecutionPhase()) {
+                    return ((PolicyResponseStep) currentPolicyStep).pre(response(), getAttributes());
                 }
-            );
+                return Completable.complete();
+            });
     }
 
     public Completable postPolicyExecution() {
         return Completable
-            .defer(
-                () -> {
-                    PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
-                    if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
-                        if (ExecutionPhase.REQUEST == currentPolicyStep.getExecutionPhase()) {
-                            return ((PolicyRequestStep) currentPolicyStep).post(request(), getAttributes());
-                        } else if (ExecutionPhase.RESPONSE == currentPolicyStep.getExecutionPhase()) {
-                            return ((PolicyResponseStep) currentPolicyStep).post(response(), getAttributes());
-                        }
-                    }
-                    return Completable.complete();
-                }
-            )
-            .doOnComplete(
-                () -> {
-                    PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
-                    if (currentPolicyStep != null) {
-                        currentPolicyStep.end();
+            .defer(() -> {
+                PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
+                if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
+                    if (ExecutionPhase.REQUEST == currentPolicyStep.getExecutionPhase()) {
+                        return ((PolicyRequestStep) currentPolicyStep).post(request(), getAttributes());
+                    } else if (ExecutionPhase.RESPONSE == currentPolicyStep.getExecutionPhase()) {
+                        return ((PolicyResponseStep) currentPolicyStep).post(response(), getAttributes());
                     }
                 }
-            );
+                return Completable.complete();
+            })
+            .doOnComplete(() -> {
+                PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
+                if (currentPolicyStep != null) {
+                    currentPolicyStep.end();
+                }
+            });
     }
 
     public Completable postPolicyExecution(final Throwable throwable) {
-        return Completable.defer(
-            () -> {
-                PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
-                if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
-                    return currentPolicyStep.error(throwable).doOnComplete(currentPolicyStep::end);
-                }
-                return Completable.complete();
+        return Completable.defer(() -> {
+            PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
+            if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
+                return currentPolicyStep.error(throwable).doOnComplete(currentPolicyStep::end);
             }
-        );
+            return Completable.complete();
+        });
     }
 
     public Completable postPolicyExecution(final ExecutionFailure executionFailure) {
-        return Completable.defer(
-            () -> {
-                PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
-                if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
-                    return currentPolicyStep.error(executionFailure).doOnComplete(currentPolicyStep::end);
-                }
-                return Completable.complete();
+        return Completable.defer(() -> {
+            PolicyStep<?> currentPolicyStep = getCurrentDebugStep();
+            if (currentPolicyStep != null && !currentPolicyStep.isEnded()) {
+                return currentPolicyStep.error(executionFailure).doOnComplete(currentPolicyStep::end);
             }
-        );
+            return Completable.complete();
+        });
     }
 
     public Map<String, Serializable> getInitialAttributes() {

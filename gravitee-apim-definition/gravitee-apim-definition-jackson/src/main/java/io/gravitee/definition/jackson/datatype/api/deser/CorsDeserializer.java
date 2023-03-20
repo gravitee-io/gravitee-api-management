@@ -70,21 +70,19 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             if (allowOriginNode != null) {
                 allowOriginNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            allowOrigin.add(jsonNode.asText());
-                            if (
-                                !"*".equals(jsonNode.asText()) &&
-                                (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
-                            ) {
-                                try {
-                                    allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
-                                } catch (PatternSyntaxException pse) {
-                                    logger.error("Allow origin regex invalid: " + jsonNode.asText(), pse.getMessage());
-                                }
+                    .forEachRemaining(jsonNode -> {
+                        allowOrigin.add(jsonNode.asText());
+                        if (
+                            !"*".equals(jsonNode.asText()) &&
+                            (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
+                        ) {
+                            try {
+                                allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
+                            } catch (PatternSyntaxException pse) {
+                                logger.error("Allow origin regex invalid: " + jsonNode.asText(), pse.getMessage());
                             }
                         }
-                    );
+                    });
             }
 
             JsonNode allowHeadersNode = node.get("allowHeaders");
@@ -93,11 +91,9 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             if (allowHeadersNode != null) {
                 allowHeadersNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            allowHeaders.add(jsonNode.asText());
-                        }
-                    );
+                    .forEachRemaining(jsonNode -> {
+                        allowHeaders.add(jsonNode.asText());
+                    });
             }
 
             JsonNode allowMethodsNode = node.get("allowMethods");
@@ -106,11 +102,9 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             if (allowMethodsNode != null) {
                 allowMethodsNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            allowMethods.add(jsonNode.asText());
-                        }
-                    );
+                    .forEachRemaining(jsonNode -> {
+                        allowMethods.add(jsonNode.asText());
+                    });
             }
 
             JsonNode exposeHeadersNode = node.get("exposeHeaders");
@@ -119,11 +113,9 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             if (exposeHeadersNode != null) {
                 exposeHeadersNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            exposeHeaders.add(jsonNode.asText());
-                        }
-                    );
+                    .forEachRemaining(jsonNode -> {
+                        exposeHeaders.add(jsonNode.asText());
+                    });
             }
 
             JsonNode maxAgeNode = node.get("maxAge");

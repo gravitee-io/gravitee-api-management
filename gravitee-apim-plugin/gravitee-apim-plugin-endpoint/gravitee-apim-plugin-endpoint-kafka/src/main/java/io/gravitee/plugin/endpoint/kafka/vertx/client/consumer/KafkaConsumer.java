@@ -265,11 +265,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Completable rxPipeTo(io.vertx.reactivex.core.streams.WriteStream<KafkaConsumerRecord<K, V>> dst) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                pipeTo(dst, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            pipeTo(dst, $handler);
+        });
     }
 
     public KafkaConsumer<K, V> exceptionHandler(Handler<Throwable> handler) {
@@ -372,11 +370,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSubscribe(String topic) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                subscribe(topic, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            subscribe(topic, $handler);
+        });
     }
 
     /**
@@ -429,11 +425,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSubscribe(Set<String> topics) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                subscribe(topics, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            subscribe(topics, $handler);
+        });
     }
 
     /**
@@ -489,11 +483,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxAssign(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                assign(topicPartition, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            assign(topicPartition, $handler);
+        });
     }
 
     /**
@@ -549,11 +541,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxAssign(Set<io.vertx.kafka.client.common.TopicPartition> topicPartitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                assign(topicPartitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            assign(topicPartitions, $handler);
+        });
     }
 
     /**
@@ -579,11 +569,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Single<Set<io.vertx.kafka.client.common.TopicPartition>> rxAssignment() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                assignment($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            assignment($handler);
+        });
     }
 
     /**
@@ -609,11 +597,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxUnsubscribe() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                unsubscribe($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            unsubscribe($handler);
+        });
     }
 
     /**
@@ -639,11 +625,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Single<Set<String>> rxSubscription() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                subscription($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            subscription($handler);
+        });
     }
 
     /**
@@ -699,11 +683,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxPause(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                pause(topicPartition, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            pause(topicPartition, $handler);
+        });
     }
 
     /**
@@ -759,11 +741,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxPause(Set<io.vertx.kafka.client.common.TopicPartition> topicPartitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                pause(topicPartitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            pause(topicPartitions, $handler);
+        });
     }
 
     /**
@@ -786,11 +766,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Single<Set<io.vertx.kafka.client.common.TopicPartition>> rxPaused() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                paused($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            paused($handler);
+        });
     }
 
     /**
@@ -822,11 +800,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxResume(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                resume(topicPartition, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            resume(topicPartition, $handler);
+        });
     }
 
     /**
@@ -858,11 +834,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxResume(Set<io.vertx.kafka.client.common.TopicPartition> topicPartitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                resume(topicPartitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            resume(topicPartitions, $handler);
+        });
     }
 
     /**
@@ -942,11 +916,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSeek(io.vertx.kafka.client.common.TopicPartition topicPartition, long offset) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                seek(topicPartition, offset, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            seek(topicPartition, offset, $handler);
+        });
     }
 
     /**
@@ -1002,11 +974,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSeekToBeginning(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                seekToBeginning(topicPartition, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            seekToBeginning(topicPartition, $handler);
+        });
     }
 
     /**
@@ -1062,11 +1032,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSeekToBeginning(Set<io.vertx.kafka.client.common.TopicPartition> topicPartitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                seekToBeginning(topicPartitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            seekToBeginning(topicPartitions, $handler);
+        });
     }
 
     /**
@@ -1122,11 +1090,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSeekToEnd(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                seekToEnd(topicPartition, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            seekToEnd(topicPartition, $handler);
+        });
     }
 
     /**
@@ -1182,11 +1148,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Completable rxSeekToEnd(Set<io.vertx.kafka.client.common.TopicPartition> topicPartitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                seekToEnd(topicPartitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            seekToEnd(topicPartitions, $handler);
+        });
     }
 
     /**
@@ -1209,11 +1173,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Completable rxCommit() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                commit($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            commit($handler);
+        });
     }
 
     /**
@@ -1244,11 +1206,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
     public io.reactivex.Single<io.vertx.kafka.client.consumer.OffsetAndMetadata> rxCommitted(
         io.vertx.kafka.client.common.TopicPartition topicPartition
     ) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                committed(topicPartition, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            committed(topicPartition, $handler);
+        });
     }
 
     /**
@@ -1277,11 +1237,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return current KafkaConsumer instance
      */
     public io.reactivex.Single<List<io.vertx.kafka.client.common.PartitionInfo>> rxPartitionsFor(String topic) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                partitionsFor(topic, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            partitionsFor(topic, $handler);
+        });
     }
 
     /**
@@ -1323,11 +1281,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Completable rxClose() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                close($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            close($handler);
+        });
     }
 
     /**
@@ -1353,11 +1309,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Single<Long> rxPosition(io.vertx.kafka.client.common.TopicPartition partition) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                position(partition, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            position(partition, $handler);
+        });
     }
 
     /**
@@ -1396,11 +1350,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
         io.vertx.kafka.client.common.TopicPartition topicPartition,
         Long timestamp
     ) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                offsetsForTimes(topicPartition, timestamp, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            offsetsForTimes(topicPartition, timestamp, $handler);
+        });
     }
 
     /**
@@ -1426,11 +1378,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Single<Long> rxBeginningOffsets(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                beginningOffsets(topicPartition, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            beginningOffsets(topicPartition, $handler);
+        });
     }
 
     /**
@@ -1459,11 +1409,9 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Single<Long> rxEndOffsets(io.vertx.kafka.client.common.TopicPartition topicPartition) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                endOffsets(topicPartition, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            endOffsets(topicPartition, $handler);
+        });
     }
 
     /**
@@ -1515,10 +1463,8 @@ public class KafkaConsumer<K, V> implements io.vertx.reactivex.core.streams.Read
      * @return
      */
     public io.reactivex.Single<KafkaConsumerRecords<K, V>> rxPoll(java.time.Duration timeout) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                poll(timeout, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            poll(timeout, $handler);
+        });
     }
 }

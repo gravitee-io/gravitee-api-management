@@ -199,13 +199,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 .stream()
                 .filter(imageElement -> imageElement.hasAttr("src"))
                 .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
-                .map(
-                    imageElement -> {
-                        final String src = imageElement.attr("src");
-                        imageElement.attr("src", "cid:" + src);
-                        return src;
-                    }
-                )
+                .map(imageElement -> {
+                    final String src = imageElement.attr("src");
+                    imageElement.attr("src", "cid:" + src);
+                    return src;
+                })
                 .collect(Collectors.toList())
         );
 

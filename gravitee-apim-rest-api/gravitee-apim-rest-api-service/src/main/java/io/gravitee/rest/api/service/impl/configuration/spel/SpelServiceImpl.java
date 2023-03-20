@@ -91,12 +91,10 @@ public class SpelServiceImpl implements SpelService {
     }
 
     private void buildTypes(ObjectNode types) {
-        SUPPORTED_TYPES.forEach(
-            aClass -> {
-                ObjectNode type = types.putObject(aClass.getSimpleName());
-                buildType(type, aClass);
-            }
-        );
+        SUPPORTED_TYPES.forEach(aClass -> {
+            ObjectNode type = types.putObject(aClass.getSimpleName());
+            buildType(type, aClass);
+        });
     }
 
     private void buildType(ObjectNode type, Class<?> classz) {
@@ -104,12 +102,10 @@ public class SpelServiceImpl implements SpelService {
         Arrays
             .stream(securedMethodResolver.getMethods(classz))
             .filter(f -> Modifier.isPublic(f.getModifiers()))
-            .forEach(
-                method -> {
-                    ObjectNode methodNode = methodsNode.addObject();
-                    fillMethod(methodNode, method);
-                }
-            );
+            .forEach(method -> {
+                ObjectNode methodNode = methodsNode.addObject();
+                fillMethod(methodNode, method);
+            });
     }
 
     private void fillMethod(ObjectNode methodNode, Method method) {
@@ -121,12 +117,10 @@ public class SpelServiceImpl implements SpelService {
             final ArrayNode paramsNode = methodNode.putArray("params");
             Arrays
                 .stream(parameters)
-                .forEach(
-                    parameter -> {
-                        ObjectNode paramNode = paramsNode.addObject();
-                        fillParameter(paramNode, parameter);
-                    }
-                );
+                .forEach(parameter -> {
+                    ObjectNode paramNode = paramsNode.addObject();
+                    fillParameter(paramNode, parameter);
+                });
         }
     }
 

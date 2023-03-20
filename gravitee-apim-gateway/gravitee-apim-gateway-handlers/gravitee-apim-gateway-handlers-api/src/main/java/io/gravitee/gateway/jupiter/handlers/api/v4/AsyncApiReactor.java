@@ -113,15 +113,13 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     private Completable handleRequest(final ExecutionContext ctx) {
         EntrypointAsyncConnector entrypointConnector = asyncEntrypointResolver.resolve(ctx);
         if (entrypointConnector == null) {
-            return Completable.defer(
-                () -> {
-                    String noEntrypointMsg = "No entrypoint matches the incoming request";
-                    log.debug(noEntrypointMsg);
-                    ctx.response().status(HttpStatusCode.NOT_FOUND_404);
-                    ctx.response().reason(noEntrypointMsg);
-                    return ctx.response().end();
-                }
-            );
+            return Completable.defer(() -> {
+                String noEntrypointMsg = "No entrypoint matches the incoming request";
+                log.debug(noEntrypointMsg);
+                ctx.response().status(HttpStatusCode.NOT_FOUND_404);
+                ctx.response().reason(noEntrypointMsg);
+                return ctx.response().end();
+            });
         }
 
         // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
@@ -141,18 +139,16 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     }
 
     private Completable invokeBackend(final ExecutionContext ctx) {
-        return defer(
-                () -> {
-                    if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
-                        Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+                if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                        if (invoker != null) {
-                            return invoker.invoke(ctx);
-                        }
+                    if (invoker != null) {
+                        return invoker.invoke(ctx);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
             .doOnDispose(() -> setApiResponseTimeMetric(ctx))
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
@@ -173,15 +169,13 @@ public class AsyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> 
     }
 
     private Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
-        return Completable.fromRunnable(
-            () -> {
-                log.error("Unexpected error while handling request", throwable);
-                setApiResponseTimeMetric(ctx);
+        return Completable.fromRunnable(() -> {
+            log.error("Unexpected error while handling request", throwable);
+            setApiResponseTimeMetric(ctx);
 
-                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-            }
-        );
+            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        });
     }
 
     private void setApiResponseTimeMetric(ExecutionContext ctx) {

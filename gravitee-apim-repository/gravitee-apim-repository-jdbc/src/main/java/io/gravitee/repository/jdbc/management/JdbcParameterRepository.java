@@ -111,16 +111,15 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
             jdbcTemplate.update(psc);
 
             return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format(
-                                "No parameter found with id [%s, %s, %s]",
-                                parameter.getKey(),
-                                parameter.getReferenceId(),
-                                parameter.getReferenceType()
-                            )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format(
+                            "No parameter found with id [%s, %s, %s]",
+                            parameter.getKey(),
+                            parameter.getReferenceId(),
+                            parameter.getReferenceType()
                         )
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

@@ -42,18 +42,16 @@ public class RequestSerializer extends StdScalarSerializer<HealthCheckRequest> {
 
             request
                 .getHeaders()
-                .forEach(
-                    httpHeader -> {
-                        try {
-                            jgen.writeStartObject();
-                            jgen.writeStringField("name", httpHeader.getName());
-                            jgen.writeStringField("value", httpHeader.getValue());
-                            jgen.writeEndObject();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(httpHeader -> {
+                    try {
+                        jgen.writeStartObject();
+                        jgen.writeStringField("name", httpHeader.getName());
+                        jgen.writeStringField("value", httpHeader.getValue());
+                        jgen.writeEndObject();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jgen.writeEndArray();
         }
         if (request.getBody() != null && !request.getBody().isEmpty()) {

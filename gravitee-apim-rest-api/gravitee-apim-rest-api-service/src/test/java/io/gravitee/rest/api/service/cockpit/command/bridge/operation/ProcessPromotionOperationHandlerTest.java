@@ -104,18 +104,16 @@ public class ProcessPromotionOperationHandlerTest {
         Assertions.assertThat(argument.getValue().getStatus()).isEqualTo(PromotionEntityStatus.ACCEPTED);
 
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply -> {
-                BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
-                return (
-                    simpleReply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                    simpleReply.getOrganizationId().equals(ORGANIZATION_ID) &&
-                    simpleReply.getEnvironmentId().equals("source") &&
-                    simpleReply.getInstallationId().equals(INSTALLATION_ID) &&
-                    simpleReply.getCommandId().equals(COMMAND_ID)
-                );
-            }
-        );
+        obs.assertValue(reply -> {
+            BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
+            return (
+                simpleReply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+                simpleReply.getOrganizationId().equals(ORGANIZATION_ID) &&
+                simpleReply.getEnvironmentId().equals("source") &&
+                simpleReply.getInstallationId().equals(INSTALLATION_ID) &&
+                simpleReply.getCommandId().equals(COMMAND_ID)
+            );
+        });
     }
 
     @Test
@@ -138,11 +136,10 @@ public class ProcessPromotionOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("Problem while deserializing promotion for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("Problem while deserializing promotion for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
@@ -171,11 +168,10 @@ public class ProcessPromotionOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("Problem while serializing promotion for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("Problem while serializing promotion for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 

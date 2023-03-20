@@ -48,14 +48,13 @@ public class MockEndpointConnector implements EndpointAsyncConnector {
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .request()
-                    .messages()
-                    .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
-                    .ignoreElements()
-                    .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .messages()
+                .doOnNext(message -> log.info("Received message:\n" + message.content().toString()))
+                .ignoreElements()
+                .andThen(Completable.fromRunnable(() -> ctx.response().messages(generateMessageFlow())))
         );
     }
 

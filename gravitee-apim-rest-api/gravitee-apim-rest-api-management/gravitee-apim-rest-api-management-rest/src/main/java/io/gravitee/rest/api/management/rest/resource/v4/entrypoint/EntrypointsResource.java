@@ -82,13 +82,12 @@ public class EntrypointsResource {
                 switch (s) {
                     case "schema":
                         stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setSchema(entrypointService.getSchema(connectorListItem.getId()))
+                            stream.peek(connectorListItem ->
+                                connectorListItem.setSchema(entrypointService.getSchema(connectorListItem.getId()))
                             );
                     case "icon":
                         stream =
-                            stream.peek(
-                                connectorListItem -> connectorListItem.setIcon(entrypointService.getIcon(connectorListItem.getId()))
+                            stream.peek(connectorListItem -> connectorListItem.setIcon(entrypointService.getIcon(connectorListItem.getId()))
                             );
                 }
             }

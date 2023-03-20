@@ -95,57 +95,43 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
      * an error if no {@link SecurityPlan} can execute the request or the {@link SecurityPlan} failed.
      */
     public Completable execute(ExecutionContext ctx) {
-        return defer(
-            () -> {
-                if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
-                    return chain
-                        .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
-                        .any(Boolean::booleanValue)
-                        .flatMapCompletable(
-                            securityHandled -> {
-                                ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
-                                if (Boolean.FALSE.equals(securityHandled)) {
-                                    return ctx.interruptWith(
-                                        new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
-                                    );
-                                }
-                                return Completable.complete();
-                            }
-                        )
-                        .doOnSubscribe(
-                            disposable -> {
-                                log.debug("Executing security chain");
-                                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
-                            }
-                        )
-                        .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
-                }
-
-                log.debug("Skipping security chain because it has been explicitly required");
-                return Completable.complete();
+        return defer(() -> {
+            if (!Objects.equals(true, ctx.getAttribute(SKIP_SECURITY_CHAIN))) {
+                return chain
+                    .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
+                    .any(Boolean::booleanValue)
+                    .flatMapCompletable(securityHandled -> {
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+                        if (Boolean.FALSE.equals(securityHandled)) {
+                            return ctx.interruptWith(
+                                new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
+                            );
+                        }
+                        return Completable.complete();
+                    })
+                    .doOnSubscribe(disposable -> {
+                        log.debug("Executing security chain");
+                        ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
+                    })
+                    .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
             }
-        );
+
+            log.debug("Skipping security chain because it has been explicitly required");
+            return Completable.complete();
+        });
     }
 
     private Single<Boolean> continueChain(ExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
-            .flatMap(
-                canExecute -> {
-                    if (Boolean.TRUE.equals(canExecute)) {
-                        return HookHelper
-                            .hook(
-                                () -> securityPlan.execute(ctx, executionPhase),
-                                securityPlan.id(),
-                                securityPlanHooks,
-                                ctx,
-                                executionPhase
-                            )
-                            .andThen(TRUE);
-                    }
-                    return FALSE;
+            .flatMap(canExecute -> {
+                if (Boolean.TRUE.equals(canExecute)) {
+                    return HookHelper
+                        .hook(() -> securityPlan.execute(ctx, executionPhase), securityPlan.id(), securityPlanHooks, ctx, executionPhase)
+                        .andThen(TRUE);
                 }
-            );
+                return FALSE;
+            });
     }
 
     @Override

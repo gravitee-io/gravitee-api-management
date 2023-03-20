@@ -137,33 +137,31 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     private ActivationTarget[] getActivationsTarget(int providerIndex) {
         List<String> targetStrings = getListOfString("security.providers[" + providerIndex + "].activations");
         List<ActivationTarget> activationTargets = new ArrayList<>();
-        targetStrings.forEach(
-            target -> {
-                final String[] orgEnv = target.split(":");
-                if (orgEnv.length == 1) {
-                    try {
-                        this.organizationService.findById(orgEnv[0]);
-                        activationTargets.add(new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
-                    } catch (OrganizationNotFoundException onfe) {
-                        logger.warn("Organization {} does not exist", orgEnv[0]);
+        targetStrings.forEach(target -> {
+            final String[] orgEnv = target.split(":");
+            if (orgEnv.length == 1) {
+                try {
+                    this.organizationService.findById(orgEnv[0]);
+                    activationTargets.add(new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
+                } catch (OrganizationNotFoundException onfe) {
+                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                }
+            } else if (orgEnv.length == 2) {
+                try {
+                    this.organizationService.findById(orgEnv[0]);
+                    EnvironmentEntity env = this.environmentService.findById(orgEnv[1]);
+                    if (env.getOrganizationId().equals(orgEnv[0])) {
+                        activationTargets.add(new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
+                    } else {
+                        logger.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
                     }
-                } else if (orgEnv.length == 2) {
-                    try {
-                        this.organizationService.findById(orgEnv[0]);
-                        EnvironmentEntity env = this.environmentService.findById(orgEnv[1]);
-                        if (env.getOrganizationId().equals(orgEnv[0])) {
-                            activationTargets.add(new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
-                        } else {
-                            logger.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
-                        }
-                    } catch (OrganizationNotFoundException onfe) {
-                        logger.warn("Organization {} does not exist", orgEnv[0]);
-                    } catch (EnvironmentNotFoundException Enfe) {
-                        logger.warn("Environment {} does not exist", orgEnv[1]);
-                    }
+                } catch (OrganizationNotFoundException onfe) {
+                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                } catch (EnvironmentNotFoundException Enfe) {
+                    logger.warn("Environment {} does not exist", orgEnv[1]);
                 }
             }
-        );
+        });
         return activationTargets.toArray(new ActivationTarget[activationTargets.size()]);
     }
 
@@ -262,15 +260,13 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 List<String> groupNames = getListOfString("security.providers[" + providerIndex + "].groupMapping[" + idx + "].groups");
                 if (!groupNames.isEmpty()) {
                     List<String> groups = new ArrayList<>();
-                    groupNames.forEach(
-                        groupName -> {
-                            List<GroupEntity> groupsFound = groupService.findByName(executionContext.getEnvironmentId(), groupName);
+                    groupNames.forEach(groupName -> {
+                        List<GroupEntity> groupsFound = groupService.findByName(executionContext.getEnvironmentId(), groupName);
 
-                            if (groupsFound != null && groupsFound.size() == 1) {
-                                groups.add(groupsFound.get(0).getId());
-                            }
+                        if (groupsFound != null && groupsFound.size() == 1) {
+                            groups.add(groupsFound.get(0).getId());
                         }
-                    );
+                    });
 
                     groupMappingEntity.setGroups(groups);
                 }

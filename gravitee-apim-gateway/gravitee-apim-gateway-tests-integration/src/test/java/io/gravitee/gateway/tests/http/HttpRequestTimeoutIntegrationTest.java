@@ -87,14 +87,12 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.bodyAsString()).isEqualTo("Request timeout");
-                    assertPlatformHeaders(response);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.bodyAsString()).isEqualTo("Request timeout");
+                assertPlatformHeaders(response);
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -119,14 +117,12 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.bodyAsString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    assertPlatformHeaders(response);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.bodyAsString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                assertPlatformHeaders(response);
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -146,14 +142,12 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.bodyAsString()).isEqualTo("Request timeout");
-                    assertPlatformHeaders(response);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.bodyAsString()).isEqualTo("Request timeout");
+                assertPlatformHeaders(response);
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -178,14 +172,12 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.bodyAsString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    assertPlatformHeaders(response);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.bodyAsString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                assertPlatformHeaders(response);
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -204,15 +196,13 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.bodyAsString()).isEqualTo("Request timeout");
-                    // Response Platform policy chain is interrupted because of the latency policy at the beginning of the flow.
-                    assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(504);
+                assertThat(response.bodyAsString()).isEqualTo("Request timeout");
+                // Response Platform policy chain is interrupted because of the latency policy at the beginning of the flow.
+                assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
+                return true;
+            })
             .assertNoErrors();
 
         wiremock.verify(
@@ -227,15 +217,13 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
     }
 
     private void addLatencyOnPlatformResponse() {
-        super.updateAndDeployOrganization(
-            organization -> {
-                final Step responseLatencyStep = new Step();
-                responseLatencyStep.setConfiguration("{\"delay\": 1000}");
-                responseLatencyStep.setName("latency");
-                responseLatencyStep.setPolicy("latency");
-                responseLatencyStep.setEnabled(true);
-                organization.getFlows().get(0).getPost().add(0, responseLatencyStep);
-            }
-        );
+        super.updateAndDeployOrganization(organization -> {
+            final Step responseLatencyStep = new Step();
+            responseLatencyStep.setConfiguration("{\"delay\": 1000}");
+            responseLatencyStep.setName("latency");
+            responseLatencyStep.setPolicy("latency");
+            responseLatencyStep.setEnabled(true);
+            organization.getFlows().get(0).getPost().add(0, responseLatencyStep);
+        });
     }
 }

@@ -45,8 +45,8 @@ public class Soap12Binding extends AbstractBinding {
     @Override
     public BobyParts extractBodyParts(List<Object> elements) {
         Optional<SOAP12Body> optBody12 = extractFirstElement(elements, SOAP12Body.class);
-        final Optional<BobyParts> optionalBobyParts = optBody12.map(
-            body -> new BobyParts(body.getParts() == null ? emptyList() : body.getParts(), body.getUse())
+        final Optional<BobyParts> optionalBobyParts = optBody12.map(body ->
+            new BobyParts(body.getParts() == null ? emptyList() : body.getParts(), body.getUse())
         );
         return optionalBobyParts.orElse(null);
     }
