@@ -84,7 +84,7 @@ public class FlowChain implements Hookable<ChainHook> {
                 log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
                 ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
             })
-            .flatMapCompletable(flow -> executeFlow(ctx, flow, phase), false, 1)
+            .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
             .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
