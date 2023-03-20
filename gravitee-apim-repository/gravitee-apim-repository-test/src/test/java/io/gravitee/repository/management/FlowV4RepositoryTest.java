@@ -75,29 +75,27 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(3, flow.getSelectors().size());
         flow
             .getSelectors()
-            .forEach(
-                flowSelector -> {
-                    if (flowSelector instanceof FlowHttpSelector) {
-                        FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
-                        assertEquals(2, httpSelector.getMethods().size());
-                        assertEquals("/", httpSelector.getPath());
-                        assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
-                    } else if (flowSelector instanceof FlowConditionSelector) {
-                        FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
-                        assertEquals("my-condition", conditionSelector.getCondition());
-                    } else if (flowSelector instanceof FlowChannelSelector) {
-                        FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
-                        assertEquals("/", channelSelector.getChannel());
-                        assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
-                        assertTrue(
-                            channelSelector
-                                .getOperations()
-                                .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
-                        );
-                        assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
-                    }
+            .forEach(flowSelector -> {
+                if (flowSelector instanceof FlowHttpSelector) {
+                    FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
+                    assertEquals(2, httpSelector.getMethods().size());
+                    assertEquals("/", httpSelector.getPath());
+                    assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
+                } else if (flowSelector instanceof FlowConditionSelector) {
+                    FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
+                    assertEquals("my-condition", conditionSelector.getCondition());
+                } else if (flowSelector instanceof FlowChannelSelector) {
+                    FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
+                    assertEquals("/", channelSelector.getChannel());
+                    assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
+                    assertTrue(
+                        channelSelector
+                            .getOperations()
+                            .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
+                    );
+                    assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
                 }
-            );
+            });
     }
 
     @Test
@@ -155,9 +153,8 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
             flow
                 .getSelectors()
                 .stream()
-                .allMatch(
-                    flowSelector ->
-                        flowCreated.getSelectors().stream().anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))
+                .allMatch(flowSelector ->
+                    flowCreated.getSelectors().stream().anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))
                 )
         );
 
@@ -216,8 +213,8 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
             flowUpdated
                 .getSelectors()
                 .stream()
-                .allMatch(
-                    flowSelectorUpdated -> flow.getSelectors().stream().anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
+                .allMatch(flowSelectorUpdated ->
+                    flow.getSelectors().stream().anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
                 )
         );
 

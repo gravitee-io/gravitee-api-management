@@ -262,16 +262,15 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
             );
             storeValues(field, true);
             return findById(field.getKey(), field.getReferenceId(), field.getReferenceType())
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format(
-                                "No CustomUserField found with id [%s, %s, %s]",
-                                field.getKey(),
-                                field.getReferenceId(),
-                                field.getReferenceType()
-                            )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format(
+                            "No CustomUserField found with id [%s, %s, %s]",
+                            field.getKey(),
+                            field.getReferenceId(),
+                            field.getReferenceType()
                         )
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

@@ -83,7 +83,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             logger.info("Deploying api for debug");
-            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
+            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper =
+                (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableWrapper.getContent();
             DebugApi debugApi = toDebugApi(debugEvent);
             if (debugApi != null) {
@@ -109,16 +110,14 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                 .setURI(debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getPath() + debugApiRequest.getPath())
                                 .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
                         )
-                        .map(
-                            httpClientRequest ->
-                                // Always set chunked mode for gRPC transport
-                                httpClientRequest.setChunked(true)
+                        .map(httpClientRequest ->
+                            // Always set chunked mode for gRPC transport
+                            httpClientRequest.setChunked(true)
                         )
-                        .flatMap(
-                            httpClientRequest ->
-                                debugApiRequest.getBody() == null
-                                    ? httpClientRequest.rxSend()
-                                    : httpClientRequest.rxSend(debugApiRequest.getBody())
+                        .flatMap(httpClientRequest ->
+                            debugApiRequest.getBody() == null
+                                ? httpClientRequest.rxSend()
+                                : httpClientRequest.rxSend(debugApiRequest.getBody())
                         )
                         .doOnSuccess(httpClientResponse -> logger.debug("Response status: {}", httpClientResponse.statusCode()))
                         .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)

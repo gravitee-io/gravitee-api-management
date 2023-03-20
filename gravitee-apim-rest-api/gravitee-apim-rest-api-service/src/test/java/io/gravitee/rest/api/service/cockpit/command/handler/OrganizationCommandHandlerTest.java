@@ -73,13 +73,12 @@ public class OrganizationCommandHandlerTest {
         when(
             organizationService.createOrUpdate(
                 argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-                argThat(
-                    newOrganization ->
-                        newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
-                        newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
-                        newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
-                        newOrganization.getName().equals(organizationPayload.getName()) &&
-                        newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions())
+                argThat(newOrganization ->
+                    newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
+                    newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
+                    newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
+                    newOrganization.getName().equals(organizationPayload.getName()) &&
+                    newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions())
                 )
             )
         )

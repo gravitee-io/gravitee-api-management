@@ -44,15 +44,13 @@ public class Api3_0VersionSerializer extends ApiSerializer {
             jsonGenerator.writeArrayFieldStart("path_mappings");
             apiEntity
                 .getPathMappings()
-                .forEach(
-                    pathMapping -> {
-                        try {
-                            jsonGenerator.writeObject(pathMapping);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(pathMapping -> {
+                    try {
+                        jsonGenerator.writeObject(pathMapping);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
             jsonGenerator.writeEndArray();
         }
 
@@ -60,19 +58,17 @@ public class Api3_0VersionSerializer extends ApiSerializer {
         if (apiEntity.getProxy() != null) {
             Set<EndpointGroup> groups = apiEntity.getProxy().getGroups();
             if (groups != null) {
-                groups.forEach(
-                    grp -> {
-                        if (grp.getEndpoints() != null) {
-                            grp.setEndpoints(
-                                grp
-                                    .getEndpoints()
-                                    .stream()
-                                    .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
-                                    .collect(Collectors.toSet())
-                            );
-                        }
+                groups.forEach(grp -> {
+                    if (grp.getEndpoints() != null) {
+                        grp.setEndpoints(
+                            grp
+                                .getEndpoints()
+                                .stream()
+                                .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
+                                .collect(Collectors.toSet())
+                        );
                     }
-                );
+                });
             }
             jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
         }

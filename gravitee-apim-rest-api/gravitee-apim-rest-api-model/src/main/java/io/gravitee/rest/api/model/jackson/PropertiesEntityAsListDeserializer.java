@@ -46,16 +46,14 @@ public class PropertiesEntityAsListDeserializer extends StdScalarDeserializer<Li
         if (node.isArray()) {
             node
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            PropertyEntity property = jsonNode.traverse(jp.getCodec()).readValueAs(PropertyEntity.class);
-                            properties.add(property);
-                        } catch (IOException e) {
-                            LOGGER.error("Error while deserializing API's properties list", e);
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        PropertyEntity property = jsonNode.traverse(jp.getCodec()).readValueAs(PropertyEntity.class);
+                        properties.add(property);
+                    } catch (IOException e) {
+                        LOGGER.error("Error while deserializing API's properties list", e);
                     }
-                );
+                });
         } else if (node.isObject()) {
             node.fields().forEachRemaining(jsonNode -> properties.add(new PropertyEntity(jsonNode.getKey(), jsonNode.getValue().asText())));
         }

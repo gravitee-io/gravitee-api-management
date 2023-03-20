@@ -29,25 +29,22 @@ public class WebsocketCloseTest extends AbstractWebsocketGatewayTest {
     @Test
     public void websocket_closed_request(VertxTestContext testContext) throws Throwable {
         httpServer
-            .webSocketHandler(
-                serverWebSocket -> {
-                    serverWebSocket.exceptionHandler(testContext::failNow);
-                    serverWebSocket.accept();
-                    serverWebSocket.close();
-                }
-            )
+            .webSocketHandler(serverWebSocket -> {
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
+                serverWebSocket.close();
+            })
             .listen(websocketPort)
-            .map(
-                httpServer ->
-                    httpClient
-                        .webSocket("/test")
-                        .subscribe(
-                            webSocket -> {
-                                webSocket.exceptionHandler(testContext::failNow);
-                                webSocket.closeHandler(__ -> testContext.completeNow());
-                            },
-                            testContext::failNow
-                        )
+            .map(httpServer ->
+                httpClient
+                    .webSocket("/test")
+                    .subscribe(
+                        webSocket -> {
+                            webSocket.exceptionHandler(testContext::failNow);
+                            webSocket.closeHandler(__ -> testContext.completeNow());
+                        },
+                        testContext::failNow
+                    )
             )
             .subscribe();
 

@@ -119,12 +119,11 @@ public class OrganizationService_CreateTest {
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getName().equals("org_name") &&
-                        arg.getDescription().equals("org_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions)
+                argThat(arg ->
+                    arg != null &&
+                    arg.getName().equals("org_name") &&
+                    arg.getDescription().equals("org_desc") &&
+                    arg.getDomainRestrictions().equals(domainRestrictions)
                 )
             );
         verify(mockOrganizationRepository, never()).update(any());
@@ -173,12 +172,11 @@ public class OrganizationService_CreateTest {
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
             .update(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getName().equals("org_name") &&
-                        arg.getDescription().equals("org_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions)
+                argThat(arg ->
+                    arg != null &&
+                    arg.getName().equals("org_name") &&
+                    arg.getDescription().equals("org_desc") &&
+                    arg.getDomainRestrictions().equals(domainRestrictions)
                 )
             );
         verify(mockOrganizationRepository, never()).create(any());

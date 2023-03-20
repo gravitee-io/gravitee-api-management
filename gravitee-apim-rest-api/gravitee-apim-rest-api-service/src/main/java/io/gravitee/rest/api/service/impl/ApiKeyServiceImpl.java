@@ -142,9 +142,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
-            genericPlanEntity.getPlanSecurity().getType()
-        );
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
+            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(genericPlanEntity.getPlanSecurity().getType());
         if (PlanSecurityType.API_KEY != planSecurityType) {
             throw new TechnicalManagementException("Invalid plan security.");
         }
@@ -538,20 +537,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             return apiKeyRepository
                 .findById(apiKeyEntity.getId())
-                .map(
-                    dbApiKey -> {
-                        dbApiKey.setDaysToExpirationOnLastNotification(value);
-                        try {
-                            return apiKeyRepository.update(dbApiKey);
-                        } catch (TechnicalException ex) {
-                            LOGGER.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
-                            throw new TechnicalManagementException(
-                                String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
-                                ex
-                            );
-                        }
+                .map(dbApiKey -> {
+                    dbApiKey.setDaysToExpirationOnLastNotification(value);
+                    try {
+                        return apiKeyRepository.update(dbApiKey);
+                    } catch (TechnicalException ex) {
+                        LOGGER.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
+                            ex
+                        );
                     }
-                )
+                })
                 .map(apiKey -> convert(executionContext, apiKey))
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException ex) {
@@ -705,23 +702,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         key
             .getSubscriptions()
-            .forEach(
-                subscription -> {
-                    Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-                    properties.put(API_KEY, key.getKey());
-                    properties.put(API, subscription.getApi());
-                    properties.put(APPLICATION, key.getApplication().getId());
-                    auditService.createApiAuditLog(
-                        executionContext,
-                        subscription.getApi(),
-                        properties,
-                        event,
-                        eventDate,
-                        previousApiKey,
-                        key
-                    );
-                }
-            );
+            .forEach(subscription -> {
+                Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+                properties.put(API_KEY, key.getKey());
+                properties.put(API, subscription.getApi());
+                properties.put(APPLICATION, key.getApplication().getId());
+                auditService.createApiAuditLog(executionContext, subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+            });
     }
 
     private void triggerNotifierService(
@@ -753,20 +740,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         Set<SubscriptionEntity> subscriptions,
         NotificationParamsBuilder paramsBuilder
     ) {
-        subscriptions.forEach(
-            subscription -> {
-                GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-                GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
-                PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                Map<String, Object> params = paramsBuilder
-                    .application(application)
-                    .plan(genericPlanEntity)
-                    .api(genericApiModel)
-                    .owner(owner)
-                    .apikey(key)
-                    .build();
-                notifierService.trigger(executionContext, apiHook, genericApiModel.getId(), params);
-            }
-        );
+        subscriptions.forEach(subscription -> {
+            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+            GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
+            PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            Map<String, Object> params = paramsBuilder
+                .application(application)
+                .plan(genericPlanEntity)
+                .api(genericApiModel)
+                .owner(owner)
+                .apikey(key)
+                .build();
+            notifierService.trigger(executionContext, apiHook, genericApiModel.getId(), params);
+        });
     }
 }

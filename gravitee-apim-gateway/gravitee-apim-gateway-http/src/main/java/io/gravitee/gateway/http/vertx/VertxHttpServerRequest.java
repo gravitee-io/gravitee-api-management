@@ -183,12 +183,10 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public Request bodyHandler(Handler<Buffer> bodyHandler) {
         if (!serverRequest.isEnded()) {
-            serverRequest.handler(
-                buffer -> {
-                    bodyHandler.handle(Buffer.buffer(buffer));
-                    metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length());
-                }
-            );
+            serverRequest.handler(buffer -> {
+                bodyHandler.handle(Buffer.buffer(buffer));
+                metrics.setRequestContentLength(metrics.getRequestContentLength() + buffer.length());
+            });
         }
 
         return this;

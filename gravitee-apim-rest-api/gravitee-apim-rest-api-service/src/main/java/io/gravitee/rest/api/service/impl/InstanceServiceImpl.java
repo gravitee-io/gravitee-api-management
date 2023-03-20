@@ -174,13 +174,11 @@ public class InstanceServiceImpl implements InstanceService {
 
         return events
             .stream()
-            .map(
-                event -> {
-                    List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
-                    List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
-                    return convert(event, environments, organizations);
-                }
-            )
+            .map(event -> {
+                List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
+                List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
+                return convert(event, environments, organizations);
+            })
             .collect(Collectors.toList());
     }
 

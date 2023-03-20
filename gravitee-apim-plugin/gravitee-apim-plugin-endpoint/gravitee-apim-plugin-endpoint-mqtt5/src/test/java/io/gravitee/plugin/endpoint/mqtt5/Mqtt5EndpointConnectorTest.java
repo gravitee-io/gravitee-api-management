@@ -114,12 +114,10 @@ class Mqtt5EndpointConnectorTest {
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
         lenient().when(ctx.getAttribute(CONTEXT_ATTRIBUTE_MQTT5_CLIENT_ID)).thenReturn(null);
         lenient()
-            .doAnswer(
-                invocation -> {
-                    lenient().when(ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT)).thenReturn(invocation.getArgument(1));
-                    return null;
-                }
-            )
+            .doAnswer(invocation -> {
+                lenient().when(ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT)).thenReturn(invocation.getArgument(1));
+                return null;
+            })
             .when(ctx)
             .setInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTE_MQTT_CLIENT), any());
     }
@@ -160,21 +158,20 @@ class Mqtt5EndpointConnectorTest {
 
         client
             .connect()
-            .flatMapPublisher(
-                mqtt5ConnAck ->
-                    client
-                        .publish(
-                            io.reactivex.Flowable.just(
-                                Mqtt5Publish
-                                    .builder()
-                                    .topic(configuration.getTopic())
-                                    .retain(configuration.getProducer().isRetained())
-                                    .qos(Mqtt5Publish.DEFAULT_QOS)
-                                    .payload(Buffer.buffer("message").getBytes())
-                                    .build()
-                            )
+            .flatMapPublisher(mqtt5ConnAck ->
+                client
+                    .publish(
+                        io.reactivex.Flowable.just(
+                            Mqtt5Publish
+                                .builder()
+                                .topic(configuration.getTopic())
+                                .retain(configuration.getProducer().isRetained())
+                                .qos(Mqtt5Publish.DEFAULT_QOS)
+                                .payload(Buffer.buffer("message").getBytes())
+                                .build()
                         )
-                        .take(1)
+                    )
+                    .take(1)
             )
             .ignoreElements()
             .blockingAwait();
@@ -198,16 +195,14 @@ class Mqtt5EndpointConnectorTest {
         TestObserver<Void> testObserver = mqtt5EndpointConnector.connect(ctx).test();
 
         testObserver.await(10, TimeUnit.SECONDS);
-        testObserver.assertError(
-            throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure()).isNotNull();
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
-                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection failed");
-                return true;
-            }
-        );
+        testObserver.assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure()).isNotNull();
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+            assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection failed");
+            return true;
+        });
     }
 
     @Test
@@ -224,16 +219,15 @@ class Mqtt5EndpointConnectorTest {
 
         TestSubscriber<Mqtt5Publish> testSubscriber = client
             .connect()
-            .flatMapPublisher(
-                mqtt5ConnAck ->
-                    client
-                        .subscribePublishesWith()
-                        .addSubscription()
-                        .topicFilter(configuration.getTopic())
-                        .qos(MqttQos.AT_LEAST_ONCE)
-                        .noLocal(false)
-                        .applySubscription()
-                        .applySubscribe()
+            .flatMapPublisher(mqtt5ConnAck ->
+                client
+                    .subscribePublishesWith()
+                    .addSubscription()
+                    .topicFilter(configuration.getTopic())
+                    .qos(MqttQos.AT_LEAST_ONCE)
+                    .noLocal(false)
+                    .applySubscription()
+                    .applySubscribe()
             )
             .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
             .take(1)
@@ -272,16 +266,15 @@ class Mqtt5EndpointConnectorTest {
 
         TestSubscriber<Mqtt5Publish> testSubscriber = client
             .connect()
-            .flatMapPublisher(
-                mqtt5ConnAck ->
-                    client
-                        .subscribePublishesWith()
-                        .addSubscription()
-                        .topicFilter(overriddenTopic)
-                        .qos(MqttQos.AT_LEAST_ONCE)
-                        .noLocal(false)
-                        .applySubscription()
-                        .applySubscribe()
+            .flatMapPublisher(mqtt5ConnAck ->
+                client
+                    .subscribePublishesWith()
+                    .addSubscription()
+                    .topicFilter(overriddenTopic)
+                    .qos(MqttQos.AT_LEAST_ONCE)
+                    .noLocal(false)
+                    .applySubscription()
+                    .applySubscribe()
             )
             .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
             .take(1)
@@ -321,16 +314,15 @@ class Mqtt5EndpointConnectorTest {
 
         TestSubscriber<Mqtt5Publish> testSubscriber = client
             .connect()
-            .flatMapPublisher(
-                mqtt5ConnAck ->
-                    client
-                        .subscribePublishesWith()
-                        .addSubscription()
-                        .topicFilter(messageOverriddenTopic)
-                        .qos(MqttQos.AT_LEAST_ONCE)
-                        .noLocal(false)
-                        .applySubscription()
-                        .applySubscribe()
+            .flatMapPublisher(mqtt5ConnAck ->
+                client
+                    .subscribePublishesWith()
+                    .addSubscription()
+                    .topicFilter(messageOverriddenTopic)
+                    .qos(MqttQos.AT_LEAST_ONCE)
+                    .noLocal(false)
+                    .applySubscription()
+                    .applySubscribe()
             )
             .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getTopic()).applyUnsubscribe())
             .take(1)

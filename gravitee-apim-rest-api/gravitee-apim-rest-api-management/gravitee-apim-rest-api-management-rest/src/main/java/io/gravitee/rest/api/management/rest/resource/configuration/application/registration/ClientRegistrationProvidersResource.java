@@ -78,17 +78,15 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
         return clientRegistrationService
             .findAll(GraviteeContext.getExecutionContext())
             .stream()
-            .map(
-                clientRegistrationProvider -> {
-                    ClientRegistrationProviderListItem item = new ClientRegistrationProviderListItem();
-                    item.setId(clientRegistrationProvider.getId());
-                    item.setName(clientRegistrationProvider.getName());
-                    item.setDescription(clientRegistrationProvider.getDescription());
-                    item.setCreatedAt(clientRegistrationProvider.getCreatedAt());
-                    item.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
-                    return item;
-                }
-            )
+            .map(clientRegistrationProvider -> {
+                ClientRegistrationProviderListItem item = new ClientRegistrationProviderListItem();
+                item.setId(clientRegistrationProvider.getId());
+                item.setName(clientRegistrationProvider.getName());
+                item.setDescription(clientRegistrationProvider.getDescription());
+                item.setCreatedAt(clientRegistrationProvider.getCreatedAt());
+                item.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
+                return item;
+            })
             .collect(Collectors.toList());
     }
 

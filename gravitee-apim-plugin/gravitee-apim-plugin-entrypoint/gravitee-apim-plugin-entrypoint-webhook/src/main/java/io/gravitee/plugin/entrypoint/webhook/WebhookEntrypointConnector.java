@@ -115,41 +115,31 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final String requestUri = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI);
-                final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
-                final WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = ctx.getInternalAttribute(
-                    INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG
-                );
+        return Completable.fromRunnable(() -> {
+            final String requestUri = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI);
+            final HttpClient httpClient = ctx.getInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT);
+            final WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = ctx.getInternalAttribute(
+                INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG
+            );
 
-                // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
-                ctx
-                    .response()
-                    .chunks(
-                        ctx
-                            .response()
-                            .messages()
-                            .compose(applyStopHook())
-                            .flatMapCompletable(
-                                message -> {
-                                    if (message.error()) {
-                                        return Completable.error(new Exception(message.content().toString()));
-                                    }
-                                    return sendAndDiscard(
-                                        requestUri,
-                                        httpClient,
-                                        subscriptionConfiguration,
-                                        message,
-                                        ctx.response().headers()
-                                    );
-                                }
-                            )
-                            .doFinally(httpClient::close)
-                            .toFlowable()
-                    );
-            }
-        );
+            // Basically produces no response chunks since messages are consumed, sent to the remote webhook then discarded because subscription mode does not need producing content.
+            ctx
+                .response()
+                .chunks(
+                    ctx
+                        .response()
+                        .messages()
+                        .compose(applyStopHook())
+                        .flatMapCompletable(message -> {
+                            if (message.error()) {
+                                return Completable.error(new Exception(message.content().toString()));
+                            }
+                            return sendAndDiscard(requestUri, httpClient, subscriptionConfiguration, message, ctx.response().headers());
+                        })
+                        .doFinally(httpClient::close)
+                        .toFlowable()
+                );
+        });
     }
 
     @Override
@@ -168,26 +158,24 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
         // Consume the message in order to send it to the remote webhook and discard it to preserve memory.
         return httpClient
             .rxRequest(HttpMethod.POST, requestUri)
-            .flatMap(
-                request -> {
-                    if (responseHeaders != null) {
-                        responseHeaders.forEach(header -> request.putHeader(header.getKey(), header.getValue()));
-                    }
-                    if (message.headers() != null) {
-                        message.headers().forEach(header -> putHeaderIfAbsent(request, header.getKey(), header.getValue()));
-                    }
-                    if (subscriptionConfiguration.getHeaders() != null) {
-                        subscriptionConfiguration
-                            .getHeaders()
-                            .forEach(header -> putHeaderIfAbsent(request, header.getName(), header.getValue()));
-                    }
-                    if (message.content() != null) {
-                        return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
-                    } else {
-                        return request.rxSend();
-                    }
+            .flatMap(request -> {
+                if (responseHeaders != null) {
+                    responseHeaders.forEach(header -> request.putHeader(header.getKey(), header.getValue()));
                 }
-            )
+                if (message.headers() != null) {
+                    message.headers().forEach(header -> putHeaderIfAbsent(request, header.getKey(), header.getValue()));
+                }
+                if (subscriptionConfiguration.getHeaders() != null) {
+                    subscriptionConfiguration
+                        .getHeaders()
+                        .forEach(header -> putHeaderIfAbsent(request, header.getName(), header.getValue()));
+                }
+                if (message.content() != null) {
+                    return request.rxSend(Buffer.buffer(message.content().getNativeBuffer()));
+                } else {
+                    return request.rxSend();
+                }
+            })
             .doOnSuccess(httpClientResponse -> message.ack())
             .ignoreElement()
             .doOnError(throwable -> log.error("An error occurred when trying to send webhook message.", throwable))
@@ -201,35 +189,33 @@ public class WebhookEntrypointConnector extends EntrypointAsyncConnector {
     }
 
     private Completable computeSubscriptionContextAttributes(final ExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = null;
+        return Completable.defer(() -> {
+            WebhookEntrypointConnectorSubscriptionConfiguration subscriptionConfiguration = null;
 
-                final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
-                try {
-                    subscriptionConfiguration =
-                        connectorHelper.readConfiguration(
-                            WebhookEntrypointConnectorSubscriptionConfiguration.class,
-                            subscription.getConfiguration()
-                        );
-
-                    final URL targetUrl = new URL(null, subscriptionConfiguration.getCallbackUrl());
-
-                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
-                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, extractRequestUri(targetUrl));
-                    ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT, createHttpClient(ctx, targetUrl));
-
-                    return Completable.complete();
-                } catch (Exception ex) {
-                    return Completable.error(
-                        new IllegalArgumentException(
-                            "Unable to prepare the execution context for the webhook, with subscription id [" + subscription.getId() + "]",
-                            ex
-                        )
+            final Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
+            try {
+                subscriptionConfiguration =
+                    connectorHelper.readConfiguration(
+                        WebhookEntrypointConnectorSubscriptionConfiguration.class,
+                        subscription.getConfiguration()
                     );
-                }
+
+                final URL targetUrl = new URL(null, subscriptionConfiguration.getCallbackUrl());
+
+                ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_SUBSCRIPTION_CONFIG, subscriptionConfiguration);
+                ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_REQUEST_URI, extractRequestUri(targetUrl));
+                ctx.setInternalAttribute(INTERNAL_ATTR_WEBHOOK_HTTP_CLIENT, createHttpClient(ctx, targetUrl));
+
+                return Completable.complete();
+            } catch (Exception ex) {
+                return Completable.error(
+                    new IllegalArgumentException(
+                        "Unable to prepare the execution context for the webhook, with subscription id [" + subscription.getId() + "]",
+                        ex
+                    )
+                );
             }
-        );
+        });
     }
 
     private String extractRequestUri(URL targetUrl) {

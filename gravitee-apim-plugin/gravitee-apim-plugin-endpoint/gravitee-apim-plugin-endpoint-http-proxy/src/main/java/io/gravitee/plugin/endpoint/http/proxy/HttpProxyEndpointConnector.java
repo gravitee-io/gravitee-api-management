@@ -110,19 +110,16 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
             return client
                 .rxRequest(options)
-                .flatMap(
-                    httpClientRequest ->
-                        httpClientRequest.rxSend(
-                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                        )
+                .flatMap(httpClientRequest ->
+                    httpClientRequest.rxSend(
+                        request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                    )
                 )
-                .doOnSuccess(
-                    endpointResponse -> {
-                        response.status(endpointResponse.statusCode());
-                        copyResponseHeaders(response, endpointResponse);
-                        response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
-                    }
-                )
+                .doOnSuccess(endpointResponse -> {
+                    response.status(endpointResponse.statusCode());
+                    copyResponseHeaders(response, endpointResponse);
+                    response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
+                })
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);

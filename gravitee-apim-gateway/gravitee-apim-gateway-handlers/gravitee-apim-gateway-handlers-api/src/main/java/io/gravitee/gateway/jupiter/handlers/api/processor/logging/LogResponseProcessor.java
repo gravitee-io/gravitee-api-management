@@ -43,17 +43,15 @@ public class LogResponseProcessor implements Processor {
 
     @Override
     public Completable execute(MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.request().metrics().getLog();
+            final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
-                if (log != null && loggingContext.clientMode()) {
-                    final LogClientResponse logResponse = new LogClientResponse(loggingContext, ctx.response());
-                    log.setClientResponse(logResponse);
-                }
+            if (log != null && loggingContext.clientMode()) {
+                final LogClientResponse logResponse = new LogClientResponse(loggingContext, ctx.response());
+                log.setClientResponse(logResponse);
             }
-        );
+        });
     }
 
     private static class Holder {

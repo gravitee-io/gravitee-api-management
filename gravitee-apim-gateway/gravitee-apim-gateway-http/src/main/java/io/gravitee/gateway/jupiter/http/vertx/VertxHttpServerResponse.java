@@ -77,51 +77,46 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     @Override
     public Completable end() {
-        return Completable.defer(
-            () -> {
-                if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return chunks().ignoreElements().andThen(ensureWebSocketClosed());
-                }
-
-                if (!opened()) {
-                    return Completable.error(new IllegalStateException("The response is already ended"));
-                }
-                prepareHeaders();
-
-                final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-
-                if (bufferFlow.chunks != null) {
-                    return nativeResponse
-                        .rxSend(
-                            chunks()
-                                .doOnSubscribe(subscriptionRef::set)
-                                .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                                .doOnNext(
-                                    buffer ->
-                                        serverRequest
-                                            .metrics()
-                                            .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
-                                )
-                        )
-                        .doOnDispose(() -> subscriptionRef.get().cancel());
-                }
-
-                return nativeResponse.rxEnd();
+        return Completable.defer(() -> {
+            if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
+                return chunks().ignoreElements().andThen(ensureWebSocketClosed());
             }
-        );
+
+            if (!opened()) {
+                return Completable.error(new IllegalStateException("The response is already ended"));
+            }
+            prepareHeaders();
+
+            final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+
+            if (bufferFlow.chunks != null) {
+                return nativeResponse
+                    .rxSend(
+                        chunks()
+                            .doOnSubscribe(subscriptionRef::set)
+                            .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            .doOnNext(buffer ->
+                                serverRequest
+                                    .metrics()
+                                    .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                            )
+                    )
+                    .doOnDispose(() -> subscriptionRef.get().cancel());
+            }
+
+            return nativeResponse.rxEnd();
+        });
     }
 
     private Completable ensureWebSocketClosed() {
-        return Completable.defer(
-            () -> {
-                final WebSocket webSocket = serverRequest.webSocket();
-                if (!webSocket.closed()) {
-                    return webSocket.close(INTERNAL_SERVER_ERROR.code(), INTERNAL_SERVER_ERROR.reasonText());
-                }
-
-                return Completable.complete();
+        return Completable.defer(() -> {
+            final WebSocket webSocket = serverRequest.webSocket();
+            if (!webSocket.closed()) {
+                return webSocket.close(INTERNAL_SERVER_ERROR.code(), INTERNAL_SERVER_ERROR.reasonText());
             }
-        );
+
+            return Completable.complete();
+        });
     }
 
     @Override

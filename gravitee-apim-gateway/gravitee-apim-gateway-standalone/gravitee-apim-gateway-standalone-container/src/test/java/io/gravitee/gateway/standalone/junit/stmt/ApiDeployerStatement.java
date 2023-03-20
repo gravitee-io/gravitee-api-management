@@ -178,15 +178,13 @@ public class ApiDeployerStatement extends Statement {
     }
 
     private VertxEmbeddedContainer startServer(GatewayTestContainer container) throws InterruptedException {
-        final Thread starterThread = new Thread(
-            () -> {
-                try {
-                    container.start();
-                } catch (Exception e) {
-                    System.exit(-1);
-                }
+        final Thread starterThread = new Thread(() -> {
+            try {
+                container.start();
+            } catch (Exception e) {
+                System.exit(-1);
             }
-        );
+        });
 
         starterThread.start();
 
@@ -199,15 +197,13 @@ public class ApiDeployerStatement extends Statement {
     }
 
     private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer) throws InterruptedException {
-        final Thread stopThread = new Thread(
-            () -> {
-                try {
-                    container.stop();
-                } catch (Exception e) {
-                    System.exit(-1);
-                }
+        final Thread stopThread = new Thread(() -> {
+            try {
+                container.stop();
+            } catch (Exception e) {
+                System.exit(-1);
             }
-        );
+        });
 
         stopThread.start();
 

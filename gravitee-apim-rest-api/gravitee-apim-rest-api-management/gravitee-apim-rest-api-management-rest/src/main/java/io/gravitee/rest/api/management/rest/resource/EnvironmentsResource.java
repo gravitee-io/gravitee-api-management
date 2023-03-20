@@ -89,24 +89,21 @@ public class EnvironmentsResource extends AbstractResource {
 
         return environments
             .stream()
-            .map(
-                environment -> {
-                    Map<String, char[]> permissions = new HashMap<>();
-                    if (isAuthenticated()) {
-                        final String username = getAuthenticatedUser();
-                        permissions =
-                            membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environment, username);
-                    }
-
-                    EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();
-                    environmentPermissions.setId(environment.getId());
-                    environmentPermissions.setName(environment.getName());
-                    environmentPermissions.setHrids(environment.getHrids());
-                    environmentPermissions.setPermissions(permissions);
-
-                    return environmentPermissions;
+            .map(environment -> {
+                Map<String, char[]> permissions = new HashMap<>();
+                if (isAuthenticated()) {
+                    final String username = getAuthenticatedUser();
+                    permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environment, username);
                 }
-            )
+
+                EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();
+                environmentPermissions.setId(environment.getId());
+                environmentPermissions.setName(environment.getName());
+                environmentPermissions.setHrids(environment.getHrids());
+                environmentPermissions.setPermissions(permissions);
+
+                return environmentPermissions;
+            })
             .collect(Collectors.toList());
     }
 }

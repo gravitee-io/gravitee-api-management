@@ -74,21 +74,19 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     public List<Listener> validateAndSanitize(final ExecutionContext executionContext, final String apiId, final List<Listener> listeners) {
         if (listeners != null && !listeners.isEmpty()) {
             checkDuplicatedListeners(listeners);
-            listeners.forEach(
-                listener -> {
-                    switch (listener.getType()) {
-                        case HTTP:
-                            validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
-                            break;
-                        case SUBSCRIPTION:
-                            validateAndSanitizeSubscriptionListener((SubscriptionListener) listener);
-                            break;
-                        case TCP:
-                        default:
-                            break;
-                    }
+            listeners.forEach(listener -> {
+                switch (listener.getType()) {
+                    case HTTP:
+                        validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener);
+                        break;
+                    case SUBSCRIPTION:
+                        validateAndSanitizeSubscriptionListener((SubscriptionListener) listener);
+                        break;
+                    case TCP:
+                    default:
+                        break;
                 }
-            );
+            });
         }
         return listeners;
     }
@@ -130,15 +128,13 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             throw new ListenerEntrypointMissingException(type);
         }
         checkDuplicatedEntrypoints(type, entrypoints);
-        entrypoints.forEach(
-            entrypoint -> {
-                if (entrypoint.getType() == null) {
-                    throw new ListenerEntrypointMissingTypeException();
-                }
-                checkEntrypointQos(entrypoint);
-                checkEntrypointConfiguration(entrypoint);
+        entrypoints.forEach(entrypoint -> {
+            if (entrypoint.getType() == null) {
+                throw new ListenerEntrypointMissingTypeException();
             }
-        );
+            checkEntrypointQos(entrypoint);
+            checkEntrypointConfiguration(entrypoint);
+        });
     }
 
     private void checkEntrypointQos(final Entrypoint entrypoint) {
@@ -181,17 +177,15 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private void validatePathMappings(final Set<String> pathMappings) {
         // validate regex on pathMappings
         if (pathMappings != null) {
-            pathMappings.forEach(
-                pathMapping -> {
-                    try {
-                        Pattern.compile(pathMapping);
-                    } catch (java.util.regex.PatternSyntaxException pse) {
-                        String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
-                        log.error(errorMsg, pse);
-                        throw new TechnicalManagementException(errorMsg, pse);
-                    }
+            pathMappings.forEach(pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
+                    log.error(errorMsg, pse);
+                    throw new TechnicalManagementException(errorMsg, pse);
                 }
-            );
+            });
         }
     }
 }

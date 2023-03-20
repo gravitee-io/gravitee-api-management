@@ -104,30 +104,28 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
-            .forEach(
-                api -> {
-                    try {
-                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                            api.getDefinition(),
-                            io.gravitee.definition.model.Api.class
-                        );
+            .forEach(api -> {
+                try {
+                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                        api.getDefinition(),
+                        io.gravitee.definition.model.Api.class
+                    );
 
-                        if (
-                            apiDefinition.getProxy() != null &&
-                            apiDefinition.getProxy().getLogging() != null &&
-                            apiDefinition.getProxy().getLogging().getCondition() != null
-                        ) {
-                            String condition = apiDefinition.getProxy().getLogging().getCondition().trim();
-                            if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
-                                fixLoggingCondition(executionContext, api, apiDefinition, condition);
-                            }
+                    if (
+                        apiDefinition.getProxy() != null &&
+                        apiDefinition.getProxy().getLogging() != null &&
+                        apiDefinition.getProxy().getLogging().getCondition() != null
+                    ) {
+                        String condition = apiDefinition.getProxy().getLogging().getCondition().trim();
+                        if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
+                            fixLoggingCondition(executionContext, api, apiDefinition, condition);
                         }
-                    } catch (Exception e) {
-                        LOGGER.error("Unable to fix logging condition for API {}", api.getId(), e);
-                        throw new RuntimeException(e);
                     }
+                } catch (Exception e) {
+                    LOGGER.error("Unable to fix logging condition for API {}", api.getId(), e);
+                    throw new RuntimeException(e);
                 }
-            );
+            });
     }
 
     protected void fixLoggingCondition(

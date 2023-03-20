@@ -46,16 +46,14 @@ public class ReporterProcessor implements Processor {
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable
-            .fromRunnable(
-                () -> {
-                    Metrics metrics = ctx.request().metrics();
-                    reporterService.report(metrics);
-                    if (metrics.getLog() != null) {
-                        metrics.getLog().setApi(metrics.getApi());
-                        reporterService.report(metrics.getLog());
-                    }
+            .fromRunnable(() -> {
+                Metrics metrics = ctx.request().metrics();
+                reporterService.report(metrics);
+                if (metrics.getLog() != null) {
+                    metrics.getLog().setApi(metrics.getApi());
+                    reporterService.report(metrics.getLog());
                 }
-            )
+            })
             .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
     }

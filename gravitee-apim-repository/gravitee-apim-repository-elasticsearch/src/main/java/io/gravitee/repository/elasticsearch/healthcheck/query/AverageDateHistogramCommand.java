@@ -128,16 +128,14 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
         if (!query.aggregations().isEmpty()) {
             query
                 .aggregations()
-                .forEach(
-                    aggregation -> {
-                        String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
-                        if (aggregation.type() == AggregationType.FIELD) {
-                            key = "by_" + aggregation.field();
-                        }
-
-                        dateHistogramResponse.values().add(fieldBuckets.get(key));
+                .forEach(aggregation -> {
+                    String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
+                    if (aggregation.type() == AggregationType.FIELD) {
+                        key = "by_" + aggregation.field();
                     }
-                );
+
+                    dateHistogramResponse.values().add(fieldBuckets.get(key));
+                });
         }
         return dateHistogramResponse;
     }

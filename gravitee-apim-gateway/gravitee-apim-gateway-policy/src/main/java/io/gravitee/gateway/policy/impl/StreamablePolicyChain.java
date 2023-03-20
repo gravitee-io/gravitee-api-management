@@ -68,20 +68,16 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
                         // Chain policy stream using the previous one
                         if (previousPolicyStreamer != null) {
-                            previousPolicyStreamer.bodyHandler(
-                                result -> {
-                                    if (!streamErrorHandle) {
-                                        streamer.write(result);
-                                    }
+                            previousPolicyStreamer.bodyHandler(result -> {
+                                if (!streamErrorHandle) {
+                                    streamer.write(result);
                                 }
-                            );
-                            previousPolicyStreamer.endHandler(
-                                result -> {
-                                    if (!streamErrorHandle) {
-                                        streamer.end();
-                                    }
+                            });
+                            previousPolicyStreamer.endHandler(result -> {
+                                if (!streamErrorHandle) {
+                                    streamer.end();
                                 }
-                            );
+                            });
                         }
 
                         // Previous stream is now the current policy stream
@@ -95,16 +91,12 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
         ReadWriteStream<Buffer> tailPolicyStreamer = previousPolicyStreamer;
         if (streamablePolicyHandlerChain != null && tailPolicyStreamer != null) {
-            tailPolicyStreamer.bodyHandler(
-                bodyPart -> {
-                    if (bodyHandler != null) bodyHandler.handle(bodyPart);
-                }
-            );
-            tailPolicyStreamer.endHandler(
-                result -> {
-                    if (endHandler != null) endHandler.handle(result);
-                }
-            );
+            tailPolicyStreamer.bodyHandler(bodyPart -> {
+                if (bodyHandler != null) bodyHandler.handle(bodyPart);
+            });
+            tailPolicyStreamer.endHandler(result -> {
+                if (endHandler != null) endHandler.handle(result);
+            });
         }
     }
 
@@ -112,12 +104,10 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> streamErrorHandler(Handler<ProcessorFailure> handler) {
-        super.streamErrorHandler(
-            processorFailure -> {
-                streamErrorHandle = true;
-                handler.handle(processorFailure);
-            }
-        );
+        super.streamErrorHandler(processorFailure -> {
+            streamErrorHandle = true;
+            handler.handle(processorFailure);
+        });
 
         return this;
     }

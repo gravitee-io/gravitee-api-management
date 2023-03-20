@@ -179,17 +179,15 @@ class SecurityChainTest {
     private void verifyUnauthorized() {
         verify(ctx)
             .interruptWith(
-                argThat(
-                    failure -> {
-                        assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
-                        Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
-                        Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
-                        assertNull(failure.parameters());
-                        assertNull(failure.contentType());
+                argThat(failure -> {
+                    assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
+                    Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
+                    Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
+                    assertNull(failure.parameters());
+                    assertNull(failure.contentType());
 
-                        return true;
-                    }
-                )
+                    return true;
+                })
             );
     }
 
@@ -208,9 +206,8 @@ class SecurityChainTest {
         when(
             policyManager.create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    meta ->
-                        meta.getName().equals(MOCK_POLICY + "-" + name) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name)
+                argThat(meta ->
+                    meta.getName().equals(MOCK_POLICY + "-" + name) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name)
                 )
             )
         )

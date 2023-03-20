@@ -227,16 +227,14 @@ class KafkaEndpointConnectorTest {
 
         messageFlowable
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure()).isNotNull();
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
-                    assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure()).isNotNull();
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
+                return true;
+            });
     }
 
     @Test
@@ -251,16 +249,14 @@ class KafkaEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
         TestSubscriber<Message> messageTestSubscriber = messagesCaptor.getValue().take(1).test();
         messageTestSubscriber.await(15, TimeUnit.SECONDS);
-        messageTestSubscriber.assertError(
-            throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure()).isNotNull();
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
-                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
-                return true;
-            }
-        );
+        messageTestSubscriber.assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure()).isNotNull();
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+            assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
+            return true;
+        });
     }
 
     @Test
@@ -281,16 +277,14 @@ class KafkaEndpointConnectorTest {
             .just(DefaultMessage.builder().headers(HttpHeaders.create().add("key", "value")).content(Buffer.buffer("message")).build())
             .compose(messagesTransformerCaptor.getValue())
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure()).isNotNull();
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
-                    assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure()).isNotNull();
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint configuration invalid");
+                return true;
+            });
     }
 
     @Test
@@ -310,15 +304,13 @@ class KafkaEndpointConnectorTest {
             .test();
 
         messageTestSubscriber.await(15, TimeUnit.SECONDS);
-        messageTestSubscriber.assertError(
-            throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure()).isNotNull();
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
-                assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
-                return true;
-            }
-        );
+        messageTestSubscriber.assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure()).isNotNull();
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(500);
+            assertThat(failureException.getExecutionFailure().message()).isEqualTo("Endpoint connection closed");
+            return true;
+        });
     }
 }

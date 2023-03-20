@@ -543,28 +543,24 @@ public class AccessControlServiceTest {
         Set<AccessControlEntity> accessControlEntities = new HashSet<>();
         Set<AccessControlEntity> roleEntities = roles
             .stream()
-            .map(
-                id -> {
-                    AccessControlEntity accessControlEntity = new AccessControlEntity();
-                    accessControlEntity.setReferenceId(id);
-                    accessControlEntity.setReferenceType("ROLE");
-                    return accessControlEntity;
-                }
-            )
+            .map(id -> {
+                AccessControlEntity accessControlEntity = new AccessControlEntity();
+                accessControlEntity.setReferenceId(id);
+                accessControlEntity.setReferenceType("ROLE");
+                return accessControlEntity;
+            })
             .collect(Collectors.toSet());
 
         accessControlEntities.addAll(roleEntities);
 
         Set<AccessControlEntity> groupEntities = groups
             .stream()
-            .map(
-                id -> {
-                    AccessControlEntity accessControlEntity = new AccessControlEntity();
-                    accessControlEntity.setReferenceId(id);
-                    accessControlEntity.setReferenceType("GROUP");
-                    return accessControlEntity;
-                }
-            )
+            .map(id -> {
+                AccessControlEntity accessControlEntity = new AccessControlEntity();
+                accessControlEntity.setReferenceId(id);
+                accessControlEntity.setReferenceType("GROUP");
+                return accessControlEntity;
+            })
             .collect(Collectors.toSet());
 
         accessControlEntities.addAll(groupEntities);

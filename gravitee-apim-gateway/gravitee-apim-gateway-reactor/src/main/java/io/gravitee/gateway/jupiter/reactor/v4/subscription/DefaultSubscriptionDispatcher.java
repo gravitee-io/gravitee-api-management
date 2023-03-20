@@ -142,24 +142,22 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
 
     private Completable buildSubscriptionObservable(Subscription subscription, ApiReactor reactorHandler, String type) {
         return Single
-            .fromCallable(
-                () -> {
-                    MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
+            .fromCallable(() -> {
+                MutableExecutionContext context = subscriptionExecutionRequestFactory.create(subscription);
 
-                    // This attribute is used by connectors
-                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
-                    context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
-                    context.setAttribute(ContextAttributes.ATTR_PLAN, subscription.getPlan());
-                    context.setAttribute(ContextAttributes.ATTR_APPLICATION, subscription.getApplication());
-                    context.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, subscription.getId());
+                // This attribute is used by connectors
+                context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION_TYPE, type);
+                context.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+                context.setAttribute(ContextAttributes.ATTR_PLAN, subscription.getPlan());
+                context.setAttribute(ContextAttributes.ATTR_APPLICATION, subscription.getApplication());
+                context.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, subscription.getId());
 
-                    // Skip the security chain (currently requires to be an attribute as long as we support v3).
-                    context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+                // Skip the security chain (currently requires to be an attribute as long as we support v3).
+                context.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
 
-                    context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
-                    return context;
-                }
-            )
+                context.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.SUBSCRIPTION);
+                return context;
+            })
             .flatMapCompletable(reactorHandler::handle)
             // Apply a delay before starting the subscription if it has a starting date
             .compose(delayToStartDate(subscription))
@@ -169,12 +167,10 @@ public class DefaultSubscriptionDispatcher extends AbstractService<SubscriptionD
             .onErrorComplete(manageErrors())
             // In case of unhandled exception, retry ON_SUBSCRIPTION_ERROR_RETRY_COUNT times with a delay of ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS between attempts
             .compose(RxHelper.retry(ON_SUBSCRIPTION_ERROR_RETRY_COUNT, ON_SUBSCRIPTION_ERROR_RETRY_DELAY_MS, MILLISECONDS))
-            .onErrorResumeNext(
-                t -> {
-                    // Here, manage ERROR status for subscription and send command to repository
-                    return Completable.complete();
-                }
-            );
+            .onErrorResumeNext(t -> {
+                // Here, manage ERROR status for subscription and send command to repository
+                return Completable.complete();
+            });
     }
 
     private CompletableTransformer delayToStartDate(Subscription subscription) {

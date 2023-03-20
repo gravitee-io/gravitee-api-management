@@ -73,11 +73,9 @@ public class DynamicPropertyUpdaterTest {
             .thenReturn(
                 CompletableFuture
                     .completedFuture((Collection<DynamicProperty>) Collections.<DynamicProperty>emptyList())
-                    .whenCompleteAsync(
-                        (dynamicProperties, throwable) -> {
-                            throw new IllegalStateException();
-                        }
-                    )
+                    .whenCompleteAsync((dynamicProperties, throwable) -> {
+                        throw new IllegalStateException();
+                    })
             );
 
         poller.handle(1L);

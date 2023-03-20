@@ -78,11 +78,10 @@ public class OrganizationSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 anyLong(),
@@ -105,11 +104,10 @@ public class OrganizationSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(organization, EventType.PUBLISH_ORGANIZATION);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 anyLong(),
@@ -139,11 +137,10 @@ public class OrganizationSynchronizerTest extends TestCase {
         final Event mockEvent2 = mockEvent(organization2, EventType.PUBLISH_ORGANIZATION);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 eq(0L),
@@ -154,11 +151,10 @@ public class OrganizationSynchronizerTest extends TestCase {
 
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.ORGANIZATION_ID),
                 eq(1L),
@@ -190,11 +186,10 @@ public class OrganizationSynchronizerTest extends TestCase {
             if (i % 100 == 0) {
                 when(
                     eventRepository.searchLatest(
-                        argThat(
-                            criteria ->
-                                criteria != null &&
-                                criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
-                                criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                        argThat(criteria ->
+                            criteria != null &&
+                            criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_ORGANIZATION)) &&
+                            criteria.getEnvironments().containsAll(ENVIRONMENTS)
                         ),
                         eq(Event.EventProperties.ORGANIZATION_ID),
                         eq(page),

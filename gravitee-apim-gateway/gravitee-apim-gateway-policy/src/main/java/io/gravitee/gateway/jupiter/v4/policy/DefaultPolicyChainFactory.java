@@ -142,16 +142,14 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
             flow
                 .selectorByType(SelectorType.HTTP)
                 .map(HttpSelector.class::cast)
-                .ifPresent(
-                    httpSelector -> {
-                        if (httpSelector.getMethods().isEmpty()) {
-                            flowNameBuilder.append("ALL").append(ID_SEPARATOR);
-                        } else {
-                            httpSelector.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
-                        }
-                        flowNameBuilder.append(httpSelector.getPath());
+                .ifPresent(httpSelector -> {
+                    if (httpSelector.getMethods().isEmpty()) {
+                        flowNameBuilder.append("ALL").append(ID_SEPARATOR);
+                    } else {
+                        httpSelector.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
                     }
-                );
+                    flowNameBuilder.append(httpSelector.getPath());
+                });
         } else {
             flowNameBuilder.append(flow.getName());
         }

@@ -40,7 +40,8 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
     public SecurityConfigurer configure() throws Exception {
         LOGGER.info("Configuring an LDAP Identity Provider");
 
-        LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer = new LdapAuthenticationProviderConfigurer<>();
+        LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer =
+            new LdapAuthenticationProviderConfigurer<>();
 
         // Create LDAP context
         DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(environment.getProperty("context.url"));

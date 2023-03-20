@@ -251,36 +251,32 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
-                if (entrypointConnector == null) {
-                    return ctx.interruptWith(
-                        new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).message("No entrypoint matches the incoming request")
-                    );
-                }
-
-                // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
-                ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
-
-                return entrypointConnector.handleRequest(ctx);
+        return Completable.defer(() -> {
+            final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
+            if (entrypointConnector == null) {
+                return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).message("No entrypoint matches the incoming request")
+                );
             }
-        );
+
+            // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
+
+            return entrypointConnector.handleRequest(ctx);
+        });
     }
 
     private Completable handleEntrypointResponse(final MutableExecutionContext ctx) {
         return Completable
-            .defer(
-                () -> {
-                    if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                        final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                        if (entrypointConnector != null) {
-                            return entrypointConnector.handleResponse(ctx);
-                        }
+            .defer(() -> {
+                if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
+                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                    if (entrypointConnector != null) {
+                        return entrypointConnector.handleResponse(ctx);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .compose(upstream -> timeout(upstream, ctx));
     }
 
@@ -293,18 +289,16 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(
-                () -> {
-                    if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
-                        Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+                if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                        if (invoker != null) {
-                            return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                        }
+                    if (invoker != null) {
+                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
             .doOnDispose(() -> setApiResponseTimeMetric(ctx))
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
@@ -348,15 +342,13 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
-        return Completable.fromRunnable(
-            () -> {
-                log.error("Unexpected error while handling request", throwable);
-                setApiResponseTimeMetric(ctx);
+        return Completable.fromRunnable(() -> {
+            log.error("Unexpected error while handling request", throwable);
+            setApiResponseTimeMetric(ctx);
 
-                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-            }
-        );
+            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        });
     }
 
     private void setApiResponseTimeMetric(final ExecutionContext ctx) {
@@ -372,20 +364,19 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             return upstream;
         }
 
-        return Completable.defer(
-            () ->
-                upstream.timeout(
-                    Math.max(
-                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                        requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
-                    ),
-                    TimeUnit.MILLISECONDS,
-                    ctx
-                        .interruptWith(
-                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message("Request timeout")
-                        )
-                        .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-                )
+        return Completable.defer(() ->
+            upstream.timeout(
+                Math.max(
+                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                ),
+                TimeUnit.MILLISECONDS,
+                ctx
+                    .interruptWith(
+                        new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message("Request timeout")
+                    )
+                    .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+            )
         );
     }
 

@@ -129,8 +129,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
 
                 BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-                ((Collection<?>) values).forEach(
-                        value -> filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
+                ((Collection<?>) values).forEach(value ->
+                        filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
                     );
                 if (valuesAsCollection.size() > 0) {
                     filtersQuery.add(filterApisQuery.build(), BooleanClause.Occur.SHOULD);
@@ -139,14 +139,12 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         }
 
         final boolean[] hasClause = { false };
-        filters.forEach(
-            (field, value) -> {
-                if (!Collection.class.isAssignableFrom(value.getClass())) {
-                    filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
-                    hasClause[0] = true;
-                }
+        filters.forEach((field, value) -> {
+            if (!Collection.class.isAssignableFrom(value.getClass())) {
+                filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
+                hasClause[0] = true;
             }
-        );
+        });
 
         if (hasClause[0]) {
             filtersQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);

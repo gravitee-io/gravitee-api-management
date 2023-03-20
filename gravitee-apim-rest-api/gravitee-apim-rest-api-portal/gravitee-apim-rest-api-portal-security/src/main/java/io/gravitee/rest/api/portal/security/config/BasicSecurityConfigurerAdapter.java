@@ -116,12 +116,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
             if (identityProviders != null) {
-                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin = identityProviders
-                    .stream()
-                    .filter(ip -> ip.type().equalsIgnoreCase(providerType))
-                    .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
-                    .filter(Objects::nonNull)
-                    .findFirst();
+                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin =
+                    identityProviders
+                        .stream()
+                        .filter(ip -> ip.type().equalsIgnoreCase(providerType))
+                        .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
+                        .filter(Objects::nonNull)
+                        .findFirst();
 
                 if (authenticationProviderPlugin.isPresent()) {
                     Object authenticationProvider = authenticationProviderPlugin.get().configure();

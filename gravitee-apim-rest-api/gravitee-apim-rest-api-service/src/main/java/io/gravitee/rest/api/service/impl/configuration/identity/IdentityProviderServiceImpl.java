@@ -308,16 +308,14 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     .getGroupMappings()
                     .entrySet()
                     .stream()
-                    .map(
-                        entry -> {
-                            GroupMappingEntity groupMapping = new GroupMappingEntity();
-                            groupMapping.setCondition(entry.getKey());
-                            if (entry.getValue() != null) {
-                                groupMapping.setGroups(Arrays.asList(entry.getValue()));
-                            }
-                            return groupMapping;
+                    .map(entry -> {
+                        GroupMappingEntity groupMapping = new GroupMappingEntity();
+                        groupMapping.setCondition(entry.getKey());
+                        if (entry.getValue() != null) {
+                            groupMapping.setGroups(Arrays.asList(entry.getValue()));
                         }
-                    )
+                        return groupMapping;
+                    })
                     .collect(Collectors.toList())
             );
         }
@@ -390,46 +388,40 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                                 if (roleMapping.getOrganizations() != null && !roleMapping.getOrganizations().isEmpty()) {
                                     roleMapping
                                         .getOrganizations()
-                                        .forEach(
-                                            organizationRoleName -> {
-                                                // Ensure that the role is existing
-                                                roleService.findByScopeAndName(
-                                                    RoleScope.ORGANIZATION,
-                                                    organizationRoleName,
-                                                    executionContext.getOrganizationId()
-                                                );
-                                                lstRoles.add(
-                                                    io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() +
-                                                    ":" +
-                                                    organizationRoleName
-                                                );
-                                            }
-                                        );
+                                        .forEach(organizationRoleName -> {
+                                            // Ensure that the role is existing
+                                            roleService.findByScopeAndName(
+                                                RoleScope.ORGANIZATION,
+                                                organizationRoleName,
+                                                executionContext.getOrganizationId()
+                                            );
+                                            lstRoles.add(
+                                                io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() +
+                                                ":" +
+                                                organizationRoleName
+                                            );
+                                        });
                                 }
                                 if (roleMapping.getEnvironments() != null && !roleMapping.getEnvironments().isEmpty()) {
                                     roleMapping
                                         .getEnvironments()
-                                        .forEach(
-                                            (environmentId, environmentRoles) -> {
-                                                // Ensure that the role is existing
-                                                environmentRoles.forEach(
-                                                    environmentRoleName -> {
-                                                        roleService.findByScopeAndName(
-                                                            RoleScope.ENVIRONMENT,
-                                                            environmentRoleName,
-                                                            executionContext.getOrganizationId()
-                                                        );
-                                                        lstRoles.add(
-                                                            io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() +
-                                                            ":" +
-                                                            environmentId +
-                                                            ":" +
-                                                            environmentRoleName
-                                                        );
-                                                    }
+                                        .forEach((environmentId, environmentRoles) -> {
+                                            // Ensure that the role is existing
+                                            environmentRoles.forEach(environmentRoleName -> {
+                                                roleService.findByScopeAndName(
+                                                    RoleScope.ENVIRONMENT,
+                                                    environmentRoleName,
+                                                    executionContext.getOrganizationId()
                                                 );
-                                            }
-                                        );
+                                                lstRoles.add(
+                                                    io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() +
+                                                    ":" +
+                                                    environmentId +
+                                                    ":" +
+                                                    environmentRoleName
+                                                );
+                                            });
+                                        });
                                 }
 
                                 String[] roles = new String[lstRoles.size()];

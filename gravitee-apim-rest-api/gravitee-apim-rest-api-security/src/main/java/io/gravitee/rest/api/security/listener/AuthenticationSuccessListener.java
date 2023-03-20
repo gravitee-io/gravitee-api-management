@@ -202,41 +202,39 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                     );
             }
 
-            rolesFromAuthorities.forEach(
-                role -> {
-                    String roleName;
-                    if (SystemRole.ADMIN.name().equals(role)) {
-                        roleName = role;
+            rolesFromAuthorities.forEach(role -> {
+                String roleName;
+                if (SystemRole.ADMIN.name().equals(role)) {
+                    roleName = role;
+                } else {
+                    Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
+                        roleScope,
+                        role,
+                        GraviteeContext.getCurrentOrganization()
+                    );
+                    if (optionalRole.isPresent()) {
+                        roleName = optionalRole.get().getName();
                     } else {
-                        Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-                            roleScope,
-                            role,
-                            GraviteeContext.getCurrentOrganization()
-                        );
-                        if (optionalRole.isPresent()) {
-                            roleName = optionalRole.get().getName();
+                        Optional<RoleEntity> first = roleService
+                            .findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), roleScope)
+                            .stream()
+                            .findFirst();
+                        if (first.isPresent()) {
+                            roleName = first.get().getName();
                         } else {
-                            Optional<RoleEntity> first = roleService
-                                .findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), roleScope)
-                                .stream()
-                                .findFirst();
-                            if (first.isPresent()) {
-                                roleName = first.get().getName();
-                            } else {
-                                throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
-                            }
+                            throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
                         }
                     }
-                    try {
-                        membershipService.addRoleToMemberOnReference(
-                            GraviteeContext.getExecutionContext(),
-                            membershipRef,
-                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(roleScope, roleName)
-                        );
-                    } catch (MembershipAlreadyExistsException e) {}
                 }
-            );
+                try {
+                    membershipService.addRoleToMemberOnReference(
+                        GraviteeContext.getExecutionContext(),
+                        membershipRef,
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(roleScope, roleName)
+                    );
+                } catch (MembershipAlreadyExistsException e) {}
+            });
         }
     }
 }

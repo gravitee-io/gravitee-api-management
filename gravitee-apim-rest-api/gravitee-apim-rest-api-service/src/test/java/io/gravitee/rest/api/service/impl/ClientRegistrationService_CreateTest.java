@@ -84,11 +84,10 @@ public class ClientRegistrationService_CreateTest {
         ClientRegistrationProvider providerCreatedMock = new ClientRegistrationProvider();
         when(
             mockClientRegistrationProviderRepository.create(
-                argThat(
-                    p ->
-                        Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
-                        Objects.equals(p.getName(), providerPayload.getName()) &&
-                        p.getCreatedAt() != null
+                argThat(p ->
+                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                    Objects.equals(p.getName(), providerPayload.getName()) &&
+                    p.getCreatedAt() != null
                 )
             )
         )

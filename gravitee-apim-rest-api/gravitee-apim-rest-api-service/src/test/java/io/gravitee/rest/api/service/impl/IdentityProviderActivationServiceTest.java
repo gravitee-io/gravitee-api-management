@@ -88,21 +88,19 @@ public class IdentityProviderActivationServiceTest {
         doReturn(createdIPA)
             .when(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
         doReturn(anotherCreatedIPA)
             .when(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
 
@@ -131,20 +129,18 @@ public class IdentityProviderActivationServiceTest {
 
         verify(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
         verify(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
 
@@ -192,21 +188,19 @@ public class IdentityProviderActivationServiceTest {
         doReturn(createdIPA)
             .when(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
         doReturn(anotherCreatedIPA)
             .when(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
 
@@ -230,20 +224,18 @@ public class IdentityProviderActivationServiceTest {
 
         verify(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
         verify(identityProviderActivationRepository)
             .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
+                argThat((IdentityProviderActivation ipa) ->
+                    ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
+                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
+                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
                 )
             );
 

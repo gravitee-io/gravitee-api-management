@@ -45,29 +45,25 @@ public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        delegate.bodyHandler(
-            buf -> {
-                if (outputBuffer == null) {
-                    outputBuffer = Buffer.buffer();
-                }
-                outputBuffer.appendBuffer(buf);
-                // If there is a bodyHandler, then the step is ended here.
-                context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
-                bodyHandler.handle(buf);
+        delegate.bodyHandler(buf -> {
+            if (outputBuffer == null) {
+                outputBuffer = Buffer.buffer();
             }
-        );
+            outputBuffer.appendBuffer(buf);
+            // If there is a bodyHandler, then the step is ended here.
+            context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
+            bodyHandler.handle(buf);
+        });
         return this;
     }
 
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-        delegate.endHandler(
-            avoid -> {
-                // If there is no bodyHandler, we end the step here, in the endHandler.
-                context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
-                endHandler.handle(null);
-            }
-        );
+        delegate.endHandler(avoid -> {
+            // If there is no bodyHandler, we end the step here, in the endHandler.
+            context.afterPolicyExecution(debugStep, inputBuffer, outputBuffer);
+            endHandler.handle(null);
+        });
         return this;
     }
 

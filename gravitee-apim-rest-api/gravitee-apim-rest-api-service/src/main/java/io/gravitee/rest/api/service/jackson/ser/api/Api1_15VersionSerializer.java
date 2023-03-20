@@ -95,19 +95,17 @@ public class Api1_15VersionSerializer extends ApiSerializer {
                 .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
             if (memberEntities != null && !memberEntities.isEmpty()) {
-                memberEntities.forEach(
-                    m -> {
-                        UserEntity userEntity = applicationContext
-                            .getBean(UserService.class)
-                            .findById(GraviteeContext.getExecutionContext(), m.getId());
-                        if (userEntity != null) {
-                            Member member = new Member();
-                            member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                            member.setRole(m.getRoles().get(0).getName());
-                            members.add(member);
-                        }
+                memberEntities.forEach(m -> {
+                    UserEntity userEntity = applicationContext
+                        .getBean(UserService.class)
+                        .findById(GraviteeContext.getExecutionContext(), m.getId());
+                    if (userEntity != null) {
+                        Member member = new Member();
+                        member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
+                        member.setRole(m.getRoles().get(0).getName());
+                        members.add(member);
                     }
-                );
+                });
             }
             jsonGenerator.writeObjectField("members", members);
         }

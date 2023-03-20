@@ -213,15 +213,13 @@ public class CurrentUserResource extends AbstractResource {
                 userEntity
                     .getRoles()
                     .stream()
-                    .map(
-                        userEntityRole -> {
-                            UserDetailRole userDetailRole = new UserDetailRole();
-                            userDetailRole.setScope(userEntityRole.getScope().name());
-                            userDetailRole.setName(userEntityRole.getName());
-                            userDetailRole.setPermissions(userEntityRole.getPermissions());
-                            return userDetailRole;
-                        }
-                    )
+                    .map(userEntityRole -> {
+                        UserDetailRole userDetailRole = new UserDetailRole();
+                        userDetailRole.setScope(userEntityRole.getScope().name());
+                        userDetailRole.setName(userEntityRole.getName());
+                        userDetailRole.setPermissions(userEntityRole.getPermissions());
+                        return userDetailRole;
+                    })
                     .collect(Collectors.toList())
             );
 
@@ -234,29 +232,25 @@ public class CurrentUserResource extends AbstractResource {
                 final Map<String, Set<String>> userGroups = new HashMap<>();
                 environmentService
                     .findByOrganization(GraviteeContext.getCurrentOrganization())
-                    .forEach(
-                        environment -> {
-                            try {
-                                final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
-                                userGroups.put(environment.getId(), new HashSet<>());
-                                memberships
-                                    .stream()
-                                    .map(MembershipEntity::getReferenceId)
-                                    .forEach(
-                                        groupId -> {
-                                            final Optional<Group> optionalGroup = groups
-                                                .stream()
-                                                .filter(group -> groupId.equals(group.getId()))
-                                                .findFirst();
-                                            optionalGroup.ifPresent(entity -> userGroups.get(environment.getId()).add(entity.getName()));
-                                        }
-                                    );
-                                userDetails.setGroupsByEnvironment(userGroups);
-                            } catch (TechnicalException e) {
-                                LOG.error("Error while trying to get groups of the user " + userId, e);
-                            }
+                    .forEach(environment -> {
+                        try {
+                            final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
+                            userGroups.put(environment.getId(), new HashSet<>());
+                            memberships
+                                .stream()
+                                .map(MembershipEntity::getReferenceId)
+                                .forEach(groupId -> {
+                                    final Optional<Group> optionalGroup = groups
+                                        .stream()
+                                        .filter(group -> groupId.equals(group.getId()))
+                                        .findFirst();
+                                    optionalGroup.ifPresent(entity -> userGroups.get(environment.getId()).add(entity.getName()));
+                                });
+                            userDetails.setGroupsByEnvironment(userGroups);
+                        } catch (TechnicalException e) {
+                            LOG.error("Error while trying to get groups of the user " + userId, e);
                         }
-                    );
+                    });
             }
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
@@ -377,33 +371,25 @@ public class CurrentUserResource extends AbstractResource {
                 userDetails.getUsername()
             );
             if (!roles.isEmpty()) {
-                roles.forEach(
-                    role ->
-                        authorities.add(
-                            Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                        )
+                roles.forEach(role ->
+                    authorities.add(
+                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                    )
                 );
             }
 
             this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
                 .stream()
-                .flatMap(
-                    env ->
-                        membershipService
-                            .getRoles(
-                                MembershipReferenceType.ENVIRONMENT,
-                                env.getId(),
-                                MembershipMemberType.USER,
-                                userDetails.getUsername()
-                            )
-                            .stream()
+                .flatMap(env ->
+                    membershipService
+                        .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, userDetails.getUsername())
+                        .stream()
                 )
                 .filter(Objects::nonNull)
-                .forEach(
-                    role ->
-                        authorities.add(
-                            Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                        )
+                .forEach(role ->
+                    authorities.add(
+                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                    )
                 );
 
             // JWT signer

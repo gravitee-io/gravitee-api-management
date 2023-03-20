@@ -74,12 +74,10 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .flatMap(request -> request.rxSend())
             .test()
             .await()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
+                return true;
+            })
             .assertNoErrors();
 
         // Second call is calling an endpoint where trustAll = false, without keystore => 502
@@ -88,12 +86,10 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .flatMap(request -> request.rxSend())
             .test()
             .await()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
+                return true;
+            })
             .assertNoErrors();
 
         // Third call is calling an endpoint where trustAll = true, with keystore => 200
@@ -102,12 +98,10 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .flatMap(request -> request.rxSend())
             .test()
             .await()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                return true;
+            })
             .assertNoErrors();
 
         // Fourth call is calling an endpoint where trustAll = false, with truststore and keystore => 200
@@ -116,12 +110,10 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
             .flatMap(request -> request.rxSend())
             .test()
             .await()
-            .assertValue(
-                response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                    return true;
-                }
-            )
+            .assertValue(response -> {
+                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                return true;
+            })
             .assertNoErrors();
 
         // Check that the stub has been successfully invoked by the gateway

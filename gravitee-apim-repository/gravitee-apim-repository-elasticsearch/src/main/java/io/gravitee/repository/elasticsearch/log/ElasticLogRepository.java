@@ -152,22 +152,18 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         final String[] filters = query.filter().split(filterSeparator);
         return stream(filters)
             .map(f -> f.split(":"))
-            .filter(
-                filter -> {
-                    final String filterKey = filter[0];
-                    return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
+            .filter(filter -> {
+                final String filterKey = filter[0];
+                return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
+            })
+            .map(filter -> {
+                final String filterKey = filter[0];
+                if ("body".equals(filterKey)) {
+                    return "\\\\*.body" + ":" + filter[1];
+                } else {
+                    return filterKey + ":" + filter[1];
                 }
-            )
-            .map(
-                filter -> {
-                    final String filterKey = filter[0];
-                    if ("body".equals(filterKey)) {
-                        return "\\\\*.body" + ":" + filter[1];
-                    } else {
-                        return filterKey + ":" + filter[1];
-                    }
-                }
-            )
+            })
             .collect(joining(filterSeparator));
     }
 

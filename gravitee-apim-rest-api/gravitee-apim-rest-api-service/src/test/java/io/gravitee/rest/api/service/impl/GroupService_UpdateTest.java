@@ -99,32 +99,29 @@ public class GroupService_UpdateTest {
 
         verify(groupRepository)
             .update(
-                argThat(
-                    updatedGroup ->
-                        updatedGroup.isDisableMembershipNotifications() &&
-                        updatedGroup.isEmailInvitation() &&
-                        updatedGroup.getEventRules() == null &&
-                        updatedGroup.isLockApiRole() &&
-                        updatedGroup.isLockApplicationRole() &&
-                        updatedGroup.getMaxInvitation() == 100 &&
-                        updatedGroup.getName().equals("my-group-name") &&
-                        !updatedGroup.isSystemInvitation() &&
-                        updatedGroup.getApiPrimaryOwner().equals("api-primary-owner")
+                argThat(updatedGroup ->
+                    updatedGroup.isDisableMembershipNotifications() &&
+                    updatedGroup.isEmailInvitation() &&
+                    updatedGroup.getEventRules() == null &&
+                    updatedGroup.isLockApiRole() &&
+                    updatedGroup.isLockApplicationRole() &&
+                    updatedGroup.getMaxInvitation() == 100 &&
+                    updatedGroup.getName().equals("my-group-name") &&
+                    !updatedGroup.isSystemInvitation() &&
+                    updatedGroup.getApiPrimaryOwner().equals("api-primary-owner")
                 )
             );
 
         verify(membershipService)
             .addRoleToMemberOnReference(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    membershipReference ->
-                        membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
+                argThat(membershipReference ->
+                    membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
                 ),
-                argThat(
-                    membershipMember ->
-                        membershipMember.getMemberId().equals(GROUP_ID) &&
-                        membershipMember.getReference() == null &&
-                        membershipMember.getMemberType() == MembershipMemberType.GROUP
+                argThat(membershipMember ->
+                    membershipMember.getMemberId().equals(GROUP_ID) &&
+                    membershipMember.getReference() == null &&
+                    membershipMember.getMemberType() == MembershipMemberType.GROUP
                 ),
                 argThat(membershipRole -> membershipRole.getScope() == RoleScope.API && membershipRole.getName().equals("OWNER"))
             );

@@ -161,14 +161,12 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
             return templateEngine
                 .eval(template.getBody(), String.class)
                 .switchIfEmpty(Single.just(""))
-                .flatMapCompletable(
-                    body -> {
-                        Buffer payload = Buffer.buffer(body);
-                        context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-                        context.response().body(payload);
-                        return Completable.complete();
-                    }
-                );
+                .flatMapCompletable(body -> {
+                    Buffer payload = Buffer.buffer(body);
+                    context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+                    context.response().body(payload);
+                    return Completable.complete();
+                });
         }
         return Completable.complete();
     }

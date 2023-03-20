@@ -62,14 +62,12 @@ public class JoltMapper {
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
         Object collect = items
             .stream()
-            .map(
-                item -> {
-                    Map<Object, Object> mapItem = (Map<Object, Object>) item;
-                    String key = String.valueOf(mapItem.get("key"));
-                    String value = String.valueOf(mapItem.get("value"));
-                    return new DynamicProperty(key, value);
-                }
-            )
+            .map(item -> {
+                Map<Object, Object> mapItem = (Map<Object, Object>) item;
+                String key = String.valueOf(mapItem.get("key"));
+                String value = String.valueOf(mapItem.get("value"));
+                return new DynamicProperty(key, value);
+            })
             .collect(Collectors.toList());
 
         return (Collection<DynamicProperty>) collect;

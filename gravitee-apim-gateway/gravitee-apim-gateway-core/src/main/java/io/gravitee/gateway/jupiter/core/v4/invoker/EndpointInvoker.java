@@ -70,7 +70,7 @@ public class EndpointInvoker extends AbstractService<EndpointInvoker> implements
             if (qosRequirement == null) {
                 return ctx.interruptWith(
                     new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
+                        .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
                 );
             }
 
@@ -80,7 +80,7 @@ public class EndpointInvoker extends AbstractService<EndpointInvoker> implements
             if (endpointAsyncConnector.supportedQos() == null || qosCapabilities == null) {
                 return ctx.interruptWith(
                     new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid endpoint QoS implementation: supportedQos cannot be null")
+                        .message("Invalid endpoint QoS implementation: supportedQos cannot be null")
                 );
             } else if (!endpointAsyncConnector.supportedQos().contains(requiredQos)) {
                 return ctx.interruptWith(

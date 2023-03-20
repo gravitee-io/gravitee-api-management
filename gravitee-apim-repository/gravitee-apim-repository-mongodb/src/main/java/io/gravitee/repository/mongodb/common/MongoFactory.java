@@ -397,12 +397,10 @@ public class MongoFactory implements FactoryBean<MongoClient> {
             .compile(",")
             .splitAsStream(readPreferenceTags)
             .map((String::trim))
-            .map(
-                tag -> {
-                    String[] tagString = tag.split(":");
-                    return new Tag(tagString[0].trim(), tagString[1].trim());
-                }
-            )
+            .map(tag -> {
+                String[] tagString = tag.split(":");
+                return new Tag(tagString[0].trim(), tagString[1].trim());
+            })
             .collect(Collectors.toList());
 
         if (tags.size() > 1) {

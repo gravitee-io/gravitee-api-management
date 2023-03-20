@@ -135,9 +135,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
         if (metadataList != null) {
             final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-            metadataList.forEach(
-                metadata ->
-                    mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+            metadataList.forEach(metadata ->
+                mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
             );
             if (decodeTemplate) {
                 try {

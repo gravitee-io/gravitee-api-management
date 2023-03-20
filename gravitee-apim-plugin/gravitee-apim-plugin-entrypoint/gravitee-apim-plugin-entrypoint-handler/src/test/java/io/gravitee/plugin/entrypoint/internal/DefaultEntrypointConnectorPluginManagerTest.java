@@ -73,11 +73,12 @@ class DefaultEntrypointConnectorPluginManagerTest {
 
     @Test
     void shouldRegisterNewEntrypointPluginWithConfiguration() {
-        DefaultEntrypointConnectorPlugin<FakeEntrypointConnectorFactory, EntrypointConnectorConfiguration> entrypointPlugin = new DefaultEntrypointConnectorPlugin(
-            new FakeEntrypointConnectorPlugin(),
-            FakeEntrypointConnectorFactory.class,
-            EntrypointConnectorConfiguration.class
-        );
+        DefaultEntrypointConnectorPlugin<FakeEntrypointConnectorFactory, EntrypointConnectorConfiguration> entrypointPlugin =
+            new DefaultEntrypointConnectorPlugin(
+                new FakeEntrypointConnectorPlugin(),
+                FakeEntrypointConnectorFactory.class,
+                EntrypointConnectorConfiguration.class
+            );
         cut.register(entrypointPlugin);
         EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();

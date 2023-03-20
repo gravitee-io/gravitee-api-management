@@ -36,11 +36,10 @@ public class UrlSanitizerUtils {
             if (
                 whitelist
                     .stream()
-                    .noneMatch(
-                        whitelistUrl ->
-                            whitelistUrl.endsWith("/")
-                                ? url.startsWith(whitelistUrl)
-                                : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
+                    .noneMatch(whitelistUrl ->
+                        whitelistUrl.endsWith("/")
+                            ? url.startsWith(whitelistUrl)
+                            : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
                     )
             ) {
                 throw new UrlForbiddenException();
