@@ -44,12 +44,10 @@ public class TransformResponseContentPolicy {
     public ReadWriteStream onResponseContent(Request request, ExecutionContext context) {
         return TransformableRequestStreamBuilder
             .on(request)
-            .transform(
-                buffer -> {
-                    String content = context.getTemplateEngine().convert(buffer.toString());
-                    return Buffer.buffer(content);
-                }
-            )
+            .transform(buffer -> {
+                String content = context.getTemplateEngine().convert(buffer.toString());
+                return Buffer.buffer(content);
+            })
             .build();
     }
 }

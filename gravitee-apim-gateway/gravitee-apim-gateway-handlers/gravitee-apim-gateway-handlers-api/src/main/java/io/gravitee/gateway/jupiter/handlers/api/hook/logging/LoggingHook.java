@@ -42,36 +42,32 @@ public class LoggingHook implements InvokerHook {
 
     @Override
     public Completable pre(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
-        return Completable.fromRunnable(
-            () -> {
-                final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.request().metrics().getLog();
+            final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
-                if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
-                    log.setProxyRequest(logRequest);
-                    ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
-                }
+            if (log != null && loggingContext.proxyMode()) {
+                final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
+                log.setProxyRequest(logRequest);
+                ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
-        );
+        });
     }
 
     @Override
     public Completable post(String id, ExecutionContext ctx, @Nullable ExecutionPhase executionPhase) {
-        return Completable.fromRunnable(
-            () -> {
-                final Log log = ctx.request().metrics().getLog();
-                final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.request().metrics().getLog();
+            final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
-                if (log != null && loggingContext.proxyMode()) {
-                    final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
-                    log.setProxyResponse(logResponse);
+            if (log != null && loggingContext.proxyMode()) {
+                final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
+                log.setProxyResponse(logResponse);
 
-                    final MutableResponse response = ((MutableExecutionContext) ctx).response();
-                    response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
-                }
+                final MutableResponse response = ((MutableExecutionContext) ctx).response();
+                response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
             }
-        );
+        });
     }
 
     @Override

@@ -83,17 +83,15 @@ public class ReactorVerticle extends AbstractVerticle {
 
         httpServer.requestHandler(handler);
 
-        httpServer.listen(
-            res -> {
-                if (res.succeeded()) {
-                    logger.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
-                    startPromise.complete();
-                } else {
-                    logger.error("Unable to start HTTP Server", res.cause());
-                    startPromise.fail(res.cause());
-                }
+        httpServer.listen(res -> {
+            if (res.succeeded()) {
+                logger.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
+                startPromise.complete();
+            } else {
+                logger.error("Unable to start HTTP Server", res.cause());
+                startPromise.fail(res.cause());
             }
-        );
+        });
     }
 
     @Override

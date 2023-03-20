@@ -69,17 +69,16 @@ public class AuditService_CreateTest {
 
         verify(auditRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        !arg.getId().isEmpty() &&
-                        arg.getOrganizationId().equals("DEFAULT") &&
-                        arg.getEnvironmentId().equals("DEFAULT") &&
-                        arg.getReferenceType().equals(Audit.AuditReferenceType.API) &&
-                        arg.getReferenceId().equals(apiId) &&
-                        arg.getCreatedAt().equals(createdAt) &&
-                        arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
-                        arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
+                argThat(arg ->
+                    arg != null &&
+                    !arg.getId().isEmpty() &&
+                    arg.getOrganizationId().equals("DEFAULT") &&
+                    arg.getEnvironmentId().equals("DEFAULT") &&
+                    arg.getReferenceType().equals(Audit.AuditReferenceType.API) &&
+                    arg.getReferenceId().equals(apiId) &&
+                    arg.getCreatedAt().equals(createdAt) &&
+                    arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
+                    arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
                 )
             );
     }
@@ -104,17 +103,16 @@ public class AuditService_CreateTest {
 
         verify(auditRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        !arg.getId().isEmpty() &&
-                        arg.getOrganizationId().equals("DEFAULT") &&
-                        arg.getEnvironmentId().equals("DEFAULT") &&
-                        arg.getReferenceType().equals(Audit.AuditReferenceType.APPLICATION) &&
-                        arg.getReferenceId().equals(applicationId) &&
-                        arg.getCreatedAt().equals(createdAt) &&
-                        arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
-                        arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
+                argThat(arg ->
+                    arg != null &&
+                    !arg.getId().isEmpty() &&
+                    arg.getOrganizationId().equals("DEFAULT") &&
+                    arg.getEnvironmentId().equals("DEFAULT") &&
+                    arg.getReferenceType().equals(Audit.AuditReferenceType.APPLICATION) &&
+                    arg.getReferenceId().equals(applicationId) &&
+                    arg.getCreatedAt().equals(createdAt) &&
+                    arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
+                    arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
                 )
             );
     }
@@ -137,17 +135,16 @@ public class AuditService_CreateTest {
 
         verify(auditRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        !arg.getId().isEmpty() &&
-                        arg.getOrganizationId().equals("DEFAULT") &&
-                        arg.getEnvironmentId().equals("DEFAULT") &&
-                        arg.getReferenceType().equals(Audit.AuditReferenceType.ENVIRONMENT) &&
-                        arg.getReferenceId().equals(executionContext.getEnvironmentId()) &&
-                        arg.getCreatedAt().equals(createdAt) &&
-                        arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
-                        arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
+                argThat(arg ->
+                    arg != null &&
+                    !arg.getId().isEmpty() &&
+                    arg.getOrganizationId().equals("DEFAULT") &&
+                    arg.getEnvironmentId().equals("DEFAULT") &&
+                    arg.getReferenceType().equals(Audit.AuditReferenceType.ENVIRONMENT) &&
+                    arg.getReferenceId().equals(executionContext.getEnvironmentId()) &&
+                    arg.getCreatedAt().equals(createdAt) &&
+                    arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
+                    arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
                 )
             );
     }
@@ -170,17 +167,16 @@ public class AuditService_CreateTest {
 
         verify(auditRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        !arg.getId().isEmpty() &&
-                        arg.getOrganizationId().equals(executionContext.getOrganizationId()) &&
-                        arg.getEnvironmentId() == null &&
-                        arg.getReferenceType().equals(Audit.AuditReferenceType.ORGANIZATION) &&
-                        arg.getReferenceId().equals(executionContext.getOrganizationId()) &&
-                        arg.getCreatedAt().equals(createdAt) &&
-                        arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
-                        arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
+                argThat(arg ->
+                    arg != null &&
+                    !arg.getId().isEmpty() &&
+                    arg.getOrganizationId().equals(executionContext.getOrganizationId()) &&
+                    arg.getEnvironmentId() == null &&
+                    arg.getReferenceType().equals(Audit.AuditReferenceType.ORGANIZATION) &&
+                    arg.getReferenceId().equals(executionContext.getOrganizationId()) &&
+                    arg.getCreatedAt().equals(createdAt) &&
+                    arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
+                    arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
                 )
             );
     }

@@ -151,47 +151,43 @@ public class ConfigurationResource extends AbstractResource {
             .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale)
             .stream()
             .filter(PageEntity::isPublished)
-            .forEach(
-                systemFolder -> {
-                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+            .forEach(systemFolder -> {
+                List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                    // for pages under sysFolder
-                    List<Link> links = getLinksFromFolder(systemFolder, acceptedLocale);
-                    if (!links.isEmpty()) {
-                        CategorizedLinks catLinks = new CategorizedLinks();
-                        catLinks.setCategory(systemFolder.getName());
-                        catLinks.setLinks(links);
-                        catLinks.setRoot(true);
-                        catLinksList.add(catLinks);
-                    }
-
-                    // for pages into folders
-                    pageService
-                        .search(
-                            GraviteeContext.getCurrentEnvironment(),
-                            new PageQuery.Builder().parent(systemFolder.getId()).build(),
-                            acceptedLocale
-                        )
-                        .stream()
-                        .filter(PageEntity::isPublished)
-                        .filter(p -> p.getType().equals("FOLDER"))
-                        .forEach(
-                            folder -> {
-                                List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
-                                if (folderLinks != null && !folderLinks.isEmpty()) {
-                                    CategorizedLinks catLinks = new CategorizedLinks();
-                                    catLinks.setCategory(folder.getName());
-                                    catLinks.setLinks(folderLinks);
-                                    catLinks.setRoot(false);
-                                    catLinksList.add(catLinks);
-                                }
-                            }
-                        );
-                    if (!catLinksList.isEmpty()) {
-                        portalLinks.put(systemFolder.getName().toLowerCase(), catLinksList);
-                    }
+                // for pages under sysFolder
+                List<Link> links = getLinksFromFolder(systemFolder, acceptedLocale);
+                if (!links.isEmpty()) {
+                    CategorizedLinks catLinks = new CategorizedLinks();
+                    catLinks.setCategory(systemFolder.getName());
+                    catLinks.setLinks(links);
+                    catLinks.setRoot(true);
+                    catLinksList.add(catLinks);
                 }
-            );
+
+                // for pages into folders
+                pageService
+                    .search(
+                        GraviteeContext.getCurrentEnvironment(),
+                        new PageQuery.Builder().parent(systemFolder.getId()).build(),
+                        acceptedLocale
+                    )
+                    .stream()
+                    .filter(PageEntity::isPublished)
+                    .filter(p -> p.getType().equals("FOLDER"))
+                    .forEach(folder -> {
+                        List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
+                        if (folderLinks != null && !folderLinks.isEmpty()) {
+                            CategorizedLinks catLinks = new CategorizedLinks();
+                            catLinks.setCategory(folder.getName());
+                            catLinks.setLinks(folderLinks);
+                            catLinks.setRoot(false);
+                            catLinksList.add(catLinks);
+                        }
+                    });
+                if (!catLinksList.isEmpty()) {
+                    portalLinks.put(systemFolder.getName().toLowerCase(), catLinksList);
+                }
+            });
 
         return Response.ok(new LinksResponse().slots(portalLinks)).build();
     }
@@ -200,14 +196,12 @@ public class ConfigurationResource extends AbstractResource {
         return pageService
             .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale)
             .stream()
-            .filter(
-                p -> {
-                    if (PageType.FOLDER.name().equals(p.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
-                        return false;
-                    }
-                    return accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), p);
+            .filter(p -> {
+                if (PageType.FOLDER.name().equals(p.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
+                    return false;
                 }
-            )
+                return accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), p);
+            })
             .map(ConfigurationResource::convertToLink)
             .collect(Collectors.toList());
     }
@@ -246,17 +240,16 @@ public class ConfigurationResource extends AbstractResource {
         return Response
             .ok(
                 new ConfigurationApplicationRolesResponse()
-                .data(
+                    .data(
                         roleService
                             .findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization())
                             .stream()
-                            .map(
-                                roleEntity ->
-                                    new ApplicationRole()
-                                        ._default(roleEntity.isDefaultRole())
-                                        .id(roleEntity.getName())
-                                        .name(roleEntity.getName())
-                                        .system(roleEntity.isSystem())
+                            .map(roleEntity ->
+                                new ApplicationRole()
+                                    ._default(roleEntity.isDefaultRole())
+                                    .id(roleEntity.getName())
+                                    .name(roleEntity.getName())
+                                    .system(roleEntity.isSystem())
                             )
                             .collect(Collectors.toList())
                     )
@@ -269,19 +262,17 @@ public class ConfigurationResource extends AbstractResource {
         List<ApplicationType> types = enabledApplicationTypes
             .getData()
             .stream()
-            .map(
-                applicationTypeEntity -> {
-                    ApplicationType applicationType = new ApplicationType();
-                    applicationType.setAllowedGrantTypes(convert(applicationTypeEntity.getAllowed_grant_types()));
-                    applicationType.setDefaultGrantTypes(convert(applicationTypeEntity.getDefault_grant_types()));
-                    applicationType.setMandatoryGrantTypes(convert(applicationTypeEntity.getMandatory_grant_types()));
-                    applicationType.setId(applicationTypeEntity.getId());
-                    applicationType.setName(applicationTypeEntity.getName());
-                    applicationType.setDescription(applicationTypeEntity.getDescription());
-                    applicationType.setRequiresRedirectUris(applicationTypeEntity.getRequires_redirect_uris());
-                    return applicationType;
-                }
-            )
+            .map(applicationTypeEntity -> {
+                ApplicationType applicationType = new ApplicationType();
+                applicationType.setAllowedGrantTypes(convert(applicationTypeEntity.getAllowed_grant_types()));
+                applicationType.setDefaultGrantTypes(convert(applicationTypeEntity.getDefault_grant_types()));
+                applicationType.setMandatoryGrantTypes(convert(applicationTypeEntity.getMandatory_grant_types()));
+                applicationType.setId(applicationTypeEntity.getId());
+                applicationType.setName(applicationTypeEntity.getName());
+                applicationType.setDescription(applicationTypeEntity.getDescription());
+                applicationType.setRequiresRedirectUris(applicationTypeEntity.getRequires_redirect_uris());
+                return applicationType;
+            })
             .collect(Collectors.toList());
 
         configurationApplicationsTypesResponse.setData(types);
@@ -291,14 +282,12 @@ public class ConfigurationResource extends AbstractResource {
     private List<ApplicationGrantType> convert(List<ApplicationGrantTypeEntity> allowedGrantTypes) {
         return allowedGrantTypes
             .stream()
-            .map(
-                applicationGrantTypeEntity -> {
-                    ApplicationGrantType applicationGrantType = new ApplicationGrantType();
-                    applicationGrantType.setName(applicationGrantTypeEntity.getName());
-                    applicationGrantType.setType(applicationGrantTypeEntity.getType());
-                    return applicationGrantType;
-                }
-            )
+            .map(applicationGrantTypeEntity -> {
+                ApplicationGrantType applicationGrantType = new ApplicationGrantType();
+                applicationGrantType.setName(applicationGrantTypeEntity.getName());
+                applicationGrantType.setType(applicationGrantTypeEntity.getType());
+                return applicationGrantType;
+            })
             .collect(Collectors.toList());
     }
 }

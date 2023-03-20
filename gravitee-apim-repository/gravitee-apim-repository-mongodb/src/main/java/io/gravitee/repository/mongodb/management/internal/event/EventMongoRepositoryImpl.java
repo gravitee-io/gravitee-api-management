@@ -179,15 +179,13 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             // set criteria query
             criteria
                 .getProperties()
-                .forEach(
-                    (k, v) -> {
-                        if (v instanceof Collection) {
-                            criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
-                        } else {
-                            criteriaList.add(Criteria.where("properties." + k).is(v));
-                        }
+                .forEach((k, v) -> {
+                    if (v instanceof Collection) {
+                        criteriaList.add(Criteria.where("properties." + k).in((Collection) v));
+                    } else {
+                        criteriaList.add(Criteria.where("properties." + k).is(v));
                     }
-                );
+                });
         }
 
         // set range query

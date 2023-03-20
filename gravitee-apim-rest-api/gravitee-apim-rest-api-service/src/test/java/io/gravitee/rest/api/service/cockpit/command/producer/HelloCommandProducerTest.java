@@ -101,22 +101,20 @@ public class HelloCommandProducerTest {
         final TestObserver<HelloCommand> obs = cut.prepare(command).test();
 
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            helloCommand -> {
-                assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
-                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
-                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("INSTALLATION_TYPE"));
+        obs.assertValue(helloCommand -> {
+            assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("INSTALLATION_TYPE"));
 
-                assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
-                assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
-                assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
-                assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().getInstallationId());
-                assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
+            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
+            assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
+            assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
+            assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().getInstallationId());
+            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
 
-                return true;
-            }
-        );
+            return true;
+        });
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -172,13 +170,12 @@ public class HelloCommandProducerTest {
         verify(organizationService)
             .updateOrganization(
                 argThat(executionContext -> executionContext.getOrganizationId().equals(defaultOrgId)),
-                argThat(
-                    org ->
-                        org.getCockpitId().equals("org#cockpit-1") &&
-                        FlowMode.DEFAULT.equals(org.getFlowMode()) &&
-                        org.getFlows() != null &&
-                        org.getFlows().size() == 1 &&
-                        org.getFlows().get(0).getName().equals("My-Flow")
+                argThat(org ->
+                    org.getCockpitId().equals("org#cockpit-1") &&
+                    FlowMode.DEFAULT.equals(org.getFlowMode()) &&
+                    org.getFlows() != null &&
+                    org.getFlows().size() == 1 &&
+                    org.getFlows().get(0).getName().equals("My-Flow")
                 )
             );
     }

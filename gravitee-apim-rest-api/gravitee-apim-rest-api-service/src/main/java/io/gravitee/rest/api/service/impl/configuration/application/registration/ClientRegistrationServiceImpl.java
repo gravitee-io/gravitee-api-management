@@ -347,10 +347,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             }
 
             if (forceRefresh) {
-                DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient = new DiscoveryBasedDynamicClientRegistrationProviderClient(
-                    clientRegistrationProvider.getDiscoveryEndpoint(),
-                    atProvider
-                );
+                DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient =
+                    new DiscoveryBasedDynamicClientRegistrationProviderClient(
+                        clientRegistrationProvider.getDiscoveryEndpoint(),
+                        atProvider
+                    );
 
                 // Provider ID may be null when we are trying to test a client registration provider
                 if (clientRegistrationProvider.getId() != null) {

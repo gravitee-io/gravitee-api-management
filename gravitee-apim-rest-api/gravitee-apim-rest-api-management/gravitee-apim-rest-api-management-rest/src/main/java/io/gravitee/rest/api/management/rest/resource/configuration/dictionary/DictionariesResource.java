@@ -78,29 +78,27 @@ public class DictionariesResource extends AbstractResource {
         return dictionaryService
             .findAll(GraviteeContext.getExecutionContext())
             .stream()
-            .map(
-                dictionaryEntity -> {
-                    DictionaryListItem item = new DictionaryListItem();
-                    item.setId(dictionaryEntity.getId());
-                    item.setName(dictionaryEntity.getName());
-                    item.setDescription(dictionaryEntity.getDescription());
-                    item.setCreatedAt(dictionaryEntity.getCreatedAt());
-                    item.setUpdatedAt(dictionaryEntity.getUpdatedAt());
-                    item.setDeployedAt(dictionaryEntity.getDeployedAt());
-                    item.setType(dictionaryEntity.getType());
-                    item.setState(dictionaryEntity.getState());
+            .map(dictionaryEntity -> {
+                DictionaryListItem item = new DictionaryListItem();
+                item.setId(dictionaryEntity.getId());
+                item.setName(dictionaryEntity.getName());
+                item.setDescription(dictionaryEntity.getDescription());
+                item.setCreatedAt(dictionaryEntity.getCreatedAt());
+                item.setUpdatedAt(dictionaryEntity.getUpdatedAt());
+                item.setDeployedAt(dictionaryEntity.getDeployedAt());
+                item.setType(dictionaryEntity.getType());
+                item.setState(dictionaryEntity.getState());
 
-                    if (dictionaryEntity.getProperties() != null) {
-                        item.setProperties(dictionaryEntity.getProperties().size());
-                    }
-
-                    if (dictionaryEntity.getProvider() != null) {
-                        item.setProvider(dictionaryEntity.getProvider().getType());
-                    }
-
-                    return item;
+                if (dictionaryEntity.getProperties() != null) {
+                    item.setProperties(dictionaryEntity.getProperties().size());
                 }
-            )
+
+                if (dictionaryEntity.getProvider() != null) {
+                    item.setProvider(dictionaryEntity.getProvider().getType());
+                }
+
+                return item;
+            })
             .collect(toList());
     }
 

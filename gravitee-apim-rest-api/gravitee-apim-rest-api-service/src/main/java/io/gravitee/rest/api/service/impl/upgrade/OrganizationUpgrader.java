@@ -46,13 +46,11 @@ public abstract class OrganizationUpgrader implements Upgrader, Ordered {
         try {
             organizationRepository
                 .findAll()
-                .forEach(
-                    organization -> {
-                        ExecutionContext executionContext = new ExecutionContext(organization);
-                        LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
-                        upgradeOrganization(executionContext);
-                    }
-                );
+                .forEach(organization -> {
+                    ExecutionContext executionContext = new ExecutionContext(organization);
+                    LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                    upgradeOrganization(executionContext);
+                });
         } catch (TechnicalException e) {
             LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
             return false;

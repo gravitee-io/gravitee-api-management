@@ -78,12 +78,10 @@ public class NotifiersResource {
                 switch (s) {
                     case "schema":
                         stream =
-                            stream.map(
-                                item -> {
-                                    item.setSchema(notifierService.getSchema(item.getId()));
-                                    return item;
-                                }
-                            );
+                            stream.map(item -> {
+                                item.setSchema(notifierService.getSchema(item.getId()));
+                                return item;
+                            });
                         break;
                     default:
                         break;

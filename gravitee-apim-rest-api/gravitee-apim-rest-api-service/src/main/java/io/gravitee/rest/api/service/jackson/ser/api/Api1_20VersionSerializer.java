@@ -51,15 +51,13 @@ public class Api1_20VersionSerializer extends ApiSerializer {
             jsonGenerator.writeArrayFieldStart("path_mappings");
             apiEntity
                 .getPathMappings()
-                .forEach(
-                    pathMapping -> {
-                        try {
-                            jsonGenerator.writeObject(pathMapping);
-                        } catch (IOException e) {
-                            LOGGER.error("An error has occurred while serializing API entity", e);
-                        }
+                .forEach(pathMapping -> {
+                    try {
+                        jsonGenerator.writeObject(pathMapping);
+                    } catch (IOException e) {
+                        LOGGER.error("An error has occurred while serializing API entity", e);
                     }
-                );
+                });
             jsonGenerator.writeEndArray();
         }
 
@@ -70,12 +68,10 @@ public class Api1_20VersionSerializer extends ApiSerializer {
                 apiEntity
                     .getProxy()
                     .getGroups()
-                    .forEach(
-                        group -> {
-                            group.setHttpClientOptions(null);
-                            group.setHttpClientSslOptions(null);
-                        }
-                    );
+                    .forEach(group -> {
+                        group.setHttpClientOptions(null);
+                        group.setHttpClientSslOptions(null);
+                    });
             }
 
             jsonGenerator.writeObjectFieldStart("proxy");
@@ -95,25 +91,23 @@ public class Api1_20VersionSerializer extends ApiSerializer {
             apiEntity
                 .getProxy()
                 .getGroups()
-                .forEach(
-                    endpointGroup -> {
-                        try {
-                            if (endpointGroup.getEndpoints() != null) {
-                                endpointGroup.setEndpoints(
-                                    endpointGroup
-                                        .getEndpoints()
-                                        .stream()
-                                        .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
-                                        .collect(Collectors.toSet())
-                                );
-                            }
-
-                            jsonGenerator.writeObject(endpointGroup);
-                        } catch (IOException e) {
-                            LOGGER.error("An error has occurred while serializing API entity", e);
+                .forEach(endpointGroup -> {
+                    try {
+                        if (endpointGroup.getEndpoints() != null) {
+                            endpointGroup.setEndpoints(
+                                endpointGroup
+                                    .getEndpoints()
+                                    .stream()
+                                    .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
+                                    .collect(Collectors.toSet())
+                            );
                         }
+
+                        jsonGenerator.writeObject(endpointGroup);
+                    } catch (IOException e) {
+                        LOGGER.error("An error has occurred while serializing API entity", e);
                     }
-                );
+                });
 
             jsonGenerator.writeEndArray();
 
@@ -138,19 +132,17 @@ public class Api1_20VersionSerializer extends ApiSerializer {
                 .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
             if (memberEntities != null && !memberEntities.isEmpty()) {
-                memberEntities.forEach(
-                    m -> {
-                        UserEntity userEntity = applicationContext
-                            .getBean(UserService.class)
-                            .findById(GraviteeContext.getExecutionContext(), m.getId());
-                        if (userEntity != null) {
-                            Member member = new Member();
-                            member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                            member.setRole(m.getRoles().get(0).getName());
-                            members.add(member);
-                        }
+                memberEntities.forEach(m -> {
+                    UserEntity userEntity = applicationContext
+                        .getBean(UserService.class)
+                        .findById(GraviteeContext.getExecutionContext(), m.getId());
+                    if (userEntity != null) {
+                        Member member = new Member();
+                        member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
+                        member.setRole(m.getRoles().get(0).getName());
+                        members.add(member);
                     }
-                );
+                });
             }
             jsonGenerator.writeObjectField("members", members);
         }

@@ -276,15 +276,13 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
     @Override
     public void updateTargetIdp(ExecutionContext executionContext, ActivationTarget target, List<String> identityProviderIds) {
         final Set<IdentityProviderActivationEntity> allTargetActivations = this.findAllByTarget(target);
-        allTargetActivations.forEach(
-            ipa -> {
-                if (!identityProviderIds.contains(ipa.getIdentityProvider())) {
-                    this.removeIdpsFromTarget(executionContext, target, ipa.getIdentityProvider());
-                } else {
-                    identityProviderIds.remove(ipa.getIdentityProvider());
-                }
+        allTargetActivations.forEach(ipa -> {
+            if (!identityProviderIds.contains(ipa.getIdentityProvider())) {
+                this.removeIdpsFromTarget(executionContext, target, ipa.getIdentityProvider());
+            } else {
+                identityProviderIds.remove(ipa.getIdentityProvider());
             }
-        );
+        });
         if (!identityProviderIds.isEmpty()) {
             this.addIdpsOnTarget(executionContext, target, identityProviderIds.toArray(new String[identityProviderIds.size()]));
         }

@@ -72,14 +72,12 @@ public class RequestDeserializer extends StdScalarDeserializer<HealthCheckReques
             List<HttpHeader> headers = new ArrayList<>();
             headersNode
                 .elements()
-                .forEachRemaining(
-                    headerNode -> {
-                        HttpHeader header = new HttpHeader();
-                        header.setName(headerNode.findValue("name").asText());
-                        header.setValue(headerNode.findValue("value").asText());
-                        headers.add(header);
-                    }
-                );
+                .forEachRemaining(headerNode -> {
+                    HttpHeader header = new HttpHeader();
+                    header.setName(headerNode.findValue("name").asText());
+                    header.setValue(headerNode.findValue("value").asText());
+                    headers.add(header);
+                });
 
             request.setHeaders(headers);
         }

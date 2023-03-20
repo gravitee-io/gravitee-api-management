@@ -163,11 +163,10 @@ public class JdbcClientRegistrationProviderRepository
             );
             storeScopes(clientRegistrationProvider, true);
             return findById(clientRegistrationProvider.getId())
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
-                        )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

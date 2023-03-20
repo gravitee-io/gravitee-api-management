@@ -65,56 +65,56 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
         } else {
             Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
-            resourceDeps.forEach(
-                resource -> {
-                    final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
-                    if (resourcePlugin == null) {
-                        logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
-                        throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
-                    }
+            resourceDeps.forEach(resource -> {
+                final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
+                if (resourcePlugin == null) {
+                    logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
+                    throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
+                }
 
-                    classLoader.addClassLoader(
-                        resourcePlugin.resource().getCanonicalName(),
-                        () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
-                    );
+                classLoader.addClassLoader(
+                    resourcePlugin.resource().getCanonicalName(),
+                    () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
+                );
 
-                    logger.debug("Loading resource {} for {}", resource.getName(), reactable);
+                logger.debug("Loading resource {} for {}", resource.getName(), reactable);
 
-                    try {
-                        Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
+                try {
+                    Class<? extends io.gravitee.resource.api.Resource> resourceClass =
+                        (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
                             resourcePlugin.resource().getName(),
                             classLoader
                         );
-                        Map<Class<?>, Object> injectables = new HashMap<>();
+                    Map<Class<?>, Object> injectables = new HashMap<>();
 
-                        if (resourcePlugin.configuration() != null) {
-                            Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                    if (resourcePlugin.configuration() != null) {
+                        Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                            (Class<? extends ResourceConfiguration>) ClassUtils.forName(
                                 resourcePlugin.configuration().getName(),
                                 classLoader
                             );
-                            injectables.put(
-                                resourceConfigurationClass,
-                                resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
-                            );
-                        }
+                        injectables.put(
+                            resourceConfigurationClass,
+                            resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
+                        );
+                    }
 
-                        io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+                    io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
 
-                        if (resourceInstance instanceof ApplicationContextAware) {
-                            ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
-                        }
+                    if (resourceInstance instanceof ApplicationContextAware) {
+                        ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
+                    }
 
-                        resources.put(resource.getName(), resourceInstance);
-                    } catch (Exception ex) {
-                        logger.error("Unable to create resource", ex);
-                        try {
-                            classLoader.removeClassLoader(resourcePlugin.resource().getCanonicalName());
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for resource", ioe);
-                        }
+                    resources.put(resource.getName(), resourceInstance);
+                } catch (Exception ex) {
+                    logger.error("Unable to create resource", ex);
+                    try {
+                        classLoader.removeClassLoader(resourcePlugin.resource().getCanonicalName());
+                    } catch (IOException ioe) {
+                        logger.error("Unable to close classloader for resource", ioe);
                     }
                 }
-            );
+            });
         }
     }
 }

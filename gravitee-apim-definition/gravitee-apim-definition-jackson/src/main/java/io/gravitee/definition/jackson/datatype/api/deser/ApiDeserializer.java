@@ -108,20 +108,18 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         if (resourcesNode != null && resourcesNode.isArray()) {
             resourcesNode
                 .elements()
-                .forEachRemaining(
-                    resourceNode -> {
-                        try {
-                            Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
-                            if (!api.getResources().contains(resource)) {
-                                api.getResources().add(resource);
-                            } else {
-                                throw ctxt.mappingException("A resource already exists with name " + resource.getName());
-                            }
-                        } catch (IOException e) {
-                            logger.error("An error occurred during api deserialization", e);
+                .forEachRemaining(resourceNode -> {
+                    try {
+                        Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
+                        if (!api.getResources().contains(resource)) {
+                            api.getResources().add(resource);
+                        } else {
+                            throw ctxt.mappingException("A resource already exists with name " + resource.getName());
                         }
+                    } catch (IOException e) {
+                        logger.error("An error occurred during api deserialization", e);
                     }
-                );
+                });
         }
 
         // If no version provided, defaults to 1.0.0
@@ -140,19 +138,14 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                 final Map<String, List<Rule>> paths = new TreeMap<>(reverseOrder());
                 pathsNode
                     .fields()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            try {
-                                List<Rule> rules = jsonNode
-                                    .getValue()
-                                    .traverse(jp.getCodec())
-                                    .readValueAs(new TypeReference<List<Rule>>() {});
-                                paths.put(jsonNode.getKey(), rules);
-                            } catch (IOException e) {
-                                logger.error("Path {} can not be de-serialized", jsonNode.getKey());
-                            }
+                    .forEachRemaining(jsonNode -> {
+                        try {
+                            List<Rule> rules = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(new TypeReference<List<Rule>>() {});
+                            paths.put(jsonNode.getKey(), rules);
+                        } catch (IOException e) {
+                            logger.error("Path {} can not be de-serialized", jsonNode.getKey());
                         }
-                    );
+                    });
 
                 api.setPaths(paths);
             }
@@ -168,17 +161,15 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                 final List<Flow> flows = new ArrayList<>();
                 flowsNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            try {
-                                Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
-                                flow.setStage(FlowStage.API);
-                                flows.add(flow);
-                            } catch (IOException e) {
-                                logger.error("Flow {} can not be de-serialized", jsonNode.asText());
-                            }
+                    .forEachRemaining(jsonNode -> {
+                        try {
+                            Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
+                            flow.setStage(FlowStage.API);
+                            flows.add(flow);
+                        } catch (IOException e) {
+                            logger.error("Flow {} can not be de-serialized", jsonNode.asText());
                         }
-                    );
+                    });
                 api.setFlows(flows);
             }
 
@@ -187,20 +178,18 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                 final List<Plan> plans = new ArrayList<>();
                 plansNode
                     .elements()
-                    .forEachRemaining(
-                        jsonNode -> {
-                            try {
-                                Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
-                                plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
-                                if (plan.getApi() == null) {
-                                    plan.setApi(api.getId());
-                                }
-                                plans.add(plan);
-                            } catch (IOException e) {
-                                logger.error("Plan {} can not be de-serialized", jsonNode.asText());
+                    .forEachRemaining(jsonNode -> {
+                        try {
+                            Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
+                            plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
+                            if (plan.getApi() == null) {
+                                plan.setApi(api.getId());
                             }
+                            plans.add(plan);
+                        } catch (IOException e) {
+                            logger.error("Plan {} can not be de-serialized", jsonNode.asText());
                         }
-                    );
+                    });
                 api.setPlans(plans);
             }
         }
@@ -221,12 +210,10 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         if (pathMappingsNode != null) {
             pathMappingsNode
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        final String pathMapping = jsonNode.asText();
-                        api.getPathMappings().put(pathMapping, Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
-                    }
-                );
+                .forEachRemaining(jsonNode -> {
+                    final String pathMapping = jsonNode.asText();
+                    api.getPathMappings().put(pathMapping, Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
+                });
         }
 
         JsonNode responseTemplatesNode = node.get("response_templates");
@@ -234,19 +221,17 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             final Map<String, Map<String, ResponseTemplate>> responseTemplates = new HashMap<>();
             responseTemplatesNode
                 .fields()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            Map<String, ResponseTemplate> templates = jsonNode
-                                .getValue()
-                                .traverse(jp.getCodec())
-                                .readValueAs(new TypeReference<Map<String, ResponseTemplate>>() {});
-                            responseTemplates.put(jsonNode.getKey(), templates);
-                        } catch (IOException e) {
-                            logger.error("Response templates {} can not be de-serialized", jsonNode.getKey());
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        Map<String, ResponseTemplate> templates = jsonNode
+                            .getValue()
+                            .traverse(jp.getCodec())
+                            .readValueAs(new TypeReference<Map<String, ResponseTemplate>>() {});
+                        responseTemplates.put(jsonNode.getKey(), templates);
+                    } catch (IOException e) {
+                        logger.error("Response templates {} can not be de-serialized", jsonNode.getKey());
                     }
-                );
+                });
 
             api.setResponseTemplates(responseTemplates);
         }

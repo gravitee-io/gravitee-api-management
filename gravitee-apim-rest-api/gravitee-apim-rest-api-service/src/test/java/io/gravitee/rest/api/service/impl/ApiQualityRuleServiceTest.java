@@ -110,13 +110,12 @@ public class ApiQualityRuleServiceTest {
 
         verify(apiQualityRuleRepository, times(1))
             .create(
-                argThat(
-                    argument ->
-                        API_ID.equals(argument.getApi()) &&
-                        QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
-                        argument.isChecked() &&
-                        argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null
+                argThat(argument ->
+                    API_ID.equals(argument.getApi()) &&
+                    QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
+                    argument.isChecked() &&
+                    argument.getCreatedAt() != null &&
+                    argument.getUpdatedAt() != null
                 )
             );
         verify(auditService, times(1))
@@ -164,13 +163,12 @@ public class ApiQualityRuleServiceTest {
 
         verify(apiQualityRuleRepository, times(1))
             .update(
-                argThat(
-                    argument ->
-                        API_ID.equals(argument.getApi()) &&
-                        QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
-                        argument.isChecked() &&
-                        argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null
+                argThat(argument ->
+                    API_ID.equals(argument.getApi()) &&
+                    QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
+                    argument.isChecked() &&
+                    argument.getCreatedAt() != null &&
+                    argument.getUpdatedAt() != null
                 )
             );
         verify(auditService, times(1))

@@ -76,15 +76,14 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         verify(subscriptionService, times(1))
             .search(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    subscriptionQuery ->
-                        Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED).equals(subscriptionQuery.getStatuses()) &&
-                        // 1469886010000 -> now + 10 days
-                        subscriptionQuery.getEndingAtAfter() ==
-                        1469886010000L &&
-                        // 1469889610000 -> now + 10 days + 1h (cron period)
-                        subscriptionQuery.getEndingAtBefore() ==
-                        1469889610000L
+                argThat(subscriptionQuery ->
+                    Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED).equals(subscriptionQuery.getStatuses()) &&
+                    // 1469886010000 -> now + 10 days
+                    subscriptionQuery.getEndingAtAfter() ==
+                    1469886010000L &&
+                    // 1469889610000 -> now + 10 days + 1h (cron period)
+                    subscriptionQuery.getEndingAtBefore() ==
+                    1469889610000L
                 )
             );
     }
@@ -183,15 +182,14 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         verify(apiKeyService, times(1))
             .search(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    apiKeyQuery ->
-                        !apiKeyQuery.isIncludeRevoked() &&
-                        // 1469886010000 -> now + 10 days
-                        apiKeyQuery.getExpireAfter() ==
-                        1469886010000L &&
-                        // 1469889610000 -> now + 10 days + 1h (cron period)
-                        apiKeyQuery.getExpireBefore() ==
-                        1469889610000L
+                argThat(apiKeyQuery ->
+                    !apiKeyQuery.isIncludeRevoked() &&
+                    // 1469886010000 -> now + 10 days
+                    apiKeyQuery.getExpireAfter() ==
+                    1469886010000L &&
+                    // 1469889610000 -> now + 10 days + 1h (cron period)
+                    apiKeyQuery.getExpireBefore() ==
+                    1469889610000L
                 )
             );
     }

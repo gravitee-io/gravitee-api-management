@@ -110,11 +110,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Single<Set<String>> rxListTopics() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                listTopics($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            listTopics($handler);
+        });
     }
 
     /**
@@ -143,11 +141,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Single<Map<String, io.vertx.kafka.admin.TopicDescription>> rxDescribeTopics(List<String> topicNames) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                describeTopics(topicNames, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            describeTopics(topicNames, $handler);
+        });
     }
 
     /**
@@ -173,11 +169,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxCreateTopics(List<io.vertx.kafka.admin.NewTopic> topics) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                createTopics(topics, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            createTopics(topics, $handler);
+        });
     }
 
     /**
@@ -203,11 +197,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxDeleteTopics(List<String> topicNames) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                deleteTopics(topicNames, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            deleteTopics(topicNames, $handler);
+        });
     }
 
     /**
@@ -233,11 +225,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxCreatePartitions(Map<String, io.vertx.kafka.admin.NewPartitions> partitions) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                createPartitions(partitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            createPartitions(partitions, $handler);
+        });
     }
 
     /**
@@ -260,11 +250,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Single<List<io.vertx.kafka.admin.ConsumerGroupListing>> rxListConsumerGroups() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                listConsumerGroups($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            listConsumerGroups($handler);
+        });
     }
 
     /**
@@ -293,11 +281,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Single<Map<String, io.vertx.kafka.admin.ConsumerGroupDescription>> rxDescribeConsumerGroups(List<String> groupIds) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                describeConsumerGroups(groupIds, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            describeConsumerGroups(groupIds, $handler);
+        });
     }
 
     /**
@@ -320,11 +306,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Single<io.vertx.kafka.admin.ClusterDescription> rxDescribeCluster() {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                describeCluster($handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            describeCluster($handler);
+        });
     }
 
     /**
@@ -350,11 +334,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxDeleteConsumerGroups(List<String> groupIds) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                deleteConsumerGroups(groupIds, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            deleteConsumerGroups(groupIds, $handler);
+        });
     }
 
     /**
@@ -396,11 +378,9 @@ public class KafkaAdminClient {
         String groupId,
         Set<io.vertx.kafka.client.common.TopicPartition> partitions
     ) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                deleteConsumerGroupOffsets(groupId, partitions, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            deleteConsumerGroupOffsets(groupId, partitions, $handler);
+        });
     }
 
     /**
@@ -423,11 +403,9 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxClose() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                close($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            close($handler);
+        });
     }
 
     /**
@@ -453,10 +431,8 @@ public class KafkaAdminClient {
      * @return
      */
     public io.reactivex.Completable rxClose(long timeout) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                close(timeout, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            close(timeout, $handler);
+        });
     }
 }

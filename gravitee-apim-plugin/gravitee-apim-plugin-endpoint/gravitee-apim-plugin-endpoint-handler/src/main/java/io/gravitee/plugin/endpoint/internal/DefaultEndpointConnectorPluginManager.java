@@ -50,9 +50,8 @@ public class DefaultEndpointConnectorPluginManager
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<AbstractConnectorFactory<? extends EndpointConnector>> connectorFactoryClass = (Class<AbstractConnectorFactory<? extends EndpointConnector>>) pluginClassLoader.loadClass(
-                plugin.clazz()
-            );
+            final Class<AbstractConnectorFactory<? extends EndpointConnector>> connectorFactoryClass =
+                (Class<AbstractConnectorFactory<? extends EndpointConnector>>) pluginClassLoader.loadClass(plugin.clazz());
             final AbstractConnectorFactory<? extends EndpointConnector> factory = connectorFactoryClass
                 .getDeclaredConstructor()
                 .newInstance();

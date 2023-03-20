@@ -161,16 +161,15 @@ public class JdbcPortalNotificationConfigRepository
                 portalNotificationConfig.getReferenceType(),
                 portalNotificationConfig.getReferenceId()
             )
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            format(
-                                "No portalNotificationConfig found with id [%s, %s, %s]",
-                                portalNotificationConfig.getUser(),
-                                portalNotificationConfig.getReferenceType(),
-                                portalNotificationConfig.getReferenceId()
-                            )
+                .orElseThrow(() ->
+                    new IllegalStateException(
+                        format(
+                            "No portalNotificationConfig found with id [%s, %s, %s]",
+                            portalNotificationConfig.getUser(),
+                            portalNotificationConfig.getReferenceType(),
+                            portalNotificationConfig.getReferenceId()
                         )
+                    )
                 );
         } catch (final IllegalStateException ex) {
             throw ex;

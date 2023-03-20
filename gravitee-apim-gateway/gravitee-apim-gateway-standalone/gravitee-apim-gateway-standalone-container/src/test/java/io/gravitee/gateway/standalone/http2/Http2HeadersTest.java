@@ -50,29 +50,25 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
 
         httpClient
             .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
-            .onComplete(
-                event -> {
-                    Assert.assertTrue(event.succeeded());
-                    event
-                        .result()
-                        .send()
-                        .onComplete(
-                            responseEvent -> {
-                                Assert.assertTrue(responseEvent.succeeded());
+            .onComplete(event -> {
+                Assert.assertTrue(event.succeeded());
+                event
+                    .result()
+                    .send()
+                    .onComplete(responseEvent -> {
+                        Assert.assertTrue(responseEvent.succeeded());
 
-                                HttpClientResponse response = responseEvent.result();
+                        HttpClientResponse response = responseEvent.result();
 
-                                assertEquals(HttpStatus.SC_OK, response.statusCode());
-                                wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
+                        assertEquals(HttpStatus.SC_OK, response.statusCode());
+                        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
 
-                                List<String> cookieHeaders = response.headers().getAll(HttpHeaderNames.SET_COOKIE);
-                                assertEquals(2, cookieHeaders.size());
-                                assertEquals(cookie1, cookieHeaders.get(0));
-                                assertEquals(cookie2, cookieHeaders.get(1));
-                            }
-                        );
-                }
-            );
+                        List<String> cookieHeaders = response.headers().getAll(HttpHeaderNames.SET_COOKIE);
+                        assertEquals(2, cookieHeaders.size());
+                        assertEquals(cookie1, cookieHeaders.get(0));
+                        assertEquals(cookie2, cookieHeaders.get(1));
+                    });
+            });
     }
 
     @Test
@@ -81,26 +77,22 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
 
         httpClient
             .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
-            .onComplete(
-                event -> {
-                    Assert.assertTrue(event.succeeded());
-                    event
-                        .result()
-                        .send()
-                        .onComplete(
-                            responseEvent -> {
-                                Assert.assertTrue(responseEvent.succeeded());
+            .onComplete(event -> {
+                Assert.assertTrue(event.succeeded());
+                event
+                    .result()
+                    .send()
+                    .onComplete(responseEvent -> {
+                        Assert.assertTrue(responseEvent.succeeded());
 
-                                HttpClientResponse response = responseEvent.result();
+                        HttpClientResponse response = responseEvent.result();
 
-                                assertEquals(HttpStatus.SC_OK, response.statusCode());
-                                wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
+                        assertEquals(HttpStatus.SC_OK, response.statusCode());
+                        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
 
-                                List<String> customHeaders = response.headers().getAll("custom");
-                                assertEquals(1, customHeaders.size());
-                            }
-                        );
-                }
-            );
+                        List<String> customHeaders = response.headers().getAll("custom");
+                        assertEquals(1, customHeaders.size());
+                    });
+            });
     }
 }

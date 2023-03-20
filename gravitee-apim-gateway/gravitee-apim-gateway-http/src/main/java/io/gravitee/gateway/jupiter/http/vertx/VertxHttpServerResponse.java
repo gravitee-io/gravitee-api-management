@@ -76,33 +76,30 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     @Override
     public Completable end() {
-        return Completable.defer(
-            () -> {
-                if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
-                    return Completable.complete();
-                }
-
-                if (!opened()) {
-                    return Completable.error(new IllegalStateException("The response is already ended"));
-                }
-                prepareHeaders();
-
-                if (bufferFlow.chunks != null && messageFlow == null) {
-                    return nativeResponse.rxSend(
-                        chunks()
-                            .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                            .doOnNext(
-                                buffer ->
-                                    serverRequest
-                                        .metrics()
-                                        .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
-                            )
-                    );
-                }
-
-                return nativeResponse.rxEnd();
+        return Completable.defer(() -> {
+            if (((VertxHttpServerRequest) serverRequest).isWebSocketUpgraded()) {
+                return Completable.complete();
             }
-        );
+
+            if (!opened()) {
+                return Completable.error(new IllegalStateException("The response is already ended"));
+            }
+            prepareHeaders();
+
+            if (bufferFlow.chunks != null && messageFlow == null) {
+                return nativeResponse.rxSend(
+                    chunks()
+                        .map(buffer -> io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                        .doOnNext(buffer ->
+                            serverRequest
+                                .metrics()
+                                .setResponseContentLength(serverRequest.metrics().getResponseContentLength() + buffer.length())
+                        )
+                );
+            }
+
+            return nativeResponse.rxEnd();
+        });
     }
 
     @Override
@@ -125,16 +122,14 @@ public class VertxHttpServerResponse extends AbstractVertxServerResponse {
 
     @Override
     public Completable end(final Buffer buffer) {
-        return Completable.defer(
-            () -> {
-                if (!opened()) {
-                    return Completable.error(new IllegalStateException("The response is already ended"));
-                }
-                prepareHeaders();
-
-                return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+        return Completable.defer(() -> {
+            if (!opened()) {
+                return Completable.error(new IllegalStateException("The response is already ended"));
             }
-        );
+            prepareHeaders();
+
+            return nativeResponse.rxEnd(io.vertx.reactivex.core.buffer.Buffer.buffer(buffer.getNativeBuffer()));
+        });
     }
 
     @Override

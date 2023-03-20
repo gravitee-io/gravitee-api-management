@@ -218,23 +218,21 @@ public class AlertMapper {
                 .stream()
                 .filter(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()))
                 .findFirst()
-                .map(
-                    webhookNotification -> {
-                        try {
-                            WebhookNotifierConfiguration webhookConfig = objectMapper.readValue(
-                                webhookNotification.getConfiguration(),
-                                WebhookNotifierConfiguration.class
-                            );
-                            AlertWebhook alertWebhook = new AlertWebhook();
-                            alertWebhook.setUrl(webhookConfig.getUrl());
-                            alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
-                            return alertWebhook;
-                        } catch (JsonProcessingException e) {
-                            LOGGER.error("Failed to convert List<Notification> to AlertWebhook", e);
-                        }
-                        return null;
+                .map(webhookNotification -> {
+                    try {
+                        WebhookNotifierConfiguration webhookConfig = objectMapper.readValue(
+                            webhookNotification.getConfiguration(),
+                            WebhookNotifierConfiguration.class
+                        );
+                        AlertWebhook alertWebhook = new AlertWebhook();
+                        alertWebhook.setUrl(webhookConfig.getUrl());
+                        alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
+                        return alertWebhook;
+                    } catch (JsonProcessingException e) {
+                        LOGGER.error("Failed to convert List<Notification> to AlertWebhook", e);
                     }
-                )
+                    return null;
+                })
                 .orElse(null);
         }
         return null;

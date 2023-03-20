@@ -174,8 +174,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 query
                     .getAggregations()
                     .stream()
-                    .forEach(
-                        aggregation -> queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
+                    .forEach(aggregation ->
+                        queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
                     );
             }
 

@@ -103,8 +103,8 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             if (!StringUtils.isEmpty(idOrHrid)) {
                 envStream =
-                    envStream.filter(
-                        env -> idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid)
+                    envStream.filter(env ->
+                        idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid)
                     );
             }
 

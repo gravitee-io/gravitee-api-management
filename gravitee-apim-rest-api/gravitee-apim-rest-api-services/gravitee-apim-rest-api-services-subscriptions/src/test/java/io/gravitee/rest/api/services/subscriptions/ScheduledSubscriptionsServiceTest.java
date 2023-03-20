@@ -50,10 +50,9 @@ public class ScheduledSubscriptionsServiceTest {
         when(
             subscriptionService.search(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    subscriptionQuery ->
-                        subscriptionQuery.getStatuses().equals(Collections.singleton(SubscriptionStatus.ACCEPTED)) &&
-                        subscriptionQuery.getEndingAtBefore() > 0
+                argThat(subscriptionQuery ->
+                    subscriptionQuery.getStatuses().equals(Collections.singleton(SubscriptionStatus.ACCEPTED)) &&
+                    subscriptionQuery.getEndingAtBefore() > 0
                 )
             )
         )

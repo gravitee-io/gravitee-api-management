@@ -105,22 +105,18 @@ public class SubscriptionsHandlerTest {
             .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonArray())
             .sendJson(List.of("id1", "idX", "id4"))
-            .onSuccess(
-                response -> {
-                    JsonArray responseBody = response.body();
-                    context.assertEquals(3, responseBody.size());
-                    context.assertEquals("sub-id1", responseBody.getJsonObject(0).getString("id"));
-                    context.assertEquals("sub-idX", responseBody.getJsonObject(1).getString("id"));
-                    context.assertEquals("sub-id4", responseBody.getJsonObject(2).getString("id"));
-                    async.complete();
-                }
-            )
-            .onFailure(
-                err -> {
-                    context.fail(err);
-                    async.complete();
-                }
-            );
+            .onSuccess(response -> {
+                JsonArray responseBody = response.body();
+                context.assertEquals(3, responseBody.size());
+                context.assertEquals("sub-id1", responseBody.getJsonObject(0).getString("id"));
+                context.assertEquals("sub-idX", responseBody.getJsonObject(1).getString("id"));
+                context.assertEquals("sub-id4", responseBody.getJsonObject(2).getString("id"));
+                async.complete();
+            })
+            .onFailure(err -> {
+                context.fail(err);
+                async.complete();
+            });
     }
 
     @Test
@@ -132,12 +128,10 @@ public class SubscriptionsHandlerTest {
             .expect(ResponsePredicate.SC_INTERNAL_SERVER_ERROR)
             .sendJson(List.of())
             .onSuccess(response -> async.complete())
-            .onFailure(
-                err -> {
-                    context.fail(err);
-                    async.complete();
-                }
-            );
+            .onFailure(err -> {
+                context.fail(err);
+                async.complete();
+            });
     }
 
     @Test
@@ -148,12 +142,10 @@ public class SubscriptionsHandlerTest {
             .expect(ResponsePredicate.SC_INTERNAL_SERVER_ERROR)
             .send()
             .onSuccess(response -> async.complete())
-            .onFailure(
-                err -> {
-                    context.fail(err);
-                    async.complete();
-                }
-            );
+            .onFailure(err -> {
+                context.fail(err);
+                async.complete();
+            });
     }
 
     private int getRandomPort() throws IOException {

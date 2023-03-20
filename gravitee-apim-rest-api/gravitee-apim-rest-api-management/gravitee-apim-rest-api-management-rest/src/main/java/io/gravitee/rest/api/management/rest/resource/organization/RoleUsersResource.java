@@ -87,20 +87,18 @@ public class RoleUsersResource extends AbstractResource {
                     .stream()
                     .filter(Objects::nonNull)
                     .map(MembershipListItem::new)
-                    .sorted(
-                        (a, b) -> {
-                            if (a.getDisplayName() == null && b.getDisplayName() == null) {
-                                return a.getId().compareToIgnoreCase(b.getId());
-                            }
-                            if (a.getDisplayName() == null) {
-                                return -1;
-                            }
-                            if (b.getDisplayName() == null) {
-                                return 1;
-                            }
-                            return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
+                    .sorted((a, b) -> {
+                        if (a.getDisplayName() == null && b.getDisplayName() == null) {
+                            return a.getId().compareToIgnoreCase(b.getId());
                         }
-                    )
+                        if (a.getDisplayName() == null) {
+                            return -1;
+                        }
+                        if (b.getDisplayName() == null) {
+                            return 1;
+                        }
+                        return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
+                    })
                     .collect(Collectors.toList());
             }
         }

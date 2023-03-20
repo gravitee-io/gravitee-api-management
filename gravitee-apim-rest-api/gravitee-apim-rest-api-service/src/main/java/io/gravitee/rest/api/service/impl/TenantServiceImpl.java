@@ -114,25 +114,23 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         }
 
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
-        tenantEntities.forEach(
-            tenantEntity -> {
-                try {
-                    Tenant tenant = convert(tenantEntity, referenceId, referenceType);
-                    savedTenants.add(convert(tenantRepository.create(tenant)));
-                    auditService.createAuditLog(
-                        executionContext,
-                        Collections.singletonMap(TENANT, tenant.getId()),
-                        TENANT_CREATED,
-                        new Date(),
-                        null,
-                        tenant
-                    );
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
-                    throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
-                }
+        tenantEntities.forEach(tenantEntity -> {
+            try {
+                Tenant tenant = convert(tenantEntity, referenceId, referenceType);
+                savedTenants.add(convert(tenantRepository.create(tenant)));
+                auditService.createAuditLog(
+                    executionContext,
+                    Collections.singletonMap(TENANT, tenant.getId()),
+                    TENANT_CREATED,
+                    new Date(),
+                    null,
+                    tenant
+                );
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
+                throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
             }
-        );
+        });
         return savedTenants;
     }
 
@@ -144,35 +142,33 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         TenantReferenceType referenceType
     ) {
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
-        tenantEntities.forEach(
-            tenantEntity -> {
-                try {
-                    Tenant tenant = convert(tenantEntity);
-                    Optional<Tenant> tenantOptional = tenantRepository.findByIdAndReference(
-                        tenant.getId(),
-                        referenceId,
-                        repoTenantReferenceType(referenceType)
+        tenantEntities.forEach(tenantEntity -> {
+            try {
+                Tenant tenant = convert(tenantEntity);
+                Optional<Tenant> tenantOptional = tenantRepository.findByIdAndReference(
+                    tenant.getId(),
+                    referenceId,
+                    repoTenantReferenceType(referenceType)
+                );
+                if (tenantOptional.isPresent()) {
+                    Tenant existingTenant = tenantOptional.get();
+                    tenant.setReferenceId(existingTenant.getReferenceId());
+                    tenant.setReferenceType(existingTenant.getReferenceType());
+                    savedTenants.add(convert(tenantRepository.update(tenant)));
+                    auditService.createAuditLog(
+                        executionContext,
+                        Collections.singletonMap(TENANT, tenant.getId()),
+                        TENANT_UPDATED,
+                        new Date(),
+                        tenantOptional.get(),
+                        tenant
                     );
-                    if (tenantOptional.isPresent()) {
-                        Tenant existingTenant = tenantOptional.get();
-                        tenant.setReferenceId(existingTenant.getReferenceId());
-                        tenant.setReferenceType(existingTenant.getReferenceType());
-                        savedTenants.add(convert(tenantRepository.update(tenant)));
-                        auditService.createAuditLog(
-                            executionContext,
-                            Collections.singletonMap(TENANT, tenant.getId()),
-                            TENANT_UPDATED,
-                            new Date(),
-                            tenantOptional.get(),
-                            tenant
-                        );
-                    }
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
-                    throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
                 }
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
+                throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
             }
-        );
+        });
         return savedTenants;
     }
 

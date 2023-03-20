@@ -68,13 +68,12 @@ public class ApiTagServiceImpl implements ApiTagService {
             .findByOrganization(executionContext.getOrganizationId())
             .stream()
             .map(ExecutionContext::new)
-            .flatMap(
-                env ->
-                    apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(env.getEnvironmentId()).build(),
-                        null,
-                        ApiFieldFilter.allFields()
-                    )
+            .flatMap(env ->
+                apiRepository.search(
+                    new ApiCriteria.Builder().environmentId(env.getEnvironmentId()).build(),
+                    null,
+                    ApiFieldFilter.allFields()
+                )
             )
             .forEach(api -> removeTag(executionContext, api, tagId));
     }

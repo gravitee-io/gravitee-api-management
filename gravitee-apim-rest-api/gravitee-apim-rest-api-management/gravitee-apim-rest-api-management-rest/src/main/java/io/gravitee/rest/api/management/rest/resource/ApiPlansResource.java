@@ -111,13 +111,12 @@ public class ApiPlansResource extends AbstractResource {
         return planService
             .findByApi(executionContext, api)
             .stream()
-            .filter(
-                plan ->
-                    wishedStatus.contains(plan.getStatus()) &&
-                    (
-                        (isAuthenticated() && isAdmin()) ||
-                        groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
-                    )
+            .filter(plan ->
+                wishedStatus.contains(plan.getStatus()) &&
+                (
+                    (isAuthenticated() && isAdmin()) ||
+                    groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
+                )
             )
             .filter(plan -> security == null || security.contains(plan.getSecurity()))
             .sorted(comparingInt(PlanEntity::getOrder))

@@ -278,11 +278,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return
      */
     public io.reactivex.Completable rxWrite(KafkaProducerRecord<K, V> data) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                write(data, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            write(data, $handler);
+        });
     }
 
     /**
@@ -305,11 +303,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return
      */
     public io.reactivex.Completable rxEnd() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                end($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            end($handler);
+        });
     }
 
     /**
@@ -335,11 +331,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return
      */
     public io.reactivex.Completable rxEnd(KafkaProducerRecord<K, V> data) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                end(data, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            end(data, $handler);
+        });
     }
 
     /**
@@ -374,11 +368,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaWriteStream instance
      */
     public io.reactivex.Completable rxInitTransactions() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                initTransactions($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            initTransactions($handler);
+        });
     }
 
     /**
@@ -404,11 +396,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaWriteStream instance
      */
     public io.reactivex.Completable rxBeginTransaction() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                beginTransaction($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            beginTransaction($handler);
+        });
     }
 
     /**
@@ -434,11 +424,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaWriteStream instance
      */
     public io.reactivex.Completable rxCommitTransaction() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                commitTransaction($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            commitTransaction($handler);
+        });
     }
 
     /**
@@ -464,11 +452,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaWriteStream instance
      */
     public io.reactivex.Completable rxAbortTransaction() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                abortTransaction($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            abortTransaction($handler);
+        });
     }
 
     public KafkaProducer<K, V> exceptionHandler(Handler<Throwable> handler) {
@@ -515,11 +501,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaWriteStream instance
      */
     public io.reactivex.Single<io.vertx.kafka.client.producer.RecordMetadata> rxSend(KafkaProducerRecord<K, V> record) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                send(record, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            send(record, $handler);
+        });
     }
 
     /**
@@ -548,11 +532,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaProducer instance
      */
     public io.reactivex.Single<List<io.vertx.kafka.client.common.PartitionInfo>> rxPartitionsFor(String topic) {
-        return AsyncResultSingle.toSingle(
-            $handler -> {
-                partitionsFor(topic, $handler);
-            }
-        );
+        return AsyncResultSingle.toSingle($handler -> {
+            partitionsFor(topic, $handler);
+        });
     }
 
     /**
@@ -578,11 +560,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return current KafkaProducer instance
      */
     public io.reactivex.Completable rxFlush() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                flush($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            flush($handler);
+        });
     }
 
     /**
@@ -605,11 +585,9 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return
      */
     public io.reactivex.Completable rxClose() {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                close($handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            close($handler);
+        });
     }
 
     /**
@@ -635,10 +613,8 @@ public class KafkaProducer<K, V> implements io.vertx.reactivex.core.streams.Writ
      * @return
      */
     public io.reactivex.Completable rxClose(long timeout) {
-        return AsyncResultCompletable.toCompletable(
-            $handler -> {
-                close(timeout, $handler);
-            }
-        );
+        return AsyncResultCompletable.toCompletable($handler -> {
+            close(timeout, $handler);
+        });
     }
 }

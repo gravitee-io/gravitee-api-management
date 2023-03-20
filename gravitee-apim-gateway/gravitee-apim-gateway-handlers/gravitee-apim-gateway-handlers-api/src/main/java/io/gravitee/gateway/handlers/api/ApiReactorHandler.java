@@ -116,13 +116,11 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .handler(__ -> handleProxyInvocation(context, endHandler, chain))
             .streamErrorHandler(failure -> handleError(context, endHandler, failure))
             .errorHandler(failure -> handleError(context, endHandler, failure))
-            .exitHandler(
-                __ -> {
-                    pendingRequests.decrementAndGet();
-                    context.request().resume();
-                    endHandler.handle(context);
-                }
-            )
+            .exitHandler(__ -> {
+                pendingRequests.decrementAndGet();
+                context.request().resume();
+                endHandler.handle(context);
+            })
             .handle(context);
     }
 
@@ -145,16 +143,14 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                 connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
 
                 // Override the stream error handler to be able to cancel connection to backend
-                chain.streamErrorHandler(
-                    failure -> {
-                        context
-                            .request()
-                            .metrics()
-                            .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
-                        connection.cancel();
-                        handleError(context, endHandler, failure);
-                    }
-                );
+                chain.streamErrorHandler(failure -> {
+                    context
+                        .request()
+                        .metrics()
+                        .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                    connection.cancel();
+                    handleError(context, endHandler, failure);
+                });
             }
         );
 
@@ -221,61 +217,49 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         proxyResponse.customFrameHandler(frame -> context.response().writeCustomFrame(frame));
 
         chain
-            .errorHandler(
-                failure -> {
-                    proxyResponse.cancel();
-                    handleError(context, endHandler, failure);
-                }
-            )
-            .streamErrorHandler(
-                failure -> {
-                    proxyResponse.cancel();
-                    handleError(context, endHandler, failure);
-                }
-            )
-            .exitHandler(
-                __ -> {
-                    endHandler.handle(context);
-                    pendingRequests.decrementAndGet();
-                }
-            )
-            .handler(
-                stream -> {
-                    chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> endHandler.handle(context));
+            .errorHandler(failure -> {
+                proxyResponse.cancel();
+                handleError(context, endHandler, failure);
+            })
+            .streamErrorHandler(failure -> {
+                proxyResponse.cancel();
+                handleError(context, endHandler, failure);
+            })
+            .exitHandler(__ -> {
+                endHandler.handle(context);
+                pendingRequests.decrementAndGet();
+            })
+            .handler(stream -> {
+                chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> endHandler.handle(context));
 
-                    proxyResponse
-                        .bodyHandler(
-                            buffer -> {
-                                chain.write(buffer);
+                proxyResponse
+                    .bodyHandler(buffer -> {
+                        chain.write(buffer);
 
-                                if (context.response().writeQueueFull()) {
-                                    proxyResponse.pause();
-                                    context.response().drainHandler(aVoid -> proxyResponse.resume());
-                                }
-                            }
-                        )
-                        .endHandler(
-                            __ -> {
-                                // Write trailers
-                                final HttpHeaders trailers = proxyResponse.trailers();
-                                if (trailers != null && !trailers.isEmpty()) {
-                                    trailers.forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
-                                }
+                        if (context.response().writeQueueFull()) {
+                            proxyResponse.pause();
+                            context.response().drainHandler(aVoid -> proxyResponse.resume());
+                        }
+                    })
+                    .endHandler(__ -> {
+                        // Write trailers
+                        final HttpHeaders trailers = proxyResponse.trailers();
+                        if (trailers != null && !trailers.isEmpty()) {
+                            trailers.forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
+                        }
 
-                                context
-                                    .request()
-                                    .metrics()
-                                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                        context
+                            .request()
+                            .metrics()
+                            .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
 
-                                chain.end();
-                                pendingRequests.decrementAndGet();
-                            }
-                        );
+                        chain.end();
+                        pendingRequests.decrementAndGet();
+                    });
 
-                    // Resume response read
-                    proxyResponse.resume();
-                }
-            )
+                // Resume response read
+                proxyResponse.resume();
+            })
             .handle(context);
     }
 
@@ -297,18 +281,14 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         errorProcessorChain
             .create()
-            .handler(
-                __ -> {
-                    endHandler.handle(context);
-                    pendingRequests.decrementAndGet();
-                }
-            )
-            .errorHandler(
-                __ -> {
-                    endHandler.handle(context);
-                    pendingRequests.decrementAndGet();
-                }
-            )
+            .handler(__ -> {
+                endHandler.handle(context);
+                pendingRequests.decrementAndGet();
+            })
+            .errorHandler(__ -> {
+                endHandler.handle(context);
+                pendingRequests.decrementAndGet();
+            })
             .handle(context);
     }
 

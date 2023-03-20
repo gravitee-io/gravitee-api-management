@@ -121,23 +121,19 @@ public class ApiKeysHandlerTest {
             .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonArray())
             .sendJsonObject(new JsonObject())
-            .onSuccess(
-                response -> {
-                    JsonArray responseBody = response.body();
-                    context.assertEquals(1, responseBody.size());
-                    JsonObject responseApiKey = responseBody.getJsonObject(0);
-                    context.assertEquals("subscription-id", responseApiKey.getString("subscription"));
-                    context.assertEquals("subscription-api-id", responseApiKey.getString("api"));
-                    context.assertEquals("subscription-plan-id", responseApiKey.getString("plan"));
-                    async.complete();
-                }
-            )
-            .onFailure(
-                err -> {
-                    context.fail(err);
-                    async.complete();
-                }
-            );
+            .onSuccess(response -> {
+                JsonArray responseBody = response.body();
+                context.assertEquals(1, responseBody.size());
+                JsonObject responseApiKey = responseBody.getJsonObject(0);
+                context.assertEquals("subscription-id", responseApiKey.getString("subscription"));
+                context.assertEquals("subscription-api-id", responseApiKey.getString("api"));
+                context.assertEquals("subscription-plan-id", responseApiKey.getString("plan"));
+                async.complete();
+            })
+            .onFailure(err -> {
+                context.fail(err);
+                async.complete();
+            });
     }
 
     @Test
@@ -155,24 +151,20 @@ public class ApiKeysHandlerTest {
             .expect(ResponsePredicate.JSON)
             .as(BodyCodec.jsonArray())
             .sendJsonObject(new JsonObject())
-            .onSuccess(
-                response -> {
-                    JsonArray responseBody = response.body();
-                    context.assertEquals(1, responseBody.size());
-                    JsonObject responseApiKey = responseBody.getJsonObject(0);
-                    context.assertEquals("[subscription-id1, subscription-id2]", responseApiKey.getString("subscriptions"));
-                    context.assertNull(responseApiKey.getString("subscription"));
-                    context.assertNull(responseApiKey.getString("api"));
-                    context.assertNull(responseApiKey.getString("plan"));
-                    async.complete();
-                }
-            )
-            .onFailure(
-                err -> {
-                    context.fail(err);
-                    async.complete();
-                }
-            );
+            .onSuccess(response -> {
+                JsonArray responseBody = response.body();
+                context.assertEquals(1, responseBody.size());
+                JsonObject responseApiKey = responseBody.getJsonObject(0);
+                context.assertEquals("[subscription-id1, subscription-id2]", responseApiKey.getString("subscriptions"));
+                context.assertNull(responseApiKey.getString("subscription"));
+                context.assertNull(responseApiKey.getString("api"));
+                context.assertNull(responseApiKey.getString("plan"));
+                async.complete();
+            })
+            .onFailure(err -> {
+                context.fail(err);
+                async.complete();
+            });
     }
 
     private int getRandomPort() throws IOException {

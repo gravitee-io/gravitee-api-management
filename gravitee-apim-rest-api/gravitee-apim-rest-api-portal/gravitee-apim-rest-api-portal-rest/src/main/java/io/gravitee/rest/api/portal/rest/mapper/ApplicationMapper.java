@@ -106,7 +106,8 @@ public class ApplicationMapper {
 
         final ApplicationSettings applicationEntitySettings = applicationEntity.getSettings();
         if (applicationEntitySettings != null) {
-            io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings = new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
+            io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings =
+                new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
 
             final SimpleApplicationSettings simpleAppEntitySettings = applicationEntitySettings.getApp();
             if (simpleAppEntitySettings != null) {

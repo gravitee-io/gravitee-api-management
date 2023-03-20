@@ -104,18 +104,16 @@ public class PromoteApiOperationHandlerTest {
         Assertions.assertThat(argument.getValue().getStatus()).isEqualTo(PromotionEntityStatus.TO_BE_VALIDATED);
 
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply -> {
-                BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
-                return (
-                    simpleReply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                    simpleReply.getOrganizationId().equals(ORGANIZATION_ID) &&
-                    simpleReply.getEnvironmentId().equals("target") &&
-                    simpleReply.getInstallationId().equals(INSTALLATION_ID) &&
-                    simpleReply.getCommandId().equals(COMMAND_ID)
-                );
-            }
-        );
+        obs.assertValue(reply -> {
+            BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
+            return (
+                simpleReply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+                simpleReply.getOrganizationId().equals(ORGANIZATION_ID) &&
+                simpleReply.getEnvironmentId().equals("target") &&
+                simpleReply.getInstallationId().equals(INSTALLATION_ID) &&
+                simpleReply.getCommandId().equals(COMMAND_ID)
+            );
+        });
     }
 
     @Test
@@ -138,11 +136,10 @@ public class PromoteApiOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
@@ -171,11 +168,10 @@ public class PromoteApiOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 

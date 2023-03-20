@@ -66,20 +66,18 @@ public class HttpPostEntrypointConnector implements EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () ->
-                ctx
-                    .request()
-                    .messages(
-                        ctx
-                            .request()
-                            .body()
-                            .<Message>map(
-                                buffer ->
-                                    DefaultMessage.builder().headers(HttpHeaders.create(ctx.request().headers())).content(buffer).build()
-                            )
-                            .toFlowable()
-                    )
+        return Completable.fromRunnable(() ->
+            ctx
+                .request()
+                .messages(
+                    ctx
+                        .request()
+                        .body()
+                        .<Message>map(buffer ->
+                            DefaultMessage.builder().headers(HttpHeaders.create(ctx.request().headers())).content(buffer).build()
+                        )
+                        .toFlowable()
+                )
         );
     }
 

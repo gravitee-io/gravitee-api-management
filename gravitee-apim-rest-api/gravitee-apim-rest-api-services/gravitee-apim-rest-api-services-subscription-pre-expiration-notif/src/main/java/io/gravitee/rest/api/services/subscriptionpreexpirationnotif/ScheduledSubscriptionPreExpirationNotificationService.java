@@ -105,12 +105,10 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
         Instant now = Instant.now();
 
-        notificationDays.forEach(
-            daysToExpiration -> {
-                Set<String> notifiedSubscriptionIds = notifySubscriptionsExpirations(now, daysToExpiration);
-                notifyApiKeysExpirations(now, daysToExpiration, notifiedSubscriptionIds);
-            }
-        );
+        notificationDays.forEach(daysToExpiration -> {
+            Set<String> notifiedSubscriptionIds = notifySubscriptionsExpirations(now, daysToExpiration);
+            notifyApiKeysExpirations(now, daysToExpiration, notifiedSubscriptionIds);
+        });
 
         logger.debug("Subscription Pre Expiration Notification #{} ended at {}", counter.get(), Instant.now().toString());
     }
@@ -120,10 +118,8 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         apiKeyExpirationsToNotify
             .stream()
             // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
-            .filter(
-                apiKey ->
-                    apiKey.getDaysToExpirationOnLastNotification() == null ||
-                    apiKey.getDaysToExpirationOnLastNotification() > daysToExpiration
+            .filter(apiKey ->
+                apiKey.getDaysToExpirationOnLastNotification() == null || apiKey.getDaysToExpirationOnLastNotification() > daysToExpiration
             )
             .forEach(apiKey -> notifyApiKeyExpiration(daysToExpiration, apiKey, notifiedSubscriptionIds));
     }
@@ -135,15 +131,13 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .getSubscriptions()
             .stream()
             .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
-            .forEach(
-                subscription -> {
-                    GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), subscription.getApi());
-                    GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+            .forEach(subscription -> {
+                GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), subscription.getApi());
+                GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
-                    findEmailsToNotify(subscription, application)
-                        .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
-                }
-            );
+                findEmailsToNotify(subscription, application)
+                    .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
+            });
 
         apiKeyService.updateDaysToExpirationOnLastNotification(GraviteeContext.getExecutionContext(), apiKey, daysToExpiration);
     }
@@ -153,10 +147,9 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
         findSubscriptionExpirationsToNotify(now, daysToExpiration)
             .stream()
-            .filter( // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
-                subscription ->
-                    subscription.getDaysToExpirationOnLastNotification() == null ||
-                    subscription.getDaysToExpirationOnLastNotification() > daysToExpiration
+            .filter(subscription -> // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
+                subscription.getDaysToExpirationOnLastNotification() == null ||
+                subscription.getDaysToExpirationOnLastNotification() > daysToExpiration
             )
             .forEach(subscription -> notifySubscriptionExpiration(daysToExpiration, subscription));
 

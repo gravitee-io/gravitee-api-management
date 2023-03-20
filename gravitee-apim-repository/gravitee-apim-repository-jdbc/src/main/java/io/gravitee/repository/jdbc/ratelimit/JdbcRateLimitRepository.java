@@ -137,29 +137,25 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
                         final RateLimit fRate = rate;
 
-                        final int nbUpdatedElements = jdbcTemplate.update(
-                            (Connection cnctn) -> {
-                                PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
-                                stmt.setLong(1, fRate.getCounter());
-                                stmt.setLong(2, fRate.getLimit());
-                                stmt.setLong(3, fRate.getResetTime());
-                                stmt.setString(4, fRate.getKey());
-                                return stmt;
-                            }
-                        );
+                        final int nbUpdatedElements = jdbcTemplate.update((Connection cnctn) -> {
+                            PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
+                            stmt.setLong(1, fRate.getCounter());
+                            stmt.setLong(2, fRate.getLimit());
+                            stmt.setLong(3, fRate.getResetTime());
+                            stmt.setString(4, fRate.getKey());
+                            return stmt;
+                        });
 
                         if (nbUpdatedElements == 0) {
-                            jdbcTemplate.update(
-                                (Connection cnctn) -> {
-                                    PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
-                                    stmt.setString(1, fRate.getKey());
-                                    stmt.setLong(2, fRate.getCounter());
-                                    stmt.setLong(3, fRate.getLimit());
-                                    stmt.setString(4, fRate.getSubscription());
-                                    stmt.setLong(5, fRate.getResetTime());
-                                    return stmt;
-                                }
-                            );
+                            jdbcTemplate.update((Connection cnctn) -> {
+                                PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
+                                stmt.setString(1, fRate.getKey());
+                                stmt.setLong(2, fRate.getCounter());
+                                stmt.setLong(3, fRate.getLimit());
+                                stmt.setString(4, fRate.getSubscription());
+                                stmt.setLong(5, fRate.getResetTime());
+                                return stmt;
+                            });
                         }
 
                         return Single.just(rate);

@@ -75,33 +75,28 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
 
     private Completable prepareProducer(final MessageExecutionContext ctx) {
         if (configuration.getProducer().isEnabled()) {
-            return Completable.defer(
-                () -> {
-                    Map<String, String> config = new HashMap<>();
-                    config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-                    // Set kafka producer properties
-                    config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-                    config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-                    config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
-                    // Classes from reactivex have been imported because of issue with classloading from parent/plugin
-                    KafkaProducer<String, byte[]> producer = createKafka(() -> KafkaProducer.create(getVertx(ctx), config));
-                    return ctx
-                        .request()
-                        .messages()
-                        .flatMapCompletable(
-                            message ->
-                                Flowable
-                                    .fromIterable(getTopics(ctx))
-                                    .flatMapCompletable(
-                                        topic -> {
-                                            KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(ctx, message, topic);
-                                            return producer.rxWrite(kafkaRecord);
-                                        }
-                                    )
-                        )
-                        .andThen(producer.rxClose());
-                }
-            );
+            return Completable.defer(() -> {
+                Map<String, String> config = new HashMap<>();
+                config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
+                // Set kafka producer properties
+                config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+                config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+                config.put(ProducerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+                // Classes from reactivex have been imported because of issue with classloading from parent/plugin
+                KafkaProducer<String, byte[]> producer = createKafka(() -> KafkaProducer.create(getVertx(ctx), config));
+                return ctx
+                    .request()
+                    .messages()
+                    .flatMapCompletable(message ->
+                        Flowable
+                            .fromIterable(getTopics(ctx))
+                            .flatMapCompletable(topic -> {
+                                KafkaProducerRecord<String, byte[]> kafkaRecord = createKafkaRecord(ctx, message, topic);
+                                return producer.rxWrite(kafkaRecord);
+                            })
+                    )
+                    .andThen(producer.rxClose());
+            });
         } else {
             return Completable.complete();
         }
@@ -120,69 +115,61 @@ public class KafkaEndpointConnector implements EndpointAsyncConnector {
     }
 
     private Completable prepareConsumer(final MessageExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                if (configuration.getConsumer().isEnabled()) {
-                    ctx
-                        .response()
-                        .messages(
-                            Flowable.defer(
-                                () -> {
-                                    Map<String, Object> config = new HashMap<>();
-                                    config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-                                    KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
-                                    config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
+        return Completable.fromRunnable(() -> {
+            if (configuration.getConsumer().isEnabled()) {
+                ctx
+                    .response()
+                    .messages(
+                        Flowable.defer(() -> {
+                            Map<String, Object> config = new HashMap<>();
+                            config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
+                            KafkaEndpointConnectorConfiguration.Consumer configurationConsumer = configuration.getConsumer();
+                            config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, configurationConsumer.getAutoOffsetReset());
 
-                                    // Set kafka consumer properties
-                                    config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-                                    config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+                            // Set kafka consumer properties
+                            config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+                            config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 
-                                    String groupId = getGroupId(ctx);
-                                    config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-                                    String instanceId = UUID.randomUUID().toString();
-                                    config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId);
-                                    config.put(ConsumerConfig.CLIENT_ID_CONFIG, instanceId);
-                                    // Classes from reactivex have been imported because of issue while loading reactivex classes due to classloading from node/plugin separation
-                                    KafkaConsumer<String, byte[]> consumer = createKafka(
-                                        () -> KafkaConsumer.create(getVertx(ctx), new KafkaClientOptions().setConfig(config))
-                                    );
-                                    return consumer
-                                        .subscribe(getTopics(ctx))
-                                        .toFlowable()
-                                        .map(
-                                            consumerRecord -> {
-                                                HttpHeaders httpHeaders = HttpHeaders.create();
-                                                consumerRecord
-                                                    .headers()
-                                                    .forEach(
-                                                        kafkaHeader -> httpHeaders.add(kafkaHeader.key(), kafkaHeader.value().toString())
-                                                    );
-                                                return DefaultMessage
-                                                    .builder()
-                                                    .headers(httpHeaders)
-                                                    .content(Buffer.buffer(consumerRecord.value()))
-                                                    .metadata(
-                                                        Map.of(
-                                                            "key",
-                                                            consumerRecord.key(),
-                                                            "topic",
-                                                            consumerRecord.topic(),
-                                                            "partition",
-                                                            consumerRecord.partition(),
-                                                            "offset",
-                                                            consumerRecord.offset()
-                                                        )
-                                                    )
-                                                    .build();
-                                            }
+                            String groupId = getGroupId(ctx);
+                            config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+                            String instanceId = UUID.randomUUID().toString();
+                            config.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, instanceId);
+                            config.put(ConsumerConfig.CLIENT_ID_CONFIG, instanceId);
+                            // Classes from reactivex have been imported because of issue while loading reactivex classes due to classloading from node/plugin separation
+                            KafkaConsumer<String, byte[]> consumer = createKafka(() ->
+                                KafkaConsumer.create(getVertx(ctx), new KafkaClientOptions().setConfig(config))
+                            );
+                            return consumer
+                                .subscribe(getTopics(ctx))
+                                .toFlowable()
+                                .map(consumerRecord -> {
+                                    HttpHeaders httpHeaders = HttpHeaders.create();
+                                    consumerRecord
+                                        .headers()
+                                        .forEach(kafkaHeader -> httpHeaders.add(kafkaHeader.key(), kafkaHeader.value().toString()));
+                                    return DefaultMessage
+                                        .builder()
+                                        .headers(httpHeaders)
+                                        .content(Buffer.buffer(consumerRecord.value()))
+                                        .metadata(
+                                            Map.of(
+                                                "key",
+                                                consumerRecord.key(),
+                                                "topic",
+                                                consumerRecord.topic(),
+                                                "partition",
+                                                consumerRecord.partition(),
+                                                "offset",
+                                                consumerRecord.offset()
+                                            )
                                         )
-                                        .doFinally(consumer::close);
-                                }
-                            )
-                        );
-                }
+                                        .build();
+                                })
+                                .doFinally(consumer::close);
+                        })
+                    );
             }
-        );
+        });
     }
 
     private Vertx getVertx(final MessageExecutionContext ctx) {

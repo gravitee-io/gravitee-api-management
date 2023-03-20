@@ -33,20 +33,16 @@ public class WebsocketPingFrameTest extends AbstractWebsocketGatewayTest {
     @Test
     public void websocket_ping_request(VertxTestContext testContext) throws Throwable {
         httpServer
-            .webSocketHandler(
-                serverWebSocket -> {
-                    serverWebSocket.exceptionHandler(testContext::failNow);
-                    serverWebSocket.accept();
-                    serverWebSocket.frameHandler(
-                        frame -> {
-                            if (frame.isPing()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
-                            }
-                        }
-                    );
-                }
-            )
+            .webSocketHandler(serverWebSocket -> {
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
+                serverWebSocket.frameHandler(frame -> {
+                    if (frame.isPing()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        testContext.completeNow();
+                    }
+                });
+            })
             .listen(
                 websocketPort,
                 ar ->

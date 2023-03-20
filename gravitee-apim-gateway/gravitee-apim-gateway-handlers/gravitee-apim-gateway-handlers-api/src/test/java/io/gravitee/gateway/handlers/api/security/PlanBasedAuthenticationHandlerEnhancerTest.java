@@ -104,13 +104,11 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     private void mockApiPlans(List<PlanSecurityType> securityTypes) {
         List<Plan> plans = securityTypes
             .stream()
-            .map(
-                securityType -> {
-                    Plan plan = new Plan();
-                    plan.setSecurity(securityType.name());
-                    return plan;
-                }
-            )
+            .map(securityType -> {
+                Plan plan = new Plan();
+                plan.setSecurity(securityType.name());
+                return plan;
+            })
             .collect(Collectors.toList());
         when(api.getPlans()).thenReturn(plans);
     }

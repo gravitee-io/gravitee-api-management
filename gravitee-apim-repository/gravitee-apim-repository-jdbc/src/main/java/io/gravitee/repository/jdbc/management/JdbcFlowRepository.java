@@ -278,18 +278,16 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         );
         return flowSelectors
             .stream()
-            .peek(
-                flowSelector -> {
-                    if (flowSelector.getType() == FlowSelectorType.HTTP) {
-                        FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
-                        Set<HttpMethod> methods = getSelectorHttpMethods(flowId);
-                        flowHttpSelector.setMethods(methods);
-                    } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
-                        FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
-                        flowChannelSelector.setOperations(getChannelOperation(flowId));
-                    }
+            .peek(flowSelector -> {
+                if (flowSelector.getType() == FlowSelectorType.HTTP) {
+                    FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
+                    Set<HttpMethod> methods = getSelectorHttpMethods(flowId);
+                    flowHttpSelector.setMethods(methods);
+                } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
+                    FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
+                    flowChannelSelector.setOperations(getChannelOperation(flowId));
                 }
-            )
+            })
             .collect(Collectors.toList());
     }
 

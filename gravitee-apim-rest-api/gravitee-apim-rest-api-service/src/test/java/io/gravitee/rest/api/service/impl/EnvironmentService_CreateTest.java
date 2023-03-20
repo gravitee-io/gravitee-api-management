@@ -84,14 +84,13 @@ public class EnvironmentService_CreateTest {
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
             .create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getHrids().equals(Arrays.asList("envhrid")) &&
-                        arg.getName().equals("env_name") &&
-                        arg.getDescription().equals("env_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions) &&
-                        arg.getOrganizationId().equals("DEFAULT")
+                argThat(arg ->
+                    arg != null &&
+                    arg.getHrids().equals(Arrays.asList("envhrid")) &&
+                    arg.getName().equals("env_name") &&
+                    arg.getDescription().equals("env_desc") &&
+                    arg.getDomainRestrictions().equals(domainRestrictions) &&
+                    arg.getOrganizationId().equals("DEFAULT")
                 )
             );
         verify(mockEnvironmentRepository, never()).update(any());
@@ -120,14 +119,13 @@ public class EnvironmentService_CreateTest {
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
             .update(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getHrids().equals(Arrays.asList("envhrid")) &&
-                        arg.getName().equals("env_name") &&
-                        arg.getDescription().equals("env_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions) &&
-                        arg.getOrganizationId().equals("DEFAULT")
+                argThat(arg ->
+                    arg != null &&
+                    arg.getHrids().equals(Arrays.asList("envhrid")) &&
+                    arg.getName().equals("env_name") &&
+                    arg.getDescription().equals("env_desc") &&
+                    arg.getDomainRestrictions().equals(domainRestrictions) &&
+                    arg.getOrganizationId().equals("DEFAULT")
                 )
             );
         verify(mockEnvironmentRepository, never()).create(any());

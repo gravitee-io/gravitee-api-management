@@ -32,20 +32,16 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketGatewayTest {
     @Test
     public void websocket_bidirectional_request(VertxTestContext testContext) throws Throwable {
         httpServer
-            .webSocketHandler(
-                serverWebSocket -> {
-                    serverWebSocket.exceptionHandler(testContext::failNow);
-                    serverWebSocket.accept();
-                    serverWebSocket.frameHandler(
-                        frame -> {
-                            if (frame.isText()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                serverWebSocket.writeTextMessage("PONG");
-                            }
-                        }
-                    );
-                }
-            )
+            .webSocketHandler(serverWebSocket -> {
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
+                serverWebSocket.frameHandler(frame -> {
+                    if (frame.isText()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        serverWebSocket.writeTextMessage("PONG");
+                    }
+                });
+            })
             .listen(
                 websocketPort,
                 ar -> {
@@ -57,14 +53,12 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketGatewayTest {
                             } else {
                                 final WebSocket webSocket = event.result();
                                 webSocket.exceptionHandler(testContext::failNow);
-                                webSocket.frameHandler(
-                                    frame -> {
-                                        if (frame.isText()) {
-                                            testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
-                                            testContext.completeNow();
-                                        }
+                                webSocket.frameHandler(frame -> {
+                                    if (frame.isText()) {
+                                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
+                                        testContext.completeNow();
                                     }
-                                );
+                                });
                                 webSocket.writeTextMessage("PING");
                             }
                         }

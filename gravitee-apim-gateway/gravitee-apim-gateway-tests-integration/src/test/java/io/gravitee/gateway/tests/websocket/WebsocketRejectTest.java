@@ -42,8 +42,8 @@ public class WebsocketRejectTest extends AbstractWebsocketGatewayTest {
                         event -> {
                             testContext.verify(() -> assertThat(event.failed()).isTrue());
                             testContext.verify(() -> assertThat(event.cause().getClass()).isEqualTo(UpgradeRejectedException.class));
-                            testContext.verify(
-                                () -> assertThat(((UpgradeRejectedException) event.cause()).getStatus()).isEqualTo(UNAUTHORIZED_401)
+                            testContext.verify(() ->
+                                assertThat(((UpgradeRejectedException) event.cause()).getStatus()).isEqualTo(UNAUTHORIZED_401)
                             );
                             testContext.completeNow();
                         }

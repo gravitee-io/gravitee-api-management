@@ -96,15 +96,13 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
         EntrypointAsyncConnector connector = (EntrypointAsyncConnector) connectorFactory.createConnector(subscription.getConfiguration());
 
         if (connector == null) {
-            return Completable.defer(
-                () -> {
-                    String noEntrypointMsg = "No entrypoint matches the incoming request";
-                    log.debug(noEntrypointMsg);
-                    ctx.response().status(HttpStatusCode.NOT_FOUND_404);
-                    ctx.response().reason(noEntrypointMsg);
-                    return ctx.response().end();
-                }
-            );
+            return Completable.defer(() -> {
+                String noEntrypointMsg = "No entrypoint matches the incoming request";
+                log.debug(noEntrypointMsg);
+                ctx.response().status(HttpStatusCode.NOT_FOUND_404);
+                ctx.response().reason(noEntrypointMsg);
+                return ctx.response().end();
+            });
         }
 
         // Add the resolved entrypoint connector into the internal attributes, so it can be used later
@@ -119,17 +117,15 @@ public class SubscriptionReactor extends AbstractLifecycleComponent<ReactorHandl
     }
 
     private Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(
-            () -> {
-                Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+            Invoker invoker = getInvoker(ctx);
 
-                if (invoker != null) {
-                    return invoker.invoke(ctx);
-                }
-
-                return Completable.complete();
+            if (invoker != null) {
+                return invoker.invoke(ctx);
             }
-        );
+
+            return Completable.complete();
+        });
     }
 
     private Completable handleUnexpectedError(final MessageExecutionContext ctx, final Throwable throwable) {

@@ -50,29 +50,25 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             throw new EndpointMissingException();
         }
 
-        endpointGroups.forEach(
-            endpointGroup -> {
-                validateName(endpointGroup.getName());
-                validateEndpointGroupType(endpointGroup.getType());
-                validateServices(endpointGroup.getServices());
-                validateEndpointsExistence(endpointGroup);
-                if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
-                    endpointGroup
-                        .getEndpoints()
-                        .forEach(
-                            endpoint -> {
-                                validateName(endpoint.getName());
-                                validateEndpointType(endpoint.getType());
-                                validateServices(endpoint.getServices());
-                                endpoint.setConfiguration(
-                                    endpointService.validateEndpointConfiguration(endpoint.getType(), endpoint.getConfiguration())
-                                );
-                            }
+        endpointGroups.forEach(endpointGroup -> {
+            validateName(endpointGroup.getName());
+            validateEndpointGroupType(endpointGroup.getType());
+            validateServices(endpointGroup.getServices());
+            validateEndpointsExistence(endpointGroup);
+            if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
+                endpointGroup
+                    .getEndpoints()
+                    .forEach(endpoint -> {
+                        validateName(endpoint.getName());
+                        validateEndpointType(endpoint.getType());
+                        validateServices(endpoint.getServices());
+                        endpoint.setConfiguration(
+                            endpointService.validateEndpointConfiguration(endpoint.getType(), endpoint.getConfiguration())
                         );
-                }
-                validateEndpointsMatchType(endpointGroup);
+                    });
             }
-        );
+            validateEndpointsMatchType(endpointGroup);
+        });
 
         return endpointGroups;
     }

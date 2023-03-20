@@ -47,20 +47,17 @@ public class DefaultEndpointConnectorResolver {
             api
                 .getEndpointGroups()
                 .stream()
-                .flatMap(
-                    endpointGroup ->
-                        endpointGroup
-                            .getEndpoints()
-                            .stream()
-                            .map(
-                                endpoint -> {
-                                    String configuration = getEndpointConfiguration(endpointGroup, endpoint);
-                                    return Map.entry(
-                                        endpointGroup,
-                                        endpointConnectorPluginManager.getFactoryById(endpoint.getType()).createConnector(configuration)
-                                    );
-                                }
-                            )
+                .flatMap(endpointGroup ->
+                    endpointGroup
+                        .getEndpoints()
+                        .stream()
+                        .map(endpoint -> {
+                            String configuration = getEndpointConfiguration(endpointGroup, endpoint);
+                            return Map.entry(
+                                endpointGroup,
+                                endpointConnectorPluginManager.getFactoryById(endpoint.getType()).createConnector(configuration)
+                            );
+                        })
                 )
                 .filter(e -> e.getValue() != null)
                 .collect(Collectors.groupingBy(Map.Entry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
@@ -72,13 +69,12 @@ public class DefaultEndpointConnectorResolver {
         return (T) connectorsByGroup
             .entrySet()
             .stream()
-            .flatMap(
-                e ->
-                    e
-                        .getValue()
-                        .stream()
-                        .filter(connector -> Objects.equals(connector.supportedApi(), entrypointConnector.supportedApi()))
-                        .filter(connector -> connector.supportedModes().containsAll(entrypointConnector.supportedModes()))
+            .flatMap(e ->
+                e
+                    .getValue()
+                    .stream()
+                    .filter(connector -> Objects.equals(connector.supportedApi(), entrypointConnector.supportedApi()))
+                    .filter(connector -> connector.supportedModes().containsAll(entrypointConnector.supportedModes()))
             )
             .findFirst()
             .orElse(null);

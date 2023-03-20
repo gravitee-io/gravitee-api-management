@@ -77,14 +77,12 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
 
         applicationRepository
             .findAll()
-            .forEach(
-                application -> {
-                    if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
-                        Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                        updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
-                    }
+            .forEach(application -> {
+                if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
                 }
-            );
+            });
     }
 
     private List<String> findAllApiKeyPlansId() throws TechnicalException {

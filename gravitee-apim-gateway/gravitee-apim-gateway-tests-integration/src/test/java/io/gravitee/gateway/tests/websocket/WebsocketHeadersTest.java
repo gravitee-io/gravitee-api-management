@@ -39,16 +39,14 @@ public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    String customHeader = event.headers().get(customHeaderName);
+            .webSocketHandler(event -> {
+                event.accept();
+                String customHeader = event.headers().get(customHeaderName);
 
-                    testContext.verify(() -> assertThat(customHeader).isNotNull());
-                    testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
-                    event.writeTextMessage("PING");
-                }
-            )
+                testContext.verify(() -> assertThat(customHeader).isNotNull());
+                testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
+                event.writeTextMessage("PING");
+            })
             .listen(
                 websocketPort,
                 ar ->
@@ -60,13 +58,11 @@ public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
                             } else {
                                 final WebSocket webSocket = event.result();
                                 webSocket.exceptionHandler(testContext::failNow);
-                                webSocket.frameHandler(
-                                    frame -> {
-                                        testContext.verify(() -> assertThat(frame.isText()).isTrue());
-                                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                        testContext.completeNow();
-                                    }
-                                );
+                                webSocket.frameHandler(frame -> {
+                                    testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                                    testContext.completeNow();
+                                });
                             }
                         }
                     )

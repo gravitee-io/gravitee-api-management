@@ -49,17 +49,15 @@ public class VertxWebSocket implements WebSocket {
 
         final CompletableFuture<WebSocket> future = new CompletableFuture<>();
 
-        httpServerRequest.toWebSocket(
-            result -> {
-                if (result.failed()) {
-                    future.completeExceptionally(result.cause());
-                } else {
-                    webSocket = result.result();
-                    upgraded = true;
-                    future.complete(this);
-                }
+        httpServerRequest.toWebSocket(result -> {
+            if (result.failed()) {
+                future.completeExceptionally(result.cause());
+            } else {
+                webSocket = result.result();
+                upgraded = true;
+                future.complete(this);
             }
-        );
+        });
 
         return future;
     }
@@ -105,12 +103,10 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public WebSocket closeHandler(Handler<Void> closeHandler) {
         if (upgraded) {
-            webSocket.closeHandler(
-                event -> {
-                    closed = true;
-                    closeHandler.handle(event);
-                }
-            );
+            webSocket.closeHandler(event -> {
+                closed = true;
+                closeHandler.handle(event);
+            });
         }
         return this;
     }

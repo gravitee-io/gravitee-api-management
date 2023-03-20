@@ -161,35 +161,31 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-            proxyResponse.bodyHandler(
-                chunk -> {
-                    if (buffer == null) {
-                        buffer = Buffer.buffer();
-                        isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
-                    }
-
-                    if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {
-                        appendLog(buffer, chunk);
-                    }
-
-                    bodyHandler.handle(chunk);
+            proxyResponse.bodyHandler(chunk -> {
+                if (buffer == null) {
+                    buffer = Buffer.buffer();
+                    isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
                 }
-            );
+
+                if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {
+                    appendLog(buffer, chunk);
+                }
+
+                bodyHandler.handle(chunk);
+            });
 
             return this;
         }
 
         @Override
         public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            proxyResponse.endHandler(
-                result -> {
-                    if (buffer != null) {
-                        log.getProxyResponse().setBody(buffer.toString());
-                    }
-
-                    endHandler.handle(result);
+            proxyResponse.endHandler(result -> {
+                if (buffer != null) {
+                    log.getProxyResponse().setBody(buffer.toString());
                 }
-            );
+
+                endHandler.handle(result);
+            });
 
             return this;
         }

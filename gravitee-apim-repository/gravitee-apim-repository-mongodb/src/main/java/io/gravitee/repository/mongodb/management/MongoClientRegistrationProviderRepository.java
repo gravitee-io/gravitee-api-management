@@ -137,9 +137,8 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     @Override
     public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) {
         LOGGER.debug("Find all client registration providers by environment");
-        final List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findByEnvironmentId(
-            environmentId
-        );
+        final List<ClientRegistrationProviderMongo> clientRegistrationProviders =
+            internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
 
         Set<ClientRegistrationProvider> res = mapper.collection2set(
             clientRegistrationProviders,

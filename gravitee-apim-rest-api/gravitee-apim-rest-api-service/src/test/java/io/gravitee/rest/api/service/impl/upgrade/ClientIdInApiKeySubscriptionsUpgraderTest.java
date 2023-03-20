@@ -60,9 +60,8 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
 
         verify(subscriptionRepository, times(1))
             .update(
-                argThat(
-                    subscription ->
-                        subscription.getId().equals(apiKeySubscriptionWithClientId.getId()) && subscription.getClientId() == null
+                argThat(subscription ->
+                    subscription.getId().equals(apiKeySubscriptionWithClientId.getId()) && subscription.getClientId() == null
                 )
             );
     }

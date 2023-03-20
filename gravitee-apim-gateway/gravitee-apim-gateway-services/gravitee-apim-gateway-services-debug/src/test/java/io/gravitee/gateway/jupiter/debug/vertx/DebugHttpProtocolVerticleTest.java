@@ -78,14 +78,11 @@ public class DebugHttpProtocolVerticleTest {
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
-                testContext.succeeding(
-                    response ->
-                        testContext.verify(
-                            () -> {
-                                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                                testContext.completeNow();
-                            }
-                        )
+                testContext.succeeding(response ->
+                    testContext.verify(() -> {
+                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                        testContext.completeNow();
+                    })
                 )
             );
     }
@@ -98,22 +95,18 @@ public class DebugHttpProtocolVerticleTest {
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
-                testContext.succeeding(
-                    response ->
-                        testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
+                testContext.succeeding(response ->
+                    testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
                 )
             )
             .compose(httpClientResponse -> client.request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
-                testContext.succeeding(
-                    response ->
-                        testContext.verify(
-                            () -> {
-                                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                                testContext.completeNow();
-                            }
-                        )
+                testContext.succeeding(response ->
+                    testContext.verify(() -> {
+                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                        testContext.completeNow();
+                    })
                 )
             );
     }
@@ -124,26 +117,22 @@ public class DebugHttpProtocolVerticleTest {
         HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
-            .compose(
-                request -> {
-                    request.send().otherwiseEmpty();
-                    return request.connection().close();
-                }
-            );
+            .compose(request -> {
+                request.send().otherwiseEmpty();
+                return request.connection().close();
+            });
     }
 
     @Test
     void httpServerShouldIgnoreAlreadyEndedResponseOnError(Vertx vertx, VertxTestContext testContext) {
-        doAnswer(
-                invocation -> {
-                    HttpServerRequest httpServerRequest = invocation.getArgument(0);
-                    return httpServerRequest
-                        .response()
-                        .setStatusCode(SERVICE_UNAVAILABLE_503)
-                        .rxEnd()
-                        .andThen(Completable.error(new RuntimeException("error")));
-                }
-            )
+        doAnswer(invocation -> {
+                HttpServerRequest httpServerRequest = invocation.getArgument(0);
+                return httpServerRequest
+                    .response()
+                    .setStatusCode(SERVICE_UNAVAILABLE_503)
+                    .rxEnd()
+                    .andThen(Completable.error(new RuntimeException("error")));
+            })
             .doCallRealMethod()
             .when(mockRequestDispatcher)
             .dispatch(any());
@@ -153,21 +142,18 @@ public class DebugHttpProtocolVerticleTest {
             .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
-                testContext.succeeding(
-                    response -> testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
+                testContext.succeeding(response ->
+                    testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
                 )
             )
             .compose(httpClientResponse -> client.request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
-                testContext.succeeding(
-                    response ->
-                        testContext.verify(
-                            () -> {
-                                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                                testContext.completeNow();
-                            }
-                        )
+                testContext.succeeding(response ->
+                    testContext.verify(() -> {
+                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                        testContext.completeNow();
+                    })
                 )
             );
     }
