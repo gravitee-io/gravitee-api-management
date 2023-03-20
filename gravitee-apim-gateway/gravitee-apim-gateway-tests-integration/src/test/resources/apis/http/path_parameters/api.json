@@ -1,0 +1,73 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/:numberParam",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name" : "Add Path Params to Headers",
+          "description" : "",
+          "enabled" : true,
+          "policy" : "path-param-to-headers",
+          "configuration" : {}
+        }
+      ],
+      "post": []
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-1",
+      "name": "Plan 1",
+      "status": "PUBLISHED",
+      "security": "KEY_LESS",
+      "flows": [
+        {
+          "name": "plan-flow",
+          "methods": [
+            "GET"
+          ],
+          "enabled": true,
+          "path-operator": {
+            "path": "/:numberParam/item/:itemId",
+            "operator": "STARTS_WITH"
+          },
+          "pre": [
+            {
+              "name" : "Add Path Params to Headers",
+              "description" : "",
+              "enabled" : true,
+              "policy" : "path-param-to-headers",
+              "configuration" : {}
+            }
+          ],
+          "post": []
+        }
+      ]
+    }
+  ],
+  "path_mappings" : [ ]
+}
