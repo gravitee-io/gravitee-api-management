@@ -87,25 +87,23 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
     protected void processOneShotUpgrade() throws TechnicalException {
         alertTriggerRepository
             .findAll()
-            .forEach(
-                alertTrigger -> {
-                    try {
-                        switch (alertTrigger.getReferenceType()) {
-                            case "PLATFORM":
-                                handlePlatformAlert(alertTrigger);
-                                break;
-                            case "API":
-                                handleApiAlert(alertTrigger);
-                                break;
-                            case "APPLICATION":
-                                handleApplicationAlert(alertTrigger);
-                                break;
-                        }
-                    } catch (AbstractNotFoundException | TechnicalException e) {
-                        LOGGER.error("Failed to update alert {}", alertTrigger.getId(), e);
+            .forEach(alertTrigger -> {
+                try {
+                    switch (alertTrigger.getReferenceType()) {
+                        case "PLATFORM":
+                            handlePlatformAlert(alertTrigger);
+                            break;
+                        case "API":
+                            handleApiAlert(alertTrigger);
+                            break;
+                        case "APPLICATION":
+                            handleApplicationAlert(alertTrigger);
+                            break;
                     }
+                } catch (AbstractNotFoundException | TechnicalException e) {
+                    LOGGER.error("Failed to update alert {}", alertTrigger.getId(), e);
                 }
-            );
+            });
     }
 
     private void handlePlatformAlert(AlertTrigger alertTrigger) {

@@ -82,23 +82,21 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step1") &&
-                        metadata.getConfiguration().equals("config-step1") &&
-                        metadata.getCondition().equals("condition-step1")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step1") &&
+                    metadata.getConfiguration().equals("config-step1") &&
+                    metadata.getCondition().equals("condition-step1")
                 )
             );
 
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2") &&
-                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2") &&
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
@@ -128,12 +126,11 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2") &&
-                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2") &&
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
@@ -168,24 +165,22 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step1") &&
-                        metadata.getConfiguration().equals("config-step1") &&
-                        metadata.getCondition().equals("condition-step1") &&
-                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step1") &&
+                    metadata.getConfiguration().equals("config-step1") &&
+                    metadata.getCondition().equals("condition-step1") &&
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2") &&
-                        metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2") &&
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
                 )
             );
 

@@ -135,26 +135,24 @@ public class TagServiceImpl extends AbstractService implements TagService {
         }
 
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
-        tagEntities.forEach(
-            tagEntity -> {
-                try {
-                    Tag tag = convert(tagEntity, referenceId, referenceType);
-                    savedTags.add(convert(tagRepository.create(tag)));
-                    auditService.createOrganizationAuditLog(
-                        executionContext,
-                        executionContext.getOrganizationId(),
-                        Collections.singletonMap(TAG, tag.getId()),
-                        TAG_CREATED,
-                        new Date(),
-                        null,
-                        tag
-                    );
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
-                    throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
-                }
+        tagEntities.forEach(tagEntity -> {
+            try {
+                Tag tag = convert(tagEntity, referenceId, referenceType);
+                savedTags.add(convert(tagRepository.create(tag)));
+                auditService.createOrganizationAuditLog(
+                    executionContext,
+                    executionContext.getOrganizationId(),
+                    Collections.singletonMap(TAG, tag.getId()),
+                    TAG_CREATED,
+                    new Date(),
+                    null,
+                    tag
+                );
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
+                throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
             }
-        );
+        });
         return savedTags;
     }
 
@@ -166,36 +164,34 @@ public class TagServiceImpl extends AbstractService implements TagService {
         TagReferenceType referenceType
     ) {
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
-        tagEntities.forEach(
-            tagEntity -> {
-                try {
-                    Tag tag = convert(tagEntity);
-                    Optional<Tag> tagOptional = tagRepository.findByIdAndReference(
-                        tag.getId(),
-                        referenceId,
-                        repoTagReferenceType(referenceType)
+        tagEntities.forEach(tagEntity -> {
+            try {
+                Tag tag = convert(tagEntity);
+                Optional<Tag> tagOptional = tagRepository.findByIdAndReference(
+                    tag.getId(),
+                    referenceId,
+                    repoTagReferenceType(referenceType)
+                );
+                if (tagOptional.isPresent()) {
+                    Tag existingTag = tagOptional.get();
+                    tag.setReferenceId(existingTag.getReferenceId());
+                    tag.setReferenceType(existingTag.getReferenceType());
+                    savedTags.add(convert(tagRepository.update(tag)));
+                    auditService.createOrganizationAuditLog(
+                        executionContext,
+                        executionContext.getOrganizationId(),
+                        Collections.singletonMap(TAG, tag.getId()),
+                        TAG_UPDATED,
+                        new Date(),
+                        tagOptional.get(),
+                        tag
                     );
-                    if (tagOptional.isPresent()) {
-                        Tag existingTag = tagOptional.get();
-                        tag.setReferenceId(existingTag.getReferenceId());
-                        tag.setReferenceType(existingTag.getReferenceType());
-                        savedTags.add(convert(tagRepository.update(tag)));
-                        auditService.createOrganizationAuditLog(
-                            executionContext,
-                            executionContext.getOrganizationId(),
-                            Collections.singletonMap(TAG, tag.getId()),
-                            TAG_UPDATED,
-                            new Date(),
-                            tagOptional.get(),
-                            tag
-                        );
-                    }
-                } catch (TechnicalException ex) {
-                    LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
-                    throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
                 }
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
+                throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
             }
-        );
+        });
         return savedTags;
     }
 
@@ -239,10 +235,9 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
             return tags
                 .stream()
-                .filter(
-                    tag ->
-                        !restrictedTags.contains(tag.getId()) ||
-                        (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
+                .filter(tag ->
+                    !restrictedTags.contains(tag.getId()) ||
+                    (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
                 )
                 .map(TagEntity::getId)
                 .collect(toSet());

@@ -71,40 +71,31 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
 
     @Override
     protected Completable subscribe(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
-                final Long messagesLimitDurationMs = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS
-                );
+        return Completable.fromRunnable(() -> {
+            final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
+            final Long messagesLimitDurationMs = ctx.getInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS
+            );
 
-                final String messagesResumeLastId = ctx.getInternalAttribute(
-                    InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID
-                );
+            final String messagesResumeLastId = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID);
 
-                final Integer maximumPublishedMessages = configuration.getMessageCount();
+            final Integer maximumPublishedMessages = configuration.getMessageCount();
 
-                ctx
-                    .response()
-                    .messages(
-                        generateMessageFlow(messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
-                    );
-            }
-        );
+            ctx
+                .response()
+                .messages(generateMessageFlow(messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId));
+        });
     }
 
     @Override
     protected Completable publish(final ExecutionContext ctx) {
-        return Completable.defer(
-            () ->
-                ctx
-                    .request()
-                    .onMessage(
-                        message -> {
-                            log.info("Received message: {}", message.content().toString());
-                            return Maybe.empty();
-                        }
-                    )
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .onMessage(message -> {
+                    log.info("Received message: {}", message.content().toString());
+                    return Maybe.empty();
+                })
         );
     }
 

@@ -48,12 +48,10 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
                 .search(criteria)
                 .stream()
                 .map(this::convertModelSubscriptionToCache)
-                .map(
-                    s -> {
-                        s.setForceDispatch(forceDispatch);
-                        return s;
-                    }
-                )
+                .map(s -> {
+                    s.setForceDispatch(forceDispatch);
+                    return s;
+                })
                 .forEach(subscriptionService::save);
             return Result.success(true);
         } catch (Exception ex) {

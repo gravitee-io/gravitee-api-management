@@ -41,15 +41,13 @@ public class ServicesSerializer extends StdScalarSerializer<Services> {
         if (services.getAll() != null && !services.getAll().isEmpty()) {
             services
                 .getAll()
-                .forEach(
-                    service -> {
-                        try {
-                            jgen.writeObjectField(service.getName(), service);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(service -> {
+                    try {
+                        jgen.writeObjectField(service.getName(), service);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
         }
         jgen.writeEndObject();
     }

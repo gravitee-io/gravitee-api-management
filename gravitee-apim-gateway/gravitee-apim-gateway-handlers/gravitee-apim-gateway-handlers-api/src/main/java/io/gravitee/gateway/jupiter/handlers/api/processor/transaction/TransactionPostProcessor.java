@@ -38,23 +38,21 @@ public class TransactionPostProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext context) {
-        return Completable.fromRunnable(
-            () -> {
-                setHeaderAccordingToBackendOverrideMode(
-                    context.request().headers(),
-                    context.response().headers(),
-                    this.configuration.transactionHeader,
-                    this.configuration.transactionHeaderHeaderOverrideMode
-                );
+        return Completable.fromRunnable(() -> {
+            setHeaderAccordingToBackendOverrideMode(
+                context.request().headers(),
+                context.response().headers(),
+                this.configuration.transactionHeader,
+                this.configuration.transactionHeaderHeaderOverrideMode
+            );
 
-                setHeaderAccordingToBackendOverrideMode(
-                    context.request().headers(),
-                    context.response().headers(),
-                    this.configuration.requestHeader,
-                    this.configuration.requestHeaderHeaderOverrideMode
-                );
-            }
-        );
+            setHeaderAccordingToBackendOverrideMode(
+                context.request().headers(),
+                context.response().headers(),
+                this.configuration.requestHeader,
+                this.configuration.requestHeaderHeaderOverrideMode
+            );
+        });
     }
 
     private void setHeaderAccordingToBackendOverrideMode(

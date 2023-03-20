@@ -164,11 +164,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
                 final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory v4PolicyChainFactory = new io.gravitee.gateway.jupiter.v4.policy.DefaultPolicyChainFactory(
-                    api.getId(),
-                    policyManager,
-                    configuration
-                );
+                final io.gravitee.gateway.jupiter.v4.policy.PolicyChainFactory v4PolicyChainFactory =
+                    new io.gravitee.gateway.jupiter.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
                 final FlowChainFactory flowChainFactory = new FlowChainFactory(
                     platformPolicyChainFactory,
@@ -182,11 +179,12 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 deploymentContext.componentProvider(componentProvider);
                 deploymentContext.templateVariableProviders(commonTemplateVariableProviders(api));
 
-                final io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory = new io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory(
-                    v4PolicyChainFactory,
-                    configuration,
-                    v4FlowResolverFactory
-                );
+                final io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory =
+                    new io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory(
+                        v4PolicyChainFactory,
+                        configuration,
+                        v4FlowResolverFactory
+                    );
                 return new DefaultApiReactor(
                     api,
                     deploymentContext,

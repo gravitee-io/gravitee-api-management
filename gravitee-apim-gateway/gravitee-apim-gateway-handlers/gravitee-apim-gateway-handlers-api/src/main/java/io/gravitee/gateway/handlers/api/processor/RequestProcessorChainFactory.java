@@ -96,17 +96,13 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             api.getDefinition().getProxy().getLogging() != null && api.getDefinition().getProxy().getLogging().getMode() != LoggingMode.NONE
         ) {
             loggingDecoratorSupplier =
-                new StreamableProcessorSupplier<>(
-                    () -> {
-                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(
-                            api.getDefinition().getProxy().getLogging()
-                        );
-                        processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
-                        processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
+                new StreamableProcessorSupplier<>(() -> {
+                    ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getDefinition().getProxy().getLogging());
+                    processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
+                    processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
 
-                        return processor;
-                    }
-                );
+                    return processor;
+                });
 
             add(loggingDecoratorSupplier);
         }

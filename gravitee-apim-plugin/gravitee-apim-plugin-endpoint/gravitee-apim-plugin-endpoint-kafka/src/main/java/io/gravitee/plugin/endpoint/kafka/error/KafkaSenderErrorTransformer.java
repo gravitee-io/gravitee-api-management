@@ -62,14 +62,11 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
         final AtomicReference<Producer<K, V>> producerRef
     ) {
         return Flux
-            .defer(
-                () ->
-                    kafkaSender.doOnProducer(
-                        producer -> {
-                            producerRef.set(producer);
-                            return true;
-                        }
-                    )
+            .defer(() ->
+                kafkaSender.doOnProducer(producer -> {
+                    producerRef.set(producer);
+                    return true;
+                })
             )
             .cache()
             .repeat();
@@ -82,14 +79,12 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
         Flux
             .interval(Duration.ofMillis(KAFKA_CONNECTION_CHECK_INTERVAL))
             .publishOn(Schedulers.boundedElastic())
-            .doOnNext(
-                interval -> {
-                    Producer<K, V> producer = producerRef.get();
-                    if (producer != null) {
-                        mayThrowConnectionClosedException(kafkaErrorSink, producer.metrics());
-                    }
+            .doOnNext(interval -> {
+                Producer<K, V> producer = producerRef.get();
+                if (producer != null) {
+                    mayThrowConnectionClosedException(kafkaErrorSink, producer.metrics());
                 }
-            )
+            })
             .retryWhen(Retry.indefinitely().filter(throwable -> !(throwable instanceof KafkaConnectionClosedException)))
             .subscribe(
                 interval -> log.debug("Kafka endpoint connection validated."),

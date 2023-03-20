@@ -149,8 +149,8 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         verify(membershipRepository, times(2))
             .create(
-                argThat(
-                    membership -> membership.getMemberType() == MembershipMemberType.USER && membership.getRoleId().equals(API_PO_ROLE_ID)
+                argThat(membership ->
+                    membership.getMemberType() == MembershipMemberType.USER && membership.getRoleId().equals(API_PO_ROLE_ID)
                 )
             );
     }
@@ -179,8 +179,8 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         verify(membershipRepository, times(1))
             .create(
-                argThat(
-                    membership -> membership.getMemberType() == MembershipMemberType.GROUP && membership.getRoleId().equals(API_PO_ROLE_ID)
+                argThat(membership ->
+                    membership.getMemberType() == MembershipMemberType.GROUP && membership.getRoleId().equals(API_PO_ROLE_ID)
                 )
             );
     }

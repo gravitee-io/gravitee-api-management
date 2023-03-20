@@ -884,18 +884,16 @@ class DefaultApiReactorTest {
         when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(endpointInvoker);
 
         final ArgumentCaptor<Handler<ProxyConnection>> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
-        doAnswer(
-                invocation -> {
-                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                        ConnectionHandlerAdapter.class,
-                        "nextEmitter",
-                        connectionHandlerAdapter
-                    );
-                    ((CompletableEmitter) nextEmitter.get()).onComplete();
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                    ConnectionHandlerAdapter.class,
+                    "nextEmitter",
+                    connectionHandlerAdapter
+                );
+                ((CompletableEmitter) nextEmitter.get()).onComplete();
+                return null;
+            })
             .when(endpointInvoker)
             .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
         cut.handle(ctx).test().assertComplete();

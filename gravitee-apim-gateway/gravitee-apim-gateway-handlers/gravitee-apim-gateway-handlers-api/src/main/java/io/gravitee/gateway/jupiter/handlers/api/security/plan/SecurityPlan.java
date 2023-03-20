@@ -81,17 +81,14 @@ public class SecurityPlan {
         return policy
             .extractSecurityToken(ctx)
             .doOnSuccess(securityToken -> ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken))
-            .flatMap(
-                securityToken ->
-                    matchSelectionRule(ctx)
-                        .flatMap(
-                            matches -> {
-                                if (!matches) {
-                                    return FALSE;
-                                }
-                                return validateSubscription(ctx, securityToken);
-                            }
-                        )
+            .flatMap(securityToken ->
+                matchSelectionRule(ctx)
+                    .flatMap(matches -> {
+                        if (!matches) {
+                            return FALSE;
+                        }
+                        return validateSubscription(ctx, securityToken);
+                    })
             )
             .defaultIfEmpty(false);
     }
@@ -148,30 +145,28 @@ public class SecurityPlan {
             return TRUE;
         }
 
-        return Maybe.defer(
-            () -> {
-                try {
-                    SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
-                    String api = ctx.getAttribute(ATTR_API);
+        return Maybe.defer(() -> {
+            try {
+                SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
+                String api = ctx.getAttribute(ATTR_API);
 
-                    Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planId);
+                Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planId);
 
-                    if (subscriptionOpt.isPresent()) {
-                        Subscription subscription = subscriptionOpt.get();
+                if (subscriptionOpt.isPresent()) {
+                    Subscription subscription = subscriptionOpt.get();
 
-                        if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
-                            ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
-                            ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
-                            ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
-                            return TRUE;
-                        }
+                    if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
+                        ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
+                        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
+                        ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
+                        return TRUE;
                     }
-                    return FALSE;
-                } catch (Exception t) {
-                    log.warn("An error occurred during subscription validation", t);
-                    return FALSE;
                 }
+                return FALSE;
+            } catch (Exception t) {
+                log.warn("An error occurred during subscription validation", t);
+                return FALSE;
             }
-        );
+        });
     }
 }

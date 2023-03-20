@@ -79,16 +79,14 @@ public class CategoriesResource extends AbstractCategoryResource {
             .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
             // set picture
             .map(c -> setPictures(c, true))
-            .map(
-                categoryEntity -> {
-                    if (include.contains(INCLUDE_TOTAL_APIS)) {
-                        categoryEntity.setTotalApis(
-                            apiService.countByCategoryForUser(executionContext, categoryEntity.getId(), getAuthenticatedUser())
-                        );
-                    }
-                    return categoryEntity;
+            .map(categoryEntity -> {
+                if (include.contains(INCLUDE_TOTAL_APIS)) {
+                    categoryEntity.setTotalApis(
+                        apiService.countByCategoryForUser(executionContext, categoryEntity.getId(), getAuthenticatedUser())
+                    );
                 }
-            )
+                return categoryEntity;
+            })
             .collect(Collectors.toList());
     }
 

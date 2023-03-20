@@ -78,13 +78,12 @@ public class DefaultAuthenticationHandlerSelectorTest {
         assertSame(authenticationHandler1, selected);
         verify(authenticationHandler1)
             .canHandle(
-                argThat(
-                    authContext ->
-                        Boolean.FALSE.equals(
-                            authContext.getInternalAttribute(
-                                AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
-                            )
+                argThat(authContext ->
+                    Boolean.FALSE.equals(
+                        authContext.getInternalAttribute(
+                            AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
                         )
+                    )
                 )
             );
         verify(authenticationHandler2, never()).canHandle(any());
@@ -112,13 +111,12 @@ public class DefaultAuthenticationHandlerSelectorTest {
         verify(authenticationHandler1).canHandle(any());
         verify(authenticationHandler2)
             .canHandle(
-                argThat(
-                    authContext ->
-                        Boolean.TRUE.equals(
-                            authContext.getInternalAttribute(
-                                AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
-                            )
+                argThat(authContext ->
+                    Boolean.TRUE.equals(
+                        authContext.getInternalAttribute(
+                            AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
                         )
+                    )
                 )
             );
         verify(authenticationHandler3, never()).canHandle(any());

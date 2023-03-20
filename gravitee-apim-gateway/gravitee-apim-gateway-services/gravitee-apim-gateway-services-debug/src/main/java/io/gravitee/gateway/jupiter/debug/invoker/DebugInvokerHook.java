@@ -45,14 +45,12 @@ public class DebugInvokerHook extends AbstractDebugHook implements InvokerHook {
         return debugCtx
             .response()
             .bodyOrEmpty()
-            .doOnSuccess(
-                outputBody -> {
-                    InvokerResponse invokerResponse = debugCtx.getInvokerResponse();
-                    invokerResponse.setHeaders(debugCtx.response().headers());
-                    invokerResponse.setStatus(debugCtx.response().status());
-                    invokerResponse.getBuffer().appendBuffer(outputBody);
-                }
-            )
+            .doOnSuccess(outputBody -> {
+                InvokerResponse invokerResponse = debugCtx.getInvokerResponse();
+                invokerResponse.setHeaders(debugCtx.response().headers());
+                invokerResponse.setStatus(debugCtx.response().status());
+                invokerResponse.getBuffer().appendBuffer(outputBody);
+            })
             .ignoreElement();
     }
 

@@ -124,17 +124,15 @@ public class MongoTenantRepository implements TenantRepository {
         final List<TenantMongo> tenants = internalTenantRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return tenants
             .stream()
-            .map(
-                tenantMongo -> {
-                    final Tenant tenant = new Tenant();
-                    tenant.setId(tenantMongo.getId());
-                    tenant.setName(tenantMongo.getName());
-                    tenant.setDescription(tenantMongo.getDescription());
-                    tenant.setReferenceId(tenantMongo.getReferenceId());
-                    tenant.setReferenceType(tenantMongo.getReferenceType());
-                    return tenant;
-                }
-            )
+            .map(tenantMongo -> {
+                final Tenant tenant = new Tenant();
+                tenant.setId(tenantMongo.getId());
+                tenant.setName(tenantMongo.getName());
+                tenant.setDescription(tenantMongo.getDescription());
+                tenant.setReferenceId(tenantMongo.getReferenceId());
+                tenant.setReferenceType(tenantMongo.getReferenceType());
+                return tenant;
+            })
             .collect(Collectors.toSet());
     }
 

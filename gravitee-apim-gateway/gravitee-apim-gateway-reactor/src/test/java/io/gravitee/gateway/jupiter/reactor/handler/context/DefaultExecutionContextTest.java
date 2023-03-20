@@ -244,16 +244,14 @@ class DefaultExecutionContextTest {
         cut
             .interruptWith(new ExecutionFailure(404))
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                    ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
-                    assertThat(executionFailure.statusCode()).isEqualTo(404);
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+                assertThat(executionFailure.statusCode()).isEqualTo(404);
+                return true;
+            });
     }
 
     @Test
@@ -266,16 +264,14 @@ class DefaultExecutionContextTest {
         cut
             .interruptBodyWith(new ExecutionFailure(404))
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                    ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
-                    assertThat(executionFailure.statusCode()).isEqualTo(404);
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+                assertThat(executionFailure.statusCode()).isEqualTo(404);
+                return true;
+            });
     }
 
     @Test
@@ -288,14 +284,12 @@ class DefaultExecutionContextTest {
         cut
             .interruptMessagesWith(new ExecutionFailure(404))
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                return true;
+            });
     }
 
     @Test
@@ -308,14 +302,12 @@ class DefaultExecutionContextTest {
         cut
             .interruptMessageWith(new ExecutionFailure(404))
             .test()
-            .assertError(
-                throwable -> {
-                    assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                    InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                    assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                    return true;
-                }
-            );
+            .assertError(throwable -> {
+                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+                return true;
+            });
     }
 
     @Test

@@ -68,12 +68,10 @@ public class ShutdownProcessorTest {
     public void shouldNotShutdownWhenNodeIsStarted() {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
 
-        cut.handler(
-            context -> {
-                verifyNoInteractions(request);
-                verifyNoInteractions(response);
-            }
-        );
+        cut.handler(context -> {
+            verifyNoInteractions(request);
+            verifyNoInteractions(response);
+        });
 
         cut.handle(context);
     }

@@ -251,15 +251,13 @@ public class HttpAcceptorResolverTest {
             // "unknown" -> path not declared at all
             // "/A/b/C"  -> path with this specific case not declared
             // "/a/b/c" and "/a/b/c/" -> declared but not matching with query without the appropriate host.
-            pathsShouldNotMatch.forEach(
-                path -> {
-                    logger.info("Trying to resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(null);
-                    when(request.path()).thenReturn(path);
-                    assertNull(handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldNotMatch.forEach(path -> {
+                logger.info("Trying to resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(null);
+                when(request.path()).thenReturn(path);
+                assertNull(handlerResolver.resolve(context));
+            });
 
             // All this paths must match because they are exposed in path mode (no host).
             final List<String> pathsShouldMatch = Arrays.asList(
@@ -268,15 +266,13 @@ public class HttpAcceptorResolverTest {
                 expected.path() + "/a/long/sub/path/i/want/it/to/match"
             );
 
-            pathsShouldMatch.forEach(
-                path -> {
-                    logger.info("Test case: to resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(null);
-                    when(request.path()).thenReturn(path);
-                    assertEquals(expected, handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldMatch.forEach(path -> {
+                logger.info("Test case: to resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(null);
+                when(request.path()).thenReturn(path);
+                assertEquals(expected, handlerResolver.resolve(context));
+            });
         }
 
         // Cases with host and path "/a/b/c"
@@ -287,15 +283,13 @@ public class HttpAcceptorResolverTest {
             // "/a/b/special" -> declared but not matching for hosts where path is "/a/b/c"
             final List<String> pathsShouldNotMatch = Arrays.asList("/unknown", "/A/b/C", "/a/b/special");
 
-            pathsShouldNotMatch.forEach(
-                path -> {
-                    logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(expected.host());
-                    when(request.path()).thenReturn(path);
-                    assertNull(handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldNotMatch.forEach(path -> {
+                logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(expected.host());
+                when(request.path()).thenReturn(path);
+                assertNull(handlerResolver.resolve(context));
+            });
 
             // All this paths must match because they all starts with "/a/b/c".
             final List<String> pathsShouldMatch = Arrays.asList(
@@ -306,15 +300,13 @@ public class HttpAcceptorResolverTest {
                 "/a/b/c/sub/a/long/sub/path/i/want/it/to/match"
             );
 
-            pathsShouldMatch.forEach(
-                path -> {
-                    logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(expected.host());
-                    when(request.path()).thenReturn(path);
-                    assertEquals(expected, handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldMatch.forEach(path -> {
+                logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(expected.host());
+                when(request.path()).thenReturn(path);
+                assertEquals(expected, handlerResolver.resolve(context));
+            });
         }
 
         // Cases with host and path NOT "/a/b/c"
@@ -324,15 +316,13 @@ public class HttpAcceptorResolverTest {
             // All other paths are either on all host ('*') either for an host which is also exposing the paths we are testing (ex: "api1.gravitee.io" exposes multiples paths).
             final List<String> pathsShouldNotMatch = Collections.singletonList("/unknown");
 
-            pathsShouldNotMatch.forEach(
-                path -> {
-                    logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(expected.host());
-                    when(request.path()).thenReturn(path);
-                    assertNull(handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldNotMatch.forEach(path -> {
+                logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(expected.host());
+                when(request.path()).thenReturn(path);
+                assertNull(handlerResolver.resolve(context));
+            });
 
             // All this paths must match because
             final List<String> pathsShouldMatch = Arrays.asList(
@@ -341,15 +331,13 @@ public class HttpAcceptorResolverTest {
                 expected.path() + "/a/long/sub/path/i/want/it/to/match"
             );
 
-            pathsShouldMatch.forEach(
-                path -> {
-                    logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
-                    reset(request);
-                    when(request.host()).thenReturn(expected.host());
-                    when(request.path()).thenReturn(path);
-                    assertEquals(expected, handlerResolver.resolve(context));
-                }
-            );
+            pathsShouldMatch.forEach(path -> {
+                logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
+                reset(request);
+                when(request.host()).thenReturn(expected.host());
+                when(request.path()).thenReturn(path);
+                assertEquals(expected, handlerResolver.resolve(context));
+            });
         }
     }
 }

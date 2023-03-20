@@ -143,14 +143,13 @@ public class QualityRuleServiceTest {
 
         verify(qualityRuleRepository, times(1))
             .create(
-                argThat(
-                    argument ->
-                        "NAME".equals(argument.getName()) &&
-                        "DESC".equals(argument.getDescription()) &&
-                        Integer.valueOf(1).equals(argument.getWeight()) &&
-                        !argument.getId().isEmpty() &&
-                        argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null
+                argThat(argument ->
+                    "NAME".equals(argument.getName()) &&
+                    "DESC".equals(argument.getDescription()) &&
+                    Integer.valueOf(1).equals(argument.getWeight()) &&
+                    !argument.getId().isEmpty() &&
+                    argument.getCreatedAt() != null &&
+                    argument.getUpdatedAt() != null
                 )
             );
         verify(auditService, times(1))
@@ -201,14 +200,13 @@ public class QualityRuleServiceTest {
 
         verify(qualityRuleRepository, times(1))
             .update(
-                argThat(
-                    argument ->
-                        "NAME".equals(argument.getName()) &&
-                        "DESC".equals(argument.getDescription()) &&
-                        Integer.valueOf(1).equals(argument.getWeight()) &&
-                        QUALITY_RULE_ID.equals(argument.getId()) &&
-                        argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null
+                argThat(argument ->
+                    "NAME".equals(argument.getName()) &&
+                    "DESC".equals(argument.getDescription()) &&
+                    Integer.valueOf(1).equals(argument.getWeight()) &&
+                    QUALITY_RULE_ID.equals(argument.getId()) &&
+                    argument.getCreatedAt() != null &&
+                    argument.getUpdatedAt() != null
                 )
             );
         verify(auditService, times(1))

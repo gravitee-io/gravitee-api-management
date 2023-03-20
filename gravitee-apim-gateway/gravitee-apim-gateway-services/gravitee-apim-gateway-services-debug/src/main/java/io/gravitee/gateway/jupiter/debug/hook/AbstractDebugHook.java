@@ -85,15 +85,13 @@ public abstract class AbstractDebugHook implements Hook {
         final ExecutionPhase executionPhase,
         final ExecutionFailure failure
     ) {
-        return Completable.defer(
-            () -> {
-                DebugExecutionContext debugCtx = getExecutionContext(ctx);
-                if (debugCtx != null) {
-                    return interruptWith(id, debugCtx, executionPhase, failure);
-                }
-                return errorOnWrongContext();
+        return Completable.defer(() -> {
+            DebugExecutionContext debugCtx = getExecutionContext(ctx);
+            if (debugCtx != null) {
+                return interruptWith(id, debugCtx, executionPhase, failure);
             }
-        );
+            return errorOnWrongContext();
+        });
     }
 
     protected abstract Completable interruptWith(

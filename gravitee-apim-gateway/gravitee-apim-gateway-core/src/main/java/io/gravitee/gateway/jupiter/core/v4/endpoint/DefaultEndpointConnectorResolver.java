@@ -52,22 +52,19 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
             api
                 .getEndpointGroups()
                 .stream()
-                .flatMap(
-                    endpointGroup ->
-                        endpointGroup
-                            .getEndpoints()
-                            .stream()
-                            .map(
-                                endpoint -> {
-                                    String configuration = getEndpointConfiguration(endpointGroup, endpoint);
-                                    return Map.entry(
-                                        endpointGroup,
-                                        endpointConnectorPluginManager
-                                            .getFactoryById(endpoint.getType())
-                                            .createConnector(deploymentContext, configuration)
-                                    );
-                                }
-                            )
+                .flatMap(endpointGroup ->
+                    endpointGroup
+                        .getEndpoints()
+                        .stream()
+                        .map(endpoint -> {
+                            String configuration = getEndpointConfiguration(endpointGroup, endpoint);
+                            return Map.entry(
+                                endpointGroup,
+                                endpointConnectorPluginManager
+                                    .getFactoryById(endpoint.getType())
+                                    .createConnector(deploymentContext, configuration)
+                            );
+                        })
                 )
                 .filter(e -> e.getValue() != null)
                 .collect(Collectors.groupingBy(Map.Entry::getKey, LinkedHashMap::new, mapping(Map.Entry::getValue, toList())));
@@ -79,13 +76,12 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
         return (T) connectorsByGroup
             .entrySet()
             .stream()
-            .flatMap(
-                e ->
-                    e
-                        .getValue()
-                        .stream()
-                        .filter(connector -> Objects.equals(connector.supportedApi(), entrypointConnector.supportedApi()))
-                        .filter(connector -> connector.supportedModes().containsAll(entrypointConnector.supportedModes()))
+            .flatMap(e ->
+                e
+                    .getValue()
+                    .stream()
+                    .filter(connector -> Objects.equals(connector.supportedApi(), entrypointConnector.supportedApi()))
+                    .filter(connector -> connector.supportedModes().containsAll(entrypointConnector.supportedModes()))
             )
             .findFirst()
             .orElse(null);
@@ -103,15 +99,13 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
             .values()
             .stream()
             .flatMap(Collection::stream)
-            .forEach(
-                endpointConnector -> {
-                    try {
-                        endpointConnector.stop();
-                    } catch (Exception e) {
-                        log.warn("An error occurred when stopping endpoint connector [{}].", endpointConnector.id());
-                    }
+            .forEach(endpointConnector -> {
+                try {
+                    endpointConnector.stop();
+                } catch (Exception e) {
+                    log.warn("An error occurred when stopping endpoint connector [{}].", endpointConnector.id());
                 }
-            );
+            });
     }
 
     @Override
@@ -122,15 +116,13 @@ public class DefaultEndpointConnectorResolver extends AbstractService<DefaultEnd
             .values()
             .stream()
             .flatMap(Collection::stream)
-            .forEach(
-                endpointConnector -> {
-                    try {
-                        endpointConnector.preStop();
-                    } catch (Exception e) {
-                        log.warn("An error occurred when pre-stopping endpoint connector [{}].", endpointConnector.id());
-                    }
+            .forEach(endpointConnector -> {
+                try {
+                    endpointConnector.preStop();
+                } catch (Exception e) {
+                    log.warn("An error occurred when pre-stopping endpoint connector [{}].", endpointConnector.id());
                 }
-            );
+            });
         return this;
     }
 }

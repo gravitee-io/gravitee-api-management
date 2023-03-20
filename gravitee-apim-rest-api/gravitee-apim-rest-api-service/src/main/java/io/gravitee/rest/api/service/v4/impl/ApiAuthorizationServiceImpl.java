@@ -128,12 +128,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                 .entrySet()
                 .stream()
                 .filter(entry -> isApiManagementPermission(entry.getKey()))
-                .anyMatch(
-                    entry -> {
-                        String stringPerm = new String(entry.getValue());
-                        return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                    }
-                )
+                .anyMatch(entry -> {
+                    String stringPerm = new String(entry.getValue());
+                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                })
         );
     }
 
@@ -243,15 +241,13 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
                 .stream()
                 .filter(membership -> membership.getRoleId() != null)
-                .filter(
-                    membership -> {
-                        final RoleEntity role = roleService.findById(membership.getRoleId());
-                        if (!portal) {
-                            return canManageApi(role);
-                        }
-                        return role.getScope().equals(RoleScope.API);
+                .filter(membership -> {
+                    final RoleEntity role = roleService.findById(membership.getRoleId());
+                    if (!portal) {
+                        return canManageApi(role);
                     }
-                )
+                    return role.getScope().equals(RoleScope.API);
+                })
                 .map(MembershipEntity::getReferenceId)
                 .collect(toSet());
             // add dedicated criteria for user apis
@@ -326,12 +322,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         String[] groupIds = membershipService
             .getMembershipsByMemberAndReferenceAndRoleIn(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, nonPoRoleIds)
             .stream()
-            .filter(
-                membership -> {
-                    final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
-                    return portal || canManageApi(roleInGroup);
-                }
-            )
+            .filter(membership -> {
+                final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
+                return portal || canManageApi(roleInGroup);
+            })
             .map(MembershipEntity::getReferenceId)
             .filter(Objects::nonNull)
             .toArray(String[]::new);
@@ -397,32 +391,28 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         if (poGroupIds.length > 0) {
             return apiRepository
                 .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
-                .filter(
-                    api -> {
-                        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-                        /*
-                         * If one of the groups where the user has the API Primary Owner Role
-                         * is the actual Primary Owner of the API, grant permission
-                         */
-                        if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
-                            return true;
-                        }
-                        /*
-                         * Otherwise, check if the default API role for one of the groups
-                         * grants permission to the user
-                         */
-                        return userGroups
-                            .stream()
-                            .map(GroupEntity::getRoles)
-                            .filter(Objects::nonNull)
-                            .anyMatch(
-                                groupDefaultRoles -> {
-                                    String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
-                                    return portal || this.canManageApi(apiRolesByName.get(defaultApiRoleName));
-                                }
-                            );
+                .filter(api -> {
+                    PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+                    /*
+                     * If one of the groups where the user has the API Primary Owner Role
+                     * is the actual Primary Owner of the API, grant permission
+                     */
+                    if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
+                        return true;
                     }
-                )
+                    /*
+                     * Otherwise, check if the default API role for one of the groups
+                     * grants permission to the user
+                     */
+                    return userGroups
+                        .stream()
+                        .map(GroupEntity::getRoles)
+                        .filter(Objects::nonNull)
+                        .anyMatch(groupDefaultRoles -> {
+                            String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
+                            return portal || this.canManageApi(apiRolesByName.get(defaultApiRoleName));
+                        });
+                })
                 .map(Api::getId)
                 .collect(toList());
         }

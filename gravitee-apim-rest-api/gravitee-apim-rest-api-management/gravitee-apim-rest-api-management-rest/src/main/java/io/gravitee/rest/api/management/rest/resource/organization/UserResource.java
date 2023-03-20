@@ -123,24 +123,22 @@ public class UserResource extends AbstractResource {
         List<UserGroupEntity> groups = new ArrayList<>();
         groupService
             .findByUser(userId)
-            .forEach(
-                groupEntity -> {
-                    UserGroupEntity userGroupEntity = new UserGroupEntity();
-                    userGroupEntity.setId(groupEntity.getId());
-                    userGroupEntity.setName(groupEntity.getName());
-                    userGroupEntity.setRoles(new HashMap<>());
-                    Set<RoleEntity> roles = membershipService.getRoles(
-                        MembershipReferenceType.GROUP,
-                        groupEntity.getId(),
-                        MembershipMemberType.USER,
-                        userId
-                    );
-                    if (!roles.isEmpty()) {
-                        roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
-                    }
-                    groups.add(userGroupEntity);
+            .forEach(groupEntity -> {
+                UserGroupEntity userGroupEntity = new UserGroupEntity();
+                userGroupEntity.setId(groupEntity.getId());
+                userGroupEntity.setName(groupEntity.getName());
+                userGroupEntity.setRoles(new HashMap<>());
+                Set<RoleEntity> roles = membershipService.getRoles(
+                    MembershipReferenceType.GROUP,
+                    groupEntity.getId(),
+                    MembershipMemberType.USER,
+                    userId
+                );
+                if (!roles.isEmpty()) {
+                    roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
                 }
-            );
+                groups.add(userGroupEntity);
+            });
 
         return groups;
     }

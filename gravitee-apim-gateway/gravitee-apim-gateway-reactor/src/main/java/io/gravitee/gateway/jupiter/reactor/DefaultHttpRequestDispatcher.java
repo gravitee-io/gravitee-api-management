@@ -159,23 +159,21 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     ExecutionPhase.REQUEST
                 )
                 .andThen(Completable.defer(() -> handleJupiterRequest(mutableCtx, httpAcceptor)))
-                .doFinally(
-                    () -> {
-                        // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
-                        ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                        HookHelper
-                            .hook(
-                                () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                                postProcessorChain.getId(),
-                                processorChainHooks,
-                                mutableCtx,
-                                ExecutionPhase.RESPONSE
-                            )
-                            .subscribeOn(Schedulers.computation())
-                            .onErrorComplete()
-                            .subscribe();
-                    }
-                );
+                .doFinally(() -> {
+                    // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
+                    ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
+                    HookHelper
+                        .hook(
+                            () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                            postProcessorChain.getId(),
+                            processorChainHooks,
+                            mutableCtx,
+                            ExecutionPhase.RESPONSE
+                        )
+                        .subscribeOn(Schedulers.computation())
+                        .onErrorComplete()
+                        .subscribe();
+                });
         }
         // V3 execution mode.
         return handleV3Request(httpServerRequest, httpAcceptor);
@@ -229,21 +227,17 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // Set gateway tenants and zones in request metrics.
         prepareMetrics(request.metrics());
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
-        return Completable.create(
-            emitter -> {
-                Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
-                requestProcessorChainFactory
-                    .create()
-                    .handler(
-                        ctx -> {
-                            reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
-                        }
-                    )
-                    .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                    .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                    .handle(simpleExecutionContext);
-            }
-        );
+        return Completable.create(emitter -> {
+            Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
+            requestProcessorChainFactory
+                .create()
+                .handler(ctx -> {
+                    reactorHandler.handle(ctx, executionContext -> processResponse(executionContext, endHandler));
+                })
+                .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                .handle(simpleExecutionContext);
+        });
     }
 
     private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(

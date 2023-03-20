@@ -490,12 +490,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role to add from roleMapping
-        doAnswer(
-                invocation -> {
-                    ((Set) invocation.getArguments()[3]).add(mockRoleEntity(RoleScope.ORGANIZATION, "USER"));
-                    return null;
-                }
-            )
+        doAnswer(invocation -> {
+                ((Set) invocation.getArguments()[3]).add(mockRoleEntity(RoleScope.ORGANIZATION, "USER"));
+                return null;
+            })
             .when(userService)
             .computeRolesToAddUser(
                 eq(GraviteeContext.getExecutionContext()),

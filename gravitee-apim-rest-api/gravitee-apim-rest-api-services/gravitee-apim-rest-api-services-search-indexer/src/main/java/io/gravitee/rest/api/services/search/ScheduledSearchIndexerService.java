@@ -103,13 +103,11 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         try {
             organizationRepository
                 .findAll()
-                .forEach(
-                    organization -> {
-                        ExecutionContext organizationContext = new ExecutionContext(organization);
-                        List<CommandEntity> commands = commandService.search(organizationContext, query);
-                        processCommands(organization, commands);
-                    }
-                );
+                .forEach(organization -> {
+                    ExecutionContext organizationContext = new ExecutionContext(organization);
+                    List<CommandEntity> commands = commandService.search(organizationContext, query);
+                    processCommands(organization, commands);
+                });
         } catch (TechnicalException e) {
             logger.error("An error occurred while trying to process organization commands", e);
         }
@@ -118,17 +116,15 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     }
 
     private void processCommands(Organization organization, List<CommandEntity> commands) {
-        commands.forEach(
-            command -> {
-                if (command.isExpired()) {
-                    commandService.delete(command.getId());
-                } else {
-                    String environmentId = command.getEnvironmentId();
-                    ExecutionContext commandContext = new ExecutionContext(organization.getId(), environmentId);
-                    processCommand(commandContext, command);
-                }
+        commands.forEach(command -> {
+            if (command.isExpired()) {
+                commandService.delete(command.getId());
+            } else {
+                String environmentId = command.getEnvironmentId();
+                ExecutionContext commandContext = new ExecutionContext(organization.getId(), environmentId);
+                processCommand(commandContext, command);
             }
-        );
+        });
     }
 
     private void processCommand(ExecutionContext executionContext, CommandEntity command) {

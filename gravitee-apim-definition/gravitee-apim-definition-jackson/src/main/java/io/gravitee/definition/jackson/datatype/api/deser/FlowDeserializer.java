@@ -68,15 +68,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
             final List<Consumer> consumers = new ArrayList<>();
             consumersNode
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            consumers.add(jsonNode.traverse(jp.getCodec()).readValueAs(Consumer.class));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        consumers.add(jsonNode.traverse(jp.getCodec()).readValueAs(Consumer.class));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
 
             flow.setConsumers(consumers);
         }
@@ -93,15 +91,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
             final List<Step> steps = new ArrayList<>();
             preNode
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
 
             flow.setPre(steps);
         }
@@ -111,15 +107,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
             final List<Step> steps = new ArrayList<>();
             postNode
                 .elements()
-                .forEachRemaining(
-                    jsonNode -> {
-                        try {
-                            steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEachRemaining(jsonNode -> {
+                    try {
+                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
 
             flow.setPost(steps);
         }

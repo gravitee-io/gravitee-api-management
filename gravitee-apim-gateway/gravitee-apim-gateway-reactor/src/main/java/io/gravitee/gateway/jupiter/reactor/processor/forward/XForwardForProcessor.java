@@ -43,33 +43,28 @@ public class XForwardForProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final GenericRequest request = ctx.request();
+        return Completable.fromRunnable(() -> {
+            final GenericRequest request = ctx.request();
 
-                String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
+            String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
 
-                if (StringUtils.hasText(xForwardedForHeader)) {
-                    Arrays
-                        .stream(COMMA_SEPARATED_VALUES_PATTERN.split(xForwardedForHeader))
-                        .findFirst()
-                        .ifPresent(
-                            xForwardFor -> {
-                                int idx = xForwardFor.indexOf(':');
-                                String[] splits = xForwardFor.split(":");
+            if (StringUtils.hasText(xForwardedForHeader)) {
+                Arrays
+                    .stream(COMMA_SEPARATED_VALUES_PATTERN.split(xForwardedForHeader))
+                    .findFirst()
+                    .ifPresent(xForwardFor -> {
+                        int idx = xForwardFor.indexOf(':');
+                        String[] splits = xForwardFor.split(":");
 
-                                xForwardFor =
-                                    (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
+                        xForwardFor = (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
 
-                                // X-Forwarded-For header must be reconstructed to include the gateway host address
-                                ctx.request().remoteAddress(xForwardFor);
+                        // X-Forwarded-For header must be reconstructed to include the gateway host address
+                        ctx.request().remoteAddress(xForwardFor);
 
-                                // And override the remote address provided by container in metrics
-                                request.metrics().setRemoteAddress(xForwardFor);
-                            }
-                        );
-                }
+                        // And override the remote address provided by container in metrics
+                        request.metrics().setRemoteAddress(xForwardFor);
+                    });
             }
-        );
+        });
     }
 }

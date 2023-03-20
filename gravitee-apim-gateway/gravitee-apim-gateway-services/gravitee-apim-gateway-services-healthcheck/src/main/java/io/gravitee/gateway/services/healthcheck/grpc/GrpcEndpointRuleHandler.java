@@ -47,13 +47,11 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
 
         return httpClient
             .request(options)
-            .map(
-                httpClientRequest -> {
-                    // Always set chunked mode for gRPC transport
-                    httpClientRequest.setChunked(true);
-                    return httpClientRequest;
-                }
-            );
+            .map(httpClientRequest -> {
+                // Always set chunked mode for gRPC transport
+                httpClientRequest.setChunked(true);
+                return httpClientRequest;
+            });
     }
 
     @Override

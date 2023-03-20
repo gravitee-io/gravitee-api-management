@@ -74,14 +74,12 @@ public class Organization extends io.gravitee.definition.model.Organization impl
 
         return flowStep
             .stream()
-            .map(
-                step -> {
-                    Policy policy = new Policy();
-                    policy.setName(step.getPolicy());
-                    policy.setConfiguration(step.getConfiguration());
-                    return policy;
-                }
-            )
+            .map(step -> {
+                Policy policy = new Policy();
+                policy.setName(step.getPolicy());
+                policy.setConfiguration(step.getConfiguration());
+                return policy;
+            })
             .collect(Collectors.toList());
     }
 }

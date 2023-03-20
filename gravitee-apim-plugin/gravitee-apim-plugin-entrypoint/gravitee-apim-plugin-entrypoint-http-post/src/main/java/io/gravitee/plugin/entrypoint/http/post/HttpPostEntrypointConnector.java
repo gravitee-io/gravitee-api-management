@@ -95,45 +95,39 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleRequest(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () ->
-                ctx
-                    .request()
-                    .messages(
-                        stopHook
-                            .flatMap(message -> interruptWithStopMessage(ctx, message))
-                            .compose(
-                                RxHelper.mergeWithFirst(
-                                    ctx
-                                        .request()
-                                        .body()
-                                        .<Message>map(
-                                            buffer -> {
-                                                DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage
-                                                    .builder()
-                                                    .content(buffer);
-                                                if (configuration.isRequestHeadersToMessage()) {
-                                                    messageBuilder.headers(HttpHeaders.create(ctx.request().headers()));
-                                                }
-                                                return messageBuilder.build();
-                                            }
-                                        )
-                                        .toFlowable()
-                                )
+        return Completable.fromRunnable(() ->
+            ctx
+                .request()
+                .messages(
+                    stopHook
+                        .flatMap(message -> interruptWithStopMessage(ctx, message))
+                        .compose(
+                            RxHelper.mergeWithFirst(
+                                ctx
+                                    .request()
+                                    .body()
+                                    .<Message>map(buffer -> {
+                                        DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder().content(buffer);
+                                        if (configuration.isRequestHeadersToMessage()) {
+                                            messageBuilder.headers(HttpHeaders.create(ctx.request().headers()));
+                                        }
+                                        return messageBuilder.build();
+                                    })
+                                    .toFlowable()
                             )
-                    )
+                        )
+                )
         );
     }
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
         // Start consuming incoming messages
-        return Completable.defer(
-            () ->
-                Completable.mergeArray(
-                    ctx.request().messages().ignoreElements(),
-                    Completable.fromRunnable(() -> ctx.response().chunks(processResponseMessages(ctx)))
-                )
+        return Completable.defer(() ->
+            Completable.mergeArray(
+                ctx.request().messages().ignoreElements(),
+                Completable.fromRunnable(() -> ctx.response().chunks(processResponseMessages(ctx)))
+            )
         );
     }
 
@@ -158,50 +152,43 @@ public class HttpPostEntrypointConnector extends EntrypointAsyncConnector {
         return stopHook
             .flatMap(message -> interruptWithStopMessage(ctx, message))
             .compose(RxHelper.mergeWithFirst(ctx.response().messages().filter(Message::error)))
-            .map(
-                message -> {
-                    final Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", SERVICE_UNAVAILABLE_503);
-                    final HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
+            .map(message -> {
+                final Integer statusCode = (Integer) message.metadata().getOrDefault("statusCode", SERVICE_UNAVAILABLE_503);
+                final HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(statusCode);
 
-                    ctx.response().status(statusCode);
+                ctx.response().status(statusCode);
 
-                    if (httpResponseStatus != null) {
-                        ctx.response().reason(httpResponseStatus.reasonPhrase());
-                    }
-
-                    final Buffer content = message.content();
-
-                    if (content != null) {
-                        if (message.headers() != null) {
-                            if (message.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
-                                ctx
-                                    .response()
-                                    .headers()
-                                    .set(HttpHeaderNames.CONTENT_TYPE, message.headers().get(HttpHeaderNames.CONTENT_TYPE));
-                            }
-                            if (
-                                (!ctx.response().headers().contains(HttpHeaderNames.TRANSFER_ENCODING)) &&
-                                message.headers().contains(HttpHeaderNames.CONTENT_LENGTH)
-                            ) {
-                                ctx
-                                    .response()
-                                    .headers()
-                                    .set(HttpHeaderNames.CONTENT_LENGTH, message.headers().get(HttpHeaderNames.CONTENT_LENGTH));
-                            }
-                        }
-                        return content;
-                    }
-                    return Buffer.buffer();
+                if (httpResponseStatus != null) {
+                    ctx.response().reason(httpResponseStatus.reasonPhrase());
                 }
-            )
-            .switchIfEmpty(
-                Flowable.defer(
-                    () -> {
-                        ctx.response().status(HttpResponseStatus.ACCEPTED.code());
-                        ctx.response().reason(HttpResponseStatus.ACCEPTED.reasonPhrase());
-                        return Flowable.empty();
+
+                final Buffer content = message.content();
+
+                if (content != null) {
+                    if (message.headers() != null) {
+                        if (message.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
+                            ctx.response().headers().set(HttpHeaderNames.CONTENT_TYPE, message.headers().get(HttpHeaderNames.CONTENT_TYPE));
+                        }
+                        if (
+                            (!ctx.response().headers().contains(HttpHeaderNames.TRANSFER_ENCODING)) &&
+                            message.headers().contains(HttpHeaderNames.CONTENT_LENGTH)
+                        ) {
+                            ctx
+                                .response()
+                                .headers()
+                                .set(HttpHeaderNames.CONTENT_LENGTH, message.headers().get(HttpHeaderNames.CONTENT_LENGTH));
+                        }
                     }
-                )
+                    return content;
+                }
+                return Buffer.buffer();
+            })
+            .switchIfEmpty(
+                Flowable.defer(() -> {
+                    ctx.response().status(HttpResponseStatus.ACCEPTED.code());
+                    ctx.response().reason(HttpResponseStatus.ACCEPTED.reasonPhrase());
+                    return Flowable.empty();
+                })
             );
     }
 }

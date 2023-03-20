@@ -81,12 +81,10 @@ public class ServicesDiscoveryResource {
                 switch (s) {
                     case "schema":
                         stream =
-                            stream.map(
-                                resourceListItem -> {
-                                    resourceListItem.setSchema(serviceDiscoveryService.getSchema(resourceListItem.getId()));
-                                    return resourceListItem;
-                                }
-                            );
+                            stream.map(resourceListItem -> {
+                                resourceListItem.setSchema(serviceDiscoveryService.getSchema(resourceListItem.getId()));
+                                return resourceListItem;
+                            });
                         break;
                     default:
                         break;

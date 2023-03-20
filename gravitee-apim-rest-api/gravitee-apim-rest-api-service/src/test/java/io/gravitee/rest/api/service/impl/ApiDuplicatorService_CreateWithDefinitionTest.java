@@ -438,15 +438,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 eq(GraviteeContext.getExecutionContext()),
                 any(),
                 eq("admin"),
-                argThat(
-                    jsonNode -> {
-                        JsonNode plansDefinition = jsonNode.path("plans");
-                        return (
-                            plansDefinition.get(0).get("id").asText().equals(plan1newId) &&
-                            plansDefinition.get(1).get("id").asText().equals(plan2newId)
-                        );
-                    }
-                )
+                argThat(jsonNode -> {
+                    JsonNode plansDefinition = jsonNode.path("plans");
+                    return (
+                        plansDefinition.get(0).get("id").asText().equals(plan1newId) &&
+                        plansDefinition.get(1).get("id").asText().equals(plan2newId)
+                    );
+                })
             );
 
         // check find plans by API has been called once to remove potential pre-existing plans on target API
@@ -578,46 +576,42 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         verify(apiService, times(1))
             .createWithApiDefinition(
                 eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    argument -> {
-                        // Check ids and crossId has been preserved.
-                        assertEquals(apiCrossId, argument.getCrossId());
+                argThat(argument -> {
+                    // Check ids and crossId has been preserved.
+                    assertEquals(apiCrossId, argument.getCrossId());
 
-                        List<PlanEntity> plans = new ArrayList<>(argument.getPlans());
-                        final PlanEntity plan1 = plans.get(0);
-                        assertEquals(planId1, plan1.getId());
-                        assertEquals(apiId, plan1.getApi());
+                    List<PlanEntity> plans = new ArrayList<>(argument.getPlans());
+                    final PlanEntity plan1 = plans.get(0);
+                    assertEquals(planId1, plan1.getId());
+                    assertEquals(apiId, plan1.getApi());
 
-                        final PlanEntity plan2 = plans.get(1);
-                        assertEquals(planId2, plan2.getId());
-                        assertEquals(apiId, plan2.getApi());
+                    final PlanEntity plan2 = plans.get(1);
+                    assertEquals(planId2, plan2.getId());
+                    assertEquals(apiId, plan2.getApi());
 
-                        return true;
-                    }
-                ),
+                    return true;
+                }),
                 eq("admin"),
-                argThat(
-                    argument -> {
-                        assertEquals(Api.ORIGIN_KUBERNETES, argument.findPath("definition_context").findPath("origin").asText());
-                        assertEquals(Api.MODE_FULLY_MANAGED, argument.findPath("definition_context").findPath("mode").asText());
+                argThat(argument -> {
+                    assertEquals(Api.ORIGIN_KUBERNETES, argument.findPath("definition_context").findPath("origin").asText());
+                    assertEquals(Api.MODE_FULLY_MANAGED, argument.findPath("definition_context").findPath("mode").asText());
 
-                        // Check ids and crossId has been preserved.
-                        assertEquals(apiId, argument.get("id").asText());
-                        assertEquals(apiCrossId, argument.get("crossId").asText());
+                    // Check ids and crossId has been preserved.
+                    assertEquals(apiId, argument.get("id").asText());
+                    assertEquals(apiCrossId, argument.get("crossId").asText());
 
-                        final JsonNode plan1 = argument.findPath("plans").get(0);
-                        assertEquals(planId1, plan1.get("id").asText());
-                        assertEquals(planCrossId1, plan1.get("crossId").asText());
-                        assertEquals(apiId, plan1.get("api").asText());
+                    final JsonNode plan1 = argument.findPath("plans").get(0);
+                    assertEquals(planId1, plan1.get("id").asText());
+                    assertEquals(planCrossId1, plan1.get("crossId").asText());
+                    assertEquals(apiId, plan1.get("api").asText());
 
-                        final JsonNode plan2 = argument.findPath("plans").get(1);
-                        assertEquals(planId2, plan2.get("id").asText());
-                        assertEquals(planCrossId2, plan2.get("crossId").asText());
-                        assertEquals(apiId, plan2.get("api").asText());
+                    final JsonNode plan2 = argument.findPath("plans").get(1);
+                    assertEquals(planId2, plan2.get("id").asText());
+                    assertEquals(planCrossId2, plan2.get("crossId").asText());
+                    assertEquals(apiId, plan2.get("api").asText());
 
-                        return true;
-                    }
-                )
+                    return true;
+                })
             );
         verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(apiId));
     }

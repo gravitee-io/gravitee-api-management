@@ -336,16 +336,14 @@ class DefaultSubscriptionDispatcherTest {
             AtomicInteger atomicCpt = new AtomicInteger(0);
             when(reactor.handle(context))
                 .thenReturn(
-                    Completable.create(
-                        emitter -> {
-                            int cpt = atomicCpt.incrementAndGet();
-                            if (cpt <= 10) {
-                                emitter.onError(new RuntimeException("exception " + cpt));
-                            } else {
-                                emitter.onComplete();
-                            }
+                    Completable.create(emitter -> {
+                        int cpt = atomicCpt.incrementAndGet();
+                        if (cpt <= 10) {
+                            emitter.onError(new RuntimeException("exception " + cpt));
+                        } else {
+                            emitter.onComplete();
                         }
-                    )
+                    })
                 );
 
             when(factory.create(subscription)).thenReturn(context);

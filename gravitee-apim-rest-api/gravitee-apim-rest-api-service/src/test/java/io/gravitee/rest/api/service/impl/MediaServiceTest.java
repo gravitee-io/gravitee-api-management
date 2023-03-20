@@ -82,13 +82,12 @@ public class MediaServiceTest extends TestCase {
 
         verify(mediaRepository, times(1))
             .create(
-                argThat(
-                    media ->
-                        media.getData().length == media.getSize() &&
-                        MEDIA_SIZE == media.getSize() &&
-                        MEDIA_HASH.equals(media.getHash()) &&
-                        API_ID.equals(media.getApi()) &&
-                        media.getId() != null
+                argThat(media ->
+                    media.getData().length == media.getSize() &&
+                    MEDIA_SIZE == media.getSize() &&
+                    MEDIA_HASH.equals(media.getHash()) &&
+                    API_ID.equals(media.getApi()) &&
+                    media.getId() != null
                 )
             );
     }
@@ -120,13 +119,12 @@ public class MediaServiceTest extends TestCase {
 
         verify(mediaRepository, times(1))
             .create(
-                argThat(
-                    media ->
-                        media.getData().length == media.getSize() &&
-                        MEDIA_SIZE == media.getSize() &&
-                        MEDIA_HASH.equals(media.getHash()) &&
-                        API_ID.equals(media.getApi()) &&
-                        media.getId() != null
+                argThat(media ->
+                    media.getData().length == media.getSize() &&
+                    MEDIA_SIZE == media.getSize() &&
+                    MEDIA_HASH.equals(media.getHash()) &&
+                    API_ID.equals(media.getApi()) &&
+                    media.getId() != null
                 )
             );
     }

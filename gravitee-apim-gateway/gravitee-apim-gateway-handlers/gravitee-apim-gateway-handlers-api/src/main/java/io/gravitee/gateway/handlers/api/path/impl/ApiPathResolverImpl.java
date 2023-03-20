@@ -33,17 +33,15 @@ public class ApiPathResolverImpl extends AbstractPathResolver {
         if (api.getPaths() != null) {
             api
                 .getPaths()
-                .forEach(
-                    (key, rules) -> {
-                        io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
-                        path.setPath(key);
+                .forEach((key, rules) -> {
+                    io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
+                    path.setPath(key);
 
-                        // Keeping only enabled rules
-                        path.setRules(rules.stream().filter(Rule::isEnabled).collect(Collectors.toList()));
+                    // Keeping only enabled rules
+                    path.setRules(rules.stream().filter(Rule::isEnabled).collect(Collectors.toList()));
 
-                        register(path);
-                    }
-                );
+                    register(path);
+                });
         }
     }
 }

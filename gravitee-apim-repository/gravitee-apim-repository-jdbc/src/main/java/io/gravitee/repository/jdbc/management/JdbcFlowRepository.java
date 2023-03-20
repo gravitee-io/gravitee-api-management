@@ -283,19 +283,17 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         );
         return flowSelectors
             .stream()
-            .peek(
-                flowSelector -> {
-                    if (flowSelector.getType() == FlowSelectorType.HTTP) {
-                        FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
-                        Set<HttpMethod> methods = getSelectorHttpMethods(flowId);
-                        flowHttpSelector.setMethods(methods);
-                    } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
-                        FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
-                        flowChannelSelector.setOperations(getChannelOperations(flowId));
-                        flowChannelSelector.setEntrypoints(getChannelEntrypoints(flowId));
-                    }
+            .peek(flowSelector -> {
+                if (flowSelector.getType() == FlowSelectorType.HTTP) {
+                    FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
+                    Set<HttpMethod> methods = getSelectorHttpMethods(flowId);
+                    flowHttpSelector.setMethods(methods);
+                } else if (flowSelector.getType() == FlowSelectorType.CHANNEL) {
+                    FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
+                    flowChannelSelector.setOperations(getChannelOperations(flowId));
+                    flowChannelSelector.setEntrypoints(getChannelEntrypoints(flowId));
                 }
-            )
+            })
             .collect(Collectors.toList());
     }
 
@@ -540,18 +538,16 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     }
                 }
             );
-            selectors.forEach(
-                flowSelector -> {
-                    if (flowSelector instanceof FlowHttpSelector) {
-                        FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
-                        storeSelectorHttpMethods(flowId, flowHttpSelector.getMethods(), deleteFirst);
-                    } else if (flowSelector instanceof FlowChannelSelector) {
-                        FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
-                        storeSelectorChannelOperations(flowId, flowChannelSelector.getOperations(), deleteFirst);
-                        storeSelectorChannelEntrypoints(flowId, flowChannelSelector.getEntrypoints(), deleteFirst);
-                    }
+            selectors.forEach(flowSelector -> {
+                if (flowSelector instanceof FlowHttpSelector) {
+                    FlowHttpSelector flowHttpSelector = (FlowHttpSelector) flowSelector;
+                    storeSelectorHttpMethods(flowId, flowHttpSelector.getMethods(), deleteFirst);
+                } else if (flowSelector instanceof FlowChannelSelector) {
+                    FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
+                    storeSelectorChannelOperations(flowId, flowChannelSelector.getOperations(), deleteFirst);
+                    storeSelectorChannelEntrypoints(flowId, flowChannelSelector.getEntrypoints(), deleteFirst);
                 }
-            );
+            });
         }
     }
 

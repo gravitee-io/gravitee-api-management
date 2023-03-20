@@ -115,48 +115,44 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
         return upstream
             .parallel(PARALLELISM)
             .runOn(Schedulers.from(executor))
-            .doOnNext(
-                organization -> {
-                    try {
-                        List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
-                        if (shardingTags != null && !shardingTags.isEmpty()) {
-                            List<Flow> filteredFlows = organization
-                                .getFlows()
-                                .stream()
-                                .filter(
-                                    flow -> {
-                                        List<Consumer> consumers = flow.getConsumers();
-                                        if (consumers != null && !consumers.isEmpty()) {
-                                            Set<String> flowTags = consumers
-                                                .stream()
-                                                .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
-                                                .map(consumer -> consumer.getConsumerId())
-                                                .collect(Collectors.toSet());
-                                            return gatewayConfiguration.hasMatchingTags(flowTags);
-                                        }
-                                        return true;
-                                    }
-                                )
-                                .collect(Collectors.toList());
+            .doOnNext(organization -> {
+                try {
+                    List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
+                    if (shardingTags != null && !shardingTags.isEmpty()) {
+                        List<Flow> filteredFlows = organization
+                            .getFlows()
+                            .stream()
+                            .filter(flow -> {
+                                List<Consumer> consumers = flow.getConsumers();
+                                if (consumers != null && !consumers.isEmpty()) {
+                                    Set<String> flowTags = consumers
+                                        .stream()
+                                        .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
+                                        .map(consumer -> consumer.getConsumerId())
+                                        .collect(Collectors.toSet());
+                                    return gatewayConfiguration.hasMatchingTags(flowTags);
+                                }
+                                return true;
+                            })
+                            .collect(Collectors.toList());
 
-                            organization.setFlows(filteredFlows);
-                        }
-
-                        // Update definition with required information for deployment phase
-                        final io.gravitee.gateway.platform.Organization organizationPlatform = new io.gravitee.gateway.platform.Organization(
-                            organization
-                        );
-                        organizationPlatform.setUpdatedAt(organization.getUpdatedAt());
-                        organizationManager.register(organizationPlatform);
-                    } catch (Exception e) {
-                        logger.error(
-                            "An error occurred when trying to deploy organization {} [{}].",
-                            organization.getName(),
-                            organization.getId()
-                        );
+                        organization.setFlows(filteredFlows);
                     }
+
+                    // Update definition with required information for deployment phase
+                    final io.gravitee.gateway.platform.Organization organizationPlatform = new io.gravitee.gateway.platform.Organization(
+                        organization
+                    );
+                    organizationPlatform.setUpdatedAt(organization.getUpdatedAt());
+                    organizationManager.register(organizationPlatform);
+                } catch (Exception e) {
+                    logger.error(
+                        "An error occurred when trying to deploy organization {} [{}].",
+                        organization.getName(),
+                        organization.getId()
+                    );
                 }
-            )
+            })
             .sequential()
             .map(io.gravitee.definition.model.Organization::getId);
     }

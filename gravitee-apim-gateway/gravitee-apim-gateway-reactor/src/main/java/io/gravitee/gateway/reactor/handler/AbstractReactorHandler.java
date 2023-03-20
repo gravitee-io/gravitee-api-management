@@ -86,11 +86,9 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     protected void dumpVirtualHosts() {
         List<Acceptor<?>> httpAcceptors = acceptors();
         logger.debug("{} ready to accept requests on:", this);
-        httpAcceptors.forEach(
-            httpAcceptor -> {
-                logger.debug("\t{}", httpAcceptor);
-            }
-        );
+        httpAcceptors.forEach(httpAcceptor -> {
+            logger.debug("\t{}", httpAcceptor);
+        });
     }
 
     protected abstract void doHandle(ExecutionContext executionContext, Handler<ExecutionContext> endHandler);

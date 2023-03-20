@@ -44,45 +44,41 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
 
         node
             .fieldNames()
-            .forEachRemaining(
-                field -> {
-                    JsonNode subNode = node.findValue(field);
+            .forEachRemaining(field -> {
+                JsonNode subNode = node.findValue(field);
 
-                    switch (field) {
-                        case "methods":
-                            if (subNode != null && subNode.isArray()) {
-                                subNode
-                                    .elements()
-                                    .forEachRemaining(
-                                        jsonNode -> {
-                                            methods.add(HttpMethod.valueOf(jsonNode.asText().toUpperCase()));
-                                        }
-                                    );
-                            }
-                            break;
-                        case "description":
-                            if (subNode != null) {
-                                rule.setDescription(subNode.asText());
-                            }
-                            break;
-                        case "enabled":
-                            if (subNode != null) {
-                                rule.setEnabled(subNode.asBoolean(true));
-                            }
-                            break;
-                        default:
-                            // We are in the case of a policy
-                            Policy policy = new Policy();
+                switch (field) {
+                    case "methods":
+                        if (subNode != null && subNode.isArray()) {
+                            subNode
+                                .elements()
+                                .forEachRemaining(jsonNode -> {
+                                    methods.add(HttpMethod.valueOf(jsonNode.asText().toUpperCase()));
+                                });
+                        }
+                        break;
+                    case "description":
+                        if (subNode != null) {
+                            rule.setDescription(subNode.asText());
+                        }
+                        break;
+                    case "enabled":
+                        if (subNode != null) {
+                            rule.setEnabled(subNode.asBoolean(true));
+                        }
+                        break;
+                    default:
+                        // We are in the case of a policy
+                        Policy policy = new Policy();
 
-                            policy.setName(field);
-                            policy.setConfiguration(subNode.toString());
+                        policy.setName(field);
+                        policy.setConfiguration(subNode.toString());
 
-                            rule.setPolicy(policy);
+                        rule.setPolicy(policy);
 
-                            break;
-                    }
+                        break;
                 }
-            );
+            });
 
         rule.setMethods((methods.isEmpty()) ? EnumSet.allOf(HttpMethod.class) : methods);
 

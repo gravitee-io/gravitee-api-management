@@ -81,12 +81,10 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
-            .doOnNext(
-                flow -> {
-                    log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
-                    ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
-                }
-            )
+            .doOnNext(flow -> {
+                log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
+            })
             .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
             .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
@@ -100,19 +98,17 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return the resolved flows.
      */
     private Flowable<Flow> resolveFlows(GenericExecutionContext ctx) {
-        return Flowable.defer(
-            () -> {
-                Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+        return Flowable.defer(() -> {
+            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-                if (flows == null) {
-                    // Resolves the flows once. Subsequent resolutions will return the same flows.
-                    flows = flowResolver.resolve(ctx).cache();
-                    ctx.setInternalAttribute(resolvedFlowAttribute, flows);
-                }
-
-                return flows;
+            if (flows == null) {
+                // Resolves the flows once. Subsequent resolutions will return the same flows.
+                flows = flowResolver.resolve(ctx).cache();
+                ctx.setInternalAttribute(resolvedFlowAttribute, flows);
             }
-        );
+
+            return flows;
+        });
     }
 
     /**

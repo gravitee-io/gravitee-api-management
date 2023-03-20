@@ -173,14 +173,12 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                                             LOGGER.debug("Web response status code : {}", response.statusCode());
 
                                             if (response.statusCode() == HttpStatusCode.OK_200) {
-                                                response.bodyHandler(
-                                                    buffer -> {
-                                                        future.complete(buffer);
+                                                response.bodyHandler(buffer -> {
+                                                    future.complete(buffer);
 
-                                                        // Close client
-                                                        httpClient.close();
-                                                    }
-                                                );
+                                                    // Close client
+                                                    httpClient.close();
+                                                });
                                             } else {
                                                 future.completeExceptionally(
                                                     new TechnicalManagementException(

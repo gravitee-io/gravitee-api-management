@@ -72,75 +72,69 @@ public class FailoverInvoker extends EndpointInvoker {
                             context,
                             stream,
                             proxyConnection -> {
-                                proxyConnection.exceptionHandler(
-                                    error -> {
-                                        try {
-                                            event.fail(error);
-                                        } catch (IllegalStateException e) {
-                                            final Future<ProxyConnection> future = event.future();
-                                            if (future.failed()) {
-                                                LOGGER.error(
-                                                    String.format(
-                                                        errorMessageFormat,
-                                                        apiId,
-                                                        future.cause() == null ? null : future.cause().getMessage()
-                                                    ),
-                                                    future.cause()
-                                                );
-                                            } else {
-                                                LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
-                                            }
-                                            throw e; // rethrow the exception to let vertx handle this case
+                                proxyConnection.exceptionHandler(error -> {
+                                    try {
+                                        event.fail(error);
+                                    } catch (IllegalStateException e) {
+                                        final Future<ProxyConnection> future = event.future();
+                                        if (future.failed()) {
+                                            LOGGER.error(
+                                                String.format(
+                                                    errorMessageFormat,
+                                                    apiId,
+                                                    future.cause() == null ? null : future.cause().getMessage()
+                                                ),
+                                                future.cause()
+                                            );
+                                        } else {
+                                            LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
                                         }
+                                        throw e; // rethrow the exception to let vertx handle this case
                                     }
-                                );
-                                proxyConnection.responseHandler(
-                                    response -> {
-                                        try {
-                                            event.complete(new FailoverProxyConnection(proxyConnection, response));
-                                        } catch (IllegalStateException e) {
-                                            final Future<ProxyConnection> future = event.future();
-                                            if (future.failed()) {
-                                                LOGGER.error(
-                                                    String.format(
-                                                        errorMessageFormat,
-                                                        apiId,
-                                                        future.cause() == null ? null : future.cause().getMessage()
-                                                    ),
-                                                    future.cause()
-                                                );
-                                            } else {
-                                                LOGGER.error(
-                                                    String.format(
-                                                        errorMessageFormat,
-                                                        apiId,
-                                                        "Failover invocation has succeeded but result already completed"
-                                                    ),
-                                                    e
-                                                );
-                                            }
-                                            throw e; // rethrow the exception to let vertx handle this case
+                                });
+                                proxyConnection.responseHandler(response -> {
+                                    try {
+                                        event.complete(new FailoverProxyConnection(proxyConnection, response));
+                                    } catch (IllegalStateException e) {
+                                        final Future<ProxyConnection> future = event.future();
+                                        if (future.failed()) {
+                                            LOGGER.error(
+                                                String.format(
+                                                    errorMessageFormat,
+                                                    apiId,
+                                                    future.cause() == null ? null : future.cause().getMessage()
+                                                ),
+                                                future.cause()
+                                            );
+                                        } else {
+                                            LOGGER.error(
+                                                String.format(
+                                                    errorMessageFormat,
+                                                    apiId,
+                                                    "Failover invocation has succeeded but result already completed"
+                                                ),
+                                                e
+                                            );
                                         }
+                                        throw e; // rethrow the exception to let vertx handle this case
                                     }
-                                );
+                                });
                             }
                         );
                     }
                 }
             )
-            .onComplete(
-                event -> {
-                    if (event.failed()) {
-                        FailoverConnection connection = new FailoverConnection();
-                        connectionHandler.handle(connection);
-                        connection.sendBadGatewayResponse();
-                    } else {
-                        FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
-                        connectionHandler.handle(proxyConnection);
-                        proxyConnection.sendResponse();
-                    }
+            .onComplete(event -> {
+                if (event.failed()) {
+                    FailoverConnection connection = new FailoverConnection();
+                    connectionHandler.handle(connection);
+                    connection.sendBadGatewayResponse();
+                } else {
+                    FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
+                    connectionHandler.handle(proxyConnection);
+                    proxyConnection.sendResponse();
                 }
-            );
+            });
     }
 
     private void initialize() {

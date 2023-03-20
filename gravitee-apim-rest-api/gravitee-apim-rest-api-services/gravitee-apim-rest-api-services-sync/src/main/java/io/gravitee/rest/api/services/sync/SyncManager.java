@@ -134,20 +134,18 @@ public class SyncManager {
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
-        dictionaryEvents.forEach(
-            (id, event) -> {
-                switch (event.getType()) {
-                    case START_DICTIONARY:
-                        dictionaryManager.start(id);
-                        break;
-                    case STOP_DICTIONARY:
-                        dictionaryManager.stop(id);
-                        break;
-                    default:
-                        break;
-                }
+        dictionaryEvents.forEach((id, event) -> {
+            switch (event.getType()) {
+                case START_DICTIONARY:
+                    dictionaryManager.start(id);
+                    break;
+                case STOP_DICTIONARY:
+                    dictionaryManager.stop(id);
+                    break;
+                default:
+                    break;
             }
-        );
+        });
     }
 
     private void computeApiEvents(Map<String, Event> apiEvents) {

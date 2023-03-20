@@ -81,7 +81,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
         if (selectionRule != null && !selectionRule.isEmpty()) {
             try {
                 Expression expression = new SpelExpressionParser()
-                .parseExpression(selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+                    .parseExpression(selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
 
                 StandardEvaluationContext evaluation = new StandardEvaluationContext();
                 evaluation.setVariable("request", new EvaluableRequest(authenticationContext.request()));
@@ -117,26 +117,24 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
         return handler
             .handle(executionContext)
             .stream()
-            .map(
-                securityPolicy -> {
-                    // Override the configuration of the policy with the one provided by the plan
-                    if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                        return new PluginAuthenticationPolicy() {
-                            @Override
-                            public String name() {
-                                return ((PluginAuthenticationPolicy) securityPolicy).name();
-                            }
+            .map(securityPolicy -> {
+                // Override the configuration of the policy with the one provided by the plan
+                if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                    return new PluginAuthenticationPolicy() {
+                        @Override
+                        public String name() {
+                            return ((PluginAuthenticationPolicy) securityPolicy).name();
+                        }
 
-                            @Override
-                            public String configuration() {
-                                return plan.getSecurityDefinition();
-                            }
-                        };
-                    }
-
-                    return securityPolicy;
+                        @Override
+                        public String configuration() {
+                            return plan.getSecurityDefinition();
+                        }
+                    };
                 }
-            )
+
+                return securityPolicy;
+            })
             .collect(Collectors.toList());
     }
 

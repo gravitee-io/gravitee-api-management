@@ -122,18 +122,16 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
 
     @Override
     public Completable handleResponse(final ExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                // Set required sse headers.
-                ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
-                ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
-                ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-                ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return Completable.fromRunnable(() -> {
+            // Set required sse headers.
+            ctx.response().headers().add(HttpHeaderNames.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+            ctx.response().headers().add(HttpHeaderNames.CONNECTION, "keep-alive");
+            ctx.response().headers().add(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+            ctx.response().headers().add(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
 
-                // Assign the chunks that come from the transformation of messages.
-                ctx.response().chunks(messagesToBuffers(ctx));
-            }
-        );
+            // Assign the chunks that come from the transformation of messages.
+            ctx.response().chunks(messagesToBuffers(ctx));
+        });
     }
 
     @Override
@@ -158,12 +156,10 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
             .map(this::messageToBuffer)
             .startWithItem(Buffer.buffer(SseEvent.builder().retry(generateRandomRetry()).build().format()))
             .timestamp()
-            .map(
-                timed -> {
-                    lastBufferTime.set(timed.time());
-                    return timed.value();
-                }
-            );
+            .map(timed -> {
+                lastBufferTime.set(timed.time());
+                return timed.value();
+            });
     }
 
     private Flowable<Buffer> heartBeatFlow(AtomicLong lastBufferTime) {
@@ -171,17 +167,15 @@ public class SseEntrypointConnector extends EntrypointAsyncConnector {
         return Flowable
             .interval(heartbeatIntervalInMs, TimeUnit.MILLISECONDS)
             .timestamp()
-            .flatMapMaybe(
-                timed -> {
-                    final long lastTime = lastBufferTime.get();
-                    final long currentTime = timed.time();
-                    if (currentTime - lastTime >= heartbeatIntervalInMs) {
-                        lastBufferTime.set(currentTime);
-                        return Maybe.just(Buffer.buffer(":\n\n"));
-                    }
-                    return Maybe.empty();
+            .flatMapMaybe(timed -> {
+                final long lastTime = lastBufferTime.get();
+                final long currentTime = timed.time();
+                if (currentTime - lastTime >= heartbeatIntervalInMs) {
+                    lastBufferTime.set(currentTime);
+                    return Maybe.just(Buffer.buffer(":\n\n"));
                 }
-            )
+                return Maybe.empty();
+            })
             .onBackpressureDrop();
     }
 

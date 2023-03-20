@@ -118,11 +118,10 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         return super
             .list()
             .stream()
-            .filter(
-                plugin ->
-                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
-                        .supportedApi()
-                        .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
+            .filter(plugin ->
+                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                    .supportedApi()
+                    .equals(io.gravitee.gateway.jupiter.api.ApiType.fromLabel(apiType.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());
@@ -133,11 +132,10 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         return super
             .list()
             .stream()
-            .filter(
-                plugin ->
-                    ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
-                        .supportedModes()
-                        .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
+            .filter(plugin ->
+                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                    .supportedModes()
+                    .contains(io.gravitee.gateway.jupiter.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )
             .map(this::convert)
             .collect(Collectors.toSet());

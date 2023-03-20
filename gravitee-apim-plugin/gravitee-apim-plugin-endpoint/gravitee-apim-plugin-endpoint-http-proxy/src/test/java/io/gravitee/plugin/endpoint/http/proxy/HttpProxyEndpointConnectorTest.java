@@ -137,13 +137,11 @@ class HttpProxyEndpointConnectorTest {
 
         vertxHttpClientHelperMockedStatic
             .when(() -> VertxHttpClientHelper.buildHttpClient(any(), any(), any(), anyString()))
-            .thenAnswer(
-                invocation -> {
-                    httpClientCreationCount.incrementAndGet();
-                    vertxHttpClientHelperMockedStatic.close();
-                    return httpClient;
-                }
-            );
+            .thenAnswer(invocation -> {
+                httpClientCreationCount.incrementAndGet();
+                vertxHttpClientHelperMockedStatic.close();
+                return httpClient;
+            });
 
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);

@@ -38,15 +38,13 @@ public class ConditionSelectorConditionFilter implements ConditionFilter<Flow> {
 
     @Override
     public Maybe<Flow> filter(final GenericExecutionContext ctx, final Flow flow) {
-        return Maybe.defer(
-            () -> {
-                Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.CONDITION);
-                if (selectorOptional.isPresent()) {
-                    ConditionSelector conditionSelector = (ConditionSelector) selectorOptional.get();
-                    return elConditionFilter.filter(ctx, conditionSelector).onErrorResumeWith(Maybe.empty()).map(filter -> flow);
-                }
-                return Maybe.just(flow);
+        return Maybe.defer(() -> {
+            Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.CONDITION);
+            if (selectorOptional.isPresent()) {
+                ConditionSelector conditionSelector = (ConditionSelector) selectorOptional.get();
+                return elConditionFilter.filter(ctx, conditionSelector).onErrorResumeWith(Maybe.empty()).map(filter -> flow);
             }
-        );
+            return Maybe.just(flow);
+        });
     }
 }

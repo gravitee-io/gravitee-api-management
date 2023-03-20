@@ -79,16 +79,15 @@ public class DictionaryServiceImpl_UpdateTest {
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
         when(
             dictionaryRepository.update(
-                argThat(
-                    arg ->
-                        arg.getId() == dictionaryInDb.getId() &&
-                        arg.getCreatedAt().equals(dictionaryInDb.getCreatedAt()) &&
-                        arg.getState().equals(dictionaryInDb.getState()) &&
-                        arg.getEnvironmentId() == ENVIRONMENT_ID &&
-                        arg.getName() == updateDictionaryEntity.getName() &&
-                        arg.getDescription() == updateDictionaryEntity.getDescription() &&
-                        arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
-                        arg.getType().name().equals(updateDictionaryEntity.getType().name())
+                argThat(arg ->
+                    arg.getId() == dictionaryInDb.getId() &&
+                    arg.getCreatedAt().equals(dictionaryInDb.getCreatedAt()) &&
+                    arg.getState().equals(dictionaryInDb.getState()) &&
+                    arg.getEnvironmentId() == ENVIRONMENT_ID &&
+                    arg.getName() == updateDictionaryEntity.getName() &&
+                    arg.getDescription() == updateDictionaryEntity.getDescription() &&
+                    arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
+                    arg.getType().name().equals(updateDictionaryEntity.getType().name())
                 )
             )
         )

@@ -130,12 +130,10 @@ public class ConditionalPolicy implements Policy, ConditionSupplier, MessageCond
         return messageConditionFilter
             .filter(ctx, this, message)
             .isEmpty()
-            .map(
-                skipMessagePolicy -> {
-                    message.attribute(ATTR_SKIP_MESSAGE_POLICY, skipMessagePolicy);
-                    return message;
-                }
-            );
+            .map(skipMessagePolicy -> {
+                message.attribute(ATTR_SKIP_MESSAGE_POLICY, skipMessagePolicy);
+                return message;
+            });
     }
 
     private FlowableTransformer<Message, Message> messagesInterceptor(
@@ -146,14 +144,12 @@ public class ConditionalPolicy implements Policy, ConditionSupplier, MessageCond
             upstream
                 .flatMapSingle(message -> onMessageCondition(ctx, message))
                 .groupBy(message -> message.attribute(ATTR_SKIP_MESSAGE_POLICY))
-                .flatMap(
-                    messages -> {
-                        final boolean skipPolicy = Boolean.TRUE.equals(messages.getKey());
-                        if (skipPolicy) {
-                            return messages;
-                        }
-                        return messages.compose(onMessages);
+                .flatMap(messages -> {
+                    final boolean skipPolicy = Boolean.TRUE.equals(messages.getKey());
+                    if (skipPolicy) {
+                        return messages;
                     }
-                );
+                    return messages.compose(onMessages);
+                });
     }
 }

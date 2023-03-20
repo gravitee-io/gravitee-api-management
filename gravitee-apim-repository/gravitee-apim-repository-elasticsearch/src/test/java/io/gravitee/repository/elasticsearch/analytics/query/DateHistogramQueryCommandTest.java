@@ -95,13 +95,11 @@ public class DateHistogramQueryCommandTest {
         verify(freeMarkerComponent)
             .generateFromTemplate(
                 anyString(),
-                argThat(
-                    argument -> {
-                        final Long roundedFrom = (Long) argument.get("roundedFrom");
-                        final Long roundedTo = (Long) argument.get("roundedTo");
-                        return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
-                    }
-                )
+                argThat(argument -> {
+                    final Long roundedFrom = (Long) argument.get("roundedFrom");
+                    final Long roundedTo = (Long) argument.get("roundedTo");
+                    return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
+                })
             );
         clearInvocations(freeMarkerComponent);
     }

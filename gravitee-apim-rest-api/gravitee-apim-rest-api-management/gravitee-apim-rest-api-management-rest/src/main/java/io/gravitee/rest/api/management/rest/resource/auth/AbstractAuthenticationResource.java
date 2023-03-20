@@ -126,11 +126,8 @@ abstract class AbstractAuthenticationResource {
             userDetails.getId()
         );
         if (!userRoles.isEmpty()) {
-            userRoles.forEach(
-                role ->
-                    authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                    )
+            userRoles.forEach(role ->
+                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build())
             );
         }
 

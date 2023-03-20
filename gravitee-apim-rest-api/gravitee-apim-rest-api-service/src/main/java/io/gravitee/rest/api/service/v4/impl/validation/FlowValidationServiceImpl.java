@@ -53,18 +53,16 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     @Override
     public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
         if (flows != null) {
-            flows.forEach(
-                flow -> {
-                    // Check duplicated selectors
-                    checkDuplicatedSelectors(flow);
+            flows.forEach(flow -> {
+                // Check duplicated selectors
+                checkDuplicatedSelectors(flow);
 
-                    // Check selectors according to api type
-                    checkSelectorsForType(apiType, flow);
+                // Check selectors according to api type
+                checkSelectorsForType(apiType, flow);
 
-                    // Validate policy
-                    checkPolicyConfiguration(flow);
-                }
-            );
+                // Validate policy
+                checkPolicyConfiguration(flow);
+            });
         }
         return flows;
     }
