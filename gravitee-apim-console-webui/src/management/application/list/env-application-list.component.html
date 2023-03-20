@@ -85,7 +85,7 @@
     <!-- Archived at Column -->
     <ng-container matColumnDef="updated_at">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="updated_at" width="15%">Archived at</th>
-      <td mat-cell *matCellDef="let element">{{ element.updated_at | date: 'medium' }}</td>
+      <td mat-cell *matCellDef="let element">{{ element.updated_at | date : 'medium' }}</td>
     </ng-container>
 
     <!-- Actions Column -->
