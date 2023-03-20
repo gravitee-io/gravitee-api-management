@@ -312,7 +312,11 @@ commands:
 parameters:
     gio_action:
         type: enum
+<<<<<<< HEAD
         enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim, bridge_e2e]
+=======
+        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim, publish_docker_images]
+>>>>>>> 0b3b749db2 (ci: add pr branch docker images build and push workflow)
         default: pull_requests
     dry_run:
         type: boolean
@@ -2170,6 +2174,7 @@ workflows:
             - release_notes_apim:
                   context: cicd-orchestrator
 
+<<<<<<< HEAD
     bridge_compatibility_tests:
       when:
         equal: [ bridge_e2e, << pipeline.parameters.gio_action >> ]
@@ -2204,3 +2209,34 @@ workflows:
                 execution_mode: ["v3", "jupiter"]
                 database: ["bridge"]
                 apim_client_tag: ["3.20.x-latest","3.19.x-latest","3.18.x-latest"]
+=======
+    publish_docker_images:
+        when:
+            and:
+              - equal: [publish_docker_images, << pipeline.parameters.gio_action >>]
+        jobs:
+            - setup:
+                context: cicd-orchestrator
+            - build:
+                context: cicd-orchestrator
+                requires:
+                    - setup
+            - build-images:
+                context: cicd-orchestrator
+                requires:
+                    - build
+            - webui-build:
+                name: Build APIM Console
+                context: cicd-orchestrator
+                apim-ui-project: gravitee-apim-console-webui
+                docker-image-name: apim-management-ui
+                requires:
+                    - setup
+            - webui-build:
+                name: Build APIM Portal
+                context: cicd-orchestrator
+                apim-ui-project: gravitee-apim-portal-webui
+                docker-image-name: apim-portal-ui
+                requires:
+                    - setup
+>>>>>>> 0b3b749db2 (ci: add pr branch docker images build and push workflow)
