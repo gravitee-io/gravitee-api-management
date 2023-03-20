@@ -28,7 +28,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 const allowedFileExtensions = ['yml', 'yaml', 'json', 'wsdl', 'xml'] as const;
 
-type FileExtension = typeof allowedFileExtensions[number];
+type FileExtension = (typeof allowedFileExtensions)[number];
 
 export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
