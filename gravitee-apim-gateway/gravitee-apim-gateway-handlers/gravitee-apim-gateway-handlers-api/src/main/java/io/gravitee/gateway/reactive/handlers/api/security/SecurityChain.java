@@ -98,7 +98,7 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                 return chain
-                    .flatMapSingle(policy -> continueChain(ctx, policy), false, 1)
+                    .concatMapSingle(policy -> continueChain(ctx, policy))
                     .any(Boolean::booleanValue)
                     .flatMapCompletable(securityHandled -> {
                         ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
