@@ -40,13 +40,13 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.dashboard', {
       redirectTo: 'management.dashboard.home',
-      template: require('./dashboard/dashboard.html'),
+      template: require('./dashboard-ajs/dashboard.html'),
       controller: 'DashboardController',
       controllerAs: '$ctrl',
     })
     .state('management.dashboard.home', {
       url: '/',
-      template: require('./dashboard/home-dashboard/home-dashboard.html'),
+      template: require('./dashboard-ajs/home-dashboard/home-dashboard.html'),
       controller: 'HomeDashboardController',
       controllerAs: '$ctrl',
       resolve: {
@@ -60,7 +60,7 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.dashboard.apis-status', {
       url: '/apis-status',
-      template: require('./dashboard/apis-status-dashboard/apis-status-dashboard.html'),
+      template: require('./dashboard-ajs/apis-status-dashboard/apis-status-dashboard.html'),
       controller: 'ApisStatusDashboardController',
       controllerAs: '$ctrl',
       resolve: {
@@ -79,7 +79,7 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.dashboard.analytics', {
       url: '/platform?from&to&q&dashboard',
-      template: require('./dashboard/analytics-dashboard/analytics-dashboard.html'),
+      template: require('./dashboard-ajs/analytics-dashboard/analytics-dashboard.html'),
       controller: 'AnalyticsDashboardController',
       controllerAs: '$ctrl',
       resolve: {
@@ -114,7 +114,7 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.dashboard.alerts', {
       url: '/alerts',
-      template: require('./dashboard/alerts-dashboard/platform-alerts-dashboard.html'),
+      template: require('./dashboard-ajs/alerts-dashboard/platform-alerts-dashboard.html'),
       controller: 'PlatformAlertsDashboardController',
       controllerAs: '$ctrl',
       resolve: {
