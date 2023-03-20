@@ -91,7 +91,7 @@ export interface ApiRulePolicy {
 }
 
 export const API_PLAN_STATUS = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'] as const;
-export type ApiPlanStatus = typeof API_PLAN_STATUS[number];
+export type ApiPlanStatus = (typeof API_PLAN_STATUS)[number];
 export interface ApiPlan {
   id: string;
   name?: string;
