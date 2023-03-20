@@ -45,7 +45,8 @@ const computeCommitInfo = async (gitLogOutput) => {
 };
 
 echo(chalk.blue(`# Get feat & fix commits`));
-const allCommitsCmd = await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
+const allCommitsCmd =
+  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
 const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
 
 echo(chalk.blue(`# Clone gravitee-docs repository`));
@@ -177,5 +178,6 @@ echo(chalk.blue('# Create PR on Github Doc repository'));
 echo(prBody);
 process.env.PR_BODY = prBody;
 
-const releaseNotesPrUrl = await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
+const releaseNotesPrUrl =
+  await $`gh pr create --title "[APIM] Add changelog for new ${releasingVersion} release" --body "$PR_BODY" --base master --head ${gitBranch}`;
 $`echo ${releaseNotesPrUrl.stdout} > /tmp/releaseNotesPrUrl.txt`;
