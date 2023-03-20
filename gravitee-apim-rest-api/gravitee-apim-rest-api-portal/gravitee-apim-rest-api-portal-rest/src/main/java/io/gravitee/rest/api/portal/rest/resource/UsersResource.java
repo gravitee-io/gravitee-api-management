@@ -148,16 +148,12 @@ public class UsersResource extends AbstractResource {
         List<User> users = identityService
             .search(q)
             .stream()
-            .map(
-                searchableUser ->
-                    userMapper
-                        .convert(searchableUser)
-                        .links(
-                            userMapper.computeUserLinks(
-                                PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()),
-                                null
-                            )
-                        )
+            .map(searchableUser ->
+                userMapper
+                    .convert(searchableUser)
+                    .links(
+                        userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()), null)
+                    )
             )
             .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastName(), o2.getLastName()))
             .collect(Collectors.toList());

@@ -115,39 +115,33 @@ public class ListEnvironmentOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply -> {
-                if (
-                    reply.getCommandId().equals(command.getId()) &&
-                    reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                    BridgeMultiReply.class.isInstance(reply)
-                ) {
-                    BridgeMultiReply multiReply = ((BridgeMultiReply) reply);
-                    if (multiReply.getReplies() != null && multiReply.getReplies().size() == 3) {
-                        for (BridgeSimpleReply simpleReply : multiReply.getReplies()) {
-                            if (
-                                simpleReply.getEnvironmentId().equals(envA.getId()) && simpleReply.getCommandStatus() == CommandStatus.ERROR
-                            ) {
-                                return false;
-                            }
-                            if (
-                                simpleReply.getEnvironmentId().equals(envB.getId()) && simpleReply.getCommandStatus() == CommandStatus.ERROR
-                            ) {
-                                return false;
-                            }
-                            if (
-                                simpleReply.getEnvironmentId().equals(envC_ERROR.getId()) &&
-                                simpleReply.getCommandStatus() == CommandStatus.SUCCEEDED
-                            ) {
-                                return false;
-                            }
+        obs.assertValue(reply -> {
+            if (
+                reply.getCommandId().equals(command.getId()) &&
+                reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+                BridgeMultiReply.class.isInstance(reply)
+            ) {
+                BridgeMultiReply multiReply = ((BridgeMultiReply) reply);
+                if (multiReply.getReplies() != null && multiReply.getReplies().size() == 3) {
+                    for (BridgeSimpleReply simpleReply : multiReply.getReplies()) {
+                        if (simpleReply.getEnvironmentId().equals(envA.getId()) && simpleReply.getCommandStatus() == CommandStatus.ERROR) {
+                            return false;
                         }
-                        return true;
+                        if (simpleReply.getEnvironmentId().equals(envB.getId()) && simpleReply.getCommandStatus() == CommandStatus.ERROR) {
+                            return false;
+                        }
+                        if (
+                            simpleReply.getEnvironmentId().equals(envC_ERROR.getId()) &&
+                            simpleReply.getCommandStatus() == CommandStatus.SUCCEEDED
+                        ) {
+                            return false;
+                        }
                     }
+                    return true;
                 }
-                return false;
             }
-        );
+            return false;
+        });
     }
 
     @Test
@@ -163,11 +157,10 @@ public class ListEnvironmentOperationHandlerTest {
 
         // Then
         obs.awaitTerminalEvent();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getMessage().equals("No environment available for organization: " + ORGANIZATION_ID)
+        obs.assertValue(reply ->
+            reply.getCommandId().equals(command.getId()) &&
+            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+            reply.getMessage().equals("No environment available for organization: " + ORGANIZATION_ID)
         );
     }
 }

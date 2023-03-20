@@ -44,26 +44,24 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
             descriptor
                 .getSpecification()
                 .getServers()
-                .forEach(
-                    server -> {
-                        try {
-                            server.setUrl(
-                                new URI(
-                                    newURI.getScheme(),
-                                    newURI.getUserInfo(),
-                                    newURI.getHost(),
-                                    newURI.getPort(),
-                                    newURI.getPath(),
-                                    newURI.getQuery(),
-                                    newURI.getFragment()
-                                )
-                                    .toString()
-                            );
-                        } catch (URISyntaxException e) {
-                            logger.error(e.getMessage(), e);
-                        }
+                .forEach(server -> {
+                    try {
+                        server.setUrl(
+                            new URI(
+                                newURI.getScheme(),
+                                newURI.getUserInfo(),
+                                newURI.getHost(),
+                                newURI.getPort(),
+                                newURI.getPath(),
+                                newURI.getQuery(),
+                                newURI.getFragment()
+                            )
+                                .toString()
+                        );
+                    } catch (URISyntaxException e) {
+                        logger.error(e.getMessage(), e);
                     }
-                );
+                });
 
             // Remove possible server duplicates.
             descriptor

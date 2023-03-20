@@ -34,15 +34,13 @@ public class ResponseTimeProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                Metrics metrics = ctx.request().metrics();
-                // Compute response-time and add it to the metrics
-                long proxyResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
-                metrics.setStatus(ctx.response().status());
-                metrics.setProxyResponseTimeMs(proxyResponseTimeInMs);
-                metrics.setProxyLatencyMs(proxyResponseTimeInMs - metrics.getApiResponseTimeMs());
-            }
-        );
+        return Completable.fromRunnable(() -> {
+            Metrics metrics = ctx.request().metrics();
+            // Compute response-time and add it to the metrics
+            long proxyResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+            metrics.setStatus(ctx.response().status());
+            metrics.setProxyResponseTimeMs(proxyResponseTimeInMs);
+            metrics.setProxyLatencyMs(proxyResponseTimeInMs - metrics.getApiResponseTimeMs());
+        });
     }
 }

@@ -126,33 +126,29 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // search for IN_REVIEW apis
             apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
             if (!apiIds.isEmpty()) {
-                apiIds.forEach(
-                    apiId -> {
-                        final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                        if (workflows != null && !workflows.isEmpty()) {
-                            final Workflow currentWorkflow = workflows.get(0);
-                            if (WorkflowState.IN_REVIEW.name().equals(currentWorkflow.getState())) {
-                                tasks.add(convert(currentWorkflow));
-                            }
+                apiIds.forEach(apiId -> {
+                    final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
+                    if (workflows != null && !workflows.isEmpty()) {
+                        final Workflow currentWorkflow = workflows.get(0);
+                        if (WorkflowState.IN_REVIEW.name().equals(currentWorkflow.getState())) {
+                            tasks.add(convert(currentWorkflow));
                         }
                     }
-                );
+                });
             }
 
             // search for REQUEST_FOR_CHANGES apis
             apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, DEFINITION.getName());
             if (!apiIds.isEmpty()) {
-                apiIds.forEach(
-                    apiId -> {
-                        final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                        if (workflows != null && !workflows.isEmpty()) {
-                            final Workflow currentWorkflow = workflows.get(0);
-                            if (WorkflowState.REQUEST_FOR_CHANGES.name().equals(currentWorkflow.getState())) {
-                                tasks.add(convert(currentWorkflow));
-                            }
+                apiIds.forEach(apiId -> {
+                    final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
+                    if (workflows != null && !workflows.isEmpty()) {
+                        final Workflow currentWorkflow = workflows.get(0);
+                        if (WorkflowState.REQUEST_FOR_CHANGES.name().equals(currentWorkflow.getState())) {
+                            tasks.add(convert(currentWorkflow));
                         }
                     }
-                );
+                });
             }
 
             // search for TO_BE_VALIDATED promotions
@@ -256,16 +252,14 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Override
     public Metadata getMetadata(ExecutionContext executionContext, List<TaskEntity> tasks) {
         final Metadata metadata = new Metadata();
-        tasks.forEach(
-            task -> {
-                final Object data = task.getData();
-                if (data instanceof SubscriptionEntity) {
-                    addSubscriptionMetadata(metadata, (SubscriptionEntity) data);
-                } else if (data instanceof Workflow) {
-                    addWorkflowMetadata(metadata, (Workflow) data);
-                }
+        tasks.forEach(task -> {
+            final Object data = task.getData();
+            if (data instanceof SubscriptionEntity) {
+                addSubscriptionMetadata(metadata, (SubscriptionEntity) data);
+            } else if (data instanceof Workflow) {
+                addWorkflowMetadata(metadata, (Workflow) data);
             }
-        );
+        });
         return metadata;
     }
 

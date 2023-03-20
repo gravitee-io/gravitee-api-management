@@ -90,8 +90,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 query
                     .getAggregations()
                     .stream()
-                    .forEach(
-                        aggregation -> queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
+                    .forEach(aggregation ->
+                        queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
                     );
             }
 
@@ -247,14 +247,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             searchLogResponseResponse
                 .getLogs()
-                .forEach(
-                    logItem -> {
-                        String gateway = logItem.getGateway();
-                        if (gateway != null) {
-                            metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
-                        }
+                .forEach(logItem -> {
+                    String gateway = logItem.getGateway();
+                    if (gateway != null) {
+                        metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
                     }
-                );
+                });
 
             searchLogResponseResponse.setMetadata(metadata);
         }

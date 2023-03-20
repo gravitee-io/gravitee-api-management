@@ -61,15 +61,13 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
             jgen.writeArrayFieldStart("tenants");
             endpoint
                 .getTenants()
-                .forEach(
-                    tenant -> {
-                        try {
-                            jgen.writeString(tenant);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(tenant -> {
+                    try {
+                        jgen.writeString(tenant);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
 
             jgen.writeEndArray();
         }

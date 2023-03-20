@@ -91,15 +91,13 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
             );
 
             List<NewPortalNotificationEntity> notifications = new ArrayList<>(users.size());
-            users.forEach(
-                user -> {
-                    NewPortalNotificationEntity notification = new NewPortalNotificationEntity();
-                    notification.setUser(user);
-                    notification.setTitle(title);
-                    notification.setMessage(content);
-                    notifications.add(notification);
-                }
-            );
+            users.forEach(user -> {
+                NewPortalNotificationEntity notification = new NewPortalNotificationEntity();
+                notification.setUser(user);
+                notification.setTitle(title);
+                notification.setMessage(content);
+                notifications.add(notification);
+            });
 
             create(notifications);
         } catch (final Exception ex) {
@@ -131,12 +129,10 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     private void create(List<NewPortalNotificationEntity> notificationEntities) {
         final Date now = new Date();
         List<PortalNotification> notifications = notificationEntities.stream().map(this::convert).collect(Collectors.toList());
-        notifications.forEach(
-            n -> {
-                n.setId(UuidString.generateRandom());
-                n.setCreatedAt(now);
-            }
-        );
+        notifications.forEach(n -> {
+            n.setId(UuidString.generateRandom());
+            n.setCreatedAt(now);
+        });
         try {
             portalNotificationRepository.create(notifications);
         } catch (TechnicalException ex) {

@@ -237,7 +237,8 @@ public class PageService_AutoFetchTest {
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportAutFetchDescriptorMockFetcher> mockFetcherClass = PageService_ImportAutFetchDescriptorMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockAutoFetchDescriptorFetcherConfiguration fetcherConfiguration = new PageService_MockAutoFetchDescriptorFetcherConfiguration();
+        PageService_MockAutoFetchDescriptorFetcherConfiguration fetcherConfiguration =
+            new PageService_MockAutoFetchDescriptorFetcherConfiguration();
         when(fetcherConfigurationFactory.create(eq(PageService_MockAutoFetchDescriptorFetcherConfiguration.class), anyString()))
             .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);

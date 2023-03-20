@@ -86,18 +86,17 @@ public class UserCommandHandlerTest {
         when(
             userService.create(
                 any(),
-                argThat(
-                    newUser ->
-                        newUser.getSourceId().equals(userPayload.getId()) &&
-                        newUser.getSource().equals("cockpit") &&
-                        newUser.getFirstname().equals(userPayload.getFirstName()) &&
-                        newUser.getLastname().equals(userPayload.getLastName()) &&
-                        newUser.getEmail().equals(userPayload.getEmail()) &&
-                        newUser.getPicture().equals(userPayload.getPicture()) &&
-                        newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                        newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
-                        newUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
-                        newUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
+                argThat(newUser ->
+                    newUser.getSourceId().equals(userPayload.getId()) &&
+                    newUser.getSource().equals("cockpit") &&
+                    newUser.getFirstname().equals(userPayload.getFirstName()) &&
+                    newUser.getLastname().equals(userPayload.getLastName()) &&
+                    newUser.getEmail().equals(userPayload.getEmail()) &&
+                    newUser.getPicture().equals(userPayload.getPicture()) &&
+                    newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
+                    newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
+                    newUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
+                    newUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
                 ),
                 eq(false)
             )
@@ -148,16 +147,15 @@ public class UserCommandHandlerTest {
             userService.update(
                 any(),
                 eq("apim_user#1"),
-                argThat(
-                    updatedUser ->
-                        updatedUser.getFirstname().equals(userPayload.getFirstName()) &&
-                        updatedUser.getLastname().equals(userPayload.getLastName()) &&
-                        updatedUser.getEmail().equals(userPayload.getEmail()) &&
-                        updatedUser.getPicture().equals(userPayload.getPicture()) &&
-                        updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                        updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
-                        updatedUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
-                        updatedUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
+                argThat(updatedUser ->
+                    updatedUser.getFirstname().equals(userPayload.getFirstName()) &&
+                    updatedUser.getLastname().equals(userPayload.getLastName()) &&
+                    updatedUser.getEmail().equals(userPayload.getEmail()) &&
+                    updatedUser.getPicture().equals(userPayload.getPicture()) &&
+                    updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
+                    updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
+                    updatedUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
+                    updatedUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
                 )
             )
         )

@@ -196,18 +196,16 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         return pluginRegistry
             .plugins()
             .stream()
-            .map(
-                regPlugin -> {
-                    Plugin plugin = new Plugin();
-                    plugin.setId(regPlugin.id());
-                    plugin.setName(regPlugin.manifest().name());
-                    plugin.setDescription(regPlugin.manifest().description());
-                    plugin.setVersion(regPlugin.manifest().version());
-                    plugin.setType(regPlugin.type().toLowerCase());
-                    plugin.setPlugin(regPlugin.clazz());
-                    return plugin;
-                }
-            )
+            .map(regPlugin -> {
+                Plugin plugin = new Plugin();
+                plugin.setId(regPlugin.id());
+                plugin.setName(regPlugin.manifest().name());
+                plugin.setDescription(regPlugin.manifest().description());
+                plugin.setVersion(regPlugin.manifest().version());
+                plugin.setType(regPlugin.type().toLowerCase());
+                plugin.setPlugin(regPlugin.clazz());
+                return plugin;
+            })
             .collect(Collectors.toSet());
     }
 

@@ -39,15 +39,13 @@ public class ResponseSerializer extends StdScalarSerializer<Response> {
         if (response.getAssertions() != null && !response.getAssertions().isEmpty()) {
             response
                 .getAssertions()
-                .forEach(
-                    assertion -> {
-                        try {
-                            jgen.writeString(assertion);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                .forEach(assertion -> {
+                    try {
+                        jgen.writeString(assertion);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                );
+                });
         } else {
             jgen.writeString(Response.DEFAULT_ASSERTION);
         }

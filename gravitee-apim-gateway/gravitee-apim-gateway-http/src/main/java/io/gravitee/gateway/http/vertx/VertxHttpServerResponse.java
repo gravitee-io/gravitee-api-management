@@ -128,13 +128,11 @@ public class VertxHttpServerResponse implements Response {
 
             serverResponse
                 .end()
-                .onComplete(
-                    event -> {
-                        if (this.endHandler != null) {
-                            this.endHandler.handle(null);
-                        }
+                .onComplete(event -> {
+                    if (this.endHandler != null) {
+                        this.endHandler.handle(null);
                     }
-                );
+                });
         } else {
             if (this.endHandler != null) {
                 this.endHandler.handle(null);

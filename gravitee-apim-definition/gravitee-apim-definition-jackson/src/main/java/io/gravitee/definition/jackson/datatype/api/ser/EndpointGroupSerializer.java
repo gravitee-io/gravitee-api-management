@@ -45,21 +45,19 @@ public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> 
         final Set<Endpoint> endpoints = group.getEndpoints();
         if (endpoints != null) {
             jgen.writeArrayFieldStart("endpoints");
-            endpoints.forEach(
-                endpoint -> {
-                    try {
-                        if (endpoint.getConfiguration() != null) {
-                            ObjectNode jsonNode = (ObjectNode) mapper.readTree(endpoint.getConfiguration());
-                            jsonNode.setAll((ObjectNode) mapper.readTree(mapper.writeValueAsString(endpoint)));
-                            jgen.writeObject(jsonNode);
-                        } else {
-                            jgen.writeObject(endpoint);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            endpoints.forEach(endpoint -> {
+                try {
+                    if (endpoint.getConfiguration() != null) {
+                        ObjectNode jsonNode = (ObjectNode) mapper.readTree(endpoint.getConfiguration());
+                        jsonNode.setAll((ObjectNode) mapper.readTree(mapper.writeValueAsString(endpoint)));
+                        jgen.writeObject(jsonNode);
+                    } else {
+                        jgen.writeObject(endpoint);
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            );
+            });
             jgen.writeEndArray();
         }
 

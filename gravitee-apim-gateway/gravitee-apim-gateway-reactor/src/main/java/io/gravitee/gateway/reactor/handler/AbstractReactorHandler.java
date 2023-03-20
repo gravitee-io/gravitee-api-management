@@ -94,11 +94,9 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = reactable.entrypoints();
         logger.debug("{} ready to accept requests on:", this);
-        entrypoints.forEach(
-            entrypoint -> {
-                logger.debug("\t{}", entrypoint);
-            }
-        );
+        entrypoints.forEach(entrypoint -> {
+            logger.debug("\t{}", entrypoint);
+        });
     }
 
     protected abstract void doHandle(ExecutionContext executionContext, Handler<ExecutionContext> endHandler);

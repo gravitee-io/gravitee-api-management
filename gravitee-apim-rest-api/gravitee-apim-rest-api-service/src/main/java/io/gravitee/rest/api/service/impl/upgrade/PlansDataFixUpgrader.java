@@ -243,19 +243,17 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
 
     protected void sendEmailToApiOwner(ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
         getApiOwnerEmail(executionContext, api)
-            .ifPresent(
-                apiOwnerEmail -> {
-                    LOGGER.debug("Sending report email to api {} owner", api.getId());
-                    emailService.sendAsyncEmailNotification(
-                        executionContext,
-                        new EmailNotificationBuilder()
-                            .params(Map.of("api", api, "closedPlans", closedPlans, "createdPlans", createdPlans))
-                            .to(apiOwnerEmail)
-                            .template(EmailNotificationBuilder.EmailTemplate.API_PLANS_DATA_FIXED)
-                            .build()
-                    );
-                }
-            );
+            .ifPresent(apiOwnerEmail -> {
+                LOGGER.debug("Sending report email to api {} owner", api.getId());
+                emailService.sendAsyncEmailNotification(
+                    executionContext,
+                    new EmailNotificationBuilder()
+                        .params(Map.of("api", api, "closedPlans", closedPlans, "createdPlans", createdPlans))
+                        .to(apiOwnerEmail)
+                        .template(EmailNotificationBuilder.EmailTemplate.API_PLANS_DATA_FIXED)
+                        .build()
+                );
+            });
     }
 
     private Optional<String> getApiOwnerEmail(ExecutionContext executionContext, Api api) {

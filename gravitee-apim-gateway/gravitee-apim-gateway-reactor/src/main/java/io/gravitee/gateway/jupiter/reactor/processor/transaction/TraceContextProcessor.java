@@ -42,24 +42,22 @@ public class TraceContextProcessor implements Processor {
 
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                String traceparent = ctx.request().headers().get(HEADER_TRACE_PARENT);
-                if (traceparent == null) {
-                    traceparent = TraceparentHelper.buildTraceparentFrom(UUID.random());
-                    ctx.request().headers().set(HEADER_TRACE_PARENT, traceparent);
-                    // traceparent was missing, remove tracestate
-                    ctx.request().headers().remove(HEADER_TRACE_STATE);
-                } else if (!TraceparentHelper.isValid(traceparent)) {
-                    // check format to know if we have to create a new one
-                    // see : https://www.w3.org/TR/trace-context/#a-traceparent-is-received
-                    traceparent = TraceparentHelper.buildTraceparentFrom(UUID.random());
-                    ctx.request().headers().set(HEADER_TRACE_PARENT, traceparent);
-                    // traceparent was invalid, remove tracestate
-                    ctx.request().headers().remove(HEADER_TRACE_STATE);
-                }
-                ctx.response().headers().set(HEADER_TRACE_PARENT, traceparent);
+        return Completable.fromRunnable(() -> {
+            String traceparent = ctx.request().headers().get(HEADER_TRACE_PARENT);
+            if (traceparent == null) {
+                traceparent = TraceparentHelper.buildTraceparentFrom(UUID.random());
+                ctx.request().headers().set(HEADER_TRACE_PARENT, traceparent);
+                // traceparent was missing, remove tracestate
+                ctx.request().headers().remove(HEADER_TRACE_STATE);
+            } else if (!TraceparentHelper.isValid(traceparent)) {
+                // check format to know if we have to create a new one
+                // see : https://www.w3.org/TR/trace-context/#a-traceparent-is-received
+                traceparent = TraceparentHelper.buildTraceparentFrom(UUID.random());
+                ctx.request().headers().set(HEADER_TRACE_PARENT, traceparent);
+                // traceparent was invalid, remove tracestate
+                ctx.request().headers().remove(HEADER_TRACE_STATE);
             }
-        );
+            ctx.response().headers().set(HEADER_TRACE_PARENT, traceparent);
+        });
     }
 }

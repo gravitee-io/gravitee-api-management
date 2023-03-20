@@ -153,51 +153,44 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
         // Load policies from Plans
         getPlans()
-            .forEach(
-                plan -> {
-                    String security = plan.getSecurity();
-                    Policy secPolicy = buildSecurityPolicy(security);
+            .forEach(plan -> {
+                String security = plan.getSecurity();
+                Policy secPolicy = buildSecurityPolicy(security);
 
-                    if (secPolicy.getName() != null) {
-                        policies.add(secPolicy);
-                    }
-
-                    if (plan.getPaths() != null) {
-                        plan
-                            .getPaths()
-                            .values()
-                            .forEach(
-                                rules ->
-                                    policies.addAll(rules.stream().filter(Rule::isEnabled).map(Rule::getPolicy).collect(Collectors.toSet()))
-                            );
-                    }
-
-                    if (plan.getFlows() != null) {
-                        plan
-                            .getFlows()
-                            .stream()
-                            .filter(Flow::isEnabled)
-                            .forEach(
-                                flow -> {
-                                    policies.addAll(getPolicies(flow.getPre()));
-                                    policies.addAll(getPolicies(flow.getPost()));
-                                }
-                            );
-                    }
+                if (secPolicy.getName() != null) {
+                    policies.add(secPolicy);
                 }
-            );
+
+                if (plan.getPaths() != null) {
+                    plan
+                        .getPaths()
+                        .values()
+                        .forEach(rules ->
+                            policies.addAll(rules.stream().filter(Rule::isEnabled).map(Rule::getPolicy).collect(Collectors.toSet()))
+                        );
+                }
+
+                if (plan.getFlows() != null) {
+                    plan
+                        .getFlows()
+                        .stream()
+                        .filter(Flow::isEnabled)
+                        .forEach(flow -> {
+                            policies.addAll(getPolicies(flow.getPre()));
+                            policies.addAll(getPolicies(flow.getPost()));
+                        });
+                }
+            });
 
         // Load policies from flows
         if (getFlows() != null) {
             getFlows()
                 .stream()
                 .filter(Flow::isEnabled)
-                .forEach(
-                    flow -> {
-                        policies.addAll(getPolicies(flow.getPre()));
-                        policies.addAll(getPolicies(flow.getPost()));
-                    }
-                );
+                .forEach(flow -> {
+                    policies.addAll(getPolicies(flow.getPre()));
+                    policies.addAll(getPolicies(flow.getPost()));
+                });
         }
 
         return policies;
@@ -232,14 +225,12 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         return flowStep
             .stream()
             .filter(Step::isEnabled)
-            .map(
-                step -> {
-                    Policy policy = new Policy();
-                    policy.setName(step.getPolicy());
-                    policy.setConfiguration(step.getConfiguration());
-                    return policy;
-                }
-            )
+            .map(step -> {
+                Policy policy = new Policy();
+                policy.setName(step.getPolicy());
+                policy.setConfiguration(step.getConfiguration());
+                return policy;
+            })
             .collect(Collectors.toList());
     }
 

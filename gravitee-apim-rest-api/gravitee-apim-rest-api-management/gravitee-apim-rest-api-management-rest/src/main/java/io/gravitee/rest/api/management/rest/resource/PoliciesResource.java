@@ -103,14 +103,12 @@ public class PoliciesResource {
             .getPolicyVisitors()
             .stream()
             .filter(operationVisitor -> operationVisitor.display())
-            .map(
-                operationVisitor -> {
-                    PolicyListItem item = new PolicyListItem();
-                    item.setId(operationVisitor.getId());
-                    item.setName(operationVisitor.getName());
-                    return item;
-                }
-            )
+            .map(operationVisitor -> {
+                PolicyListItem item = new PolicyListItem();
+                item.setId(operationVisitor.getId());
+                item.setName(operationVisitor.getName());
+                return item;
+            })
             .sorted(Comparator.comparing(PolicyListItem::getName))
             .collect(Collectors.toList());
     }

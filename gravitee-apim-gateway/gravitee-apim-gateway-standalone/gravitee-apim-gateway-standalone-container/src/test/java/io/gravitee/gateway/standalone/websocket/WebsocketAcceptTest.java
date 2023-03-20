@@ -56,12 +56,10 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    event.writeTextMessage("PING");
-                }
-            )
+            .webSocketHandler(event -> {
+                event.accept();
+                event.writeTextMessage("PING");
+            })
             .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
@@ -74,16 +72,14 @@ public class WebsocketAcceptTest extends AbstractWebSocketGatewayTest {
                     testContext.failNow("An error occurred during websocket call");
                 } else {
                     final WebSocket webSocket = event.result();
-                    webSocket.frameHandler(
-                        frame -> {
-                            if (frame.isText()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
-                            } else {
-                                testContext.failNow("The frame is not a text frame");
-                            }
+                    webSocket.frameHandler(frame -> {
+                        if (frame.isText()) {
+                            testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                            testContext.completeNow();
+                        } else {
+                            testContext.failNow("The frame is not a text frame");
                         }
-                    );
+                    });
                 }
             }
         );

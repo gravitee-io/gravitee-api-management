@@ -75,21 +75,19 @@ public abstract class AbstractReferenceMetadataService {
             final List<ReferenceMetadataEntity> allMetadata = new ArrayList<>();
             if (withDefaults) {
                 final List<MetadataEntity> defaultMetadataList = metadataService.findAllDefault();
-                defaultMetadataList.forEach(
-                    defaultMetadata -> {
-                        ReferenceMetadataEntity referenceMetadataEntity = referenceMetadataMap.get(defaultMetadata.getKey());
-                        if (referenceMetadataEntity != null) {
-                            //update the reference metadata in the map
-                            referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue());
-                        } else {
-                            final Optional<Metadata> optReferenceMetadata = referenceMetadataList
-                                .stream()
-                                .filter(referenceMetadata -> defaultMetadata.getKey().equals(referenceMetadata.getKey()))
-                                .findAny();
-                            allMetadata.add(convert(optReferenceMetadata, defaultMetadata));
-                        }
+                defaultMetadataList.forEach(defaultMetadata -> {
+                    ReferenceMetadataEntity referenceMetadataEntity = referenceMetadataMap.get(defaultMetadata.getKey());
+                    if (referenceMetadataEntity != null) {
+                        //update the reference metadata in the map
+                        referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue());
+                    } else {
+                        final Optional<Metadata> optReferenceMetadata = referenceMetadataList
+                            .stream()
+                            .filter(referenceMetadata -> defaultMetadata.getKey().equals(referenceMetadata.getKey()))
+                            .findAny();
+                        allMetadata.add(convert(optReferenceMetadata, defaultMetadata));
                     }
-                );
+                });
             }
             //add all reference metadata
             allMetadata.addAll(referenceMetadataMap.values());

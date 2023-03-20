@@ -156,18 +156,16 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             step
                 .getRequest()
                 .getHeaders()
-                .forEach(
-                    httpHeader -> {
-                        String resolvedHeader = null;
-                        try {
-                            resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
-                        } catch (ExpressionEvaluationException e) {
-                            logger.warn("Expression {} cannot be evaluated", httpHeader.getValue());
-                        }
-
-                        options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
+                .forEach(httpHeader -> {
+                    String resolvedHeader = null;
+                    try {
+                        resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
+                    } catch (ExpressionEvaluationException e) {
+                        logger.warn("Expression {} cannot be evaluated", httpHeader.getValue());
                     }
-                );
+
+                    options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
+                });
         }
 
         return options;
@@ -203,70 +201,59 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             URL hcRequestUrl = createRequest(endpoint, step);
             Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUrl, step);
 
-            healthRequestPromise.onComplete(
-                requestPreparationEvent -> {
-                    HttpClientRequest healthRequest = requestPreparationEvent.result();
-                    final EndpointStatus.Builder healthBuilder = EndpointStatus
-                        .forEndpoint(rule.api().getId(), endpoint.getName())
-                        .on(currentTimeMillis());
+            healthRequestPromise.onComplete(requestPreparationEvent -> {
+                HttpClientRequest healthRequest = requestPreparationEvent.result();
+                final EndpointStatus.Builder healthBuilder = EndpointStatus
+                    .forEndpoint(rule.api().getId(), endpoint.getName())
+                    .on(currentTimeMillis());
 
-                    long startTime = currentTimeMillis();
+                long startTime = currentTimeMillis();
 
-                    Request request = new Request();
-                    request.setMethod(step.getRequest().getMethod());
-                    request.setUri(hcRequestUrl.toString());
+                Request request = new Request();
+                request.setMethod(step.getRequest().getMethod());
+                request.setUri(hcRequestUrl.toString());
 
-                    if (requestPreparationEvent.failed()) {
-                        reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
-                    } else {
-                        healthRequest.response(
-                            healthRequestEvent -> {
-                                if (healthRequestEvent.succeeded()) {
-                                    HttpClientResponse response = healthRequestEvent.result();
-                                    response.bodyHandler(
-                                        buffer -> {
-                                            long endTime = currentTimeMillis();
-                                            logger.debug(
-                                                "Health-check endpoint returns a response with a {} status code",
-                                                response.statusCode()
-                                            );
+                if (requestPreparationEvent.failed()) {
+                    reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
+                } else {
+                    healthRequest.response(healthRequestEvent -> {
+                        if (healthRequestEvent.succeeded()) {
+                            HttpClientResponse response = healthRequestEvent.result();
+                            response.bodyHandler(buffer -> {
+                                long endTime = currentTimeMillis();
+                                logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
 
-                                            String body = buffer.toString();
+                                String body = buffer.toString();
 
-                                            Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
+                                Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
 
-                                            // Append step stepBuilder
-                                            healthBuilder.step(healthCheckStep);
+                                // Append step stepBuilder
+                                healthBuilder.step(healthCheckStep);
 
-                                            report(healthBuilder.build());
-                                        }
-                                    );
-                                    response.exceptionHandler(
-                                        throwable -> logger.error("An error has occurred during Health check response handler", throwable)
-                                    );
-                                } else {
-                                    logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
-                                    reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
-                                }
-                            }
-                        );
-
-                        healthRequest.exceptionHandler(
-                            throwable -> {
-                                reportThrowable(throwable, step, healthBuilder, startTime, request);
-                            }
-                        );
-
-                        // Send request
-                        logger.debug("Execute health-check request: {}", healthRequest);
-                        if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
-                            healthRequest.end(step.getRequest().getBody());
+                                report(healthBuilder.build());
+                            });
+                            response.exceptionHandler(throwable ->
+                                logger.error("An error has occurred during Health check response handler", throwable)
+                            );
                         } else {
-                            healthRequest.end();
+                            logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
+                            reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                         }
+                    });
+
+                    healthRequest.exceptionHandler(throwable -> {
+                        reportThrowable(throwable, step, healthBuilder, startTime, request);
+                    });
+
+                    // Send request
+                    logger.debug("Execute health-check request: {}", healthRequest);
+                    if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
+                        healthRequest.end(step.getRequest().getBody());
+                    } else {
+                        healthRequest.end();
                     }
                 }
-            );
+            });
         } catch (Exception ex) {
             logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api().getId(), ex);
         }

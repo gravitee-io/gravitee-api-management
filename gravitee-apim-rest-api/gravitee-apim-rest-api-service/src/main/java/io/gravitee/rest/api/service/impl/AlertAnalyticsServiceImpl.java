@@ -69,16 +69,15 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
             Map<AlertTrigger, HashSet<AlertEvent>> eventsByAlert = triggersById
                 .values()
                 .stream()
-                .map(
-                    trigger ->
-                        alertEventRepository.search(
-                            new AlertEventCriteria.Builder()
-                                .alert(trigger.getId())
-                                .from(analyticsQuery.getFrom())
-                                .to(analyticsQuery.getTo())
-                                .build(),
-                            null
-                        )
+                .map(trigger ->
+                    alertEventRepository.search(
+                        new AlertEventCriteria.Builder()
+                            .alert(trigger.getId())
+                            .from(analyticsQuery.getFrom())
+                            .to(analyticsQuery.getTo())
+                            .build(),
+                        null
+                    )
                 )
                 .filter(events -> events.getContent().size() > 0)
                 .collect(
@@ -105,22 +104,20 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
                 .stream()
                 .sorted(
                     Map.Entry
-                        .<AlertTrigger, HashSet<AlertEvent>>comparingByKey(
-                            (a1, a2) -> compareSeverity().compare(a1.getSeverity(), a2.getSeverity())
+                        .<AlertTrigger, HashSet<AlertEvent>>comparingByKey((a1, a2) ->
+                            compareSeverity().compare(a1.getSeverity(), a2.getSeverity())
                         )
                         .thenComparing(Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByValue(comparing(Set::size)).reversed())
                 )
-                .map(
-                    e -> {
-                        AlertAnalyticsEntity.AlertTriggerAnalytics alertTriggerAnalytics = new AlertAnalyticsEntity.AlertTriggerAnalytics();
-                        alertTriggerAnalytics.setId(e.getKey().getId());
-                        alertTriggerAnalytics.setType(e.getKey().getType());
-                        alertTriggerAnalytics.setSeverity(e.getKey().getSeverity());
-                        alertTriggerAnalytics.setName(e.getKey().getName());
-                        alertTriggerAnalytics.setEventsCount(e.getValue().size());
-                        return alertTriggerAnalytics;
-                    }
-                )
+                .map(e -> {
+                    AlertAnalyticsEntity.AlertTriggerAnalytics alertTriggerAnalytics = new AlertAnalyticsEntity.AlertTriggerAnalytics();
+                    alertTriggerAnalytics.setId(e.getKey().getId());
+                    alertTriggerAnalytics.setType(e.getKey().getType());
+                    alertTriggerAnalytics.setSeverity(e.getKey().getSeverity());
+                    alertTriggerAnalytics.setName(e.getKey().getName());
+                    alertTriggerAnalytics.setEventsCount(e.getValue().size());
+                    return alertTriggerAnalytics;
+                })
                 .collect(toList());
 
             return new AlertAnalyticsEntity(bySeverity, alerts);

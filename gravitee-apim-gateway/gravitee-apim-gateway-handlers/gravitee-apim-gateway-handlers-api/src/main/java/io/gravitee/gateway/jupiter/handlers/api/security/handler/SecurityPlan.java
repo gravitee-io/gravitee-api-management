@@ -73,15 +73,13 @@ public class SecurityPlan {
     public Single<Boolean> canExecute(RequestExecutionContext ctx) {
         return policy
             .support(ctx)
-            .flatMap(
-                support -> {
-                    if (support) {
-                        return matchSelectionRule(ctx);
-                    }
-
-                    return FALSE;
+            .flatMap(support -> {
+                if (support) {
+                    return matchSelectionRule(ctx);
                 }
-            );
+
+                return FALSE;
+            });
     }
 
     /**
@@ -128,46 +126,44 @@ public class SecurityPlan {
             return Completable.complete();
         }
 
-        return Completable.defer(
-            () -> {
-                try {
-                    SubscriptionRepository subscriptionRepository = ctx.getComponent(SubscriptionRepository.class);
+        return Completable.defer(() -> {
+            try {
+                SubscriptionRepository subscriptionRepository = ctx.getComponent(SubscriptionRepository.class);
 
-                    // Get plan and client_id from execution context
-                    String api = ctx.getAttribute(ATTR_API);
-                    String clientId = ctx.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
+                // Get plan and client_id from execution context
+                String api = ctx.getAttribute(ATTR_API);
+                String clientId = ctx.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
 
-                    List<Subscription> subscriptions = subscriptionRepository.search(
-                        new SubscriptionCriteria.Builder()
-                            .apis(Collections.singleton(api))
-                            .clientId(clientId)
-                            .status(Subscription.Status.ACCEPTED)
-                            .build()
-                    );
+                List<Subscription> subscriptions = subscriptionRepository.search(
+                    new SubscriptionCriteria.Builder()
+                        .apis(Collections.singleton(api))
+                        .clientId(clientId)
+                        .status(Subscription.Status.ACCEPTED)
+                        .build()
+                );
 
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        final Date requestDate = new Date(ctx.request().timestamp());
-                        final Optional<Subscription> optSubscription = subscriptions
-                            .stream()
-                            .filter(sub -> sub.getPlan().equals(plan.getId()))
-                            .filter(sub -> sub.getEndingAt() == null || sub.getEndingAt().after(requestDate))
-                            .findFirst();
+                if (subscriptions != null && !subscriptions.isEmpty()) {
+                    final Date requestDate = new Date(ctx.request().timestamp());
+                    final Optional<Subscription> optSubscription = subscriptions
+                        .stream()
+                        .filter(sub -> sub.getPlan().equals(plan.getId()))
+                        .filter(sub -> sub.getEndingAt() == null || sub.getEndingAt().after(requestDate))
+                        .findFirst();
 
-                        if (optSubscription.isPresent()) {
-                            Subscription subscription = optSubscription.get();
-                            ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
-                            ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
+                    if (optSubscription.isPresent()) {
+                        Subscription subscription = optSubscription.get();
+                        ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
+                        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
 
-                            return Completable.complete();
-                        }
+                        return Completable.complete();
                     }
-
-                    return policy.onInvalidSubscription(ctx);
-                } catch (Throwable t) {
-                    log.warn("An error occurred during subscription validation", t);
-                    return policy.onInvalidSubscription(ctx);
                 }
+
+                return policy.onInvalidSubscription(ctx);
+            } catch (Throwable t) {
+                log.warn("An error occurred during subscription validation", t);
+                return policy.onInvalidSubscription(ctx);
             }
-        );
+        });
     }
 }

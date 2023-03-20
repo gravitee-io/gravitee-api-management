@@ -140,18 +140,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
         return planEntities
             .stream()
-            .filter(
-                p -> {
-                    boolean filtered = true;
-                    if (query.getName() != null) {
-                        filtered = p.getName().equals(query.getName());
-                    }
-                    if (filtered && query.getSecurity() != null) {
-                        filtered = p.getSecurity().equals(query.getSecurity());
-                    }
-                    return filtered;
+            .filter(p -> {
+                boolean filtered = true;
+                if (query.getName() != null) {
+                    filtered = p.getName().equals(query.getName());
                 }
-            )
+                if (filtered && query.getSecurity() != null) {
+                    filtered = p.getSecurity().equals(query.getSecurity());
+                }
+                return filtered;
+            })
             .collect(Collectors.toList());
     }
 
@@ -354,16 +352,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 subscriptionService
                     .findByPlan(executionContext, planId)
                     .stream()
-                    .forEach(
-                        subscription -> {
-                            try {
-                                subscriptionService.close(executionContext, subscription.getId());
-                            } catch (SubscriptionNotClosableException snce) {
-                                // subscription status could not be closed (already closed or rejected)
-                                // ignore it
-                            }
+                    .forEach(subscription -> {
+                        try {
+                            subscriptionService.close(executionContext, subscription.getId());
+                        } catch (SubscriptionNotClosableException snce) {
+                            // subscription status could not be closed (already closed or rejected)
+                            // ignore it
                         }
-                    );
+                    });
             }
 
             // Save plan
@@ -586,19 +582,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))
             .sorted(Comparator.comparingInt(Plan::getOrder))
-            .forEachOrdered(
-                plan -> {
-                    try {
-                        if (plan.getOrder() > planRemoved.getOrder()) {
-                            plan.setOrder(plan.getOrder() - 1);
-                            planRepository.update(plan);
-                        }
-                    } catch (final TechnicalException ex) {
-                        logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
-                        throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
+            .forEachOrdered(plan -> {
+                try {
+                    if (plan.getOrder() > planRemoved.getOrder()) {
+                        plan.setOrder(plan.getOrder() - 1);
+                        planRepository.update(plan);
                     }
+                } catch (final TechnicalException ex) {
+                    logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
-            );
+            });
     }
 
     private PlanEntity convert(Plan plan) {

@@ -182,13 +182,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 assertRoleNameAllowedForReference(reference, roleEntity);
 
                 if (member.getMemberId() != null) {
-                    Set<io.gravitee.repository.management.model.Membership> similarMemberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                        member.getMemberId(),
-                        convert(member.getMemberType()),
-                        convert(reference.getType()),
-                        reference.getId(),
-                        roleEntity.getId()
-                    );
+                    Set<io.gravitee.repository.management.model.Membership> similarMemberships =
+                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                            member.getMemberId(),
+                            convert(member.getMemberType()),
+                            convert(reference.getType()),
+                            reference.getId(),
+                            roleEntity.getId()
+                        );
 
                     if (!similarMemberships.isEmpty()) {
                         if (update) {
@@ -226,12 +227,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         applicationAlertService.addMemberToApplication(executionContext, reference.getId(), userEntity.getEmail());
                     }
 
-                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                        userEntity.getId(),
-                        convert(member.getMemberType()),
-                        convert(reference.getType()),
-                        reference.getId()
-                    );
+                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference =
+                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            userEntity.getId(),
+                            convert(member.getMemberType()),
+                            convert(reference.getType()),
+                            reference.getId()
+                        );
                     boolean shouldNotify =
                         notify &&
                         userRolesOnReference != null &&
@@ -420,36 +422,24 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 groupEntities.addAll(groupService.findByIds(groupsIds));
             }
 
-            members.forEach(
-                m -> {
-                    Optional<io.gravitee.repository.management.model.Membership> membership = memberships
-                        .stream()
-                        .filter(ms -> ms.getMemberId().equals(m.getId()))
-                        .findFirst();
-                    membership.ifPresent(
-                        ms -> {
-                            if (ms.getMemberType() == io.gravitee.repository.management.model.MembershipMemberType.USER) {
-                                Optional<UserEntity> user = userEntities
-                                    .stream()
-                                    .filter(u -> u.getId().equals(ms.getMemberId()))
-                                    .findFirst();
-                                user.ifPresent(
-                                    u -> {
-                                        m.setDisplayName(u.getDisplayName());
-                                        m.setEmail(u.getEmail());
-                                    }
-                                );
-                            } else {
-                                Optional<GroupEntity> group = groupEntities
-                                    .stream()
-                                    .filter(u -> u.getId().equals(ms.getMemberId()))
-                                    .findFirst();
-                                group.ifPresent(g -> m.setDisplayName(g.getName()));
-                            }
-                        }
-                    );
-                }
-            );
+            members.forEach(m -> {
+                Optional<io.gravitee.repository.management.model.Membership> membership = memberships
+                    .stream()
+                    .filter(ms -> ms.getMemberId().equals(m.getId()))
+                    .findFirst();
+                membership.ifPresent(ms -> {
+                    if (ms.getMemberType() == io.gravitee.repository.management.model.MembershipMemberType.USER) {
+                        Optional<UserEntity> user = userEntities.stream().filter(u -> u.getId().equals(ms.getMemberId())).findFirst();
+                        user.ifPresent(u -> {
+                            m.setDisplayName(u.getDisplayName());
+                            m.setEmail(u.getEmail());
+                        });
+                    } else {
+                        Optional<GroupEntity> group = groupEntities.stream().filter(u -> u.getId().equals(ms.getMemberId())).findFirst();
+                        group.ifPresent(g -> m.setDisplayName(g.getName()));
+                    }
+                });
+            });
         }
     }
 
@@ -617,12 +607,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity apiPORole = roleService
                 .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
-            Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                memberId,
-                convert(memberType),
-                convert(referenceType),
-                referenceId
-            );
+            Set<io.gravitee.repository.management.model.Membership> memberships =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    memberId,
+                    convert(memberType),
+                    convert(referenceType),
+                    referenceId
+                );
 
             if (MembershipReferenceType.API.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(apiPORole, memberships);
@@ -679,11 +670,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .stream()
             .filter(membership -> membership.getRoleId().equals(apiPORole.getId()))
             .findFirst()
-            .ifPresent(
-                membership -> {
-                    throw new ApiPrimaryOwnerRemovalException();
-                }
-            );
+            .ifPresent(membership -> {
+                throw new ApiPrimaryOwnerRemovalException();
+            });
     }
 
     @Override
@@ -708,26 +697,24 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 )
                 .stream()
                 .filter(membership -> sourceId != null && sourceId.equals(membership.getSource()))
-                .forEach(
-                    membership -> {
-                        UserMembership userMembership = new UserMembership();
-                        userMembership.setType(type.name());
-                        userMembership.setReference(membership.getReferenceId());
-                        userMembership.setSource(membership.getSource());
-                        RoleEntity role = roleMap.get(membership.getRoleId());
-                        if (role != null) {
-                            int key = userMembership.hashCode();
-                            if (userMembershipMap.containsKey(key)) {
-                                userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
-                            } else {
-                                HashMap<String, String> roles = new HashMap<>();
-                                roles.put(role.getScope().name(), role.getName());
-                                userMembership.setRoles(roles);
-                                userMembershipMap.put(userMembership.hashCode(), userMembership);
-                            }
+                .forEach(membership -> {
+                    UserMembership userMembership = new UserMembership();
+                    userMembership.setType(type.name());
+                    userMembership.setReference(membership.getReferenceId());
+                    userMembership.setSource(membership.getSource());
+                    RoleEntity role = roleMap.get(membership.getRoleId());
+                    if (role != null) {
+                        int key = userMembership.hashCode();
+                        if (userMembershipMap.containsKey(key)) {
+                            userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
+                        } else {
+                            HashMap<String, String> roles = new HashMap<>();
+                            roles.put(role.getScope().name(), role.getName());
+                            userMembership.setRoles(roles);
+                            userMembershipMap.put(userMembership.hashCode(), userMembership);
                         }
                     }
-                );
+                });
 
             return new ArrayList<>(userMembershipMap.values());
         } catch (TechnicalException ex) {
@@ -760,26 +747,24 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     io.gravitee.repository.management.model.MembershipMemberType.USER,
                     convert(type)
                 )
-                .forEach(
-                    membership -> {
-                        UserMembership userMembership = new UserMembership();
-                        userMembership.setType(type.name());
-                        userMembership.setReference(membership.getReferenceId());
-                        userMembership.setSource(membership.getSource());
-                        RoleEntity role = roleMap.get(membership.getRoleId());
-                        if (role != null) {
-                            int key = userMembership.hashCode();
-                            if (userMembershipMap.containsKey(key)) {
-                                userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
-                            } else {
-                                HashMap<String, String> roles = new HashMap<>();
-                                roles.put(role.getScope().name(), role.getName());
-                                userMembership.setRoles(roles);
-                                userMembershipMap.put(userMembership.hashCode(), userMembership);
-                            }
+                .forEach(membership -> {
+                    UserMembership userMembership = new UserMembership();
+                    userMembership.setType(type.name());
+                    userMembership.setReference(membership.getReferenceId());
+                    userMembership.setSource(membership.getSource());
+                    RoleEntity role = roleMap.get(membership.getRoleId());
+                    if (role != null) {
+                        int key = userMembership.hashCode();
+                        if (userMembershipMap.containsKey(key)) {
+                            userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
+                        } else {
+                            HashMap<String, String> roles = new HashMap<>();
+                            roles.put(role.getScope().name(), role.getName());
+                            userMembership.setRoles(roles);
+                            userMembershipMap.put(userMembership.hashCode(), userMembership);
                         }
                     }
-                );
+                });
             Set<UserMembership> userMemberships = new HashSet<>(userMembershipMap.values());
 
             // Find all application Ids and api Ids linked to all user groups
@@ -805,14 +790,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     userMemberships.addAll(
                         resourceIds
                             .stream()
-                            .map(
-                                id -> {
-                                    UserMembership userMembership = new UserMembership();
-                                    userMembership.setType(type.name());
-                                    userMembership.setReference(id);
-                                    return userMembership;
-                                }
-                            )
+                            .map(id -> {
+                                UserMembership userMembership = new UserMembership();
+                                userMembership.setType(type.name());
+                                userMembership.setReference(id);
+                                return userMembership;
+                            })
                             .collect(Collectors.toSet())
                     );
                 }
@@ -846,21 +829,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
                 apiRepository
                     .search(criteria.build(), null, ApiFieldFilter.defaultFields())
-                    .forEach(
-                        api -> {
-                            metadata.put(api.getId(), "name", api.getName());
-                            metadata.put(api.getId(), "version", api.getVersion());
-                            metadata.put(api.getId(), "visibility", api.getVisibility());
-                        }
-                    );
+                    .forEach(api -> {
+                        metadata.put(api.getId(), "name", api.getName());
+                        metadata.put(api.getId(), "version", api.getVersion());
+                        metadata.put(api.getId(), "visibility", api.getVisibility());
+                    });
             } else if (type.equals(MembershipReferenceType.APPLICATION)) {
                 applicationRepository
                     .findByIds(memberships.stream().map(UserMembership::getReference).collect(Collectors.toList()))
-                    .forEach(
-                        application -> {
-                            metadata.put(application.getId(), "name", application.getName());
-                        }
-                    );
+                    .forEach(application -> {
+                        metadata.put(application.getId(), "name", application.getName());
+                    });
             }
             return metadata;
         } catch (TechnicalException ex) {
@@ -959,20 +938,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             memberships
                 .stream()
                 .map(this::convertToMemberEntity)
-                .forEach(
-                    member -> {
-                        String key = member.getId() + member.getReferenceId();
-                        MemberEntity existingEntity = results.get(key);
-                        if (existingEntity == null) {
-                            results.put(key, member);
-                            existingEntity = member;
-                        } else {
-                            Set<RoleEntity> existingRoles = new HashSet<>(existingEntity.getRoles());
-                            existingRoles.addAll(member.getRoles());
-                            existingEntity.setRoles(new ArrayList<>(existingRoles));
-                        }
+                .forEach(member -> {
+                    String key = member.getId() + member.getReferenceId();
+                    MemberEntity existingEntity = results.get(key);
+                    if (existingEntity == null) {
+                        results.put(key, member);
+                        existingEntity = member;
+                    } else {
+                        Set<RoleEntity> existingRoles = new HashSet<>(existingEntity.getRoles());
+                        existingRoles.addAll(member.getRoles());
+                        existingEntity.setRoles(new ArrayList<>(existingRoles));
                     }
-                );
+                });
 
             List<MemberEntity> members = new ArrayList<>(results.values());
             fillMemberUserInformation(executionContext, memberships, members);
@@ -1296,12 +1273,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String userId
     ) {
         try {
-            Set<io.gravitee.repository.management.model.Membership> userMemberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                userId,
-                convert(MembershipMemberType.USER),
-                convert(referenceType),
-                referenceId
-            );
+            Set<io.gravitee.repository.management.model.Membership> userMemberships =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    userId,
+                    convert(MembershipMemberType.USER),
+                    convert(referenceType),
+                    referenceId
+                );
 
             //Get entity groups
             Set<String> entityGroups = new HashSet<>();
@@ -1357,11 +1335,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             .map(io.gravitee.repository.management.model.Membership::getRoleId)
                             .map(roleService::findById)
                             .filter(role -> role.getScope().name().equals(referenceType.name()))
-                            .map(
-                                role ->
-                                    role.isApiPrimaryOwner()
-                                        ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
-                                        : role
+                            .map(role ->
+                                role.isApiPrimaryOwner()
+                                    ? mapApiPrimaryOwnerRoleToGroupRole(executionContext, referenceId, group, role)
+                                    : role
                             )
                             .filter(Objects::nonNull)
                             .collect(Collectors.toSet())
@@ -1418,16 +1395,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
         }
         Map<String, char[]> permissions = new HashMap<>(mergedPermissions.size());
-        mergedPermissions.forEach(
-            (String k, Set<Character> v) -> {
-                Character[] characters = v.toArray(new Character[v.size()]);
-                char[] chars = new char[characters.length];
-                for (int i = 0; i < characters.length; i++) {
-                    chars[i] = characters[i];
-                }
-                permissions.put(k, chars);
+        mergedPermissions.forEach((String k, Set<Character> v) -> {
+            Character[] characters = v.toArray(new Character[v.size()]);
+            char[] chars = new char[characters.length];
+            for (int i = 0; i < characters.length; i++) {
+                chars[i] = characters[i];
             }
-        );
+            permissions.put(k, chars);
+        });
         return permissions;
     }
 
@@ -1474,13 +1449,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String roleId
     ) {
         try {
-            Set<io.gravitee.repository.management.model.Membership> membershipsToDelete = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                memberId,
-                convert(memberType),
-                convert(referenceType),
-                referenceId,
-                roleId
-            );
+            Set<io.gravitee.repository.management.model.Membership> membershipsToDelete =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                    memberId,
+                    convert(memberType),
+                    convert(referenceType),
+                    referenceId,
+                    roleId
+                );
             for (io.gravitee.repository.management.model.Membership m : membershipsToDelete) {
                 membershipRepository.delete(m.getId());
             }
@@ -1515,13 +1491,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         try {
             Set<io.gravitee.repository.management.model.Membership> membershipsWithOldRole = membershipRepository.findByRoleId(oldRoleId);
             for (io.gravitee.repository.management.model.Membership membership : membershipsWithOldRole) {
-                Set<io.gravitee.repository.management.model.Membership> membershipsWithNewRole = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                    membership.getMemberId(),
-                    membership.getMemberType(),
-                    membership.getReferenceType(),
-                    membership.getReferenceId(),
-                    newRoleId
-                );
+                Set<io.gravitee.repository.management.model.Membership> membershipsWithNewRole =
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                        membership.getMemberId(),
+                        membership.getMemberType(),
+                        membership.getReferenceType(),
+                        membership.getReferenceId(),
+                        newRoleId
+                    );
                 String oldMembershipId = membership.getId();
                 if (membershipsWithNewRole.isEmpty()) {
                     membership.setId(UuidString.generateRandom());
@@ -1637,13 +1614,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     member.getMemberType(),
                     member.getMemberId()
                 )
-                .forEach(
-                    role -> {
-                        if (!role.getId().equals(poRoleEntity.getId())) {
-                            this.removeRole(membershipReferenceType, itemId, member.getMemberType(), member.getMemberId(), role.getId());
-                        }
+                .forEach(role -> {
+                    if (!role.getId().equals(poRoleEntity.getId())) {
+                        this.removeRole(membershipReferenceType, itemId, member.getMemberType(), member.getMemberId(), role.getId());
                     }
-                );
+                });
 
             // remove role of the previous  primary owner
             this.removeRole(

@@ -68,12 +68,13 @@ public class NotificationTemplateRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByHookAndReferenceIdAndReferenceType() throws Exception {
-        final Set<NotificationTemplate> notificationTemplates = notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType(
-            "MY_HOOK_3",
-            "API",
-            "DEFAULT",
-            NotificationTemplateReferenceType.ORGANIZATION
-        );
+        final Set<NotificationTemplate> notificationTemplates =
+            notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType(
+                "MY_HOOK_3",
+                "API",
+                "DEFAULT",
+                NotificationTemplateReferenceType.ORGANIZATION
+            );
 
         assertNotNull(notificationTemplates);
         assertEquals(2, notificationTemplates.size());

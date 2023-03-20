@@ -133,13 +133,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(1));
-                    return ApiEntityResult.success(apiEntity);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(1));
+                return ApiEntityResult.success(apiEntity);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -194,13 +192,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(1));
-                    return ApiEntityResult.success(apiEntity);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(1));
+                return ApiEntityResult.success(apiEntity);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -251,13 +247,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(1));
-                    return ApiEntityResult.success(apiEntity);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(1));
+                return ApiEntityResult.success(apiEntity);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -312,13 +306,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity result = new ApiEntity();
-                    result.setId(i.getArgument(1));
-                    return ApiEntityResult.success(result);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity result = new ApiEntity();
+                result.setId(i.getArgument(1));
+                return ApiEntityResult.success(result);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -373,13 +365,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity result = new ApiEntity();
-                    result.setId(i.getArgument(1));
-                    return ApiEntityResult.success(result);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity result = new ApiEntity();
+                result.setId(i.getArgument(1));
+                return ApiEntityResult.success(result);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -434,13 +424,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity result = new ApiEntity();
-                    result.setId(i.getArgument(1));
-                    return ApiEntityResult.success(result);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity result = new ApiEntity();
+                result.setId(i.getArgument(1));
+                return ApiEntityResult.success(result);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -491,13 +479,11 @@ public class DeployModelCommandHandlerTest {
                 eq(payload.getLabels())
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(1));
-                    return ApiEntityResult.success(apiEntity);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(1));
+                return ApiEntityResult.success(apiEntity);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -586,15 +572,13 @@ public class DeployModelCommandHandlerTest {
 
         obs.awaitTerminalEvent();
         obs.assertNoErrors();
-        obs.assertValue(
-            reply -> {
-                Assertions
-                    .assertThat(reply)
-                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
-                    .containsExactly(command.getId(), CommandStatus.FAILED, "You are not allowed to create APIs on this environment.");
-                return true;
-            }
-        );
+        obs.assertValue(reply -> {
+            Assertions
+                .assertThat(reply)
+                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
+                .containsExactly(command.getId(), CommandStatus.FAILED, "You are not allowed to create APIs on this environment.");
+            return true;
+        });
     }
 
     @Test
@@ -637,15 +621,13 @@ public class DeployModelCommandHandlerTest {
 
         obs.awaitTerminalEvent();
         obs.assertNoErrors();
-        obs.assertValue(
-            reply -> {
-                Assertions
-                    .assertThat(reply)
-                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
-                    .containsExactly(command.getId(), CommandStatus.FAILED, "You are not allowed to create APIs on this environment.");
-                return true;
-            }
-        );
+        obs.assertValue(reply -> {
+            Assertions
+                .assertThat(reply)
+                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
+                .containsExactly(command.getId(), CommandStatus.FAILED, "You are not allowed to create APIs on this environment.");
+            return true;
+        });
     }
 
     @Test
@@ -691,13 +673,11 @@ public class DeployModelCommandHandlerTest {
                 payload.getLabels()
             )
         )
-            .thenAnswer(
-                i -> {
-                    ApiEntity apiEntity = new ApiEntity();
-                    apiEntity.setId(i.getArgument(0));
-                    return ApiEntityResult.success(apiEntity);
-                }
-            );
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(0));
+                return ApiEntityResult.success(apiEntity);
+            });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
         obs.awaitTerminalEvent();
@@ -797,14 +777,12 @@ public class DeployModelCommandHandlerTest {
 
         obs.awaitTerminalEvent();
         obs.assertNoErrors();
-        obs.assertValue(
-            reply -> {
-                Assertions
-                    .assertThat(reply)
-                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
-                    .containsExactly(command.getId(), CommandStatus.FAILED, "context path not available");
-                return true;
-            }
-        );
+        obs.assertValue(reply -> {
+            Assertions
+                .assertThat(reply)
+                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getMessage)
+                .containsExactly(command.getId(), CommandStatus.FAILED, "context path not available");
+            return true;
+        });
     }
 }

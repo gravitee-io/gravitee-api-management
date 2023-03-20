@@ -75,15 +75,13 @@ public class PolicyChain implements Hookable<Hook> {
         if (this.messageHooks == null) {
             this.messageHooks = new ArrayList<>();
         }
-        hooks.forEach(
-            hook -> {
-                if (hook instanceof PolicyHook) {
-                    this.policyHooks.add((PolicyHook) hook);
-                } else if (hook instanceof MessageHook) {
-                    this.messageHooks.add((MessageHook) hook);
-                }
+        hooks.forEach(hook -> {
+            if (hook instanceof PolicyHook) {
+                this.policyHooks.add((PolicyHook) hook);
+            } else if (hook instanceof MessageHook) {
+                this.messageHooks.add((MessageHook) hook);
             }
-        );
+        });
     }
 
     /**
@@ -121,20 +119,18 @@ public class PolicyChain implements Hookable<Hook> {
                 return requestExecution.andThen(
                     messageExecutionContext
                         .incomingMessageFlow()
-                        .onMessage(
-                            upstream ->
-                                policy
-                                    .onMessageFlow(messageExecutionContext, upstream)
-                                    .flatMapMaybe(
-                                        message ->
-                                            HookHelper.hook(
-                                                policy.onMessage(messageExecutionContext, message),
-                                                policy.id(),
-                                                messageHooks,
-                                                ctx,
-                                                phase
-                                            )
+                        .onMessage(upstream ->
+                            policy
+                                .onMessageFlow(messageExecutionContext, upstream)
+                                .flatMapMaybe(message ->
+                                    HookHelper.hook(
+                                        policy.onMessage(messageExecutionContext, message),
+                                        policy.id(),
+                                        messageHooks,
+                                        ctx,
+                                        phase
                                     )
+                                )
                         )
                 );
             }
@@ -146,20 +142,18 @@ public class PolicyChain implements Hookable<Hook> {
                 return responseExecution.andThen(
                     messageExecutionContext
                         .outgoingMessageFlow()
-                        .onMessage(
-                            upstream ->
-                                policy
-                                    .onMessageFlow(messageExecutionContext, upstream)
-                                    .flatMapMaybe(
-                                        message ->
-                                            HookHelper.hook(
-                                                policy.onMessage(messageExecutionContext, message),
-                                                policy.id(),
-                                                messageHooks,
-                                                ctx,
-                                                phase
-                                            )
+                        .onMessage(upstream ->
+                            policy
+                                .onMessageFlow(messageExecutionContext, upstream)
+                                .flatMapMaybe(message ->
+                                    HookHelper.hook(
+                                        policy.onMessage(messageExecutionContext, message),
+                                        policy.id(),
+                                        messageHooks,
+                                        ctx,
+                                        phase
                                     )
+                                )
                         )
                 );
             }

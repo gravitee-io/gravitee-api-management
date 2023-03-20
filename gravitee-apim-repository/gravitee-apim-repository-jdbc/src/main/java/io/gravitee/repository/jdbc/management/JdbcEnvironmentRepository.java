@@ -222,12 +222,10 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
             final Optional<Environment> environment = environments.stream().findFirst();
 
-            environment.ifPresent(
-                env -> {
-                    this.addDomainRestrictions(env);
-                    this.addHrids(env);
-                }
-            );
+            environment.ifPresent(env -> {
+                this.addDomainRestrictions(env);
+                this.addHrids(env);
+            });
 
             return environment;
         } catch (final Exception ex) {

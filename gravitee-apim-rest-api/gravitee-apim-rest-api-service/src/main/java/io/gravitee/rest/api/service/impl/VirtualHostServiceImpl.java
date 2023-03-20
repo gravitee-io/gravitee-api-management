@@ -87,43 +87,38 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
             )
             .filter(api -> !api.getId().equals(apiId))
             .map(api -> convert(api).getProxy().getVirtualHosts())
-            .forEach(
-                apiVirtualHosts -> {
-                    // Get all the API of the currentEnvironment, except the one to update
-                    Map<String, List<String>> registeredVirtualHosts = apiVirtualHosts
+            .forEach(apiVirtualHosts -> {
+                // Get all the API of the currentEnvironment, except the one to update
+                Map<String, List<String>> registeredVirtualHosts = apiVirtualHosts
+                    .stream()
+                    .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
+                    .collect(Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList())));
+
+                // Check only virtual hosts with a host and compare to registered virtual hosts
+                if (!registeredVirtualHosts.isEmpty()) {
+                    sanitizedVirtualHosts
                         .stream()
                         .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-                        .collect(
-                            Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList()))
+                        .forEach(virtualHost ->
+                            checkPathNotYetRegistered(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost()))
                         );
+                }
 
-                    // Check only virtual hosts with a host and compare to registered virtual hosts
-                    if (!registeredVirtualHosts.isEmpty()) {
-                        sanitizedVirtualHosts
-                            .stream()
-                            .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-                            .forEach(
-                                virtualHost ->
-                                    checkPathNotYetRegistered(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost()))
-                            );
-                    }
+                // Extract all the virtual hosts with a host
+                List<String> registeredContextPaths = apiVirtualHosts
+                    .stream()
+                    .filter(virtualHost -> virtualHost.getHost() == null)
+                    .map(VirtualHost::getPath)
+                    .collect(Collectors.toList());
 
-                    // Extract all the virtual hosts with a host
-                    List<String> registeredContextPaths = apiVirtualHosts
+                // Then check remaining virtual hosts without a host and compare to registered context paths
+                if (!registeredContextPaths.isEmpty()) {
+                    sanitizedVirtualHosts
                         .stream()
                         .filter(virtualHost -> virtualHost.getHost() == null)
-                        .map(VirtualHost::getPath)
-                        .collect(Collectors.toList());
-
-                    // Then check remaining virtual hosts without a host and compare to registered context paths
-                    if (!registeredContextPaths.isEmpty()) {
-                        sanitizedVirtualHosts
-                            .stream()
-                            .filter(virtualHost -> virtualHost.getHost() == null)
-                            .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredContextPaths));
-                    }
+                        .forEach(virtualHost -> checkPathNotYetRegistered(virtualHost.getPath(), registeredContextPaths));
                 }
-            );
+            });
 
         return sanitizedVirtualHosts;
     }

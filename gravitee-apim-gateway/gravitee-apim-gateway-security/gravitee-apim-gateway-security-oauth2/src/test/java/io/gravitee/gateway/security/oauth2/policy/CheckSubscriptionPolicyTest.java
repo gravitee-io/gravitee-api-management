@@ -73,10 +73,9 @@ public class CheckSubscriptionPolicyTest {
 
         verify(policyChain, times(1))
             .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())
+                argThat(result ->
+                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())
                 )
             );
     }
@@ -99,10 +98,9 @@ public class CheckSubscriptionPolicyTest {
 
         verify(policyChain, times(1))
             .failWith(
-                argThat(
-                    result ->
-                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())
+                argThat(result ->
+                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())
                 )
             );
     }

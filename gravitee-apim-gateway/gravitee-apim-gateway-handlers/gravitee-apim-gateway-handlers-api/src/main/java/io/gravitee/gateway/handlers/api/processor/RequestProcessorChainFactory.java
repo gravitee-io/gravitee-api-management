@@ -94,15 +94,13 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
             loggingDecoratorSupplier =
-                new StreamableProcessorSupplier<>(
-                    () -> {
-                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                        processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
-                        processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
+                new StreamableProcessorSupplier<>(() -> {
+                    ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                    processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
+                    processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
 
-                        return processor;
-                    }
-                );
+                    return processor;
+                });
 
             add(loggingDecoratorSupplier);
         }

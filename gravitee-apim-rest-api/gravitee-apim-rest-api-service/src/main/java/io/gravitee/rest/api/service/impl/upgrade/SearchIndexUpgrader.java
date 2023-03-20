@@ -199,21 +199,19 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                         new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
                         true
                     );
-                    apiPages.forEach(
-                        page -> {
-                            try {
-                                if (
-                                    !PageType.FOLDER.name().equals(page.getType()) &&
-                                    !PageType.ROOT.name().equals(page.getType()) &&
-                                    !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                    !PageType.LINK.name().equals(page.getType())
-                                ) {
-                                    pageService.transformSwagger(executionContext, page, apiEntity.getId());
-                                    searchEngineService.index(executionContext, page, true, false);
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    );
+                    apiPages.forEach(page -> {
+                        try {
+                            if (
+                                !PageType.FOLDER.name().equals(page.getType()) &&
+                                !PageType.ROOT.name().equals(page.getType()) &&
+                                !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                                !PageType.LINK.name().equals(page.getType())
+                            ) {
+                                pageService.transformSwagger(executionContext, page, apiEntity.getId());
+                                searchEngineService.index(executionContext, page, true, false);
+                            }
+                        } catch (Exception ignored) {}
+                    });
                 } finally {
                     GraviteeContext.cleanContext();
                 }

@@ -91,12 +91,10 @@ public class DebugEventCompletionProcessorTest {
         final Vertx vertx = mock(Vertx.class);
         Promise<Void> promise = new PromiseImpl<>();
         when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
-        doAnswer(
-                i -> {
-                    ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
-                    return null;
-                }
-            )
+        doAnswer(i -> {
+                ((Handler<Promise<Void>>) i.getArgument(0)).handle(promise);
+                return null;
+            })
             .when(vertx)
             .executeBlocking(any(), any());
     }

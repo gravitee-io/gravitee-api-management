@@ -88,15 +88,13 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         List<ServiceDiscovery> discoveries = apiServiceDiscoveries.remove(api);
         if (discoveries != null) {
             LOGGER.info("Stop service discovery for API id[{}] name[{}]", api.getId(), api.getName());
-            discoveries.forEach(
-                serviceDiscovery -> {
-                    try {
-                        serviceDiscovery.stop();
-                    } catch (Exception ex) {
-                        LOGGER.error("Unexpected error while stopping service discovery", ex);
-                    }
+            discoveries.forEach(serviceDiscovery -> {
+                try {
+                    serviceDiscovery.stop();
+                } catch (Exception ex) {
+                    LOGGER.error("Unexpected error while stopping service discovery", ex);
                 }
-            );
+            });
         }
     }
 
@@ -136,20 +134,18 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                 if (group.getEndpoints() == null) {
                     group.setEndpoints(endpoints);
                 }
-                serviceDiscovery.listen(
-                    event -> {
-                        LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
-                        Endpoint endpoint = createEndpoint(event.service(), group);
-                        switch (event.type()) {
-                            case REGISTER:
-                                endpoints.add(endpoint);
-                                break;
-                            case UNREGISTER:
-                                endpoints.remove(endpoint);
-                                break;
-                        }
+                serviceDiscovery.listen(event -> {
+                    LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
+                    Endpoint endpoint = createEndpoint(event.service(), group);
+                    switch (event.type()) {
+                        case REGISTER:
+                            endpoints.add(endpoint);
+                            break;
+                        case UNREGISTER:
+                            endpoints.remove(endpoint);
+                            break;
                     }
-                );
+                });
             } catch (Exception ex) {
                 LOGGER.error("An errors occurs while starting to listen from service discovery provider", ex);
             }

@@ -73,17 +73,15 @@ public class DebugReactorVerticle extends AbstractVerticle {
 
         httpServer.requestHandler(handler);
 
-        httpServer.listen(
-            res -> {
-                if (res.succeeded()) {
-                    logger.info("Debug HTTP listener ready to accept requests on port {}", debugHttpServerConfiguration.getPort());
-                    startPromise.complete();
-                } else {
-                    logger.error("Unable to start Debug HTTP Server", res.cause());
-                    startPromise.fail(res.cause());
-                }
+        httpServer.listen(res -> {
+            if (res.succeeded()) {
+                logger.info("Debug HTTP listener ready to accept requests on port {}", debugHttpServerConfiguration.getPort());
+                startPromise.complete();
+            } else {
+                logger.error("Unable to start Debug HTTP Server", res.cause());
+                startPromise.fail(res.cause());
             }
-        );
+        });
     }
 
     @Override

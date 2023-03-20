@@ -47,29 +47,27 @@ public class PlanProcessor implements Processor {
 
     @Override
     public Completable execute(RequestExecutionContext ctx) {
-        return Completable.fromRunnable(
-            () -> {
-                final Metrics metrics = ctx.request().metrics();
+        return Completable.fromRunnable(() -> {
+            final Metrics metrics = ctx.request().metrics();
 
-                if (Objects.equals(true, ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN))) {
-                    final String remoteAddress = ctx.request().remoteAddress();
+            if (Objects.equals(true, ctx.getAttribute(SecurityChain.SKIP_SECURITY_CHAIN))) {
+                final String remoteAddress = ctx.request().remoteAddress();
 
-                    // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
-                    ctx.setAttribute(ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
-                    ctx.setAttribute(ATTR_PLAN, PLAN_NAME_ANONYMOUS);
-                    ctx.setAttribute(ATTR_SUBSCRIPTION_ID, remoteAddress);
+                // Fixes consuming application and subscription which are data that can be used by policies (ie. rate-limit).
+                ctx.setAttribute(ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
+                ctx.setAttribute(ATTR_PLAN, PLAN_NAME_ANONYMOUS);
+                ctx.setAttribute(ATTR_SUBSCRIPTION_ID, remoteAddress);
 
-                    metrics.setApplication(APPLICATION_NAME_ANONYMOUS);
-                    metrics.setPlan(PLAN_NAME_ANONYMOUS);
-                    metrics.setSubscription(remoteAddress);
-                } else {
-                    // Stores information about the resolved plan (according to the incoming request)
-                    metrics.setPlan(ctx.getAttribute(ATTR_PLAN));
-                    metrics.setApplication(ctx.getAttribute(ATTR_APPLICATION));
-                    metrics.setSubscription(ctx.getAttribute(ATTR_SUBSCRIPTION_ID));
-                }
+                metrics.setApplication(APPLICATION_NAME_ANONYMOUS);
+                metrics.setPlan(PLAN_NAME_ANONYMOUS);
+                metrics.setSubscription(remoteAddress);
+            } else {
+                // Stores information about the resolved plan (according to the incoming request)
+                metrics.setPlan(ctx.getAttribute(ATTR_PLAN));
+                metrics.setApplication(ctx.getAttribute(ATTR_APPLICATION));
+                metrics.setSubscription(ctx.getAttribute(ATTR_SUBSCRIPTION_ID));
             }
-        );
+        });
     }
 
     private static class Holder {

@@ -51,12 +51,10 @@ public class MongoPromotionRepository implements PromotionRepository {
 
         return internalRepository
             .findById(id)
-            .map(
-                promotionMongo -> {
-                    logger.debug("Find promotion by ID [{}] - Done", id);
-                    return map(promotionMongo);
-                }
-            );
+            .map(promotionMongo -> {
+                logger.debug("Find promotion by ID [{}] - Done", id);
+                return map(promotionMongo);
+            });
     }
 
     @Override
@@ -75,12 +73,10 @@ public class MongoPromotionRepository implements PromotionRepository {
 
         return internalRepository
             .findById(promotion.getId())
-            .map(
-                existingPromotion -> {
-                    logger.debug("Update promotion [{}]", promotion.getId());
-                    return internalRepository.save(map(promotion));
-                }
-            )
+            .map(existingPromotion -> {
+                logger.debug("Update promotion [{}]", promotion.getId());
+                return internalRepository.save(map(promotion));
+            })
             .map(this::map)
             .orElseThrow(() -> new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId())));
     }

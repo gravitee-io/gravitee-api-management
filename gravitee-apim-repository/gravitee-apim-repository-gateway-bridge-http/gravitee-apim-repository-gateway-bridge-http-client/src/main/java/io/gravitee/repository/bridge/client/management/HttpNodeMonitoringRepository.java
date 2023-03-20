@@ -46,19 +46,17 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
         MaybeSubject<Monitoring> maybe = MaybeSubject.create();
         promise
             .future()
-            .onComplete(
-                event -> {
-                    if (event.succeeded()) {
-                        if (event.result().statusCode() == HttpStatusCode.OK_200) {
-                            maybe.onSuccess(event.result().payload());
-                        } else {
-                            maybe.onComplete();
-                        }
+            .onComplete(event -> {
+                if (event.succeeded()) {
+                    if (event.result().statusCode() == HttpStatusCode.OK_200) {
+                        maybe.onSuccess(event.result().payload());
                     } else {
-                        maybe.onError(event.cause());
+                        maybe.onComplete();
                     }
+                } else {
+                    maybe.onError(event.cause());
                 }
-            );
+            });
 
         return maybe;
     }
@@ -70,15 +68,13 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
         SingleSubject<Monitoring> single = SingleSubject.create();
         promise
             .future()
-            .onComplete(
-                event -> {
-                    if (event.succeeded()) {
-                        single.onSuccess(event.result().payload());
-                    } else {
-                        single.onError(event.cause());
-                    }
+            .onComplete(event -> {
+                if (event.succeeded()) {
+                    single.onSuccess(event.result().payload());
+                } else {
+                    single.onError(event.cause());
                 }
-            );
+            });
 
         return single;
     }
@@ -90,15 +86,13 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
         SingleSubject<Monitoring> single = SingleSubject.create();
         promise
             .future()
-            .onComplete(
-                event -> {
-                    if (event.succeeded()) {
-                        single.onSuccess(event.result().payload());
-                    } else {
-                        single.onError(event.cause());
-                    }
+            .onComplete(event -> {
+                if (event.succeeded()) {
+                    single.onSuccess(event.result().payload());
+                } else {
+                    single.onError(event.cause());
                 }
-            );
+            });
 
         return single;
     }

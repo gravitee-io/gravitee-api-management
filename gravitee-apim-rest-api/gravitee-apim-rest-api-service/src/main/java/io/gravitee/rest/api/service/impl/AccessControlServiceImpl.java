@@ -103,20 +103,18 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
 
             return accessControls
                 .stream()
-                .anyMatch(
-                    acl -> {
-                        if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
-                            boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
-                            return pageEntity.isExcludedAccessControls() ? !roleMatched : roleMatched;
-                        } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
-                            boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
-                            return pageEntity.isExcludedAccessControls() ? !groupMatched : groupMatched;
-                        } else {
-                            logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
-                        }
-                        return false;
+                .anyMatch(acl -> {
+                    if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
+                        boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
+                        return pageEntity.isExcludedAccessControls() ? !roleMatched : roleMatched;
+                    } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
+                        boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
+                        return pageEntity.isExcludedAccessControls() ? !groupMatched : groupMatched;
+                    } else {
+                        logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
                     }
-                );
+                    return false;
+                });
         }
     }
 
@@ -198,19 +196,17 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             if (api.getGroups() != null && !api.getGroups().isEmpty()) {
                 api
                     .getGroups()
-                    .forEach(
-                        groupId -> {
-                            MemberEntity member = membershipService.getUserMember(
-                                executionContext,
-                                MembershipReferenceType.GROUP,
-                                groupId,
-                                getAuthenticatedUsername()
-                            );
-                            if (member != null) {
-                                roles.addAll(member.getRoles());
-                            }
+                    .forEach(groupId -> {
+                        MemberEntity member = membershipService.getUserMember(
+                            executionContext,
+                            MembershipReferenceType.GROUP,
+                            groupId,
+                            getAuthenticatedUsername()
+                        );
+                        if (member != null) {
+                            roles.addAll(member.getRoles());
                         }
-                    );
+                    });
             }
             return roles;
         } else {

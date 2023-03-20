@@ -106,39 +106,36 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private Future<WebClientInternal> validateConnection(WebClientInternal client) {
         logger.info("Validate Bridge Server connection ...");
-        return circuitBreaker.execute(
-            future ->
-                client
-                    .get(BridgePath.get(environment))
-                    .as(BodyCodec.string())
-                    .send(
-                        response -> {
-                            if (response.succeeded()) {
-                                HttpResponse<String> httpResponse = response.result();
+        return circuitBreaker.execute(future ->
+            client
+                .get(BridgePath.get(environment))
+                .as(BodyCodec.string())
+                .send(response -> {
+                    if (response.succeeded()) {
+                        HttpResponse<String> httpResponse = response.result();
 
-                                if (httpResponse.statusCode() == HttpStatusCode.OK_200) {
-                                    JsonObject jsonObject = new JsonObject(httpResponse.body());
-                                    JsonObject version = jsonObject.getJsonObject("version");
-                                    if (version == null || !version.containsKey("MAJOR_VERSION")) {
-                                        String msg = "Invalid format response from Bridge Server. Retry.";
-                                        logger.error(msg);
-                                        future.fail(msg);
-                                    } else {
-                                        logger.info("Bridge connection successful.");
-                                        future.complete(client);
-                                    }
-                                } else {
-                                    String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
-                                    logger.error(msg);
-                                    future.fail(msg);
-                                }
-                            } else {
-                                String msg = String.format("Unable to connect to the Bridge Server. Retry in %s ms.", retryDuration);
+                        if (httpResponse.statusCode() == HttpStatusCode.OK_200) {
+                            JsonObject jsonObject = new JsonObject(httpResponse.body());
+                            JsonObject version = jsonObject.getJsonObject("version");
+                            if (version == null || !version.containsKey("MAJOR_VERSION")) {
+                                String msg = "Invalid format response from Bridge Server. Retry.";
                                 logger.error(msg);
                                 future.fail(msg);
+                            } else {
+                                logger.info("Bridge connection successful.");
+                                future.complete(client);
                             }
+                        } else {
+                            String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
+                            logger.error(msg);
+                            future.fail(msg);
                         }
-                    )
+                    } else {
+                        String msg = String.format("Unable to connect to the Bridge Server. Retry in %s ms.", retryDuration);
+                        logger.error(msg);
+                        future.fail(msg);
+                    }
+                })
         );
     }
 

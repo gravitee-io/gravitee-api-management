@@ -59,12 +59,10 @@ abstract class AbstractExecutionContext implements MutableRequestExecutionContex
 
     @Override
     public Completable interruptWith(ExecutionFailure executionFailure) {
-        return Completable.defer(
-            () -> {
-                internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
-                return Completable.error(new InterruptionFailureException(executionFailure));
-            }
-        );
+        return Completable.defer(() -> {
+            internalAttributes.put(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+            return Completable.error(new InterruptionFailureException(executionFailure));
+        });
     }
 
     @Override

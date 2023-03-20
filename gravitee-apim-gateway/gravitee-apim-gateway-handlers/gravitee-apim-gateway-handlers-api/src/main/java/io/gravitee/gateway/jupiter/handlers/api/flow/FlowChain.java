@@ -93,19 +93,17 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return the resolved flows.
      */
     private Flowable<Flow> resolveFlows(RequestExecutionContext ctx) {
-        return Flowable.defer(
-            () -> {
-                Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+        return Flowable.defer(() -> {
+            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-                if (flows == null) {
-                    // Resolves the flows once. Subsequent resolutions will return the same flows.
-                    flows = flowResolver.resolve(ctx).cache();
-                    ctx.setInternalAttribute(resolvedFlowAttribute, flows);
-                }
-
-                return flows;
+            if (flows == null) {
+                // Resolves the flows once. Subsequent resolutions will return the same flows.
+                flows = flowResolver.resolve(ctx).cache();
+                ctx.setInternalAttribute(resolvedFlowAttribute, flows);
             }
-        );
+
+            return flows;
+        });
     }
 
     /**

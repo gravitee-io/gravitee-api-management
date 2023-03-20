@@ -211,22 +211,20 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         return api
             .getPlans()
             .stream()
-            .filter(
-                plan -> {
-                    if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                        boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                        if (!hasMatchingTags) {
-                            logger.debug(
-                                "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                plan.getName(),
-                                api.getName()
-                            );
-                        }
-                        return hasMatchingTags;
+            .filter(plan -> {
+                if (plan.getTags() != null && !plan.getTags().isEmpty()) {
+                    boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
+                    if (!hasMatchingTags) {
+                        logger.debug(
+                            "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                            plan.getName(),
+                            api.getName()
+                        );
                     }
-                    return true;
+                    return hasMatchingTags;
                 }
-            )
+                return true;
+            })
             .collect(Collectors.toList());
     }
 

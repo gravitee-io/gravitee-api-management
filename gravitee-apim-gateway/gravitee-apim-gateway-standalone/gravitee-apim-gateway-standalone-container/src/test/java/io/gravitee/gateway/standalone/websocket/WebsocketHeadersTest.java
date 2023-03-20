@@ -62,16 +62,14 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
 
         HttpServer httpServer = vertx.createHttpServer();
         httpServer
-            .webSocketHandler(
-                event -> {
-                    event.accept();
-                    String customHeader = event.headers().get(customHeaderName);
+            .webSocketHandler(event -> {
+                event.accept();
+                String customHeader = event.headers().get(customHeaderName);
 
-                    testContext.verify(() -> assertThat(customHeader).isNotNull());
-                    testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
-                    event.writeTextMessage("PING");
-                }
-            )
+                testContext.verify(() -> assertThat(customHeader).isNotNull());
+                testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
+                event.writeTextMessage("PING");
+            })
             .listen(WEBSOCKET_PORT);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8082).setDefaultHost("localhost"));
@@ -87,13 +85,11 @@ public class WebsocketHeadersTest extends AbstractWebSocketGatewayTest {
                     testContext.failNow("An error occurred during websocket call");
                 } else {
                     final WebSocket webSocket = event.result();
-                    webSocket.frameHandler(
-                        frame -> {
-                            testContext.verify(() -> assertThat(frame.isText()).isTrue());
-                            testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                            testContext.completeNow();
-                        }
-                    );
+                    webSocket.frameHandler(frame -> {
+                        testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        testContext.completeNow();
+                    });
                 }
             }
         );

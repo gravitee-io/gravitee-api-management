@@ -62,15 +62,13 @@ public class HookHelper {
         if (hooks != null && !hooks.isEmpty()) {
             return maybe
                 .doOnSubscribe(disposable -> executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null))
-                .doOnEvent(
-                    (event, throwable) -> {
-                        if (throwable != null) {
-                            executeHookOnError(componentId, hooks, ctx, executionPhase, throwable);
-                        } else {
-                            executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null);
-                        }
+                .doOnEvent((event, throwable) -> {
+                    if (throwable != null) {
+                        executeHookOnError(componentId, hooks, ctx, executionPhase, throwable);
+                    } else {
+                        executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null);
                     }
-                );
+                });
         } else {
             return maybe;
         }
@@ -109,30 +107,28 @@ public class HookHelper {
         final Throwable throwable,
         final ExecutionFailure executionFailure
     ) {
-        hooks.forEach(
-            hook -> {
-                try {
-                    switch (phase) {
-                        case PRE:
-                            hook.pre(componentId, ctx, executionPhase);
-                            break;
-                        case POST:
-                            hook.post(componentId, ctx, executionPhase);
-                            break;
-                        case INTERRUPT:
-                            hook.interrupt(componentId, ctx, executionPhase);
-                            break;
-                        case INTERRUPT_WITH:
-                            hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
-                            break;
-                        case ERROR:
-                            hook.error(componentId, ctx, executionPhase, throwable);
-                            break;
-                    }
-                } catch (Exception e) {
-                    log.warn(String.format("Unable to execute '%s' hook '%s' on flow '%s'", phase.name(), hook.id(), componentId), e);
+        hooks.forEach(hook -> {
+            try {
+                switch (phase) {
+                    case PRE:
+                        hook.pre(componentId, ctx, executionPhase);
+                        break;
+                    case POST:
+                        hook.post(componentId, ctx, executionPhase);
+                        break;
+                    case INTERRUPT:
+                        hook.interrupt(componentId, ctx, executionPhase);
+                        break;
+                    case INTERRUPT_WITH:
+                        hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
+                        break;
+                    case ERROR:
+                        hook.error(componentId, ctx, executionPhase, throwable);
+                        break;
                 }
+            } catch (Exception e) {
+                log.warn(String.format("Unable to execute '%s' hook '%s' on flow '%s'", phase.name(), hook.id(), componentId), e);
             }
-        );
+        });
     }
 }

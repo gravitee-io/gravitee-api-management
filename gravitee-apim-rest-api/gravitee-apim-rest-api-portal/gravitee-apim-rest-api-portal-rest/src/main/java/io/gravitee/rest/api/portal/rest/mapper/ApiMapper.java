@@ -118,16 +118,14 @@ public class ApiMapper {
                 api
                     .getCategories()
                     .stream()
-                    .filter(
-                        categoryId -> {
-                            try {
-                                categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
-                                return true;
-                            } catch (CategoryNotFoundException v) {
-                                return false;
-                            }
+                    .filter(categoryId -> {
+                        try {
+                            categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
+                            return true;
+                        } catch (CategoryNotFoundException v) {
+                            return false;
                         }
-                    )
+                    })
                     .collect(Collectors.toList())
             );
         } else {

@@ -173,17 +173,15 @@ public class OrganizationService_UpdateOrganizationTest {
         assertEquals(COCKPIT_ID, result.getCockpitId());
         verify(mockOrganizationRepository)
             .update(
-                argThat(
-                    o -> {
-                        assertEquals(COCKPIT_ID, o.getCockpitId());
-                        assertEquals(FLOW_MODE, o.getFlowMode());
-                        assertEquals(HRIDS, o.getHrids());
-                        assertEquals(DOMAINS, o.getDomainRestrictions());
-                        assertEquals(NAME, o.getName());
-                        assertEquals(DESCRIPTION, o.getDescription());
-                        return true;
-                    }
-                )
+                argThat(o -> {
+                    assertEquals(COCKPIT_ID, o.getCockpitId());
+                    assertEquals(FLOW_MODE, o.getFlowMode());
+                    assertEquals(HRIDS, o.getHrids());
+                    assertEquals(DOMAINS, o.getDomainRestrictions());
+                    assertEquals(NAME, o.getName());
+                    assertEquals(DESCRIPTION, o.getDescription());
+                    return true;
+                })
             );
     }
 }

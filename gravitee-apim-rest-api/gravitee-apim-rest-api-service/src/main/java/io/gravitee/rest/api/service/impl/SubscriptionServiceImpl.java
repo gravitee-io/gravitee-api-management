@@ -286,8 +286,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .map(Subscription::getPlan)
                         .distinct()
                         .map(plan1 -> planService.findById(executionContext, plan1))
-                        .filter(
-                            subPlan -> subPlan.getSecurity() == PlanSecurityType.OAUTH2 || subPlan.getSecurity() == PlanSecurityType.JWT
+                        .filter(subPlan -> subPlan.getSecurity() == PlanSecurityType.OAUTH2 || subPlan.getSecurity() == PlanSecurityType.JWT
                         )
                         .count();
 
@@ -431,20 +430,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             return subscriptionRepository
                 .findById(subscriptionId)
-                .map(
-                    subscription -> {
-                        subscription.setDaysToExpirationOnLastNotification(value);
-                        try {
-                            return subscriptionRepository.update(subscription);
-                        } catch (TechnicalException ex) {
-                            logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
-                            throw new TechnicalManagementException(
-                                String.format("An error occurs while trying to update subscription %s", subscriptionId),
-                                ex
-                            );
-                        }
+                .map(subscription -> {
+                    subscription.setDaysToExpirationOnLastNotification(value);
+                    try {
+                        return subscriptionRepository.update(subscription);
+                    } catch (TechnicalException ex) {
+                        logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to update subscription %s", subscriptionId),
+                            ex
+                        );
                     }
-                )
+                })
                 .map(this::convert)
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException ex) {
@@ -497,12 +494,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (plan.getSecurity() == API_KEY && endingAt != null) {
                     streamActiveApiKeys(executionContext, subscription.getId())
                         .filter(apiKey -> !apiKey.getApplication().hasApiKeySharedMode())
-                        .forEach(
-                            apiKey -> {
-                                apiKey.setExpireAt(endingAt);
-                                apiKeyService.update(executionContext, apiKey);
-                            }
-                        );
+                        .forEach(apiKey -> {
+                            apiKey.setExpireAt(endingAt);
+                            apiKeyService.update(executionContext, apiKey);
+                        });
                 }
 
                 return convert(subscription);
@@ -595,52 +590,48 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
                 searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(
-                        subscriberEmail -> {
-                            if (
-                                !notifierService.hasEmailNotificationFor(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                    application.getId(),
-                                    params,
-                                    subscriberEmail
-                                )
-                            ) {
-                                notifierService.triggerEmail(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                    apiId,
-                                    params,
-                                    subscriberEmail
-                                );
-                            }
+                    .ifPresent(subscriberEmail -> {
+                        if (
+                            !notifierService.hasEmailNotificationFor(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                                application.getId(),
+                                params,
+                                subscriberEmail
+                            )
+                        ) {
+                            notifierService.triggerEmail(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                                apiId,
+                                params,
+                                subscriberEmail
+                            );
                         }
-                    );
+                    });
             } else {
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
                 searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(
-                        subscriberEmail -> {
-                            if (
-                                !notifierService.hasEmailNotificationFor(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_REJECTED,
-                                    application.getId(),
-                                    params,
-                                    subscriberEmail
-                                )
-                            ) {
-                                notifierService.triggerEmail(
-                                    executionContext,
-                                    ApplicationHook.SUBSCRIPTION_REJECTED,
-                                    apiId,
-                                    params,
-                                    subscriberEmail
-                                );
-                            }
+                    .ifPresent(subscriberEmail -> {
+                        if (
+                            !notifierService.hasEmailNotificationFor(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_REJECTED,
+                                application.getId(),
+                                params,
+                                subscriberEmail
+                            )
+                        ) {
+                            notifierService.triggerEmail(
+                                executionContext,
+                                ApplicationHook.SUBSCRIPTION_REJECTED,
+                                apiId,
+                                params,
+                                subscriberEmail
+                            );
                         }
-                    );
+                    });
             }
 
             return subscriptionEntity;
@@ -711,17 +702,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                     // handle associated active API Keys
                     streamActiveApiKeys(executionContext, subscription.getId())
-                        .forEach(
-                            apiKey -> {
-                                if (!application.hasApiKeySharedMode()) {
-                                    apiKeyService.revoke(executionContext, apiKey, false);
-                                } else {
-                                    // don't revoke shared api keys as they are used by other subscriptions
-                                    // but update them to ensure they will trigger the IncrementalApiKeyRefresher
-                                    apiKeyService.update(executionContext, apiKey);
-                                }
+                        .forEach(apiKey -> {
+                            if (!application.hasApiKeySharedMode()) {
+                                apiKeyService.revoke(executionContext, apiKey, false);
+                            } else {
+                                // don't revoke shared api keys as they are used by other subscriptions
+                                // but update them to ensure they will trigger the IncrementalApiKeyRefresher
+                                apiKeyService.update(executionContext, apiKey);
                             }
-                        );
+                        });
 
                     return convert(subscription);
                 case PENDING:
@@ -787,16 +776,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // active API Keys are automatically paused (except shared ones)
                 streamActiveApiKeys(executionContext, subscription.getId())
-                    .forEach(
-                        apiKey -> {
-                            // don't pause shared api keys as they are used by other subscriptions
-                            // but update them to ensure they will trigger the IncrementalApiKeyRefresher
-                            if (!application.hasApiKeySharedMode()) {
-                                apiKey.setPaused(true);
-                            }
-                            apiKeyService.update(executionContext, apiKey);
+                    .forEach(apiKey -> {
+                        // don't pause shared api keys as they are used by other subscriptions
+                        // but update them to ensure they will trigger the IncrementalApiKeyRefresher
+                        if (!application.hasApiKeySharedMode()) {
+                            apiKey.setPaused(true);
                         }
-                    );
+                        apiKeyService.update(executionContext, apiKey);
+                    });
 
                 return convert(subscription);
             }
@@ -856,12 +843,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // active API Keys are automatically unpause
                 streamActiveApiKeys(executionContext, subscription.getId())
-                    .forEach(
-                        apiKey -> {
-                            apiKey.setPaused(false);
-                            apiKeyService.update(executionContext, apiKey);
-                        }
-                    );
+                    .forEach(apiKey -> {
+                        apiKey.setPaused(false);
+                        apiKeyService.update(executionContext, apiKey);
+                    });
 
                 return convert(subscription);
             }
@@ -909,12 +894,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // active API Keys are automatically unpause
                 streamActiveApiKeys(executionContext, subscription.getId())
-                    .forEach(
-                        apiKey -> {
-                            apiKey.setPaused(false);
-                            apiKeyService.update(executionContext, apiKey);
-                        }
-                    );
+                    .forEach(apiKey -> {
+                        apiKey.setPaused(false);
+                        apiKeyService.update(executionContext, apiKey);
+                    });
 
                 return convert(subscription);
             }
@@ -1028,12 +1011,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .findByKey(executionContext, query.getApiKey())
                     .stream()
                     .flatMap(apiKey -> findByIdIn(apiKey.getSubscriptionIds()).stream())
-                    .filter(
-                        subscription ->
-                            query.matchesApi(subscription.getApi()) &&
-                            query.matchesApplication(subscription.getApplication()) &&
-                            query.matchesPlan(subscription.getPlan()) &&
-                            query.matchesStatus(subscription.getStatus())
+                    .filter(subscription ->
+                        query.matchesApi(subscription.getApi()) &&
+                        query.matchesApplication(subscription.getApplication()) &&
+                        query.matchesPlan(subscription.getPlan()) &&
+                        query.matchesStatus(subscription.getStatus())
                     )
                     .collect(toList());
 
@@ -1079,20 +1061,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         planService
             .findByIdIn(executionContext, subscriptionsByPlan.keySet())
-            .forEach(
-                plan -> subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()))
+            .forEach(plan ->
+                subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(plan.getSecurity().name()))
             );
     }
 
     private void fillApiKeys(ExecutionContext executionContext, List<SubscriptionEntity> subscriptions) {
-        subscriptions.forEach(
-            subscriptionEntity -> {
-                final List<String> keys = streamActiveApiKeys(executionContext, subscriptionEntity.getId())
-                    .map(ApiKeyEntity::getKey)
-                    .collect(toList());
-                subscriptionEntity.setKeys(keys);
-            }
-        );
+        subscriptions.forEach(subscriptionEntity -> {
+            final List<String> keys = streamActiveApiKeys(executionContext, subscriptionEntity.getId())
+                .map(ApiKeyEntity::getKey)
+                .collect(toList());
+            subscriptionEntity.setKeys(keys);
+        });
     }
 
     private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
@@ -1268,60 +1248,47 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         final Optional<Map<String, ApplicationListItem>> applicationsById = query
             .ifApplications()
-            .map(
-                withApplications -> {
-                    Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
-                    return applicationService
-                        .findByIds(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds)
-                        .stream()
-                        .collect(toMap(ApplicationListItem::getId, Function.identity()));
-                }
-            );
+            .map(withApplications -> {
+                Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
+                return applicationService
+                    .findByIds(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds)
+                    .stream()
+                    .collect(toMap(ApplicationListItem::getId, Function.identity()));
+            });
 
         final Optional<Map<String, ApiEntity>> apisById = query
             .ifApis()
-            .map(
-                withApis -> {
-                    Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
-                    return apiService
-                        .findByEnvironmentAndIdIn(executionContext, apiIds)
-                        .stream()
-                        .collect(toMap(ApiEntity::getId, Function.identity()));
-                }
-            );
+            .map(withApis -> {
+                Set<String> apiIds = subscriptions.stream().map(SubscriptionEntity::getApi).collect(toSet());
+                return apiService
+                    .findByEnvironmentAndIdIn(executionContext, apiIds)
+                    .stream()
+                    .collect(toMap(ApiEntity::getId, Function.identity()));
+            });
 
         final Optional<Map<String, PlanEntity>> plansById = query
             .ifPlans()
-            .map(
-                withPlans -> {
-                    Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
-                    return planService
-                        .findByIdIn(executionContext, planIds)
-                        .stream()
-                        .collect(toMap(PlanEntity::getId, Function.identity()));
-                }
-            );
+            .map(withPlans -> {
+                Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
+                return planService.findByIdIn(executionContext, planIds).stream().collect(toMap(PlanEntity::getId, Function.identity()));
+            });
 
         final Optional<Map<String, UserEntity>> subscribersById = query
             .ifSubscribers()
-            .map(
-                withSubscribers -> {
-                    Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
-                    return userService
-                        .findByIds(executionContext, subscriberIds)
-                        .stream()
-                        .collect(toMap(UserEntity::getId, Function.identity()));
-                }
-            );
+            .map(withSubscribers -> {
+                Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
+                return userService
+                    .findByIds(executionContext, subscriberIds)
+                    .stream()
+                    .collect(toMap(UserEntity::getId, Function.identity()));
+            });
 
-        subscriptions.forEach(
-            subscription -> {
-                applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
-                apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
-                plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
-                subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
-            }
-        );
+        subscriptions.forEach(subscription -> {
+            applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
+            apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
+            plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
+            subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
+        });
 
         return metadata;
     }

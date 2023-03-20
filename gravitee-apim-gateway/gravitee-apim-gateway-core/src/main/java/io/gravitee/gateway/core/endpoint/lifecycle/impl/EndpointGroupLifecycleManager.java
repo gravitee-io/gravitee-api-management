@@ -161,9 +161,8 @@ public class EndpointGroupLifecycleManager
                 context.setProperties(api.getProperties().getValues());
             }
             try {
-                ConnectorFactory<? extends Connector<? extends Connection, ? extends ProxyRequest>> connectorFactory = connectorRegistry.getConnector(
-                    model.getType()
-                );
+                ConnectorFactory<? extends Connector<? extends Connection, ? extends ProxyRequest>> connectorFactory =
+                    connectorRegistry.getConnector(model.getType());
 
                 Connector<Connection, ProxyRequest> connector = connectorFactory.create(
                     model.getTarget(),

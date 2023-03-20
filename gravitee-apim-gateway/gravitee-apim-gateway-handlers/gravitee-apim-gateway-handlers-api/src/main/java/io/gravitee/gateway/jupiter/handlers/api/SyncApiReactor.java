@@ -221,25 +221,19 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the invoker has been invoked or that completes immediately if execution isn't required.
      */
     private Completable invokeBackend(final RequestExecutionContext ctx) {
-        return defer(
-                () -> {
-                    if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
-                        Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+                if (!Objects.equals(false, ctx.<Boolean>getAttribute(ATTR_INVOKER_SKIP))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                        if (invoker != null) {
-                            return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                        }
+                    if (invoker != null) {
+                        return HookHelper.hook(invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .doOnSubscribe(disposable -> ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis()))
-            .doOnTerminate(
-                () ->
-                    ctx
-                        .request()
-                        .metrics()
-                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs())
+            .doOnTerminate(() ->
+                ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs())
             );
     }
 
@@ -289,20 +283,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     }
 
     private Completable handleError(final RequestExecutionContext ctx, final Throwable throwable) {
-        return Completable.fromRunnable(
-            () -> {
-                log.error("Unexpected error while handling request", throwable);
-                if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-                    ctx
-                        .request()
-                        .metrics()
-                        .setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
-                }
-
-                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        return Completable.fromRunnable(() -> {
+            log.error("Unexpected error while handling request", throwable);
+            if (ctx.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
+                ctx.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() - ctx.request().metrics().getApiResponseTimeMs());
             }
-        );
+
+            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        });
     }
 
     @Override

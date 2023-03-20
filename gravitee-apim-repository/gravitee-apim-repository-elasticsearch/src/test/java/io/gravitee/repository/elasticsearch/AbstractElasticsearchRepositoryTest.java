@@ -86,7 +86,7 @@ public abstract class AbstractElasticsearchRepositoryTest {
             .indices()
             .putTemplate(
                 new PutIndexTemplateRequest("gravitee")
-                .source(this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data), XContentType.JSON)
+                    .source(this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data), XContentType.JSON)
             )
             .get();
 

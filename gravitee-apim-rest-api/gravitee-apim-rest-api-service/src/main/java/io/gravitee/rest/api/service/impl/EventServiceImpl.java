@@ -290,7 +290,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     private EventCriteria.Builder queryToCriteria(ExecutionContext executionContext, EventQuery query) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
-        // FIXME: Move this environments filter to EventQuery
+            // FIXME: Move this environments filter to EventQuery
             .environments(Collections.singletonList(executionContext.getEnvironmentId()));
         if (query == null) {
             return builder;

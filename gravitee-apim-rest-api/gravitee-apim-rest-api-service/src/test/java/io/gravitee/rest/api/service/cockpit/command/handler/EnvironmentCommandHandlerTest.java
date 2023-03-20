@@ -75,13 +75,12 @@ public class EnvironmentCommandHandlerTest {
             environmentService.createOrUpdate(
                 eq("orga#1"),
                 eq("env#1"),
-                argThat(
-                    newEnvironment ->
-                        newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
-                        newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
-                        newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
-                        newEnvironment.getName().equals(environmentPayload.getName()) &&
-                        newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions())
+                argThat(newEnvironment ->
+                    newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
+                    newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
+                    newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
+                    newEnvironment.getName().equals(environmentPayload.getName()) &&
+                    newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions())
                 )
             )
         )

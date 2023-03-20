@@ -99,35 +99,30 @@ public class ApiKeysFetchingCache extends ApiKeysCache {
 
     private CompletableFuture<Optional<ApiKey>> fetchApiKeyFuture(String api, String key, String cacheKey) {
         return CompletableFuture
-            .supplyAsync(
-                () -> {
-                    try {
-                        return apiKeyRepository
-                            .findByKeyAndApi(key, api)
-                            .flatMap(
-                                repositoryApiKey ->
-                                    fetchSubscriptionByIdsAndApi(repositoryApiKey.getSubscriptions(), api)
-                                        .map(subscription -> new ApiKey(repositoryApiKey, subscription))
-                            );
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
+            .supplyAsync(() -> {
+                try {
+                    return apiKeyRepository
+                        .findByKeyAndApi(key, api)
+                        .flatMap(repositoryApiKey ->
+                            fetchSubscriptionByIdsAndApi(repositoryApiKey.getSubscriptions(), api)
+                                .map(subscription -> new ApiKey(repositoryApiKey, subscription))
+                        );
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
                 }
-            )
-            .handle(
-                (apiKey, throwable) -> {
-                    runningDatabaseSearches.remove(cacheKey);
-                    if (throwable != null) {
-                        LOGGER.error("An error occurred while lazily fetching API key", throwable);
-                        // as an error occurred during API key fetching, cache the key as inactive
-                        // after FETCH_ERROR_RETRY_DELAY is expired, it will be evicted from cache, so fetching will be tried again
-                        // this avoids fetch loops if an exceptional error occurs while querying the database
-                        singleThreadExecutor.schedule(() -> cache.evict(cacheKey), FETCH_ERROR_RETRY_DELAY, TimeUnit.MILLISECONDS);
-                        return saveInactive(cacheKey);
-                    }
-                    return apiKey.map(this::save).orElseGet(() -> saveInactive(cacheKey));
+            })
+            .handle((apiKey, throwable) -> {
+                runningDatabaseSearches.remove(cacheKey);
+                if (throwable != null) {
+                    LOGGER.error("An error occurred while lazily fetching API key", throwable);
+                    // as an error occurred during API key fetching, cache the key as inactive
+                    // after FETCH_ERROR_RETRY_DELAY is expired, it will be evicted from cache, so fetching will be tried again
+                    // this avoids fetch loops if an exceptional error occurs while querying the database
+                    singleThreadExecutor.schedule(() -> cache.evict(cacheKey), FETCH_ERROR_RETRY_DELAY, TimeUnit.MILLISECONDS);
+                    return saveInactive(cacheKey);
                 }
-            );
+                return apiKey.map(this::save).orElseGet(() -> saveInactive(cacheKey));
+            });
     }
 
     private Optional<Subscription> fetchSubscriptionByIdsAndApi(List<String> subscriptionsId, String api) {

@@ -246,12 +246,10 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
 
         return applicationListItems
             .stream()
-            .map(
-                applicationListItem -> {
-                    Application application = applicationMapper.convert(executionContext, applicationListItem, uriInfo);
-                    return addApplicationLinks(application);
-                }
-            )
+            .map(applicationListItem -> {
+                Application application = applicationMapper.convert(executionContext, applicationListItem, uriInfo);
+                return addApplicationLinks(application);
+            })
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(Collectors.toList());
     }

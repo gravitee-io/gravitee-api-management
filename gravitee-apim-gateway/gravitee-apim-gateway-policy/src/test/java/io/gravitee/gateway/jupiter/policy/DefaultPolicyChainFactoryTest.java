@@ -79,22 +79,20 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step1") &&
-                        metadata.getConfiguration().equals("config-step1") &&
-                        metadata.getCondition().equals("condition-step1")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step1") &&
+                    metadata.getConfiguration().equals("config-step1") &&
+                    metadata.getCondition().equals("condition-step1")
                 )
             );
 
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2")
                 )
             );
 
@@ -124,11 +122,10 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2")
                 )
             );
 
@@ -163,22 +160,20 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step1") &&
-                        metadata.getConfiguration().equals("config-step1") &&
-                        metadata.getCondition().equals("condition-step1")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step1") &&
+                    metadata.getConfiguration().equals("config-step1") &&
+                    metadata.getCondition().equals("condition-step1")
                 )
             );
 
         verify(policyManager, times(1))
             .create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(
-                    metadata ->
-                        metadata.getName().equals("policy-step2") &&
-                        metadata.getConfiguration().equals("config-step2") &&
-                        metadata.getCondition().equals("condition-step2")
+                argThat(metadata ->
+                    metadata.getName().equals("policy-step2") &&
+                    metadata.getConfiguration().equals("config-step2") &&
+                    metadata.getCondition().equals("condition-step2")
                 )
             );
 

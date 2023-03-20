@@ -42,28 +42,24 @@ public class AlertsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<AlertMetric> getAlertMetrics() {
         return stream(MetricType.values())
-            .map(
-                metric -> {
-                    final AlertMetric alertMetric = new AlertMetric();
-                    alertMetric.setKey(metric.name().toLowerCase());
-                    alertMetric.setDescription(metric.description());
-                    alertMetric.setThresholds(
-                        metric
-                            .thresholds()
-                            .stream()
-                            .map(
-                                thresholdType -> {
-                                    final AlertThreshold alertThreshold = new AlertThreshold();
-                                    alertThreshold.setKey(thresholdType.name().toLowerCase());
-                                    alertThreshold.setDescription(thresholdType.description());
-                                    return alertThreshold;
-                                }
-                            )
-                            .collect(toList())
-                    );
-                    return alertMetric;
-                }
-            )
+            .map(metric -> {
+                final AlertMetric alertMetric = new AlertMetric();
+                alertMetric.setKey(metric.name().toLowerCase());
+                alertMetric.setDescription(metric.description());
+                alertMetric.setThresholds(
+                    metric
+                        .thresholds()
+                        .stream()
+                        .map(thresholdType -> {
+                            final AlertThreshold alertThreshold = new AlertThreshold();
+                            alertThreshold.setKey(thresholdType.name().toLowerCase());
+                            alertThreshold.setDescription(thresholdType.description());
+                            return alertThreshold;
+                        })
+                        .collect(toList())
+                );
+                return alertMetric;
+            })
             .collect(toList());
     }
 }

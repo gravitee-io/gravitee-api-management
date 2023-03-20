@@ -113,11 +113,10 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -152,13 +151,11 @@ public class ApiSynchronizerTest extends TestCase {
         // Simulate a long running background task.
         final ThreadPoolExecutor executor = apiSynchronizer.executor;
 
-        executor.execute(
-            () -> {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored) {}
-            }
-        );
+        executor.execute(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {}
+        });
 
         apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
     }
@@ -176,11 +173,10 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -222,11 +218,10 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -265,11 +260,10 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria.getTypes().containsAll(asList(EventType.PUBLISH_API, EventType.START_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -318,13 +312,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -359,13 +352,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -414,13 +406,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(0L),
@@ -431,13 +422,12 @@ public class ApiSynchronizerTest extends TestCase {
 
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(1L),
@@ -488,13 +478,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(0L),
@@ -505,13 +494,12 @@ public class ApiSynchronizerTest extends TestCase {
 
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(1L),
@@ -550,13 +538,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.UNPUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 anyLong(),
@@ -600,13 +587,12 @@ public class ApiSynchronizerTest extends TestCase {
         final Event mockEvent2 = mockEvent(api2, EventType.UNPUBLISH_API);
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(0L),
@@ -617,13 +603,12 @@ public class ApiSynchronizerTest extends TestCase {
 
         when(
             eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria
-                            .getTypes()
-                            .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                argThat(criteria ->
+                    criteria != null &&
+                    criteria
+                        .getTypes()
+                        .containsAll(asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)) &&
+                    criteria.getEnvironments().containsAll(ENVIRONMENTS)
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(1L),
@@ -667,15 +652,14 @@ public class ApiSynchronizerTest extends TestCase {
             if (i % 100 == 0) {
                 when(
                     eventRepository.searchLatest(
-                        argThat(
-                            criteria ->
-                                criteria != null &&
-                                criteria
-                                    .getTypes()
-                                    .containsAll(
-                                        asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)
-                                    ) &&
-                                criteria.getEnvironments().containsAll(ENVIRONMENTS)
+                        argThat(criteria ->
+                            criteria != null &&
+                            criteria
+                                .getTypes()
+                                .containsAll(
+                                    asList(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API)
+                                ) &&
+                            criteria.getEnvironments().containsAll(ENVIRONMENTS)
                         ),
                         eq(Event.EventProperties.API_ID),
                         eq(page),

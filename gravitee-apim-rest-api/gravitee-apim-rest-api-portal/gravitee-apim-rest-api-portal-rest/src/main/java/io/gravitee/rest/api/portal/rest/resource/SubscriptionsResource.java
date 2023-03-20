@@ -170,14 +170,12 @@ public class SubscriptionsResource extends AbstractResource {
             .withPlans(true)
             .withSubscribers(true)
             .includeDetails()
-            .fillApiMetadata(
-                (metadata, api) -> {
-                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
-                    ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
-                    metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
-                    return api;
-                }
-            );
+            .fillApiMetadata((metadata, api) -> {
+                String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
+                metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
+                return api;
+            });
 
         Metadata metadata = subscriptionService.getMetadata(executionContext, metadataQuery);
 

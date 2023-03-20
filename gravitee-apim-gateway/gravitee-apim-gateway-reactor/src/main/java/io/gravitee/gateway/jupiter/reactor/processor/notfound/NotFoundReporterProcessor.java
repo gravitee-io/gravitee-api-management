@@ -47,40 +47,36 @@ public class NotFoundReporterProcessor implements Processor {
     @Override
     public Completable execute(final RequestExecutionContext ctx) {
         return Completable
-            .defer(
-                () -> {
-                    Metrics metrics = ctx.request().metrics();
-                    metrics.setApi(UNKNOWN_SERVICE);
-                    metrics.setApplication(UNKNOWN_SERVICE);
-                    metrics.setPath(ctx.request().pathInfo());
+            .defer(() -> {
+                Metrics metrics = ctx.request().metrics();
+                metrics.setApi(UNKNOWN_SERVICE);
+                metrics.setApplication(UNKNOWN_SERVICE);
+                metrics.setPath(ctx.request().pathInfo());
 
-                    if (logEnabled) {
-                        Buffer payload = Buffer.buffer();
-                        return ctx
-                            .request()
-                            .bodyOrEmpty()
-                            .doOnSuccess(
-                                buffer -> {
-                                    Log log = new Log(System.currentTimeMillis());
-                                    log.setRequestId(ctx.request().id());
-                                    log.setClientRequest(new Request());
-                                    log.getClientRequest().setMethod(ctx.request().method());
-                                    log.getClientRequest().setUri(ctx.request().uri());
-                                    log.getClientRequest().setHeaders(ctx.request().headers());
-                                    log.getClientRequest().setBody(payload.toString());
+                if (logEnabled) {
+                    Buffer payload = Buffer.buffer();
+                    return ctx
+                        .request()
+                        .bodyOrEmpty()
+                        .doOnSuccess(buffer -> {
+                            Log log = new Log(System.currentTimeMillis());
+                            log.setRequestId(ctx.request().id());
+                            log.setClientRequest(new Request());
+                            log.getClientRequest().setMethod(ctx.request().method());
+                            log.getClientRequest().setUri(ctx.request().uri());
+                            log.getClientRequest().setHeaders(ctx.request().headers());
+                            log.getClientRequest().setBody(payload.toString());
 
-                                    metrics.setLog(log);
+                            metrics.setLog(log);
 
-                                    reporterService.report(metrics);
-                                }
-                            )
-                            .ignoreElement();
-                    } else {
-                        reporterService.report(metrics);
-                        return Completable.complete();
-                    }
+                            reporterService.report(metrics);
+                        })
+                        .ignoreElement();
+                } else {
+                    reporterService.report(metrics);
+                    return Completable.complete();
                 }
-            )
+            })
             .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics for not found request", throwable))
             .onErrorComplete();
     }

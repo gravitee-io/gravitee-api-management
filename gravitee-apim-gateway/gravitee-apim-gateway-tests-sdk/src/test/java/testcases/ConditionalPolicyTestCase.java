@@ -63,17 +63,15 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
         awaitTerminalEvent(obs)
             .assertComplete()
-            .assertValue(
-                response -> {
-                    final String content = response.bodyAsString();
+            .assertValue(response -> {
+                final String content = response.bodyAsString();
 
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                    assertThat(content).isEqualTo("OnResponseContent2Policy");
+                assertThat(response.statusCode()).isEqualTo(200);
+                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+                assertThat(content).isEqualTo("OnResponseContent2Policy");
 
-                    return true;
-                }
-            );
+                return true;
+            });
         obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT))
@@ -91,17 +89,15 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
         obs.awaitTerminalEvent(10000, TimeUnit.MILLISECONDS);
         obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
+        obs.assertValue(response -> {
+            final String content = response.bodyAsString();
 
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                assertThat(content).isNull();
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+            assertThat(content).isNull();
 
-                return true;
-            }
-        );
+            return true;
+        });
         obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT)).withoutHeader(X_GRAVITEE_POLICY).withHeader(ON_REQUEST_POLICY, equalTo(INVOKED))
@@ -118,17 +114,15 @@ public class ConditionalPolicyTestCase extends AbstractGatewayTest {
 
         obs.awaitTerminalEvent(10000, TimeUnit.MILLISECONDS);
         obs.assertComplete();
-        obs.assertValue(
-            response -> {
-                final String content = response.bodyAsString();
+        obs.assertValue(response -> {
+            final String content = response.bodyAsString();
 
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
-                assertThat(content).isNull();
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.headers().contains(X_GRAVITEE_POLICY)).isFalse();
+            assertThat(content).isNull();
 
-                return true;
-            }
-        );
+            return true;
+        });
         obs.assertNoErrors();
         wiremock.verify(
             getRequestedFor(urlPathEqualTo(API_ENTRYPOINT)).withoutHeader(X_GRAVITEE_POLICY).withHeader(ON_REQUEST_POLICY, equalTo(INVOKED))
