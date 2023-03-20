@@ -52,9 +52,9 @@
 @import 'management/stepper';
 @import 'management/submenu';
 @import 'management/tasks/tasks';
-@import 'management/dashboard/analytics-dashboard/analytics-dashboard';
-@import 'management/dashboard/apis-status-dashboard/apis-status-dashboard';
-@import 'management/dashboard/home-dashboard/home-dashboard';
+@import 'management/dashboard-ajs/analytics-dashboard/analytics-dashboard';
+@import 'management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard';
+@import 'management/dashboard-ajs/home-dashboard/home-dashboard';
 @import 'management/api-key/api-keys';
 
 @import 'user/user';
