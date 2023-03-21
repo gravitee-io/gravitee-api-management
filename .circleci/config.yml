@@ -831,31 +831,31 @@ jobs:
             - gh/setup
             - compute-sanitize-circleci-branch
             - run:
-                  name: Edit Pull Request Description
-                  command: |
-                      # First check there is an associated pull request, otherwise just stop the job here
-                      if ! gh pr view --json title;
-                      then
-                        echo "No PR found for this branch, stopping the job here."
-                        exit 0
-                      fi
-
-                      # If PR state is different from OPEN
-                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-                      then
-                        echo "PR is not opened, stopping the job here."
-                        exit 0
-                      fi
-                      export PR_BODY_UI_SECTION="
-                      <!-- UI placeholder -->
-                      🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${SANITIZED_BRANCH}/index.html)
-                      _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
-                      <!-- UI placeholder end -->
-                      "
-
-                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/UI placeholder -->/,/UI placeholder end -->/d')
-
-                      gh pr edit --body "$CLEAN_BODY$PR_BODY_UI_SECTION"
+                name: Edit Pull Request Description
+                command: |
+                  # First check there is an associated pull request, otherwise just stop the job here
+                  if ! gh pr view --json title;
+                  then
+                    echo "No PR found for this branch, stopping the job here."
+                    exit 0
+                  fi
+                  
+                  # If PR state is different from OPEN
+                  if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                  then
+                    echo "PR is not opened, stopping the job here."
+                    exit 0
+                  fi
+                  export PR_BODY_UI_SECTION="
+                  <!-- UI placeholder -->
+                  🚀 CI was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.z6.web.core.windows.net/${SANITIZED_BRANCH}/index.html)
+                  _Notes_: The deployed app is linked to the management API of APIM master. (Same login and password as APIM master)
+                  <!-- UI placeholder end -->
+                  "
+                  
+                  export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/UI placeholder -->/,/UI placeholder end -->/d')
+                  
+                  gh pr edit --body "$CLEAN_BODY$PR_BODY_UI_SECTION"
 
             - notify-on-failure
 
@@ -1448,6 +1448,54 @@ jobs:
                                   ]
                                 }
 
+    publish-pr-env-urls:
+      executor:
+        name: node-lts
+        class: small
+      steps:
+        - checkout
+        - keeper/env-export:
+            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+            var-name: GITHUB_TOKEN
+        - gh/setup
+        - compute-sanitize-circleci-branch
+        - run:
+            name: Edit Pull Request Description
+            command: |
+              # First check there is an associated pull request, otherwise just stop the job here
+              if ! gh pr view --json title;
+              then
+                echo "No PR found for this branch, stopping the job here."
+                exit 0
+              fi
+              
+              # If PR state is different from OPEN
+              if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+              then
+                echo "PR is not opened, stopping the job here."
+                exit 0
+              fi
+              export PR_NUMBER=$(gh pr view --json number --jq .number)
+              export PR_BODY_ENV_SECTION="
+              <!-- Environment placeholder -->
+              
+              🏗️ Your changes can be tested here and will be available soon:
+                    Console: [https://$PR_NUMBER.team-apim.gravitee.dev/console](https://$PR_NUMBER.team-apim.gravitee.dev/console)
+                    Portal: [https://$PR_NUMBER.team-apim.gravitee.dev/portal](https://$PR_NUMBER.team-apim.gravitee.dev/portal)
+                    Management-api: [https://$PR_NUMBER.team-apim.gravitee.dev/api/management](https://$PR_NUMBER.team-apim.gravitee.dev/api/management)
+                    Gateway v4: [https://$PR_NUMBER.team-apim.gravitee.dev](https://$PR_NUMBER.team-apim.gravitee.dev)
+                    Gateway v3: [https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev](https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev)
+              
+              <!-- Environment placeholder end -->
+              "
+              
+              export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
+              
+              gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
+
+        - notify-on-failure
+
+
 workflows:
     pull_requests:
         when:
@@ -1826,3 +1874,10 @@ workflows:
                 docker-image-name: apim-portal-ui
                 requires:
                     - setup
+            - publish-pr-env-urls:
+                name: Publish environment URLs in Github PR
+                context: cicd-orchestrator
+                requires:
+                    - build-images
+                    - Build APIM Console
+                    - Build APIM Portal
