@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
@@ -136,6 +137,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnEmptyBeforeApiExecutionProcessorChainWithNoHttpListener() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        apiModel.setType(ApiType.MESSAGE);
         apiModel.setListeners(List.of(new SubscriptionListener()));
         Api api = new Api(apiModel);
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
@@ -147,6 +149,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnCorsBeforeApiExecutionChainWithHttpListenerAndCors() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        apiModel.setType(ApiType.MESSAGE);
         HttpListener httpListener = new HttpListener();
         Cors cors = new Cors();
         cors.setEnabled(true);
@@ -167,6 +170,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnBeforeApiExecutionChainWithHttpListener() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        apiModel.setType(ApiType.MESSAGE);
         HttpListener httpListener = new HttpListener();
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);
@@ -182,6 +186,7 @@ class ApiProcessorChainFactoryTest {
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
 
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        apiModel.setType(ApiType.MESSAGE);
         HttpListener httpListener = new HttpListener();
         apiModel.setListeners(List.of(httpListener));
         Api api = new Api(apiModel);

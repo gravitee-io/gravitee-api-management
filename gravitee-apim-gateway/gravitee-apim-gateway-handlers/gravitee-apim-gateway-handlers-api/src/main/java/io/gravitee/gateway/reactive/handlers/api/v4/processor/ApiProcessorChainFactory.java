@@ -119,7 +119,9 @@ public class ApiProcessorChainFactory {
                     }
                 });
 
-            processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
+            if (api.getDefinition().getType() == ApiType.MESSAGE) {
+                processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
+            }
         }
 
         return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
