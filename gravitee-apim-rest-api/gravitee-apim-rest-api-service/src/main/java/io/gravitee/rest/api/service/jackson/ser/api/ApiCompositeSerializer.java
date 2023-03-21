@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
@@ -36,8 +37,8 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
 
     private List<ApiSerializer> serializers = new LinkedList<>();
 
-    public ApiCompositeSerializer() {
-        super(ApiEntity.class);
+    public ApiCompositeSerializer(final ObjectMapper objectMapper) {
+        super(ApiEntity.class, objectMapper);
     }
 
     @Override
@@ -63,12 +64,12 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
 
     @Override
     public void afterPropertiesSet() {
-        addSerializer(new ApiDefaultSerializer());
-        addSerializer(new Api1_15VersionSerializer());
-        addSerializer(new Api1_20VersionSerializer());
-        addSerializer(new Api1_25VersionSerializer());
-        addSerializer(new Api3_0VersionSerializer());
-        addSerializer(new Api3_7VersionSerializer());
+        addSerializer(new ApiDefaultSerializer(objectMapper));
+        addSerializer(new Api1_15VersionSerializer(objectMapper));
+        addSerializer(new Api1_20VersionSerializer(objectMapper));
+        addSerializer(new Api1_25VersionSerializer(objectMapper));
+        addSerializer(new Api3_0VersionSerializer(objectMapper));
+        addSerializer(new Api3_7VersionSerializer(objectMapper));
     }
 
     private void addSerializer(ApiSerializer apiSerializer) {

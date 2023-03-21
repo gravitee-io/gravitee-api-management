@@ -18,12 +18,11 @@ package io.gravitee.rest.api.service.spring;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.jackson.datatype.filter.GraviteeFilterProvider;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
@@ -43,13 +42,11 @@ import io.gravitee.rest.api.service.PasswordValidator;
 import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfiguration;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.FlowStepSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
-import java.util.Collections;
 import java.util.concurrent.Executor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -98,14 +95,11 @@ public class ServiceConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new GraviteeMapper();
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+        objectMapper.setFilterProvider(new GraviteeFilterProvider());
         objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         // register API serializer
         SimpleModule module = new SimpleModule();
-        module.addSerializer(ApiEntity.class, apiSerializer());
+        module.addSerializer(ApiEntity.class, apiSerializer(objectMapper));
         module.addSerializer(FlowStep.class, new FlowStepSerializer(FlowStep.class));
 
         objectMapper.registerModule(module);
@@ -126,8 +120,8 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public ApiSerializer apiSerializer() {
-        return new ApiCompositeSerializer();
+    public ApiSerializer apiSerializer(ObjectMapper objectMapper) {
+        return new ApiCompositeSerializer(objectMapper);
     }
 
     @Bean

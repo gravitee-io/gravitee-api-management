@@ -15,19 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import java.io.IOException;
-import java.util.Collections;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
@@ -47,9 +37,6 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
         //because Permissions are represented as char[]
         mapper.enable(SerializationFeature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS);
 
-        // register filter provider
-        registerFilterProvider();
-
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
@@ -57,10 +44,5 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     @Override
     public ObjectMapper getContext(Class<?> type) {
         return mapper;
-    }
-
-    private void registerFilterProvider() {
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 }

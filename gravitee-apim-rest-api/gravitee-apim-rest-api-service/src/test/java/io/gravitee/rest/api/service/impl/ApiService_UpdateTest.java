@@ -50,8 +50,6 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -116,7 +114,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -337,12 +334,8 @@ public class ApiService_UpdateTest {
 
     @Before
     public void setUp() {
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         apiConverter = spy(new ApiConverter());
         MockitoAnnotations.openMocks(this);
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
         GraviteeContext.setCurrentEnvironment(DEFAULT_ENVIRONMENT_ID);
 
         final SecurityContext securityContext = mock(SecurityContext.class);

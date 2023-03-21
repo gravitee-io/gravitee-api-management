@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.filter.GraviteeFilterProvider;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -614,6 +615,7 @@ public class EventServiceTest {
     public void createApiEvent_shouldReadDatabaseApiFlows_thenCreateEvent_withPayloadContainingFlows()
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
+        realObjectMapper.setFilterProvider(new GraviteeFilterProvider());
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);

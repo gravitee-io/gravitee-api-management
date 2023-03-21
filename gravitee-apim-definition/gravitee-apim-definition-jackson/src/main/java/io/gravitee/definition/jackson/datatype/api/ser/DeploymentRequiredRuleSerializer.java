@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v4.rest.provider;
+package io.gravitee.definition.jackson.datatype.api.ser;
 
-import com.fasterxml.jackson.databind.*;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import io.gravitee.definition.model.Rule;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Provider
-public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
+public class DeploymentRequiredRuleSerializer extends RuleSerializer {
 
-    private final ObjectMapper mapper;
-
-    public ObjectMapperResolver() {
-        mapper = new GraviteeMapper();
+    public DeploymentRequiredRuleSerializer(Class<Rule> t) {
+        super(t);
     }
 
     @Override
-    public ObjectMapper getContext(Class<?> type) {
-        return mapper;
+    protected boolean hasDescription(Rule rule) {
+        // Useful to ignore description when serialize rule to check if need to deploy
+        // The deploymentRequiredFilter not work due to HashMap extends in Rule.class
+        return false;
     }
 }

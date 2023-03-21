@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.jackson.filter;
+package io.gravitee.definition.jackson.datatype.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import io.gravitee.definition.model.DeploymentRequired;
 
-/**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class ApiPermissionFilter extends SimpleBeanPropertyFilter {
+public class DeploymentRequiredFilter extends SimpleBeanPropertyFilter {
+
+    public DeploymentRequiredFilter() {
+        super();
+    }
 
     @Override
     public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-        if (includeField(pojo, writer)) {
-            writer.serializeAsField(pojo, jgen, provider);
+        if (include(writer)) {
+            super.serializeAsField(pojo, jgen, provider, writer);
         }
     }
 
-    private boolean includeField(Object pojo, PropertyWriter writer) {
-        //        if (writer.getAnnotation(ApiPermissionsAllowed.class)  == null) {
-        //            return true;
-        //        }
-        //
-        //        return Arrays.asList(writer.getAnnotation(ApiPermissionsAllowed.class).value())
-        //                .stream()
-        //                .anyMatch(apiPermission -> apiPermission.equals(((ApiEntity) pojo).getrgetPermission()));
+    @Override
+    protected boolean include(BeanPropertyWriter writer) {
         return true;
+    }
+
+    @Override
+    protected boolean include(PropertyWriter writer) {
+        return writer.findAnnotation(DeploymentRequired.class) != null;
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
@@ -115,7 +114,6 @@ import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1548,18 +1546,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 EventEntity lastEvent = events.getContent().get(0);
                 boolean sync = false;
                 if (PUBLISH_API.equals(lastEvent.getType())) {
-                    //TODO: Done only for backward compatibility with 0.x. Must be removed later (1.1.x ?)
-                    boolean enabled = objectMapper.getDeserializationConfig().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
-                    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
-
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
-                    // Remove policy description from sync check
-                    removeDescriptionFromPolicies(api);
-                    removeDescriptionFromPolicies(deployedApi);
 
-                    sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
+                    sync = synchronizationService.checkSynchronization(deployedApi, api);
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
@@ -1580,18 +1570,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return false;
-    }
-
-    private void removeDescriptionFromPolicies(final ApiEntity api) {
-        if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .forEach((s, rules) -> {
-                    if (rules != null) {
-                        rules.forEach(rule -> rule.setDescription(""));
-                    }
-                });
-        }
     }
 
     @Override

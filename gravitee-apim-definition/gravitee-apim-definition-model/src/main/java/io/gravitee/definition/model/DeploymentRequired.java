@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.definition.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

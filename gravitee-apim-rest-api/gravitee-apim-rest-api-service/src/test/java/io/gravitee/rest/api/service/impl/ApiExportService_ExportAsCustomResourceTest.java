@@ -19,11 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.*;
@@ -34,7 +30,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.Api3_7VersionSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
@@ -49,7 +44,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
@@ -70,9 +64,6 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
     @Mock
     private PageConverter pageConverter;
-
-    @Spy
-    private ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
     private MembershipService membershipService;
@@ -109,11 +100,6 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
     @Before
     public void setUp() throws io.gravitee.repository.exceptions.TechnicalException {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
-
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
         when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
@@ -122,11 +108,11 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
         when(applicationContext.getBean(MediaService.class)).thenReturn(mediaService);
 
-        ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
-        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
+        ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer(objectMapper);
+        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer(objectMapper);
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
-        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer();
+        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer(objectMapper);
         apiPrior37VersionSerializer.setApplicationContext(applicationContext);
 
         apiExportService =

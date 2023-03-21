@@ -50,7 +50,7 @@ public class APIV1toAPIV2ConverterTest {
         ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
         objectMapper = serviceConfiguration.objectMapper();
 
-        ApiCompositeSerializer apiSerializer = (ApiCompositeSerializer) serviceConfiguration.apiSerializer();
+        ApiCompositeSerializer apiSerializer = (ApiCompositeSerializer) serviceConfiguration.apiSerializer(objectMapper);
         apiSerializer.afterPropertiesSet();
 
         SimpleModule module = new SimpleModule();

@@ -23,8 +23,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
@@ -39,7 +37,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
@@ -116,11 +113,6 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     @Before
     public void setUp() throws TechnicalException, JsonProcessingException {
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
-
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
         when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
@@ -129,24 +121,24 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         when(applicationContext.getBean(UserService.class)).thenReturn(userService);
         when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
         when(applicationContext.getBean(MediaService.class)).thenReturn(mediaService);
-        ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
-        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
+        ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer(objectMapper);
+        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer(objectMapper);
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
         //V_1_15
-        ApiSerializer apiPrior115VersionSerializer = new Api1_15VersionSerializer();
+        ApiSerializer apiPrior115VersionSerializer = new Api1_15VersionSerializer(objectMapper);
         apiPrior115VersionSerializer.setApplicationContext(applicationContext);
         //V_1_20
-        ApiSerializer apiPrior120VersionSerializer = new Api1_20VersionSerializer();
+        ApiSerializer apiPrior120VersionSerializer = new Api1_20VersionSerializer(objectMapper);
         apiPrior120VersionSerializer.setApplicationContext(applicationContext);
         //V_1_25
-        ApiSerializer apiPrior125VersionSerializer = new Api1_25VersionSerializer();
+        ApiSerializer apiPrior125VersionSerializer = new Api1_25VersionSerializer(objectMapper);
         apiPrior125VersionSerializer.setApplicationContext(applicationContext);
         //V_3_0
-        ApiSerializer apiPrior30VersionSerializer = new Api3_0VersionSerializer();
+        ApiSerializer apiPrior30VersionSerializer = new Api3_0VersionSerializer(objectMapper);
         apiPrior30VersionSerializer.setApplicationContext(applicationContext);
         //V_3_7
-        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer();
+        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer(objectMapper);
         apiPrior37VersionSerializer.setApplicationContext(applicationContext);
 
         apiCompositeSerializer.setSerializers(

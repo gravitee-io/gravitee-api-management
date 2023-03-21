@@ -289,7 +289,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
             PlanEntity newPlanEntity = convert(newPlan);
 
-            if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
+            if (!synchronizationService.checkSynchronization(oldPlanEntity, newPlanEntity)) {
                 newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
             }
 

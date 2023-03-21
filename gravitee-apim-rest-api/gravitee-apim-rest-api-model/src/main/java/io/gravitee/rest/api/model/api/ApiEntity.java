@@ -21,19 +21,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Property;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -67,7 +58,7 @@ import lombok.ToString;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonFilter("apiMembershipTypeFilter")
+@JsonFilter("deploymentRequiredFilter")
 @Getter
 @Setter
 @ToString

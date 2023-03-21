@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.DeploymentRequired;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.definition.jackson.datatype.api.ApiModule;
 import io.gravitee.definition.jackson.datatype.api.DebugApiModule;
+import io.gravitee.definition.jackson.datatype.filter.GraviteeFilterProvider;
 import io.gravitee.definition.jackson.datatype.plugins.resource.ResourceModule;
 import io.gravitee.definition.jackson.datatype.services.core.ServiceModule;
 import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryModule;
@@ -54,5 +55,6 @@ public class GraviteeMapper extends ObjectMapper {
         enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
         disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        setFilterProvider(new GraviteeFilterProvider());
     }
 }
