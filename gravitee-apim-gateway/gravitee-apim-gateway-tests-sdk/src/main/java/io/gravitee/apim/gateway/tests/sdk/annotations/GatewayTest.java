@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.annotations;
 
 import io.gravitee.apim.gateway.tests.sdk.GatewayTestingExtension;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.junit5.VertxExtension;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -64,4 +65,6 @@ public @interface GatewayTest {
      * @return the config folder.
      */
     String configFolder() default "/gravitee-default";
+
+    GatewayMode mode() default GatewayMode.JUPITER;
 }
