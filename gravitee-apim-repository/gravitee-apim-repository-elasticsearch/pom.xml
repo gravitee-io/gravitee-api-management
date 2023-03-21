@@ -33,7 +33,6 @@
     <properties>
         <elasticsearch.version>5.6.16</elasticsearch.version>
         <gravitee-common-elasticsearch.version>4.1.0</gravitee-common-elasticsearch.version>
-        <lucene.version>6.6.1</lucene.version>
     </properties>
 
     <dependencies>
@@ -148,19 +147,16 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>${lucene.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
-            <version>${lucene.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
-            <version>${lucene.version}</version>
+            <artifactId>lucene-analysis-common</artifactId>
             <scope>test</scope>
         </dependency>
 

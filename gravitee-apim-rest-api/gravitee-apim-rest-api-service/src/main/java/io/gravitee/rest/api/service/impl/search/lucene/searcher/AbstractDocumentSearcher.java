@@ -81,7 +81,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
             if (pageable != null) {
                 //TODO: How to find the accurate numhits ?
-                TopScoreDocCollector collector = TopScoreDocCollector.create(1000);
+                TopScoreDocCollector collector = TopScoreDocCollector.create(1000, 1000);
                 searcher.search(query, collector);
 
                 topDocs = collector.topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
