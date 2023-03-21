@@ -240,6 +240,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         }
     }
 
+    public Map<String, ReactableApi<?>> getDeployedForTestClass() {
+        return Collections.unmodifiableMap(deployedForTestClass);
+    }
+
     /**
      * Called by the {@link GatewayTestingExtension} when apis wanted for the test class are deployed.
      * @param deployedForTestClass is the list of deployed apis.
