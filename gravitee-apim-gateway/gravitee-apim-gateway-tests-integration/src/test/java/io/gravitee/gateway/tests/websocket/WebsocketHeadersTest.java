@@ -20,13 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.V3)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
 

@@ -20,16 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.testkit.engine.EngineTestKit;
-import testcases.ClientAuthenticationPEMInlineTestCase;
-import testcases.ConditionalPolicyTestCase;
-import testcases.Http2HeadersTestCase;
-import testcases.InvalidApiClassLevelTestCase;
-import testcases.InvalidGatewayConfigFolderTestCase;
-import testcases.NotExtendingAbstractClassTestCase;
-import testcases.OrganizationDeploymentTestCase;
-import testcases.RegisterTwiceSameApiClassLevelTestCase;
-import testcases.RegisterTwiceSameApiMethodLevelTestCase;
-import testcases.SuccessTestCase;
+import testcases.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -182,5 +173,15 @@ class GatewayTestingExtensionTest {
             .assertStatistics(stats -> {
                 stats.started(3).succeeded(3).failed(0);
             });
+    }
+
+    @Test
+    void should_start_gateway_and_apis_with_selected_mode() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(GatewayModeTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.succeeded(9).aborted(0).skipped(0).failed(0));
     }
 }

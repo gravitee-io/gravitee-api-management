@@ -21,6 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
@@ -103,6 +104,7 @@ public class GatewayRunner {
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
+    private final GatewayMode gatewayMode;
     private final ObjectMapper graviteeMapper;
     private final Map<String, ReactableApi<?>> deployedForTestClass;
     private final Map<String, ReactableApi<?>> deployedForTest;
@@ -116,6 +118,7 @@ public class GatewayRunner {
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
         this.testInstance = testInstance;
+        this.gatewayMode = testInstance.getClass().getAnnotation(GatewayTest.class).mode();
         graviteeMapper = new GraviteeMapper();
         deployedForTestClass = new HashMap<>();
         deployedForTest = new HashMap<>();
@@ -190,6 +193,7 @@ public class GatewayRunner {
         System.setProperty("gravitee.home", graviteeHome);
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
+        System.setProperty("api.jupiterMode.enabled", gatewayMode.getJupiterEnabled().toString());
         gatewayConfigurationBuilder.build().forEach((k, v) -> System.setProperty(String.valueOf(k), String.valueOf(v)));
         System.setProperty("http.port", String.valueOf(gatewayPort));
         System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
@@ -321,6 +325,7 @@ public class GatewayRunner {
 
         if (!DefinitionVersion.V4.equals(reactableApi.getDefinitionVersion())) {
             final Api api = (Api) reactableApi.getDefinition();
+            api.setExecutionMode(gatewayMode.getExecutionMode());
             testInstance.configureApi(api);
         }
 
