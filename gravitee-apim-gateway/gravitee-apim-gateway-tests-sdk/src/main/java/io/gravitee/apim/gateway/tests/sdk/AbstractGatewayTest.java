@@ -38,6 +38,7 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -229,6 +230,10 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         if (!StringUtils.hasText(organization.getId())) {
             organization.setId("organization-id");
         }
+    }
+
+    public Map<String, ReactableApi<?>> getDeployedForTestClass() {
+        return Collections.unmodifiableMap(deployedForTestClass);
     }
 
     /**
