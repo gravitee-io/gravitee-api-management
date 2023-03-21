@@ -24,7 +24,9 @@ import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
+
+    private Map<String, Flowable<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
 
     public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
@@ -51,15 +55,26 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
         }
 
         final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
+        if (planId == null) {
+            return Flowable.empty();
+        }
 
-        return Flowable.fromIterable(
-            plans
-                .stream()
-                .filter(plan -> Objects.equals(plan.getId(), planId))
-                .filter(plan -> Objects.nonNull(plan.getFlows()))
-                .flatMap(plan -> plan.getFlows().stream())
-                .filter(Flow::isEnabled)
-                .collect(Collectors.toList())
-        );
+        return getFlows(plans, planId);
+    }
+
+    private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
+        return this.flowsByPlanId.computeIfAbsent(
+                planId,
+                id ->
+                    Flowable.fromIterable(
+                        plans
+                            .stream()
+                            .filter(plan -> Objects.equals(plan.getId(), id))
+                            .filter(plan -> Objects.nonNull(plan.getFlows()))
+                            .flatMap(plan -> plan.getFlows().stream())
+                            .filter(Flow::isEnabled)
+                            .collect(Collectors.toList())
+                    )
+            );
     }
 }
