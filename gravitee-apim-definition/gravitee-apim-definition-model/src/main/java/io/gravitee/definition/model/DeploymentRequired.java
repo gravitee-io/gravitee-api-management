@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v4.rest.provider;
+package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.databind.*;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
-@Provider
-public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
-
-    private final ObjectMapper mapper;
-
-    public ObjectMapperResolver() {
-        mapper = new GraviteeMapper();
-    }
-
-    @Override
-    public ObjectMapper getContext(Class<?> type) {
-        return mapper;
-    }
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DeploymentRequired {
 }

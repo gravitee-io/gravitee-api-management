@@ -18,9 +18,9 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Rule;
@@ -47,10 +47,12 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     private static final Pattern uid = Pattern.compile("uid=(.*?),");
     public static String METADATA_EXPORT_VERSION = "exportVersion";
     public static String METADATA_FILTERED_FIELDS_LIST = "filteredFieldsList";
+    protected final ObjectMapper objectMapper;
     protected ApplicationContext applicationContext;
 
-    protected ApiSerializer(Class<ApiEntity> t) {
+    protected ApiSerializer(Class<ApiEntity> t, ObjectMapper objectMapper) {
         super(t);
+        this.objectMapper = objectMapper;
     }
 
     public static String getUsernameFromSourceId(String sourceId) {
@@ -248,10 +250,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 Set<PlanEntity> plans = applicationContext
                     .getBean(PlanService.class)
                     .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
-                Set<PlanEntity> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());
-                jsonGenerator.writeObjectField("plans", plansToAdd);
+                List<PlanEntity> plansToAdd = plans == null
+                    ? Collections.emptyList()
+                    : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toList());
+                jsonGenerator.writeArrayFieldStart("plans");
+                for (PlanEntity plan : plansToAdd) {
+                    objectMapper.writeValue(jsonGenerator, plan);
+                }
+                jsonGenerator.writeEndArray();
             }
 
             // metadata

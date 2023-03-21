@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.VirtualHost;
@@ -35,8 +36,8 @@ import java.util.stream.Collectors;
  */
 public class Api1_15VersionSerializer extends ApiSerializer {
 
-    public Api1_15VersionSerializer() {
-        super(ApiEntity.class);
+    public Api1_15VersionSerializer(ObjectMapper objectMapper) {
+        super(ApiEntity.class, objectMapper);
     }
 
     @Override

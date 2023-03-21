@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v4.rest.provider;
+package io.gravitee.definition.jackson.datatype.filter;
 
-import com.fasterxml.jackson.databind.*;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import java.util.Collections;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Provider
-public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
+public class DeploymentRequiredFilterProvider extends SimpleFilterProvider {
 
-    private final ObjectMapper mapper;
+    public static final String JACKSON_JSON_FILTER_NAME = "deploymentRequiredFilter";
 
-    public ObjectMapperResolver() {
-        mapper = new GraviteeMapper();
+    public DeploymentRequiredFilterProvider() {
+        this(false);
     }
 
-    @Override
-    public ObjectMapper getContext(Class<?> type) {
-        return mapper;
+    public DeploymentRequiredFilterProvider(boolean onlyDeploymentRequired) {
+        super(Collections.singletonMap(JACKSON_JSON_FILTER_NAME, new DeploymentRequiredFilter(onlyDeploymentRequired)));
     }
 }

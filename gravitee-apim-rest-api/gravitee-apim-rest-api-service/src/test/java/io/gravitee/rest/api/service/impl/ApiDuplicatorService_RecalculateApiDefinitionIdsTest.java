@@ -22,8 +22,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -33,8 +31,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import java.util.Collections;
+import io.gravitee.rest.api.service.jackson.filter.DeploymentRequiredFilterProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -67,8 +64,7 @@ public class ApiDuplicatorService_RecalculateApiDefinitionIdsTest {
 
     @BeforeClass
     public static void beforeClass() {
-        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        mapper.setFilterProvider(new DeploymentRequiredFilterProvider());
     }
 
     @Test

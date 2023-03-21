@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.jackson.filter.DeploymentRequiredFilterProvider;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -614,6 +615,7 @@ public class EventServiceTest {
     public void createApiEvent_shouldReadDatabaseApiFlows_thenCreateEvent_withPayloadContainingFlows()
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
+        realObjectMapper.setFilterProvider(new DeploymentRequiredFilterProvider());
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);

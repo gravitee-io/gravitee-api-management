@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
@@ -72,11 +73,5 @@ public class Rule extends HashMap<String, Object> /* This is to generate the cor
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    @Hidden
-    @Override
-    public boolean isEmpty() {
-        return super.isEmpty();
     }
 }

@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.service.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.rest.api.model.DeploymentRequired;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import io.gravitee.definition.jackson.datatype.DeploymentRequiredMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.jackson.filter.DeploymentRequiredFilterProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -34,33 +34,31 @@ public class SynchronizationService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(SynchronizationService.class);
 
-    private final ObjectMapper objectMapper;
+    private final DeploymentRequiredMapper deploymentRequiredMapper;
 
-    public SynchronizationService(final ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public SynchronizationService(final DeploymentRequiredMapper deploymentRequiredMapper) {
+        this.deploymentRequiredMapper = deploymentRequiredMapper;
     }
 
-    public <T> boolean checkSynchronization(final Class<T> entityClass, final T deployedEntity, final T entityToDeploy) {
-        List<Object> requiredFieldsDeployedApi = new ArrayList<Object>();
-        List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
-        for (Field f : entityClass.getDeclaredFields()) {
-            if (f.getAnnotation(DeploymentRequired.class) != null) {
-                boolean previousAccessibleState = f.isAccessible();
-                f.setAccessible(true);
-                try {
-                    requiredFieldsDeployedApi.add(f.get(deployedEntity));
-                    requiredFieldsApiToDeploy.add(f.get(entityToDeploy));
-                } catch (Exception e) {
-                    LOGGER.error("Error access entity required deployment fields", e);
-                } finally {
-                    f.setAccessible(previousAccessibleState);
-                }
+    private void removeDescriptionFromPolicies(final Object entity) {
+        if (entity instanceof ApiEntity) {
+            ApiEntity api = (ApiEntity) entity;
+            if (api.getPaths() != null) {
+                api
+                    .getPaths()
+                    .forEach((s, rules) -> {
+                        if (rules != null) {
+                            rules.forEach(rule -> rule.setDescription(""));
+                        }
+                    });
             }
         }
+    }
 
+    public <T> boolean checkSynchronization(final T deployedEntity, final T entityToDeploy) {
         try {
-            String requiredFieldsDeployedApiDefinition = objectMapper.writeValueAsString(requiredFieldsDeployedApi);
-            String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(requiredFieldsApiToDeploy);
+            String requiredFieldsDeployedApiDefinition = deploymentRequiredMapper.writeValueAsString(deployedEntity);
+            String requiredFieldsApiToDeployDefinition = deploymentRequiredMapper.writeValueAsString(entityToDeploy);
 
             return requiredFieldsDeployedApiDefinition.equals(requiredFieldsApiToDeployDefinition);
         } catch (Exception e) {

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -28,8 +29,8 @@ import java.util.Map;
  */
 public class Api3_7VersionSerializer extends ApiSerializer {
 
-    public Api3_7VersionSerializer() {
-        super(ApiEntity.class);
+    public Api3_7VersionSerializer(ObjectMapper objectMapper) {
+        super(ApiEntity.class, objectMapper);
     }
 
     @Override

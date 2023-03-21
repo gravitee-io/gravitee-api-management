@@ -47,7 +47,7 @@ public class RuleSerializer extends StdScalarSerializer<Rule> {
 
             jgen.writeObject(rule.getPolicy());
 
-            if (rule.getDescription() != null) {
+            if (this.hasDescription(rule)) {
                 jgen.writeStringField("description", rule.getDescription());
             }
 
@@ -55,5 +55,9 @@ public class RuleSerializer extends StdScalarSerializer<Rule> {
 
             jgen.writeEndObject();
         }
+    }
+
+    protected boolean hasDescription(final Rule rule) {
+        return rule.getDescription() != null;
     }
 }

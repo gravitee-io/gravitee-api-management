@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.DeploymentRequired;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -29,6 +31,7 @@ import javax.validation.constraints.NotNull;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonFilter("deploymentRequiredFilter")
 public class PlanEntity implements GenericPlanEntity {
 
     private String id;

@@ -27,16 +27,13 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author GraviteeSource Team
@@ -108,7 +105,6 @@ public class RollbackApiEntity {
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
-    @DeploymentRequired
     @JsonProperty(value = "flow_mode")
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;

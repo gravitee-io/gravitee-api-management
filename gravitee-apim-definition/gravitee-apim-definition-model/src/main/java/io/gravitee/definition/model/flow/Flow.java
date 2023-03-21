@@ -15,10 +15,12 @@
  */
 package io.gravitee.definition.model.flow;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
+import io.gravitee.definition.model.DeploymentRequired;
 import java.io.Serializable;
 import java.util.*;
 
@@ -27,6 +29,7 @@ import java.util.*;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonFilter("deploymentRequiredFilter")
 public class Flow implements Serializable, ConditionSupplier {
 
     @JsonProperty("id")
@@ -35,24 +38,31 @@ public class Flow implements Serializable, ConditionSupplier {
     @JsonProperty("name")
     private String name;
 
+    @DeploymentRequired
     @JsonProperty("path-operator")
     private PathOperator pathOperator = new PathOperator();
 
+    @DeploymentRequired
     @JsonProperty("pre")
     private List<Step> pre = new ArrayList<>();
 
+    @DeploymentRequired
     @JsonProperty("post")
     private List<Step> post = new ArrayList<>();
 
+    @DeploymentRequired
     @JsonProperty("enabled")
     private boolean enabled = true;
 
+    @DeploymentRequired
     @JsonProperty("methods")
     private Set<HttpMethod> methods = new HashSet<>();
 
+    @DeploymentRequired
     @JsonProperty("condition")
     private String condition;
 
+    @DeploymentRequired
     @JsonProperty("consumers")
     private List<Consumer> consumers;
 

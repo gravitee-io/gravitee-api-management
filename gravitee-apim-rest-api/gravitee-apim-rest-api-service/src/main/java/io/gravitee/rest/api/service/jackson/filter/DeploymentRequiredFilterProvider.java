@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.service.jackson.filter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import java.util.Collections;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DeploymentRequired {
+public class DeploymentRequiredFilterProvider extends SimpleFilterProvider {
+
+    public static final String JACKSON_JSON_FILTER_NAME = "deploymentRequiredFilter";
+
+    public DeploymentRequiredFilterProvider() {
+        this(false);
+    }
+
+    public DeploymentRequiredFilterProvider(boolean onlyDeploymentRequired) {
+        super(Collections.singletonMap(JACKSON_JSON_FILTER_NAME, new DeploymentRequiredFilter(onlyDeploymentRequired)));
+    }
 }

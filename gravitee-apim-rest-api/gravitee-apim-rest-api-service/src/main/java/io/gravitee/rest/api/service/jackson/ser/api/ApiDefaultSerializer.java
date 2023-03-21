@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -31,8 +32,8 @@ import java.util.Map;
  */
 public class ApiDefaultSerializer extends ApiSerializer {
 
-    public ApiDefaultSerializer() {
-        super(ApiEntity.class);
+    public ApiDefaultSerializer(ObjectMapper objectMapper) {
+        super(ApiEntity.class, objectMapper);
     }
 
     @Override

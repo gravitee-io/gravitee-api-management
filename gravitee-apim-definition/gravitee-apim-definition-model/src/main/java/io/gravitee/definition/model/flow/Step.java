@@ -17,6 +17,7 @@ package io.gravitee.definition.model.flow;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
@@ -25,25 +26,30 @@ import java.io.Serializable;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonFilter("deploymentRequiredFilter")
 public class Step implements Serializable {
 
     @JsonProperty("name")
     private String name;
 
+    @DeploymentRequired
     @JsonProperty("policy")
     private String policy;
 
     @JsonProperty("description")
     private String description;
 
+    @DeploymentRequired
     @Schema(implementation = Object.class)
     @JsonRawValue
     @JsonProperty("configuration")
     private Object configuration;
 
+    @DeploymentRequired
     @JsonProperty("enabled")
     private boolean enabled = true;
 
+    @DeploymentRequired
     @JsonProperty("condition")
     private String condition;
 
