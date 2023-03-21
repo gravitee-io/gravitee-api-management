@@ -73,6 +73,7 @@
                 <span class="italic warn-general-conditions" ng-if="$ctrl.parent.shouldNotEditConditions()">*</span>
               </label>
               <md-select ng-model="$ctrl.parent.plan.general_conditions">
+                <md-option ng-value="''"></md-option>
                 <md-option ng-repeat="page in $ctrl.parent.pages | orderBy:'name' " ng-value="page.id"> {{page.name}} </md-option>
               </md-select>
               <span class="italic warn-general-conditions" ng-if="$ctrl.parent.shouldNotEditConditions()">
