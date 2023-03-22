@@ -29,6 +29,7 @@ import { SettingsNavigationModule } from './configuration/settings-navigation/se
 import { InstanceDetailsModule } from './instances/instance-details/instance-details.module';
 import { ApiCreationV4Module } from './api/creation/v4/api-creation-v4.module';
 import { MessagesModule } from './messages/messages.module';
+import { HomeModule } from './home/home.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 
@@ -44,8 +45,9 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     ApiCreationModule,
     ApiCreationV4Module,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
-    EnvironmentApplicationModule,
+    HomeModule,
     ApisModule,
+    EnvironmentApplicationModule,
     SettingsNavigationModule,
     InstanceDetailsModule.withRouting({ stateNamePrefix: 'management.instances.detail' }),
     MessagesModule,
