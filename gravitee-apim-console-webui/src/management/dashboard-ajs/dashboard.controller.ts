@@ -18,7 +18,6 @@ import { StateService } from '@uirouter/core';
 import UserService from '../../services/user.service';
 
 class DashboardController {
-  private canViewAnalytics: boolean;
   private canViewApiStatus: boolean;
   private selectedIndex: number;
   private canViewAlerts: boolean;
@@ -29,13 +28,9 @@ class DashboardController {
   $onInit() {
     const tabs = ['management.dashboard.home'];
     this.canViewApiStatus = this.Constants.env.settings.dashboards.apiStatus.enabled;
-    this.canViewAnalytics = this.UserService.isUserHasAllPermissions(['environment-platform-r']);
     this.canViewAlerts = this.Constants.org.settings.alert.enabled && this.UserService.isUserHasPermissions(['environment-alert-r']);
     if (this.canViewApiStatus) {
       tabs.push('management.dashboard.apis-status');
-    }
-    if (this.canViewAnalytics) {
-      tabs.push('management.dashboard.analytics');
     }
     if (this.canViewAlerts) {
       tabs.push('management.dashboard.alerts');

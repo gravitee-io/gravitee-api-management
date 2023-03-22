@@ -95,6 +95,13 @@ export class GioSideNavComponent implements OnInit {
         displayName: 'Messages',
         permissions: ['environment-message-c'],
       },
+      {
+        icon: 'gio:bar-chart-2',
+        targetRoute: 'management.analytics',
+        baseRoute: 'management.analytics',
+        displayName: 'Analytics',
+        permissions: ['environment-platform-r'],
+      },
     ];
 
     if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
