@@ -77,41 +77,6 @@ function managementRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.dashboard.analytics', {
-      url: '/platform?from&to&q&dashboard',
-      template: require('./dashboard-ajs/analytics-dashboard/analytics-dashboard.html'),
-      controller: 'AnalyticsDashboardController',
-      controllerAs: '$ctrl',
-      resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
-      },
-      data: {
-        perms: {
-          only: ['environment-platform-r'],
-        },
-        docs: {
-          page: 'management-dashboard-analytics',
-        },
-      },
-      params: {
-        from: {
-          type: 'int',
-          dynamic: true,
-        },
-        to: {
-          type: 'int',
-          dynamic: true,
-        },
-        q: {
-          type: 'string',
-          dynamic: true,
-        },
-        dashboard: {
-          type: 'string',
-          dynamic: true,
-        },
-      },
-    })
     .state('management.dashboard.alerts', {
       url: '/alerts',
       template: require('./dashboard-ajs/alerts-dashboard/platform-alerts-dashboard.html'),
@@ -274,6 +239,41 @@ function managementRouterConfig($stateProvider) {
       resolve: {
         ticket: ($stateParams: StateParams, TicketService: TicketService) =>
           TicketService.getTicket($stateParams.ticketId).then((response) => response.data),
+      },
+    })
+    .state('management.analytics', {
+      url: '/platform?from&to&q&dashboard',
+      template: require('./dashboard-ajs/analytics-dashboard/analytics-dashboard.html'),
+      controller: 'AnalyticsDashboardController',
+      controllerAs: '$ctrl',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
+      },
+      data: {
+        perms: {
+          only: ['environment-platform-r'],
+        },
+        docs: {
+          page: 'management-dashboard-analytics',
+        },
+      },
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true,
+        },
+        to: {
+          type: 'int',
+          dynamic: true,
+        },
+        q: {
+          type: 'string',
+          dynamic: true,
+        },
+        dashboard: {
+          type: 'string',
+          dynamic: true,
+        },
       },
     });
 }
