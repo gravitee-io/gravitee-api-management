@@ -34,10 +34,19 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
         this.gvChartPie = $element.children()[0];
         this.options = {
           name: this.parent.widget.title,
-          data: Object.keys(changes.data.currentValue.values || {}).map((label, idx) => {
+          data: Object.keys(changes.data.currentValue.values || {}).map((label) => {
+            // The next lines are weird and would need a complete refactor, it
+            // will happen with the Angular migration of this component
+            if (!this.parent.widget.chart.labels || !this.parent.widget.chart.labels.includes(label)) {
+              return {
+                name: label,
+              };
+            }
+
+            const index = this.parent.widget.chart.labels.indexOf(label);
             return {
-              name: this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : label,
-              color: this.parent.widget.chart.colors[idx],
+              name: this.parent.widget.chart.labels[index],
+              color: this.parent.widget.chart.colors[index],
             };
           }),
         };
