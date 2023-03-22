@@ -88,13 +88,12 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     }
 
     public <T extends EntrypointConnector> T resolve(final ExecutionContext ctx) {
-        Optional<EntrypointConnector> entrypointConnector = entrypointConnectors
-            .stream()
-            .filter(connector ->
-                connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)
-            )
-            .findFirst();
-        return (T) entrypointConnector.orElse(null);
+        for (EntrypointConnector connector : entrypointConnectors) {
+            if (connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)) {
+                return (T) connector;
+            }
+        }
+        return null;
     }
 
     @Override
