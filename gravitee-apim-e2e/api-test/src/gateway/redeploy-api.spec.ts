@@ -100,7 +100,6 @@ describe('Redeploy Api', () => {
         updatePlanEntity: UpdatePlanEntityFromJSON({
           ...createdPlan,
           publishedAt: null,
-          needRedeployAt: null,
           selection_rule: 'true',
         }),
       });

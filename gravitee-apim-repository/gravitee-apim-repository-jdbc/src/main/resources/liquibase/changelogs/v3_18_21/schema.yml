@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id:  3.18.21
+      author: GraviteeSource Team
+      changes:
+        - dropColumn:
+            tableName: ${gravitee_prefix}plans
+            columnName: need_redeploy_at

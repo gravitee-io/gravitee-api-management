@@ -51,8 +51,6 @@ public interface GenericPlanEntity {
     @JsonIgnore
     PlanValidationType getPlanValidation();
 
-    Date getNeedRedeployAt();
-
     List<String> getCharacteristics();
 
     String getCommentMessage();

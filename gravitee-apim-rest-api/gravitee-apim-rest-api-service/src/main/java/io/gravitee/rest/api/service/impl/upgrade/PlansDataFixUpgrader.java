@@ -215,7 +215,6 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         plan.setTags(definitionPlan.getTags());
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
-        plan.setNeedRedeployAt(plan.getCreatedAt());
         if (definitionPlan.getSecurity() != null) {
             plan.setSecurity(Plan.PlanSecurityType.valueOf(definitionPlan.getSecurity()));
         }

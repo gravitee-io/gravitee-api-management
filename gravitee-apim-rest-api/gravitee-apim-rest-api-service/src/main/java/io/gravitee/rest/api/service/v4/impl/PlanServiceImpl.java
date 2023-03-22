@@ -242,12 +242,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
-            // for existing plans, needRedeployAt doesn't exist. We have to initialize it
-            if (oldPlan.getNeedRedeployAt() == null) {
-                newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
-            } else {
-                newPlan.setNeedRedeployAt(oldPlan.getNeedRedeployAt());
-            }
 
             // update data
             newPlan.setName(updatePlan.getName());
@@ -290,14 +284,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 reorderAndSavePlans(newPlan);
                 return null;
             } else {
-                PlanEntity oldPlanEntity = mapToEntity(oldPlan);
-
                 flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
-                PlanEntity newPlanEntity = mapToEntity(newPlan);
 
-                if (!synchronizationService.checkSynchronization(oldPlanEntity, newPlanEntity)) {
-                    newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
-                }
                 newPlan = planRepository.update(newPlan);
 
                 auditService.createApiAuditLog(
@@ -347,7 +335,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
             plan.setUpdatedAt(plan.getClosedAt());
-            plan.setNeedRedeployAt(plan.getClosedAt());
 
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
@@ -469,7 +456,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
-            plan.setNeedRedeployAt(plan.getPublishedAt());
 
             // Save plan
             plan = planRepository.update(plan);

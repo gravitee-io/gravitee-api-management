@@ -77,7 +77,6 @@ public class PlanMapperTest {
         planEntity.setExcludedGroups(Arrays.asList(PLAN_GROUP));
         planEntity.setId(PLAN_ID);
         planEntity.setName(PLAN_NAME);
-        planEntity.setNeedRedeployAt(nowDate);
         planEntity.setOrder(1);
 
         Policy policy = new Policy();

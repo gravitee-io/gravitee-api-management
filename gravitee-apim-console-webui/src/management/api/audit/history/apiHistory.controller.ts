@@ -454,7 +454,6 @@ class ApiHistoryController {
         delete plan.cross_id;
         delete plan.description;
         delete plan.excluded_groups;
-        delete plan.need_redeploy_at;
         delete plan.general_conditions;
         delete plan.order;
         delete plan.published_at;

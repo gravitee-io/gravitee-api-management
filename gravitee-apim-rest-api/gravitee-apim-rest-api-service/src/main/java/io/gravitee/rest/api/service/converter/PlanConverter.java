@@ -82,7 +82,6 @@ public class PlanConverter {
 
         entity.setSecurityDefinition(plan.getSecurityDefinition());
         entity.setClosedAt(plan.getClosedAt());
-        entity.setNeedRedeployAt(plan.getNeedRedeployAt() == null ? plan.getUpdatedAt() : plan.getNeedRedeployAt());
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());
@@ -171,7 +170,6 @@ public class PlanConverter {
         plan.setDescription(newPlan.getDescription());
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
-        plan.setNeedRedeployAt(plan.getCreatedAt());
         plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
         plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
         plan.setSecurityDefinition(newPlan.getSecurityDefinition());

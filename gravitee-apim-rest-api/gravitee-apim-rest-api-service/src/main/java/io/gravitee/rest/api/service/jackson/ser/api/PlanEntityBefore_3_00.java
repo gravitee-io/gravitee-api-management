@@ -57,9 +57,6 @@ public class PlanEntityBefore_3_00 {
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
 
-    @JsonProperty("need_redeploy_at")
-    private Date needRedeployAt;
-
     @JsonProperty("comment_required")
     private boolean commentRequired;
 
@@ -130,7 +127,6 @@ public class PlanEntityBefore_3_00 {
         oldPlanEntity.setPaths(planEntity.getPaths());
         oldPlanEntity.setCharacteristics(planEntity.getCharacteristics());
         oldPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
-        oldPlanEntity.setNeedRedeployAt(planEntity.getNeedRedeployAt());
         oldPlanEntity.setCommentRequired(planEntity.isCommentRequired());
         oldPlanEntity.setCommentMessage(planEntity.getCommentMessage());
         oldPlanEntity.setTags(planEntity.getTags());
@@ -232,14 +228,6 @@ public class PlanEntityBefore_3_00 {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
-    }
-
-    public Date getNeedRedeployAt() {
-        return needRedeployAt;
-    }
-
-    public void setNeedRedeployAt(Date needRedeployAt) {
-        this.needRedeployAt = needRedeployAt;
     }
 
     public boolean isCommentRequired() {

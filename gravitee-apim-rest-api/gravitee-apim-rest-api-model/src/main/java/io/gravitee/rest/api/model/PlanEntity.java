@@ -110,12 +110,6 @@ public class PlanEntity implements GenericPlanEntity {
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
 
-    /**
-     * last time modification introduced an api redeployment
-     */
-    @JsonIgnore
-    private Date needRedeployAt;
-
     @JsonProperty("comment_required")
     private boolean commentRequired;
 
@@ -274,14 +268,6 @@ public class PlanEntity implements GenericPlanEntity {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
-    }
-
-    public Date getNeedRedeployAt() {
-        return needRedeployAt;
-    }
-
-    public void setNeedRedeployAt(Date needRedeployAt) {
-        this.needRedeployAt = needRedeployAt;
     }
 
     @Override

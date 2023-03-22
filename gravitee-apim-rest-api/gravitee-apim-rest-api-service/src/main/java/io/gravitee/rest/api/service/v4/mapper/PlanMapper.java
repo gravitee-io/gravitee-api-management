@@ -51,7 +51,6 @@ public class PlanMapper {
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setClosedAt(plan.getClosedAt());
-        entity.setNeedRedeployAt(plan.getNeedRedeployAt() == null ? plan.getUpdatedAt() : plan.getNeedRedeployAt());
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
@@ -93,7 +92,6 @@ public class PlanMapper {
         plan.setDescription(newPlanEntity.getDescription());
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
-        plan.setNeedRedeployAt(plan.getCreatedAt());
         plan.setType(Plan.PlanType.valueOf(newPlanEntity.getType().name()));
         PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
         plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));

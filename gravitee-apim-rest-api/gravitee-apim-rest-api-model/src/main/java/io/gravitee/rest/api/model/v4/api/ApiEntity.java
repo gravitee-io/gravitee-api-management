@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
@@ -60,6 +61,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "ApiEntityV4")
+@JsonFilter("deploymentRequiredFilter")
 public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")

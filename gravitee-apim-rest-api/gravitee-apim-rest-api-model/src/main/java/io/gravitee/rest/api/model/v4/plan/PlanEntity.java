@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DeploymentRequired;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -41,6 +42,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "PlanEntityV4")
+@JsonFilter("deploymentRequiredFilter")
 public class PlanEntity implements GenericPlanEntity {
 
     private String id;
@@ -55,9 +57,6 @@ public class PlanEntity implements GenericPlanEntity {
     private Date updatedAt;
     private Date publishedAt;
     private Date closedAt;
-
-    @JsonIgnore
-    private Date needRedeployAt;
 
     /**
      * The way to validate subscriptions

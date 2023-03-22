@@ -67,7 +67,6 @@ import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
-import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
@@ -126,9 +125,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private ParameterService parameterService;
-
-    @Autowired
-    private SynchronizationService synchronizationService;
 
     @Lazy
     @Autowired
@@ -245,12 +241,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
-            // for existing plans, needRedeployAt doesn't exist. We have to initalize it
-            if (oldPlan.getNeedRedeployAt() == null) {
-                newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
-            } else {
-                newPlan.setNeedRedeployAt(oldPlan.getNeedRedeployAt());
-            }
 
             // update data
             newPlan.setName(updatePlan.getName());
@@ -288,10 +278,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
             PlanEntity newPlanEntity = convert(newPlan);
-
-            if (!synchronizationService.checkSynchronization(oldPlanEntity, newPlanEntity)) {
-                newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
-            }
 
             // if order change, reorder all plans
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -353,7 +339,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
             plan.setUpdatedAt(plan.getClosedAt());
-            plan.setNeedRedeployAt(plan.getClosedAt());
 
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
@@ -476,7 +461,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
-            plan.setNeedRedeployAt(plan.getPublishedAt());
 
             // Save plan
             plan = planRepository.update(plan);

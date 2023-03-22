@@ -1544,26 +1544,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 EventEntity lastEvent = events.getContent().get(0);
-                boolean sync = false;
                 if (PUBLISH_API.equals(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
 
-                    sync = synchronizationService.checkSynchronization(deployedApi, api);
-
-                    // 2_ If API definition is synchronized, check if there is any modification for API's plans
-                    // but only for published or closed plan
-                    if (sync) {
-                        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
-                        sync =
-                            plans
-                                .stream()
-                                .noneMatch(plan ->
-                                    plan.getStatus() != PlanStatus.STAGING && plan.getNeedRedeployAt().after(api.getDeployedAt())
-                                );
-                    }
+                    return synchronizationService.checkSynchronization(deployedApi, api);
                 }
-                return sync;
+                return false;
             }
         } catch (Exception e) {
             LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);

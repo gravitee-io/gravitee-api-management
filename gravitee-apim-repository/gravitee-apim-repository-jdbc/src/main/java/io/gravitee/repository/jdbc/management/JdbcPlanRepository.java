@@ -72,7 +72,6 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("published_at", Types.TIMESTAMP, Date.class)
             .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
             .addColumn("comment_required", Types.BOOLEAN, boolean.class)
             .addColumn("comment_message", Types.NVARCHAR, String.class)
             .addColumn("selection_rule", Types.NVARCHAR, String.class)

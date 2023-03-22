@@ -57,7 +57,6 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(compareDate(new Date(1507032062000L), plan.get().getUpdatedAt()));
         assertTrue(compareDate(new Date(1506878460000L), plan.get().getPublishedAt()));
         assertTrue(compareDate(new Date(1507611600000L), plan.get().getClosedAt()));
-        assertTrue(compareDate(new Date(1507611670000L), plan.get().getNeedRedeployAt()));
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
         assertEquals("tag1", plan.get().getTags().iterator().next());
@@ -88,7 +87,6 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(compareDate(new Date(1507032062000L), plan.getUpdatedAt()));
         assertTrue(compareDate(new Date(1506878460000L), plan.getPublishedAt()));
         assertTrue(compareDate(new Date(1507611600000L), plan.getClosedAt()));
-        assertTrue(compareDate(new Date(1507611670000L), plan.getNeedRedeployAt()));
     }
 
     @Test
