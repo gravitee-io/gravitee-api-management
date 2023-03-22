@@ -15,8 +15,6 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { CommonModule } from '@angular/common';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 
 import { GioChartPieComponent } from './gio-chart-pie.component';
@@ -27,7 +25,7 @@ export default {
   component: GioChartPieComponent,
   decorators: [
     moduleMetadata({
-      imports: [CommonModule, BrowserAnimationsModule, MatCardModule, GioChartPieComponentModule],
+      imports: [MatCardModule, GioChartPieComponentModule],
     }),
   ],
   render: () => ({}),
@@ -67,7 +65,28 @@ export const Simple: Story = {
     const dataDescription = 'Nb hits';
     return {
       template: `
-      <mat-card>
+      <mat-card style="width: 500px">
+            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
+      </mat-card>
+      `,
+      props: {
+        data,
+        dataDescription,
+        title,
+      },
+      styles: [],
+    };
+  },
+};
+
+export const NoData: Story = {
+  render: () => {
+    const data = [];
+    const title = 'A Sample Title';
+    const dataDescription = 'Nb hits';
+    return {
+      template: `
+      <mat-card style="width: 500px">
             <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
       </mat-card>
       `,

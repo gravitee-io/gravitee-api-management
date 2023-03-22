@@ -42,8 +42,6 @@ export class GioChartPieComponent implements OnInit {
   chartOptions: Highcharts.Options;
 
   ngOnInit() {
-    // TODO: If no data, display: "No data to display" with title
-
     this.chartOptions = {
       title: {
         text: '',
