@@ -20,6 +20,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.CompletableTransformer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
 
 /**
@@ -43,7 +45,7 @@ class CompletableReactorChain extends Completable {
      * @return the current chain for fluent usage.
      */
     public CompletableReactorChain chainWith(Completable other) {
-        this.completable = completable.compose(upstream -> upstream.andThen(other));
+        this.completable = completable.andThen(other);
         return this;
     }
 
@@ -65,8 +67,8 @@ class CompletableReactorChain extends Completable {
      * @param condition <code>true</code> to chain, <code>false</code> to skip chaining.
      * @return the current chain for fluent usage.
      */
-    public CompletableReactorChain chainWithIf(Completable other, boolean condition) {
-        return condition ? chainWith(other) : this;
+    public CompletableReactorChain chainWithIf(Supplier<Completable> other, boolean condition) {
+        return condition ? chainWith(other.get()) : this;
     }
 
     /**

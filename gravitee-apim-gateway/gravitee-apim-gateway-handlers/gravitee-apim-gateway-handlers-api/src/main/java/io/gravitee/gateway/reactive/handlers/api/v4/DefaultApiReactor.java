@@ -15,20 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
-import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
-import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_REQUEST;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
-import static io.reactivex.rxjava3.core.Completable.defer;
-import static io.reactivex.rxjava3.core.Observable.interval;
-import static java.lang.Boolean.TRUE;
-
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
@@ -43,7 +29,11 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.reactive.api.context.*;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.context.ExecutionContext;
+import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
@@ -78,6 +68,10 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -85,9 +79,20 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_REQUEST;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_RESPONSE;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.reactivex.rxjava3.core.Completable.defer;
+import static io.reactivex.rxjava3.core.Observable.interval;
+import static java.lang.Boolean.TRUE;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -250,33 +255,33 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
             // After entrypoint response
-            .chainWithIf(executeProcessorChain(ctx, afterEntrypointRequestProcessors, MESSAGE_REQUEST), isEventNative)
-            .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
+            .chainWithIf(() -> executeProcessorChain(ctx, afterEntrypointRequestProcessors, MESSAGE_REQUEST), isEventNative)
+            .chainWithIf(() -> platformFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             // Execute all flows for request and message request phases.
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
-            .chainWithIf(apiPlanFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
+            .chainWithIf(() -> apiPlanFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
-            .chainWithIf(apiFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
+            .chainWithIf(() -> apiFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             // Invoke the backend.
             .chainWith(invokeBackend(ctx))
             // Execute all flows for response and message response phases.
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
-            .chainWithIf(apiPlanFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
+            .chainWithIf(() -> apiPlanFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
-            .chainWithIf(apiFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
+            .chainWithIf(() -> apiFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
             // After flows processors.
             .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
-            .chainWithIf(executeProcessorChain(ctx, afterApiExecutionMessageProcessors, MESSAGE_RESPONSE), isEventNative)
+            .chainWithIf(() -> executeProcessorChain(ctx, afterApiExecutionMessageProcessors, MESSAGE_RESPONSE), isEventNative)
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed (whatever timeout or error).
             .chainWith(
                 new CompletableReactorChain(platformFlowChain.execute(ctx, RESPONSE))
-                    .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
+                    .chainWithIf(() -> platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
                     .chainWith(upstream -> timeout(upstream, ctx))
             )
             // Before entrypoint response
-            .chainWithIf(executeProcessorChain(ctx, beforeEntrypointResponseProcessors, MESSAGE_RESPONSE), isEventNative)
+            .chainWithIf(() -> executeProcessorChain(ctx, beforeEntrypointResponseProcessors, MESSAGE_RESPONSE), isEventNative)
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
             // Catch possible unexpected errors before executing after Handle Processors
