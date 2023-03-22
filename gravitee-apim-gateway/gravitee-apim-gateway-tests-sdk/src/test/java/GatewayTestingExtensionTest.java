@@ -60,9 +60,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(SuccessTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(1).succeeded(1);
-            });
+            .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
@@ -73,9 +71,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(Http2HeadersTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(2).succeeded(2);
-            });
+            .assertStatistics(stats -> stats.started(2).succeeded(2));
     }
 
     /**
@@ -89,9 +85,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(ClientAuthenticationPEMInlineTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(1).succeeded(1);
-            });
+            .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
@@ -102,9 +96,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(ConditionalPolicyTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.succeeded(2).failed(1);
-            });
+            .assertStatistics(stats -> stats.succeeded(2).failed(1));
     }
 
     @Test
@@ -115,9 +107,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(InvalidApiClassLevelTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(0);
-            });
+            .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
@@ -128,9 +118,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(InvalidGatewayConfigFolderTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(0);
-            });
+            .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
@@ -141,9 +129,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(RegisterTwiceSameApiClassLevelTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(0);
-            });
+            .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
@@ -154,9 +140,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(2).succeeded(1).failed(1);
-            });
+            .assertStatistics(stats -> stats.started(2).succeeded(1).failed(1));
     }
 
     @Test
@@ -167,9 +151,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(NotExtendingAbstractClassTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(0);
-            });
+            .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
@@ -180,9 +162,7 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(OrganizationDeploymentTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(3).succeeded(3).failed(0);
-            });
+            .assertStatistics(stats -> stats.started(3).succeeded(3).failed(0));
     }
 
     @Test
@@ -193,8 +173,6 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(GrpcTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> {
-                stats.started(1).succeeded(1).failed(0);
-            });
+            .assertStatistics(stats -> stats.started(1).succeeded(1).failed(0));
     }
 }
