@@ -57,9 +57,10 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
             // Test if we are in the context of a preflight request
             if (isPreflightRequest(ctx.request())) {
                 Cors cors = getCors(ctx);
-                handlePreflightRequest(cors, ctx);
-                // If we don't want to run policies, exit request processing
-                if (!cors.isRunPolicies()) {
+                boolean isPreflightSuccessful = handlePreflightRequest(cors, ctx);
+
+                // If we don't want to run policies or the preflight fails, exit request processing
+                if (!cors.isRunPolicies() || !isPreflightSuccessful) {
                     return ctx.interrupt();
                 } else {
                     ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP, true);
@@ -81,8 +82,9 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
      * See <a href="https://www.w3.org/TR/cors/#resource-preflight-requests">Preflight request</a>
      * @param cors Cors settings
      * @param ctx current context
+     * @return true if the Preflight Request pass, false otherwise
      */
-    private void handlePreflightRequest(final Cors cors, final GenericExecutionContext ctx) {
+    private boolean handlePreflightRequest(final Cors cors, final GenericExecutionContext ctx) {
         final GenericRequest request = ctx.request();
         final GenericResponse response = ctx.response();
 
@@ -98,7 +100,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         if (!isOriginAllowed(cors, originHeader)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             ctx.metrics().setErrorMessage(String.format("Origin '%s' is not allowed", originHeader));
-            return;
+            return false;
         }
 
         // 3. Let method be the value as result of parsing the Access-Control-Request-Method header.
@@ -108,7 +110,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         if (!isRequestMethodsValid(cors, accessControlRequestMethod)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             ctx.metrics().setErrorMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
-            return;
+            return false;
         }
 
         // 4.Let header field-names be the values as result of parsing the Access-Control-Request-Headers headers.
@@ -116,7 +118,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         if (!isRequestHeadersValid(cors, accessControlRequestHeaders)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             ctx.metrics().setErrorMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
-            return;
+            return false;
         }
 
         // 7. If the resource supports credentials add a single Access-Control-Allow-Credentials header with the case-sensitive
@@ -145,7 +147,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
         } else {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             ctx.metrics().setErrorMessage("CORS configuration invalid,  Access-Control-Allow-Methods cannot be null or empty.");
-            return;
+            return false;
         }
 
         // 10. If each of the header field-names is a simple header and none is Content-Type, this step may be skipped.
@@ -156,6 +158,7 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
                 .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
         }
         response.status(HttpStatusCode.OK_200);
+        return true;
     }
 
     private boolean isRequestMethodsValid(final Cors cors, final String accessControlRequestMethods) {
