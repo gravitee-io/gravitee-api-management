@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import Highcharts from 'highcharts';
 
 @Component({
   selector: 'gio-chart-pie',
   template: require('./gio-chart-pie.component.html'),
   styles: [require('./gio-chart-pie.component.scss')],
 })
-export class GioChartPieComponent {}
+export class GioChartPieComponent {
+  Highcharts: typeof Highcharts = Highcharts;
+  chartOptions: Highcharts.Options = {
+    series: [
+      {
+        data: [1, 2, 3],
+        type: 'line',
+      },
+    ],
+  };
+}

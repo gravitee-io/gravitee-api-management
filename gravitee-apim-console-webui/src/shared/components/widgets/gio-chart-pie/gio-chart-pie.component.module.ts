@@ -19,7 +19,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 import { GioChartPieComponent } from './gio-chart-pie.component';
 
 @NgModule({
-  imports: [HighchartsChartModule],
+  imports: [HighchartsChartModule, HighchartsChartModule],
   declarations: [GioChartPieComponent],
   exports: [GioChartPieComponent],
 })
