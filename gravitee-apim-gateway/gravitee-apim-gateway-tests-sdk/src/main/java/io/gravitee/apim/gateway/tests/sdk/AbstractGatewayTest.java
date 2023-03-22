@@ -39,10 +39,11 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.mockito.Mockito;
@@ -67,6 +69,7 @@ import org.springframework.util.StringUtils;
  * @author GraviteeSource Team
  */
 @Slf4j
+@ExtendWith(VertxExtension.class)
 public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApplicationContextAware {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
@@ -147,17 +150,15 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * Update endpoints for each apis deployed for the whole test class, see {@link AbstractGatewayTest#updateEndpointsOnDeployedApisForClassIfNeeded()}
      * </p>
      * @param vertx this parameter is only used to let the VertxExtension initialize it. It will allow to use WebClient directly.
-     * @param testContext
      */
     @BeforeEach
-    public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    public void setUp(Vertx vertx) throws Exception {
         resetAllMocks();
         prepareWireMock();
         updateEndpointsOnDeployedApisForClassIfNeeded();
         updateEndpointsOnDeployedApisForTestIfNeeded();
         // Prepare something on a Vert.x event-loop thread
         // The thread changes with each test instance
-        testContext.completeNow();
     }
 
     private void resetAllMocks() throws Exception {
@@ -190,13 +191,11 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     /**
      * Ensure the testContext is completed after a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
-     * @param testContext
      */
     @AfterEach
-    void cleanUp(VertxTestContext testContext) {
+    void cleanUp() {
         // Clean things up on the same Vert.x event-loop thread
         // that called prepare and foo
-        testContext.completeNow();
         wiremock.stop();
     }
 
@@ -362,11 +361,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
         Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer
     ) {
         if (api.getEndpointGroups() != null) {
-            api
-                .getEndpointGroups()
-                .stream()
-                .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
-                .forEach(endpointConsumer::accept);
+            api.getEndpointGroups().stream().flatMap(endpointGroup -> endpointGroup.getEndpoints().stream()).forEach(endpointConsumer);
         }
     }
 
@@ -404,7 +399,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     /**
      * Check if API is legacy (v3 engine) according to its definition class
-     * @param definitionClass
+     * @param definitionClass The definition class to check
      * @return true if it's a legacy api
      */
     protected boolean isLegacyApi(Class<?> definitionClass) {
@@ -413,7 +408,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     /**
      * Check if API is V4 according to its definition class
-     * @param definitionClass
+     * @param definitionClass The definition class to check
      * @return true if it's a V4 api
      */
     protected boolean isV4Api(Class<?> definitionClass) {
