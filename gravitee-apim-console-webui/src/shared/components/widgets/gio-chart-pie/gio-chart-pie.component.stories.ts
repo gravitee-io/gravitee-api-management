@@ -35,13 +35,47 @@ export default {
 
 export const Simple: Story = {
   render: () => {
+    const data = [
+      {
+        color: '#bbb',
+        label: '1xx',
+        value: 0,
+      },
+      {
+        color: '#30ab61',
+        label: '2xx',
+        value: 27567,
+      },
+      {
+        color: '#365bd3',
+        label: '3xx',
+        value: 0,
+      },
+      {
+        color: '#ff9f40',
+        label: '4xx',
+        value: 1000,
+      },
+      {
+        color: '#cf3942',
+        label: '5xx',
+        value: 300,
+      },
+    ];
+
+    const title = 'A Sample Title';
+    const dataDescription = 'Nb hits';
     return {
       template: `
       <mat-card>
-            <gio-chart-pie></gio-chart-pie>
+            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
       </mat-card>
       `,
-      props: {},
+      props: {
+        data,
+        dataDescription,
+        title,
+      },
       styles: [],
     };
   },

@@ -13,22 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+
+import { Component, Input, OnInit } from '@angular/core';
 import Highcharts from 'highcharts';
+
+export interface GioChartPieInput {
+  label: string;
+  value: number;
+  color: string;
+}
 
 @Component({
   selector: 'gio-chart-pie',
   template: require('./gio-chart-pie.component.html'),
   styles: [require('./gio-chart-pie.component.scss')],
 })
-export class GioChartPieComponent {
+export class GioChartPieComponent implements OnInit {
+  @Input()
+  public data: GioChartPieInput[];
+
+  @Input()
+  public dataDescription: string;
+
+  @Input()
+  public title: string;
+
   Highcharts: typeof Highcharts = Highcharts;
-  chartOptions: Highcharts.Options = {
-    series: [
-      {
-        data: [1, 2, 3],
-        type: 'line',
+  chartOptions: Highcharts.Options;
+
+  ngOnInit() {
+    // TODO: If no data, display: "No data to display" with title
+
+    this.chartOptions = {
+      title: {
+        text: '',
       },
-    ],
-  };
+      credits: { enabled: false },
+      series: [
+        {
+          data: this.data?.map((d) => [d.label, d.value]),
+          name: this.dataDescription,
+          colors: this.data?.map((d) => d.color),
+          type: 'pie',
+        },
+      ],
+    };
+  }
 }
