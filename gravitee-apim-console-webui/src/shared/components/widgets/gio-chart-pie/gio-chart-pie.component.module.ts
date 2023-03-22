@@ -15,11 +15,12 @@
  */
 import { NgModule } from '@angular/core';
 import { HighchartsChartModule } from 'highcharts-angular';
+import { CommonModule } from '@angular/common';
 
 import { GioChartPieComponent } from './gio-chart-pie.component';
 
 @NgModule({
-  imports: [HighchartsChartModule, HighchartsChartModule],
+  imports: [HighchartsChartModule, CommonModule],
   declarations: [GioChartPieComponent],
   exports: [GioChartPieComponent],
 })
