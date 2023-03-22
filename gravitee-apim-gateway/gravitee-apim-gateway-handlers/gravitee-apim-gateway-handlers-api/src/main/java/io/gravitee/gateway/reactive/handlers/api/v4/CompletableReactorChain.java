@@ -21,7 +21,6 @@ import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.CompletableTransformer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 
 /**
