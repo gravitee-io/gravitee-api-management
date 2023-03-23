@@ -15,15 +15,17 @@
     limitations under the License.
 
 -->
-<div class="mat-body-strong" *ngIf="title">{{ title }}</div>
-<highcharts-chart
-  *ngIf="data && data.length > 0; else noData"
-  [Highcharts]="Highcharts"
-  [options]="chartOptions"
-  class="gio-chart-pie__chart"
-></highcharts-chart>
-<ng-template #noData>
-  <div class="gio-chart-pie__no-data">
-    <div class="mat-body">No data to display</div>
-  </div>
-</ng-template>
+<div class="gio-chart-pie">
+  <div class="mat-body-strong" *ngIf="title">{{ title }}</div>
+  <highcharts-chart
+    *ngIf="data && data.length > 0; else noData"
+    [Highcharts]="Highcharts"
+    [options]="chartOptions"
+    class="gio-chart-pie__chart"
+  ></highcharts-chart>
+  <ng-template #noData>
+    <div class="gio-chart-pie__no-data">
+      <div class="mat-body">No data to display</div>
+    </div>
+  </ng-template>
+</div>
