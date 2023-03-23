@@ -2646,7 +2646,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public void attachMedia(String pageId, String mediaId, String mediaName) {
+    public Optional<PageEntity> attachMedia(String pageId, String mediaId, String mediaName) {
         try {
             final Optional<Page> optPage = pageRepository.findById(pageId);
             if (optPage.isPresent()) {
@@ -2655,7 +2655,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     page.setAttachedMedia(new ArrayList<>());
                 }
                 page.getAttachedMedia().add(new PageMedia(mediaId, mediaName, new Date()));
-                pageRepository.update(page);
+                final Page updatedPage = pageRepository.update(page);
+                return Optional.of(convert(updatedPage));
+            } else {
+                return Optional.empty();
             }
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
