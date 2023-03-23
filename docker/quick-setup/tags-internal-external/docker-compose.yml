@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: '3.8'
 
 networks:
   frontend:
@@ -34,6 +34,11 @@ services:
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
+    healthcheck:
+      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - storage
 
@@ -56,6 +61,11 @@ services:
         soft: -1
         hard: -1
       nofile: 65536
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - storage
 
@@ -66,8 +76,10 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - mongodb
-      - elasticsearch
+      mongodb:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./.logs/apim-gateway-internal:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
@@ -87,8 +99,10 @@ services:
     ports:
       - "8081:8082"
     depends_on:
-      - mongodb
-      - elasticsearch
+      mongodb:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./.logs/apim-gateway-external:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
@@ -111,8 +125,10 @@ services:
       - mongodb
       - elasticsearch
     depends_on:
-      - mongodb
-      - elasticsearch
+      mongodb:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.license:/opt/graviteeio-management-api/license

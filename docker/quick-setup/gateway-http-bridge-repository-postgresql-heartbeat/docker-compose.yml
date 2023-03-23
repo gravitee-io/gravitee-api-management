@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: '3.8'
 
 networks:
   frontend:
@@ -70,6 +70,11 @@ services:
         soft: -1
         hard: -1
       nofile: 65536
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - storage
 
@@ -116,9 +121,12 @@ services:
       # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
       - "gateway_server:gateway-server"
     depends_on:
-      - elasticsearch
-      - gateway_server
-      - pg_database
+      elasticsearch:
+        condition: service_healthy
+      gateway_server:
+        condition: service_started
+      pg_database:
+        condition: service_started
     volumes:
       - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
       - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
@@ -151,8 +159,10 @@ services:
       - pg_database
       - elasticsearch
     depends_on:
-      - pg_database
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
+      pg_database:
+        condition: service_started
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: '3.8'
 
 networks:
   frontend:
@@ -63,6 +63,11 @@ services:
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
+    healthcheck:
+      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - storage
 
@@ -84,6 +89,11 @@ services:
         soft: -1
         hard: -1
       nofile: 65536
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - storage
 
@@ -93,9 +103,12 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - mongodb
-      - elasticsearch
-      - keycloak
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
     links:
       - nginx:auth.localhost
     volumes:
@@ -121,8 +134,10 @@ services:
       - mongodb
       - elasticsearch
     depends_on:
-      - mongodb
-      - elasticsearch
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.plugins:/opt/graviteeio-management-api/plugins-ext
