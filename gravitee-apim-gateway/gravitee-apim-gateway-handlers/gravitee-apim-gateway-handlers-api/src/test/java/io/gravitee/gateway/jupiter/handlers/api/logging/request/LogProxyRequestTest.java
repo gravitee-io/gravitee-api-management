@@ -102,6 +102,7 @@ class LogProxyRequestTest {
         when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
 
         final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, request);
+        logRequest.setHeaders(headers);
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();

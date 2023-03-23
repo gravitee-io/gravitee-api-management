@@ -27,6 +27,7 @@ import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
 import io.gravitee.gateway.jupiter.core.context.MutableRequest;
 import io.gravitee.gateway.jupiter.core.context.MutableResponse;
 import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
+import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.reactivex.rxjava3.core.Flowable;
@@ -128,9 +129,12 @@ class LoggingHookTest {
     @Test
     void shouldSetProxyResponseWhenProxyMode() {
         final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.proxyMode()).thenReturn(true);
+
+        when(request.headers()).thenReturn(HttpHeaders.create());
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
@@ -140,11 +144,30 @@ class LoggingHookTest {
     }
 
     @Test
-    void shouldSetProxyResponseWhenProxyModeAndInterrupt() {
+    void shouldSetProxyRequestHeadersWhenProxyMode() {
         final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.proxyMode()).thenReturn(true);
+
+        when(request.headers()).thenReturn(HttpHeaders.create());
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+
+        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getProxyRequest().getHeaders());
+    }
+
+    @Test
+    void shouldSetProxyResponseWhenProxyModeAndInterrupt() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.interrupt("test", ctx, ExecutionPhase.REQUEST).test();
@@ -156,15 +179,33 @@ class LoggingHookTest {
     @Test
     void shouldSetProxyResponseWhenProxyModeAndInterruptWith() {
         final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
         obs.assertComplete();
 
         assertNotNull(log.getProxyResponse());
+    }
+
+    @Test
+    void shouldSetProxyRequestHeadersWhenProxyModeAndInterruptWith() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getProxyRequest().getHeaders());
     }
 
     @Test
