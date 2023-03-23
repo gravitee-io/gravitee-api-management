@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.logging.request;
 
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.logging.LoggingContext;
 import io.gravitee.gateway.jupiter.api.context.HttpRequest;
 
@@ -32,6 +33,11 @@ public class LogProxyRequest extends LogRequest {
         request.chunks(
             request.chunks().doOnSubscribe(s -> this.setUri(request.metrics().getEndpoint() != null ? request.metrics().getEndpoint() : ""))
         );
+    }
+
+    @Override
+    public void setHeaders(HttpHeaders headers) {
+        super.setHeaders(HttpHeaders.create(headers));
     }
 
     protected boolean isLogPayload() {

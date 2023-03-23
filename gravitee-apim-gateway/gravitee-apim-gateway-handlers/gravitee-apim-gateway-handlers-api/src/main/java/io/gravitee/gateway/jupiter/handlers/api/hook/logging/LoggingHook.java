@@ -47,8 +47,8 @@ public class LoggingHook implements InvokerHook {
             final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
             if (log != null && loggingContext.proxyMode()) {
-                final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, ctx.request());
-                log.setProxyRequest(logRequest);
+                log.setProxyRequest(new LogProxyRequest(loggingContext, ctx.request()));
+
                 ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
         });
@@ -61,6 +61,8 @@ public class LoggingHook implements InvokerHook {
             final LoggingContext loggingContext = ctx.getInternalAttribute(LoggingContext.ATTR_INTERNAL_LOGGING_CONTEXT);
 
             if (log != null && loggingContext.proxyMode()) {
+                log.getProxyRequest().setHeaders(ctx.request().headers());
+
                 final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
                 log.setProxyResponse(logResponse);
 
