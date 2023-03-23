@@ -35,6 +35,8 @@ import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPre
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
@@ -61,10 +63,12 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
+    private final Configuration configuration;
     private final ReporterService reporterService;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
     public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
+        this.configuration = configuration;
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.clientIdentifierHeader =
             configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
@@ -142,6 +146,7 @@ public class ApiProcessorChainFactory {
         final List<Processor> processors = new ArrayList<>();
 
         processors.add(new ShutdownProcessor(node));
+        processors.add(new TransactionPostProcessor(new TransactionPostProcessorConfiguration(configuration)));
 
         getHttpListener(api)
             .ifPresent(httpListener -> {
